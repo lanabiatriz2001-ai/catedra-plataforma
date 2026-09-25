@@ -722,10 +722,12 @@ private struct ReaderScreen: View {
         // .id garante que trocar de norma zera texto, rolagem e estado do leitor.
         LawReaderView(lawID: lawID, onOpenLaw: openLaw)
             .id(lawID)
-            .navigationTitle(store.laws.first { $0.id == lawID }?.title ?? "Norma")
+            // Entrega 6: no iPad regular a BarraLeitor já diz onde estou — o título da barra do
+            // sistema (grande, ao entrar pelo Continuar) duplicava. No compacto ela é o voltar.
+            .navigationTitle(ehCompacto ? (store.laws.first { $0.id == lawID }?.title ?? "Norma") : "")
+            .navigationBarTitleDisplayMode(.inline)
             // Compacto: título em linha (44 pt) — o título grande comeria ~96 pt dos 844
             // antes da primeira linha da lei. Em regular fica como sempre.
-            .navigationBarTitleDisplayMode(ehCompacto ? .inline : .automatic)
             .onReceive(store.$laws) { laws in
                 // Excluída enquanto lida → volta para a tela anterior.
                 if !laws.contains(where: { $0.id == lawID }) { dismiss() }

@@ -178,7 +178,7 @@ struct UpdateComparisonTable: View {
 
     private func cell(_ content: Text, tint: Color) -> some View {
         content
-            .font(.system(size: fontSize - 1))
+            .font(DS.interface(fontSize - 1))
             .textSelection(.enabled)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .topLeading)

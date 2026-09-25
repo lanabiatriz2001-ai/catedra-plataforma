@@ -2303,7 +2303,7 @@ struct UnitLine: View {
         case .inciso(let numeral, let text):
             HStack(alignment: .firstTextBaseline, spacing: 10) {
                 Text(numeral)
-                    .font(.system(size: fontSize - 1, weight: .bold, design: .default))
+                    .font(DS.interface(fontSize - 1, .bold))
                     .foregroundStyle(accent)
                     .frame(minWidth: 28, alignment: .trailing)
                 body(text)
@@ -2314,14 +2314,14 @@ struct UnitLine: View {
         case .paragrafo(let label, let text):
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(label)
-                    .font(.system(size: fontSize - 1, weight: .bold))
+                    .font(DS.interface(fontSize - 1, .bold))
                     .foregroundStyle(AppTheme.srs)
                 body(text)
             }
         case .alinea(let letter, let text):
             HStack(alignment: .firstTextBaseline, spacing: 10) {
                 Text("\(letter))")
-                    .font(.system(size: fontSize - 1, weight: .semibold))
+                    .font(DS.interface(fontSize - 1, .semibold))
                     .foregroundStyle(.secondary)
                     .frame(minWidth: 28, alignment: .trailing)
                 body(text)
@@ -2334,7 +2334,7 @@ struct UnitLine: View {
 
     private func body(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: fontSize, design: .default))
+            .font(DS.interface(fontSize))
             .lineSpacing(6)
             .textSelection(.enabled)
             .fixedSize(horizontal: false, vertical: true)

@@ -71,10 +71,10 @@ struct JurisSidebar: View {
                 RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous)
                     .fill(ThemeState.t.accent).frame(width: 34, height: 34)
                     .overlay(Image(systemName: "building.columns.fill")
-                        .font(.system(size: 15, weight: .bold)).foregroundStyle(.white))
+                        .font(DS.interface(15, .bold)).foregroundStyle(.white))
                 VStack(alignment: .leading, spacing: 0) {
-                    Text("CátedraJURIS").font(.system(size: 14.5, weight: .bold)).foregroundStyle(.white)
-                    Text("Vade Mecum de jurisprudência").font(.system(size: 10))
+                    Text("CátedraJURIS").font(DS.interface(14.5, .bold)).foregroundStyle(.white)
+                    Text("Vade Mecum de jurisprudência").font(DS.interface(10))
                         .foregroundStyle(ThemeState.t.sidebarText.opacity(0.85))
                         .lineLimit(1).minimumScaleFactor(0.8)
                 }
@@ -103,7 +103,7 @@ struct JurisSidebar: View {
             if case .executando(let msg) = updater.fase {
                 HStack(spacing: 8) {
                     ProgressView().controlSize(.small)
-                    Text(msg).font(.system(size: 10))
+                    Text(msg).font(DS.interface(10))
                         .foregroundStyle(ThemeState.t.sidebarText.opacity(0.75)).lineLimit(2)
                     Spacer(minLength: 0)
                 }
@@ -114,21 +114,21 @@ struct JurisSidebar: View {
             // como no CátedraLEGIS; o strip do topo saiu).
             HStack(spacing: 10) {
                 Image(systemName: clock.running ? "clock.fill" : "clock")
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(DS.interface(15, .semibold))
                     .foregroundStyle(clock.running ? ThemeState.t.accent : ThemeState.t.sidebarText.opacity(0.7))
                 VStack(alignment: .leading, spacing: 1) {
                     Text(clock.formatted)
-                        .font(.system(size: 17, weight: .semibold).monospacedDigit())
+                        .font(DS.interface(17, .semibold).monospacedDigit())
                         .foregroundStyle(.white)
                     Text(clock.running ? "revisando · vai pro Cátedra" : "tempo de estudo · play manual")
-                        .font(.system(size: 8.5, weight: .medium))
+                        .font(DS.interface(8.5, .medium))
                         .foregroundStyle(ThemeState.t.sidebarText.opacity(0.62))
                         .lineLimit(1).minimumScaleFactor(0.75)
                 }
                 Spacer(minLength: 0)
                 Button { clock.togglePlay() } label: {
                     Image(systemName: clock.manualPlaying ? "pause.fill" : "play.fill")
-                        .font(.system(size: 13, weight: .bold))
+                        .font(DS.interface(13, .bold))
                         .foregroundStyle(.white)
                         .frame(width: 26, height: 26)
                         .background(Circle().fill(clock.manualPlaying ? Color.white.opacity(0.16) : ThemeState.t.accent))
@@ -139,7 +139,7 @@ struct JurisSidebar: View {
                     NotificationCenter.default.post(name: JurisHostBridge.openSettings, object: nil)
                 } label: {
                     Image(systemName: "gearshape")
-                        .font(.system(size: 13, weight: .medium))
+                        .font(DS.interface(13, .medium))
                         .foregroundStyle(ThemeState.t.sidebarText.opacity(0.8))
                         .frame(width: 26, height: 26)
                         .contentShape(Rectangle())
@@ -178,14 +178,14 @@ struct JurisSidebar: View {
                 }
             })
         return HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass").font(.system(size: 12, weight: .medium))
+            Image(systemName: "magnifyingglass").font(DS.interface(12, .medium))
                 .foregroundStyle(ThemeState.t.sidebarText.opacity(0.8))
             TextField("Buscar em tudo…", text: bind)
-                .textFieldStyle(.plain).font(.system(size: 12.5))
+                .textFieldStyle(.plain).font(DS.interface(12.5))
                 .foregroundStyle(.white)
             if !store.searchText.isEmpty {
                 Button { store.searchText = "" } label: {
-                    Image(systemName: "xmark.circle.fill").font(.system(size: 11))
+                    Image(systemName: "xmark.circle.fill").font(DS.interface(11))
                         .foregroundStyle(ThemeState.t.sidebarText.opacity(0.7))
                 }
                 .buttonStyle(.plain)
@@ -204,7 +204,7 @@ struct JurisSidebar: View {
 
     private func secao(_ t: String) -> some View {
         Text(t)
-            .font(.system(size: 9.5, weight: .bold)).tracking(0.9)
+            .font(DS.interface(9.5, .bold)).tracking(0.9)
             .foregroundStyle(ThemeState.t.sidebarText.opacity(0.55))
             .padding(.horizontal, 12).padding(.top, 16).padding(.bottom, 5)
     }
@@ -227,13 +227,13 @@ struct JurisSidebar: View {
         let active = ativa(sel)
         Button { store.ir(sel) } label: {
             HStack(spacing: 11) {
-                Image(systemName: icon).font(.system(size: 13, weight: .medium)).frame(width: 20)
+                Image(systemName: icon).font(DS.interface(13, .medium)).frame(width: 20)
                     .foregroundStyle(iconColor(sel, active: active) ??
                                      (active ? ThemeState.t.sidebarActiveText : ThemeState.t.sidebarText))
-                Text(label).font(.system(size: 13, weight: active ? .semibold : .medium)).lineLimit(1)
+                Text(label).font(DS.interface(13, active ? .semibold : .medium)).lineLimit(1)
                 Spacer(minLength: 4)
                 if badge > 0 {   // contagem só onde é fila de trabalho (revisar hoje / checklist)
-                    Text("\(badge)").font(.system(size: 10, weight: .bold).monospacedDigit())
+                    Text("\(badge)").font(DS.interface(10, .bold).monospacedDigit())
                         .foregroundStyle(.white)
                         .padding(.horizontal, 6).padding(.vertical, 1)
                         .background(Capsule().fill(ThemeState.t.accent.opacity(active ? 0.6 : 0.9)))
@@ -242,7 +242,7 @@ struct JurisSidebar: View {
                     Circle().fill(ThemeState.t.accent).frame(width: 7, height: 7)
                 }
                 if chevron {
-                    Image(systemName: "chevron.right").font(.system(size: 9, weight: .bold))
+                    Image(systemName: "chevron.right").font(DS.interface(9, .bold))
                         .foregroundStyle(ThemeState.t.sidebarText.opacity(0.55))
                 }
             }

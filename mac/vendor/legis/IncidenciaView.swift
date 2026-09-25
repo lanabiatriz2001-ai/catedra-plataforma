@@ -158,7 +158,7 @@ struct IncidenciaView: View {
                     .onChange(of: modo) { _, _ in sel = nil; selProva = nil; aviso = nil }
                     if let aviso {
                         Label(aviso, systemImage: "exclamationmark.triangle")
-                            .font(.system(size: 12.5)).foregroundStyle(AppTheme.warn)
+                            .font(DS.interface(12.5)).foregroundStyle(AppTheme.warn)
                             .padding(10).legisCard(tint: AppTheme.warn, spine: true)
                     }
                     if modo == .provas {
@@ -187,16 +187,16 @@ struct IncidenciaView: View {
             ForEach(itens) { d in
                 Button { sel = d } label: {
                     HStack(spacing: 12) {
-                        Text(d.nome).font(.system(size: 13.5, weight: .semibold)).foregroundStyle(AppTheme.ink)
+                        Text(d.nome).font(DS.interface(13.5, .semibold)).foregroundStyle(AppTheme.ink)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                        Text("\(d.artigos) artigos").font(.system(size: 11.5, design: .monospaced)).foregroundStyle(AppTheme.secondaryInk)
+                        Text("\(d.artigos) artigos").font(DS.mono(11.5, .regular)).foregroundStyle(AppTheme.secondaryInk)
                         GeometryReader { g in
                             ZStack(alignment: .leading) {
                                 Capsule().fill(AppTheme.hairline)
                                 Capsule().fill(ThemeState.t.accent).frame(width: g.size.width * CGFloat(d.total) / CGFloat(max))
                             }
                         }.frame(width: 110, height: 6)
-                        Text("\(d.total)").font(.system(size: 12, weight: .bold, design: .monospaced)).foregroundStyle(AppTheme.ink)
+                        Text("\(d.total)").font(DS.mono(12, .bold)).foregroundStyle(AppTheme.ink)
                             .frame(width: 48, alignment: .trailing)
                     }
                     .padding(.horizontal, 15).padding(.vertical, 11)
@@ -220,15 +220,15 @@ struct IncidenciaView: View {
                 Text("\(alta) alta").foregroundStyle(cAlta).bold()
                 Text("· \(media) média").foregroundStyle(cMedia).bold()
                 Text("· \(d.artigos - alta - media) baixa")
-            }.font(.system(size: 12.5)).foregroundStyle(AppTheme.secondaryInk)
+            }.font(DS.interface(12.5)).foregroundStyle(AppTheme.secondaryInk)
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 58), spacing: 6)], spacing: 6) {
                 ForEach(arts) { a in
                     let f = d.faixa(a.n)
                     let cor = f == .alta ? cAlta : f == .media ? cMedia : cBaixa
                     Button { abrirNaLei(d, artigo: a.numero) } label: {
                         VStack(spacing: 1) {
-                            Text(a.numero).font(.system(size: 12.5, weight: .heavy, design: .monospaced))
-                            Text("\(a.n)").font(.system(size: 9, weight: .bold)).opacity(0.75)
+                            Text(a.numero).font(DS.mono(12.5, .heavy))
+                            Text("\(a.n)").font(DS.interface(9, .bold)).opacity(0.75)
                         }
                         .frame(maxWidth: .infinity, minHeight: 50)
                         .foregroundStyle(cor)
@@ -257,16 +257,16 @@ struct IncidenciaView: View {
                 let t = d.total(carreira: carreira)
                 Button { selProva = d } label: {
                     HStack(spacing: 12) {
-                        Text(d.nome).font(.system(size: 13.5, weight: .semibold)).foregroundStyle(AppTheme.ink)
+                        Text(d.nome).font(DS.interface(13.5, .semibold)).foregroundStyle(AppTheme.ink)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                        Text("\(d.artigos(carreira: carreira).count) artigos").font(.system(size: 11.5, design: .monospaced)).foregroundStyle(AppTheme.secondaryInk)
+                        Text("\(d.artigos(carreira: carreira).count) artigos").font(DS.mono(11.5, .regular)).foregroundStyle(AppTheme.secondaryInk)
                         GeometryReader { g in
                             ZStack(alignment: .leading) {
                                 Capsule().fill(AppTheme.hairline)
                                 Capsule().fill(ThemeState.t.accent).frame(width: g.size.width * CGFloat(t) / CGFloat(max))
                             }
                         }.frame(width: 110, height: 6)
-                        Text("\(t)").font(.system(size: 12, weight: .bold, design: .monospaced)).foregroundStyle(AppTheme.ink)
+                        Text("\(t)").font(DS.mono(12, .bold)).foregroundStyle(AppTheme.ink)
                             .frame(width: 48, alignment: .trailing)
                     }
                     .padding(.horizontal, 15).padding(.vertical, 11)
@@ -283,11 +283,11 @@ struct IncidenciaView: View {
             Button { selProva = nil; aviso = nil } label: { Label("Todos os diplomas", systemImage: "chevron.left") }.buttonStyle(.legisGhost)
             Text(d.nome).font(AppTheme.displayFont(24, .heavy)).tracking(-0.4).foregroundStyle(AppTheme.ink)
             Text("\(arts.count) artigos exigidos · \(d.total(carreira: carreira)) exigências em espelhos oficiais" + (carreira.map { " · \($0)" } ?? ""))
-                .font(.system(size: 12.5)).foregroundStyle(AppTheme.secondaryInk)
+                .font(DS.interface(12.5)).foregroundStyle(AppTheme.secondaryInk)
             ForEach(arts, id: \.numero) { a in
                 VStack(alignment: .leading, spacing: 6) {
                     HStack {
-                        Text("Art. \(a.numero)").font(.system(size: 14, weight: .heavy, design: .monospaced)).foregroundStyle(AppTheme.ink)
+                        Text("Art. \(a.numero)").font(DS.mono(14, .heavy)).foregroundStyle(AppTheme.ink)
                         LegisChip("\(a.n)× em prova", tint: ThemeState.t.accent, variant: .soft, size: 11.5)
                         Spacer()
                         Button("Abrir na lei") { abrirNaLeiProva(d, artigo: a.numero) }.buttonStyle(.legisGhost)
@@ -300,7 +300,7 @@ struct IncidenciaView: View {
                     Text(a.a.provas.filter { carreira == nil || $0.carreira == carreira! }
                             .map { "\($0.orgao) \($0.ano.map(String.init) ?? "")" + (($0.banca ?? "").isEmpty ? "" : " (\($0.banca!))") }
                             .joined(separator: " · "))
-                        .font(.system(size: 11.5)).foregroundStyle(AppTheme.secondaryInk)
+                        .font(DS.interface(11.5)).foregroundStyle(AppTheme.secondaryInk)
                 }
                 .padding(12)
                 .legisCard()
@@ -311,7 +311,7 @@ struct IncidenciaView: View {
 
     private var notaProva: some View {
         Text("Fonte: espelhos de correção OFICIAIS das provas de 2ª fase do banco do Cátedra (magistratura estadual e federal, por tribunal e banca). Conta quantas vezes a banca EXIGIU o dispositivo num quesito — cada número aponta para uma prova real. Não é estatística de questões objetivas: para isso, abra o artigo e use \"Questões de concurso\", que busca na sua conta do TEC/QConcursos.")
-            .font(.system(size: 11.5)).foregroundStyle(AppTheme.secondaryInk).lineSpacing(3).padding(.top, 8)
+            .font(DS.interface(11.5)).foregroundStyle(AppTheme.secondaryInk).lineSpacing(3).padding(.top, 8)
     }
 
     private func abrirNaLeiProva(_ d: IncidenciaDados.DiplomaProva, artigo: String) {
@@ -341,7 +341,7 @@ struct IncidenciaView: View {
 
     private var nota: some View {
         Text("Cada quadradinho é um artigo; o número pequeno é quantas vezes ele aparece citado nos verbetes de jurisprudência do app. Isto NÃO é frequência em prova — é incidência em julgado, que é outro sinal. Serve para atacar a lei pelos artigos que os tribunais realmente usam, em vez de ler do art. 1º ao fim.")
-            .font(.system(size: 11.5)).foregroundStyle(AppTheme.secondaryInk).lineSpacing(3)
+            .font(DS.interface(11.5)).foregroundStyle(AppTheme.secondaryInk).lineSpacing(3)
             .padding(.top, 8)
     }
 
@@ -410,8 +410,8 @@ struct ProvaOralLegisView: View {
                 ForEach(leis.prefix(80)) { l in
                     Button { escolherNorma(l) } label: {
                         VStack(alignment: .leading, spacing: 3) {
-                            Text(l.title).font(.system(size: 13.5, weight: .bold)).foregroundStyle(AppTheme.ink).lineLimit(2)
-                            Text(l.reference).font(.system(size: 11)).foregroundStyle(AppTheme.secondaryInk).lineLimit(1)
+                            Text(l.title).font(DS.interface(13.5, .bold)).foregroundStyle(AppTheme.ink).lineLimit(2)
+                            Text(l.reference).font(DS.interface(11)).foregroundStyle(AppTheme.secondaryInk).lineLimit(1)
                         }
                         .padding(13)
                         .legisCard(tint: l.category.color, spine: true, hover: true)
@@ -436,17 +436,17 @@ struct ProvaOralLegisView: View {
                 Button { sortear(l) } label: { Label("Sortear artigo", systemImage: "dice") }.buttonStyle(.legisPrimary).disabled(carregando)
                 if !historico.isEmpty {
                     Text("Nesta sessão: " + historico.map { "\($0.artigo) \($0.nota == "boa" ? "✓" : $0.nota == "media" ? "~" : "✗")" }.joined(separator: "  "))
-                        .font(.system(size: 11.5)).foregroundStyle(AppTheme.secondaryInk)
+                        .font(DS.interface(11.5)).foregroundStyle(AppTheme.secondaryInk)
                 }
             }
-            if let erro { Text(erro).font(.system(size: 12.5)).foregroundStyle(AppTheme.danger) }
+            if let erro { Text(erro).font(DS.interface(12.5)).foregroundStyle(AppTheme.danger) }
             if let u = unidade {
                 // O DISPOSITIVO — o examinador aponta, a pessoa vê.
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         LegisSectionHeader(title: "Dispositivo apontado pela banca")
                         Spacer()
-                        if let c = u.context, !c.isEmpty { Text(c).font(.system(size: 10.5)).foregroundStyle(AppTheme.secondaryInk).lineLimit(1) }
+                        if let c = u.context, !c.isEmpty { Text(c).font(DS.interface(10.5)).foregroundStyle(AppTheme.secondaryInk).lineLimit(1) }
                     }
                     Text(u.label).font(AppTheme.displayFont(18, .heavy)).foregroundStyle(ThemeState.t.accent)
                     Text(u.lines.joined(separator: "\n")).font(AppTheme.readerFont(size: fontSize - 1.5, family: fontFamily)).lineSpacing(4).foregroundStyle(AppTheme.ink).textSelection(.enabled)
@@ -457,14 +457,14 @@ struct ProvaOralLegisView: View {
                 // A PERGUNTA, no tom da banca
                 VStack(alignment: .leading, spacing: 8) {
                     LegisSectionHeader(title: "Examinador", icon: "person.wave.2", tint: ThemeState.t.accent)
-                    Text(pergunta).font(.system(size: 16, weight: .semibold)).lineSpacing(4).foregroundStyle(AppTheme.ink)
+                    Text(pergunta).font(DS.interface(16, .semibold)).lineSpacing(4).foregroundStyle(AppTheme.ink)
                     Text("Responda como responderia à banca: posição, fundamento (artigo/§/inciso), exceções e um exemplo. 2 a 3 minutos.")
-                        .font(.system(size: 12)).foregroundStyle(AppTheme.secondaryInk)
+                        .font(DS.interface(12)).foregroundStyle(AppTheme.secondaryInk)
                 }
                 .padding(16).frame(maxWidth: .infinity, alignment: .leading)
                 .background(RoundedRectangle(cornerRadius: AppTheme.rCard, style: .continuous).fill(ThemeState.t.accent.opacity(0.08)))
 
-                TextEditor(text: $resposta).font(.system(size: 14.5)).frame(minHeight: 150)
+                TextEditor(text: $resposta).font(DS.interface(14.5)).frame(minHeight: 150)
                     .padding(10)
                     .legisCard(radius: AppTheme.rInner)
                 HStack(spacing: 10) {
@@ -532,7 +532,7 @@ struct ProvaOralLegisView: View {
             LegisSectionHeader(title: rot)
             HStack(alignment: .top, spacing: 0) {
                 RoundedRectangle(cornerRadius: 2).fill(cor).frame(width: 3)
-                Text(txt).font(.system(size: 14)).lineSpacing(3).foregroundStyle(AppTheme.ink)
+                Text(txt).font(DS.interface(14)).lineSpacing(3).foregroundStyle(AppTheme.ink)
                     .padding(.horizontal, 13).padding(.vertical, 10)
                 Spacer(minLength: 0)
             }
