@@ -10,6 +10,8 @@
 //   node scripts/atualizar-vendor.mjs supabase.js 2.117.2
 //   node scripts/atualizar-vendor.mjs react.js 18.3.1
 //   node scripts/atualizar-vendor.mjs react-dom.js 18.3.1
+//   node scripts/atualizar-vendor.mjs pdfjs 3.11.174    # pdf.min.js e pdf.worker.min.js JUNTOS
+//                                                    # (o PDF.js recusa worker de outra versão)
 //   node scripts/atualizar-vendor.mjs --conferir     # baixa as versões do manifesto e compara
 //                                                    # byte a byte com vendor/ (não grava nada)
 //
@@ -36,7 +38,13 @@ const FONTES = {
   'react.js': { pacote: 'react', url: (v) => `https://cdn.jsdelivr.net/npm/react@${v}/umd/react.production.min.js` },
   'react-dom.js': { pacote: 'react-dom', url: (v) => `https://cdn.jsdelivr.net/npm/react-dom@${v}/umd/react-dom.production.min.js` },
   'supabase.js': { pacote: '@supabase/supabase-js', url: (v) => `https://cdn.jsdelivr.net/npm/@supabase/supabase-js@${v}` },
+  // PDF.js: o cdnjs é de onde o app o buscava em tempo de execução até ser vendorado (os bytes
+  // são idênticos aos de pdfjs-dist/build/ no npm). O worker TEM de ser da mesma versão da lib.
+  'pdfjs/pdf.min.js': { pacote: 'pdfjs-dist', url: (v) => `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${v}/pdf.min.js` },
+  'pdfjs/pdf.worker.min.js': { pacote: 'pdfjs-dist', url: (v) => `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${v}/pdf.worker.min.js` },
 };
+// Arquivos que só trocam juntos: pedir "pdfjs" troca os dois.
+const GRUPOS = { pdfjs: ['pdfjs/pdf.min.js', 'pdfjs/pdf.worker.min.js'] };
 
 const pManifesto = join(ROOT, MANIFESTO);
 const manifesto = JSON.parse(readFileSync(pManifesto, 'utf8'));
@@ -44,6 +52,7 @@ const sair = (msg) => { console.error('✗ ' + msg); process.exit(1); };
 
 async function baixar(arquivo, versao) {
   const f = FONTES[arquivo];
+  if (!f) sair('arquivo sem fonte conhecida: ' + arquivo);
   const url = f.url(versao);
   const r = await fetch(url, { redirect: 'follow' });
   if (!r.ok) sair(`${url}: HTTP ${r.status}`);
@@ -52,6 +61,8 @@ async function baixar(arquivo, versao) {
   if (resolvida && resolvida !== versao) sair(`${url}: o CDN resolveu ${resolvida}, não ${versao}`);
   const buf = Buffer.from(await r.arrayBuffer());
   if (buf.length < 1000) sair(`${url}: corpo suspeito (${buf.length} bytes)`);
+  // O cdnjs não diz a versão num cabeçalho; o PDF.js a traz no próprio arquivo.
+  if (arquivo.startsWith('pdfjs/') && !buf.toString('utf8').includes(`"${versao}"`)) sair(`${url}: o arquivo não declara a versão ${versao}`);
   return { url, buf };
 }
 
@@ -68,22 +79,31 @@ if (args[0] === '--conferir') {
   process.exit(divergentes ? 1 : 0);
 }
 
-const [arquivo, versao] = args;
-if (!FONTES[arquivo]) sair('arquivo desconhecido: ' + arquivo + ' (use ' + Object.keys(FONTES).join(', ') + ')');
+const [pedido, versao] = args;
+const arquivos = GRUPOS[pedido] || [pedido];
+for (const a of arquivos) if (!FONTES[a]) sair('arquivo desconhecido: ' + pedido + ' (use ' + Object.keys(FONTES).filter((k) => !k.startsWith('pdfjs/')).concat(Object.keys(GRUPOS)).join(', ') + ')');
 if (!/^\d+\.\d+\.\d+$/.test(versao || '')) sair('versão tem de ser EXATA (x.y.z), recebi: ' + (versao || '(nada)'));
 
-const { url, buf } = await baixar(arquivo, versao);
-if (arquivo === 'supabase.js' && !buf.toString('utf8', 0, 600).includes(`/npm/@supabase/supabase-js@${versao}/dist/umd/supabase.js`)) {
-  sair(`${url}: o cabeçalho não aponta para dist/umd/supabase.js da ${versao} — o caminho do UMD mudou; confira antes de congelar.`);
+// Baixa TODOS antes de gravar qualquer um: grupo pela metade (lib nova com worker velho) quebra.
+const baixados = [];
+for (const arquivo of arquivos) {
+  const { url, buf } = await baixar(arquivo, versao);
+  if (arquivo === 'supabase.js' && !buf.toString('utf8', 0, 600).includes(`/npm/@supabase/supabase-js@${versao}/dist/umd/supabase.js`)) {
+    sair(`${url}: o cabeçalho não aponta para dist/umd/supabase.js da ${versao} — o caminho do UMD mudou; confira antes de congelar.`);
+  }
+  const ent = manifesto.arquivos.find((a) => a.arquivo === arquivo);
+  if (!ent) sair(arquivo + ' não consta de ' + MANIFESTO);
+  baixados.push({ arquivo, url, buf, ent });
 }
-const ent = manifesto.arquivos.find((a) => a.arquivo === arquivo);
-if (!ent) sair(arquivo + ' não consta de ' + MANIFESTO);
-const antes = `${ent.versao} (${ent.bytes} bytes, ${ent.sha256.slice(0, 12)}…)`;
-writeFileSync(join(ROOT, VENDOR_DIR, arquivo), buf);
-Object.assign(ent, { pacote: FONTES[arquivo].pacote, versao, origem: url, bytes: buf.length, sha256: sha256(buf) });
+for (const { arquivo, url, buf, ent } of baixados) {
+  const antes = `${ent.versao} (${ent.bytes} bytes, ${ent.sha256.slice(0, 12)}…)`;
+  writeFileSync(join(ROOT, VENDOR_DIR, arquivo), buf);
+  Object.assign(ent, { pacote: FONTES[arquivo].pacote, versao, origem: url, bytes: buf.length, sha256: sha256(buf) });
+  console.log(`✓ ${VENDOR_DIR}/${arquivo}: ${antes} → ${versao} (${buf.length} bytes, ${ent.sha256.slice(0, 12)}…)`);
+  if (arquivo === 'react.js' || arquivo === 'react-dom.js') {
+    console.log('  sha384 para o SRI do support.js: sha384-' + createHash('sha384').update(buf).digest('base64'));
+  }
+}
 writeFileSync(pManifesto, JSON.stringify(manifesto, null, 2) + '\n');
-console.log(`✓ ${VENDOR_DIR}/${arquivo}: ${antes} → ${versao} (${buf.length} bytes, ${ent.sha256.slice(0, 12)}…)`);
-if (arquivo !== 'supabase.js') {
-  console.log('  sha384 para o SRI do support.js: sha384-' + createHash('sha384').update(buf).digest('base64'));
-}
+if (GRUPOS.pdfjs === arquivos) console.log('  PDF.js: o caso "versão 3.11.174" de tests/pdfjs-local.mjs muda junto, de propósito.');
 console.log('  Agora: npm test, npm run test:webkit (com a origem [bundle]) e build nos dois aparelhos.');
