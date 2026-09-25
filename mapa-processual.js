@@ -133,12 +133,15 @@ var CSS = ''
 + '.mp-abrir{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;align-items:flex-start;'
 + 'padding:11px 13px 8px;border:0;background:transparent;color:inherit;cursor:pointer;text-align:left;width:100%}'
 + '.mp-abrir:focus-visible{outline:3px solid var(--mp-ciano);outline-offset:-3px}'
-+ '.mp-topo{display:flex;align-items:center;gap:7px;width:100%;font-size:9.5px;font-weight:800;'
-+ 'letter-spacing:.1em;text-transform:uppercase;color:var(--mp-roxo);padding-right:26px}'
-+ '.mp-no[data-tipo="decisao"] .mp-topo{color:var(--mp-ouro)}'
-+ '.mp-no[data-tipo="rejeicao"] .mp-topo{color:var(--mp-vermelho)}'
-+ '.mp-no[data-tipo="fim"] .mp-topo{color:var(--mp-verde)}'
-+ '.mp-topo .num{background:currentColor;color:var(--mp-cartao);border-radius:6px;padding:1px 5px;'
+/* A cor do tipo mora em --mp-tipo, e não só em `color`: o selo do número pinta o FUNDO com
+   ela. Com `background:currentColor` o selo lia a própria cor de texto (--mp-cartao) e virava
+   um quadrado escuro com o número escuro dentro — o "01" não aparecia. */
++ '.mp-topo{--mp-tipo:var(--mp-roxo);display:flex;align-items:center;gap:7px;width:100%;font-size:9.5px;font-weight:800;'
++ 'letter-spacing:.1em;text-transform:uppercase;color:var(--mp-tipo);padding-right:26px}'
++ '.mp-no[data-tipo="decisao"] .mp-topo{--mp-tipo:var(--mp-ouro)}'
++ '.mp-no[data-tipo="rejeicao"] .mp-topo{--mp-tipo:var(--mp-vermelho)}'
++ '.mp-no[data-tipo="fim"] .mp-topo{--mp-tipo:var(--mp-verde)}'
++ '.mp-topo .num{background:var(--mp-tipo);color:var(--mp-cartao);border-radius:6px;padding:1px 5px;'
 + 'font-variant-numeric:tabular-nums}'
 + '.mp-topo .est{margin-left:auto;color:var(--mp-tinta3);letter-spacing:.06em;flex:none;white-space:nowrap}'
 + '.mp-topo>span:nth-child(2){overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}'
@@ -227,6 +230,21 @@ var CSS = ''
 + 'color:var(--mp-tinta2);background:#0b111c;border:1px solid var(--mp-borda);border-radius:10px;padding:11px 13px;margin:0}'
 + '.mp-salvo{font-size:10.5px;color:var(--mp-verde)}'
 + '.mp-vazio{font-size:12.4px;color:var(--mp-tinta3);line-height:1.6}'
+
+/* Toque (iPad, qualquer ponteiro grosso): 44 px em qualquer largura — o mesmo mecanismo do
+   ritos-web (@media (pointer:coarse)), porque o iPad passa de 760 e regra por largura não chega.
+   O painel é anexado ao <body>, FORA do <main>, e por isso não recebe o `main button` do
+   catedra-ui.css que já levava os controles do mapa a 44: as referências (lei, julgado, peça)
+   ficavam com 34 px. No cartão, a estrela de 44×44 cobria o fim do topo ("À FRENTE") e a ponta
+   do título — o texto abre espaço para ela. Com mouse nada disto vale. */
++ '@media (pointer:coarse){'
++ '.mp-refs button{min-height:44px}'
++ '.mp-chip{min-height:44px}'
++ '.mp-rod button{min-height:44px}'
++ '.mp-fav{top:4px;right:4px;width:44px;height:44px}'
++ '.mp-topo{padding-right:44px}'
++ '.mp-abrir strong{padding-right:34px}'
++ '}'
 
 /* leitor de tela */
 + '.mp-so-leitor{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;'
