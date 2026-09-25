@@ -430,6 +430,7 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         var t = ThemeState.t
         if let c = col("bg")       { t.bg = c }
         if let c = col("surface")  { t.surface = c }
+        if let h = (d["surface"] as? String).flatMap(Color.hexDe(css:)) { t.surfaceHex = h }
         if let c = col("surface2") { t.surface2 = c }
         if let c = col("border")   { t.border = c }
         if let c = col("ink")      { t.ink = c }
@@ -444,6 +445,7 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
             let l = disp.lowercased()
             t.displaySerif = l.contains("spectral") || l.contains("georgia")
                 || (l.contains("serif") && !l.contains("sans-serif"))
+            if let fam = DS.familiaDisplay(css: disp) { t.displayFamilia = fam }
         }
         if let c = col("sbg")      { t.sidebarBg = c }
         if let c = col("stext")    { t.sidebarText = c }
@@ -1751,6 +1753,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 final class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ app: UIApplication,
                      didFinishLaunchingWithOptions opts: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        DSFontes.registrar()       // fontes da casa (web/fonts) para o LEGIS/JURIS nativos
         return true
     }
     func application(_ app: UIApplication,

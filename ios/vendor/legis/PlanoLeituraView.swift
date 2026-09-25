@@ -124,12 +124,12 @@ struct PlanoLeituraView: View {
                             .foregroundStyle(AppTheme.secondaryInk).lineLimit(1)
                     }
                 } else if doneN > 0 {
-                    Text(ThemeState.t.baixaEstimulacao ? "Plano concluído — parabéns!" : "Plano concluído — parabéns! 🎉").font(AppTheme.ui(12.5))
+                    Text("Plano concluído — parabéns!").font(AppTheme.ui(12.5))
                         .foregroundStyle(AppTheme.secondaryInk)
                 }
                 if showCrono, startTS > 0 {
                     let atr = overdueCount()
-                    Text(atr > 0 ? "⏰ \(atr) leitura\(atr == 1 ? "" : "s") atrasada\(atr == 1 ? "" : "s")" : "Em dia com o cronograma ✓")
+                    Text(atr > 0 ? "\(atr) leitura\(atr == 1 ? "" : "s") atrasada\(atr == 1 ? "" : "s")" : "Em dia com o cronograma ✓")
                         .font(AppTheme.ui(12, .semibold))
                         .foregroundStyle(atr > 0 ? AppTheme.danger : ThemeState.t.accent)
                 }

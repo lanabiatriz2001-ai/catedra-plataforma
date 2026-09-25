@@ -237,7 +237,7 @@ struct DashboardView: View {
                         heroStat("\(store.totalReadUnits)", "artigos lidos")
                         heroStat("\(store.totalReviewUnits)", "p/ revisão")
                         // Baixa estimulação: a sequência (gamificação) sai do hero; o dado fica no store.
-                        if !ThemeState.t.baixaEstimulacao { heroStat("🔥 \(store.currentStreak)d", "sequência") }
+                        if !ThemeState.t.baixaEstimulacao { heroStat("\(store.currentStreak)d", "sequência") }
                         heroStat("\(store.activeDaysLastYear)", "dias ativos")
                     }
                 }
