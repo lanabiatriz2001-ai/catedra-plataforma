@@ -79,8 +79,8 @@ struct HomeView: View {
     /// Divisor de bloco: caixa-alta + filete — a "voz de seção grande" da Home.
     private func bloco(_ t: String, _ simbolo: String) -> some View {
         HStack(spacing: 8) {
-            Image(systemName: simbolo).font(.system(size: 13, weight: .bold)).foregroundStyle(Palette.accent)
-            Text(t.uppercased()).font(.system(size: 12, weight: .heavy)).tracking(1.2).foregroundStyle(Palette.secondaryInk)
+            Image(systemName: simbolo).font(DS.interface(13, .bold)).foregroundStyle(Palette.accent)
+            Text(t.uppercased()).font(DS.interface(12, .heavy)).tracking(1.2).foregroundStyle(Palette.secondaryInk)
             Rectangle().fill(Palette.hairline).frame(height: 1)
         }
         .padding(.horizontal, 28).padding(.top, 6)
@@ -133,12 +133,12 @@ private struct RamoTile: View {
     var body: some View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 6) {
-                Image(systemName: "books.vertical.fill").font(.system(size: 16))
+                Image(systemName: "books.vertical.fill").font(DS.interface(16))
                     .foregroundStyle(.white)
                 Spacer(minLength: 0)
-                Text(nome).font(.system(size: 12.5, weight: .bold))
+                Text(nome).font(DS.interface(12.5, .bold))
                     .foregroundStyle(.white).lineLimit(2)
-                Text("\(count) verbetes").font(.system(size: 10, weight: .medium))
+                Text("\(count) verbetes").font(DS.interface(10, .medium))
                     .foregroundStyle(.white.opacity(0.85))
             }
             .padding(13).frame(width: 168, height: 104, alignment: .topLeading)
@@ -164,15 +164,15 @@ struct JurisHojeResumo: View {
         let metas = store.checklistPendingCount
         Button { store.ir(.hoje) } label: {
             HStack(spacing: 14) {
-                Image(systemName: "sun.horizon.fill").font(.system(size: 18, weight: .bold)).foregroundStyle(Palette.accent)
+                Image(systemName: "sun.horizon.fill").font(DS.interface(18, .bold)).foregroundStyle(Palette.accent)
                     .frame(width: 38, height: 38)
                     .background(Palette.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Revisar hoje").font(.system(size: 15, weight: .heavy)).foregroundStyle(Palette.titleInk)
+                    Text("Revisar hoje").font(DS.interface(15, .heavy)).foregroundStyle(Palette.titleInk)
                     Text(srs == 0 && metas == 0
                          ? "Nada vencido — abra para ver o julgado do dia e o checklist."
                          : "\(srs) cartão\(srs == 1 ? "" : "ões") de revisão vencido\(srs == 1 ? "" : "s") · \(metas) meta\(metas == 1 ? "" : "s") pendente\(metas == 1 ? "" : "s")")
-                        .font(.system(size: 12)).foregroundStyle(Palette.secondaryInk).lineLimit(2)
+                        .font(DS.interface(12)).foregroundStyle(Palette.secondaryInk).lineLimit(2)
                 }
                 Spacer(minLength: 0)
                 if srs + metas > 0 {
@@ -180,7 +180,7 @@ struct JurisHojeResumo: View {
                         .padding(.horizontal, 8).padding(.vertical, 3)
                         .background(Palette.accent, in: Capsule())
                 }
-                Image(systemName: "chevron.right").font(.system(size: 11, weight: .semibold)).foregroundStyle(Palette.secondaryInk)
+                Image(systemName: "chevron.right").font(DS.interface(11, .semibold)).foregroundStyle(Palette.secondaryInk)
             }
             .padding(14)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -228,15 +228,15 @@ struct JurisHojeView: View {
         return HStack(spacing: 14) {
             VStack(alignment: .leading, spacing: 3) {
                 Text(due == 0 ? "Nenhum cartão vencido" : "\(due) cartão\(due == 1 ? "" : "ões") para revisar")
-                    .font(.system(size: 15, weight: .bold)).foregroundStyle(Palette.titleInk)
+                    .font(DS.interface(15, .bold)).foregroundStyle(Palette.titleInk)
                 Text(deck == 0 ? "Gere flashcards pelo roteiro de um verbete ou pelo quiz do julgado do dia."
                                : "\(deck) no baralho · SM-2, estilo Anki")
-                    .font(.system(size: 12)).foregroundStyle(Palette.secondaryInk)
+                    .font(DS.interface(12)).foregroundStyle(Palette.secondaryInk)
             }
             Spacer(minLength: 0)
             Button { mostrarSRS = true } label: {
                 Label(due == 0 ? "Abrir baralho" : "Revisar agora", systemImage: "play.fill")
-                    .font(.system(size: 12.5, weight: .semibold))
+                    .font(DS.interface(12.5, .semibold))
             }
             .buttonStyle(.borderedProminent).tint(Palette.accent).disabled(deck == 0)
         }

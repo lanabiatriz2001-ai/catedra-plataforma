@@ -59,15 +59,15 @@ struct ContentView: View {
     private var legisTopBar: some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 1) {
-                Text("CátedraLEGIS").font(.system(size: 15, weight: .bold)).foregroundStyle(AppTheme.ink)
-                Text("Vade Mecum de leis").font(.system(size: 10.5)).foregroundStyle(AppTheme.secondaryInk)
+                Text("CátedraLEGIS").font(DS.interface(15, .bold)).foregroundStyle(AppTheme.ink)
+                Text("Vade Mecum de leis").font(DS.interface(10.5)).foregroundStyle(AppTheme.secondaryInk)
             }
             Spacer(minLength: 12)
             Button { showPalette = true } label: {
                 HStack(spacing: 7) {
-                    Image(systemName: "magnifyingglass").font(.system(size: 11))
-                    Text("Buscar").font(.system(size: 12.5))
-                    Text("⌘K").font(.system(size: 10.5, weight: .semibold)).foregroundStyle(AppTheme.secondaryInk)
+                    Image(systemName: "magnifyingglass").font(DS.interface(11))
+                    Text("Buscar").font(DS.interface(12.5))
+                    Text("⌘K").font(DS.interface(10.5, .semibold)).foregroundStyle(AppTheme.secondaryInk)
                 }
                 .foregroundStyle(AppTheme.secondaryInk)
                 .padding(.horizontal, 13).padding(.vertical, 7)
@@ -77,7 +77,7 @@ struct ContentView: View {
             .buttonStyle(.plain)
             Button { path = [.section(.updates)] } label: {
                 Image(systemName: store.unreadCount > 0 ? "bell.badge.fill" : "bell")
-                    .font(.system(size: 13, weight: .medium)).foregroundStyle(AppTheme.secondaryInk)
+                    .font(DS.interface(13, .medium)).foregroundStyle(AppTheme.secondaryInk)
                     .frame(width: 34, height: 34)
                     .background(Circle().fill(AppTheme.cardBackground))
                     .overlay(Circle().strokeBorder(AppTheme.hairline, lineWidth: 1))
@@ -86,14 +86,14 @@ struct ContentView: View {
             // Cronômetro EM CURSO (destaque, como o Cátedra)
             HStack(spacing: 10) {
                 VStack(alignment: .leading, spacing: 0) {
-                    Text(clock.running ? "EM CURSO" : "ESTUDO").font(.system(size: 8, weight: .heavy)).tracking(0.8)
+                    Text(clock.running ? "EM CURSO" : "ESTUDO").font(DS.interface(8, .heavy)).tracking(0.8)
                         .foregroundStyle(clock.running ? ThemeState.t.accent : AppTheme.secondaryInk)
                     Text(clock.formatted).font(Typo.num(16))
                         .foregroundStyle(AppTheme.ink)
                 }
                 Button { clock.togglePlay() } label: {
                     Image(systemName: clock.manualPlaying ? "pause.fill" : "play.fill")
-                        .font(.system(size: 11, weight: .bold)).foregroundStyle(.white)
+                        .font(DS.interface(11, .bold)).foregroundStyle(.white)
                         .frame(width: 28, height: 28)
                         .background(Circle().fill(clock.manualPlaying ? AppTheme.secondaryInk : ThemeState.t.accent))
                 }
@@ -270,10 +270,10 @@ private struct LegisSidebar: View {
                 RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous)
                     .fill(ThemeState.t.accent).frame(width: 34, height: 34)
                     .overlay(Image(systemName: "books.vertical.fill")
-                        .font(.system(size: 15, weight: .bold)).foregroundStyle(.white))
+                        .font(DS.interface(15, .bold)).foregroundStyle(.white))
                 VStack(alignment: .leading, spacing: 0) {
-                    Text("CátedraLEGIS").font(.system(size: 14.5, weight: .bold)).foregroundStyle(.white)
-                    Text("Vade Mecum de leis").font(.system(size: 10))
+                    Text("CátedraLEGIS").font(DS.interface(14.5, .bold)).foregroundStyle(.white)
+                    Text("Vade Mecum de leis").font(DS.interface(10))
                         .foregroundStyle(ThemeState.t.sidebarText.opacity(0.85))
                 }
             }
@@ -281,10 +281,10 @@ private struct LegisSidebar: View {
 
             Button(action: openPalette) {
                 HStack(spacing: 8) {
-                    Image(systemName: "magnifyingglass").font(.system(size: 12))
-                    Text("Buscar…").font(.system(size: 12.5))
+                    Image(systemName: "magnifyingglass").font(DS.interface(12))
+                    Text("Buscar…").font(DS.interface(12.5))
                     Spacer()
-                    Text("⌘K").font(.system(size: 11, weight: .semibold))
+                    Text("⌘K").font(DS.interface(11, .semibold))
                         .foregroundStyle(ThemeState.t.sidebarText.opacity(0.7))
                 }
                 .foregroundStyle(ThemeState.t.sidebarText.opacity(0.85))
@@ -320,7 +320,7 @@ private struct LegisSidebar: View {
     /// acompanha o texto ativo (contraste sobre o fundo de seleção).
     private func groupTitle(_ t: String) -> some View {
         Text(t)
-            .font(.system(size: 9.5, weight: .bold)).tracking(0.9)
+            .font(DS.interface(9.5, .bold)).tracking(0.9)
             .foregroundStyle(ThemeState.t.sidebarText.opacity(0.55))
             .padding(.horizontal, 12).padding(.top, 16).padding(.bottom, 5)
     }
@@ -335,10 +335,10 @@ private struct LegisSidebar: View {
         let active = isActive(item)
         Button { go(item) } label: {
             HStack(spacing: 11) {
-                Image(systemName: icon).font(.system(size: 13, weight: .medium)).frame(width: 20)
+                Image(systemName: icon).font(DS.interface(13, .medium)).frame(width: 20)
                     .foregroundStyle(rowIconColor(item, active: active) ??
                                      (active ? ThemeState.t.sidebarActiveText : ThemeState.t.sidebarText))
-                Text(label).font(.system(size: 13, weight: active ? .semibold : .medium)).lineLimit(1)
+                Text(label).font(DS.interface(13, active ? .semibold : .medium)).lineLimit(1)
                 Spacer(minLength: 4)
             }
             .padding(.horizontal, 11).padding(.vertical, 8)
@@ -595,7 +595,7 @@ struct LawListView: View {
         guard let add = onAddLaw else { return nil }
         return AnyView(
             Button { add() } label: {
-                Image(systemName: "plus.circle.fill").font(.system(size: 19)).foregroundStyle(ThemeState.t.accent)
+                Image(systemName: "plus.circle.fill").font(DS.interface(19)).foregroundStyle(ThemeState.t.accent)
             }
             .buttonStyle(.plain).help("Cadastrar uma norma sua (link, PDF ou texto colado)")
         )
@@ -778,7 +778,7 @@ struct SubjectsView: View {
     private func subjectRows(filtered: [(subject: String, lawIDs: [UUID])], q: String) -> some View {
         if filtered.isEmpty {
             Text("Nenhum assunto corresponde a “\(q)”.")
-                .font(.system(size: 12.5)).foregroundStyle(AppTheme.secondaryInk)
+                .font(DS.interface(12.5)).foregroundStyle(AppTheme.secondaryInk)
                 .frame(maxWidth: .infinity).padding(.vertical, 40)
         } else {
             ForEach(filtered, id: \.subject) { entry in
@@ -795,7 +795,7 @@ struct SubjectsView: View {
     private var indexBanner: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("\(store.sigenIndexedCount) de \(total) normas com assuntos · \(store.sigenPendingCount) a indexar")
-                .font(.system(size: 12.5, weight: .medium)).foregroundStyle(AppTheme.ink)
+                .font(DS.interface(12.5, .medium)).foregroundStyle(AppTheme.ink)
             if store.sigenIndexing {
                 HStack(spacing: 8) {
                     ProgressView().controlSize(.small)
@@ -854,12 +854,12 @@ struct SubjectsView: View {
             HStack(spacing: 8) {
                 ProgressView().controlSize(.small)
                 Text("Procurando artigos que mencionam “\(subject)”…")
-                    .font(.system(size: 12)).foregroundStyle(AppTheme.secondaryInk)
+                    .font(DS.interface(12)).foregroundStyle(AppTheme.secondaryInk)
             }
             .frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 14)
         } else if contentHits.isEmpty {
             Text("Nenhum artigo das normas baixadas menciona “\(subject)”.")
-                .font(.system(size: 12)).foregroundStyle(AppTheme.secondaryInk)
+                .font(DS.interface(12)).foregroundStyle(AppTheme.secondaryInk)
                 .padding(.vertical, 14)
         } else {
             ForEach(contentHits) { hit in
@@ -880,14 +880,14 @@ struct SubjectsView: View {
             IconBubble(symbol: "doc.text.magnifyingglass", color: ThemeState.t.accent, size: 30)
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
-                    Text(hit.unitLabel).font(.system(size: 12.5, weight: .semibold)).foregroundStyle(ThemeState.t.accent)
-                    Text("· \(hit.lawTitle)").font(.system(size: 11)).foregroundStyle(AppTheme.secondaryInk).lineLimit(1)
+                    Text(hit.unitLabel).font(DS.interface(12.5, .semibold)).foregroundStyle(ThemeState.t.accent)
+                    Text("· \(hit.lawTitle)").font(DS.interface(11)).foregroundStyle(AppTheme.secondaryInk).lineLimit(1)
                 }
-                Text(hit.snippet).font(.system(size: 12)).foregroundStyle(AppTheme.secondaryInk)
+                Text(hit.snippet).font(DS.interface(12)).foregroundStyle(AppTheme.secondaryInk)
                     .lineLimit(2).fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 6)
-            Image(systemName: "chevron.right").font(.system(size: 11, weight: .semibold))
+            Image(systemName: "chevron.right").font(DS.interface(11, .semibold))
                 .foregroundStyle(AppTheme.secondaryInk.opacity(0.6))
         }
         .padding(.horizontal, 13).padding(.vertical, 11)
@@ -988,7 +988,7 @@ struct DOUView: View {
             HStack(alignment: .top, spacing: 10) {
                 VStack(spacing: 1) {
                     Image(systemName: "newspaper").foregroundStyle(ThemeState.t.accent)
-                    Text(item.date).font(.system(size: 9).monospacedDigit()).foregroundStyle(.tertiary)
+                    Text(item.date).font(DS.interface(9).monospacedDigit()).foregroundStyle(.tertiary)
                 }
                 .frame(width: 54)
                 VStack(alignment: .leading, spacing: 3) {
@@ -1216,9 +1216,9 @@ struct CommandPalette: View {
                 HStack(spacing: 10) {
                     Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
                     TextField("Ir para norma, matéria ou ação…", text: $query)
-                        .textFieldStyle(.plain).font(.system(size: 17)).focused($focused)
+                        .textFieldStyle(.plain).font(DS.interface(17)).focused($focused)
                         .onSubmit { if let first = laws.first { choose { openLaw(first.id) } } else if let a = actions.first { choose(a.run) } }
-                    Text("esc").font(.system(size: 10, weight: .medium)).foregroundStyle(.secondary)
+                    Text("esc").font(DS.interface(10, .medium)).foregroundStyle(.secondary)
                         .padding(.horizontal, 6).padding(.vertical, 2)
                         .background(Capsule().fill(AppTheme.hairline.opacity(0.5)))
                 }
@@ -1241,7 +1241,7 @@ struct CommandPalette: View {
                             }
                         }
                         if laws.isEmpty && actions.isEmpty {
-                            Text("Nada encontrado.").font(.system(size: 13)).foregroundStyle(.secondary)
+                            Text("Nada encontrado.").font(DS.interface(13)).foregroundStyle(.secondary)
                                 .padding(.horizontal, 12).padding(.vertical, 16)
                         }
                     }
@@ -1268,10 +1268,10 @@ struct CommandPalette: View {
     private func paletteRow(_ color: Color, _ icon: String, _ title: String, _ sub: String?, _ act: @escaping () -> Void) -> some View {
         Button(action: act) {
             HStack(spacing: 11) {
-                Image(systemName: icon).font(.system(size: 13, weight: .semibold)).foregroundStyle(color).frame(width: 22)
+                Image(systemName: icon).font(DS.interface(13, .semibold)).foregroundStyle(color).frame(width: 22)
                 VStack(alignment: .leading, spacing: 1) {
-                    Text(title).font(.system(size: 13.5, weight: .medium)).foregroundStyle(AppTheme.ink).lineLimit(1)
-                    if let sub { Text(sub).font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1) }
+                    Text(title).font(DS.interface(13.5, .medium)).foregroundStyle(AppTheme.ink).lineLimit(1)
+                    if let sub { Text(sub).font(DS.interface(11)).foregroundStyle(.secondary).lineLimit(1) }
                 }
                 Spacer()
             }

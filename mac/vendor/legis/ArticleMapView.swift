@@ -68,7 +68,7 @@ struct ArticleMapView: View {
             header
             if root.children.isEmpty {
                 Text("Artigo sem incisos, alíneas ou parágrafos — apenas o caput.")
-                    .font(.system(size: 12)).foregroundColor(sub)
+                    .font(DS.interface(12)).foregroundColor(sub)
             } else {
                 VStack(alignment: .leading, spacing: 12) {
                     ForEach(root.children) { child in
@@ -77,7 +77,7 @@ struct ArticleMapView: View {
                 }
             }
             Text("CátedraLEGIS · esquema estrutural do artigo")
-                .font(.system(size: 9, weight: .medium)).foregroundColor(sub)
+                .font(DS.interface(9, .medium)).foregroundColor(sub)
                 .padding(.top, 2)
         }
         .padding(22)
@@ -89,15 +89,15 @@ struct ArticleMapView: View {
         VStack(alignment: .leading, spacing: 6) {
             if !lawTitle.isEmpty {
                 Text(lawTitle.uppercased())
-                    .font(.system(size: 11, weight: .heavy))
+                    .font(DS.interface(11, .heavy))
                     .foregroundColor(.white.opacity(0.9)).lineLimit(2)
             }
             Text(root.label ?? "Artigo")
-                .font(.system(size: 26, weight: .bold, design: .default))
+                .font(DS.interface(26, .bold))
                 .foregroundColor(.white)
             if !root.text.isEmpty {
                 Text(root.text)
-                    .font(.system(size: 13)).foregroundColor(.white.opacity(0.94))
+                    .font(DS.interface(13)).foregroundColor(.white.opacity(0.94))
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -129,14 +129,14 @@ private struct MapBranch: View {
                 HStack(alignment: .top, spacing: 8) {
                     if let label = node.label, !label.isEmpty {
                         Text(label)
-                            .font(.system(size: 12, weight: .bold, design: .rounded))
+                            .font(DS.interface(12, .bold))
                             .foregroundColor(.white)
                             .padding(.horizontal, 8).padding(.vertical, 3)
                             .background(Capsule().fill(color))
                             .fixedSize()
                     }
                     Text(node.text)
-                        .font(.system(size: 14)).foregroundColor(ink)
+                        .font(DS.interface(14)).foregroundColor(ink)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 ForEach(node.children) { child in
