@@ -20,11 +20,11 @@ struct CommentBalloon: View {
                 RoundedRectangle(cornerRadius: 2, style: .continuous).fill(color).frame(width: 3)
                 VStack(alignment: .leading, spacing: 3) {
                     Label("Comentário", systemImage: "text.bubble")
-                        .font(.system(size: 9, weight: .bold)).tracking(0.3)
+                        .font(DS.interface(9, .bold)).tracking(0.3)
                         .foregroundStyle(color)
                         .labelStyle(.titleAndIcon)
                     Text(note.isEmpty ? "—" : note)
-                        .font(.system(size: 11.5)).foregroundStyle(AppTheme.ink)
+                        .font(DS.interface(11.5)).foregroundStyle(AppTheme.ink)
                         .lineLimit(5).multilineTextAlignment(.leading)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -64,7 +64,7 @@ struct CommentEditorSheet: View {
             .padding(14)
             Divider()
             TextEditor(text: $text)
-                .font(.system(size: 13.5)).scrollContentBackground(.hidden)
+                .font(DS.interface(13.5)).scrollContentBackground(.hidden)
                 .padding(10).frame(width: 440, height: 150)
                 .background(AppTheme.softStroke)
             Divider()

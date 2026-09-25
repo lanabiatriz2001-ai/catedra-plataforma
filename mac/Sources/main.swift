@@ -219,6 +219,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     private var legisReviewsBaseline: Int?            // reviewedToday no início da rajada
 
     func applicationDidFinishLaunching(_ n: Notification) {
+        DSFontes.registrar()       // fontes da casa (web/fonts) para o LEGIS/JURIS nativos
+        // Gaveta do leitor do LEGIS: texto OFICIAL do verbete lido do acervo do JURIS.
+        JurisPorArtigo.textoOficial = { [weak self] id in
+            self?.jurisStore?.entries.first { $0.id == id }?.enunciado
+        }
         buildMenu()
         setupMenuBarExtra()
         startWidgetSync()
@@ -701,6 +706,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         // O LEGIS pediu para abrir um verbete do acervo (jurisprudência do artigo): troca
         // para a aba JURIS e leva o store até ele. O store pode ainda não existir (aba
         // nunca aberta) — switchTo cria; por isso o abrirVerbete vem depois.
+        // Entrega 3: "Abrir no LEGIS" a partir do verbete — troca de aba; o ContentView do LEGIS
+        // consome o pedido pendente (JurisPorArtigo.pedidoLegis).
+        NotificationCenter.default.addObserver(forName: JurisPorArtigo.notificacaoAbrirLegis, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.switchTo(1) }
+        }
         NotificationCenter.default.addObserver(forName: JurisPorArtigo.notificacaoAbrir, object: nil, queue: .main) { [weak self] n in
             MainActor.assumeIsolated {
                 guard let self, let id = n.userInfo?["id"] as? String else { return }
@@ -1472,6 +1482,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         var t = ThemeState.t
         if let c = col("bg")       { t.bg = c }
         if let c = col("surface")  { t.surface = c }
+        if let h = (d["surface"] as? String).flatMap(Color.hexDe(css:)) { t.surfaceHex = h }
         if let c = col("surface2") { t.surface2 = c }
         if let c = col("border")   { t.border = c }
         if let c = col("ink")      { t.ink = c }
@@ -1486,6 +1497,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
             let l = disp.lowercased()
             t.displaySerif = l.contains("spectral") || l.contains("georgia")
                 || (l.contains("serif") && !l.contains("sans-serif"))
+            if let fam = DS.familiaDisplay(css: disp) { t.displayFamilia = fam }
         }
         if let c = col("sbg")      { t.sidebarBg = c }
         if let c = col("stext")    { t.sidebarText = c }
