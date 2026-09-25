@@ -342,6 +342,7 @@ private struct LegisSidebar: View {
                 Spacer(minLength: 4)
             }
             .padding(.horizontal, 11).padding(.vertical, 8)
+            .frame(minHeight: 44)   // alvo de 44 pt: agora é a navegação principal
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous)
                 .fill(active ? ThemeState.t.sidebarActiveBg : Color.clear))
