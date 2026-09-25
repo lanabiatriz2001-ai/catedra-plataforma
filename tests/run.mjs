@@ -40,6 +40,7 @@ import { testarIpadToqueSatelites } from './ipad-toque-satelites.mjs';
 import { testarIpadToque } from './ipad-toque.mjs';
 import { testarAuthIpad } from './auth-ipad.mjs';
 import { testarAuthAbertura } from './auth-abertura.mjs';
+import { testarAuthHidratacao } from './auth-hidratacao.mjs';
 import { testarCarregamentoInicial, testarAberturaEmbutida } from './carregamento-inicial.mjs';
 import { testarSelectHost } from './select-host.mjs';
 import { testarEditalSubtopicos } from './edital-subtopicos.mjs';
@@ -9061,6 +9062,12 @@ await testarAberturaEmbutida(ok);
 try { await testarAuthIpad(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'AUTH IPAD [' + motor + '] [http] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+// Hidratação que não finge que enviou (tests/auth-hidratacao.mjs): o pushNow pós-reload sobe o que o aparelho trouxe
+try { await testarAuthHidratacao(page, URL0, ok, { motor }); }
+catch (e) {
+  ok(false, 'AUTH HIDRATAÇÃO [' + motor + '] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
