@@ -15,9 +15,9 @@ enum AppTheme {
     static var compactRadius: CGFloat { max(6, ThemeState.t.radius - 3) }
     // Três raios, derivados do `--radius` do Cátedra (pente fino 21/08/2026 — Build C):
     // rCard = cartão/linha, rInner = controles e caixas internas, rHero = hero/paleta/vazios.
-    static var rCard: CGFloat  { surfaceRadius }
-    static var rInner: CGFloat { compactRadius }
-    static var rHero: CGFloat  { ThemeState.t.radius + 6 }
+    static var rCard: CGFloat  { DSRaio.card }
+    static var rInner: CGFloat { DSRaio.interno }
+    static var rHero: CGFloat  { DSRaio.hero }
     static let pageInset: CGFloat = 20
     static var pageBackground: Color   { ThemeState.t.bg }
     static var cardBackground: Color   { ThemeState.t.surface }
@@ -37,18 +37,20 @@ enum AppTheme {
     /// 11 pt (piso da HIG e da casa) e o valor acompanha o Dynamic Type pela métrica do
     /// `.body`. No tamanho padrão (Large) `scaledValue` devolve o próprio número — o iPad
     /// no tamanho de sempre não muda um pixel; só os rótulos de 8–10,5 pt sobem para 11.
-    static func escala(_ size: CGFloat) -> CGFloat {
-        UIFontMetrics(forTextStyle: .body).scaledValue(for: max(11, size))
-    }
+    static func escala(_ size: CGFloat) -> CGFloat { DS.escala(size) }
     /// Fonte da INTERFACE (rótulos, botões, ícones): o `.system(size:weight:)` de sempre,
     /// passando pelo piso e pela escala. É por aqui que passa toda a tipografia fixa do
     /// LEGIS; a de leitura (tamanho escolhido no "Aa") continua fora, por decisão da pessoa.
     static func ui(_ size: CGFloat, _ weight: Font.Weight = .regular, design: Font.Design = .default) -> Font {
-        .system(size: escala(size), weight: weight, design: design)
+        switch design {
+        case .default:    return DS.interface(size, weight)
+        case .monospaced: return DS.mono(size, weight)
+        default:          return .system(size: DS.escala(size), weight: weight, design: design)
+        }
     }
-    /// Fonte de TÍTULO no padrão da casa: serifada quando o tema do Cátedra é serifado.
+    /// Fonte de TÍTULO: a família de display da direção ativa (base visual comum).
     static func displayFont(_ size: CGFloat, _ weight: Font.Weight = .bold) -> Font {
-        .system(size: escala(size), weight: weight, design: ThemeState.t.displaySerif ? .serif : .default)
+        DS.display(size, weight)
     }
     static var surface: Color          { ThemeState.t.surface }
     static var elevatedSurface: Color  { ThemeState.t.surface }

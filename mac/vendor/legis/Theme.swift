@@ -15,9 +15,9 @@ enum AppTheme {
     static var compactRadius: CGFloat { max(6, ThemeState.t.radius - 3) }
     // Três raios, derivados do `--radius` do Cátedra (pente fino 21/08/2026 — Build C):
     // rCard = cartão/linha, rInner = controles e caixas internas, rHero = hero/paleta/vazios.
-    static var rCard: CGFloat  { surfaceRadius }
-    static var rInner: CGFloat { compactRadius }
-    static var rHero: CGFloat  { ThemeState.t.radius + 6 }
+    static var rCard: CGFloat  { DSRaio.card }
+    static var rInner: CGFloat { DSRaio.interno }
+    static var rHero: CGFloat  { DSRaio.hero }
     static let pageInset: CGFloat = 20
     static var pageBackground: Color   { ThemeState.t.bg }
     static var cardBackground: Color   { ThemeState.t.surface }
@@ -33,9 +33,9 @@ enum AppTheme {
     /// (antes era `.purple`/`.indigo` solto em cada tela).
     static var info: Color { Color(hex: DSCor.info) }
     static var srs: Color  { Color(hex: DSCor.srs) }
-    /// Fonte de TÍTULO no padrão da casa: serifada quando o tema do Cátedra é serifado.
+    /// Fonte de TÍTULO: a família de display da direção ativa (base visual comum).
     static func displayFont(_ size: CGFloat, _ weight: Font.Weight = .bold) -> Font {
-        .system(size: size, weight: weight, design: ThemeState.t.displaySerif ? .serif : .default)
+        DS.display(size, weight)
     }
     static var surface: Color          { ThemeState.t.surface }
     static var elevatedSurface: Color  { ThemeState.t.surface }
