@@ -173,6 +173,13 @@ aside nav button{ transition:background .15s, transform .15s, box-shadow .15s; }
   .ct-scroll input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
   .ct-scroll textarea{min-height:44px!important;font-size:max(16px,var(--fs-base))!important;}
 }
+/* No TOQUE a barra lateral também tem o alvo inteiro, em qualquer largura. No iPad em
+   paisagem (1180px) ela fica fora do @media acima, e o menu todo ficava em 40px (medido:
+   216x40 com data-toque="1"). Lê --ct-alvo, que o catedra-ui.css só acende no toque — com
+   mouse a linha continua com os 40 de sempre. O `>` prende a regra à barra (filha direta da
+   raiz): o "Cartão de respostas" do ENAM também é um <aside>, e a grade dele não cresce. */
+[data-toque="1"] > aside button, [data-toque="1"] > aside a{min-height:var(--ct-alvo)!important;}
+@media (pointer: coarse){ [data-dir] > aside button, [data-dir] > aside a{min-height:var(--ct-alvo)!important;} }
 /* CONTROLE PEQUENO NÃO CRESCE — cresce a área que o dedo acerta.
    A primeira versão desta regra inflava TODO button dentro de .ct-scroll para 44px de
    altura. Medido no navegador, o estrago: o quadradinho de 20x20 de cada tópico do Edital
@@ -17611,7 +17618,7 @@ class Component extends DCLogic {
         ? `position:fixed;top:0;left:0;bottom:0;flex:none;width:248px;background:var(--sbg);display:flex;flex-direction:column;padding:20px 16px calc(20px + env(safe-area-inset-bottom));overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;z-index:50;transition:transform .28s ease;transform:translateX(${this.state.menuOpen?'0':'-110%'});box-shadow:${this.state.menuOpen?'0 0 40px rgba(0,0,0,.4)':'none'};`
         : `position:sticky;top:0;align-self:flex-start;height:100vh;overflow-y:auto;flex:none;width:248px;background:var(--sbg);display:flex;flex-direction:column;padding:20px 16px;z-index:50;`,
       showBackdrop: this.state.isMobile && this.state.menuOpen,
-      navStyle:{ casos:navStyle('casos'), inicio:navStyle('inicio'), ciclo:navStyle('ciclo'), edital:navStyle('edital'), revisoes:navStyle('revisoes'), simulados:navStyle('simulados'), anki:navStyle('anki'), dashboards:navStyle('dashboards'), analise:navStyle('analise'), conquistas:navStyle('conquistas'), personalizacao:navStyle('personalizacao'), ajustes:navStyle('ajustes') },
+      navStyle:{ casos:navStyle('casos'), inicio:navStyle('inicio'), ciclo:navStyle('ciclo'), edital:navStyle('edital'), revisoes:navStyle('revisoes'), flashcards:navStyle('flashcards'), simulados:navStyle('simulados'), anki:navStyle('anki'), dashboards:navStyle('dashboards'), analise:navStyle('analise'), conquistas:navStyle('conquistas'), personalizacao:navStyle('personalizacao'), ajustes:navStyle('ajustes') },
       navShowMore, navToggleShow, navMoreLabel, navChevStyle, toggleNav:this.toggleNav,
       dirStyle:CT_DIRS.reduce((o,d)=>{ o[d]=dirBtn(d); return o; },{}),
       onNav:this.onNav, onDir:this.onDir, toggleMenu:this.toggleMenu,

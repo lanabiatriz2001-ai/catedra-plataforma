@@ -46,6 +46,7 @@ import { testarEditalSubtopicos } from './edital-subtopicos.mjs';
 import { testarJurisQuadro } from './juris-quadro.mjs';
 import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
+import { testarMenuBaralho } from './menu-baralho.mjs';
 import { testarAssinaturaLimpa } from './assinatura-limpa.mjs';
 import { testarXcodeCloud } from './xcode-cloud.mjs';
 import { montar as montarEnam, parseProva as parseProvaEnam, parseGabarito as parseGabaritoEnam, carregarAreas as areasEnam, EDICOES as EDICOES_ENAM } from '../scripts/build-questoes-enam.mjs';
@@ -9102,6 +9103,14 @@ catch (e) {
 try { await testarPostMessageSeguranca(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'PONTE [' + motor + '] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+// Menu lateral (tests/menu-baralho.mjs): o Baralho pinta como os irmãos — o botão nasceu com
+// navStyle.flashcards sem a chave no render() e saía cru; e o alvo de 44 px no toque, também em
+// paisagem no iPad, onde a regra por largura não alcançava a barra.
+try { await testarMenuBaralho(page, URL0, ok, { motor, origem: 'http' }); }
+catch (e) {
+  ok(false, 'MENU/BARALHO [' + motor + '] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
