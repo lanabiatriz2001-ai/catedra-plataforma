@@ -58,7 +58,7 @@ enum JurisMenu {
             JurisMenuItem(selecao: .central(.tse), rotulo: "TSE", simbolo: "building.columns"),
             JurisMenuItem(selecao: .central(.especificos), rotulo: "Tribunais (TJRO, TJGO…)", simbolo: "building.2", chevron: true),
             JurisMenuItem(selecao: .central(.contas), rotulo: "Cortes de contas", simbolo: "banknote"),
-            JurisMenuItem(selecao: .central(.outros), rotulo: "DOD & Precedentes", simbolo: "text.book.closed"),
+            JurisMenuItem(selecao: .central(.outros), rotulo: "Precedentes", simbolo: "text.book.closed"),
         ]),
         JurisMenuGrupo(titulo: "MEU ESTUDO", itens: [
             JurisMenuItem(selecao: .favoritos, rotulo: "Favoritos", simbolo: "star"),

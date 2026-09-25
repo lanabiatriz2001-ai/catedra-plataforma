@@ -39,6 +39,7 @@ import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
 import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 import { testarMenuLateral } from './menu-lateral.mjs';
+import { testarSemDodEstatico, testarSemDodNavegador } from './sem-dod.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 // porta própria por padrão: run.mjs usa a 8123, e as duas suítes podem rodar lado a lado
@@ -52,6 +53,10 @@ const ok = (cond, label) => { console.log((cond ? '✓ ' : '✗ ') + label); if 
 
 try { await testarPrioridadeErrosResolvidos(ok); }
 catch (e) { ok(false, 'PRIORIDADE erro resolvido exceção: ' + e.message); }
+// Sem Dizer o Direito e sem os mapas das Súmulas Vinculantes (tests/sem-dod.mjs): a varredura
+// estática roda uma vez (public/ e o bundle nativo, se existirem); a de navegador, em cada origem.
+try { testarSemDodEstatico(ok, { motor }); }
+catch (e) { ok(false, 'SEM DOD [' + motor + '] estático sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
 
 // pathToFileURL não põe barra final; o teste concatena '/' + arquivo
 const ORIGENS = [[URL0, 'http', 'Catedra.dc.html'], [pathToFileURL(RAIZ).href, 'file', 'Catedra.dc.html']];
@@ -81,6 +86,12 @@ for (const [base, origem, arquivo] of ORIGENS) {
   try { await testarEnamModo(page, base, ok, { motor, origem, arquivo }); }
   catch (e) {
     ok(false, 'ENAM MODO [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
+      + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+  }
+  // o JURIS sem a aba dos mapas das SVs, nas três origens (o bundle é o que o app empacota)
+  try { await testarSemDodNavegador(page, base, ok, { motor, origem }); }
+  catch (e) {
+    ok(false, 'SEM DOD [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
       + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
   }
   // iPad por toque (retrato 820 e paisagem 1180, hasTouch): quadradinhos, gaveta, giro,
