@@ -34,43 +34,41 @@ struct HomeView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 26) {
-                JurisCampoBusca(prompt: "Buscar em toda a jurisprudência…", texto: $busca, aoSubmeter: submeterBusca)
-                    .padding(.horizontal, 26)
-
-                bloco("Hoje", "sun.max.fill")
-                JurisDashboardView(partes: [.hero])
+                // Entrega 5 — Hoje (spec §7): continuar, revisar hoje e o julgado do dia. Saíram a
+                // busca duplicada (⌘K), meta, ofensiva, KPIs e prateleiras — o acervo está no
+                // destino Acervo e o treino em Treinar.
+                Group {
+                    if let ultimo = store.recentEntries.first {
+                        CartaoContinuar(titulo: ultimo.titulo, detalhe: ultimo.tema ?? ultimo.ramoDireito,
+                                        cor: CorTribunal.identidade(ultimo.tribunal) ?? Ramo.deNome(ultimo.ramoDireito)?.identidade,
+                                        acao: { store.lerCheio(ultimo.id) })
+                    } else {
+                        CartaoContinuar(titulo: "Comece pelo Acervo", detalhe: "STF, STJ, informativos e mais",
+                                        cor: nil, acao: { store.ir(.destino(.acervo)) })
+                    }
+                }
+                .padding(.horizontal, 26)
                 JurisHojeResumo()
                     .padding(.horizontal, 26)
-                DestaquesEstudoView(parte: .julgado)
-
-                bloco("Treinar", "graduationcap.fill")
-                gradeTreinar
-                JurisDashboardView(partes: [.atalhos])
-
-                bloco("Acompanhar", "newspaper.fill")
-                DestaquesEstudoView(parte: .informativos)
-                if !novidadeVerbetes.isEmpty {
-                    Prateleira(titulo: "Novidades dos tribunais", simbolo: "sparkles",
-                               verTodos: { store.ir(.novidades) }) {
-                        ForEach(novidadeVerbetes) { CartaoJuris(entry: $0) }
+                // Julgado do dia em cartão curto: só o texto do tribunal (o roteiro fica no Estudar).
+                if let j = store.verbeteDoDia {
+                    Button { store.lerCheio(j.id) } label: {
+                        VStack(alignment: .leading, spacing: DSEspaco.e2) {
+                            Text("JULGADO DO DIA · \(j.tribunal)").font(DS.interface(12, .semibold)).tracking(0.8)
+                                .foregroundStyle(ThemeState.t.text3)
+                            Text(j.titulo).font(DS.display(19, .bold)).foregroundStyle(ThemeState.t.ink)
+                            Text(j.enunciado).font(DS.display(16, .regular)).foregroundStyle(ThemeState.t.text2)
+                                .lineLimit(4).multilineTextAlignment(.leading)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(DSEspaco.e5)
+                        .background(RoundedRectangle(cornerRadius: DSRaio.card, style: .continuous).fill(ThemeState.t.surface))
+                        .overlay(RoundedRectangle(cornerRadius: DSRaio.card, style: .continuous).strokeBorder(ThemeState.t.border))
+                        .contentShape(Rectangle())
                     }
+                    .buttonStyle(.plain)
+                    .padding(.horizontal, 26)
                 }
-                if !store.recentEntries.isEmpty {
-                    Prateleira(titulo: "Continue de onde parou", simbolo: "clock.arrow.circlepath") {
-                        ForEach(store.recentEntries.prefix(14)) { CartaoJuris(entry: $0) }
-                    }
-                }
-                // Baixa estimulação: a ofensiva (heatmap) não entra; os dados continuam lá.
-                JurisDashboardView(partes: ThemeState.t.baixaEstimulacao ? [.kpis, .fontes] : [.kpis, .ofensiva, .fontes])
-
-                bloco("Acervo", "books.vertical.fill")
-                if store.favorites.count > 0 {
-                    Prateleira(titulo: "Seus favoritos", simbolo: "star.fill",
-                               verTodos: { store.ir(.favoritos) }) {
-                        ForEach(amostra { store.isFavorite($0.id) }) { CartaoJuris(entry: $0) }
-                    }
-                }
-                ramosShelf
                 Color.clear.frame(height: 20)
             }
             .padding(.top, 22)
