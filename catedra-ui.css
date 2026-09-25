@@ -1613,3 +1613,35 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 .ct-conc-linha .ct-conc-barra { margin-top: 0; }
 .ct-conc-nome { font-size: var(--fs-base, 13.5px); font-weight: 600; color: var(--ink, #1f1c17); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ct-conc-t { font-family: var(--mono); font-size: var(--fs-sm, 12.5px); color: var(--text2, #5c564a); font-variant-numeric: tabular-nums; }
+
+/* ===== ÍCONE LUCIDE E LADRILHO (troca dos emojis-ícone, set/2026) =====
+   Ícone é SVG Lucide de 16 px, traço currentColor e aria-hidden (DESIGN.md) — nunca emoji,
+   que cada sistema pinta de um jeito e que o leitor de tela lê em voz alta ("rosto sorrindo").
+   O host desenha cada ícone UMA vez num <symbol id="ct-i-NOME"> e cada uso é
+   <svg data-ico="NOME"><use href="#ct-i-NOME"/></svg>: o dado carrega o NOME, não o glifo.
+   Os satélites (outro documento) montam a mesma marcação com a cópia pequena de ctIco().
+   Onde o emoji dava cor e peso ao lugar, quem carrega isso agora é o LADRILHO: uma pastilha
+   tingida pela cor do assunto (--ct-tinta, a cor de identidade; padrão, o destaque). O traço
+   fica em 16 px; quem cresce é a pastilha. O traço é a tinta com 40% de --ink (escurecida; clareada
+   no escuro, onde a --ink é clara), para passar de 3:1 sobre a lavagem. */
+.ct-ico { flex: none; vertical-align: -.15em; }
+.ct-sprite { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; }
+.ct-ladrilho {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: var(--ct-e6, 32px); height: var(--ct-e6, 32px); border-radius: var(--ct-r-md, 11px);
+  color: color-mix(in oklab, var(--ct-tinta, var(--accent, #0f7a57)) 60%, var(--ink, #1f1c17));
+  background: linear-gradient(135deg,
+    color-mix(in oklab, var(--ct-tinta, var(--accent, #0f7a57)) 24%, var(--surface, #fffdf8)),
+    color-mix(in oklab, var(--ct-tinta, var(--accent, #0f7a57)) 10%, var(--surface, #fffdf8)));
+}
+.ct-ladrilho-g { width: var(--ct-alvo-toque, 44px); height: var(--ct-alvo-toque, 44px); }
+.ct-ladrilho-xg { width: var(--ct-e7, 48px); height: var(--ct-e7, 48px); border-radius: var(--ct-r-lg, 14px); }
+/* sobre o gradiente do hero ou o fundo escuro dos modais de foco: vidro claro, traço branco */
+.ct-ladrilho-claro { color: #fff; background: rgba(255, 255, 255, .16); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22); }
+/* medalhas do ranking: ouro, prata e bronze como tinta da pastilha */
+.ct-medalha-1 { --ct-tinta: #c9971c; }
+.ct-medalha-2 { --ct-tinta: #7d8794; }
+.ct-medalha-3 { --ct-tinta: #b0663a; }
+/* a medalha pesa mais que o ladrilho comum: é o único enfeite do ranking */
+.ct-ladrilho[class*="ct-medalha-"] { background: linear-gradient(135deg,
+  color-mix(in oklab, var(--ct-tinta) 36%, var(--surface, #fffdf8)), color-mix(in oklab, var(--ct-tinta) 16%, var(--surface, #fffdf8))); }
