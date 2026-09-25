@@ -1,43 +1,5 @@
 import SwiftUI
 
-/// Tema ESPELHADO do Cátedra: os tokens são lidos das variáveis CSS já computadas
-/// do WebView do Cátedra (`--bg`, `--surface`, `--border`, `--ink`, `--accent`,
-/// `--sbg`, `--radius`, `--heroGrad`…) em `main.swift` e injetados aqui. Assim o
-/// CátedraLEGIS herda EXATAMENTE a identidade visual atual do Cátedra (tema/dir/
-/// acento/claro-escuro) — e muda junto quando a Lana troca nos Ajustes do Cátedra.
-struct CatedraTheme {
-    var bg: Color, surface: Color, surface2: Color, border: Color
-    var ink: Color, text2: Color, text3: Color
-    var accent: Color, accentD: Color
-    var radius: CGFloat
-    var sidebarBg: Color, sidebarText: Color, sidebarActiveBg: Color, sidebarActiveText: Color
-    var heroStops: [Color]
-    var isDark: Bool
-    // Semânticos e display espelhados do Cátedra (21/08/2026 — unificação visual)
-    var ok: Color = Color(hex: 0x0E7F58)
-    var warn: Color = Color(hex: 0xA36306)
-    var danger: Color = Color(hex: 0xC0392F)
-    var displaySerif: Bool = true
-    /// Modo "Baixa estimulação" (P16), lido de prefs.baixaEstimulacao do Cátedra pela ponte
-    /// em main.swift. Ligado: a gamificação nativa (ofensiva, sequência, 🎉) some das telas
-    /// e as animações do SwiftUI são desligadas na raiz dos hosts. Os dados não mudam.
-    var baixaEstimulacao: Bool = false
-
-    // Fallback = identidade PLANILHA (a aprovada): a 1ª pintura já nasce com a cara da casa.
-    static let fallback = CatedraTheme(
-        bg: Color(hex: 0xF4F1EA), surface: Color(hex: 0xFFFDF8), surface2: Color(hex: 0xF0ECE1), border: Color(hex: 0xE3DDCE),
-        ink: Color(hex: 0x1F1C17), text2: Color(hex: 0x5C564A), text3: Color(hex: 0x7A7368),
-        accent: Color(hex: 0x0F7A57), accentD: Color(hex: 0x0B5E43), radius: 12,
-        sidebarBg: Color(hex: 0x1E2B3A), sidebarText: Color(hex: 0xB9C3CF),
-        sidebarActiveBg: Color(hex: 0x7FD4B5).opacity(0.18), sidebarActiveText: Color(hex: 0x7FD4B5),
-        heroStops: [Color(hex: 0x1E2B3A), Color(hex: 0x0F7A57)], isDark: false)
-}
-
-/// Estado global do tema (mutável; `main.swift` atualiza antes de montar/rebuild o host).
-enum ThemeState {
-    static var t = CatedraTheme.fallback
-}
-
 extension View {
     /// Baixa estimulação: o conteúdo de .sheet vive num controlador de apresentação à parte
     /// e NÃO herda o .transaction das raízes CatedraLegisRoot/CatedraJurisRoot. Quem anima
@@ -69,8 +31,8 @@ enum AppTheme {
     static var danger: Color           { ThemeState.t.danger }
     /// Informativo (azul) — o quarto semântico; e a cor única de "domínio/revisão/SRS"
     /// (antes era `.purple`/`.indigo` solto em cada tela).
-    static let info: Color  = Color(hex: 0x2563EB)
-    static let srs: Color   = Color(hex: 0x7C3AED)
+    static var info: Color { Color(hex: DSCor.info) }
+    static var srs: Color  { Color(hex: DSCor.srs) }
     /// Piso e escala da tipografia da interface (F2 do plano do iPhone): nada abaixo de
     /// 11 pt (piso da HIG e da casa) e o valor acompanha o Dynamic Type pela métrica do
     /// `.body`. No tamanho padrão (Large) `scaledValue` devolve o próprio número — o iPad
@@ -206,15 +168,6 @@ extension Color {
         })
     }
 
-    /// Cor a partir de um inteiro hexadecimal (0xRRGGBB).
-    init(hex: UInt32) {
-        self.init(.sRGB,
-                  red: Double((hex >> 16) & 0xFF) / 255,
-                  green: Double((hex >> 8) & 0xFF) / 255,
-                  blue: Double(hex & 0xFF) / 255,
-                  opacity: 1)
-    }
-
     /// Gradiente diagonal vibrante da própria cor (base → um pouco mais clara),
     /// usado nas faixas de matéria e nos ícones.
     var vibrantGradient: LinearGradient {
@@ -234,28 +187,6 @@ extension Color {
         return Color(.sRGB, red: rr, green: gg, blue: bb, opacity: 1)
     }
 
-    /// Cor a partir de um valor CSS ("#rgb", "#rrggbb", "rgb(r,g,b)", "rgba(r,g,b,a)").
-    /// Usado para importar as variáveis já computadas do tema do Cátedra.
-    init?(css raw: String) {
-        var s = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        if s.isEmpty { return nil }
-        if s.hasPrefix("#") {
-            s.removeFirst()
-            if s.count == 3 { s = s.map { "\($0)\($0)" }.joined() }
-            guard s.count == 6, let v = UInt32(s, radix: 16) else { return nil }
-            self.init(hex: v); return
-        }
-        if s.hasPrefix("rgb") {
-            guard let open = s.firstIndex(of: "("), let close = s.firstIndex(of: ")") else { return nil }
-            let parts = s[s.index(after: open)..<close].split(separator: ",")
-                .map { $0.trimmingCharacters(in: .whitespaces) }
-            guard parts.count >= 3, let r = Double(parts[0]), let g = Double(parts[1]), let b = Double(parts[2])
-            else { return nil }
-            let a = parts.count >= 4 ? (Double(parts[3]) ?? 1) : 1
-            self.init(.sRGB, red: r/255, green: g/255, blue: b/255, opacity: a); return
-        }
-        return nil
-    }
 }
 
 /// Faixa colorida de matéria (contexto em caixa alta + título grande em branco)
