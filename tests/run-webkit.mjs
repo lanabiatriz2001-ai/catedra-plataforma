@@ -37,6 +37,7 @@ import { testarPrioridadeErrosResolvidos } from './prioridade-erros-resolvidos.m
 import { testarRevisaoFonte } from './revisao-fonte.mjs';
 import { testarVoltaOrigem } from './volta-origem.mjs';
 import { testarContrasteDestaque } from './contraste-destaque.mjs';
+import { testarIconesAlvos } from './icones-alvos.mjs';
 import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
 import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
@@ -145,6 +146,10 @@ for (const [base, origem, arquivo] of ORIGENS) {
     // cópia no LEGIS são o que o iPad e o Mac pintam
     try { await testarContrasteDestaque(page, base, ok, { motor }); }
     catch (e) { ok(false, 'CONTRASTE/DESTAQUE [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
+    // os ícones do Início (SVG Lucide, não emoji) e os alvos do cronômetro no toque, no motor que o
+    // iPad pinta — e a nota da Prova oral, cujo fundo inválido o WebKit também descartava
+    try { await testarIconesAlvos(page, base, ok, { motor }); }
+    catch (e) { ok(false, 'ÍCONES/ALVOS [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
     try { await testarJurisQuadro(page, base, ok, { motor, origem }); }
     catch (e) {
       ok(false, 'JURIS/QUADRO [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
