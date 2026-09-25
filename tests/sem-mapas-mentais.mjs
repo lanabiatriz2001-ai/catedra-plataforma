@@ -15,7 +15,14 @@
          deixa o render e o prompt; quem tinha "mapa" salvo cai no texto, e o mfGen antigo
          continua no armazenamento. Nenhum HTML/JS do app (satélites incluídos) fala em mapa
          mental — os acervos de conteúdo (discursivas, juris-text, oral-conteudo…) ficam de fora.
-   O "Mapa do artigo" do LEGIS (esquema estrutural do dispositivo) e o Mapa de Processo e peças
+   · (d) LEGIS nativo, Mac e iPad (decisão da dona, 25/09): o "Mapa do artigo" também sai — a
+         folha (ArticleMapSheet), o desenho exportável (ArticleMapView) com a árvore ArtNode que
+         só ele usava, o renderizador de PNG, o botão "Mapa" da barra do Estudo, o item do menu
+         compacto do iPad e o gancho de ensaio -legisAbrirFolha mapa. Nada disso era gravado (só
+         @State); os PNG que a pessoa já salvou são arquivos dela e ficam onde estão. O parser da
+         estrutura (LawParser.classify) é de todo o leitor e fica. As outras ferramentas do
+         Estudo (índice, leitura ativa, Aa, imersão, revisão espaçada) continuam.
+   A gaveta "esquema" do leitor web (legis-web.html, sumário da lei) e o Mapa de Processo e peças
    (mapa-processual.js) são outras coisas e ficam. */
 import fs from 'fs';
 import path from 'path';
@@ -36,6 +43,16 @@ const SWIFT_PROIBIDO = [
   ['ensaio da folha do mapa', /case\s+"mapa"\s*:\s*mostrar|-jurisFolha mapa\b/],
   ['"mapa mental" (qualquer caixa)', /mapa mental/i],
   ['"mapas mentais" (qualquer caixa)', /mapas mentais/i],
+];
+
+/** (d) O "Mapa do artigo" do LEGIS — nem em comentário. */
+const SWIFT_PROIBIDO_LEGIS = [
+  ['ArticleMapView / ArticleMapSheet', /\bArticleMap(View|Sheet)?\b/],
+  ['"Mapa do artigo" (qualquer caixa)', /mapa do artigo/i],
+  ['árvore ArtNode / ramo MapBranch do mapa', /\bArtNode\b|\bMapBranch\b/],
+  ['folha .map do Estudo', /activeSheet\s*=\s*\.map\b|case\s+index\s*,\s*map\b|case\s+\.map\s*:/],
+  ['botão "Mapa" da barra do Estudo', /Label\("Mapa"|mapa\/esquema visual deste artigo/],
+  ['gancho -legisAbrirFolha mapa', /case\s+"mapa"\s*:|indice\|mapa\|tipografia/],
 ];
 
 /** Todos os .swift dos hosts nativos (Sources e vendor), sem as saídas de build. */
@@ -85,10 +102,47 @@ export function testarSemMapasMentaisEstatico(ok, opcoes = {}) {
     ok(/Comparar STF × STJ \(com IA\)/.test(ed) && /Linha do tempo do tema/.test(ed),
       R + '(a) ' + plat + ': as outras ferramentas do verbete (comparador, linha do tempo) continuam');
   }
-  // o LEGIS não perdeu o esquema do artigo, que não é mapa mental
-  ok(fs.existsSync(path.join(RAIZ, 'mac/vendor/legis/ArticleMapView.swift'))
-    && fs.existsSync(path.join(RAIZ, 'ios/vendor/legis/ArticleMapView.swift')),
-    R + '(a) o "Mapa do artigo" do LEGIS (esquema estrutural) continua no Mac e no iPad');
+
+  // (d) LEGIS: o "Mapa do artigo" saiu
+  for (const plat of ['mac', 'ios']) {
+    ok(!fs.existsSync(path.join(RAIZ, plat, 'vendor/legis/ArticleMapView.swift')),
+      R + '(d) ' + plat + ': o arquivo do "Mapa do artigo" (ArticleMapView.swift) saiu do LEGIS');
+  }
+  const achadosLegis = [];
+  for (const f of arquivos) {
+    fs.readFileSync(f, 'utf8').split('\n').forEach((l, i) => {
+      for (const [nome, re] of SWIFT_PROIBIDO_LEGIS) {
+        if (re.test(l)) achadosLegis.push(path.relative(RAIZ, f) + ':' + (i + 1) + ' ' + nome);
+      }
+    });
+  }
+  ok(arquivos.length > 100 && achadosLegis.length === 0,
+    R + '(d) nenhum .swift do Mac nem do iPad (' + arquivos.length + ' arquivos) cita o "Mapa do artigo", a folha, o desenho ou o botão'
+    + (achadosLegis.length ? ' — ' + achadosLegis.slice(0, 6).join('; ') : ''));
+  for (const plat of ['mac', 'ios']) {
+    const est = ler(plat + '/vendor/legis/ArticleStudyView.swift');
+    const ferramentas = [
+      ['índice', /case\s+index\b/.test(est) && /activeSheet = \.index/.test(est) && /IndexSheet\(lawID: lawID/.test(est)],
+      ['leitura ativa', /Label\("Leitura ativa"/.test(est) && /leituraAtiva\.toggle\(\)/.test(est)],
+      ['Aa (fonte e espaçamento)', /Label\("Aa", systemImage: "textformat\.size"\)/.test(est) && /typographyPopover/.test(est)],
+      ['imersão', /Label\("Imersão"/.test(est) && /cleanReading\.toggle\(\)/.test(est)],
+      ['revisão espaçada', /Label\("Revisão espaçada"/.test(est) && /srsEnabled\.toggle\(\)/.test(est)],
+    ];
+    if (plat === 'ios') {
+      ferramentas.push(['menu compacto do iPad (índice, leitura, leitura ativa, imersão)',
+        /private var estudoMenuCompacto/.test(est) && /Label\("Leitura \(fonte e espaçamento\)"/.test(est)
+        && /Toggle\(isOn: \$leituraAtiva\)/.test(est) && /Toggle\(isOn: \$cleanReading\)/.test(est)
+        && /private var indiceBotaoCompacto/.test(est)]);
+      ferramentas.push(['ganchos de ensaio indice e tipografia',
+        /case "indice":\s+activeSheet = \.index/.test(est) && /case "tipografia":\s+showTypography = true/.test(est)]);
+    }
+    const faltam = ferramentas.filter(([, v]) => !v).map(([n]) => n);
+    ok(est !== '' && faltam.length === 0,
+      R + '(d) ' + plat + ': o Estudo do artigo continua abrindo as outras ferramentas' + (faltam.length ? ' — faltam: ' + faltam.join(', ') : ''));
+    const parser = ler(plat + '/vendor/legis/LawParser.swift');
+    ok(/static func classify\(/.test(parser),
+      R + '(d) ' + plat + ': o parser da estrutura do artigo (LawParser.classify), que é do leitor todo, continua');
+  }
 
   // (b) dado antigo
   const estMac = ler('mac/vendor/juris/Store/JurisEstadoPersistido.swift');
