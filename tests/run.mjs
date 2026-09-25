@@ -49,6 +49,7 @@ import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 import { testarMenuLateral } from './menu-lateral.mjs';
 import { testarAssinaturaLimpa } from './assinatura-limpa.mjs';
 import { testarXcodeCloud } from './xcode-cloud.mjs';
+import { testarSupportCorrecoesLocais } from './support-correcoes-locais.mjs';
 import { montar as montarEnam, parseProva as parseProvaEnam, parseGabarito as parseGabaritoEnam, carregarAreas as areasEnam, EDICOES as EDICOES_ENAM } from '../scripts/build-questoes-enam.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -4188,6 +4189,17 @@ catch (e) {
 try { await testarXcodeCloud(ok); }
 catch (e) {
   ok(false, 'XCODE CLOUD o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+/* ============= CORREÇÕES LOCAIS DO support.js =============
+   O dc-runtime que gerava o support.js não está no repositório: o arquivo é mantido à mão, e
+   regerá-lo apagaria em silêncio a releitura em file:// (#123, menus vazios no iPad), os
+   eventos de arraste e o destino do __dc_booted (#136). Roteiro em
+   tests/support-correcoes-locais.mjs (estático; roda também na CI). */
+try { await testarSupportCorrecoesLocais(ok); }
+catch (e) {
+  ok(false, 'SUP o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
