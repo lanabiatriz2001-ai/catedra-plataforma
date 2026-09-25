@@ -1,11 +1,13 @@
-/* O Baralho no menu lateral pinta como os irmãos — medido, não presumido.
-   O botão entrou (38a442d, 15/09) com style="{{ navStyle.flashcards }}", mas o objeto
+/* O menu lateral — medido, não presumido.
+   O Baralho entrou (38a442d, 15/09) com style="{{ navStyle.flashcards }}", mas o objeto
    navStyle do render() nunca ganhou a chave: o runtime deixava o atributo vazio e o item saía
    com a cara crua do navegador (fundo cinza, texto preto, borda outset, 27 px de altura) em
    todas as telas. O caso de integração só perguntava se o botão EXISTIA no DOM — e existia.
    Aqui:
    · (a) estático: todo {{ navStyle.X }} do template tem a chave X no objeto do render() —
-         pega o próximo item que nascer do mesmo jeito;
+         pega o próximo item que nascer do mesmo jeito — e o contrário: toda chave do objeto
+         é usada no template (anki, dashboards e personalizacao sobraram de telas removidas,
+         e casos usa navCasos);
    · (b) mouse 1280: o Baralho, parado e ativo, tem o MESMO getComputedStyle de Revisões
          (display, padding, fundo, gradiente, cor, borda, raio, fonte, peso, sombra, altura),
          com o contraste do texto calculado (≥ 4,5:1) contra o fundo da barra e contra as
@@ -14,7 +16,10 @@
          mede ≥ 44 px e a mesma altura dos irmãos. Em paisagem o menu inteiro ficava em 40:
          a regra de 44 px da barra só valia por largura (≤ 900), e o [data-toque] não a alcançava.
          E a regra nova é só da barra: um <aside> dentro do conteúdo (o cartão de respostas do
-         ENAM) não estica o quadradinho .ct-miudo.
+         ENAM) não estica o quadradinho .ct-miudo;
+   · (d) Ajustes aparece UMA vez no menu, dentro de "Mais opções" (escolha da dona em
+         24/09/2026, no lugar do fixo no rodapé aprovado em 27/08): fechado o grupo, nenhum;
+         aberto, um; e na própria tela de Ajustes o grupo abre sozinho com o item atual.
    Semeia por base+'/__semente' (404 na mesma origem): com o app aberto, semear é corrida com o
    autosave. Por isso só na origem http. */
 import fs from 'fs';
@@ -36,7 +41,7 @@ const PROPS = ['display', 'alignItems', 'columnGap', 'paddingTop', 'paddingRight
  * @param ok           coletor: ok(cond, rótulo)
  * @param ctx          { motor, origem } — só para o rótulo
  */
-export async function testarMenuBaralho(pageDaSuite, base, ok, ctx = {}) {
+export async function testarMenuLateral(pageDaSuite, base, ok, ctx = {}) {
   const motor = ctx.motor || 'chromium';
   const origem = ctx.origem || 'http';
   const R = 'MENU/BARALHO [' + motor + '] [' + origem + '] ';
@@ -49,8 +54,10 @@ export async function testarMenuBaralho(pageDaSuite, base, ok, ctx = {}) {
     const obj = /\bnavStyle:\{([^}]*)\}/.exec(src);
     const chaves = obj ? [...obj[1].matchAll(/(\w+):navStyle\(/g)].map(m => m[1]) : [];
     const faltam = usadas.filter(k => !chaves.includes(k));
+    const sobram = chaves.filter(k => !usadas.includes(k));
     ok(!!obj && usadas.includes('flashcards'), R + '(a) o template usa navStyle.flashcards e o render() monta o objeto navStyle');
     ok(faltam.length === 0, R + '(a) todo {{ navStyle.X }} do template tem a chave no render() (faltam: ' + (faltam.join(', ') || 'nenhuma') + ')');
+    ok(!!obj && sobram.length === 0, 'MENU/CHAVES [' + motor + '] [' + origem + '] (a) toda chave do objeto navStyle é usada no template (sobram: ' + (sobram.join(', ') || 'nenhuma') + ')');
   }
 
   async function abrir(viewport, toque) {
@@ -127,6 +134,41 @@ export async function testarMenuBaralho(pageDaSuite, base, ok, ctx = {}) {
       ok(r.ativoGradiente && r.ativoDifs.length === 0, R + '(b) ativo, o Baralho pinta igual a Revisões ativa — o mesmo gradiente do destaque (' + (r.ativoDifs.slice(0, 3).join(' | ') || 'igual') + ')');
       ok(r.ativoContraste !== null && r.ativoContraste >= 4.5, R + '(b) ativo, o texto tem contraste ≥ 4,5:1 com as duas pontas do gradiente (' + r.ativoContraste + ')');
       ok(!erros.length, R + '(b) sem erro de página (' + erros.slice(0, 2).join(' | ').slice(0, 160) + ')');
+    } finally { await c.close(); }
+  }
+
+  /* ---------- (d) Ajustes uma vez só, dentro de "Mais opções" ---------- */
+  {
+    const RA = 'MENU/AJUSTES [' + motor + '] [' + origem + '] ';
+    const { c, page, erros } = await abrir({ width: 1280, height: 900 }, false);
+    try {
+      const r = await page.evaluate(async () => {
+        const w = ms => new Promise(res => setTimeout(res, ms));
+        const a = window.__catedraApp;
+        // só o que a pessoa VÊ conta: sc-if fora do DOM ou display:none não é item do menu
+        const visiveis = () => [...document.querySelectorAll('aside button[data-view="ajustes"]')]
+          .filter(b => getComputedStyle(b).display !== 'none' && b.getBoundingClientRect().height > 0);
+        const dentroDoMais = b => !!b.closest('#ct-nav-mais');
+        const out = {};
+        window.__catedraGoView('inicio'); a.setState({ navExpanded: false }); await w(600);
+        out.fechado = visiveis().length;
+        a.setState({ navExpanded: true }); await w(500);
+        const ab = visiveis();
+        out.aberto = ab.length; out.abertoNoMais = ab.every(dentroDoMais);
+        a.setState({ navExpanded: false }); await w(300);
+        window.__catedraGoView('ajustes'); await w(700);
+        const na = visiveis();
+        out.naTela = na.length; out.naTelaNoMais = na.every(dentroDoMais);
+        out.naTelaAtual = na.length === 1 && na[0].getAttribute('aria-current') === 'page';
+        out.naTelaFlex = na.length === 1 && getComputedStyle(na[0]).display === 'flex';
+        out.view = a.state.view;
+        return out;
+      });
+      ok(r.fechado === 0, RA + '(d) com "Mais opções" fechado, Ajustes não aparece no menu (' + r.fechado + ' visível)');
+      ok(r.aberto === 1 && r.abertoNoMais, RA + '(d) aberto o grupo, Ajustes aparece uma vez, dentro de "Mais opções" (' + r.aberto + ' visível)');
+      ok(r.view === 'ajustes' && r.naTela === 1 && r.naTelaNoMais && r.naTelaAtual && r.naTelaFlex,
+        RA + '(d) na tela de Ajustes o grupo abre sozinho e o item é o atual, com o estilo do menu (' + r.naTela + ' visível)');
+      ok(!erros.length, RA + '(d) sem erro de página (' + erros.slice(0, 2).join(' | ').slice(0, 160) + ')');
     } finally { await c.close(); }
   }
 
