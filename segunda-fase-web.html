@@ -41,7 +41,7 @@ button,input,select,textarea{font-family:inherit}
 .top{position:sticky;top:0;z-index:40;background:var(--surface);border-bottom:1px solid var(--border)}
 .l1{display:flex;align-items:center;gap:12px;padding:12px 18px;max-width:1120px;margin:0 auto;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:11px;flex:none}
-.brand .ic{width:36px;height:36px;border-radius:11px;background:var(--accent);color:var(--onAccent);
+.brand .ic{width:36px;height:36px;border-radius:11px;background:var(--accentSolid,var(--accent));color:var(--onAccent);
   display:flex;align-items:center;justify-content:center;font:800 15px var(--mono);flex:none}
 .brand b{font:800 18px/1 var(--display);letter-spacing:-.02em;display:block}
 .brand small{display:block;font-size:var(--t-micro);color:var(--text2);margin-top:4px}
@@ -53,8 +53,8 @@ button,input,select,textarea{font-family:inherit}
 .bt{cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--ink);
   border-radius:11px;padding:9px 15px;font-size:var(--t-corpo);font-weight:700}
 .bt:hover{border-color:var(--accent);background:var(--accentSoft)}
-.bt.pri{background:var(--accent);border-color:var(--accent);color:var(--onAccent)}
-.bt.pri:hover{background:var(--accentD)}
+.bt.pri{background:var(--accentSolid,var(--accent));border-color:var(--accentSolid,var(--accent));color:var(--onAccent)}
+.bt.pri:hover{background:var(--accentSolidD,var(--accentD))}
 .bt[disabled]{opacity:.45;cursor:default}
 /* D8 — no celular as ações secundárias do topo (Imprimir, Ver a folha, Sair) saem do
    lugar nobre e vão para um "⋯". No desktop o ⋯ some e os botões voltam para a linha
@@ -126,7 +126,8 @@ details.instr ul{margin:10px 0 0;padding-left:20px;font-size:var(--t-micro);colo
 .vb{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
 .ver button{cursor:pointer;border:1px solid var(--border);background:var(--bg);color:var(--text2);
   border-radius:99px;padding:5px 13px;font-size:var(--t-micro);font-weight:700}
-.ver button.on[data-v=atendeu]{background:var(--ok);border-color:var(--ok);color:#fff}
+/* --ok vem do host e clareia no escuro: o texto é o --onOk calculado lá (≥ 4,5:1) */
+.ver button.on[data-v=atendeu]{background:var(--ok);border-color:var(--ok);color:var(--onOk,#fff)}
 .ver button.on[data-v=parcial]{background:var(--meio);border-color:var(--meio);color:#fff}
 .ver button.on[data-v=nao]{background:var(--nao);border-color:var(--nao);color:#fff}
 .ver .sug{font-size:var(--t-micro);color:var(--text2);margin-left:4px}
