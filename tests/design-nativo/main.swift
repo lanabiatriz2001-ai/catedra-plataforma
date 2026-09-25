@@ -76,6 +76,41 @@ confere(DSRaio.card == 12 && DSRaio.interno == 9 && DSRaio.hero == 18, "raios de
 ThemeState.t.radius = 6
 confere(DSRaio.interno == 6, "raio interno nunca abaixo de 6")
 
+// ── Lógica do leitor (entrega 2) ────────────────────────────────────────────
+confere(LeitorLogica.numero(de: "Art. 5º") == "5" && LeitorLogica.numero(de: "Art. 1.015") == "1015"
+        && LeitorLogica.numero(de: "Art. 121-A") == "121-A" && LeitorLogica.numero(de: "sem número") == nil,
+        "numero(de:) no mesmo formato do incidencia-verbetes.json")
+let lei = """
+TÍTULO II
+Art. 5º Todos são iguais perante a lei, nos termos do art. 3º e seguintes:
+I - homens e mulheres são iguais;
+Art. 6º São direitos sociais a educação.
+Art 7 texto sem ponto.
+Art. 1.045 texto com milhar.
+Art. 121-A texto com letra.
+"""
+let cabs = LeitorLogica.cabecalhos(em: lei)
+confere(cabs.map(\.numero) == ["5", "6", "7", "1045", "121-A"],
+        "cabeçalhos: só início de linha; 'art. 3º' no meio do parágrafo não conta")
+let ns = lei as NSString
+confere(cabs.allSatisfy { ns.substring(with: $0.intervalo) == $0.rotulo } && cabs.first?.rotulo == "Art. 5º",
+        "intervalo de cada cabeçalho aponta exatamente para o rótulo no texto (o texto não muda)")
+confere(LeitorLogica.trecho(de: cabs[0], em: lei, cabecalhos: cabs)
+        == ["Art. 5º Todos são iguais perante a lei, nos termos do art. 3º e seguintes:", "I - homens e mulheres são iguais;"],
+        "trecho do artigo vai até o próximo cabeçalho")
+confere(LeitorLogica.trecho(de: cabs[4], em: lei, cabecalhos: cabs) == ["Art. 121-A texto com letra."],
+        "trecho do último artigo vai até o fim")
+confere(LeitorLogica.cabecalhos(em: "").isEmpty && LeitorLogica.cabecalhos(em: "Sem artigos aqui.").isEmpty,
+        "texto sem artigos: nenhum cabeçalho")
+confere(AlturaGaveta.fechada.apos(arrasto: -120) == .meia && AlturaGaveta.meia.apos(arrasto: -120) == .cheia
+        && AlturaGaveta.cheia.apos(arrasto: -500) == .cheia, "arrastar para cima sobe um degrau (e para no topo)")
+confere(AlturaGaveta.cheia.apos(arrasto: 120) == .meia && AlturaGaveta.meia.apos(arrasto: 120) == .fechada
+        && AlturaGaveta.meia.apos(arrasto: 900) == .fechada, "arrastar para baixo desce um degrau (e fecha)")
+confere(AlturaGaveta.meia.apos(arrasto: 30) == .meia && AlturaGaveta.meia.apos(arrasto: -30) == .meia,
+        "arrasto pequeno (< 80 pt) não muda a altura")
+confere(AlturaGaveta.meia.fracao(compacto: true) == 1 && AlturaGaveta.meia.fracao(compacto: false) == 0.5
+        && AlturaGaveta.fechada.fracao(compacto: false) == 0, "no compacto a gaveta abre em tela cheia")
+
 // (Tasks 2 e 3 acrescentam blocos aqui, antes do fechamento.)
 
 print(falhas == 0 ? "\nbase visual: tudo certo" : "\nbase visual: \(falhas) falha(s)")

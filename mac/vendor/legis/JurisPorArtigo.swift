@@ -57,11 +57,7 @@ enum JurisPorArtigo {
 
     /// "Art. 5º" / "Art. 1.015" / "Art. 121-A" → "5" / "1015" / "121-A" (o mesmo formato
     /// que o gerador grava: número sem ponto de milhar, letra com hífen).
-    static func numeroDe(label: String) -> String? {
-        let s = label.replacingOccurrences(of: ".", with: "")
-        guard let r = s.range(of: #"\d+(?:-[A-Za-z])?"#, options: .regularExpression) else { return nil }
-        return String(s[r]).uppercased()
-    }
+    static func numeroDe(label: String) -> String? { LeitorLogica.numero(de: label) }
 
     /// Verbetes que citam o artigo `label` da lei `lei`. Casamento da lei pelo título do
     /// catálogo (o mesmo que o IncidenciaView usa); vazio quando não há.
