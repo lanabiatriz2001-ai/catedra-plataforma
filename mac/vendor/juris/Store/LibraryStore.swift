@@ -625,7 +625,11 @@ final class LibraryStore {
             return arr.sorted { a, b in
                 let fa = OrdemAutoridade.posicao(a.fonte), fb = OrdemAutoridade.posicao(b.fonte)
                 if fa != fb { return fa < fb }
-                return (a.numero ?? -1) > (b.numero ?? -1)
+                // Súmulas em ordem crescente (SV 1, Súmula 1…), como se leem; informativos e
+                // temas do mais novo para o mais antigo. Desempate estável pelo id.
+                let na = a.numero ?? -1, nb = b.numero ?? -1
+                if na != nb { return a.fonte.hasPrefix("sumula_") ? na < nb : na > nb }
+                return a.id < b.id
             }
         case .numeroDesc:
             return arr.sorted { ($0.numero ?? Int.min) > ($1.numero ?? Int.min) }
