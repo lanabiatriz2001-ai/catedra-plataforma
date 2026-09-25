@@ -73,6 +73,8 @@ export function verificar() {
       else if (v > b) falhas.push(`${lado}.${k}: ${v} (a base é ${b} — migre para ios/vendor/design em vez de somar)`);
     }
   }
+  for (const lado of LADOS) if (atual[lado].emoji > 0)
+    falhas.push(`${lado}.emoji: ${atual[lado].emoji} — emoji não é ícone (DESIGN.md); use SF Symbol ou texto`);
   return { atual, base, falhas };
 }
 

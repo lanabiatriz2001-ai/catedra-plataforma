@@ -30,6 +30,9 @@ export async function testarDesignNativo(ok) {
   ok(r.falhas.length === 0,
     'DN3 nenhum hex, .white/.black, .system(size:) ou emoji novo fora da base visual (Mac e iPad)'
     + (r.falhas.length ? ' — ' + r.falhas.join('; ') : ''));
+  ok(r.atual.mac.emoji === 0 && r.atual.ios.emoji === 0,
+    'DN5 nenhum emoji usado como ícone no LEGIS/JURIS nativos (Mac '
+    + r.atual.mac.emoji + ', iPad ' + r.atual.ios.emoji + ')');
 
   if (process.platform !== 'darwin') {
     ok(true, 'DN4 testes Swift da base visual — pulados fora do macOS (no Mac: bash scripts/testar-design-nativo.sh)');
