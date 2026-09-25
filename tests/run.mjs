@@ -47,6 +47,7 @@ import { testarJurisQuadro } from './juris-quadro.mjs';
 import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 import { testarMenuLateral } from './menu-lateral.mjs';
+import { testarSemDodEstatico, testarSemDodNavegador } from './sem-dod.mjs';
 import { testarAssinaturaLimpa } from './assinatura-limpa.mjs';
 import { testarXcodeCloud } from './xcode-cloud.mjs';
 import { montar as montarEnam, parseProva as parseProvaEnam, parseGabarito as parseGabaritoEnam, carregarAreas as areasEnam, EDICOES as EDICOES_ENAM } from '../scripts/build-questoes-enam.mjs';
@@ -3221,38 +3222,8 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     r.chaveAusenteNaoLiga = !raizSat.hasAttribute('data-baixa');
     return r;
   });
-  // JURIS → Mapas das Súmulas Vinculantes: iframe DENTRO do satélite, sem tema-satelite.js, fora do alcance do
-  // _temaBroadcast. As duas rolagens por JS (índice e voltar ao topo) leem o data-baixa do JURIS no clique.
-  await sp.goto(URL0 + '/juris-web.html'); await sp.waitForTimeout(2200);
-  const mapas = await sp.evaluate(async () => {
-    const w = ms => new Promise(res => setTimeout(res, ms)); const r = {};
-    document.querySelector('#tabs .tab[data-pane="mapas"]').click();
-    const fr = document.getElementById('mapasFrame');
-    const doc = () => { try { return fr.contentDocument; } catch (_) { return null; } };
-    for (let i = 0; i < 40 && !(doc() && doc().readyState === 'complete' && doc().querySelector('a.ix')); i++) await w(250);
-    const fw = fr.contentWindow, fd = doc();
-    r.carregou = !!fd && !!fd.querySelector('a.ix') && !!fd.getElementById('up');
-    if (!r.carregou) return r;
-    const vistos = [];
-    fw.Element.prototype.scrollIntoView = function (o) { vistos.push('ix:' + (o && o.behavior)); };
-    fw.scrollTo = function (o) { vistos.push('up:' + (o && o.behavior)); };
-    const clica = () => { vistos.length = 0; fd.querySelector('a.ix').click(); fd.getElementById('up').click(); return vistos.join(','); };
-    const manda = (extra) => window.dispatchEvent(new MessageEvent('message', {
-      source: window.parent, origin: location.origin,
-      data: Object.assign({ type: 'ctTheme', tokens: {} }, extra)
-    }));
-    manda({ baixa: '1' }); await w(250);
-    const lig = clica();
-    r.ligadoSemSuave = document.documentElement.getAttribute('data-baixa') === '1' && lig === 'ix:auto,up:auto';
-    manda({ baixa: '' }); await w(250);
-    const des = clica();
-    r.desligadoSuave = !document.documentElement.hasAttribute('data-baixa') && des === 'ix:smooth,up:smooth';
-    if (!r.ligadoSemSuave || !r.desligadoSuave) r.vistos = lig + ' | ' + des;
-    return r;
-  });
   await sctx.close();
   for (const [k, v] of Object.entries(s)) ok(v, 'A11Y/P16 satélite ' + k);
-  for (const [k, v] of Object.entries(mapas)) { if (k === 'vistos') { ok(false, 'A11Y/P16 mapas SV rolagens vistas: ' + v); continue; } ok(v, 'A11Y/P16 mapas SV ' + k); }
   // no toque (iPad): todo botão da área de conteúdo e da barra superior com 44 px
   const ctxToque = await browser.newContext({ viewport: { width: 1024, height: 768 }, hasTouch: true, isMobile: false });
   const pg = await ctxToque.newPage();
@@ -9088,6 +9059,14 @@ catch (e) {
   ok(false, 'EDITAL/SUBTÓPICOS [' + motor + '] [http] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
+
+// Sem Dizer o Direito e sem os mapas das Súmulas Vinculantes (tests/sem-dod.mjs): decisão da dona
+// de 25/09/2026. Varre o public/ que o D9 acabou de gerar e o bundle nativo, se houver; e o JURIS
+// abre com as quatro abas que sobraram.
+try { testarSemDodEstatico(ok, { motor }); }
+catch (e) { ok(false, 'SEM DOD [' + motor + '] estático sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
+try { await testarSemDodNavegador(page, URL0, ok, { motor, origem: 'http' }); }
+catch (e) { ok(false, 'SEM DOD [' + motor + '] [http] o roteiro correu sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
 
 // JURIS: o quadro "Não confunda com" no lugar da lista de Relacionados (tests/juris-quadro.mjs).
 // Roteiro em módulo próprio porque o caso precisa de RELOAD com semente — o mapa ROT do

@@ -28,7 +28,7 @@ struct ChecklistDonePayload {
 ///   HOJE       — o que fazer agora (Início, Revisar hoje, Novidades)
 ///   TREINAR    — o que gera nota (Simulado, Prova oral, Oral das bancas, Plano, Mapas)
 ///   ACERVO     — por força vinculante (Todos, Ramos, Informativos, STF/STJ/TSE,
-///                Tribunais, Contas, DOD)
+///                Tribunais, Contas, Precedentes)
 ///   MEU ESTUDO — biblioteca pessoal (Favoritos, Anotações, Checklist, Coleções, Índice)
 struct JurisSidebar: View {
     @Environment(LibraryStore.self) private var store
@@ -102,7 +102,7 @@ struct JurisSidebar: View {
                     row(.central(.tse), "TSE", "building.columns")
                     row(.central(.especificos), "Tribunais (TJRO, TJGO…)", "building.2", chevron: true)
                     row(.central(.contas), "Cortes de contas", "banknote")
-                    row(.central(.outros), "DOD & Precedentes", "text.book.closed")
+                    row(.central(.outros), "Precedentes", "text.book.closed")
 
                     secao("MEU ESTUDO")
                     row(.favoritos, "Favoritos", "star")
