@@ -38,7 +38,7 @@ import { testarRevisaoFonte } from './revisao-fonte.mjs';
 import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
 import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
-import { testarMenuBaralho } from './menu-baralho.mjs';
+import { testarMenuLateral } from './menu-lateral.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 // porta própria por padrão: run.mjs usa a 8123, e as duas suítes podem rodar lado a lado
@@ -137,7 +137,7 @@ for (const [base, origem, arquivo] of ORIGENS) {
     catch (e) { ok(false, 'PADRONIZAÇÃO VISUAL [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
     // o Baralho do menu com o estilo dos irmãos, e 44 px no toque em retrato e em paisagem —
     // o motor do WKWebView é o que o iPad pinta
-    try { await testarMenuBaralho(page, base, ok, { motor, origem }); }
+    try { await testarMenuLateral(page, base, ok, { motor, origem }); }
     catch (e) { ok(false, 'MENU/BARALHO [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
     try { await testarJurisQuadro(page, base, ok, { motor, origem }); }
     catch (e) {
