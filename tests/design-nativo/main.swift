@@ -46,6 +46,31 @@ confere(Ramo.deNome(nil) == nil && Ramo.deNome("Direito Canônico") == nil, "deN
 confere(CorTribunal.identidade("STF") == 0x1D4ED8 && CorTribunal.identidade("STJ") == 0x0D9488
         && CorTribunal.identidade("XYZ") == nil, "cores de tribunal e ausência para tribunal desconhecido")
 
+// ── Fontes e escala ─────────────────────────────────────────────────────────
+confere(DSFontes.registrar(pasta: URL(fileURLWithPath: "/nao/existe")).isEmpty
+        && !DSFontes.disponivel("Spectral"),
+        "registrar pasta inexistente não quebra e nada fica disponível")
+let reg = DSFontes.registrar(pasta: URL(fileURLWithPath: pastaFontes, isDirectory: true))
+for f in DSFontes.familiasDaCasa {
+    confere(reg.contains(f) && DSFontes.disponivel(f), "fonte da casa registrada a partir do woff2: \(f)")
+}
+confere(DSFontes.registrar(pasta: URL(fileURLWithPath: pastaFontes, isDirectory: true)) == reg,
+        "registrar de novo (já registradas) não perde nenhuma família")
+confere(!DSFontes.disponivel("Comic Sans MS"), "família de fora da casa não conta como disponível")
+confere(DS.familiaDisplay(css: "'Spectral', Georgia, serif") == "Spectral", "display da Planilha/Tribunal")
+confere(DS.familiaDisplay(css: "'Inter Tight', 'Inter', sans-serif") == "Inter Tight", "display do Neon/Aurora")
+confere(DS.familiaDisplay(css: "'Space Grotesk', sans-serif") == "Space Grotesk", "display do Fibra/Solar")
+confere(DS.familiaDisplay(css: "'JetBrains Mono', monospace") == "JetBrains Mono", "display do Terminal")
+confere(DS.familiaDisplay(css: "") == nil && DS.familiaDisplay(css: "Comic Sans") == nil,
+        "display vazio ou desconhecido devolve nil (a ponte mantém o anterior)")
+confere(DS.escala(8) == 11 && DS.escala(15) == 15, "escala: piso de 11 e tamanho normal intacto (Mac)")
+confere(DSTipo.micro.rawValue == 12 && DSTipo.corpo.rawValue == 15
+        && DSTipo.titulo.rawValue == 19 && DSTipo.display.rawValue == 26, "escala de 4 degraus da interface")
+ThemeState.t.radius = 12
+confere(DSRaio.card == 12 && DSRaio.interno == 9 && DSRaio.hero == 18, "raios derivados de --radius")
+ThemeState.t.radius = 6
+confere(DSRaio.interno == 6, "raio interno nunca abaixo de 6")
+
 // (Tasks 2 e 3 acrescentam blocos aqui, antes do fechamento.)
 
 print(falhas == 0 ? "\nbase visual: tudo certo" : "\nbase visual: \(falhas) falha(s)")
