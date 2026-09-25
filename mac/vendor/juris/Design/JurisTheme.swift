@@ -206,6 +206,8 @@ enum Selecao: Hashable {
     case provaOral                    // arguição local sobre o acervo, sem IA
     case oralBancas                   // material oficial de prova oral: pontos, perguntas, padrão de resposta
     case simulado                     // prova C/E + discursivas sorteadas do acervo (local, sem IA)
+    case destino(Destino)             // entrega 4: vitrine de Acervo/Treinar (o mesmo Destino do LEGIS)
+    case meuMaterial                  // entrega 4: anotações, mapas mentais, DOD — o que é seu ou de apoio
 
     var titulo: String {
         switch self {
@@ -214,6 +216,8 @@ enum Selecao: Hashable {
         case .provaOral: return "Prova oral"
         case .oralBancas: return "Prova oral · bancas"
         case .simulado: return "Simulado"
+        case .destino(let d): return d.titulo
+        case .meuMaterial: return "Meu material"
         case .inicio: return "Início"
         case .hoje: return "Revisar hoje"
         case .todos: return "Todos os verbetes"
@@ -268,6 +272,8 @@ enum Selecao: Hashable {
         case .provaOral: return "mic.fill"
         case .oralBancas: return "person.wave.2.fill"
         case .simulado: return "list.bullet.clipboard.fill"
+        case .destino(let d): return d.simbolo
+        case .meuMaterial: return "folder.fill"
         }
     }
 }

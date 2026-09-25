@@ -55,7 +55,14 @@ struct JurisSidebar: View {
         }
     }
 
-    private func ativa(_ s: Selecao) -> Bool { store.leituraID == nil && selecaoAtual == s }
+    private func ativa(_ s: Selecao) -> Bool {
+        guard store.leituraID == nil else { return false }
+        switch s {
+        case .destino(let d): return JurisDestinos.pai(selecaoAtual) == d
+        case .meuMaterial: return JurisDestinos.ehMeuMaterial(selecaoAtual)
+        default: return selecaoAtual == s
+        }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -80,49 +87,14 @@ struct JurisSidebar: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 2) {
-                    secao("HOJE")
-                    row(.inicio, "Início", "house")
-                    row(.hoje, "Revisar hoje", "sun.horizon", badge: store.srsDueCount + store.checklistPendingCount)
-                    row(.novidades, "Novidades", "sparkles", ponto: store.novidadesNaoVistas > 0)
-
-                    secao("TREINAR")
-                    row(.simulado, "Simulado", "list.bullet.clipboard")
-                    row(.provaOral, "Prova oral", "mic")
-                    row(.oralBancas, "Prova oral · bancas", "person.wave.2")
-                    row(.julgadoDoDia, "Julgado do dia", "sun.max")
-                    row(.plano, "Plano de leitura", "calendar")
-                    row(.mapas, "Mapas mentais", "brain.head.profile")
-
-                    secao("ACERVO")
-                    row(.todos, "Todos os verbetes", "square.stack.3d.up")
-                    row(.ramosHub, "Ramos do Direito", "books.vertical", chevron: true)
-                    row(.gradeInformativos, "Informativos", "square.grid.3x3")
-                    row(.central(.stf), "STF", "building.columns")
-                    row(.central(.stj), "STJ", "building.columns")
-                    row(.central(.tse), "TSE", "building.columns")
-                    row(.central(.especificos), "Tribunais (TJRO, TJGO…)", "building.2", chevron: true)
-                    row(.central(.contas), "Cortes de contas", "banknote")
-                    row(.central(.outros), "DOD & Precedentes", "text.book.closed")
-
-                    secao("MEU ESTUDO")
-                    row(.favoritos, "Favoritos", "star")
-                    row(.anotacoes, "Minhas anotações", "square.and.pencil")
-                    row(.checklist, "Checklist de leitura", "checklist", badge: store.checklistPendingCount)
-                    row(.indice, "Índice alfabético", "textformat.abc")
-                    ForEach(store.colecoes) { c in
-                        row(.colecao(c.id), c.nome, "folder")
-                    }
-                    Button { nomeColecao = ""; novaColecao = true } label: {
-                        HStack(spacing: 11) {
-                            Image(systemName: "plus").font(.system(size: 12, weight: .semibold)).frame(width: 20)
-                            Text("Nova coleção").font(.system(size: 13, weight: .medium))
-                            Spacer(minLength: 0)
-                        }
-                        .padding(.horizontal, 11).padding(.vertical, 8)
-                        .foregroundStyle(ThemeState.t.sidebarText.opacity(0.8))
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
+                    // Entrega 4: os MESMOS 4 destinos do LEGIS. Tudo o que era linha solta está na
+                    // vitrine do destino (JurisDestinoHub) — tabela de rastreio no PR.
+                    row(.inicio, Destino.hoje.titulo, Destino.hoje.simbolo, badge: store.srsDueCount + store.checklistPendingCount)
+                    row(.destino(.acervo), Destino.acervo.titulo, Destino.acervo.simbolo)
+                    row(.destino(.treinar), Destino.treinar.titulo, Destino.treinar.simbolo)
+                    row(.novidades, Destino.novidades.titulo, Destino.novidades.simbolo, ponto: store.novidadesNaoVistas > 0)
+                    secao("MEU MATERIAL")
+                    row(.meuMaterial, "Anotações, mapas e apoio", "folder")
                 }
                 .padding(.horizontal, 8).padding(.bottom, 14)
             }
