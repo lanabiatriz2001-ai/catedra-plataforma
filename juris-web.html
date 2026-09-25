@@ -8,7 +8,7 @@
 body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--body,'Inter',system-ui,sans-serif);font-size:13px;-webkit-font-smoothing:antialiased}
 .wrap{max-width:1200px;margin:0 auto;padding:20px 26px 90px}
 .head{display:flex;align-items:center;gap:14px;margin-bottom:14px}
-.head .ic{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,var(--accent,#0f7a57),var(--accentD,#0b5e43));display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;flex:none;box-shadow:0 6px 16px -4px rgba(20,15,10,.30)}
+.head .ic{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,var(--accentSolid,var(--accent,#0f7a57)),var(--accentSolidD,var(--accentD,#0b5e43)));display:flex;align-items:center;justify-content:center;color:var(--onAccent,#fff);font-size:20px;flex:none;box-shadow:0 6px 16px -4px rgba(20,15,10,.30)}
 .head h1{font-family:var(--display,'Spectral',Georgia,serif);font-size:25px;font-weight:800;letter-spacing:-.02em;line-height:1}
 .head p{font-size:12px;color:var(--text2,#5c564a);margin-top:3px}
 .search{position:relative;margin-bottom:12px}
@@ -21,6 +21,8 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 .chip small{color:var(--text2,#5c564a);font-weight:600;font-variant-numeric:tabular-nums}
 .chip.on{color:#fff;border-color:transparent}
 .chip.on small{color:rgba(255,255,255,.8)}
+.chip.on.destaque{color:var(--onAccent,#fff)}
+.chip.on.destaque small{color:inherit}
 .gedic{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:7px;margin:6px 0 4px}
 .edic{aspect-ratio:1;border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);border-radius:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font:800 14px inherit;color:var(--text2,#5c564a);font-variant-numeric:tabular-nums}
 .edic i{font-style:normal;font-size:9px;font-weight:700;color:var(--text2,#5c564a)}
@@ -43,7 +45,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 .diaTag{font:800 10px inherit;letter-spacing:.04em;text-transform:uppercase;border-radius:6px;padding:3px 8px;background:color-mix(in srgb,var(--accent,#0f7a57) 15%,transparent);color:var(--accentD,#0b5e43)}
 .diaAcoes{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
 .diaAcoes button{border:1.5px solid var(--accent,#0f7a57);background:none;color:var(--accent,#0f7a57);border-radius:10px;padding:9px 15px;font:700 12.5px inherit;cursor:pointer}
-.diaAcoes button.prim{background:var(--accent,#0f7a57);color:#fff}
+.diaAcoes button.prim{background:var(--accentSolid,var(--accent,#0f7a57));color:var(--onAccent,#fff)}
 .oral{margin-top:16px;border-top:1px dashed var(--border,#e6e1d4);padding-top:14px}
 .oral h4{margin-bottom:8px}
 .oral .perg{font-size:15px;line-height:1.6;font-weight:600;margin-bottom:10px}
@@ -177,7 +179,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
    então o anel dele seria só ruído. */
 #estQdSlot:focus{outline:none}
 .avEd{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:color-mix(in srgb,var(--accent,#0f7a57) 9%,transparent);border:1.5px solid var(--accent,#0f7a57);border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:12.5px;font-weight:600;color:var(--text2,#5c564a)}
-.avEd button{border:0;background:var(--accent,#0f7a57);color:#fff;border-radius:8px;padding:6px 12px;font:700 12px inherit;cursor:pointer}
+.avEd button{border:0;background:var(--accentSolid,var(--accent,#0f7a57));color:var(--onAccent,#fff);border-radius:8px;padding:6px 12px;font:700 12px inherit;cursor:pointer}
 .gmais{border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);border-radius:10px;padding:7px 14px;font:700 12px inherit;color:var(--text2,#5c564a);cursor:pointer;margin-top:8px}
 .statbar{display:flex;gap:20px;flex-wrap:wrap;background:var(--surface,#fffdf8);border:1px solid var(--border,#e6e1d4);border-radius:12px;padding:12px 18px;margin:6px 0 16px}
 .statbar .s1{display:flex;flex-direction:column}
@@ -230,9 +232,9 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
 .mode b{font-family:var(--display,'Spectral',Georgia,serif);font-size:15px;font-weight:800;color:var(--ink);line-height:1.1}
 .mode small{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3,#7a7368)}
 .mode:hover{border-color:var(--accent,#0f7a57)}
-.mode.on{border-color:transparent;background:linear-gradient(135deg,var(--accent,#0f7a57),var(--accentD,#0b5e43));box-shadow:0 12px 26px -14px rgba(20,15,10,.34)}
-.mode.on b{color:#fff}
-.mode.on small{color:rgba(255,255,255,.82)}
+.mode.on{border-color:transparent;background:linear-gradient(135deg,var(--accentSolid,var(--accent,#0f7a57)),var(--accentSolidD,var(--accentD,#0b5e43)));box-shadow:0 12px 26px -14px rgba(20,15,10,.34)}
+.mode.on b{color:var(--onAccent,#fff)}
+.mode.on small{color:var(--onAccent,#fff)}
 .tabs{display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap}
 .tab{border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);color:var(--text2,#5c564a);border-radius:10px;padding:7px 14px;font:800 12px inherit;cursor:pointer}
 .tab.on{background:var(--ink,#1f1c17);color:var(--bg,#f4f1ea);border-color:transparent}
@@ -644,7 +646,8 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   }
   function chipBtn(active,label,cnt,col,onclick){
     var b=document.createElement('button'); b.className='chip'+(active?' on':'');
-    if(active)b.style.background=col||'var(--accent,#0f7a57)';
+    // sem cor própria, o chip ativo pinta o par do destaque (fundo e texto medidos no host)
+    if(active){ b.style.background=col||'var(--accentSolid,var(--accent,#0f7a57))'; if(!col) b.classList.add('destaque'); }
     b.setAttribute('aria-pressed',active?'true':'false');
     b.innerHTML=(col?'<span class="dot" aria-hidden="true" style="background:'+col+'"></span>':'')+esc(label)+' <small>'+cnt+'</small>';
     b.onclick=onclick; return b;
@@ -714,7 +717,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
     host.innerHTML='';
     at.forEach(function(x){
       var c=document.createElement('button');
-      c.className='chip on ativo'; c.style.background='var(--accent,#0f7a57)';
+      c.className='chip on ativo destaque'; c.style.background='var(--accentSolid,var(--accent,#0f7a57))';
       c.setAttribute('aria-label','Remover filtro '+x.rot);
       c.innerHTML=esc(x.rot)+' <span class="x" aria-hidden="true">✕</span>';
       c.onclick=function(){ if(x.k==='base')f.base=''; else f.ramo=''; build(); };
