@@ -15,9 +15,12 @@ enum LeitorLogica {
     /// "Art. 5º" / "Art. 1.015" / "Art. 121-A" → "5" / "1015" / "121-A" — o formato que
     /// scripts/build-incidencia.mjs grava em incidencia-verbetes.json (era JurisPorArtigo.numeroDe).
     static func numero(de rotulo: String) -> String? {
+        // Tira o ponto de milhar e o ordinal (º/°/o logo após o número) antes do padrão:
+        // "Art. 1º-A" precisa dar "1-A", não "1" (revisão final da entrega 2).
         let s = rotulo.replacingOccurrences(of: ".", with: "")
-        guard let r = s.range(of: #"\d+(?:-[A-Za-z])?"#, options: .regularExpression) else { return nil }
-        return String(s[r]).uppercased()
+            .replacingOccurrences(of: #"(\d)\s*[ºo°]"#, with: "$1", options: .regularExpression)
+        guard let r = s.range(of: #"\d+(?:\s*-\s*[A-Za-z](?![a-z]))?"#, options: .regularExpression) else { return nil }
+        return String(s[r]).replacingOccurrences(of: " ", with: "").uppercased()
     }
 
     private static let regexCabecalho = try! NSRegularExpression(

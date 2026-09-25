@@ -80,6 +80,8 @@ confere(DSRaio.interno == 6, "raio interno nunca abaixo de 6")
 confere(LeitorLogica.numero(de: "Art. 5º") == "5" && LeitorLogica.numero(de: "Art. 1.015") == "1015"
         && LeitorLogica.numero(de: "Art. 121-A") == "121-A" && LeitorLogica.numero(de: "sem número") == nil,
         "numero(de:) no mesmo formato do incidencia-verbetes.json")
+confere(LeitorLogica.numero(de: "Art. 1º-A") == "1-A" && LeitorLogica.numero(de: "Art. 5o-A") == "5-A"
+        && LeitorLogica.numero(de: "Art. 1.045-B") == "1045-B", "numero(de:) com ordinal antes da letra (1º-A → 1-A)")
 let lei = """
 TÍTULO II
 Art. 5º Todos são iguais perante a lei, nos termos do art. 3º e seguintes:

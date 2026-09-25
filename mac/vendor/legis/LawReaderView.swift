@@ -33,6 +33,8 @@ struct LawReaderView: View {
     @State private var abaGaveta = 0
     @State private var artigoAberto: CabecalhoArtigo?
     @State private var mostrarIrPara = false
+    // Contagem de julgados por artigo: calculada UMA vez por norma (não a cada redesenho).
+    @State private var contagensLei: [String: Int] = [:]
 
     private let ehCompactoOuFalso = false
     private var law: LawEntry? { store.laws.first { $0.id == lawID } }
@@ -143,9 +145,10 @@ struct LawReaderView: View {
                                           focusedAnnotationID: $focusedAnnotationID,
                                           onCommand: handle,
                                           textAlignment: store.alinhamentoNS(lawID: lawID, unitKey: "full"),
-                                          contagens: isNovidades ? [:] : JurisPorArtigo.contagens(lei: law),
+                                          contagens: contagensLei,
                                           entrelinha: entrelinha,
                                           onToqueArtigo: { c in artigoAberto = c; abaGaveta = 0; gaveta = .meia })
+                        atalhosDoLeitor
                         if controller.selectionLength > 0 && gaveta == .fechada {
                             paletaSelecao.padding(.bottom, DSEspaco.e5)
                         }
@@ -188,6 +191,7 @@ struct LawReaderView: View {
         .background(AppTheme.pageBackground)
         .task(id: "\(lawID.uuidString)-\(law.contentHash ?? "")") {
             text = store.loadText(for: law)
+            contagensLei = law.isNovidades ? [:] : JurisPorArtigo.contagens(lei: law)
             loadAttempted = true
             store.markRead(lawID)
             // Enriquecimento do Senado (linha do tempo): 1×, cacheado, offline-safe.
@@ -264,6 +268,16 @@ struct LawReaderView: View {
                         aoVoltar: nil,
                         aa: { tipografiaMenu }, mais: { maisMenu })
         }
+    }
+
+    /// ⌘J e ⌘F do modo Ler. Ficam FORA do ⋯: dentro de um Menu fechado os atalhos não
+    /// disparam (revisão final da entrega 2) — e o ⌘F funcionava na barra antiga.
+    private var atalhosDoLeitor: some View {
+        ZStack {
+            Button("Ir para artigo") { mostrarIrPara = true }.keyboardShortcut("j", modifiers: .command)
+            Button("Buscar no texto") { controller.showFindBar() }.keyboardShortcut("f", modifiers: .command)
+        }
+        .opacity(0).frame(width: 0, height: 0).allowsHitTesting(false).accessibilityHidden(true)
     }
 
     /// Grifo na SELEÇÃO (o menu "Marcar" saiu da barra): cores favoritas, cor livre,
@@ -379,11 +393,14 @@ struct LawReaderView: View {
                     if let c = law.lastChanged { Text("Alterada \(c.formatted(date: .abbreviated, time: .omitted))") }
                     if (law.checkFailures ?? 0) >= 3 { Text("Verificação falhando há \(law.checkFailures ?? 0) tentativas") }
                 }
+                if !isNovidades, !store.subjects(for: lawID).isEmpty {
+                    Section("Assuntos (Senado)") {
+                        Text(store.subjects(for: lawID).prefix(8).map { $0.capitalized }.joined(separator: " · "))
+                    }
+                }
                 if effectiveMode == "corrido" && !isNovidades {
-                    Button { mostrarIrPara = true } label: { Label("Ir para artigo…", systemImage: "number") }
-                        .keyboardShortcut("j", modifiers: .command)
-                    Button { controller.showFindBar() } label: { Label("Buscar no texto", systemImage: "magnifyingglass") }
-                        .keyboardShortcut("f", modifiers: .command)
+                    Button { mostrarIrPara = true } label: { Label("Ir para artigo… (⌘J)", systemImage: "number") }
+                    Button { controller.showFindBar() } label: { Label("Buscar no texto (⌘F)", systemImage: "magnifyingglass") }
                     Menu {
                     Button { store.setAlinhamento("left", lawID: lawID, unitKey: "full") } label: { Label("À esquerda", systemImage: "text.alignleft") }
                     Button { store.setAlinhamento("center", lawID: lawID, unitKey: "full") } label: { Label("Centralizado", systemImage: "text.aligncenter") }
