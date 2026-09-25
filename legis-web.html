@@ -977,7 +977,7 @@ function _colher(alvos, jaVistos){
       return '<div class="jitem"><div class="jmeta"><span class="jtrib">'+esc(v[2]||'—')+'</span><b>'+esc(v[1]||'')+'</b></div>'
         +'<div class="jrod"><small>'+esc(v[3]||'')+'</small><button type="button" class="jabrir">Abrir no JURIS</button></div></div>';
     }).join('');
-    g.querySelectorAll('.jabrir').forEach(function(b,i){ var t=(lista[i]||[])[1]||''; b.onclick=function(){
+    g.querySelectorAll('.jabrir').forEach(function(b,i){ var t=(lista[i]||[])[0]||''; /* o ID: o JURIS abre direto o verbete (o título casava a edição inteira) */ b.onclick=function(){
       try{ window.ctEnviarAoHost({type:'ctAbrirAcervo', alvo:'juris', termo:t, origem:(window.CT_ORIGEM||null)}); }catch(e){} }; });
     g.querySelector('.jg-fechar').onclick=fecharGaveta;
     g.classList.add('on'); g.setAttribute('aria-hidden','false');
