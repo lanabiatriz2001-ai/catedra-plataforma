@@ -30,6 +30,10 @@ export async function testarDesignNativo(ok) {
   ok(r.falhas.length === 0,
     'DN3 nenhum hex, .white/.black, .system(size:) ou emoji novo fora da base visual (Mac e iPad)'
     + (r.falhas.length ? ' — ' + r.falhas.join('; ') : ''));
+  const base = { mac: { cores: 5, pretoBranco: 5, tamanhos: 5, emoji: 0 }, ios: { cores: 5, pretoBranco: 5, tamanhos: 5, emoji: 0 } };
+  const desceu = V.comparar({ mac: { ...base.mac, tamanhos: 3 }, ios: base.ios }, base);
+  ok(desceu.length === 1 && /mac\.tamanhos: 3 < base 5/.test(desceu[0]) && /--atualizar/.test(desceu[0]),
+    'DN6 contagem abaixo da base também falha e pede --atualizar (senão a folga vira espaço para dívida nova)');
   ok(r.atual.mac.emoji === 0 && r.atual.ios.emoji === 0,
     'DN5 nenhum emoji usado como ícone no LEGIS/JURIS nativos (Mac '
     + r.atual.mac.emoji + ', iPad ' + r.atual.ios.emoji + ')');

@@ -28,7 +28,7 @@ import './verificar-cores-texto.mjs';   // trava: cor de ramo como texto ≥ 4,5
 import { verificar as verificarDesignNativo } from './verificar-design-nativo.mjs';   // trava: dívida visual do nativo só desce
 import './build-juridico.mjs';   // Termos e Política: docs/juridico/*.md → termos.html, privacidade.html, juridico.js
 import { prepararAbertura } from './build-abertura.mjs';
-{ const r = verificarDesignNativo(); if (r.falhas.length) throw new Error('\n✗ BUILD ABORTADO — dívida visual do LEGIS/JURIS nativos subiu:\n  ' + r.falhas.join('\n  ')); }
+{ const r = verificarDesignNativo(); if (r.falhas.length) throw new Error('\n✗ BUILD ABORTADO — contagem da dívida visual do LEGIS/JURIS nativos não bate com a base:\n  ' + r.falhas.join('\n  ')); }
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(ROOT, 'mac', 'build', 'web');

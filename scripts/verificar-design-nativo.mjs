@@ -61,21 +61,28 @@ export function contar(lado) {
   return tot;
 }
 
-export function verificar() {
-  const atual = Object.fromEntries(LADOS.map((l) => [l, contar(l)]));
-  if (!existsSync(BASE)) return { atual, base: null, falhas: ['sem linha de base — rode com --criar'] };
-  const base = JSON.parse(readFileSync(BASE, 'utf8'));
+/** Compara a contagem com a base. Subir é dívida nova; DESCER sem gravar a base também
+ *  falha — a folga deixada por uma migração viraria espaço para dívida nova entrar calada. */
+export function comparar(atual, base) {
   const falhas = [];
   for (const lado of LADOS) {
     for (const [k, v] of Object.entries(atual[lado])) {
       const b = base[lado]?.[k];
       if (b === undefined) falhas.push(`${lado}.${k}: sem linha de base`);
       else if (v > b) falhas.push(`${lado}.${k}: ${v} (a base é ${b} — migre para ios/vendor/design em vez de somar)`);
+      else if (v < b) falhas.push(`${lado}.${k}: ${v} < base ${b} — a dívida desceu; grave com: node scripts/verificar-design-nativo.mjs --atualizar`);
     }
+    if (atual[lado].emoji > 0)
+      falhas.push(`${lado}.emoji: ${atual[lado].emoji} — emoji não é ícone (DESIGN.md); use SF Symbol ou texto`);
   }
-  for (const lado of LADOS) if (atual[lado].emoji > 0)
-    falhas.push(`${lado}.emoji: ${atual[lado].emoji} — emoji não é ícone (DESIGN.md); use SF Symbol ou texto`);
-  return { atual, base, falhas };
+  return falhas;
+}
+
+export function verificar() {
+  const atual = Object.fromEntries(LADOS.map((l) => [l, contar(l)]));
+  if (!existsSync(BASE)) return { atual, base: null, falhas: ['sem linha de base — rode com --criar'] };
+  const base = JSON.parse(readFileSync(BASE, 'utf8'));
+  return { atual, base, falhas: comparar(atual, base) };
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
@@ -86,12 +93,14 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     if (r.base) { console.error('✗ a linha de base já existe — use --atualizar'); process.exit(1); }
     writeFileSync(BASE, JSON.stringify(r.atual, null, 2) + '\n');
     console.log('✓ linha de base criada:', JSON.stringify(r.atual));
-  } else if (r.falhas.length) {
-    console.error('\n✗ BUILD ABORTADO — a dívida visual do LEGIS/JURIS nativos subiu:\n  ' + r.falhas.join('\n  ') + '\n');
-    process.exit(1);
   } else if (atualizar) {
+    const subiu = r.falhas.filter((f) => !/a dívida desceu/.test(f));
+    if (subiu.length) { console.error('✗ não grava: ' + subiu.join('; ')); process.exit(1); }
     writeFileSync(BASE, JSON.stringify(r.atual, null, 2) + '\n');
     console.log('✓ linha de base rebaixada:', JSON.stringify(r.atual));
+  } else if (r.falhas.length) {
+    console.error('\n✗ BUILD ABORTADO — a contagem da dívida visual do LEGIS/JURIS nativos não bate com a base:\n  ' + r.falhas.join('\n  ') + '\n');
+    process.exit(1);
   } else {
     console.log('  ✓ design nativo: nenhuma dívida visual nova —', LADOS.map((l) => `${l} ${JSON.stringify(r.atual[l])}`).join(' · '));
   }
