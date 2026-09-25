@@ -44,6 +44,19 @@ enum JurisPorArtigo {
 
     static let notificacaoAbrir = Notification.Name("catedraAbrirVerbeteJuris")
 
+    /// Texto OFICIAL do verbete (enunciado/tese do tribunal), lido do acervo do JURIS pelo
+    /// host (main.swift injeta). Sem host ou acervo ainda não carregado: nil — a gaveta
+    /// mostra o título e "Abrir no JURIS", nunca um texto inventado.
+    static var textoOficial: (String) -> String? = { _ in nil }
+
+    /// Número do artigo → quantos verbetes o citam, para o sinal na margem do leitor.
+    static func contagens(lei: LawEntry) -> [String: Int] {
+        carregar()
+        let alvo = norm(lei.title)
+        guard let d = diplomas.values.first(where: { norm($0.nome) == alvo }) else { return [:] }
+        return d.artigos.mapValues(\.count).filter { $0.value > 0 }
+    }
+
     /// Pede ao host para trocar para a aba JURIS já no verbete. Se não houver host
     /// (módulo rodando sozinho), nada acontece — a lista continua legível aqui.
     static func abrirNoJuris(_ id: String) {

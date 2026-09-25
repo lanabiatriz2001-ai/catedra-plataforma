@@ -9,6 +9,8 @@ enum DSCor {
     /// variável CSS. Moram aqui para não haver hex fora da base.
     static let info: UInt32 = 0x2563EB
     static let srs: UInt32 = 0x7C3AED
+    /// Número de julgados na margem do leitor: o text3 da Planilha, passado por `texto(…)`.
+    static let sinalMargem: UInt32 = 0x6F695F
 
     static func canais(_ h: UInt32) -> (Double, Double, Double) {
         (Double((h >> 16) & 0xFF), Double((h >> 8) & 0xFF), Double(h & 0xFF))
@@ -49,4 +51,6 @@ enum DS {
         Color(hex: DSCor.texto(identidade: identidade, superficie: ThemeState.t.surfaceHex,
                                escuro: ThemeState.t.isDark))
     }
+    /// Cor do número de julgados na margem do leitor, legível no tema atual.
+    static var corSinalMargem: Color { corTexto(DSCor.sinalMargem) }
 }
