@@ -64,6 +64,10 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
     var catalogoJSONCache: String?
 
     override func viewDidLoad() {
+        // Gaveta do leitor do LEGIS: texto OFICIAL do verbete lido do acervo do JURIS.
+        JurisPorArtigo.textoOficial = { [weak self] id in
+            self?.jurisStore?.entries.first { $0.id == id }?.enunciado
+        }
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
         // LEGIS → JURIS: "abrir este verbete" (jurisprudência por artigo). Troca a aba e,

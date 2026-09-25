@@ -17,8 +17,8 @@ struct LawReaderView: View {
     @State private var showHistorico = false
     @State private var showDeleteConfirm = false
     @State private var pendingRemovalRange: NSRange?
-    @AppStorage("readerFontSize") private var fontSize = 16.0
-    @AppStorage("readerFontFamily") private var fontFamily = "Sistema (Serifa)"
+    @AppStorage("readerFontSize") private var fontSize = 18.0
+    @AppStorage("readerFontFamily") private var fontFamily = "Spectral"
     @AppStorage("markerColorHex") private var markerColorHex = "#FFD60AFF"
     @AppStorage("readerMode") private var readerMode = "estudo"
     @AppStorage("cleanReading") private var cleanReading = false
@@ -27,7 +27,16 @@ struct LawReaderView: View {
     // não repetir os mesmos botões duas vezes, uma barra em cima da outra.
     @AppStorage("studyLayout") private var studyLayout = "foco"
     @State private var showReaderFontPicker = false
+    @AppStorage("readerLineSpacing") private var entrelinha = 7.0
+    // Gaveta de contexto e "ir para artigo" (estado só de tela — nada persistido).
+    @State private var gaveta: AlturaGaveta = .fechada
+    @State private var abaGaveta = 0
+    @State private var artigoAberto: CabecalhoArtigo?
+    @State private var mostrarIrPara = false
+    // Contagem de julgados por artigo: calculada UMA vez por norma (não a cada redesenho).
+    @State private var contagensLei: [String: Int] = [:]
 
+    private let ehCompactoOuFalso = false
     private var law: LawEntry? { store.laws.first { $0.id == lawID } }
     // Índices de "Novidades 2026" são feeds (lista de atos), não normas com artigos:
     // abrem sempre em leitura corrida e não têm modo Estudo nem jurisprudência.
@@ -59,7 +68,7 @@ struct LawReaderView: View {
         // LEGIS entra como NSHostingView-subview — então .toolbar { } daqui nunca era
         // desenhado e TODOS estes controles estavam mortos. Viram uma barra própria acima
         // do conteúdo, como o JURIS já faz em EntryDetailView.
-        .safeAreaInset(edge: .top, spacing: 0) { readerBar }
+        .safeAreaInset(edge: .top, spacing: 0) { barraDoLeitor }
         .inspector(isPresented: $showInspector) {
             AnnotationsPanel(lawID: lawID,
                              focusedAnnotationID: $focusedAnnotationID,
@@ -77,6 +86,15 @@ struct LawReaderView: View {
                 HistoricoView(lawID: lawID, lawTitle: law.title, accent: accent, onOpenLaw: onOpenLaw)
                     .environmentObject(store)
             }
+        }
+        .sheet(isPresented: $mostrarIrPara) {
+            VStack(alignment: .leading, spacing: DSEspaco.e3) {
+                Text("Ir para artigo").font(DS.display(19, .bold))
+                TextField("Número do artigo (ex.: 5, 1.045, 121-A)", text: $articleQuery)
+                    .textFieldStyle(.roundedBorder)
+                    .onSubmit { controller.jump(toArticle: articleQuery); mostrarIrPara = false }
+            }
+            .padding(DSEspaco.e5).frame(minWidth: 320)
         }
         .sheet(isPresented: $showReaderFontPicker) {
             VStack(alignment: .leading, spacing: 8) {
@@ -114,23 +132,35 @@ struct LawReaderView: View {
 
     private func reader(for law: LawEntry) -> some View {
         VStack(spacing: 0) {
-            // Modo leitura limpa: some com o cabeçalho para o texto ocupar tudo.
-            if !cleanReading {
-                header(for: law)
-                Divider()
-            }
             if let text {
                 if effectiveMode == "estudo" {
                     ArticleStudyView(lawID: lawID, text: text, accent: accent, onOpenLaw: onOpenLaw)
                 } else {
-                    AnnotatedTextView(text: text,
-                                      annotations: store.annotations(for: lawID),
-                                      fontFamily: fontFamily,
-                                      fontSize: fontSize,
-                                      controller: controller,
-                                      focusedAnnotationID: $focusedAnnotationID,
-                                      onCommand: handle,
-                                      textAlignment: store.alinhamentoNS(lawID: lawID, unitKey: "full"))
+                    ZStack(alignment: .bottom) {
+                        AnnotatedTextView(text: text,
+                                          annotations: store.annotations(for: lawID),
+                                          fontFamily: fontFamily,
+                                          fontSize: fontSize,
+                                          controller: controller,
+                                          focusedAnnotationID: $focusedAnnotationID,
+                                          onCommand: handle,
+                                          textAlignment: store.alinhamentoNS(lawID: lawID, unitKey: "full"),
+                                          contagens: contagensLei,
+                                          entrelinha: entrelinha,
+                                          onToqueArtigo: { c in artigoAberto = c; abaGaveta = 0; gaveta = .meia })
+                        atalhosDoLeitor
+                        if controller.selectionLength > 0 && gaveta == .fechada {
+                            paletaSelecao.padding(.bottom, DSEspaco.e5)
+                        }
+                        if let c = artigoAberto {
+                            GavetaContexto(altura: $gaveta, titulo: c.rotulo,
+                                           subtitulo: "\(JurisPorArtigo.verbetes(lei: law, label: c.rotulo).count) julgados",
+                                           abas: ["Jurisprudência", "Remissões"], aba: $abaGaveta,
+                                           compacto: ehCompactoOuFalso) {
+                                conteudoGaveta(law: law, artigo: c, texto: text)
+                            }
+                        }
+                    }
                 }
             } else if loadAttempted {
                 ContentUnavailableView {
@@ -161,113 +191,11 @@ struct LawReaderView: View {
         .background(AppTheme.pageBackground)
         .task(id: "\(lawID.uuidString)-\(law.contentHash ?? "")") {
             text = store.loadText(for: law)
+            contagensLei = law.isNovidades ? [:] : JurisPorArtigo.contagens(lei: law)
             loadAttempted = true
             store.markRead(lawID)
             // Enriquecimento do Senado (linha do tempo): 1×, cacheado, offline-safe.
             await store.enrichSIGEN(lawID: lawID)
-        }
-    }
-
-    private func header(for law: LawEntry) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            // O mesmo MateriaBanner do Estudo (Theme.swift) — era um cabeçalho próprio aqui.
-            MateriaBanner(context: law.reference, title: law.title, color: accent, symbol: headerSymbol,
-                          trailing: AnyView(headerControls(for: law)), framed: false)
-            HStack(spacing: 8) {
-                    if isNovidades {
-                        Label("Índice de novidades", systemImage: "sparkles")
-                            .font(.caption).foregroundStyle(.secondary)
-                    } else {
-                        Picker("", selection: $readerMode) {
-                            Text("Estudo").tag("estudo")
-                            Text("Leitura corrida").tag("corrido")
-                        }
-                        .pickerStyle(.segmented)
-                        .frame(width: 210)
-                        .help("Estudo: artigo por artigo, com progresso. Leitura corrida: texto contínuo com grifos e ⌘F.")
-                    }
-                if let fetched = law.lastFetched {
-                    Chip(text: "Verificada \(fetched.formatted(date: .abbreviated, time: .shortened))",
-                         symbol: "checkmark.circle", color: AppTheme.ok)
-                }
-                if let changed = law.lastChanged {
-                    Chip(text: "Alterada \(changed.formatted(date: .abbreviated, time: .omitted))",
-                         symbol: "clock.arrow.circlepath", color: AppTheme.warn)
-                }
-                if law.sourceURL != nil && !law.monitored {
-                    Chip(text: "Monitoramento desligado", symbol: "bell.slash", color: .gray)
-                }
-                if (law.checkFailures ?? 0) >= 3 {
-                    Chip(text: "Verificação falhando há \(law.checkFailures ?? 0) tentativas",
-                         symbol: "exclamationmark.triangle", color: AppTheme.danger)
-                }
-                let count = store.annotations(for: lawID).count
-                if count > 0 {
-                    Chip(text: "\(count) anotações", symbol: "highlighter", color: accent)
-                }
-                if !isNovidades {
-                    let jurisCount = store.precedentCount(for: lawID)
-                    Button {
-                        showPrecedents = true
-                    } label: {
-                        Chip(text: jurisCount > 0 ? "\(jurisCount) jurisprudência\(jurisCount > 1 ? "s" : "")" : "Jurisprudência",
-                             symbol: "text.book.closed", color: accent)
-                    }
-                    .buttonStyle(.plain)
-                    .help("Súmulas, teses e decisões que você vincula a esta norma")
-                }
-                if !isNovidades {
-                    let n = store.sigenNorma(for: lawID)?.timeline.count ?? 0
-                    Button { showHistorico = true } label: {
-                        Chip(text: n > 0 ? "Histórico · \(n) alterações" : "Histórico",
-                             symbol: "clock.arrow.circlepath", color: accent)
-                    }
-                    .buttonStyle(.plain)
-                    .help("Datas (promulgação e alterações) e redações anteriores desta norma")
-                }
-                Spacer()
-            }
-            if !isNovidades {
-                let subs = store.subjects(for: lawID)
-                if !subs.isEmpty {
-                    HStack(spacing: 6) {
-                        Image(systemName: "tag").font(.caption2).foregroundStyle(.secondary)
-                        Text(subs.prefix(8).map { $0.capitalized }.joined(separator: " · "))
-                            .font(.caption).foregroundStyle(.secondary).lineLimit(1)
-                    }
-                    .help("Assuntos indexados pelo Senado")
-                }
-            }
-        }
-        .padding(16)
-        .appTintedSurface(accent)
-        .padding(12)
-        .background(AppTheme.pageBackground)
-    }
-
-    /// Controles à direita do banner: modo de leitura e "ir para artigo".
-    @ViewBuilder
-    private func headerControls(for law: LawEntry) -> some View {
-        VStack(alignment: .trailing, spacing: 6) {
-            if isNovidades {
-                Label("Índice de novidades", systemImage: "sparkles")
-                    .font(.caption).foregroundStyle(.secondary)
-            } else {
-                Picker("", selection: $readerMode) {
-                    Text("Estudo").tag("estudo")
-                    Text("Leitura corrida").tag("corrido")
-                }
-                .pickerStyle(.segmented)
-                .frame(width: 210)
-                .help("Estudo: artigo por artigo, com progresso. Leitura corrida: texto contínuo com grifos e ⌘F.")
-            }
-            if effectiveMode == "corrido" && !isNovidades {
-                TextField("Ir para artigo…", text: $articleQuery)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 150)
-                    .onSubmit { controller.jump(toArticle: articleQuery) }
-                    .help("Digite o número do artigo e pressione Enter (busca no texto: ⌘F)")
-            }
         }
     }
 
@@ -317,148 +245,123 @@ struct LawReaderView: View {
         }
     }
 
-    // MARK: - Barra do leitor (acima do conteúdo, não na toolbar da janela)
+    // MARK: - Barra do leitor (spec §5: no máximo 5 controles — voltar · onde estou · Ler/Estudar · Aa · ⋯)
 
-    // A barra do ArticleStudyView já traz Leitura ativa e Imersão, mas só neste estado.
-    // Fora dele, esta aqui é a única — e é por isso que os botões abaixo são condicionais:
-    // para não empilhar dois controles idênticos em duas barras coladas.
-    private var barraDoEstudoVisivel: Bool {
-        effectiveMode == "estudo" && !leituraAtiva && studyLayout == "foco"
-    }
-
-    private var readerBar: some View {
-        HStack(spacing: 6) {
-            if cleanReading {
-                // IMERSÃO: barra mínima — mas a saída está SEMPRE aqui, escrita por extenso.
-                // O botão antigo dizia só "Imersão" e ficava tintado quando ligado: lia-se
-                // como rótulo do modo atual, não como saída. Além disso cleanReading é
-                // @AppStorage, então fechar o app não desfazia — dava para ficar preso.
+    @ViewBuilder
+    private var barraDoLeitor: some View {
+        if cleanReading {
+            HStack {
                 Button { withAnimation(.easeInOut(duration: 0.15)) { cleanReading = false } } label: {
                     Label("Sair da imersão", systemImage: "arrow.down.right.and.arrow.up.left")
                 }
-                .buttonStyle(.borderedProminent)
                 .keyboardShortcut("i", modifiers: [.command, .shift])
-                .help("Voltar ao leitor completo (⌘⇧I)")
-
-                if !isNovidades { modoPicker }
-                Spacer(minLength: 0)
-                tipografiaMenu
-                anotacoesBotao
-            } else {
-                barraCompleta
+                Spacer()
             }
+            .padding(.horizontal, DSEspaco.e4).frame(minHeight: 44)
+            .background(ThemeState.t.surface)
+        } else if let law {
+            BarraLeitor(ramo: law.customCategory ?? law.category.rawValue,
+                        corRamo: law.customCategory == nil ? law.category.ramo?.identidade : nil,
+                        titulo: law.title,
+                        modo: isNovidades ? nil : Binding(get: { ModoLeitor(rawValue: readerMode) ?? .ler },
+                                                         set: { readerMode = $0.rawValue }),
+                        aoVoltar: nil,
+                        aa: { tipografiaMenu }, mais: { maisMenu })
         }
-        .controlSize(.small)
-        .labelStyle(.titleAndIcon)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 7)
-        .background(.bar)
-        .overlay(Rectangle().fill(AppTheme.hairline).frame(height: 1), alignment: .bottom)
     }
 
-    private var modoPicker: some View {
-        Picker("Modo", selection: $readerMode) {
-            Text("Estudo").tag("estudo")
-            Text("Leitura corrida").tag("corrido")
+    /// ⌘J e ⌘F do modo Ler. Ficam FORA do ⋯: dentro de um Menu fechado os atalhos não
+    /// disparam (revisão final da entrega 2) — e o ⌘F funcionava na barra antiga.
+    private var atalhosDoLeitor: some View {
+        ZStack {
+            Button("Ir para artigo") { mostrarIrPara = true }.keyboardShortcut("j", modifiers: .command)
+            Button("Buscar no texto") { controller.showFindBar() }.keyboardShortcut("f", modifiers: .command)
         }
-        .pickerStyle(.segmented)
-        .labelsHidden()
-        .frame(width: 190)
-        .help("Alternar entre Estudo e Leitura corrida")
+        .opacity(0).frame(width: 0, height: 0).allowsHitTesting(false).accessibilityHidden(true)
     }
 
+    /// Grifo na SELEÇÃO (o menu "Marcar" saiu da barra): cores favoritas, cor livre,
+    /// sublinhar, anotar e apagar — 44 pt cada.
+    private var paletaSelecao: some View {
+        HStack(spacing: DSEspaco.e1) {
+            ForEach(Array(store.coresFavoritas.prefix(5)), id: \.self) { hex in
+                Button { markerColorHex = hex; handle(.apply(.highlight)) } label: {
+                    Circle().fill(Color(hexRGBA: hex)).frame(width: 22, height: 22)
+                        .overlay(Circle().strokeBorder(ThemeState.t.ink.opacity(markerColorHex == hex ? 0.6 : 0.15), lineWidth: 2))
+                }
+                .frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
+                .accessibilityLabel("Grifar com esta cor")
+            }
+            ColorPicker("Outra cor", selection: Binding(get: { Color(hexRGBA: markerColorHex) },
+                                                         set: { markerColorHex = $0.hexRGBA }))
+                .labelsHidden().frame(minWidth: 44, minHeight: 44)
+            Divider().frame(height: 22)
+            Button { handle(.apply(.underline)) } label: { Image(systemName: "underline") }
+                .frame(minWidth: 44, minHeight: 44).accessibilityLabel("Sublinhar")
+            Button { handle(.annotate) } label: { Image(systemName: "note.text.badge.plus") }
+                .frame(minWidth: 44, minHeight: 44).accessibilityLabel("Anotar")
+            Button(role: .destructive) { handle(.removeInSelection) } label: { Image(systemName: "eraser") }
+                .frame(minWidth: 44, minHeight: 44).accessibilityLabel("Apagar marcação")
+        }
+        .buttonStyle(.plain)
+        .font(DS.interface(15))
+        .foregroundStyle(ThemeState.t.ink)
+        .padding(.horizontal, DSEspaco.e3)
+        .background(Capsule().fill(ThemeState.t.surface).shadow(color: ThemeState.t.ink.opacity(0.16), radius: 12, y: 4))
+        .overlay(Capsule().strokeBorder(ThemeState.t.border))
+    }
+
+    /// Conteúdo da gaveta: SÓ fonte primária — texto oficial do julgado e remissões da lei.
     @ViewBuilder
-    private var barraCompleta: some View {
-        Group {
-            // Leitura ativa e Imersão só aqui quando a barra do Estudo NÃO está na tela
-            // para mostrá-las (senão apareceriam duas vezes, uma barra sobre a outra).
-            if !barraDoEstudoVisivel {
-                if effectiveMode == "estudo" {
-                    Button {
-                        leituraAtiva.toggle()
-                    } label: {
-                        Label("Leitura ativa", systemImage: leituraAtiva ? "book.and.wrench.fill" : "book.and.wrench")
-                    }
-                    .buttonStyle(.bordered)
-                    .help("Leitura ativa: grifo por camadas, perguntas-guia, reescrita e autoteste")
+    private func conteudoGaveta(law: LawEntry, artigo c: CabecalhoArtigo, texto: String) -> some View {
+        if abaGaveta == 0 {
+            let vs = JurisPorArtigo.verbetes(lei: law, label: c.rotulo)
+            VStack(alignment: .leading, spacing: DSEspaco.e3) {
+                if vs.isEmpty {
+                    Text("Nenhum julgado do acervo cita este artigo.")
+                        .font(DS.interface(15)).foregroundStyle(ThemeState.t.text2)
                 }
-
-                Button {
-                    withAnimation(.easeInOut(duration: 0.15)) { cleanReading = true }
-                } label: {
-                    Label("Imersão", systemImage: "book.closed")
-                }
-                .buttonStyle(.bordered)
-                .keyboardShortcut("i", modifiers: [.command, .shift])
-                .help("Modo imersão: esconde o entorno e deixa só o texto (⌘⇧I)")
-            }
-
-            if !isNovidades && effectiveMode == "corrido" { modoPicker }
-
-            // Marcação e busca no texto só valem na Leitura corrida — no Estudo a
-            // marcação é pela barra do próprio artigo e a busca é pelo Índice. (Estes
-            // controles ficavam MORTOS no Estudo; o ColorPicker virava a "pílula verde".)
-            if effectiveMode == "corrido" {
-                Menu {
-                    ForEach(store.coresFavoritas, id: \.self) { hex in
-                        Button {
-                            markerColorHex = hex
-                        } label: {
-                            Label(hex, systemImage: markerColorHex == hex ? "checkmark.circle.fill" : "circle.fill")
+                ForEach(vs) { v in
+                    let corTrib = CorTribunal.identidade(v.trib)
+                    VStack(alignment: .leading, spacing: DSEspaco.e2) {
+                        HStack(spacing: DSEspaco.e2) {
+                            Text(v.trib.isEmpty ? "—" : v.trib).font(DS.interface(11, .bold))
+                                .padding(.horizontal, 7).padding(.vertical, 2)
+                                .background(Capsule().fill((corTrib.map { DS.cor($0) } ?? ThemeState.t.accent).opacity(0.16)))
+                                .foregroundStyle(corTrib.map { DS.corTexto($0) } ?? ThemeState.t.accent)
+                            Text(v.t).font(DS.interface(14, .semibold)).foregroundStyle(ThemeState.t.ink)
+                        }
+                        if let oficial = JurisPorArtigo.textoOficial(v.id), !oficial.isEmpty {
+                            Text(oficial).font(DS.display(16, .regular)).foregroundStyle(ThemeState.t.ink)
+                                .lineSpacing(3).textSelection(.enabled)
+                        }
+                        HStack {
+                            Text([v.ramo, v.data].filter { !$0.isEmpty }.joined(separator: " · "))
+                                .font(DS.mono(11)).foregroundStyle(ThemeState.t.text3)
+                            Spacer()
+                            Button("Abrir no JURIS") { JurisPorArtigo.abrirNoJuris(v.id) }
+                                .font(DS.interface(13, .semibold)).frame(minHeight: 44)
                         }
                     }
-                    Divider()
-                    Button("Favoritar cor atual", systemImage: "plus") { store.adicionarCorFavorita(markerColorHex) }
-                        .disabled(store.coresFavoritas.contains(markerColorHex))
-                    if store.coresFavoritas.contains(markerColorHex) {
-                        Button("Remover cor dos favoritos", systemImage: "minus", role: .destructive) { store.removerCorFavorita(markerColorHex) }
-                    }
-                    ColorPicker("Escolher outra cor…", selection: Binding(
-                        get: { Color(hexRGBA: markerColorHex) },
-                        set: { markerColorHex = $0.hexRGBA }))
-                    Divider()
-                    ForEach(AnnotationStyle.allCases.filter { $0 != .cloze }) { style in
-                        Button { handle(.apply(style)) } label: { Label(style.label, systemImage: style.symbol) }
-                            .disabled(controller.selectionLength == 0)
-                    }
-                    Button { handle(.annotate) } label: { Label("Anotar", systemImage: "note.text.badge.plus") }
-                        .disabled(controller.selectionLength == 0)
-                    Divider()
-                    Button(role: .destructive) { handle(.removeInSelection) } label: { Label("Apagar marcação", systemImage: "eraser") }
-                        .disabled(controller.selectionLength == 0)
-                } label: {
-                    Label("Marcar", systemImage: "highlighter")
+                    .padding(DSEspaco.e4)
+                    .background(RoundedRectangle(cornerRadius: DSRaio.card, style: .continuous).strokeBorder(ThemeState.t.border))
                 }
-                .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
-                .help("Grifar, sublinhar, tachar, anotar ou apagar a seleção")
-
-                Button { controller.showFindBar() } label: {
-                    Label("Buscar", systemImage: "magnifyingglass")
-                }
-                .buttonStyle(.bordered)
-                .keyboardShortcut("f", modifiers: .command)
-                .help("Busca nativa no texto (⌘F)")
-
-                Menu {
-                    Button { store.setAlinhamento("left", lawID: lawID, unitKey: "full") } label: { Label("À esquerda", systemImage: "text.alignleft") }
-                    Button { store.setAlinhamento("center", lawID: lawID, unitKey: "full") } label: { Label("Centralizado", systemImage: "text.aligncenter") }
-                    Button { store.setAlinhamento("right", lawID: lawID, unitKey: "full") } label: { Label("À direita", systemImage: "text.alignright") }
-                    Button { store.setAlinhamento("justify", lawID: lawID, unitKey: "full") } label: { Label("Justificado", systemImage: "text.justify") }
-                    Divider()
-                    Button { store.setAlinhamento("natural", lawID: lawID, unitKey: "full") } label: { Label("Usar padrão", systemImage: "arrow.uturn.backward") }
-                } label: {
-                    Label("Alinhamento", systemImage: "text.alignleft")
-                }
-                .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
-                .labelStyle(.iconOnly)
-                .help("Alinhamento do texto")
             }
-
-            Spacer(minLength: 8)
-            tipografiaMenu
-            favoritarBotao
-            maisMenu
-            anotacoesBotao
+        } else {
+            let notas = LegislativeNote.parse(from: LeitorLogica.trecho(de: c, em: texto,
+                                                                          cabecalhos: LeitorLogica.cabecalhos(em: texto)))
+            if notas.isEmpty {
+                Text("Nenhuma remissão no texto deste artigo.")
+                    .font(DS.interface(15)).foregroundStyle(ThemeState.t.text2)
+            } else {
+                RemissoesView(notes: notas,
+                              resolve: { note in
+                                  guard let id = store.findLaw(refType: note.refType, refNumber: note.refNumber)?.id,
+                                        id != lawID else { return nil }
+                                  return id
+                              },
+                              onOpen: onOpenLaw, embedded: true)
+            }
         }
     }
 
@@ -467,6 +370,9 @@ struct LawReaderView: View {
             Button("Fonte do leitor…") { showReaderFontPicker = true }
             Button("Aumentar") { fontSize = min(30, fontSize + 1) }
             Button("Diminuir") { fontSize = max(10, fontSize - 1) }
+            Picker("Entrelinha", selection: $entrelinha) {
+                Text("Compacta").tag(4.0); Text("Padrão").tag(7.0); Text("Ampla").tag(11.0)
+            }
             Divider()
             Text("\(fontFamily), \(Int(fontSize)) pt")
         } label: {
@@ -477,26 +383,48 @@ struct LawReaderView: View {
         .help("Fonte e tamanho do texto")
     }
 
-    @ViewBuilder
-    private var favoritarBotao: some View {
-        if let law, law.isRegularLaw {   // feeds de Novidades não são favoritáveis
-            Button {
-                store.toggleFavorite(law.id)
-            } label: {
-                Label(law.favorite == true ? "Favorita" : "Favoritar",
-                      systemImage: law.favorite == true ? "star.fill" : "star")
-            }
-            .buttonStyle(.bordered)
-            .labelStyle(.iconOnly)
-            .tint(law.favorite == true ? .yellow : nil)
-            .help(law.favorite == true ? "Remover dos favoritos" : "Adicionar aos favoritos")
-        }
-    }
 
     @ViewBuilder
     private var maisMenu: some View {
         if let law {
             Menu {
+                Section("Situação") {
+                    if let f = law.lastFetched { Text("Verificada \(f.formatted(date: .abbreviated, time: .shortened))") }
+                    if let c = law.lastChanged { Text("Alterada \(c.formatted(date: .abbreviated, time: .omitted))") }
+                    if (law.checkFailures ?? 0) >= 3 { Text("Verificação falhando há \(law.checkFailures ?? 0) tentativas") }
+                }
+                if !isNovidades, !store.subjects(for: lawID).isEmpty {
+                    Section("Assuntos (Senado)") {
+                        Text(store.subjects(for: lawID).prefix(8).map { $0.capitalized }.joined(separator: " · "))
+                    }
+                }
+                if effectiveMode == "corrido" && !isNovidades {
+                    Button { mostrarIrPara = true } label: { Label("Ir para artigo… (⌘J)", systemImage: "number") }
+                    Button { controller.showFindBar() } label: { Label("Buscar no texto (⌘F)", systemImage: "magnifyingglass") }
+                    Menu {
+                    Button { store.setAlinhamento("left", lawID: lawID, unitKey: "full") } label: { Label("À esquerda", systemImage: "text.alignleft") }
+                    Button { store.setAlinhamento("center", lawID: lawID, unitKey: "full") } label: { Label("Centralizado", systemImage: "text.aligncenter") }
+                    Button { store.setAlinhamento("right", lawID: lawID, unitKey: "full") } label: { Label("À direita", systemImage: "text.alignright") }
+                    Button { store.setAlinhamento("justify", lawID: lawID, unitKey: "full") } label: { Label("Justificado", systemImage: "text.justify") }
+                    Divider()
+                    Button { store.setAlinhamento("natural", lawID: lawID, unitKey: "full") } label: { Label("Usar padrão", systemImage: "arrow.uturn.backward") }
+                    } label: { Label("Alinhamento", systemImage: "text.alignleft") }
+                }
+                if effectiveMode == "estudo" {
+                    Button { leituraAtiva.toggle() } label: {
+                        Label(leituraAtiva ? "Sair da leitura ativa" : "Leitura ativa", systemImage: "book.and.wrench")
+                    }
+                }
+                if law.isRegularLaw {
+                    Button { store.toggleFavorite(law.id) } label: {
+                        Label(law.favorite == true ? "Remover dos favoritos" : "Favoritar",
+                              systemImage: law.favorite == true ? "star.fill" : "star")
+                    }
+                }
+                Button { showInspector.toggle() } label: { Label("Minhas notas", systemImage: "note.text") }
+                Button { withAnimation(.easeInOut(duration: 0.15)) { cleanReading = true } } label: { Label("Imersão", systemImage: "book.closed") }
+                    .keyboardShortcut("i", modifiers: [.command, .shift])
+                Divider()
                     if !isNovidades {
                         Button { showHistorico = true } label: {
                             Label("Histórico da norma", systemImage: "clock.arrow.circlepath")
@@ -557,7 +485,9 @@ struct LawReaderView: View {
                         }
                     }
             } label: {
-                Label("Mais", systemImage: "ellipsis.circle")
+                Image(systemName: "ellipsis.circle").font(DS.interface(17))
+                    .frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
+                    .accessibilityLabel("Mais")
             }
             .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
             .labelStyle(.iconOnly)
@@ -565,15 +495,4 @@ struct LawReaderView: View {
         }
     }
 
-    private var anotacoesBotao: some View {
-        Button {
-            showInspector.toggle()
-        } label: {
-            Label("Anotações", systemImage: "sidebar.right")
-        }
-        .buttonStyle(.bordered)
-        .labelStyle(.iconOnly)
-        .tint(showInspector ? accent : nil)
-        .help("Mostrar/ocultar o painel de anotações")
-    }
 }

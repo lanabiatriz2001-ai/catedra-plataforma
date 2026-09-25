@@ -107,7 +107,7 @@ private enum PreparedRow: Identifiable {
 /// Tabela comparativa: redação anterior (esquerda) × redação atual (direita),
 /// com o que mudou destacado.
 struct UpdateComparisonTable: View {
-    @AppStorage("readerFontSize") private var fontSize = 16.0
+    @AppStorage("readerFontSize") private var fontSize = 18.0
     private let rows: [PreparedRow]
 
     init(added: [String], removed: [String]) {
