@@ -6,10 +6,10 @@ enum JurisDestinos {
     static func pai(_ s: Selecao) -> Destino? {
         if ehMeuMaterial(s) { return nil }
         switch s {
-        case .inicio: return .hoje
+        case .inicio, .hoje: return .hoje
         case .novidades: return .novidades
         case .destino(let d): return d
-        case .simulado, .provaOral, .oralBancas, .hoje, .julgadoDoDia, .plano, .checklist: return .treinar
+        case .simulado, .provaOral, .oralBancas, .julgadoDoDia, .plano, .checklist: return .treinar
         default: return .acervo
         }
     }
@@ -26,6 +26,8 @@ enum JurisDestinos {
 struct JurisDestinoHub: View {
     let destino: Destino?
     @Environment(LibraryStore.self) private var store
+    @State private var novaColecao = false
+    @State private var nomeColecao = ""
 
     private func item(_ id: String, _ titulo: String, _ detalhe: String?, _ simbolo: String,
                       _ sel: Selecao, cor: UInt32? = nil, n: Int? = nil) -> ItemHub {
@@ -34,6 +36,20 @@ struct JurisDestinoHub: View {
     }
 
     var body: some View {
+        conteudo
+            .alert("Nova coleção", isPresented: $novaColecao) {
+                TextField("Nome (ex.: Meu edital)", text: $nomeColecao)
+                Button("Criar") {
+                    let nome = nomeColecao.trimmingCharacters(in: .whitespaces)
+                    let c = store.criarColecao(nome.isEmpty ? "Nova coleção" : nome)
+                    store.ir(.colecao(c.id))
+                }
+                Button("Cancelar", role: .cancel) {}
+            }
+    }
+
+    @ViewBuilder
+    private var conteudo: some View {
         switch destino {
         case .acervo?:
             DestinoHub(titulo: "Acervo", subtitulo: "\(store.entries.count) verbetes", secoes: [
@@ -54,7 +70,7 @@ struct JurisDestinoHub: View {
                 SecaoHub(titulo: "Coleções (Meu edital)",
                          itens: store.colecoes.map { c in item("col-\(c.id)", c.nome, nil, "folder", .colecao(c.id)) }
                          + [ItemHub(id: "nova-colecao", titulo: "Nova coleção", detalhe: nil, simbolo: "plus", cor: nil, contagem: nil,
-                                    acao: { let c = store.criarColecao("Nova coleção"); store.ir(.colecao(c.id)) })]),
+                                    acao: { nomeColecao = ""; novaColecao = true })]),
             ])
         case .treinar?:
             DestinoHub(titulo: "Treinar", subtitulo: "", secoes: [
