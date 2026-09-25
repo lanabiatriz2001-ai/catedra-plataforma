@@ -107,7 +107,10 @@ export function testarSemDodEstatico(ok, opcoes = {}) {
   ok(jeMac === jeIos, R + '(c) JurisEntry.swift do Mac e do iPad continuam iguais');
   ok(/case \.outros: return "Precedentes"\n/.test(jeMac) && /case \.precedentesObrig, \.outro:\s*return \.outros/.test(jeMac),
     R + '(c) a seção .outros se chama "Precedentes" e ainda tem os precedentes obrigatórios');
-  ok(/row\(\.central\(\.outros\), "Precedentes"/.test(ler('mac/vendor/juris/Views/SidebarView.swift'))
+  // Depois do redesenho nativo (#143) a seção saiu da barra lateral e mora em JurisDestinos
+  ok(/item\("dod", "Precedentes"/.test(ler('mac/vendor/juris/Views/JurisDestinos.swift'))
+    && /item\("dod", "Precedentes"/.test(ler('ios/vendor/juris/Views/JurisDestinos.swift'))
+    && !/DOD & Precedentes/.test(ler('mac/vendor/juris/Views/SidebarView.swift'))
     && /selecao: \.central\(\.outros\), rotulo: "Precedentes"/.test(ler('ios/vendor/juris/Views/JurisCompacto.swift')),
     R + '(c) a barra do Mac e o menu compacto do iPad dizem "Precedentes"');
 }
