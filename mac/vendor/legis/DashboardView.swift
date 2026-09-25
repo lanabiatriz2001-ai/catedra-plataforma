@@ -202,228 +202,36 @@ struct DashboardView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                // HERO "vitrine" — tipografia grande, CTA gradiente da matéria e números-chave.
-                VStack(alignment: .leading, spacing: 18) {
-                    VStack(alignment: .leading, spacing: 7) {
-                        let dateText = Date().formatted(date: .complete, time: .omitted)
-                        Text((dateText.prefix(1).localizedUppercase + dateText.dropFirst()).uppercased())
-                            .font(.system(size: 11, weight: .semibold)).tracking(1.4)
-                            .foregroundStyle(.white.opacity(0.8))
-                            .lineLimit(1).minimumScaleFactor(0.7)
-                        Text("CátedraLEGIS")
-                            .font(AppTheme.displayFont(40, .heavy)).tracking(-0.6)
-                            .foregroundStyle(.white)
-                            .lineLimit(1).minimumScaleFactor(0.6)
-                        Text("\(lawCount) normas · \(store.annotations.count) marcações na sua biblioteca")
-                            .font(.system(size: 14))
-                            .foregroundStyle(.white.opacity(0.88))
-                            .lineLimit(1).minimumScaleFactor(0.8)
-                    }
-                    // CTA: retomar de onde parou, no gradiente da MATÉRIA da lei
-                    // (matéria personalizada usa a cor dela, como no leitor).
-                    if let law = lastStudied {
-                        let ctaStops: [Color] = law.customCategory.map {
-                            let c = CustomCategoryStyle.color(for: $0); return [c, c.opacity(0.72)]
-                        } ?? law.category.gradStops
-                        Button { openLaw(law.id) } label: {
-                            HStack(spacing: 8) {
-                                Image(systemName: "play.fill").font(.system(size: 11, weight: .bold))
-                                Text("Continuar · \(law.title)").lineLimit(1)
-                            }
-                        }
-                        .buttonStyle(.legisPrimary(ctaStops))
-                    }
-                    HStack(spacing: 10) {
-                        heroStat("\(store.totalReadUnits)", "artigos lidos")
-                        heroStat("\(store.totalReviewUnits)", "p/ revisão")
-                        // Baixa estimulação: a sequência (gamificação) sai do hero; o dado fica no store.
-                        if !ThemeState.t.baixaEstimulacao { heroStat("\(store.currentStreak)d", "sequência") }
-                        heroStat("\(store.activeDaysLastYear)", "dias ativos")
-                    }
+                // Entrega 5 — Hoje (spec §7): só o que decide a próxima leitura. Saíram o hero de
+                // números, as metas diárias, a ofensiva, o heatmap e a "Biblioteca" (as matérias
+                // estão no Acervo; alterações em Novidades; o treino em Treinar).
+                if let law = lastStudied {
+                    CartaoContinuar(titulo: law.title,
+                                    detalhe: UserDefaults.standard.string(forKey: "lastStudiedUnitLabel"),
+                                    cor: law.customCategory == nil ? law.category.ramo?.identidade : nil,
+                                    acao: { openLaw(law.id) })
+                } else {
+                    CartaoContinuar(titulo: "Comece pelo Acervo", detalhe: "Escolha uma norma para ler",
+                                    cor: nil, acao: { openSection(.destino(.acervo)) })
                 }
-                .padding(26)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(
-                    ZStack(alignment: .topTrailing) {
-                        LinearGradient(colors: ThemeState.t.heroStops, startPoint: .topLeading, endPoint: .bottomTrailing)
-                        Circle().fill(Color.white.opacity(0.08)).frame(width: 240, height: 240).offset(x: 70, y: -96)
-                        Circle().fill(Color.white.opacity(0.06)).frame(width: 170, height: 170).offset(x: -20, y: 118)
-                    }
-                )
-                .clipShape(RoundedRectangle(cornerRadius: AppTheme.rHero, style: .continuous))
-                .shadow(color: ThemeState.t.accent.opacity(0.22), radius: 18, y: 8)
-
-                // Três blocos, na ordem de uso (pente fino 21/08): HOJE (o que fazer agora),
-                // TREINAR (as ferramentas de estudo) e BIBLIOTECA (o acervo e sua saúde).
-                // Os StatCards e o "Painel de revisão" repetiam números do hero/SRS — saíram.
-
-                // ── HOJE ──────────────────────────────────────────────────────────
-                LegisSectionHeader(title: "Hoje", icon: "sun.max", tint: ThemeState.t.accent).padding(.top, 6)
                 srsCard
-                DailyGoalsCard()
+                Button { openSection(.planoLeitura) } label: {
+                    HStack {
+                        Label("Plano de leitura", systemImage: "calendar").font(DS.interface(15, .semibold))
+                        Spacer()
+                        Image(systemName: "chevron.right").font(DS.interface(13))
+                    }
+                    .foregroundStyle(ThemeState.t.ink)
+                    .padding(DSEspaco.e4).frame(minHeight: 44)
+                    .appSurface()
+                }
+                .buttonStyle(.plain)
                 ChecklistMiniCard(openChecklist: { openSection(.checklist) })
-
-                // ── TREINAR ───────────────────────────────────────────────────────
-                LegisSectionHeader(title: "Treinar", icon: "figure.run", tint: ThemeState.t.accent).padding(.top, 6)
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 200), spacing: 10)], spacing: 10) {
-                    ForEach(treinoTiles, id: \.0) { t in treinoTile(t.0, t.1, t.2, t.3) }
-                }
-
-                // ── BIBLIOTECA ────────────────────────────────────────────────────
-                LegisSectionHeader(title: "Biblioteca", icon: "books.vertical", tint: ThemeState.t.accent).padding(.top, 6)
-
-                // MATÉRIAS — tiles coloridos com a identidade de cada área (linguagem vitrine).
-                let cats = LawCategory.allCases.filter { categoryCount($0) > 0 && $0 != .personalizada }
-                if !cats.isEmpty {
-                    VStack(alignment: .leading, spacing: 11) {
-                        LegisSectionHeader(title: "Matérias", count: cats.count)
-                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 148), spacing: 10)], spacing: 10) {
-                            ForEach(cats) { cat in materiaTile(cat) }
-                        }
-                    }
-                    .padding(.top, 4)
-                }
-
-                // Tempo de estudo por norma (alimentado pelo cronômetro do leitor)
-                tempoPorNormaSection
-
-                // Heatmap de leitura
-                VStack(alignment: .leading, spacing: 8) {
-                    LegisSectionHeader(title: "Heatmap de leitura", icon: "square.grid.3x3.fill", tint: ThemeState.t.accent)
-                    Text("Atividade dos últimos 119 dias.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    ActivityHeatmap(series: store.activitySeries(days: 119))
-                }
-                .padding(14)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .appSurface()
-
-                // Progresso por norma
-                let progressed = store.laws.compactMap { law -> (LawEntry, StudyRecord)? in
-                    guard let record = store.study[law.id.uuidString],
-                          record.unitTotal > 0, !record.readKeys.isEmpty else { return nil }
-                    return (law, record)
-                }
-                .sorted { $0.1.readKeys.count > $1.1.readKeys.count }
-                VStack(alignment: .leading, spacing: 10) {
-                    LegisSectionHeader(title: "Por norma", icon: "chart.line.uptrend.xyaxis", tint: ThemeState.t.accent)
-                    if progressed.isEmpty {
-                        Text("Você ainda não marcou nenhum artigo como lido. Abra uma norma no modo Estudo e comece!")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    ForEach(progressed.prefix(6), id: \.0.id) { law, record in
-                        Button {
-                            openLaw(law.id)
-                        } label: {
-                            VStack(alignment: .leading, spacing: 3) {
-                                HStack {
-                                    Text(law.title).font(.callout).lineLimit(1)
-                                    Spacer()
-                                    Text("\(record.readKeys.count)/\(record.unitTotal)")
-                                        .font(Typo.num(11, .regular))
-                                        .foregroundStyle(.secondary)
-                                }
-                                ProgressView(value: min(1, Double(record.readKeys.count) / Double(record.unitTotal)))
-                                    .tint(ThemeState.t.accent)
-                            }
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-                .padding(14)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .appSurface()
-
-                // Verificação
-                VStack(alignment: .leading, spacing: 8) {
-                    LegisSectionHeader(title: "Monitoramento", icon: "bell.badge", tint: ThemeState.t.accent,
-                                       trailing: AnyView(HStack(spacing: 8) {
-                                           if store.isChecking { ProgressView().controlSize(.small) }
-                                           Button(store.isChecking ? "Verificando…" : "Verificar agora") {
-                                               Task { await store.checkAllUpdates(manual: true) }
-                                           }
-                                           .buttonStyle(.legisPrimary)
-                                           .disabled(store.isChecking)
-                                       }))
-                    if store.isChecking && !store.checkProgress.isEmpty {
-                        Text(store.checkProgress).font(.caption).foregroundStyle(.secondary)
-                    } else {
-                        Text(store.lastCheckDate.map {
-                            "Última verificação: \($0.formatted(date: .abbreviated, time: .shortened))"
-                        } ?? "Nenhuma verificação realizada ainda.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    }
-                }
-                .padding(14)
-                .appSurface()
-
-                // Últimas alterações
-                if !store.updates.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
-                        LegisSectionHeader(title: "Últimas alterações", icon: "clock.arrow.circlepath",
-                                           count: store.updates.count, tint: ThemeState.t.accent,
-                                           trailing: AnyView(Button("Ver todas") { openUpdates() }.buttonStyle(.legisGhost)))
-                        ForEach(store.updates.prefix(5)) { event in
-                            Button {
-                                openUpdate(event.id)
-                            } label: {
-                                HStack {
-                                    Circle().fill(ThemeState.t.accent).frame(width: 7, height: 7)
-                                    Text(event.lawTitle).lineLimit(1)
-                                    Spacer()
-                                    Text(event.date.formatted(date: .abbreviated, time: .omitted))
-                                        .foregroundStyle(.secondary)
-                                }
-                                .font(.callout)
-                                .contentShape(Rectangle())
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .padding(14)
-                    .appSurface()
-                }
-
-                // Anotações recentes
-                let recent = store.annotations.sorted { $0.createdAt > $1.createdAt }.prefix(5)
-                if !recent.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
-                        LegisSectionHeader(title: "Anotações recentes", icon: "highlighter", tint: ThemeState.t.accent)
-                        ForEach(Array(recent)) { annotation in
-                            Button {
-                                openLaw(annotation.lawID)
-                            } label: {
-                                HStack(alignment: .top, spacing: 8) {
-                                    RoundedRectangle(cornerRadius: 2)
-                                        .fill(Color(hexRGBA: annotation.colorHex))
-                                        .frame(width: 4, height: 28)
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("“\(annotation.selectedText)”")
-                                            .font(.callout.italic())
-                                            .lineLimit(1)
-                                        Text(store.laws.first { $0.id == annotation.lawID }?.title ?? "")
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
-                                    }
-                                    Spacer()
-                                }
-                                .contentShape(Rectangle())
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .padding(14)
-                    .appSurface()
-                }
             }
             .padding(AppTheme.pageInset)
         }
         .background(AppTheme.pageBackground)
-        .navigationTitle("Início")
+        .navigationTitle("Hoje")
         .sheet(item: $activeSheet) { sheet in
             switch sheet {
             case .review:       SRSReviewView().environmentObject(store)
