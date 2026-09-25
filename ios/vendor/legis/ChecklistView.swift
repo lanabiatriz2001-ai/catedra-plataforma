@@ -21,7 +21,7 @@ struct ChecklistRing: View {
                 .animation(.spring(response: 0.6, dampingFraction: 0.8), value: frac)
             if !center.isEmpty {
                 Text(center)
-                    .font(.system(size: size * 0.26, weight: .bold).monospacedDigit())
+                    .font(DS.interface(size * 0.26, .bold).monospacedDigit())
                     .foregroundStyle(AppTheme.ink)
             }
         }

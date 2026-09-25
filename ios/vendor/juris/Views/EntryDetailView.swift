@@ -44,6 +44,8 @@ struct EntryDetailView: View {
     @State private var gaveta: AlturaGaveta = .fechada
     @State private var abaGaveta = 0
     @State private var mostrarSecundario = false
+    // Entrega 6: a barra de marcação (15 controles) fica recolhida atrás de um botão "Marcar".
+    @State private var mostrarMarcacao = false
     @State private var artigosDoVerbete: [ArtigoCitado] = []
     @State private var relacionadosCache: [JurisEntry]?
 
@@ -500,8 +502,19 @@ struct EntryDetailView: View {
 
     private var enunciadoCard: some View {
         VStack(alignment: .leading, spacing: 0) {
-            marcacaoToolbar
-            Divider().overlay(Palette.hairline)
+            if mostrarMarcacao && !editandoEnunciado {
+                marcacaoToolbar
+                Divider().overlay(Palette.hairline)
+            }
+            if !editandoEnunciado { HStack {
+                Spacer()
+                Button { withAnimation(.easeInOut(duration: 0.15)) { mostrarMarcacao.toggle() } } label: {
+                    Label(mostrarMarcacao ? "Fechar marcação" : "Marcar", systemImage: "highlighter")
+                        .font(DS.interface(13, .semibold)).frame(minHeight: 32)
+                }
+                .buttonStyle(.plain).foregroundStyle(ThemeState.t.accent)
+                .padding(.top, 8)
+            } }
             HStack(alignment: .top, spacing: 12) {
                 MarkableText(text: editandoEnunciado ? rascunhoEnunciado : store.textoEnunciado(for: entry),
                              marks: store.marks(for: entry.id),

@@ -175,7 +175,7 @@ struct MateriaBanner: View {
                     .fill(LinearGradient(colors: [color, color.opacity(0.72)],
                                          startPoint: .topLeading, endPoint: .bottomTrailing))
                     .frame(width: 48, height: 48)
-                    .overlay(Image(systemName: symbol).font(.system(size: 20, weight: .semibold))
+                    .overlay(Image(systemName: symbol).font(DS.interface(20, .semibold))
                         .foregroundStyle(.white))
                     .shadow(color: color.opacity(0.4), radius: 8, y: 4)
             }
@@ -225,7 +225,7 @@ struct IconBubble: View {
             .frame(width: size, height: size)
             .overlay(
                 Image(systemName: symbol)
-                    .font(.system(size: size * 0.46, weight: .semibold))
+                    .font(DS.interface(size * 0.46, .semibold))
                     .foregroundStyle(color)
             )
     }

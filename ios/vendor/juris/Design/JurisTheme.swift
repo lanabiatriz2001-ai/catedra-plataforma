@@ -162,7 +162,7 @@ enum Typo {
     }
     static func serifBody(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
         if let fam = readingFamily { return Font.custom(fam, size: max(11, size)).weight(weight) }
-        return .system(size: escalado(size), weight: weight, design: .default)
+        return DS.interface(size, weight)   // DS já escala (Dynamic Type) — sem escalar duas vezes
     }
     /// Fonte da interface (chrome) — sempre o sistema, para manter a legibilidade.
     static func ui(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
