@@ -502,11 +502,11 @@ struct EntryDetailView: View {
 
     private var enunciadoCard: some View {
         VStack(alignment: .leading, spacing: 0) {
-            if mostrarMarcacao || editandoEnunciado {
+            if mostrarMarcacao && !editandoEnunciado {
                 marcacaoToolbar
                 Divider().overlay(Palette.hairline)
             }
-            HStack {
+            if !editandoEnunciado { HStack {
                 Spacer()
                 Button { withAnimation(.easeInOut(duration: 0.15)) { mostrarMarcacao.toggle() } } label: {
                     Label(mostrarMarcacao ? "Fechar marcação" : "Marcar", systemImage: "highlighter")
@@ -514,7 +514,7 @@ struct EntryDetailView: View {
                 }
                 .buttonStyle(.plain).foregroundStyle(ThemeState.t.accent)
                 .padding(.top, 8)
-            }
+            } }
             HStack(alignment: .top, spacing: 12) {
                 MarkableText(text: editandoEnunciado ? rascunhoEnunciado : store.textoEnunciado(for: entry),
                              marks: store.marks(for: entry.id),

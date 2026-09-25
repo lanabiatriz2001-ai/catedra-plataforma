@@ -728,7 +728,6 @@ private struct ReaderScreen: View {
             .navigationBarTitleDisplayMode(.inline)
             // Compacto: título em linha (44 pt) — o título grande comeria ~96 pt dos 844
             // antes da primeira linha da lei. Em regular fica como sempre.
-            .navigationBarTitleDisplayMode(ehCompacto ? .inline : .automatic)
             .onReceive(store.$laws) { laws in
                 // Excluída enquanto lida → volta para a tela anterior.
                 if !laws.contains(where: { $0.id == lawID }) { dismiss() }
