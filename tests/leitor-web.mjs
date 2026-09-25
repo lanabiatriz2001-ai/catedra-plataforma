@@ -42,6 +42,15 @@ export async function testarLeitorWeb(page, base, ok) {
     R + 'JURIS: "Todos" abre pela súmula vinculante (ordem de autoridade), não pelo TJRO — veio: ' + j.primeira.slice(0, 60));
   ok(!j.emoji, R + 'JURIS: cabeçalho sem emoji como ícone');
 
+  // Recebendo um id exato, o JURIS abre AQUELE verbete (não busca pelo texto).
+  const ID = 'INF2026-STJ-895-12';
+  await page.goto(base + '/juris-web.html?q=' + encodeURIComponent(ID));
+  const abriu = await page.waitForFunction((id) => {
+    const r = document.getElementById('jrdr');
+    return r && r.classList.contains('on') && window.jurisVerbeteAberto && window.jurisVerbeteAberto() === id;
+  }, ID, { timeout: 15000 }).then(() => true, () => false);
+  ok(abriu, R + 'JURIS: um id exato recebido do LEGIS abre direto aquele verbete');
+
   // ── LEGIS ──
   await page.goto(base + '/legis-web.html?area=juridica');
   await page.waitForFunction(() => !!window.openReader && typeof CAT !== 'undefined', null, { timeout: 15000 });
@@ -72,6 +81,16 @@ export async function testarLeitorWeb(page, base, ok) {
     ok(g.visivel && g.itens > 0 && g.abrir && /Art\. 1/.test(g.titulo || ''),
       R + 'LEGIS: o toque no número abre a gaveta do artigo com os julgados e "Abrir no JURIS" (' + g.itens + ' itens)');
   }
+
+  // "Abrir no JURIS" manda o ID do julgado, não o título: "Info 895 · STJ" casava a edição inteira.
+  const envio = await page.evaluate(() => {
+    let msg = null; window.ctEnviarAoHost = (m) => { msg = m; };
+    const b = document.querySelector('#jGaveta .jabrir'); if (b) b.click();
+    const d = window.__INC_VERB__ && Object.values(window.__INC_VERB__.diplomas).find(x => x.nome === 'Constituição Federal');
+    return { termo: msg && msg.termo, tipo: msg && msg.type, id: d && d.artigos['1'] && d.artigos['1'][0][0] };
+  });
+  ok(envio.tipo === 'ctAbrirAcervo' && envio.termo && envio.termo === envio.id,
+    R + 'LEGIS: "Abrir no JURIS" envia o id do julgado (' + envio.termo + ' × ' + envio.id + ')');
 
   // Alvo de toque ≥ 44 px no iPad e fora do selo de 48 px (não transborda o quadrado).
   const alvo = await page.evaluate(() => {
