@@ -137,6 +137,14 @@ confere(invertido["v2"] == [ArtigoCitado(diploma: "Constituição Federal", arti
         "inversão: verbete com um artigo e verbete sem nenhum")
 confere(CitacoesLogica.inverter([:]).isEmpty, "índice vazio: nada")
 
+// ── Destinos (entrega 4) ────────────────────────────────────────────────────
+confere(Destino.allCases.map(\.titulo) == ["Hoje", "Acervo", "Treinar", "Novidades"],
+        "os mesmos 4 destinos, na mesma ordem, nos dois produtos")
+confere(Set(Destino.allCases.map(\.simbolo)).count == 4, "cada destino com ícone próprio")
+let hubTeste = DestinoHub(titulo: "Acervo", subtitulo: "", secoes: [SecaoHub(titulo: "", itens: [
+    ItemHub(id: "a", titulo: "Todas", detalhe: nil, simbolo: "books.vertical", cor: nil, contagem: 3, acao: {})])])
+confere(String(describing: type(of: hubTeste)) == "DestinoHub", "DestinoHub existe")
+
 // (Tasks 2 e 3 acrescentam blocos aqui, antes do fechamento.)
 
 print(falhas == 0 ? "\nbase visual: tudo certo" : "\nbase visual: \(falhas) falha(s)")
