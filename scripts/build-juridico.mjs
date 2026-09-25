@@ -148,7 +148,7 @@ export function montarPagina(doc, md, faltam) {
   const corpo = converterMarkdown(md.replace(/^\*\*Vers[ãa]o[^\n]*\n\*\*Data:[^\n]*\n?/m, ''));
   return '<!doctype html>\n<html lang="pt-BR">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n'
     + '<title>' + escapar(doc.titulo) + ' — Cátedra</title>\n<meta name="robots" content="noindex">\n<style>' + CSS + '</style>\n</head>\n<body>\n'
-    + '<header class="topo"><b>Cátedra</b><nav><a href="./' + doc.irmao.html + '">' + doc.irmao.titulo + '</a><a href="#" data-fechar="1" onclick="if(window.parent!==window){window.parent.postMessage({type:\'ctFecharDoc\'},\'*\');}else if(history.length>1){history.back();}else{location.href=\'./\';}return false;">Voltar ao app</a></nav></header>\n'
+    + '<header class="topo"><b>Cátedra</b><nav><a href="./' + doc.irmao.html + '">' + doc.irmao.titulo + '</a><a href="#" data-fechar="1" onclick="if(window.parent!==window){window.parent.postMessage({type:\'ctFecharDoc\'},(location.protocol===\'http:\'||location.protocol===\'https:\')?location.origin:\'*\');}else if(history.length>1){history.back();}else{location.href=\'./\';}return false;">Voltar ao app</a></nav></header>\n'
     + '<main>\n<div class="meta">Versão ' + escapar(cab.versao) + (cab.nota ? ' — ' + escapar(cab.nota) : '') + (cab.data ? ' · ' + escapar(cab.data) : '') + '</div>\n' + corpo + '\n'
     + '<footer class="rodape"><a href="./' + doc.irmao.html + '">' + doc.irmao.titulo + '</a><span>Versão ' + escapar(cab.versao) + (cab.data ? ' · ' + escapar(cab.data) : '') + '</span></footer>\n</main>\n</body>\n</html>\n';
 }

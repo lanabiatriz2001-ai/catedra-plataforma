@@ -130,7 +130,6 @@ button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,[t
   .busca input{font-size:var(--t-titulo)}
 }
 </style>
-<script>(function(){var V=['--bg','--surface','--surface2','--border','--ink','--text2','--text3','--accent','--accentD','--accentSoft','--accentRing','--onAccent','--radius','--display','--body','--mono','--heroGrad'];function apply(t){var r=document.documentElement;V.forEach(function(v){if(t[v]&&t[v].trim())r.style.setProperty(v,t[v].trim());});}try{var pw=window.parent;if(pw&&pw!==window){var host=pw.document.querySelector('[style*="--accent"]');if(host){var cs=pw.getComputedStyle(host);var t={};V.forEach(function(v){t[v]=cs.getPropertyValue(v);});apply(t);}}}catch(e){}window.addEventListener('message',function(e){if(e.data&&e.data.type==='ctTheme'&&e.data.tokens)apply(e.data.tokens);});})();</script>
 <script src="./tema-satelite.js"></script>
 </head><body>
 
@@ -277,7 +276,7 @@ try{ const u=new URLSearchParams(location.search), p=u.get('peca');
   if(p && (window.CT_PECAS||{})[p]) R.abrir(p, u.get('bloco')); }catch(e){}
 
 window.addEventListener('message', function (e) {
-  if (e && e.data && e.data.type === 'ctAbrirBloco') {
+  if (window.ctMensagemDoHost(e) && e.data && e.data.type === 'ctAbrirBloco') {
     window.ctAbrirPonto(e.data.rito, e.data.peca, e.data.bloco);
   }
 });

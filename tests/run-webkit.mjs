@@ -37,6 +37,7 @@ import { testarPrioridadeErrosResolvidos } from './prioridade-erros-resolvidos.m
 import { testarRevisaoFonte } from './revisao-fonte.mjs';
 import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
 import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
+import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 // porta própria por padrão: run.mjs usa a 8123, e as duas suítes podem rodar lado a lado
@@ -136,6 +137,21 @@ for (const [base, origem, arquivo] of ORIGENS) {
     try { await testarJurisQuadro(page, base, ok, { motor, origem }); }
     catch (e) {
       ok(false, 'JURIS/QUADRO [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
+        + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+    }
+    try { await testarPostMessageSeguranca(page, base, ok, { motor, origem, arquivo }); }
+    catch (e) {
+      ok(false, 'PONTE [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
+        + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+    }
+  }
+  // A ponte em file:// é o caminho dos apps nativos. Como cada arquivo tem origem opaca,
+  // esta execução prova que a autorização pela contentWindow exata funciona sem depender
+  // de origin — e que um iframe local arbitrário continua sem privilégios.
+  if (origem === 'file') {
+    try { await testarPostMessageSeguranca(page, base, ok, { motor, origem, arquivo }); }
+    catch (e) {
+      ok(false, 'PONTE [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
         + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
     }
   }
