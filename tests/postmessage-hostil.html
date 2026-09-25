@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<title>Origem não autorizada para postMessage</title>
+<script>
+  window.__ctRespostas = [];
+  window.addEventListener('message', function (e) {
+    if (e && e.data) window.__ctRespostas.push(e.data);
+  });
+  window.ctEnviar = function (dados) {
+    window.parent.postMessage(dados, '*');
+  };
+</script>
+</html>

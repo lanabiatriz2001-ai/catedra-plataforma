@@ -203,7 +203,10 @@ input, select { width:100%; min-height:48px; border:1.5px solid var(--border); b
   var links = document.querySelectorAll('a[href="./"]');
   for (var i = 0; i < links.length; i++) links[i].addEventListener('click', function (e) {
     e.preventDefault();
-    try { window.parent.postMessage({ type: 'ctFecharDoc' }, '*'); } catch (_) {}
+    try {
+      var destino = location.protocol === 'http:' || location.protocol === 'https:' ? location.origin : '*';
+      window.parent.postMessage({ type: 'ctFecharDoc' }, destino);
+    } catch (_) {}
   });
 })();
 </script>

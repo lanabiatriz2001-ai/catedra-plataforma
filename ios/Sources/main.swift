@@ -558,9 +558,32 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
       // Mapa de Processo e peças -> acervo. Dentro do app NATIVO a troca é de ABA (o
       // LEGIS e o JURIS são telas nativas ao lado); no site, quem trata é o próprio app
       // web. Este shim intercepta a mensagem do iframe e a repassa ao Swift.
+      function satelitePodeAbrirAcervo(e) {
+        if (!e || !e.source) return false;
+        // A revisão do app pede o acervo à própria janela (e.source === window).
+        if (e.source === window) return true;
+        var frames = document.querySelectorAll('iframe[data-ct-view][data-ct-frame]');
+        for (var i = 0; i < frames.length; i++) {
+          if (frames[i].contentWindow !== e.source) continue;
+          var view = frames[i].getAttribute('data-ct-view') || '';
+          var src = frames[i].getAttribute('src') || '';
+          if (src.indexOf('http:') === 0 || src.indexOf('https:') === 0 || src.indexOf('//') === 0) return false;
+          var arquivo = src.split('?')[0].split('#')[0];
+          arquivo = arquivo.slice(arquivo.lastIndexOf('/') + 1);
+          if (view === 'areamod' && arquivo !== 'ritos-web.html') return false;
+          if (view === 'roteiros' && arquivo !== 'pecas-web.html') return false;
+          if (view === 'prioridade' && arquivo !== 'prioridade-web.html') return false;
+          if (view === 'segundafase' && arquivo !== 'segunda-fase-web.html') return false;
+          if (view === 'legis' && arquivo !== 'legis-web.html') return false;
+          return view === 'areamod' || view === 'roteiros' || view === 'prioridade'
+            || view === 'segundafase' || view === 'legis';
+        }
+        return false;
+      }
       window.addEventListener('message', function (e) {
         try {
           if (!e || !e.data || e.data.type !== 'ctAbrirAcervo') return;
+          if (!satelitePodeAbrirAcervo(e)) return;
           // Item 5: o termo e o ponto de origem viajam junto (antes ia só a aba).
           window.webkit.messageHandlers.catedraAcervo.postMessage({
             alvo: String(e.data.alvo || ''), termo: String(e.data.termo || ''),
@@ -735,11 +758,26 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         downloadDests.removeValue(forKey: ObjectIdentifier(download))
     }
 
+    private func mensagemDaPaginaLocal(_ message: WKScriptMessage) -> Bool {
+        guard message.frameInfo.isMainFrame,
+              let origem = message.frameInfo.request.url,
+              origem.isFileURL,
+              let raizWeb = Bundle.main.url(forResource: "web", withExtension: nil)
+        else { return false }
+        let raiz = raizWeb.standardizedFileURL.path
+        let caminho = origem.standardizedFileURL.path
+        return caminho == raiz || caminho.hasPrefix(raiz + "/")
+    }
+
     func userContentController(_ ucc: WKUserContentController,
                                didReceive message: WKScriptMessage,
                                replyHandler respostaBruta: @escaping (Any?, String?) -> Void) {
         // As permissões e a IA respondem de threads de fundo; a resposta ao JS é da main.
         let replyHandler: (Any?, String?) -> Void = { v, e in DispatchQueue.main.async { respostaBruta(v, e) } }
+        guard mensagemDaPaginaLocal(message) else {
+            replyHandler(nil, "origem não autorizada")
+            return
+        }
         switch message.name {
         case "catedraAI":        chamarIA(message, replyHandler)
         case "notifyPermission": permissaoNotificacao(message, replyHandler)
