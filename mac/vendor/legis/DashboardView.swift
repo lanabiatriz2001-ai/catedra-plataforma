@@ -51,11 +51,11 @@ struct DashboardView: View {
             HStack(spacing: 10) {
                 IconBubble(symbol: symbol, color: emCurso ? AppTheme.warn : ThemeState.t.accent, size: 34)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(title).font(.system(size: 13, weight: .semibold)).foregroundStyle(AppTheme.ink).lineLimit(1)
-                    Text(subtitle).font(.system(size: 11)).foregroundStyle(emCurso ? AppTheme.warn : AppTheme.secondaryInk).lineLimit(1)
+                    Text(title).font(DS.interface(13, .semibold)).foregroundStyle(AppTheme.ink).lineLimit(1)
+                    Text(subtitle).font(DS.interface(11)).foregroundStyle(emCurso ? AppTheme.warn : AppTheme.secondaryInk).lineLimit(1)
                 }
                 Spacer(minLength: 0)
-                Image(systemName: "chevron.right").font(.system(size: 10, weight: .semibold))
+                Image(systemName: "chevron.right").font(DS.interface(10, .semibold))
                     .foregroundStyle(AppTheme.secondaryInk.opacity(0.5))
             }
             .padding(12)
@@ -83,7 +83,7 @@ struct DashboardView: View {
                         }
                         Spacer()
                         if due > 0 {
-                            Text("Revisar").font(.system(size: 13, weight: .bold)).foregroundStyle(.white)
+                            Text("Revisar").font(DS.interface(13, .bold)).foregroundStyle(.white)
                                 .padding(.horizontal, 14).padding(.vertical, 7)
                                 .background(Capsule().fill(AppTheme.srs))
                         } else {
@@ -164,7 +164,7 @@ struct DashboardView: View {
     private func normaTimeRow(_ law: LawEntry, _ secs: Double, _ maxSecs: Double) -> some View {
         VStack(alignment: .leading, spacing: 5) {
             HStack(spacing: 8) {
-                Text(law.title).font(.system(size: 12.5, weight: .medium))
+                Text(law.title).font(DS.interface(12.5, .medium))
                     .foregroundStyle(AppTheme.ink).lineLimit(1)
                 Spacer(minLength: 8)
                 Text(Self.fmtDur(secs)).font(Typo.num(12, .semibold))
@@ -191,7 +191,7 @@ struct DashboardView: View {
     private func heroStat(_ value: String, _ label: String) -> some View {
         VStack(alignment: .leading, spacing: 5) {
             Text(value).font(Typo.num(20)).foregroundStyle(.white)
-            Text(label).font(.system(size: 11)).foregroundStyle(.white.opacity(0.85))
+            Text(label).font(DS.interface(11)).foregroundStyle(.white.opacity(0.85))
         }
         .padding(.horizontal, 14).padding(.vertical, 11)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -421,15 +421,15 @@ private struct MateriaTile: View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 6) {
                 Image(systemName: cat.symbol)
-                    .font(.system(size: 19, weight: .semibold))
+                    .font(DS.interface(19, .semibold))
                     .foregroundStyle(.white)
                 Spacer(minLength: 4)
                 Text(cat.shortName)
-                    .font(.system(size: 13.5, weight: .bold))
+                    .font(DS.interface(13.5, .bold))
                     .foregroundStyle(.white)
                     .lineLimit(1).minimumScaleFactor(0.75)
                 Text("\(count) norma\(count == 1 ? "" : "s")")
-                    .font(.system(size: 10.5, weight: .medium))
+                    .font(DS.interface(10.5, .medium))
                     .foregroundStyle(.white.opacity(0.85))
             }
             .padding(14)
@@ -516,12 +516,12 @@ struct DailyGoalsCard: View {
                 ForEach(Array(forecast.enumerated()), id: \.element.date) { i, d in
                     VStack(spacing: 3) {
                         Text(d.count > 0 ? "\(d.count)" : " ")
-                            .font(.system(size: 9).monospacedDigit()).foregroundStyle(.secondary)
+                            .font(DS.interface(9).monospacedDigit()).foregroundStyle(.secondary)
                         RoundedRectangle(cornerRadius: 3)
                             .fill(i == 0 ? ThemeState.t.accent : ThemeState.t.accent.opacity(0.45))
                             .frame(height: max(3, CGFloat(d.count) / CGFloat(maxC) * 40))
                         Text(Self.weekdayLabel(d.date))
-                            .font(.system(size: 9))
+                            .font(DS.interface(9))
                             .foregroundStyle(i == 0 ? Color.primary : Color.secondary)
                     }
                     .frame(maxWidth: .infinity)

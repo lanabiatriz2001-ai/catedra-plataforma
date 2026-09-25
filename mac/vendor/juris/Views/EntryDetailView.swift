@@ -43,6 +43,8 @@ struct EntryDetailView: View {
     @State private var gaveta: AlturaGaveta = .fechada
     @State private var abaGaveta = 0
     @State private var mostrarSecundario = false
+    // Entrega 6: a barra de marcação (15 controles) fica recolhida atrás de um botão "Marcar".
+    @State private var mostrarMarcacao = false
     @State private var artigosDoVerbete: [ArtigoCitado] = []
     @State private var relacionadosCache: [JurisEntry]?
 
@@ -208,7 +210,7 @@ struct EntryDetailView: View {
             }
             if let r = entry.ramoDireito {
                 Text(r.uppercased())
-                    .font(.system(size: 10, weight: .bold)).tracking(1.1)
+                    .font(DS.interface(10, .bold)).tracking(1.1)
                     .foregroundStyle(.white.opacity(0.85))
                     .padding(.horizontal, 9).padding(.vertical, 3)
                     .background(Color.white.opacity(0.16), in: Capsule())
@@ -234,10 +236,10 @@ struct EntryDetailView: View {
             let mostraTexto = (notaEmTexto && nota.texto != nil) || !nota.temEsquema
             VStack(alignment: .leading, spacing: 13) {
                 HStack(spacing: 7) {
-                    Image(systemName: "brain.head.profile").font(.system(size: 12)).foregroundStyle(Palette.importante)
-                    Text("NOTA DE ESTUDO").font(.system(size: 10.5, weight: .bold)).tracking(1)
+                    Image(systemName: "brain.head.profile").font(DS.interface(12)).foregroundStyle(Palette.importante)
+                    Text("NOTA DE ESTUDO").font(DS.interface(10.5, .bold)).tracking(1)
                         .foregroundStyle(Palette.importante)
-                    Text("não oficial").font(.system(size: 9.5)).foregroundStyle(Palette.secondaryInk)
+                    Text("não oficial").font(DS.interface(9.5)).foregroundStyle(Palette.secondaryInk)
                         .padding(.horizontal, 6).padding(.vertical, 1)
                         .background(Palette.secondaryInk.opacity(0.12), in: Capsule())
                     Spacer()
@@ -278,7 +280,7 @@ struct EntryDetailView: View {
 
     private func modoNotaBtn(_ titulo: String, ativo: Bool, _ acao: @escaping () -> Void) -> some View {
         Button(action: acao) {
-            Text(titulo).font(.system(size: 10, weight: .semibold))
+            Text(titulo).font(DS.interface(10, .semibold))
                 .foregroundStyle(ativo ? .white : Palette.secondaryInk)
                 .padding(.horizontal, 9).padding(.vertical, 3)
                 .background(ativo ? Palette.importante : Color.clear, in: Capsule())
@@ -290,7 +292,7 @@ struct EntryDetailView: View {
         VStack(spacing: 4) {
             ForEach(Array(passos.enumerated()), id: \.offset) { i, passo in
                 Text(passo)
-                    .font(.system(size: 12.5, weight: i == 0 ? .semibold : .regular))
+                    .font(DS.interface(12.5, i == 0 ? .semibold : .regular))
                     .foregroundStyle(Palette.bodyInk)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
@@ -299,7 +301,7 @@ struct EntryDetailView: View {
                     .background(Palette.accent.opacity(i == 0 ? 0.14 : 0.07), in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
                     .overlay(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).strokeBorder(Palette.accent.opacity(0.25), lineWidth: 1))
                 if i < passos.count - 1 {
-                    Image(systemName: "arrow.down").font(.system(size: 11, weight: .bold)).foregroundStyle(Palette.accent)
+                    Image(systemName: "arrow.down").font(DS.interface(11, .bold)).foregroundStyle(Palette.accent)
                 }
             }
         }
@@ -313,13 +315,13 @@ struct EntryDetailView: View {
     private func ramoView(_ r: RamoNota) -> some View {
         let cor = corRamo(r.tipo)
         return HStack(alignment: .top, spacing: 10) {
-            Image(systemName: r.simbolo).font(.system(size: 12)).foregroundStyle(cor).frame(width: 18)
+            Image(systemName: r.simbolo).font(DS.interface(12)).foregroundStyle(cor).frame(width: 18)
             VStack(alignment: .leading, spacing: 4) {
-                Text(r.titulo.uppercased()).font(.system(size: 10, weight: .bold)).tracking(0.6).foregroundStyle(cor)
+                Text(r.titulo.uppercased()).font(DS.interface(10, .bold)).tracking(0.6).foregroundStyle(cor)
                 ForEach(Array(r.itens.enumerated()), id: \.offset) { _, item in
                     HStack(alignment: .top, spacing: 6) {
-                        Text("•").font(.system(size: 12)).foregroundStyle(cor.opacity(0.7))
-                        Text(item).font(.system(size: 12.5)).foregroundStyle(Palette.bodyInk)
+                        Text("•").font(DS.interface(12)).foregroundStyle(cor.opacity(0.7))
+                        Text(item).font(DS.interface(12.5)).foregroundStyle(Palette.bodyInk)
                             .textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                     }
                 }
@@ -340,14 +342,14 @@ struct EntryDetailView: View {
             let cor: Color = cancelada ? Palette.bad : Palette.warn
             HStack(alignment: .top, spacing: 11) {
                 Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.system(size: 18)).foregroundStyle(cor)
+                    .font(DS.interface(18)).foregroundStyle(cor)
                 VStack(alignment: .leading, spacing: 3) {
                     Text(cancelada ? "SÚMULA / TESE CANCELADA" : "ENTENDIMENTO SUPERADO")
-                        .font(.system(size: 12.5, weight: .bold)).tracking(0.5).foregroundStyle(cor)
+                        .font(DS.interface(12.5, .bold)).tracking(0.5).foregroundStyle(cor)
                     Text(entry.situacao ?? (cancelada
                             ? "Não utilize como fundamento — este enunciado foi cancelado."
                             : "Verifique o entendimento atual — esta tese foi superada."))
-                        .font(.system(size: 12)).foregroundStyle(Palette.bodyInk)
+                        .font(DS.interface(12)).foregroundStyle(Palette.bodyInk)
                         .fixedSize(horizontal: false, vertical: true)
                     // Aponta para o que DE FATO vai pintar: a seção do fim da página lista só o
                     // que ficou fora do quadro, e pode estar vazia quando todos os vizinhos
@@ -356,10 +358,10 @@ struct EntryDetailView: View {
                     if let v = vizinhos {
                         if !v.mesmoAssuntoItens.isEmpty {
                             Text("Os julgados do mesmo assunto estão no fim da página — confira neles, e no tribunal, qual é o entendimento atual.")
-                                .font(.system(size: 11)).foregroundStyle(Palette.secondaryInk)
+                                .font(DS.interface(11)).foregroundStyle(Palette.secondaryInk)
                         } else if v.temQuadro {
                             Text("Compare com os verbetes do quadro “Não confunda com”, no roteiro logo abaixo.")
-                                .font(.system(size: 11)).foregroundStyle(Palette.secondaryInk)
+                                .font(DS.interface(11)).foregroundStyle(Palette.secondaryInk)
                         }
                     }
                 }
@@ -375,8 +377,8 @@ struct EntryDetailView: View {
     /// Data do julgado/súmula, visível no topo (calendário + data).
     private func dataPill(_ d: String) -> some View {
         HStack(spacing: 4) {
-            Image(systemName: "calendar").font(.system(size: 10, weight: .semibold))
-            Text(d).font(.system(size: 11, weight: .semibold))
+            Image(systemName: "calendar").font(DS.interface(10, .semibold))
+            Text(d).font(DS.interface(11, .semibold))
         }
         .foregroundStyle(Palette.secondaryInk)
         .padding(.horizontal, 9).padding(.vertical, 4)
@@ -391,9 +393,9 @@ struct EntryDetailView: View {
         return Button { store.toggleLido(entry.id) } label: {
             HStack(spacing: 5) {
                 Image(systemName: lido ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(DS.interface(12, .semibold))
                 Text(lido ? "Lido" : "Marcar como lido")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(DS.interface(12, .semibold))
             }
             .foregroundStyle(lido ? .white : Palette.bodyInk)
             .padding(.horizontal, 12).padding(.vertical, 6)
@@ -426,8 +428,19 @@ struct EntryDetailView: View {
 
     private var enunciadoCard: some View {
         VStack(alignment: .leading, spacing: 0) {
-            marcacaoToolbar
-            Divider().overlay(Palette.hairline)
+            if mostrarMarcacao || editandoEnunciado {
+                marcacaoToolbar
+                Divider().overlay(Palette.hairline)
+            }
+            HStack {
+                Spacer()
+                Button { withAnimation(.easeInOut(duration: 0.15)) { mostrarMarcacao.toggle() } } label: {
+                    Label(mostrarMarcacao ? "Fechar marcação" : "Marcar", systemImage: "highlighter")
+                        .font(DS.interface(13, .semibold)).frame(minHeight: 32)
+                }
+                .buttonStyle(.plain).foregroundStyle(ThemeState.t.accent)
+                .padding(.top, 8)
+            }
             HStack(alignment: .top, spacing: 12) {
                 MarkableText(text: editandoEnunciado ? rascunhoEnunciado : store.textoEnunciado(for: entry),
                              marks: store.marks(for: entry.id),
@@ -499,7 +512,7 @@ struct EntryDetailView: View {
     private var marcacaoToolbar: some View {
         HStack(spacing: 4) {
             Text("MARCAR")
-                .font(.system(size: 9, weight: .bold)).tracking(1)
+                .font(DS.interface(9, .bold)).tracking(1)
                 .foregroundStyle(Palette.secondaryInk)
 
             toolBtn("arrow.uturn.backward") { store.undoMarks(entry.id) }
@@ -537,7 +550,7 @@ struct EntryDetailView: View {
             toolBtn("textformat.size.smaller") { readingScale = max(readingScale - 0.1, 0.8) }
                 .help("Diminuir a fonte")
             Text("\(Int(readingScale * 100))%")
-                .font(.system(size: 9.5, weight: .medium).monospacedDigit())
+                .font(DS.interface(9.5, .medium).monospacedDigit())
                 .foregroundStyle(Palette.secondaryInk).frame(width: 30)
             toolBtn("textformat.size.larger") { readingScale = min(readingScale + 0.1, 1.8) }
                 .help("Aumentar a fonte")
@@ -546,7 +559,7 @@ struct EntryDetailView: View {
             toolBtn("eraser") { limparMarca() }.help("Remover marcação do trecho selecionado")
         }
         .buttonStyle(.plain)
-        .font(.system(size: 13))
+        .font(DS.interface(13))
         .disabled(editandoEnunciado)
         .opacity(editandoEnunciado ? 0.4 : 1)
     }
@@ -685,8 +698,8 @@ struct EntryDetailView: View {
         VStack(alignment: .leading, spacing: 8) {
             // Ferramentas que só fazem sentido em texto editável (inserção/estrutura).
             HStack(spacing: 5) {
-                Image(systemName: "pencil.and.outline").font(.system(size: 11))
-                Text("EDITANDO O TEXTO").font(.system(size: 9, weight: .bold)).tracking(1)
+                Image(systemName: "pencil.and.outline").font(DS.interface(11))
+                Text("EDITANDO O TEXTO").font(DS.interface(9, .bold)).tracking(1)
                 divisor
                 edicaoBtn("list.bullet") { bulletNoVerbete() }.help("Lista com marcador")
                 // Emoji / ícones de estudo
@@ -715,24 +728,24 @@ struct EntryDetailView: View {
                 .menuIndicator(.hidden).frame(width: 22).help("Fonte de leitura do app")
                 Spacer()
             }
-            .buttonStyle(.plain).font(.system(size: 12)).foregroundStyle(Palette.accent)
+            .buttonStyle(.plain).font(DS.interface(12)).foregroundStyle(Palette.accent)
 
             HStack(spacing: 8) {
                 Text("O texto oficial nunca é perdido — “Restaurar original” volta a qualquer momento.")
-                    .font(.system(size: 10)).foregroundStyle(Palette.secondaryInk)
+                    .font(DS.interface(10)).foregroundStyle(Palette.secondaryInk)
                 Spacer()
                 if store.enunciadoFoiEditado(entry.id) {
                     Button("Restaurar original") {
                         store.restaurarEnunciadoOriginal(entry.id)
                         editandoEnunciado = false
-                    }.font(.system(size: 11))
+                    }.font(DS.interface(11))
                 }
-                Button("Cancelar") { editandoEnunciado = false }.font(.system(size: 11))
+                Button("Cancelar") { editandoEnunciado = false }.font(DS.interface(11))
                 Button("Salvar") {
                     store.setTextoEditado(rascunhoEnunciado, entry: entry)
                     editandoEnunciado = false
                 }
-                .font(.system(size: 11, weight: .semibold))
+                .font(DS.interface(11, .semibold))
                 .buttonStyle(.borderedProminent).tint(Palette.accent)
             }
         }
@@ -875,8 +888,8 @@ struct EntryDetailView: View {
     private var anotacaoCard: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
-                Image(systemName: "square.and.pencil").font(.system(size: 11, weight: .semibold))
-                Text("MINHAS ANOTAÇÕES").font(.system(size: 10.5, weight: .bold)).tracking(1)
+                Image(systemName: "square.and.pencil").font(DS.interface(11, .semibold))
+                Text("MINHAS ANOTAÇÕES").font(DS.interface(10.5, .bold)).tracking(1)
                 Spacer()
                 formatToolbar
             }
@@ -1030,7 +1043,7 @@ struct EntryDetailView: View {
             }
         }
         .buttonStyle(.plain)
-        .font(.system(size: 12))
+        .font(DS.interface(12))
         .foregroundStyle(Palette.accent)
     }
 
@@ -1082,7 +1095,7 @@ struct EntryDetailView: View {
                 .padding(.top, 10)
         } label: {
             Label(titulo, systemImage: icone)
-                .font(.system(size: 13, weight: .semibold))
+                .font(DS.interface(13, .semibold))
                 .foregroundStyle(Palette.accent)
         }
         .tint(Palette.accent)
@@ -1124,7 +1137,7 @@ struct EntryDetailView: View {
         if let url = entry.fonteOficialURL {
             Link(destination: url) {
                 Label(entry.fonteOficialLabel, systemImage: "arrow.up.forward.square")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(DS.interface(12, .semibold))
             }
             .buttonStyle(.plain)
             .foregroundStyle(Palette.accent)
@@ -1305,14 +1318,14 @@ struct DetailPlaceholder: View {
     var body: some View {
         VStack(spacing: 16) {
             Image(systemName: "books.vertical")
-                .font(.system(size: 42, weight: .thin))
+                .font(DS.interface(42, .thin))
                 .foregroundStyle(Palette.accent.opacity(0.7))
             VStack(spacing: 5) {
                 Text("CátedraJURIS")
                     .font(Typo.serifTitle(19, .semibold))
                     .foregroundStyle(Palette.titleInk)
                 Text("Escolha uma súmula, tese, informativo ou repercussão geral\npara ler o inteiro teor.")
-                    .font(.system(size: 12.5))
+                    .font(DS.interface(12.5))
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Palette.secondaryInk)
             }

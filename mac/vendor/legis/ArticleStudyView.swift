@@ -394,19 +394,19 @@ struct ArticleStudyView: View {
         return VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 6) {
-                    Text("Índice").font(.system(size: 13, weight: .bold)).foregroundStyle(AppTheme.ink)
+                    Text("Índice").font(DS.interface(13, .bold)).foregroundStyle(AppTheme.ink)
                     Spacer()
                     Text("\(read)/\(units.count)")
-                        .font(.system(size: 11, weight: .medium).monospacedDigit()).foregroundStyle(.secondary)
+                        .font(DS.interface(11, .medium).monospacedDigit()).foregroundStyle(.secondary)
                     Button { withAnimation(.easeInOut(duration: 0.18)) { showIndexRail = false } } label: {
-                        Image(systemName: "sidebar.left").font(.system(size: 12))
+                        Image(systemName: "sidebar.left").font(DS.interface(12))
                     }
                     .buttonStyle(.borderless).help("Esconder o índice")
                 }
                 heatmap
                 HStack(spacing: 6) {
-                    Image(systemName: "magnifyingglass").font(.system(size: 11)).foregroundStyle(.secondary)
-                    TextField("Buscar artigo…", text: $railQuery).textFieldStyle(.plain).font(.system(size: 12))
+                    Image(systemName: "magnifyingglass").font(DS.interface(11)).foregroundStyle(.secondary)
+                    TextField("Buscar artigo…", text: $railQuery).textFieldStyle(.plain).font(DS.interface(12))
                 }
                 .padding(.horizontal, 8).padding(.vertical, 6)
                 .background(RoundedRectangle(cornerRadius: AppTheme.rInner).fill(AppTheme.pageBackground))
@@ -438,10 +438,10 @@ struct ArticleStudyView: View {
             HStack(spacing: 7) {
                 Circle().fill(isRead ? AppTheme.ok : AppTheme.hairline).frame(width: 7, height: 7)
                 Text(unit.label)
-                    .font(.system(size: 12, weight: isCurrent ? .semibold : .regular))
+                    .font(DS.interface(12, isCurrent ? .semibold : .regular))
                     .foregroundStyle(isCurrent ? accent : AppTheme.ink).lineLimit(1)
                 Spacer(minLength: 4)
-                if isReview { Image(systemName: "star.fill").font(.system(size: 8)).foregroundStyle(AppTheme.warn) }
+                if isReview { Image(systemName: "star.fill").font(DS.interface(8)).foregroundStyle(AppTheme.warn) }
             }
             .padding(.horizontal, 10).padding(.vertical, 5)
             .background(RoundedRectangle(cornerRadius: 6).fill(isCurrent ? accent.opacity(0.14) : Color.clear))
@@ -694,7 +694,7 @@ private struct UnitFocusView: View {
             HStack(alignment: .center, spacing: 14) {
                 // Badge do número em cartão (igual à web) sobre a faixa da matéria.
                 VStack(spacing: 0) {
-                    Text("ART").font(.system(size: 8, weight: .heavy)).tracking(1.5)
+                    Text("ART").font(DS.interface(8, .heavy)).tracking(1.5)
                         .foregroundStyle(.white.opacity(0.82))
                     Text(badgeNumber).font(AppTheme.displayFont(21, .heavy))
                         .foregroundStyle(.white).minimumScaleFactor(0.6).lineLimit(1)
@@ -704,7 +704,7 @@ private struct UnitFocusView: View {
                 .overlay(RoundedRectangle(cornerRadius: AppTheme.rCard, style: .continuous).strokeBorder(.white.opacity(0.32), lineWidth: 1))
                 VStack(alignment: .leading, spacing: 3) {
                     Text((unit.context?.isEmpty == false ? unit.context! : lawTitle).uppercased())
-                        .font(.system(size: 10.5, weight: .semibold)).tracking(0.7)
+                        .font(DS.interface(10.5, .semibold)).tracking(0.7)
                         .foregroundStyle(.white.opacity(0.85)).lineLimit(1)
                     Text(unit.label).font(AppTheme.displayFont(26, .bold)).foregroundStyle(.white)
                 }
@@ -724,7 +724,7 @@ private struct UnitFocusView: View {
                 }
                 .frame(height: 5)
                 Text("\(readCount) / \(total) lidos")
-                    .font(.system(size: 11, weight: .medium).monospacedDigit())
+                    .font(DS.interface(11, .medium).monospacedDigit())
                     .foregroundStyle(.white.opacity(0.9)).fixedSize()
             }
         }
@@ -736,7 +736,7 @@ private struct UnitFocusView: View {
 
     private func bandNavBtn(_ symbol: String, enabled: Bool, _ act: @escaping () -> Void) -> some View {
         Button(action: act) {
-            Image(systemName: symbol).font(.system(size: 13, weight: .semibold))
+            Image(systemName: symbol).font(DS.interface(13, .semibold))
                 .foregroundStyle(.white)
                 .frame(width: 32, height: 32)
                 .background(Circle().fill(.white.opacity(enabled ? 0.22 : 0.10)))
@@ -748,7 +748,7 @@ private struct UnitFocusView: View {
     private var studyDock: some View {
         let dom = store.mastery(lawID: lawID, unitKey: unit.key)
         return HStack(spacing: 8) {
-            Text("Domínio").font(.system(size: 11, weight: .medium)).foregroundStyle(.secondary)
+            Text("Domínio").font(DS.interface(11, .medium)).foregroundStyle(.secondary)
             domPill("Dominado", "checkmark.circle.fill", AppTheme.ok, dom == "dominado") {
                 store.setMastery(dom == "dominado" ? nil : "dominado", lawID: lawID, unitKey: unit.key)
             }
@@ -795,7 +795,7 @@ private struct UnitFocusView: View {
 
     private func domPill(_ t: String, _ icon: String, _ color: Color, _ on: Bool, _ act: @escaping () -> Void) -> some View {
         Button { withAnimation(.spring(response: 0.3, dampingFraction: 0.68)) { act() } } label: {
-            Label(t, systemImage: icon).font(.system(size: 11, weight: .semibold))
+            Label(t, systemImage: icon).font(DS.interface(11, .semibold))
                 .padding(.horizontal, 9).padding(.vertical, 4)
                 .background(Capsule().fill(on ? color.opacity(0.20) : AppTheme.hairline.opacity(0.35)))
                 .foregroundStyle(on ? color : .secondary)
@@ -914,17 +914,17 @@ private struct UnitFocusView: View {
                 }
             } label: {
                 HStack(spacing: 9) {
-                    Image(systemName: icon).font(.system(size: 13, weight: .semibold))
+                    Image(systemName: icon).font(DS.interface(13, .semibold))
                         .foregroundStyle(accent).frame(width: 18)
-                    Text(title).font(.system(size: 14, weight: .semibold)).foregroundStyle(AppTheme.ink)
+                    Text(title).font(DS.interface(14, .semibold)).foregroundStyle(AppTheme.ink)
                     Spacer()
                     if let c = count, c > 0 {
-                        Text("\(c)").font(.system(size: 11, weight: .semibold))
+                        Text("\(c)").font(DS.interface(11, .semibold))
                             .padding(.horizontal, 7).padding(.vertical, 1)
                             .background(Capsule().fill(accent.opacity(0.14)))
                             .foregroundStyle(accent)
                     }
-                    Image(systemName: "chevron.down").font(.system(size: 11, weight: .semibold))
+                    Image(systemName: "chevron.down").font(DS.interface(11, .semibold))
                         .foregroundStyle(.secondary).rotationEffect(.degrees(open ? 180 : 0))
                 }
                 .padding(.horizontal, 16).padding(.vertical, 13).contentShape(Rectangle())
@@ -975,7 +975,7 @@ private struct UnitFocusView: View {
 
     private func floatBtn(_ symbol: String, _ help: String, _ act: @escaping () -> Void) -> some View {
         Button(action: act) {
-            Image(systemName: symbol).font(.system(size: 12, weight: .medium)).frame(width: 22, height: 20)
+            Image(systemName: symbol).font(DS.interface(12, .medium)).frame(width: 22, height: 20)
         }
         .buttonStyle(.plain).help(help)
     }
@@ -1019,7 +1019,7 @@ private struct UnitFocusView: View {
                 Button { store.redoAnnotations() } label: { Label("Refazer marcação", systemImage: "arrow.uturn.forward") }
                     .disabled(!store.canRedoAnnotations)
             } label: {
-                Image(systemName: "ellipsis").font(.system(size: 12, weight: .medium)).frame(width: 20, height: 20)
+                Image(systemName: "ellipsis").font(DS.interface(12, .medium)).frame(width: 20, height: 20)
             }
             .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
         }
@@ -1202,7 +1202,7 @@ private struct UnitFocusView: View {
             // ícone cinza perdido no meio dos outros).
             Button { handle(.apply(.highlight)) } label: {
                 Image(systemName: "highlighter")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(DS.interface(12, .semibold))
                     .frame(width: 24, height: 20)
                     .background(RoundedRectangle(cornerRadius: 5).fill(Color(hexRGBA: markerColorHex)))
                     .foregroundStyle(markerIconColor)
@@ -1327,8 +1327,8 @@ private struct UnitFocusView: View {
             Spacer()
             VStack(spacing: 1) {
                 Text("Leitura orientada · grade dos 7 elementos")
-                    .font(.system(size: 10.5, weight: .semibold)).tracking(0.4).foregroundStyle(.secondary)
-                Text(unit.label).font(.system(size: 16, weight: .bold))
+                    .font(DS.interface(10.5, .semibold)).tracking(0.4).foregroundStyle(.secondary)
+                Text(unit.label).font(DS.interface(16, .bold))
             }
             Spacer()
             laDominioPills
@@ -1347,7 +1347,7 @@ private struct UnitFocusView: View {
     }
     private func laPill(_ t: String, _ icon: String, _ color: Color, _ on: Bool, _ act: @escaping () -> Void) -> some View {
         Button(action: act) {
-            Label(t, systemImage: icon).font(.system(size: 11.5, weight: .semibold))
+            Label(t, systemImage: icon).font(DS.interface(11.5, .semibold))
                 .padding(.horizontal, 10).padding(.vertical, 5)
                 .background(Capsule().fill(on ? color.opacity(0.22) : AppTheme.hairline.opacity(0.4)))
                 .foregroundStyle(on ? color : .secondary)
@@ -1381,7 +1381,7 @@ private struct UnitFocusView: View {
             Spacer()
             if laModoTeste {
                 Text("\(laRevelado.count) de \(Self.laElementos.count) revelados")
-                    .font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
+                    .font(DS.interface(12, .medium)).foregroundStyle(.secondary)
             }
         }
     }
@@ -1390,7 +1390,7 @@ private struct UnitFocusView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Label("Fase 1 — grade dos 7 elementos", systemImage: "square.grid.2x2")
-                    .font(.system(size: 14, weight: .bold)).foregroundStyle(accent)
+                    .font(DS.interface(14, .bold)).foregroundStyle(accent)
                 Spacer()
                 // Preenche SÓ os campos vazios com as sugestões da IA — o que você
                 // já escreveu fica intacto. (Gere com IA na Fase 2 se ainda não gerou.)
@@ -1423,13 +1423,13 @@ private struct UnitFocusView: View {
             HStack {
                 Image(systemName: laAcertos[i] == true ? "checkmark.circle.fill" : (laAcertos[i] == false ? "xmark.circle.fill" : "circle"))
                     .foregroundStyle(laAcertos[i] == true ? AppTheme.ok : (laAcertos[i] == false ? AppTheme.danger : .secondary))
-                Text(label).font(.system(size: 14, weight: .semibold))
+                Text(label).font(DS.interface(14, .semibold))
                 Spacer()
             }
             if revealed {
                 if laModoTeste {
                     Text(resp.isEmpty ? "— (você não anotou nada aqui)" : resp)
-                        .font(.system(size: 13)).foregroundStyle(AppTheme.ink)
+                        .font(DS.interface(13)).foregroundStyle(AppTheme.ink)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     HStack(spacing: 8) {
                         Button { laAcertos[i] = true } label: { Label("Acertei", systemImage: "checkmark") }.tint(AppTheme.ok)
@@ -1439,7 +1439,7 @@ private struct UnitFocusView: View {
                     TextEditor(text: Binding(
                         get: { store.leituraResposta(lawID: lawID, unitKey: unit.key, q: i) },
                         set: { store.setLeituraResposta($0, lawID: lawID, unitKey: unit.key, q: i) }))
-                        .font(.system(size: 12.5)).scrollContentBackground(.hidden)
+                        .font(DS.interface(12.5)).scrollContentBackground(.hidden)
                         .frame(height: 44).padding(6)
                         .background(RoundedRectangle(cornerRadius: AppTheme.rInner).fill(AppTheme.pageBackground))
                         .overlay(RoundedRectangle(cornerRadius: AppTheme.rInner).strokeBorder(AppTheme.hairline, lineWidth: 1))
@@ -1447,7 +1447,7 @@ private struct UnitFocusView: View {
             } else {
                 Button { _ = laRevelado.insert(i) } label: {
                     Text("tente lembrar — toque para revelar")
-                        .font(.system(size: 12).italic()).foregroundStyle(.secondary)
+                        .font(DS.interface(12).italic()).foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }.buttonStyle(.plain)
             }
@@ -1469,20 +1469,20 @@ private struct UnitFocusView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Label("Fase 2 — recall ativo", systemImage: "brain")
-                    .font(.system(size: 14, weight: .bold)).foregroundStyle(accent)
+                    .font(DS.interface(14, .bold)).foregroundStyle(accent)
                 Spacer()
                 laGerarBtn
             }
             if let ia = laIA, !ia.recall.isEmpty {
                 ForEach(Array(ia.recall.enumerated()), id: \.offset) { _, q in
-                    Text("•  " + q).font(.system(size: 13)).foregroundStyle(AppTheme.ink)
+                    Text("•  " + q).font(DS.interface(13)).foregroundStyle(AppTheme.ink)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             } else {
                 Text("Toque em “Gerar com IA” para criar perguntas de recuperação ativa deste artigo.")
-                    .font(.system(size: 12)).foregroundStyle(.secondary)
+                    .font(DS.interface(12)).foregroundStyle(.secondary)
             }
-            if let e = laIAErro { Text(e).font(.system(size: 11)).foregroundStyle(AppTheme.danger) }
+            if let e = laIAErro { Text(e).font(DS.interface(11)).foregroundStyle(AppTheme.danger) }
         }
         .padding(14).frame(maxWidth: .infinity, alignment: .leading)
         .background(RoundedRectangle(cornerRadius: AppTheme.compactRadius).fill(AppTheme.cardBackground))
@@ -1492,14 +1492,14 @@ private struct UnitFocusView: View {
     private var laFasePegadinhas: some View {
         VStack(alignment: .leading, spacing: 10) {
             Label("Fase 3 — pegadinhas da banca", systemImage: "exclamationmark.triangle")
-                .font(.system(size: 14, weight: .bold)).foregroundStyle(AppTheme.warn)
+                .font(DS.interface(14, .bold)).foregroundStyle(AppTheme.warn)
             if let ia = laIA, !ia.pegadinhas.isEmpty {
                 ForEach(ia.pegadinhas) { p in
                     HStack(alignment: .top, spacing: 0) {
                         Rectangle().fill(AppTheme.warn).frame(width: 3)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(p.titulo).font(.system(size: 13, weight: .bold))
-                            Text(p.texto).font(.system(size: 12.5)).foregroundStyle(AppTheme.ink)
+                            Text(p.titulo).font(DS.interface(13, .bold))
+                            Text(p.texto).font(DS.interface(12.5)).foregroundStyle(AppTheme.ink)
                         }.padding(10)
                         Spacer(minLength: 0)
                     }
@@ -1507,7 +1507,7 @@ private struct UnitFocusView: View {
                 }
             } else {
                 Text("As armadilhas típicas de prova deste artigo aparecem aqui depois de gerar com a IA.")
-                    .font(.system(size: 12)).foregroundStyle(.secondary)
+                    .font(DS.interface(12)).foregroundStyle(.secondary)
             }
         }
         .padding(14).frame(maxWidth: .infinity, alignment: .leading)
@@ -1518,7 +1518,7 @@ private struct UnitFocusView: View {
     private var laFaseProximo: some View {
         VStack(alignment: .leading, spacing: 10) {
             Label("Fase 4 — próximo passo", systemImage: "arrow.right")
-                .font(.system(size: 14, weight: .bold)).foregroundStyle(accent)
+                .font(DS.interface(14, .bold)).foregroundStyle(accent)
             HStack(spacing: 8) {
                 Button { store.srsAddCard(lawID, unit: unit) } label: { Label("Virar flashcard Anki", systemImage: "rectangle.stack.badge.plus") }
                 Button { sugerirLacunaAutomatica() } label: { Label("Criar lacuna", systemImage: "rectangle.dashed") }
@@ -1768,7 +1768,7 @@ private struct UnitFocusView: View {
                         VStack(spacing: 1) {
                             Text(grade.label).font(.caption2.weight(.semibold))
                             Text(SpacedRepetition.intervalLabel(store.srsPreview(lawID, unit.key, grade)))
-                                .font(.system(size: 9).monospacedDigit()).foregroundStyle(.secondary)
+                                .font(DS.interface(9).monospacedDigit()).foregroundStyle(.secondary)
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 4)
@@ -1844,17 +1844,17 @@ private struct UnitFocusView: View {
     private var studyBlock: some View {
         VStack(alignment: .leading, spacing: 13) {
             HStack(spacing: 8) {
-                Image(systemName: "square.and.pencil").font(.system(size: 14, weight: .semibold))
+                Image(systemName: "square.and.pencil").font(DS.interface(14, .semibold))
                     .foregroundStyle(accent)
                 Text("Anotações e estudo").font(AppTheme.displayFont(15, .bold)).foregroundStyle(AppTheme.ink)
                 Spacer()
                 if isRead {
                     Label("Lido", systemImage: "checkmark.circle.fill")
-                        .font(.system(size: 11, weight: .medium)).foregroundStyle(AppTheme.ok)
+                        .font(DS.interface(11, .medium)).foregroundStyle(AppTheme.ok)
                 }
                 if isReview {
                     Label("Na revisão", systemImage: "star.fill")
-                        .font(.system(size: 11, weight: .medium)).foregroundStyle(AppTheme.warn)
+                        .font(DS.interface(11, .medium)).foregroundStyle(AppTheme.warn)
                 }
             }
             noteEditor
@@ -1975,7 +1975,7 @@ private struct IndexSheet: View {
                                          startPoint: .topLeading, endPoint: .bottomTrailing))
                     .frame(width: 34, height: 34)
                     .overlay(Image(systemName: "list.bullet.indent")
-                        .font(.system(size: 14, weight: .semibold)).foregroundStyle(.white))
+                        .font(DS.interface(14, .semibold)).foregroundStyle(.white))
                     .shadow(color: accent.opacity(0.35), radius: 6, y: 3)
                 Text("Índice").font(AppTheme.displayFont(19, .heavy)).tracking(-0.3)
                 Text("\(units.count)")
@@ -1988,7 +1988,7 @@ private struct IndexSheet: View {
             }
             .padding()
             HStack(spacing: 7) {
-                Image(systemName: "magnifyingglass").font(.system(size: 12)).foregroundStyle(.secondary)
+                Image(systemName: "magnifyingglass").font(DS.interface(12)).foregroundStyle(.secondary)
                 TextField("Buscar artigo…", text: $query).textFieldStyle(.plain)
             }
             .padding(.horizontal, 12).padding(.vertical, 8)
@@ -2045,7 +2045,7 @@ struct UnitLine: View {
         case .inciso(let numeral, let text):
             HStack(alignment: .firstTextBaseline, spacing: 10) {
                 Text(numeral)
-                    .font(.system(size: fontSize - 1, weight: .bold, design: .default))
+                    .font(DS.interface(fontSize - 1, .bold))
                     .foregroundStyle(accent)
                     .frame(minWidth: 28, alignment: .trailing)
                 body(text)
@@ -2056,14 +2056,14 @@ struct UnitLine: View {
         case .paragrafo(let label, let text):
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(label)
-                    .font(.system(size: fontSize - 1, weight: .bold))
+                    .font(DS.interface(fontSize - 1, .bold))
                     .foregroundStyle(AppTheme.srs)
                 body(text)
             }
         case .alinea(let letter, let text):
             HStack(alignment: .firstTextBaseline, spacing: 10) {
                 Text("\(letter))")
-                    .font(.system(size: fontSize - 1, weight: .semibold))
+                    .font(DS.interface(fontSize - 1, .semibold))
                     .foregroundStyle(.secondary)
                     .frame(minWidth: 28, alignment: .trailing)
                 body(text)
@@ -2076,7 +2076,7 @@ struct UnitLine: View {
 
     private func body(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: fontSize, design: .default))
+            .font(DS.interface(fontSize))
             .lineSpacing(6)
             .textSelection(.enabled)
             .fixedSize(horizontal: false, vertical: true)

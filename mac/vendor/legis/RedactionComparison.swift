@@ -145,7 +145,7 @@ private struct RedactionRow: View {
     }
 
     private func tag(_ text: String, _ fg: Color, _ bg: Color) -> some View {
-        Text(text).font(.system(size: 10, weight: .heavy)).tracking(0.5)
+        Text(text).font(DS.interface(10, .heavy)).tracking(0.5)
             .foregroundStyle(fg)
             .padding(.horizontal, 8).padding(.vertical, 3)
             .background(Capsule().fill(bg))

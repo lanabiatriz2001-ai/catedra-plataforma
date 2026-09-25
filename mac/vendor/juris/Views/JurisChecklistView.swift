@@ -35,8 +35,8 @@ fileprivate struct DuePill: View {
     }
     private func pill(_ t: String, icon: String, fg: Color, bg: Color) -> some View {
         HStack(spacing: 4) {
-            Image(systemName: icon).font(.system(size: 8.5, weight: .bold))
-            Text(t).font(.system(size: 10.5, weight: .bold))
+            Image(systemName: icon).font(DS.interface(8.5, .bold))
+            Text(t).font(DS.interface(10.5, .bold))
         }
         .padding(.horizontal, 8).padding(.vertical, 3.5)
         .background(Capsule().fill(bg))
@@ -56,7 +56,7 @@ fileprivate struct ReagendarMenu: View {
             Divider()
             Button { store.setChecklistDue(itemID, nil) } label: { Label("Sem prazo", systemImage: "calendar.badge.minus") }
         } label: {
-            Image(systemName: "calendar").font(.system(size: 12))
+            Image(systemName: "calendar").font(DS.interface(12))
         }
         .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
         .help("Reagendar esta meta")
@@ -125,7 +125,7 @@ struct JurisChecklistMiniCard: View {
                     .fill(LinearGradient(colors: [Palette.accent, Palette.accentSoft],
                                          startPoint: .topLeading, endPoint: .bottomTrailing))
                     .frame(width: 30, height: 30)
-                    .overlay(Image(systemName: "checklist").font(.system(size: 13, weight: .semibold))
+                    .overlay(Image(systemName: "checklist").font(DS.interface(13, .semibold))
                         .foregroundStyle(.white))
                 Text("Checklist de leitura")
                     .font(Typo.serifTitle(17, .bold)).foregroundStyle(Palette.titleInk)
@@ -137,7 +137,7 @@ struct JurisChecklistMiniCard: View {
                 }
                 Button(action: openChecklist) {
                     Text("Ver tudo")
-                        .font(.system(size: 11, weight: .bold))
+                        .font(DS.interface(11, .bold))
                         .padding(.horizontal, 10).padding(.vertical, 5)
                         .background(Capsule().fill(Palette.accent.opacity(0.13)))
                         .foregroundStyle(Palette.accent)
@@ -148,11 +148,11 @@ struct JurisChecklistMiniCard: View {
             HStack(spacing: 8) {
                 TextField("Nova meta de leitura…", text: $newText)
                     .textFieldStyle(.plain)
-                    .font(.system(size: 13))
+                    .font(DS.interface(13))
                     .focused($fieldFocused)
                     .onSubmit(addQuick)
                 Button(action: addQuick) {
-                    Image(systemName: "plus.circle.fill").font(.system(size: 17))
+                    Image(systemName: "plus.circle.fill").font(DS.interface(17))
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(newText.trimmingCharacters(in: .whitespaces).isEmpty
@@ -206,11 +206,11 @@ struct JurisChecklistMiniCard: View {
         } label: {
             HStack(spacing: 9) {
                 Image(systemName: item.done ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 15))
+                    .font(DS.interface(15))
                     .foregroundStyle(item.done ? tint : tint.opacity(0.45))
                     .symbolEffect(.bounce, value: ThemeState.t.baixaEstimulacao ? false : item.done)   // baixa estimulação: valor fixo = sem salto
                 Text(item.text)
-                    .font(.system(size: 12.5, weight: .medium))
+                    .font(DS.interface(12.5, .medium))
                     .foregroundStyle(Palette.readingInk)
                     .lineLimit(1)
                 Spacer(minLength: 4)
@@ -316,7 +316,7 @@ struct JurisChecklistView: View {
                           center: total == 0 ? "0%" : "\(Int((Double(doneCount) / Double(total) * 100).rounded()))%")
             VStack(alignment: .leading, spacing: 7) {
                 Text("\(doneCount) de \(total) concluídas")
-                    .font(.system(size: 15, weight: .bold)).foregroundStyle(Palette.titleInk)
+                    .font(DS.interface(15, .bold)).foregroundStyle(Palette.titleInk)
                 HStack(spacing: 7) {
                     statChip("\(hoje.count) hoje", tint: Palette.accent, on: !hoje.isEmpty)
                     statChip("\(atrasadas.count) atrasada\(atrasadas.count == 1 ? "" : "s")",
@@ -332,7 +332,7 @@ struct JurisChecklistView: View {
                         store.clearCompletedChecklistItems()
                     }
                 }
-                .buttonStyle(.plain).font(.system(size: 11.5, weight: .semibold))
+                .buttonStyle(.plain).font(DS.interface(11.5, .semibold))
                 .foregroundStyle(Palette.accent)
             }
         }
@@ -354,7 +354,7 @@ struct JurisChecklistView: View {
             HStack(spacing: 8) {
                 TextField("Nova meta de leitura (ex.: reler súmulas do TJRO)", text: $newText)
                     .textFieldStyle(.plain)
-                    .font(.system(size: 13.5))
+                    .font(DS.interface(13.5))
                     .focused($fieldFocused)
                     .onSubmit(addItem)
                 linkMenu
@@ -362,7 +362,7 @@ struct JurisChecklistView: View {
                     withAnimation(.easeInOut(duration: 0.15)) { newHasDueDate.toggle() }
                 } label: {
                     Image(systemName: newHasDueDate ? "calendar.badge.checkmark" : "calendar.badge.plus")
-                        .font(.system(size: 14, weight: .medium))
+                        .font(DS.interface(14, .medium))
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(newHasDueDate ? Palette.accent : Palette.secondaryInk)
@@ -383,7 +383,7 @@ struct JurisChecklistView: View {
                     DatePicker("Prazo", selection: $newDueDate, displayedComponents: .date)
                         .datePickerStyle(.compact)
                         .labelsHidden()
-                        .font(.system(size: 12.5))
+                        .font(DS.interface(12.5))
                 }
                 Spacer(minLength: 0)
                 Button("Adicionar", action: addItem)
@@ -423,7 +423,7 @@ struct JurisChecklistView: View {
             }
         } label: {
             Image(systemName: linkedCategoryLabel != nil ? "books.vertical.fill" : "books.vertical")
-                .font(.system(size: 14, weight: .medium))
+                .font(DS.interface(14, .medium))
         }
         .menuStyle(.borderlessButton)
         .fixedSize()
@@ -434,9 +434,9 @@ struct JurisChecklistView: View {
     @ViewBuilder
     private func linkChip(icon: String, label: String, bg: Color, fg: Color, onClear: @escaping () -> Void) -> some View {
         HStack(spacing: 5) {
-            Image(systemName: icon).font(.system(size: 9.5))
-            Text(label).font(.system(size: 11, weight: .medium)).lineLimit(1)
-            Button(action: onClear) { Image(systemName: "xmark").font(.system(size: 8.5, weight: .bold)) }
+            Image(systemName: icon).font(DS.interface(9.5))
+            Text(label).font(DS.interface(11, .medium)).lineLimit(1)
+            Button(action: onClear) { Image(systemName: "xmark").font(DS.interface(8.5, .bold)) }
                 .buttonStyle(.plain)
         }
         .padding(.horizontal, 9).padding(.vertical, 4)
@@ -461,11 +461,11 @@ struct JurisChecklistView: View {
                 .fill(LinearGradient(colors: [Palette.accent.opacity(0.16), Palette.accentSoft.opacity(0.10)],
                                      startPoint: .topLeading, endPoint: .bottomTrailing))
                 .frame(width: 64, height: 64)
-                .overlay(Image(systemName: "checklist").font(.system(size: 27, weight: .medium))
+                .overlay(Image(systemName: "checklist").font(DS.interface(27, .medium))
                     .foregroundStyle(Palette.accent))
-            Text("Nenhuma meta ainda").font(.system(size: 16.5, weight: .semibold)).foregroundStyle(Palette.titleInk)
+            Text("Nenhuma meta ainda").font(DS.interface(16.5, .semibold)).foregroundStyle(Palette.titleInk)
             Text("Adicione metas de leitura livres — como \"reler súmulas do TJRO\" ou \"revisar Direito Penal até sexta\" — e marque conforme for cumprindo.")
-                .font(.system(size: 12.5)).foregroundStyle(Palette.secondaryInk)
+                .font(DS.interface(12.5)).foregroundStyle(Palette.secondaryInk)
                 .multilineTextAlignment(.center).lineSpacing(2.5)
                 .frame(maxWidth: 420)
         }
@@ -480,12 +480,12 @@ struct JurisChecklistView: View {
                               items: [ReadingChecklistItem], dimmed: Bool) -> some View {
         VStack(alignment: .leading, spacing: 9) {
             HStack(spacing: 6) {
-                Image(systemName: icon).font(.system(size: 10, weight: .bold)).foregroundStyle(tint)
+                Image(systemName: icon).font(DS.interface(10, .bold)).foregroundStyle(tint)
                 Text(title.uppercased())
-                    .font(.system(size: 10.5, weight: .bold)).tracking(1)
+                    .font(DS.interface(10.5, .bold)).tracking(1)
                     .foregroundStyle(tint)
                 Text("\(items.count)")
-                    .font(.system(size: 9.5, weight: .bold).monospacedDigit())
+                    .font(DS.interface(9.5, .bold).monospacedDigit())
                     .padding(.horizontal, 5.5).padding(.vertical, 1)
                     .background(Capsule().fill(tint.opacity(0.13)))
                     .foregroundStyle(tint)
@@ -535,7 +535,7 @@ private struct JurisChecklistRow: View {
                     Circle().strokeBorder(item.done ? Color.clear : tint.opacity(0.5), lineWidth: 1.8)
                     if item.done {
                         Image(systemName: "checkmark")
-                            .font(.system(size: 10, weight: .heavy)).foregroundStyle(.white)
+                            .font(DS.interface(10, .heavy)).foregroundStyle(.white)
                     }
                 }
                 .frame(width: 21, height: 21)
@@ -545,7 +545,7 @@ private struct JurisChecklistRow: View {
 
             VStack(alignment: .leading, spacing: 5) {
                 Text(item.text)
-                    .font(.system(size: 13.5, weight: .medium))
+                    .font(DS.interface(13.5, .medium))
                     .strikethrough(item.done)
                     .foregroundStyle(item.done ? Palette.secondaryInk : Palette.readingInk)
                 HStack(spacing: 6) {
@@ -553,8 +553,8 @@ private struct JurisChecklistRow: View {
                     if let label = item.linkedCategoryLabel {
                         let v = linkVisual(for: label, store: store)
                         HStack(spacing: 4) {
-                            Image(systemName: v.icon).font(.system(size: 9))
-                            Text(label).font(.system(size: 10.5, weight: .semibold)).lineLimit(1)
+                            Image(systemName: v.icon).font(DS.interface(9))
+                            Text(label).font(DS.interface(10.5, .semibold)).lineLimit(1)
                         }
                         .padding(.horizontal, 8).padding(.vertical, 3)
                         .background(Capsule().fill(v.bg))
@@ -569,7 +569,7 @@ private struct JurisChecklistRow: View {
             }
             if hovering {
                 Button(action: onDelete) {
-                    Image(systemName: "trash").font(.system(size: 12))
+                    Image(systemName: "trash").font(DS.interface(12))
                 }
                 .buttonStyle(.plain).foregroundStyle(Palette.secondaryInk)
             }

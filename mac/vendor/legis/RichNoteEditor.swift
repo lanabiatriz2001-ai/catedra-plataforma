@@ -48,13 +48,13 @@ struct RichNoteEditor: View {
                 fmt("strikethrough", "Tachado") { coord.toggleStrikethrough() }
                 sep
                 // Cor do TEXTO — livre (abre o painel do macOS); aplica na seleção.
-                Image(systemName: "textformat").font(.system(size: 10))
+                Image(systemName: "textformat").font(DS.interface(10))
                 ColorPicker("", selection: $inkColor, supportsOpacity: false)
                     .labelsHidden()
                     .onChange(of: inkColor) { _, c in coord.setTextColor(NSColor(c)) }
                     .help("Cor do texto — escolha qualquer cor")
                 // MARCA-TEXTO — livre; aplica na seleção.
-                Image(systemName: "highlighter").font(.system(size: 10))
+                Image(systemName: "highlighter").font(DS.interface(10))
                 ColorPicker("", selection: $hlColor, supportsOpacity: false)
                     .labelsHidden()
                     .onChange(of: hlColor) { _, c in coord.setHighlight(NSColor(c)) }
@@ -76,7 +76,7 @@ struct RichNoteEditor: View {
                 sep
                 ForEach(tags, id: \.1) { emoji, name, color in
                     Button { coord.insertTag(emoji: emoji, color: color) } label: {
-                        Text(emoji).font(.system(size: 12))
+                        Text(emoji).font(DS.interface(12))
                             .frame(width: 22, height: 20)
                             .background(RoundedRectangle(cornerRadius: 5).fill(Color(nsColor: color)))
                     }
@@ -110,14 +110,14 @@ struct RichNoteEditor: View {
             }
         }
         .buttonStyle(.plain)
-        .font(.system(size: 13))
+        .font(DS.interface(13))
         .foregroundStyle(AppTheme.secondaryInk)
         .padding(.horizontal, 8).padding(.vertical, 6)
     }
 
     private func headingBtn(_ label: String, _ level: Int) -> some View {
         Button { coord.setHeading(level) } label: {
-            Text(label).font(.system(size: 11, weight: .bold)).frame(width: 22, height: 20)
+            Text(label).font(DS.interface(11, .bold)).frame(width: 22, height: 20)
         }
         .help("Título \(label)")
     }

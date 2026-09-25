@@ -23,15 +23,15 @@ struct RootView: View {
         let onde = ondeEstou
         return HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 1) {
-                Text(onde.titulo).font(.system(size: 15, weight: .bold)).foregroundStyle(Palette.titleInk).lineLimit(1)
-                Text(onde.sub).font(.system(size: 10.5)).foregroundStyle(Palette.secondaryInk).lineLimit(1)
+                Text(onde.titulo).font(DS.interface(15, .bold)).foregroundStyle(Palette.titleInk).lineLimit(1)
+                Text(onde.sub).font(DS.interface(10.5)).foregroundStyle(Palette.secondaryInk).lineLimit(1)
             }
             Spacer(minLength: 12)
             Button { store.ir(.todos) } label: {
                 HStack(spacing: 7) {
-                    Image(systemName: "magnifyingglass").font(.system(size: 11))
-                    Text("Buscar").font(.system(size: 12.5))
-                    Text("⌘K").font(.system(size: 10.5, weight: .semibold)).foregroundStyle(Palette.secondaryInk)
+                    Image(systemName: "magnifyingglass").font(DS.interface(11))
+                    Text("Buscar").font(DS.interface(12.5))
+                    Text("⌘K").font(DS.interface(10.5, .semibold)).foregroundStyle(Palette.secondaryInk)
                 }
                 .foregroundStyle(Palette.secondaryInk)
                 .padding(.horizontal, 13).padding(.vertical, 7)
@@ -41,7 +41,7 @@ struct RootView: View {
             .buttonStyle(.plain)
             Button { store.ir(.novidades) } label: {
                 Image(systemName: store.novidadesNaoVistas > 0 ? "bell.badge.fill" : "bell")
-                    .font(.system(size: 13, weight: .medium)).foregroundStyle(Palette.secondaryInk)
+                    .font(DS.interface(13, .medium)).foregroundStyle(Palette.secondaryInk)
                     .frame(width: 34, height: 34)
                     .background(Circle().fill(Palette.cardBackground))
                     .overlay(Circle().strokeBorder(Palette.hairline, lineWidth: 1))
@@ -49,14 +49,14 @@ struct RootView: View {
             .buttonStyle(.plain)
             HStack(spacing: 10) {
                 VStack(alignment: .leading, spacing: 0) {
-                    Text(clock.running ? "EM CURSO" : "ESTUDO").font(.system(size: 8, weight: .heavy)).tracking(0.8)
+                    Text(clock.running ? "EM CURSO" : "ESTUDO").font(DS.interface(8, .heavy)).tracking(0.8)
                         .foregroundStyle(clock.running ? Palette.accent : Palette.secondaryInk)
-                    Text(clock.formatted).font(.system(size: 16, weight: .bold).monospacedDigit())
+                    Text(clock.formatted).font(DS.interface(16, .bold).monospacedDigit())
                         .foregroundStyle(Palette.titleInk)
                 }
                 Button { clock.togglePlay() } label: {
                     Image(systemName: clock.manualPlaying ? "pause.fill" : "play.fill")
-                        .font(.system(size: 11, weight: .bold)).foregroundStyle(.white)
+                        .font(DS.interface(11, .bold)).foregroundStyle(.white)
                         .frame(width: 28, height: 28)
                         .background(Circle().fill(clock.manualPlaying ? Palette.secondaryInk : Palette.accent))
                 }
@@ -98,9 +98,9 @@ struct RootView: View {
                sem nome de arquivo: o detalhe técnico fica no log. */
             VStack(spacing: 10) {
                 Text("O acervo de jurisprudência não pôde ser aberto.")
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(DS.interface(15, .semibold))
                 Text("Feche e abra o aplicativo. Se continuar assim, reinstale o CátedraJURIS — o acervo vem dentro dele.")
-                    .font(.system(size: 12.5))
+                    .font(DS.interface(12.5))
                     .foregroundStyle(Palette.secondaryInk)
                     .multilineTextAlignment(.center)
             }
@@ -146,7 +146,7 @@ struct LeitorCheio: View {
                     store.leituraID = nil
                     store.selectedID = nil
                 } label: {
-                    Label("Voltar", systemImage: "chevron.left").font(.system(size: 12.5, weight: .medium))
+                    Label("Voltar", systemImage: "chevron.left").font(DS.interface(12.5, .medium))
                 }
                 .buttonStyle(.borderless)
                 Spacer()
