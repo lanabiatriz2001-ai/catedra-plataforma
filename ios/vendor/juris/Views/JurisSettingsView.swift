@@ -20,7 +20,7 @@ struct JurisSettingsView: View {
             // Entrega 5/6: a meta saiu do Hoje (painel de números) e passou a ser ajustada aqui.
             Section {
                 Stepper(value: Binding(get: { store.metaDiaria }, set: { store.metaDiaria = $0 }),
-                        in: 1...200, step: 5) {
+                        in: 5...200, step: 5) {
                     Text("Meta de verbetes lidos por dia: \(store.metaDiaria)")
                 }
             } header: {

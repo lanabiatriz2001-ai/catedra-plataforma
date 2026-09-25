@@ -988,7 +988,7 @@ struct DOUView: View {
             HStack(alignment: .top, spacing: 10) {
                 VStack(spacing: 1) {
                     Image(systemName: "newspaper").foregroundStyle(ThemeState.t.accent)
-                    Text(item.date).font(DS.interface(9).monospacedDigit()).foregroundStyle(.tertiary)
+                    Text(item.date).font(DS.interface(9).monospacedDigit()).lineLimit(1).minimumScaleFactor(0.8).foregroundStyle(.tertiary)
                 }
                 .frame(width: 54)
                 VStack(alignment: .leading, spacing: 3) {
