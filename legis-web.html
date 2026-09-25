@@ -465,10 +465,10 @@ function renderIncid(){
       +'é incidência em julgado, que é outro sinal. Clique num artigo para ver os julgados que o citam.</div>';
     document.getElementById('incVoltar').onclick=()=>{ incSel=null; renderIncid(); };
     det.querySelectorAll('.art').forEach(b=>{
-      // o salto legis→juris não pode perder a origem: quem veio do roteiro continua
-      // com o caminho de volta depois de pular para a jurisprudência
+      // o salto legis→juris não perde a origem: o host ignora origem vinda do acervo e
+      // mantém a que já guardava — quem veio do roteiro continua com o caminho de volta
       b.onclick=()=>{ try{ window.ctEnviarAoHost({type:'ctAbrirAcervo', alvo:'juris',
-        termo:'art. '+b.dataset.a, origem:(window.CT_ORIGEM||null)}); }catch(e){} };
+        termo:'art. '+b.dataset.a}); }catch(e){} };
     });
     return;
   }
@@ -632,34 +632,96 @@ window.CT_LA_CANAL=(function(){
   });
   return { ler:ler, pedir:pedir, enviar:enviar, conferir:conferir, pedirResumo:pedirResumo };
 })();
-// ?volta=1: ela veio do mapa do processo — a pílula devolve ao ponto exato (o host
-// guarda rito/peça/bloco e responde ao ctVoltarAcervo). Só o host web manda este
-// parâmetro; no app nativo as abas são nativas e esta página nem abre.
+// ?volta=1: ela veio de um ponto do app (rito, peça, correção, revisão…) — a pílula
+// devolve a ele. O host guarda a origem e responde ao ctVoltarAcervo; o texto do botão
+// vem do host (&vr= na 1ª carga, `rotulo` no ctVoltaDisponivel). No app nativo o LEGIS
+// é a aba nativa e a volta é o botão dela; esta pílula só aparece no legis-web.
 (function ctVolta(){ try{
   /* U1: o host acende/apaga a pílula por mensagem (ctVoltaDisponivel) com o iframe vivo;
      o ?volta=1 continua valendo na primeira carga. */
-  var pedidoURL=new URLSearchParams(location.search).get('volta')==='1';
+  var P=new URLSearchParams(location.search);
+  var pedidoURL=P.get('volta')==='1', rotURL=P.get('vr')||'';
+  var LEITOR=document.getElementById('rdr');
+  var voltar=function(){ try{ window.ctEnviarAoHost({type:'ctVoltarAcervo'}); }catch(e){} };
+  var visivel=function(b){ return !!b && b.style.display!=='none' && !b.classList.contains('gaveta'); };
+  /* D1: o leitor (#rdr, z 200) cobria a pílula (z 95) — ela chegava ao acervo pela revisão,
+     pela prova oral ou pelo simulado já com o leitor aberto e ficava sem caminho de volta.
+     Com o leitor aberto a pílula MUDA-SE para dentro dele (1º filho, z 9 no contexto do
+     leitor): fica acima da barra .top (3) e do palco (2) e abaixo da barra de grifo (210).
+     Subir o z no body não bastava: no LEGIS a barra de grifo mora DENTRO do .rdr, e qualquer
+     z acima de 200 no body passa por cima dela. E vai para a direita: à esquerda mora o
+     esquema do leitor (coluna no desktop), e embaixo não há controle — o texto tem folga
+     de 120–140px no fim. A barra .top fica em cima, longe. Fechou o leitor, volta ao body. */
+  /* K1: a pílula pinta com o par PRÓPRIO do host (--accentFill/--onAccentFill, calculado por
+     contraste WCAG: texto ≥ 4,5:1 sobre o fundo, fundo ≥ 3:1 contra --surface). O --accent e o
+     --onAccent do resto do app ficam como estão; host antigo sem o par cai neles. */
+  var estilo=function(){
+    if(document.getElementById('ct-volta-css')) return;
+    var s=document.createElement('style'); s.id='ct-volta-css';
+    s.textContent='#ct-volta{position:fixed;left:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:95;'
+      +'border:none;cursor:pointer;background:var(--accentFill,var(--accent,#0f7a57));color:var(--onAccentFill,var(--onAccent,#fff));border-radius:99px;'
+      // D8: 44px de altura mínima — a pílula de voltar é alvo de polegar, não de mouse
+      +'min-height:44px;align-items:center;gap:8px;max-width:calc(100vw - 28px);'
+      +'padding:10px 18px 10px 14px;font:700 12.5px var(--body,sans-serif);box-shadow:0 6px 20px rgba(20,15,10,.28)}'
+      +'#ct-volta svg{flex:none}'
+      +'#ct-volta span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'
+      +'#ct-volta:hover,#ct-volta:focus-visible{background:var(--accentFill,var(--accent,#0f7a57));color:var(--onAccentFill,var(--onAccent,#fff))}'
+    +'#ct-volta:hover{box-shadow:0 8px 24px rgba(20,15,10,.34)}'
+    +'#ct-volta:focus-visible{outline:2px solid var(--text,#1c1a17);outline-offset:3px}'
+      +'#ct-volta.sobre-leitor{z-index:9;left:auto;right:14px}'
+      /* os painéis da leitura ativa terminam em botões: com a pílula ali, ganham folga */
+      +'body.ct-volta-leitor .rdr .la-conf,body.ct-volta-leitor .rdr .la-gd{padding-bottom:88px}'
+      /* ≤640px o esquema da lei vira gaveta à esquerda (84vw): com ela aberta a pílula sai de
+         cena em vez de cobrir os nós — fechar a gaveta a devolve. */
+      +'@media (max-width:640px){#ct-volta.sobre-leitor.gaveta{visibility:hidden}}';
+    document.head.appendChild(s);
+  };
+  var sincronizar=function(){
+    var b=document.getElementById('ct-volta'); if(!b) return;
+    var aberto=!!LEITOR && LEITOR.classList.contains('on');
+    var casa=aberto ? LEITOR : document.body;
+    if(b.parentNode!==casa){ var tinhaFoco=document.activeElement===b;
+      casa.insertBefore(b, casa.firstChild); if(tinhaFoco) try{ b.focus(); }catch(e){} }
+    b.classList.toggle('sobre-leitor', aberto);
+    b.classList.toggle('gaveta', aberto && LEITOR.classList.contains('mapaAberto'));
+    document.body.classList.toggle('ct-volta-leitor', aberto && b.style.display!=='none');
+  };
   var montar=function(){
-  var b=document.createElement('button');
-  b.textContent='← Voltar ao ponto do processo';
-  // D8: 44px de altura mínima — a pílula de voltar é alvo de polegar, não de mouse
-  b.style.cssText='position:fixed;left:14px;bottom:14px;z-index:95;border:none;cursor:pointer;'
-    +'background:var(--accent,#0f7a57);color:var(--onAccent,#fff);border-radius:99px;'
-    +'min-height:44px;display:inline-flex;align-items:center;'
-    +'padding:10px 18px;font:700 12.5px var(--body,sans-serif);box-shadow:0 6px 20px rgba(20,15,10,.28)';
-  b.onclick=function(){ try{ window.ctEnviarAoHost({type:'ctVoltarAcervo'}); }catch(e){} };
-  b.id='ct-volta';
-  document.body.appendChild(b);
-  return b;
+    estilo();
+    var b=document.createElement('button');
+    b.type='button'; b.id='ct-volta';
+    /* a seta é desenho (Lucide arrow-left, aria-hidden): o nome acessível é só o rótulo */
+    b.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" '
+      +'stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" '
+      +'focusable="false"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg><span></span>';
+    b.onclick=voltar;
+    /* no começo do body: é a primeira parada do Tab (a posição na tela segue fixa) */
+    document.body.insertBefore(b, document.body.firstChild);
+    if(LEITOR && window.MutationObserver) new MutationObserver(sincronizar).observe(LEITOR, {attributes:true, attributeFilter:['class']});
+    return b;
   };
-  var mostrar=function(on){
+  var mostrar=function(on, rotulo){
     var b=document.getElementById('ct-volta');
-    if(on){ if(!b) b=montar(); b.style.display='block'; }
+    if(on){ if(!b) b=montar();
+      /* texto, nunca HTML: o rótulo vem do host */
+      b.querySelector('span').textContent=String(rotulo||'').replace(/\s+/g,' ').trim()||'Voltar';
+      b.style.display='inline-flex'; }
     else if(b) b.style.display='none';
+    sincronizar();
   };
-  if(pedidoURL) mostrar(true);
+  if(pedidoURL) mostrar(true, rotURL);
   window.addEventListener('message', function(e){
-    if(window.ctMensagemDoHost(e) && e.data && e.data.type==='ctVoltaDisponivel') mostrar(!!e.data.on);
+    if(window.ctMensagemDoHost(e) && e.data && e.data.type==='ctVoltaDisponivel') mostrar(!!e.data.on, e.data.rotulo);
+  });
+  /* Alt+← (o atalho da barra antiga) faz a mesma volta — só com a pílula à vista, e nunca
+     dentro de um campo de texto, onde Option+← é "palavra anterior" no Mac. O Esc
+     continua sendo dos leitores. */
+  document.addEventListener('keydown', function(e){
+    if(!e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || e.key!=='ArrowLeft') return;
+    if(!visivel(document.getElementById('ct-volta'))) return;
+    var t=e.target;
+    if(t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName||''))) return;
+    e.preventDefault(); voltar();
   });
 }catch(e){} })();
 const AREA_ID=(function(){ try{ return new URLSearchParams(location.search).get('area')||''; }catch(e){ return ''; } })();
@@ -1360,52 +1422,6 @@ function _colher(alvos, jaVistos){
     if(_rdr.classList.contains('mapaAberto')){ fecharMapa(); return; }
     if(document.getElementById('rdrTools').classList.contains('aberto')){ fecharMais(); return; }
     closeR(); });
-})();
-</script><script>
-/* ==========================================================================
-   Barra de volta ao ponto de origem.
-   Quando o acervo é aberto por um clique num artigo do roteiro de peça ou do
-   fluxograma de um rito, o app manda ?de= com o rótulo daquele ponto e ?deTipo=
-   com a tela de onde veio. A barra devolve a pessoa exatamente para lá — antes
-   o caminho era de mão única e ela se perdia na lei seca.
-   Contraparte: ctAbrirAcervo / ctVoltarOrigem no Catedra.dc.html.
-   ========================================================================== */
-(function ctBarraVolta(){
-  try{
-    var P=new URLSearchParams(location.search);
-    var rot=P.get('de'), tipo=P.get('deTipo')||'';
-    window.CT_ORIGEM = rot ? {rotulo:rot, view:tipo} : null;   // repassado adiante nos saltos legis→juris
-    if(!rot) return;
-    var volta=function(){ try{ window.ctEnviarAoHost({type:'ctVoltarOrigem'}); }catch(e){} };
-    var barra=document.createElement('div');
-    barra.setAttribute('role','navigation');
-    barra.setAttribute('aria-label','Voltar ao ponto de origem');
-    barra.style.cssText='position:sticky;top:0;z-index:9999;display:flex;align-items:center;gap:10px;'
-      +'flex-wrap:wrap;padding:9px 15px;background:var(--accentSoft,#f3ecef);'
-      +'border-bottom:1px solid var(--border,#e4dcd6);'
-      +'font:600 12.5px/1.4 var(--body,"Inter",system-ui,sans-serif);color:var(--text2,#4b4a52)';
-    var bt=document.createElement('button');
-    bt.type='button';
-    bt.style.cssText='cursor:pointer;font:inherit;font-weight:800;flex:none;'
-      +'border:1px solid var(--border,#e4dcd6);background:var(--surface,#fff);'
-      +'min-height:44px;display:inline-flex;align-items:center;'   /* D8: alvo de toque */
-      +'color:var(--accentD,#8e0f3c);border-radius:99px;padding:6px 16px';
-    bt.textContent = tipo==='areamod' ? '← Voltar ao fluxograma'
-                   : tipo==='prioridade' ? '← Voltar ao painel'
-                   : tipo==='segundafase' ? '← Voltar à correção'
-                   : '← Voltar ao roteiro';
-    bt.onclick=volta;
-    var txt=document.createElement('span');
-    txt.style.cssText='min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
-    txt.textContent='você veio de ' + rot;
-    barra.appendChild(bt); barra.appendChild(txt);
-    var por=function(){ document.body.insertBefore(barra, document.body.firstChild); };
-    if(document.body) por(); else document.addEventListener('DOMContentLoaded', por);
-    document.addEventListener('keydown', function(e){
-      if(e.key==='Escape' && !document.querySelector('.on[role=dialog]')) { /* Esc já é usado pelos leitores */ }
-      if(e.altKey && e.key==='ArrowLeft'){ e.preventDefault(); volta(); }
-    });
-  }catch(e){}
 })();
 </script>
 </body></html>
