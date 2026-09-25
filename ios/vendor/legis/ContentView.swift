@@ -338,6 +338,16 @@ struct ContentView: View {
     Art. 6º Esta lei entra em vigor na data de sua publicação.
     """
 
+    /// Abre a norma no artigo pedido pelo JURIS (modo Estudar, que já posiciona um artigo).
+    private func consumirPedidoLegis() {
+        guard let p = JurisPorArtigo.pedidoLegis,
+              let law = JurisPorArtigo.lei(doDiploma: p.diploma, em: store.laws) else { return }
+        JurisPorArtigo.pedidoLegis = nil
+        if let idx = store.articleUnitID(lawID: law.id, number: p.artigo) { store.setLastUnit(law.id, idx) }
+        UserDefaults.standard.set("estudo", forKey: "readerMode")
+        path = [.reader(law.id)]
+    }
+
     var body: some View {
         Group {
             if ehCompacto { corpoCompacto } else { corpoRegular }
@@ -350,6 +360,10 @@ struct ContentView: View {
         .preferredColorScheme(appearance == "light" ? .light : appearance == "dark" ? .dark : nil)
         // Item 5: o chip ⚖️ do mapa de Processo e peças manda o TERMO junto. Sem isto a aba
         // abria no acervo inteiro e a busca era refeita à mão.
+        // Entrega 3: o JURIS pede para abrir um artigo citado (JurisPorArtigo.abrirNoLegis). O
+        // pedido fica pendente até o LEGIS montar — por isso também no onAppear.
+        .onReceive(NotificationCenter.default.publisher(for: JurisPorArtigo.notificacaoAbrirLegis)) { _ in consumirPedidoLegis() }
+        .onAppear { consumirPedidoLegis() }
         .onReceive(NotificationCenter.default.publisher(for: AcervoEntrada.notificacaoBuscar)) { n in
             guard let t = n.userInfo?["termo"] as? String, !t.isEmpty else { return }
             path = [.section(.globalSearch)]
