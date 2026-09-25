@@ -54,6 +54,11 @@ let reg = DSFontes.registrar(pasta: URL(fileURLWithPath: pastaFontes, isDirector
 for f in DSFontes.familiasDaCasa {
     confere(reg.contains(f) && DSFontes.disponivel(f), "fonte da casa registrada a partir do woff2: \(f)")
 }
+let woffs = ((try? FileManager.default.contentsOfDirectory(atPath: pastaFontes)) ?? []).filter { $0.hasSuffix(".woff2") }
+let conteudosUnicos = Set(woffs.compactMap { FileManager.default.contents(atPath: pastaFontes + "/" + $0) }).count
+confere(DSFontes.ultimoRegistro.arquivos == conteudosUnicos && conteudosUnicos < woffs.count,
+        "cada conteúdo de fonte é registrado uma vez só (\(DSFontes.ultimoRegistro.arquivos) de \(woffs.count) arquivos)")
+confere(DSFontes.ultimoRegistro.falhas.isEmpty, "nenhuma falha de registro com as fontes do repositório")
 confere(DSFontes.registrar(pasta: URL(fileURLWithPath: pastaFontes, isDirectory: true)) == reg,
         "registrar de novo (já registradas) não perde nenhuma família")
 confere(!DSFontes.disponivel("Comic Sans MS"), "família de fora da casa não conta como disponível")

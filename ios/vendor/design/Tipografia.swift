@@ -1,5 +1,6 @@
 import SwiftUI
 import CoreText
+import os
 #if os(iOS)
 import UIKit
 #endif
@@ -23,18 +24,35 @@ enum DSFontes {
         Bundle.main.resourceURL?.appendingPathComponent("web/fonts", isDirectory: true)
     }
 
+    /// Resultado da última chamada a `registrar`: quantos arquivos (conteúdos distintos) foram
+    /// registrados e quais falharam — para diagnosticar um iPad em que a fonte não aparece.
+    private(set) static var ultimoRegistro: (arquivos: Int, falhas: [String]) = (0, [])
+    private static let log = Logger(subsystem: "com.catedra", category: "fontes")
+
     @discardableResult
     static func registrar(pasta: URL? = pastaDoApp()) -> Set<String> {
         guard let pasta,
               let itens = try? FileManager.default.contentsOfDirectory(at: pasta, includingPropertiesForKeys: nil)
-        else { return registradas }
-        for url in itens where url.pathExtension == "woff2" {
+        else {
+            ultimoRegistro = (0, ["pasta de fontes ausente: \(pasta?.path ?? "sem bundle")"])
+            log.error("fontes: pasta ausente — a interface usa a fonte do sistema")
+            return registradas
+        }
+        // Inter, Inter Tight e Space Grotesk vêm em 4 woff2 IDÊNTICOS (fonte variável, um por
+        // peso no CSS): registrar cada conteúdo uma vez só corta pela metade o custo na abertura.
+        var vistos = Set<Data>(), arquivos = 0, falhas: [String] = []
+        for url in itens.sorted(by: { $0.lastPathComponent < $1.lastPathComponent })
+        where url.pathExtension == "woff2" {
+            guard let dados = try? Data(contentsOf: url), vistos.insert(dados).inserted else { continue }
             var erro: Unmanaged<CFError>?
             let ok = CTFontManagerRegisterFontsForURL(url as CFURL, .process, &erro)
-            let jaEstava = erro.map {
-                CFErrorGetCode($0.takeRetainedValue()) == CTFontManagerError.alreadyRegistered.rawValue
-            } ?? false
-            guard ok || jaEstava else { continue }
+            let codigo = erro.map { CFErrorGetCode($0.takeRetainedValue()) }
+            guard ok || codigo == CTFontManagerError.alreadyRegistered.rawValue else {
+                falhas.append(url.lastPathComponent)
+                log.error("fontes: não registrou \(url.lastPathComponent, privacy: .public) (código \(codigo ?? 0))")
+                continue
+            }
+            arquivos += 1
             guard let descs = CTFontManagerCreateFontDescriptorsFromURL(url as CFURL) as? [CTFontDescriptor]
             else { continue }
             for d in descs {
@@ -44,6 +62,7 @@ enum DSFontes {
                 }
             }
         }
+        ultimoRegistro = (arquivos, falhas)
         return registradas
     }
 
