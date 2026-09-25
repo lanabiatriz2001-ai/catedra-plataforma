@@ -58,7 +58,8 @@ export function testarSemDodEstatico(ok, opcoes = {}) {
     R + '(a) o juris-web.html não tem mais a aba, o painel nem o iframe dos mapas');
   ok(!/vademecum_dod|Vade Mecum DOD|Dizer o Direito/.test(jw), R + '(a) o juris-web.html não tem rótulo do DOD');
   const b = ler('scripts/build.mjs'), bm = ler('scripts/build-macos.mjs');
-  const listaCopia = (src) => { const i = src.indexOf("for (const f of ['support.js'"); return i < 0 ? null : src.slice(i, src.indexOf(']', i)); };
+  // a lista do build web virou "const COPIAR = [...]" (#154); a do nativo segue no for
+  const listaCopia = (src) => { let i = src.indexOf("const COPIAR = ['support.js'"); if (i < 0) i = src.indexOf("for (const f of ['support.js'"); return i < 0 ? null : src.slice(i, src.indexOf(']', i)); };
   const lb = listaCopia(b), lbm = listaCopia(bm);
   ok(!!lb && !!lbm && /'juris-web\.html'/.test(lb) && /'juris-web\.html'/.test(lbm),
     R + '(a) as duas listas de cópia foram achadas (e levam o juris-web.html)');
