@@ -619,11 +619,17 @@ final class LibraryStore {
     private func ordenar(_ arr: [JurisEntry]) -> [JurisEntry] {
         switch ordenacao {
         case .relevancia:
-            let ordem = Dictionary(uniqueKeysWithValues: Fonte.ordem.enumerated().map { ($1, $0) })
+            // Por AUTORIDADE (entrega 5): vinculante → controle concentrado → RG/repetitivo →
+            // súmulas → teses/informativos → estaduais → contas → apoio. Antes seguia a ordem
+            // da barra lateral, que abria "Todos" pela Súmula 1 do TJRO.
             return arr.sorted { a, b in
-                let fa = ordem[a.fonteKind] ?? 99, fb = ordem[b.fonteKind] ?? 99
+                let fa = OrdemAutoridade.posicao(a.fonte), fb = OrdemAutoridade.posicao(b.fonte)
                 if fa != fb { return fa < fb }
-                return (a.numero ?? -1) > (b.numero ?? -1)
+                // Súmulas em ordem crescente (SV 1, Súmula 1…), como se leem; informativos e
+                // temas do mais novo para o mais antigo. Desempate estável pelo id.
+                let na = a.numero ?? -1, nb = b.numero ?? -1
+                if na != nb { return a.fonte.hasPrefix("sumula_") ? na < nb : na > nb }
+                return a.id < b.id
             }
         case .numeroDesc:
             return arr.sorted { ($0.numero ?? Int.min) > ($1.numero ?? Int.min) }
