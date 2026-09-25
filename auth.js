@@ -38,7 +38,11 @@
     // sincroniza: ligar no Mac ligava no iPad, e cada um seguia o SEU sistema — com
     // sistemas diferentes, os dois viravam o tema um do outro a cada abertura.
     'catedra:notifRevDia': 1, 'catedra:_bkpAutoTry': 1, 'catedra:_bkpAutoTs': 1, 'catedra:_temaTs': 1,
-    'catedra:_temaAuto': 1 };
+    'catedra:_temaAuto': 1,
+    // _srvCheio: as chaves que tinham conteúdo na nuvem no último acerto DESTE aparelho com ela
+    // (trava "vazio nunca apaga cheio" do envio no fechamento — ver enviarCondicional). Subir
+    // faria o outro aparelho herdar uma lista que não descreve o que ELE viu.
+    'catedra:_srvCheio': 1 };
 
   // ---------- LÁPIDES (tombstones): fazem a EXCLUSÃO valer ----------
   // Sem isto, apagar nunca "pega": o merge une arrays por id (o cartão/erro apagado volta
@@ -269,6 +273,27 @@
   /* Chaves guardadas como interruptor cru ('0' ou '1'): os dois valores são conteúdo.
      Ver a regra de merge lá embaixo — sem esta lista, escolher claro nunca fixava. */
   var CHAVES_INTERRUPTOR = { 'catedra:dark': 1, 'catedra:leitorDark': 1 };
+  /* "Vazio nunca apaga cheio" também no envio do fechamento. O pushNow herda a regra do merge
+     (um escalar vazio no local não vence o cheio da nuvem); o PATCH do fechamento não mescla —
+     grava o blob local inteiro. Então cada acerto com a nuvem (pushNow que deu certo, pull que
+     mesclou, hidratação) guarda em catedra:_srvCheio (EXCLUDE) as chaves que lá tinham
+     conteúdo, e o fechamento não envia se alguma delas está vazia ou ausente aqui sem lápide de
+     chave (removeItem de propósito — o "apagar tudo" deixa lápide). Array esvaziado (apagar o
+     último item) também espera: a lápide por id não distingue o gesto do app que semeou '[]'
+     por engano. Esperar não perde nada: o sujo fica e a próxima abertura sobe pelo merge. */
+  function gravarCheio(blob) {
+    try {
+      var l = [];
+      if (blob) Object.keys(blob).forEach(function (k) { if (isData(k) && !CHAVES_INTERRUPTOR[k] && temConteudo(blob[k])) l.push(k); });
+      _si('catedra:_srvCheio', JSON.stringify(l));
+    } catch (_) {}
+  }
+  function esvaziouCheio() {
+    var l;
+    try { l = JSON.parse(localStorage.getItem('catedra:_srvCheio') || '[]'); } catch (_) { return true; }   // ilegível: na dúvida, não envia
+    if (!Array.isArray(l)) return true;
+    return l.some(function (k) { return isData(k) && !CHAVES_INTERRUPTOR[k] && !temConteudo(localStorage.getItem(k)) && !tombKeyTs(k); });
+  }
   function stamp(x) { return (x && (x.up || x.ts)) || 0; }
   function mergeArr(sv, lc, preferServer) {
     if (!Array.isArray(sv)) return lc; if (!Array.isArray(lc)) return sv;
@@ -424,8 +449,16 @@
   // erro é de sessão, derruba para o login antes — sem apagar nada deste aparelho.
   function erroDe(res) { var e = res && res.error; if (!e) return null; if (sessaoCaiu(res)) sessaoExpirou(); return e; }
 
+  /* Devolve a promise da cadeia (leitura → mescla → upsert), que sempre RESOLVE — é por ela que o
+     Sair espera o envio. Com um envio em voo, devolve o que está em voo (pushP); sem como enviar,
+     uma promise já resolvida. `saindo`: depois que o Sair decidiu apagar o aparelho, nada deste
+     envio escreve mais no localStorage — nem a mescla (applyData), nem _lastSrv/_dirty, nem a
+     nova tentativa em 30 s. Sem isso, uma resposta atrasada regravava as chaves DEPOIS do
+     clearLocal, e o login seguinte no aparelho herdava o dado da conta que saiu. */
+  var pushP = null;
   function pushNow() {
-    if (!user || hydrating || pushing || hidratacaoEmCurso) return;
+    if (pushing && pushP) return pushP;
+    if (!user || hydrating || pushing || hidratacaoEmCurso || saindo) return Promise.resolve();
     pushing = true; setStatus('enviando');
     var dono = user;
     // Escrita que chega com este envio em voo: o CatedraSync.push agenda outro pushNow, que morre
@@ -433,7 +466,7 @@
     // que não estava no retrato — ela não subia, o selo dizia "salvo" e o Sair não avisava.
     var ger = -1, denovo = false;
     // read-before-write: relê o servidor e mescla antes de subir (nada de sobrescrever cego)
-    sb.from('user_data').select('data,updated_at').eq('user_id', user.id).maybeSingle()
+    pushP = sb.from('user_data').select('data,updated_at').eq('user_id', user.id).maybeSingle()
       .then(function (res) {
         // Mesmo cuidado da hidratação, e aqui é PIOR: o upsert lá embaixo executa de
         // verdade. Sem esta checagem, um select que falhou virava row=null, o
@@ -443,7 +476,7 @@
         var e1 = erroDe(res); if (e1) throw e1;
         // A leitura voltou com uma hidratação em curso (ou outra conta): este envio não sobe
         // nada. O sujo fica; quem sobe é o pushNow depois do reload daquela hidratação.
-        if (hidratacaoEmCurso || user !== dono) return;
+        if (hidratacaoEmCurso || user !== dono || saindo) return;
         var row = res && res.data;
         ger = geracao;   // antes do retrato: escrita depois daqui pode não estar nele
         var antes = collect();
@@ -461,20 +494,25 @@
         } catch (_) {}
         if (mudou) { try { window.dispatchEvent(new CustomEvent('catedra:synced')); } catch (_) {} }
         var now = new Date().toISOString();
-        return sb.from('user_data').upsert({ user_id: user.id, data: leanForUpload(merged), updated_at: now })
+        var subiu = leanForUpload(merged);
+        return sb.from('user_data').upsert({ user_id: user.id, data: subiu, updated_at: now })
           .then(function (r2) {
             var e2 = erroDe(r2); if (e2) throw e2;
-            setLastSrv(now); marcarSincronizado();
+            if (saindo) return;
+            setLastSrv(now); gravarCheio(subiu); marcarSincronizado();
             if (geracao === ger) { setDirty(false); setStatus('salvo'); }
             else denovo = true;   // chegou escrita durante o envio: o sujo fica e sobe já em seguida
           });
       })
-      .catch(function (err) { console.warn('[Cátedra] sync erro:', err && err.message); setStatus(navigator.onLine === false ? 'offline' : 'erro');
+      .catch(function (err) { console.warn('[Cátedra] sync erro:', err && err.message); if (saindo) return; setStatus(navigator.onLine === false ? 'offline' : 'erro');
         // Sem isto, um envio que falhava ficava em "erro" até a PRÓXIMA escrita ou troca
         // de aba — meia sessão de estudo podia passar sem nada subir. O dirty continua
         // marcado; uma nova tentativa em 30s resolve a falha passageira sozinha.
         clearTimeout(pushT); pushT = setTimeout(pushNow, 30000); })
-      .then(function () { pushing = false; if (denovo) { clearTimeout(pushT); pushNow(); } });
+      // a edição que chegou durante o envio sobe em seguida — DENTRO desta cadeia, para quem
+      // espera o envio (o Sair) esperar também por ela
+      .then(function () { pushing = false; if (denovo && !saindo) { clearTimeout(pushT); return pushNow(); } });
+    return pushP;
   }
   /* Os satélites em <iframe> gravam localStorage DIRETO (grifos do LEGIS/JURIS,
      leituraLeis:v1, legisEstudo…): a interceptação de setItem do topo não os vê, o
@@ -515,7 +553,7 @@
   // pull + merge ao voltar para a aba / reconectar — o outro aparelho pode ter estudado
   var pulling = false, pullT = null;
   function pullAndMerge() {
-    if (!user || hydrating || pushing || pulling || hidratacaoEmCurso) return;
+    if (!user || hydrating || pushing || pulling || hidratacaoEmCurso || saindo) return;
     pulling = true; clearTimeout(pullT);
     // Antes a falha era muda: o listener 'online' marcava "enviando" antes de chamar aqui e
     // uma leitura que falhava saía sem setStatus — o selo prendia em "sincronizando…"; ao
@@ -526,6 +564,7 @@
     };
     sb.from('user_data').select('data,updated_at').eq('user_id', user.id).maybeSingle()
       .then(function (res) {
+        if (saindo) { pulling = false; return; }   // o Sair já decidiu apagar o aparelho: não regrava nada
         // FALHA DE LEITURA NÃO É LINHA VAZIA: o supabase-js resolve com {data:null, error}.
         if (erroDe(res)) { falhou(); return; }
         var row = res && res.data;
@@ -534,11 +573,12 @@
         // e a nuvem não tem nada mais novo: é o primeiro acerto com a nuvem (ver marcarSincronizado).
         if (!row || !row.data) { pulling = false; if (isDirty()) pushNow(); else { setStatus('salvo'); marcarSincronizado(); } return; }
         var serverNewer = srvMaisNovo(row.updated_at, lastSrv());
-        if (!serverNewer && !isDirty()) { pulling = false; setStatus('salvo'); marcarSincronizado(); return; }
+        if (!serverNewer && !isDirty()) { pulling = false; gravarCheio(row.data); setStatus('salvo'); marcarSincronizado(); return; }
         // servidor mais novo e este aparelho limpo → escalares vêm do servidor; arrays sempre por id
         var merged = mergeAll(row.data, collect(), serverNewer && !isDirty());
         applyData(merged);
         setLastSrv(row.updated_at || lastSrv());
+        gravarCheio(row.data);   // o que a NUVEM tem (o local pode ter mais, ainda por subir)
         try { window.dispatchEvent(new CustomEvent('catedra:synced')); } catch (_) {}
         pulling = false;
         if (isDirty()) pushNow(); else setStatus('salvo');
@@ -547,32 +587,50 @@
       .catch(falhou);
   }
 
-  // flush imediato quando a aba é fechada/minimizada. keepalive sobrevive ao fechamento;
-  // SEM token de usuário não envia (RLS rejeitaria) — o dirty fica marcado e a próxima
-  // abertura reconcilia via pullAndMerge + pushNow.
+  /* ENVIO NO FECHAMENTO (pagehide) — condicional, nunca cego.
+     No fechamento não dá tempo de reler a nuvem e mesclar (pushNow). Antes ia um POST com
+     `resolution=merge-duplicates`: o blob local inteiro por cima da nuvem, apagando o que outro
+     aparelho tivesse gravado desde a última leitura deste. Agora é um PATCH com filtro no
+     updated_at que ESTE aparelho viu por último (_lastSrv): o PostgREST só atualiza a linha se a
+     nuvem não mudou desde então — se mudou, atualiza zero linhas e o sujo espera a próxima
+     abertura, que mescla. O filtro por igualdade não depende de relógio: o _lastSrv é o texto que
+     o servidor devolveu (pull/hidratação) ou o updated_at que este aparelho mesmo gravou
+     (pushNow), e o Postgres interpreta os dois formatos ('…Z' e '…+00:00', por isso o
+     encodeURIComponent: '+' cru na URL vira espaço).
+     Travas: conta e token (sem JWT o RLS recusa), fora da hidratação, sujo (aparelho limpo não
+     tem o que mandar — e mandar reescreveria a nuvem à toa), _lastSrv conhecido (sem ele não há
+     filtro), corpo até ~60 KB (o keepalive recusa acima de 64 KiB: melhor não tentar do que
+     achar que foi) e "vazio nunca apaga cheio" (esvaziouCheio). Não dá para confirmar a resposta
+     no fechamento: o sujo NUNCA é limpo aqui — a próxima abertura confirma pelo merge. Devolve
+     se o pedido saiu (o Sair usa como última tentativa). */
+  var TETO_KEEPALIVE = 60000;
+  function enviarCondicional() {
+    if (!user || hydrating || hidratacaoEmCurso || !authToken || !isDirty()) return false;
+    var visto = lastSrv(); if (!visto) return false;
+    if (esvaziouCheio()) return false;
+    var corpo, tam;
+    try { corpo = JSON.stringify({ data: leanForUpload(collect()), updated_at: new Date().toISOString() }); } catch (_) { return false; }
+    try { tam = new Blob([corpo]).size; } catch (_) { tam = corpo.length * 3; }
+    if (tam > TETO_KEEPALIVE) return false;
+    try {
+      var p = fetch(CFG.url + '/rest/v1/user_data?user_id=eq.' + encodeURIComponent(user.id) + '&updated_at=eq.' + encodeURIComponent(visto), {
+        method: 'PATCH', keepalive: true,
+        headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+        body: corpo,
+      });
+      if (p && p.catch) p.catch(function () {});
+    } catch (_) { return false; }
+    return true;
+  }
   function flushSync() {
     if (!user || hydrating || hidratacaoEmCurso) return;
     clearTimeout(pushT);
-    if (!authToken) return; // sem JWT o POST seria rejeitado pelo RLS — deixa o dirty para a próxima sessão
-    // NÃO subir quando este aparelho não tem nada novo. Este envio é CEGO (não faz
-    // read-before-write, porque no fechamento não dá tempo), então subir sem precisar
-    // significa reescrever a nuvem inteira com o blob local — apagando no servidor o
-    // que outro aparelho gravou nesse meio-tempo. Sem esta linha, bastava o Mac ficar
-    // aberto e ocioso e ser minimizado para desfazer o que foi estudado no celular.
-    if (!isDirty()) return;
-    try {
-      fetch(CFG.url + '/rest/v1/user_data', {
-        method: 'POST', keepalive: true,
-        headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
-        body: JSON.stringify({ user_id: user.id, data: leanForUpload(collect()), updated_at: new Date().toISOString() }),
-      });
-      // não dá para confirmar sucesso no unload: mantém o dirty; a próxima abertura confirma/mescla
-    } catch (_) { pushNow(); }
+    enviarCondicional();
   }
   document.addEventListener('visibilitychange', function () {
     // Minimizar/trocar de aba NÃO é fechar: a página segue viva, então dá tempo do
-    // caminho seguro (pushNow faz read-before-write). O envio cego com keepalive fica
-    // só para o pagehide, onde realmente não há tempo de reler o servidor.
+    // caminho seguro (pushNow faz read-before-write). O envio com keepalive (condicional,
+    // ver enviarCondicional) fica só para o pagehide, onde não há tempo de reler o servidor.
     if (document.visibilityState === 'hidden') { if (hidratacaoEmCurso) return; clearTimeout(pushT); if (isDirty()) pushNow(); }
     else if (document.visibilityState === 'visible') { if (pendente) reconfirmarSessao(); else pullAndMerge(); }
   });
@@ -1147,6 +1205,7 @@
             || Object.keys(sv).some(function (k) { return isData(k) && k !== 'catedra:_kts' && !(k in lean); });
         } catch (_) { contribuiu = true; }
         setLastSrv(row.updated_at || '');
+        gravarCheio(row.data);   // o que a nuvem tinha quando este aparelho a viu (ver esvaziouCheio)
         setDirty(jaSujo || contribuiu);
         // avisa o app: a hidratação trocou os dados locais e ele precisa reler/reaplicar migrações
         try { window.dispatchEvent(new CustomEvent('catedra:synced')); } catch (_) {}
@@ -1372,25 +1431,63 @@
       return sb.auth.signOut().then(fin, fin);
     });
   }
+  /* Sair com pendência: ANTES de perguntar, tenta subir pelo caminho seguro (pushNow: relê a
+     nuvem, mescla e confere res.error) e espera a resposta — até LIMITE_SAIR no total. Se o
+     primeiro envio terminou e o aparelho continua sujo (falhou, ou chegou escrita), tenta mais uma
+     vez no tempo que resta. Só se AINDA houver pendência a pessoa é avisada (e pode desistir); se
+     confirmar, a última tentativa é o PATCH condicional do fechamento, e só então signOut e
+     clearLocal. Antes o Sair mandava direto o POST cego (sobrescrevia a nuvem sem reler) e
+     apagava o aparelho no mesmo instante. Devolve uma promise (o app não espera; os testes sim). */
+  var LIMITE_SAIR = 5000, saidaEmCurso = false;
+  function esperarAte(p, ms) {
+    return new Promise(function (ok) {
+      var t = setTimeout(function () { ok(false); }, Math.max(0, ms));
+      Promise.resolve(p).then(function () { clearTimeout(t); ok(true); }, function () { clearTimeout(t); ok(true); });
+    });
+  }
   function logout() {
+    if (saidaEmCurso || saindo) return Promise.resolve();
     clearTimeout(pushT);
+    var podeSubir = !!(user && authToken) && online();
+    if (!isDirty() || !podeSubir || hydrating || hidratacaoEmCurso) { concluirSaida(podeSubir); return Promise.resolve(); }
+    saidaEmCurso = true;
+    setStatus('enviando'); showLoading('Enviando seus estudos antes de sair…');
+    var limite = Date.now() + LIMITE_SAIR;
+    return esperarAte(pushNow(), LIMITE_SAIR).then(function (terminou) {
+      var resta = limite - Date.now();
+      // o primeiro ainda em voo: pedir outro devolveria o mesmo (pushP) — não adianta esperar mais
+      if (!isDirty() || !terminou || resta <= 0) return;
+      return esperarAte(pushNow(), resta);
+    }).then(function () {
+      saidaEmCurso = false;
+      // A sessão pode ter caído DURANTE a espera (leitura com PGRST301/401 → sessaoExpirou):
+      // o formulário de "sua sessão expirou" já está na tela e fica lá — esconder e seguir
+      // com o podeSubir antigo apagaria estudos que um novo login ainda salvaria.
+      if (!user) return;
+      if (isDirty()) hide();   // a pergunta aparece sobre o app, que segue vivo se a pessoa desistir
+      concluirSaida(!!(user && authToken) && online());   // recalculado: a rede pode ter caído na espera
+    });
+  }
+  function concluirSaida(podeSubir) {
     // O aviso vale SEMPRE que há coisa por subir — antes exigia authToken, e com a sessão
     // expirada (token nulo) o Sair apagava os estudos não sincronizados em silêncio.
     if (isDirty()) {
-      var podeSubir = !!(user && authToken) && online();
       var msg = podeSubir
         ? 'Há estudos deste aparelho que ainda não subiram para a sua conta.\n\nSair agora vai apagá-los daqui. Quer sair mesmo assim?'
         : 'Há estudos deste aparelho que ainda não subiram para a sua conta — e agora não há como subir (' + (online() ? 'a sessão expirou' : 'sem internet') + ').\n\nSair vai apagá-los daqui de vez. Para não perder nada, ' + (online() ? 'entre de novo' : 'espere a conexão voltar') + ' e saia depois. Quer sair mesmo assim?';
       if (!confirm(msg)) {
-        _si('catedra:auth', '1');                                // "não saio": o app segue logado
-        if (podeSubir) { setStatus('enviando'); pushNow(); }     // e termina de sincronizar
+        if (user) _si('catedra:auth', '1');                      // "não saio": o app segue logado
+        if (podeSubir && user) { setStatus('enviando'); pushNow(); }   // e termina de sincronizar
         return;
       }
-      if (podeSubir) { try { flushSync(); } catch (_) {} }       // última tentativa (keepalive sobrevive ao reload)
+      if (podeSubir) { try { enviarCondicional(); } catch (_) {} }   // última tentativa (keepalive sobrevive ao reload)
     }
+    // Daqui em diante nada escreve no localStorage (pushNow/pullAndMerge em voo olham `saindo`),
+    // e as novas tentativas agendadas morrem antes do clearLocal.
     saindo = true;
+    clearTimeout(pushT); clearTimeout(pullT);
     sessionStorage.removeItem('catedra:hydrated');
-    var fin = function () { clearLocal(); location.reload(); };
+    var fin = function () { clearTimeout(pushT); clearTimeout(pullT); clearLocal(); location.reload(); };
     sb.auth.signOut().then(fin, fin);
   }
   window.CatedraAuth = { logout: logout, client: sb, excluirConta: excluirConta, abrirDoc: abrirDoc };
