@@ -38,7 +38,15 @@ struct EntryDetailView: View {
     /// main, e a seção "Do mesmo assunto" nunca discorda do quadro na mesma rolagem — nem
     /// quando o roteiro vem do cache.
     @State private var vizinhos: QuadroRelacionados?
+    // Entrega 3 — casca do leitor (estado só de tela; nada persistido).
+    @State private var modoVerbete: ModoLeitor = .ler
+    @State private var gaveta: AlturaGaveta = .fechada
+    @State private var abaGaveta = 0
+    @State private var mostrarSecundario = false
+    @State private var artigosDoVerbete: [ArtigoCitado] = []
+    @State private var relacionadosCache: [JurisEntry]?
 
+    private var ehCompactoOuFalso: Bool { false }
     private var baseSize: CGFloat { 16.5 * readingScale }
     private var markColor: MarkColor { MarkColor(rawValue: markColorHex) ?? .amarelo }
 
@@ -50,36 +58,26 @@ struct EntryDetailView: View {
                 header
                 alertaSituacao
                 enunciadoCard
-                // INFORMATIVO: o roteiro-widget (Em uma frase / Fundamento / Como era / O que
-                // decidiu / Pegadinha / quiz) é a interface do informativo — vem logo depois do
-                // enunciado, antes das anotações; estava enterrado no fim da página. Agora é
-                // local e instantâneo (RoteiroLocal), então nasce aberto em todo verbete.
-                // O roteiro é local e instantâneo (RoteiroLocal), então nasce aberto em TODO
-                // verbete — informativo ou não. Antes havia dois ramos (ehInformativo e o
-                // contrário) chamando a mesma coisa com comentários que diziam o oposto.
-                // vizinhosAbaixo: a lista "Do mesmo assunto" é a seção que fecha a página
-                // (relacionadosSection), então o quadro não a repete aqui em cima.
-                RoteiroEstudoView(entry: entry, autoGerar: true, vizinhosAbaixo: true,
-                                  aoMudarQuadro: { vizinhos = $0 })
-                // "Minhas anotações" LOGO ABAIXO do dispositivo (pedido da Lana) —
-                // antes vinha depois da nota de estudo do app.
-                anotacaoCard
-                notaAppCard
-                metadata
-                if let p = entry.precedentes, !p.isEmpty {
-                    disclosure("Precedentes / Julgados", "text.quote", p)
+                // Ler: só a fonte primária (texto do tribunal, ficha, precedentes, referências
+                // oficiais). Estudar: o roteiro, as suas anotações e a nota de estudo do app.
+                // Comentário e observação (apoio) ficam no ⋯ → "Comentário e observação".
+                if modoVerbete == .ler {
+                    ligacoesVerbete
+                    metadata
+                    if let p = entry.precedentes, !p.isEmpty {
+                        disclosure("Precedentes / Julgados", "text.quote", p)
+                    }
+                    if let r = entry.referencias, !r.isEmpty {
+                        disclosure("Referências legislativas", "book.closed", r)
+                    }
+                    footer
+                } else {
+                    RoteiroEstudoView(entry: entry, autoGerar: true, vizinhosAbaixo: true,
+                                      aoMudarQuadro: { vizinhos = $0 })
+                    anotacaoCard
+                    notaAppCard
+                    relacionadosSection
                 }
-                if let c = entry.comentario, !c.isEmpty {
-                    disclosure("Comentário", "text.bubble", c)
-                }
-                if let o = entry.observacao, !o.isEmpty {
-                    disclosure("Observação", "exclamationmark.bubble", o)
-                }
-                if let r = entry.referencias, !r.isEmpty {
-                    disclosure("Referências legislativas", "book.closed", r)
-                }
-                relacionadosSection
-                footer
             }
             .padding(.horizontal, 34)
             .padding(.vertical, 30)
@@ -87,10 +85,49 @@ struct EntryDetailView: View {
             .frame(maxWidth: .infinity, alignment: .center)
         }
         .background(detailCanvas)
+        .overlay(alignment: .bottom) {
+            if gaveta != .fechada {
+                GavetaContexto(altura: $gaveta, titulo: entry.titulo, subtitulo: entry.tribunal,
+                               abas: ["Artigos citados", "Relacionados"], aba: $abaGaveta,
+                               compacto: ehCompactoOuFalso) { conteudoGavetaVerbete }
+            }
+        }
+        // Artigos citados: uma vez por verbete (não a cada redesenho). Relacionados: só quando
+        // a aba abre, fora da main (varre o acervo inteiro).
+        .task(id: entry.id) { artigosDoVerbete = JurisPorArtigo.artigosCitados(verbeteID: entry.id); relacionadosCache = nil }
+        .task(id: "\(entry.id)|\(abaGaveta)|\(gaveta != .fechada)") {
+            guard abaGaveta == 1, gaveta != .fechada, relacionadosCache == nil,
+                  let acervo = store.acervoParaQuadro() else { return }
+            let e = entry
+            let r = await Task.detached(priority: .userInitiated) { acervo.relacionados(e, limite: 12) }.value
+            relacionadosCache = r
+        }
+        .sheet(isPresented: $mostrarSecundario) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: DSEspaco.e4) {
+                    Text("Comentário e observação").font(DS.display(19, .bold)).foregroundStyle(ThemeState.t.ink)
+                    Text("Material de apoio — não é o texto do tribunal.")
+                        .font(DS.interface(13)).foregroundStyle(ThemeState.t.text3)
+                    if let c = entry.comentario, !c.isEmpty {
+                        Text(c).font(DS.display(16, .regular)).foregroundStyle(ThemeState.t.ink).textSelection(.enabled)
+                    }
+                    if let o = entry.observacao, !o.isEmpty {
+                        Text(o).font(DS.display(16, .regular)).foregroundStyle(ThemeState.t.ink).textSelection(.enabled)
+                    }
+                }
+                .padding(DSEspaco.e5)
+            }
+            .frame(minWidth: ehCompactoOuFalso ? nil : 420, minHeight: 320)
+        }
         .navigationTitle(entry.titulo)
         // No embed a toolbar da JANELA pertence ao host (seletor de abas) — os botões
         // do verbete viram uma barra própria acima do conteúdo (estilo Books).
-        .safeAreaInset(edge: .top, spacing: 0) { entryToolbar }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            BarraLeitor(ramo: [entry.tribunal, entry.ramoDireito ?? ""].filter { !$0.isEmpty }.joined(separator: " · "),
+                        corRamo: CorTribunal.identidade(entry.tribunal) ?? Ramo.deNome(entry.ramoDireito)?.identidade,
+                        titulo: entry.titulo, modo: $modoVerbete, aoVoltar: nil,
+                        aa: { tamanhoMenu }, mais: { maisVerbete })
+        }
         .onAppear {
             store.markRecent(entry.id)
             // Rateio do relógio: o tempo passa a contar para a matéria deste verbete.
@@ -1097,115 +1134,150 @@ struct EntryDetailView: View {
 
     // MARK: - Barra de ferramentas do verbete (estilo Books: cápsulas de ícone)
 
-    // Cápsula de ícone da barra (com chevron opcional para os menus).
-    private func capsIcon(_ icone: String, tint: Color = Palette.secondaryInk, chevron: Bool = false) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: icone).font(.system(size: 12.5, weight: .medium))
-            if chevron { Image(systemName: "chevron.down").font(.system(size: 7, weight: .bold)) }
+    // MARK: - Casca do leitor (entrega 3)
+
+    private var tamanhoMenu: some View {
+        Menu {
+            Button { readingScale = min(readingScale + 0.1, 1.8) } label: { Label("Aumentar texto", systemImage: "textformat.size.larger") }
+            Button { readingScale = max(readingScale - 0.1, 0.8) } label: { Label("Diminuir texto", systemImage: "textformat.size.smaller") }
+            Button { readingScale = 1.0 } label: { Label("Tamanho padrão", systemImage: "arrow.counterclockwise") }
+        } label: {
+            Image(systemName: "textformat.size").font(DS.interface(17))
+                .frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
+                .accessibilityLabel("Tamanho do texto")
         }
-        .foregroundStyle(tint)
-        .padding(.horizontal, 11).padding(.vertical, 7)
-        .background(Palette.elevated, in: Capsule())
-        .overlay(Capsule().strokeBorder(Palette.hairline, lineWidth: 1))
+        .menuIndicator(.hidden).fixedSize()
     }
 
-    private var entryToolbar: some View {
-        HStack(spacing: 6) {
-            Spacer(minLength: 0)
-
-            // ── Marcar: favoritar / importante / lido ──
-            Button { store.toggleFavorite(entry.id) } label: {
-                capsIcon(store.isFavorite(entry.id) ? "star.fill" : "star",
-                         tint: store.isFavorite(entry.id) ? .yellow : Palette.secondaryInk)
+    /// Tudo o que a barra antiga (9 controles) oferecia, agrupado — sem mudar o que cada ação faz.
+    private var maisVerbete: some View {
+        Menu {
+            Section("Marcar") {
+                Button { store.toggleFavorite(entry.id) } label: {
+                    Label(store.isFavorite(entry.id) ? "Remover dos favoritos" : "Favoritar",
+                          systemImage: store.isFavorite(entry.id) ? "star.fill" : "star")
+                }
+                Button { store.toggleImportante(entry) } label: {
+                    Label(entry.importante ? "Importante (pelo material)" : (store.isImportante(entry) ? "Desmarcar importante" : "Marcar como importante"),
+                          systemImage: (store.isImportante(entry) || entry.importante) ? "flag.fill" : "flag")
+                }
+                .disabled(entry.importante)
+                Button { store.toggleLido(entry.id) } label: {
+                    Label(store.isLido(entry.id) ? "Desmarcar lido" : "Marcar como lido",
+                          systemImage: store.isLido(entry.id) ? "checkmark.circle.fill" : "checkmark.circle")
+                }
             }
-            .buttonStyle(.plain)
-            .help(store.isFavorite(entry.id) ? "Nos favoritos" : "Favoritar")
-
-            Button { store.toggleImportante(entry) } label: {
-                capsIcon((store.isImportante(entry) || entry.importante) ? "flag.fill" : "flag",
-                         tint: (store.isImportante(entry) || entry.importante) ? Palette.warn : Palette.secondaryInk)
-            }
-            .buttonStyle(.plain)
-            .disabled(entry.importante)
-            .help(entry.importante ? "Marcado como importante pelo material" : "Marcar como importante")
-
-            Button { store.toggleLido(entry.id) } label: {
-                capsIcon(store.isLido(entry.id) ? "checkmark.circle.fill" : "checkmark.circle",
-                         tint: store.isLido(entry.id) ? Palette.accent : Palette.secondaryInk)
-            }
-            .buttonStyle(.plain)
-            .help(store.isLido(entry.id) ? "Lido — clique para desmarcar" : "Marcar como lido")
-
-            // ── Estudar: coleções / flashcard ──
-            Menu {
-                Section("Coleções (Meu edital)") {
+            Section("Estudar") {
+                Menu {
                     ForEach(store.colecoes) { c in
                         Button { store.toggleNaColecao(entry.id, c.id) } label: {
                             Label(c.nome, systemImage: store.estaNaColecao(entry.id, c.id) ? "checkmark" : "")
                         }
                     }
-                }
-                Button { mostrarNovaColecao = true } label: { Label("Nova coleção…", systemImage: "folder.badge.plus") }
-            } label: {
-                capsIcon(store.colecoesDe(entry.id).isEmpty ? "folder.badge.plus" : "folder.fill",
-                         tint: store.colecoesDe(entry.id).isEmpty ? Palette.secondaryInk : Palette.accent,
-                         chevron: true)
-            }
-            .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
-            .help("Adicionar a uma coleção (Meu edital)")
-
-            Menu {
-                if store.srsHasCard(entry.id) {
-                    Label("No baralho de revisão", systemImage: "checkmark.seal.fill")
-                    Button { mostrarRevisao = true } label: { Label("Revisar agora", systemImage: "brain.head.profile") }
-                    Button(role: .destructive) { store.srsRemove(entry.id) } label: { Label("Remover do baralho", systemImage: "trash") }
-                } else {
-                    Button { store.srsAddCard(entry) } label: { Label("Automático (melhor lacuna)", systemImage: "wand.and.stars") }
-                    Divider()
-                    ForEach(FlashStyle.allCases) { s in
-                        Button { store.srsAddCard(entry, style: s) } label: { Label(s.label, systemImage: s.simbolo) }
+                    Button { mostrarNovaColecao = true } label: { Label("Nova coleção…", systemImage: "folder.badge.plus") }
+                } label: { Label("Coleções (Meu edital)", systemImage: "folder") }
+                Menu {
+                    if store.srsHasCard(entry.id) {
+                        Button { mostrarRevisao = true } label: { Label("Revisar agora", systemImage: "brain.head.profile") }
+                        Button(role: .destructive) { store.srsRemove(entry.id) } label: { Label("Remover do baralho", systemImage: "trash") }
+                    } else {
+                        Button { store.srsAddCard(entry) } label: { Label("Automático (melhor lacuna)", systemImage: "wand.and.stars") }
+                        ForEach(FlashStyle.allCases) { st in
+                            Button { store.srsAddCard(entry, style: st) } label: { Label(st.label, systemImage: st.simbolo) }
+                        }
                     }
+                } label: { Label(store.srsHasCard(entry.id) ? "Flashcard (no baralho)" : "Criar flashcard", systemImage: "menucard") }
+                Button { showAnnotationsPanel.toggle() } label: { Label("Minhas anotações", systemImage: "note.text") }
+                if (entry.comentario?.isEmpty == false) || (entry.observacao?.isEmpty == false) {
+                    Button { mostrarSecundario = true } label: { Label("Comentário e observação", systemImage: "text.bubble") }
                 }
-            } label: {
-                capsIcon(store.srsHasCard(entry.id) ? "menucard.fill" : "menucard",
-                         tint: store.srsHasCard(entry.id) ? Palette.accent : Palette.secondaryInk,
-                         chevron: true)
             }
-            .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
-            .help(store.srsHasCard(entry.id) ? "Já está no baralho de revisão" : "Criar flashcard deste verbete")
-
-            // ── Ferramentas: analisar com IA / compartilhar ──
-            Menu {
+            Section("Ferramentas") {
                 Button { mostrarComparador = true } label: { Label("Comparar STF × STJ (com IA)", systemImage: "sparkles") }
                 Button { mostrarMapa = true } label: { Label("Mapa mental / fluxograma…", systemImage: "brain.head.profile") }
                 Button { mostrarLinhaTempo = true } label: { Label("Linha do tempo do tema", systemImage: "clock.arrow.circlepath") }
-            } label: { capsIcon("rectangle.split.2x1", chevron: true) }
-            .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
-            .help("Comparar STF × STJ (com IA), mapa mental e linha do tempo")
-
-            Menu {
+            }
+            Section("Compartilhar") {
                 Button { copiar(entry.enunciado) } label: { Label("Copiar enunciado", systemImage: "doc.on.doc") }
                 Button { copiar(entry.citacao) } label: { Label("Copiar citação", systemImage: "quote.opening") }
-                Divider()
                 Button { exportar(.pdf) } label: { Label("Exportar como PDF", systemImage: "doc.richtext") }
                 Button { exportar(.png) } label: { Label("Exportar como imagem", systemImage: "photo") }
                 Button { mostrarAnki = true } label: { Label("Exportar para o Anki…", systemImage: "rectangle.on.rectangle") }
-            } label: { capsIcon(copiado ? "checkmark" : "square.and.arrow.up", chevron: true) }
-            .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
-            .help("Copiar, exportar em PDF/imagem ou para o Anki")
-
-            // ── Leitura: tamanho do texto ──
-            Menu {
-                Button { readingScale = min(readingScale + 0.1, 1.8) } label: { Label("Aumentar texto", systemImage: "textformat.size.larger") }
-                Button { readingScale = max(readingScale - 0.1, 0.8) } label: { Label("Diminuir texto", systemImage: "textformat.size.smaller") }
-                Button { readingScale = 1.0 } label: { Label("Tamanho padrão", systemImage: "arrow.counterclockwise") }
-            } label: { capsIcon("textformat.size", chevron: true) }
-            .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
-            .help("Tamanho do texto de leitura")
+            }
+        } label: {
+            Image(systemName: copiado ? "checkmark.circle" : "ellipsis.circle").font(DS.interface(17))
+                .frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
+                .accessibilityLabel("Mais")
         }
-        .padding(.horizontal, 14).padding(.vertical, 7)
-        .background(Palette.sidebarBackground)
-        .overlay(alignment: .bottom) { Rectangle().fill(Palette.hairline).frame(height: 1) }
+        .menuIndicator(.hidden).fixedSize()
+    }
+
+    /// "2" → "Art. 2º" (ordinal até o 9º, como a lei escreve); "10" → "Art. 10"; "5-A" → "Art. 5º-A".
+    private func rotuloArtigo(_ a: String) -> String {
+        let partes = a.split(separator: "-", maxSplits: 1).map(String.init)
+        guard let n = Int(partes.first ?? "") else { return "Art. \(a)" }
+        let base = n <= 9 ? "\(n)º" : "\(n)"
+        return "Art. " + base + (partes.count > 1 ? "-\(partes[1])" : "")
+    }
+
+    private var ligacoesVerbete: some View {
+        let n = artigosDoVerbete.count
+        return HStack(spacing: DSEspaco.e3) {
+            Button { abaGaveta = 0; gaveta = .meia } label: {
+                Label(n == 0 ? "Artigos citados" : "Artigos citados · \(n)", systemImage: "book.closed")
+                    .frame(minHeight: 32)
+            }
+            Button { abaGaveta = 1; gaveta = .meia } label: {
+                Label("Relacionados", systemImage: "square.stack").frame(minHeight: 32)
+            }
+        }
+        .buttonStyle(.bordered)
+        .font(DS.interface(14, .semibold))
+    }
+
+    @ViewBuilder
+    private var conteudoGavetaVerbete: some View {
+        if abaGaveta == 0 {
+            let arts = artigosDoVerbete
+            VStack(alignment: .leading, spacing: DSEspaco.e2) {
+                if arts.isEmpty {
+                    Text("Nenhum artigo de lei do catálogo é citado por este verbete.")
+                        .font(DS.interface(15)).foregroundStyle(ThemeState.t.text2)
+                }
+                ForEach(arts, id: \.self) { a in
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(rotuloArtigo(a.artigo)).font(DS.display(17, .bold)).foregroundStyle(ThemeState.t.ink)
+                            Text(a.diploma).font(DS.interface(13)).foregroundStyle(ThemeState.t.text2)
+                        }
+                        Spacer()
+                        Button("Abrir no LEGIS") { gaveta = .fechada; JurisPorArtigo.abrirNoLegis(a) }
+                            .font(DS.interface(13, .semibold)).frame(minHeight: 44)
+                    }
+                    .padding(DSEspaco.e3)
+                    .background(RoundedRectangle(cornerRadius: DSRaio.card, style: .continuous).strokeBorder(ThemeState.t.border))
+                }
+            }
+        } else {
+            let rel = relacionadosCache ?? []
+            if relacionadosCache == nil { ProgressView().frame(maxWidth: .infinity) }
+            VStack(alignment: .leading, spacing: DSEspaco.e2) {
+                if relacionadosCache != nil && rel.isEmpty {
+                    Text("Nenhum julgado relacionado no acervo.").font(DS.interface(15)).foregroundStyle(ThemeState.t.text2)
+                }
+                ForEach(rel) { r in
+                    Button { gaveta = .fechada; store.lerCheio(r.id) } label: {
+                        VStack(alignment: .leading, spacing: DSEspaco.e1) {
+                            Text("\(r.tribunal) · \(r.titulo)").font(DS.interface(14, .semibold)).foregroundStyle(ThemeState.t.ink)
+                            Text(r.enunciado).font(DS.display(15, .regular)).foregroundStyle(ThemeState.t.text2).lineLimit(3)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading).padding(DSEspaco.e3)
+                        .background(RoundedRectangle(cornerRadius: DSRaio.card, style: .continuous).strokeBorder(ThemeState.t.border))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
     }
 
     private func copiar(_ s: String) {

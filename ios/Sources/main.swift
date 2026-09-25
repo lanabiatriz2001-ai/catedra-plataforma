@@ -72,6 +72,11 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         view.backgroundColor = .systemBackground
         // LEGIS → JURIS: "abrir este verbete" (jurisprudência por artigo). Troca a aba e,
         // com o store montado, leva até o verbete.
+        // Entrega 3: "Abrir no LEGIS" a partir do verbete — troca de aba; o ContentView do LEGIS
+        // consome o pedido pendente (JurisPorArtigo.pedidoLegis).
+        NotificationCenter.default.addObserver(forName: JurisPorArtigo.notificacaoAbrirLegis, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.selecionarAba(1) }
+        }
         NotificationCenter.default.addObserver(forName: JurisPorArtigo.notificacaoAbrir, object: nil, queue: .main) { [weak self] n in
             MainActor.assumeIsolated {
                 guard let self, let id = n.userInfo?["id"] as? String else { return }
