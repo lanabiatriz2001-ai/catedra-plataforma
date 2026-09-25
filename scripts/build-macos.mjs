@@ -22,11 +22,13 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { execSync } from 'node:child_process';
 import { verificarPII } from './verificar-pii.mjs';
-import './verificar-cores-ramo.mjs';   // trava: paleta de ramos igual nas 3 fontes
+import './verificar-cores-ramo.mjs';   // trava: paleta de ramos igual na web e na tabela nativa única
 import './verificar-cores-leitura.mjs';   // trava: grade de leitura ativa legível (≥ 4,5:1 texto, ≥ 3:1 identidade)
 import './verificar-cores-texto.mjs';   // trava: cor de ramo como texto ≥ 4,5:1 (P16)
+import { verificar as verificarDesignNativo } from './verificar-design-nativo.mjs';   // trava: dívida visual do nativo só desce
 import './build-juridico.mjs';   // Termos e Política: docs/juridico/*.md → termos.html, privacidade.html, juridico.js
 import { prepararAbertura } from './build-abertura.mjs';
+{ const r = verificarDesignNativo(); if (r.falhas.length) throw new Error('\n✗ BUILD ABORTADO — dívida visual do LEGIS/JURIS nativos subiu:\n  ' + r.falhas.join('\n  ')); }
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(ROOT, 'mac', 'build', 'web');
