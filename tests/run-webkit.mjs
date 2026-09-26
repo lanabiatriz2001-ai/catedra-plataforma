@@ -28,6 +28,7 @@ import { testarIpadToque } from './ipad-toque.mjs';
 import { testarIpadToqueSatelites } from './ipad-toque-satelites.mjs';
 import { testarAuthIpad } from './auth-ipad.mjs';
 import { testarAuthAbertura } from './auth-abertura.mjs';
+import { testarAuthHidratacao } from './auth-hidratacao.mjs';
 import { testarCarregamentoInicial, testarAberturaEmbutida } from './carregamento-inicial.mjs';
 import { testarTemplateFileUrl } from './template-file-url.mjs';
 import { testarAuthModoLocal } from './auth-modo-local.mjs';
@@ -102,6 +103,12 @@ for (const [base, origem, arquivo] of ORIGENS) {
     }
   }
   if (origem === 'http') {
+    // hidratação que não finge que enviou: semeia por base+'/__semente', por isso só em http
+    try { await testarAuthHidratacao(page, base, ok, { motor }); }
+    catch (e) {
+      ok(false, 'AUTH HIDRATAÇÃO [' + motor + '] o roteiro correu sem exceção ('
+        + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+    }
     await testarCarregamentoInicial(page, base, ok);
     await testarAberturaEmbutida(ok);
     try { await testarPrioridadeDiscursiva(page, base, ok); } catch(e) { ok(false, 'DISCURSIVA exceção: '+e.message); }
