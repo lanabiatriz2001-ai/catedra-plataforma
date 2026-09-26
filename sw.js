@@ -29,13 +29,22 @@ if (!IS_PROD) {
   });
 } else {
   // ---- produção: PWA normal ----
-  var VERSION = 'catedra-v5';
+  /* UM CACHE POR DEPLOY. O build troca o marcador abaixo por VERSION = 'catedra-<hash>',
+     o sha256 do conteúdo publicado (scripts/sw-versao.mjs): mesmo conteúdo, mesma versão;
+     qualquer byte diferente, cache novo. Antes era 'catedra-v5' fixo — a casca e o acervo
+     guardados sobreviviam de um deploy ao outro, o aquecimento pulava o que já tinha, e o
+     offline abria o index.html de uma publicação com o acervo de outra. Decisão da dona
+     (25/09/2026): rebaixar os ~11 MB do acervo a cada deploy que muda algo, em troca de o
+     offline nunca misturar versões. A ativação apaga todo cache de versão anterior. */
+  var VERSION = 'catedra-dev';
+  /*__VERSAO__*/
   // Os blocos de dados/ (ver scripts/build-fatias.mjs) trazem o hash do conteúdo no
   // nome: são IMUTÁVEIS. Ficam num cache próprio, que não é apagado a cada deploy —
-  // senão o app rebaixaria dezenas de megabytes de acervo a cada publicação. Quando
-  // o conteúdo muda, o nome muda, e o bloco velho é lixo inerte: o ct-dados.js
-  // descarta o registro no IndexedDB e este cache é limpo sob demanda pela mensagem
-  // ctPurgarDados (CTDados.limpar()).
+  // bloco com o mesmo nome é o mesmo byte, em qualquer versão, então rebaixá-lo não
+  // compraria nada. Quando o conteúdo muda, o nome muda, e o bloco velho vira lixo: a
+  // ativação apaga daqui todo bloco que os manifestos da versão nova não citam
+  // (faxinaDados, abaixo) — antes eles se acumulavam para sempre, porque a faxina do
+  // ct-dados.js só limpa o IndexedDB. ctPurgarDados (CTDados.limpar()) apaga tudo.
   var CACHE_DADOS = 'catedra-dados-v1';
   var EH_DADO = /\/dados\/[^/]+\/[^/]+\.json$/;
   // O manifesto é a única coisa em dados/ que NÃO pode ser cache-first: é ele que
@@ -50,6 +59,19 @@ if (!IS_PROD) {
      ./index.html (start_url), então sem ele na lista o app abria em branco offline. */
   var ASSETS = ['./', './index.html', './support.js', './auth.js', './ct-dados.js', './manifest.webmanifest', './icon.svg'];
   /*__EXTRA_ASSETS__*/
+
+  /* Dentro da casca, o que é CRÍTICO: sem qualquer um destes o app não abre (ou abre sem
+     login, sem React, sem estilo). Eles entram com addAll, que é tudo-ou-nada: se um só
+     falhar, o install REJEITA, o navegador descarta o worker novo e o antigo segue servindo
+     a versão inteira que já tinha. Antes cada c.add engolia a própria falha e o worker
+     ativava com skipWaiting sobre um cache PARCIAL — offline, faltava justamente o que
+     tinha falhado. O resto da casca (ícones, manifestos dos acervos, fontes, scripts
+     secundários do <head>) segue tolerante: melhor ativar sem um ícone que não ativar. */
+  var CRITICOS = ['./', './index.html', './support.js', './auth.js', './catedra-ui.css', './fonts.css'];
+  function ehCritico(caminho) {
+    // vendor/*.js da abertura (react, react-dom, supabase); vendor/pdfjs/ fica de fora
+    return CRITICOS.indexOf(caminho) >= 0 || /^\.\/vendor\/[^/]+\.js$/.test(caminho);
+  }
 
   /* ────────────────── camada 2: os acervos (aquecimento oportunista) ──────────────────
      [caminho, bytes] — os tamanhos vêm MEDIDOS do build (scripts/build.mjs), não
@@ -92,6 +114,9 @@ if (!IS_PROD) {
       · oral-conteudo.js (4,9 MB) — as 999 perguntas de banca da arguição oral.
       · leis-seca-areas.js (3,3 MB) — as 35 leis das áreas não jurídicas; o worker
         não tem como saber qual área ela escolheu.
+      · vendor/pdfjs/ (1,4 MB, lib + worker do PDF.js) — só serve para importar PDF.
+        Antes vinha de um CDN e o worker não guarda outra origem: offline não havia
+        importação. Online, o network-first abaixo já o guarda no primeiro uso.
      O host chama window.__catedraOffline.baixar() e o worker traz estes junto. */
   var ACERVOS_SOB_PEDIDO = [];
   /*__ACERVOS_SOB_PEDIDO__*/
@@ -108,6 +133,21 @@ if (!IS_PROD) {
   var FOLGA_COTA = 2.5;
 
   /* ───────────────────────── decisões (funções puras, testáveis) ───────────────────────── */
+
+  /** Pedido que passa por cima do cache HTTP do navegador: sem isto, o install e o
+      aquecimento de um deploy novo podiam guardar a cópia do deploy anterior que o
+      navegador ainda tinha — o cache "novo" nasceria misturado. */
+  function daRede(caminho, modo) {
+    try { return new Request(new URL(caminho, self.location.href).href, { cache: modo || 'reload' }); }
+    catch (_) { return caminho; }
+  }
+
+  /** Este worker só lê o cache da PRÓPRIA versão. caches.match() sem cache nomeado
+      procura em todos — e, entre o install de um deploy novo e a ativação dele, o
+      worker antigo acharia lá os arquivos da versão nova. */
+  function daVersao(req) {
+    return caches.open(VERSION).then(function (c) { return c.match(req); });
+  }
 
   /** Bloco de acervo fatiado (cache-first puro) — o manifesto não conta. */
   function ehBlocoDeDados(caminho) {
@@ -190,8 +230,8 @@ if (!IS_PROD) {
     if (modo === 'app') {
       // offline numa rota qualquer (?view=…, /algo): devolve o app inteiro, que
       // resolve a tela sozinho — melhor que o dinossauro do navegador.
-      return caches.match('./index.html')
-        .then(function (doc) { return doc || caches.match('./'); })
+      return daVersao('./index.html')
+        .then(function (doc) { return doc || daVersao('./'); })
         .then(function (doc) {
           return doc || paginaOffline('Cátedra offline',
             'O app ainda não foi guardado neste aparelho. Abra uma vez com internet e ele passa a funcionar em modo avião.');
@@ -250,9 +290,13 @@ if (!IS_PROD) {
           return p.then(function () {
             var caminho = item[0];
             var c = ehBlocoDeDados(caminho) ? cDados : cCasca;
+            // "Já tinha" só vale DENTRO desta versão: o cache da casca nasce vazio a cada
+            // deploy, então tudo o que não é bloco imutável é baixado de novo. O pulo existe
+            // para retomar um aquecimento que o navegador matou no meio, não para herdar
+            // cópia de outra publicação.
             return c.match(caminho).then(function (hit) {
               if (hit) { res.jaTinha++; return; }
-              return fetch(caminho).then(function (r) {
+              return fetch(c === cDados ? caminho : daRede(caminho, 'no-cache')).then(function (r) {
                 if (!r || !r.ok) { res.falhas++; return; }
                 return c.put(caminho, r).then(function () { res.baixados++; });
               }).catch(function () { res.falhas++; });   // rede caiu: o resto fica para a próxima ativação
@@ -268,7 +312,8 @@ if (!IS_PROD) {
   /* Uma tentativa por VIDA do worker. O navegador do celular mata service worker
      ocioso sem avisar: se o aquecimento do activate morrer no meio, sem isto o
      acervo ficaria pela metade até o próximo deploy. Assim, a próxima vez que ela
-     abrir o app o worker novo retoma de onde parou (o que já está em cache é pulado). */
+     abrir o app o worker retoma de onde parou — pulando só o que ESTA versão já
+     guardou (o cache de uma versão anterior já foi apagado na ativação). */
   var jaAqueceu = false;
   function talvezAquecer() {
     if (jaAqueceu) return;
@@ -276,7 +321,9 @@ if (!IS_PROD) {
     try { aquecerAcervos().catch(function () {}); } catch (_) {}
   }
 
-  /** Quanto do acervo já está neste aparelho — é o que os Ajustes mostram.
+  /** Quanto do acervo já está neste aparelho — é o que os Ajustes mostram. Conta só
+      o cache DESTA versão (e os blocos imutáveis que os manifestos dela citam): cópia
+      de outro deploy não é "pronto".
       Separa o que o worker traz sozinho (auto) do total com os pesados, para o
       texto do Ajuste poder dizer "o dia a dia está pronto; faltam os 18 MB do
       simulado de súmulas" em vez de uma barra eternamente incompleta. */
@@ -304,27 +351,68 @@ if (!IS_PROD) {
     });
   }
 
+  /** Apaga do CACHE_DADOS os blocos que os manifestos desta versão não citam. Os
+      manifestos vêm do cache da própria versão (estão na casca). Na dúvida, guarda:
+      pasta cujo manifesto não foi lido fica intacta, e sem manifesto nenhum na lista
+      (sw.js fora do build) a faxina não roda — apagar acervo por engano custa um
+      download; guardar lixo custa só espaço. */
+  function faxinaDados() {
+    var manifestos = ASSETS.filter(function (a) { return EH_MANIFESTO.test(a); });
+    if (!manifestos.length) return Promise.resolve({ apagados: 0 });
+    var validos = {}, incertas = {};
+    return Promise.all([caches.open(VERSION), caches.open(CACHE_DADOS)]).then(function (cs) {
+      var cCasca = cs[0], cDados = cs[1];
+      return Promise.all(manifestos.map(function (m) {
+        var pasta = new URL(m, self.location.href).pathname.replace(/manifesto\.json$/, '');
+        return cCasca.match(m).then(function (r) { return r ? r.json() : null; }).then(function (j) {
+          if (!j || !Array.isArray(j.arquivos)) { incertas[pasta] = true; return; }
+          j.arquivos.forEach(function (a) { validos[pasta + a] = true; });
+        }).catch(function () { incertas[pasta] = true; });
+      })).then(function () { return cDados.keys(); }).then(function (reqs) {
+        var apagados = 0;
+        return Promise.all(reqs.map(function (req) {
+          var caminho;
+          try { caminho = new URL(req.url || req, self.location.href).pathname; } catch (_) { return null; }
+          if (validos[caminho] || incertas[caminho.replace(/[^/]+$/, '')]) return null;
+          return cDados.delete(req).then(function (ok) { if (ok) apagados++; });
+        })).then(function () { return { apagados: apagados }; });
+      });
+    });
+  }
+
+  /** A casca: críticos com addAll (tudo-ou-nada), o resto tolerante. Falhou um crítico?
+      O cache desta versão é apagado e o install rejeita — nada de skipWaiting. */
+  function instalar() {
+    var criticos = ASSETS.filter(ehCritico);
+    var demais = ASSETS.filter(function (a) { return !ehCritico(a); });
+    return caches.open(VERSION).then(function (c) {
+      return c.addAll(criticos.map(function (a) { return daRede(a); })).then(function () {
+        return Promise.all(demais.map(function (a) { return c.add(daRede(a)).catch(function () {}); }));
+      });
+    }).catch(function (erro) {
+      return caches.delete(VERSION).catch(function () {}).then(function () { throw erro; });
+    });
+  }
+
   /* ─────────────────────────────────── ciclo de vida ─────────────────────────────────── */
 
   self.addEventListener('install', function(e){
-    e.waitUntil(
-      caches.open(VERSION)
-        .then(function(c){ return Promise.all(ASSETS.map(function(a){ return c.add(a).catch(function(){}); })); })
-        .then(function(){ return self.skipWaiting(); })
-    );
+    e.waitUntil(instalar().then(function(){ return self.skipWaiting(); }));
   });
 
   self.addEventListener('activate', function(e){
     e.waitUntil(
       caches.keys()
+        // toda versão anterior sai inteira — inclusive o 'catedra-v5' fixo de antes
         .then(function(keys){ return Promise.all(keys.filter(function(k){ return k !== VERSION && k !== CACHE_DADOS; }).map(function(k){ return caches.delete(k); })); })
         .then(function(){ return self.clients.claim(); })
+        .then(function(){ return faxinaDados().catch(function(){}); })
     );
     // FORA do waitUntil de propósito: ~11 MB de acervo dentro dele segurariam a
     // ativação — e, com ela, o primeiro fetch da aba que está esperando na tela.
-    // O acervo é rebaixado inteiro a cada deploy porque estes arquivos não têm hash
-    // no nome: servir a cópia anterior seria exatamente o bug que o network-first
-    // existe para evitar.
+    // Como o cache desta versão nasceu vazio, o acervo é rebaixado inteiro: estes
+    // arquivos não têm hash no nome, e servir a cópia do deploy anterior seria
+    // exatamente a mistura de versões que o cache por deploy existe para evitar.
     talvezAquecer();
   });
 
@@ -372,7 +460,7 @@ if (!IS_PROD) {
         }
         return res;
       }).catch(function(){
-        return caches.match(e.request).then(function(hit){
+        return daVersao(e.request).then(function(hit){
           return hit || respostaOffline(e.request);
         });
       })
@@ -429,6 +517,8 @@ if (!IS_PROD) {
      PRODUÇÃO é chamar as decisões diretamente, com um `self` simulado. */
   self.__ctSW = {
     VERSION: VERSION, CACHE_DADOS: CACHE_DADOS, ASSETS: ASSETS, ACERVOS: ACERVOS,
+    CRITICOS: ASSETS.filter(ehCritico), ehCritico: ehCritico,
+    instalar: instalar, faxinaDados: faxinaDados, aquecerAcervos: aquecerAcervos, estadoOffline: estadoOffline,
     ACERVOS_SOB_PEDIDO: ACERVOS_SOB_PEDIDO,
     ORCAMENTO_ACERVO: ORCAMENTO_ACERVO, ORCAMENTO_PEDIDO: ORCAMENTO_PEDIDO, FOLGA_COTA: FOLGA_COTA,
     ehBlocoDeDados: ehBlocoDeDados, planoDeAquecimento: planoDeAquecimento,

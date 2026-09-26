@@ -37,11 +37,13 @@
           signOut: function () { return Promise.resolve({ error: null }); },
           getUser: function () { return Promise.resolve({ data: { user: null }, error: null }); }
         },
+        // preguiçoso como o postgrest-js: nada "sai" antes do then() (ver auth-ipad-fixture.html)
         from: function () {
-          var enc = { select: enc0, eq: enc0, maybeSingle: fim, single: fim, upsert: fim, insert: fim, update: fim, delete: fim };
-          function enc0() { return enc; }
-          function fim() { return Promise.resolve({ data: null, error: null }); }
-          return enc;
+          var q = { select: enc0, eq: enc0, maybeSingle: enc0, single: enc0, upsert: enc0, insert: enc0, update: enc0, delete: enc0,
+            then: function (ok, er) { return Promise.resolve({ data: null, error: null }).then(ok, er); },
+            catch: function (er) { return q.then(null, er); } };
+          function enc0() { return q; }
+          return q;
         },
         rpc: function () { return Promise.resolve({ data: null, error: null }); },
         channel: function () { return { on: function () { return this; }, subscribe: function () { return this; } }; },

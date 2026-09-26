@@ -122,8 +122,8 @@ textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible {
 }
 .ct-btn:hover { border-color: var(--module-accent, var(--accent, #0f7a57)); }
 .ct-btn-1 {
-  background: var(--module-accent, var(--accent, #0f7a57));
-  border-color: var(--module-accent, var(--accent, #0f7a57));
+  background: var(--accentSolid, var(--module-accent, var(--accent, #0f7a57)));
+  border-color: var(--accentSolid, var(--module-accent, var(--accent, #0f7a57)));
   color: var(--onAccent, #fff);
 }
 .ct-btn:is([disabled],[aria-disabled='true'],[aria-busy='true']) {
