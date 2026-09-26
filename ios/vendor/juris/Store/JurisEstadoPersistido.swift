@@ -269,62 +269,145 @@ enum JurisMigracaoIDs {
         return (try? c.data(from: NSRange(location: 0, length: c.length), documentAttributes: doc)) ?? canonica
     }
 
+    /// Abertura do app: une, no próprio estado, cada id antigo no canônico — uma vez por id (`idsMigrados`).
     static func migrar(_ s: inout JurisEstadoPersistido,
                        juntarNotas: (Data, Data) -> Data = JurisMigracaoIDs.juntarNotasRTF) {
         var feitos = Set(s.idsMigrados ?? [])
         for (antigo, novo) in destinos.sorted(by: { $0.key < $1.key }) where !feitos.contains(antigo) {
-            var teve = false
-            func ou(_ v: inout [String]) {
-                guard v.contains(antigo) else { return }
-                teve = true
-                if !v.contains(novo) { v.append(novo) }
-            }
-            func ouOpc(_ v: inout [String]?) {
-                guard var x = v else { return }
-                ou(&x); v = x
-            }
-            func concatena(_ d: inout [String: String]?) {
-                guard let a = d?[antigo], !a.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-                teve = true
-                if let n = d?[novo], !n.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    if !n.contains(a.trimmingCharacters(in: .whitespacesAndNewlines)) { d?[novo] = n + "\n\n" + a }
-                } else {
-                    d?[novo] = a
-                }
-            }
-            func seFaltar<T>(_ d: inout [String: T]?) {
-                guard let v = d?[antigo] else { return }
-                teve = true
-                if d?[novo] == nil { d?[novo] = v }
-            }
-            ou(&s.favorites); ou(&s.recents)
-            ouOpc(&s.importantes); ouOpc(&s.lidos); ouOpc(&s.dominados)
-            concatena(&s.annotations); concatena(&s.afirmacoesFalsas)
-            if let a = s.richNotes?[antigo] {
-                teve = true
-                if let n = s.richNotes?[novo] { if n != a { s.richNotes?[novo] = juntarNotas(n, a) } }
-                else { s.richNotes?[novo] = a }
-            }
-            if let a = s.marks?[antigo], !a.isEmpty {
-                teve = true
-                var n = s.marks?[novo] ?? []
-                for m in a where !n.contains(m) { n.append(m) }
-                s.marks?[novo] = n
-            }
-            if let a = s.srs?[antigo] {
-                teve = true
-                if let n = s.srs?[novo] { if maisAvancado(a, n) { s.srs?[novo] = a } }
-                else { s.srs?[novo] = a }
-            }
-            seFaltar(&s.alinhamentos); seFaltar(&s.textosEditados)
-            if s.colecoes != nil {
-                for i in s.colecoes!.indices where s.colecoes![i].ids.contains(antigo) {
-                    teve = true
-                    if !s.colecoes![i].ids.contains(novo) { s.colecoes![i].ids.append(novo) }
-                }
-            }
-            if teve { feitos.insert(antigo) }
+            let origem = s   // retrato: lê o id antigo daqui e escreve o canônico em `s`
+            if unir(antigo, em: novo, de: origem, para: &s, juntarNotas: juntarNotas) { feitos.insert(antigo) }
         }
         if !feitos.isEmpty { s.idsMigrados = feitos.sorted() }
+    }
+
+    /// Backup restaurado: une no canônico do estado atual (`s`, já mesclado com o backup) o que o
+    /// BACKUP traz num id que saiu do acervo. "Uma vez por id" vale para o conteúdo do backup: id que o
+    /// próprio backup marca em `idsMigrados` (exportado depois da fusão) já tem a união no canônico dele —
+    /// não reúne, e o que a pessoa desfez ali não volta; backup antigo, sem a marca, une. As marcas deste
+    /// aparelho não contam aqui: dizem respeito ao estado que ele já tinha, não ao que acabou de chegar.
+    /// Depois, o id fica marcado neste estado — a abertura seguinte não junta de novo a cópia antiga.
+    static func migrarRestaurado(_ backup: JurisEstadoPersistido, em s: inout JurisEstadoPersistido,
+                                 juntarNotas: (Data, Data) -> Data = JurisMigracaoIDs.juntarNotasRTF) {
+        let jaUnidosNoBackup = Set(backup.idsMigrados ?? [])
+        var feitos = Set(s.idsMigrados ?? []).union(jaUnidosNoBackup)
+        for (antigo, novo) in destinos.sorted(by: { $0.key < $1.key }) where !jaUnidosNoBackup.contains(antigo) {
+            if unir(antigo, em: novo, de: backup, para: &s, juntarNotas: juntarNotas) { feitos.insert(antigo) }
+        }
+        if !feitos.isEmpty { s.idsMigrados = feitos.sorted() }
+    }
+
+    /// A regra de união de UM par: lê o estado do id `antigo` em `o` e o une ao `novo` de `s` (que pode
+    /// ser o mesmo estado, na abertura, ou o estado atual, na restauração de backup). Devolve se `o`
+    /// tinha estado no id antigo. Nunca apaga: a chave antiga de `s` fica como está.
+    @discardableResult
+    static func unir(_ antigo: String, em novo: String, de o: JurisEstadoPersistido,
+                     para s: inout JurisEstadoPersistido,
+                     juntarNotas: (Data, Data) -> Data = JurisMigracaoIDs.juntarNotasRTF) -> Bool {
+        var teve = false
+        func ou(_ origem: [String]?, _ v: inout [String]) {
+            guard origem?.contains(antigo) == true else { return }
+            teve = true
+            if !v.contains(novo) { v.append(novo) }
+        }
+        func ouOpc(_ origem: [String]?, _ v: inout [String]?) {
+            guard origem?.contains(antigo) == true else { return }
+            var x = v ?? []
+            ou(origem, &x); v = x
+        }
+        func concatena(_ origem: [String: String]?, _ d: inout [String: String]?) {
+            guard let a = origem?[antigo], !a.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+            teve = true
+            if let n = d?[novo], !n.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                if !n.contains(a.trimmingCharacters(in: .whitespacesAndNewlines)) { d?[novo] = n + "\n\n" + a }
+            } else {
+                d?[novo] = a
+            }
+        }
+        func seFaltar<T>(_ origem: [String: T]?, _ d: inout [String: T]?) {
+            guard let v = origem?[antigo] else { return }
+            teve = true
+            if d?[novo] == nil { d?[novo] = v }
+        }
+        ou(o.favorites, &s.favorites); ou(o.recents, &s.recents)
+        // importante (o ⚡ que a pessoa marca) entra no OU como favorito e lido
+        ouOpc(o.importantes, &s.importantes); ouOpc(o.lidos, &s.lidos); ouOpc(o.dominados, &s.dominados)
+        concatena(o.annotations, &s.annotations); concatena(o.afirmacoesFalsas, &s.afirmacoesFalsas)
+        if let a = o.richNotes?[antigo] {
+            teve = true
+            if s.richNotes == nil { s.richNotes = [:] }
+            if let n = s.richNotes?[novo] { if n != a { s.richNotes?[novo] = juntarNotas(n, a) } }
+            else { s.richNotes?[novo] = a }
+        }
+        if let a = o.marks?[antigo], !a.isEmpty {
+            teve = true
+            if s.marks == nil { s.marks = [:] }
+            var n = s.marks?[novo] ?? []
+            for m in a where !n.contains(m) { n.append(m) }
+            s.marks?[novo] = n
+        }
+        if let a = o.srs?[antigo] {
+            teve = true
+            if s.srs == nil { s.srs = [:] }
+            if let n = s.srs?[novo] { if maisAvancado(a, n) { s.srs?[novo] = a } }
+            else { s.srs?[novo] = a }
+        }
+        seFaltar(o.alinhamentos, &s.alinhamentos); seFaltar(o.textosEditados, &s.textosEditados)
+        // coleção: o canônico entra na MESMA coleção (pelo id dela) em que o antigo estava na origem
+        for c in o.colecoes ?? [] where c.ids.contains(antigo) {
+            teve = true
+            if let i = s.colecoes?.firstIndex(where: { $0.id == c.id }), s.colecoes?[i].ids.contains(novo) == false {
+                s.colecoes?[i].ids.append(novo)
+            }
+        }
+        return teve
+    }
+}
+
+// MARK: - Restauração de backup
+
+extension JurisEstadoPersistido {
+    /// Restaura um backup por MESCLA (o que o LibraryStore.importarBackup faz): favorito, importante, lido
+    /// e dominado somam; nota, marcação, afirmação falsa, alinhamento, texto editado e cartão de revisão
+    /// entram onde este aparelho não tem; leituras do dia ficam no maior; meta vem do backup; coleções,
+    /// tribunais e checklist novos (por id) entram. Depois, o que o backup traz em id fundido passa ao
+    /// canônico pela regra da união (JurisMigracaoIDs.migrarRestaurado) — sem isto, backup antigo com id
+    /// fundido deixava o estudo órfão até a próxima abertura (e para sempre, se o id já estava marcado).
+    /// Cores favoritas ficam com o LibraryStore (lá há a regra de repetição e limite).
+    mutating func mesclarBackup(_ b: JurisEstadoPersistido,
+                                juntarNotas: (Data, Data) -> Data = JurisMigracaoIDs.juntarNotasRTF) {
+        func soma(_ v: inout [String], _ w: [String]?) { for x in w ?? [] where !v.contains(x) { v.append(x) } }
+        func somaOpc(_ v: inout [String]?, _ w: [String]?) {
+            guard let w, !w.isEmpty else { return }
+            var x = v ?? []; soma(&x, w); v = x
+        }
+        func seFaltar<T>(_ d: inout [String: T]?, _ w: [String: T]?) {
+            guard let w, !w.isEmpty else { return }
+            var x = d ?? [:]
+            for (k, v) in w where x[k] == nil { x[k] = v }
+            d = x
+        }
+        soma(&favorites, b.favorites)
+        somaOpc(&importantes, b.importantes); somaOpc(&lidos, b.lidos); somaOpc(&dominados, b.dominados)
+        seFaltar(&richNotes, b.richNotes); seFaltar(&marks, b.marks); seFaltar(&afirmacoesFalsas, b.afirmacoesFalsas)
+        seFaltar(&alinhamentos, b.alinhamentos); seFaltar(&textosEditados, b.textosEditados); seFaltar(&srs, b.srs)
+        if let l = b.leiturasPorDia, !l.isEmpty {
+            var x = leiturasPorDia ?? [:]
+            for (k, v) in l { x[k] = max(x[k] ?? 0, v) }
+            leiturasPorDia = x
+        }
+        if let m = b.metaDiaria { metaDiaria = m }
+        if let c = b.colecoes, !c.isEmpty {
+            let existentes = Set((colecoes ?? []).map(\.id))
+            colecoes = (colecoes ?? []) + c.filter { !existentes.contains($0.id) }
+        }
+        if let t = b.tribunaisCustom, !t.isEmpty {
+            let existentes = Set((tribunaisCustom ?? []).map(\.id))
+            tribunaisCustom = (tribunaisCustom ?? []) + t.filter { !existentes.contains($0.id) }
+        }
+        if let r = b.readingChecklist, !r.isEmpty {
+            let existentes = Set((readingChecklist ?? []).map(\.id))
+            readingChecklist = (readingChecklist ?? []) + r.filter { !existentes.contains($0.id) }
+        }
+        JurisMigracaoIDs.migrarRestaurado(b, em: &self, juntarNotas: juntarNotas)
     }
 }

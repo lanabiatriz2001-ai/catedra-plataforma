@@ -155,8 +155,13 @@ export function testarSemMapasMentaisEstatico(ok, opcoes = {}) {
     const usos = (ls.match(/\bmapasFeitos\b|\bmapasSeeded\b/g) || []).length;
     ok(usos === 0 && !/RECUPERAÇÃO/.test(ls),
       R + '(b) ' + plat + ': o LibraryStore não lê, não semeia nem grava a galeria (' + usos + ' uso(s))');
+    // as duas gravações (state.json/iCloud e backup) montam o estado pelo mesmo retrato, que devolve o legado
+    const corpo = (nome) => { const i = ls.indexOf(nome); if (i < 0) return ''; const a = ls.indexOf('{', i); let k = a, d = 0;
+      for (; k < ls.length; k++) { if (ls[k] === '{') d++; else if (ls[k] === '}' && --d === 0) break; } return ls.slice(a, k + 1); };
     ok(/legadoGaleria = Persisted\.LegadoGaleria\(de: s\)/.test(ls)
-      && (ls.match(/legadoGaleria\.aplicar\(em: &s\)/g) || []).length === 2,
+      && (ls.match(/legadoGaleria\.aplicar\(em: &s\)/g) || []).length === 1
+      && /legadoGaleria\.aplicar\(em: &s\)/.test(corpo('func retratoPersistido('))
+      && /retratoPersistido\(\)/.test(corpo('func persistAgora(')) && /retratoPersistido\(\)/.test(corpo('func exportarBackup(')),
       R + '(b) ' + plat + ': o legado lido do disco volta nas duas gravações (state.json/iCloud e backup)');
     ok(!/private struct Persisted\b/.test(ls) && /typealias Persisted = JurisEstadoPersistido/.test(ls),
       R + '(b) ' + plat + ': o LibraryStore grava pelo JurisEstadoPersistido (o mesmo que o teste compila)');

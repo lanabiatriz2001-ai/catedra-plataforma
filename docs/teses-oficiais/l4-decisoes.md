@@ -16,6 +16,14 @@ O L4 aplica as decisões da dona de 25/09/2026 sobre o que os lotes L1–L3 deix
 
 Migração nunca apaga: a chave antiga fica como cópia. Quando os dois ids têm estado: favorito, lido, dominado, importante e recente = OU; status do estudo (web) = o mais avançado (dominado > em revisão > nada); anotação, nota rica e afirmação falsa = concatenadas (canônico primeiro, depois a do id antigo, sem repetir texto que já está lá); grifos e marcações = união sem repetir; revisão espaçada (cartão) = a mais avançada (mais repetições; empate: maior intervalo; depois a próxima revisão mais tardia); coleção = o canônico entra onde o antigo estava; texto editado, alinhamento e roteiro de IA = o do canônico, e o do antigo só se o canônico não tiver. Roda uma vez por id (marca no próprio estado), para não reunir de novo o que a pessoa desfez depois.
 
+Restaurar backup (JURIS nativo: Mac, iPad e app independente) passa pela mesma regra: depois da mescla, o que o
+BACKUP traz em id fundido é unido ao canônico. "Uma vez por id" vale para o conteúdo do backup — id que o próprio
+backup já marca em `idsMigrados` não é reunido; backup de antes do L4, sem a marca, une (a marca do aparelho não
+conta: diz respeito ao estado que ele já tinha). Na web o JURIS não importa backup e o backup do Cátedra não leva o
+estudo do JURIS; a marca `est.mig` viaja dentro do próprio estudo, então um estudo antigo que volte inteiro (nuvem)
+é unido na abertura seguinte. O ⚡ que a pessoa marca (`importantes`) entra no OU; o destaque do ACERVO (campo
+`importante`/coluna `im`) é dado do registro e não é estado da pessoa.
+
 ## Relator
 
 Relator do STF: o do julgamento de mérito, lido dos andamentos oficiais (texto da decisão; na falta, a cadeia de distribuição), com o redator do acórdão quando o relator ficou vencido — a exportação do STF traz o relator atual. Relator do STJ (desde o L4, decisão da dona): o portal de repetitivos só dá o relator ATUAL do processo, então a citação diz "Rel. atual: Min. X" em vez de sugerir que ele julgou.
