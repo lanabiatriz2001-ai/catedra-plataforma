@@ -10,10 +10,13 @@
    Não conhece rito nenhum: tudo o que sabe de direito chega pelo grafo e pelo
    acervo de peças. Cadastrar um rito novo é mexer só em fluxos.js.
 
-   Expõe: window.CTMapa.montar(elemento, opcoes) → { abrir, ir, destruir }
+   Expõe: window.CTMapa.montar(elemento, opcoes) → { ir, abrirPeca, abrirPainel, aberto, destruir }
      opcoes.grafo        grafo do CTMapaGrafo
      opcoes.pecas        window.CT_PECAS
-     opcoes.aoAcervo     (alvo, termo, de) → leva ao LEGIS/JURIS
+     opcoes.aoAcervo     (alvo, termo, de) → leva ao LEGIS/JURIS. Das referências do
+                         PAINEL, `de` leva mapa:{tipo:'no'|'peca', id} (o painel aberto) e
+                         nunca `peca` solto — a volta reabre este painel, não o roteiro
+                         lateral. Do chip do CARTÃO vai só {rito}: volta ao mapa sem painel.
      opcoes.aoRoteiro    (nome) → abre o roteiro completo da peça
    ========================================================================== */
 (function () {
@@ -22,6 +25,13 @@
 var CH = 'catedraMapaProcessual';          /* por aparelho, como o modo cego das peças */
 function lerTudo(){ try { return JSON.parse(localStorage.getItem(CH)) || {}; } catch (e) { return {}; } }
 function gravarTudo(o){ try { localStorage.setItem(CH, JSON.stringify(o)); } catch (e) {} }
+
+/* Ícone Lucide por NOME (a mesma cópia pequena dos satélites): SVG 16 px, traço currentColor,
+   aria-hidden e data-ico. O botão continua nomeado pelo texto (o artigo, o julgado, a peça). */
+var ICO = {'scale':'<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path>',
+  'landmark':'<path d="M10 18v-7"></path><path d="M11.12 2.198a2 2 0 0 1 1.76.006l7.866 3.847c.476.233.31.949-.22.949H3.474c-.53 0-.695-.716-.22-.949z"></path><path d="M14 18v-7"></path><path d="M18 18v-7"></path><path d="M3 22h18"></path><path d="M6 18v-7"></path>',
+  'pen-line':'<path d="M12 20h9"></path><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"></path>'};
+function ico(nome){ return '<svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="' + nome + '" style="vertical-align:-.25em;margin-right:4px">' + (ICO[nome] || '') + '</svg>'; }
 
 function esc(s){ return String(s == null ? '' : s)
   .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
@@ -123,12 +133,15 @@ var CSS = ''
 + '.mp-abrir{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;align-items:flex-start;'
 + 'padding:11px 13px 8px;border:0;background:transparent;color:inherit;cursor:pointer;text-align:left;width:100%}'
 + '.mp-abrir:focus-visible{outline:3px solid var(--mp-ciano);outline-offset:-3px}'
-+ '.mp-topo{display:flex;align-items:center;gap:7px;width:100%;font-size:9.5px;font-weight:800;'
-+ 'letter-spacing:.1em;text-transform:uppercase;color:var(--mp-roxo);padding-right:26px}'
-+ '.mp-no[data-tipo="decisao"] .mp-topo{color:var(--mp-ouro)}'
-+ '.mp-no[data-tipo="rejeicao"] .mp-topo{color:var(--mp-vermelho)}'
-+ '.mp-no[data-tipo="fim"] .mp-topo{color:var(--mp-verde)}'
-+ '.mp-topo .num{background:currentColor;color:var(--mp-cartao);border-radius:6px;padding:1px 5px;'
+/* A cor do tipo mora em --mp-tipo, e não só em `color`: o selo do número pinta o FUNDO com
+   ela. Com `background:currentColor` o selo lia a própria cor de texto (--mp-cartao) e virava
+   um quadrado escuro com o número escuro dentro — o "01" não aparecia. */
++ '.mp-topo{--mp-tipo:var(--mp-roxo);display:flex;align-items:center;gap:7px;width:100%;font-size:9.5px;font-weight:800;'
++ 'letter-spacing:.1em;text-transform:uppercase;color:var(--mp-tipo);padding-right:26px}'
++ '.mp-no[data-tipo="decisao"] .mp-topo{--mp-tipo:var(--mp-ouro)}'
++ '.mp-no[data-tipo="rejeicao"] .mp-topo{--mp-tipo:var(--mp-vermelho)}'
++ '.mp-no[data-tipo="fim"] .mp-topo{--mp-tipo:var(--mp-verde)}'
++ '.mp-topo .num{background:var(--mp-tipo);color:var(--mp-cartao);border-radius:6px;padding:1px 5px;'
 + 'font-variant-numeric:tabular-nums}'
 + '.mp-topo .est{margin-left:auto;color:var(--mp-tinta3);letter-spacing:.06em;flex:none;white-space:nowrap}'
 + '.mp-topo>span:nth-child(2){overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}'
@@ -218,6 +231,21 @@ var CSS = ''
 + '.mp-salvo{font-size:10.5px;color:var(--mp-verde)}'
 + '.mp-vazio{font-size:12.4px;color:var(--mp-tinta3);line-height:1.6}'
 
+/* Toque (iPad, qualquer ponteiro grosso): 44 px em qualquer largura — o mesmo mecanismo do
+   ritos-web (@media (pointer:coarse)), porque o iPad passa de 760 e regra por largura não chega.
+   O painel é anexado ao <body>, FORA do <main>, e por isso não recebe o `main button` do
+   catedra-ui.css que já levava os controles do mapa a 44: as referências (lei, julgado, peça)
+   ficavam com 34 px. No cartão, a estrela de 44×44 cobria o fim do topo ("À FRENTE") e a ponta
+   do título — o texto abre espaço para ela. Com mouse nada disto vale. */
++ '@media (pointer:coarse){'
++ '.mp-refs button{min-height:44px}'
++ '.mp-chip{min-height:44px}'
++ '.mp-rod button{min-height:44px}'
++ '.mp-fav{top:4px;right:4px;width:44px;height:44px}'
++ '.mp-topo{padding-right:44px}'
++ '.mp-abrir strong{padding-right:34px}'
++ '}'
+
 /* leitor de tela */
 + '.mp-so-leitor{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;'
 + 'clip:rect(0 0 0 0);white-space:nowrap;border:0}'
@@ -249,11 +277,29 @@ function montar(raiz, op){
   var G = op.grafo, PECAS = op.pecas || {}, CARTAO = window.CTMapaGrafo.CARTAO;
   if (!G || !G.nos.length) return null;
 
+  /* K3: id que chega de fora (localStorage, ?mapa=, mensagem do host) só vale se for chave
+     PRÓPRIA do grafo/acervo. `G.porId['constructor']` é a função herdada de Object — truthy —,
+     e um {"ativo":"constructor"} gravado quebrava o mapa na abertura. */
+  function proprio(o, id){
+    id = String(id == null ? '' : id);
+    return !!o && id !== '' && !(id in Object.prototype) && Object.prototype.hasOwnProperty.call(o, id);
+  }
+  function noDe(id){ return proprio(G.porId, id) ? G.porId[String(id)] : null; }
+  function pecaDe(nome){ return proprio(PECAS, nome) ? PECAS[String(nome)] : null; }
+  /* as escolhas de rota guardadas passam pela mesma régua: valor que não é etapa deste rito cai */
+  function escolhasValidas(e){
+    var r = {};
+    if (!e || typeof e !== 'object') return r;
+    Object.keys(e).forEach(function (k){ if (noDe(k) && noDe(e[k])) r[k] = e[k]; });
+    return r;
+  }
+
   /* -------- estado, com o que ficou guardado do rito -------- */
-  var tudo = lerTudo(), guardado = tudo[G.rito] || {};
+  var tudo = lerTudo(), guardado = proprio(tudo, G.rito) ? tudo[G.rito] : null;
+  if (!guardado || typeof guardado !== 'object') guardado = {};
   var st = {
-    ativo:     G.porId[guardado.ativo] ? guardado.ativo : G.tronco[0],
-    escolhas:  guardado.escolhas || {},
+    ativo:     noDe(guardado.ativo) ? String(guardado.ativo) : G.tronco[0],
+    escolhas:  escolhasValidas(guardado.escolhas),
     recolhidas:guardado.recolhidas || {},
     favoritos: guardado.favoritos || {},
     notas:     guardado.notas || {},
@@ -432,9 +478,9 @@ function montar(raiz, op){
       if (n.rotulo) meta.push('<span class="mp-ator">via “' + esc(n.rotulo) + '”</span>');
       var rod = [];
       if (n.art) rod.push('<button class="mp-art" type="button" data-legis="' + esc(n.art) + '" data-no="' + n.id
-        + '" title="Abrir no CátedraLEGIS: ' + esc(n.art) + '">⚖️ ' + esc(n.art) + '</button>');
+        + '" title="Abrir no CátedraLEGIS: ' + esc(n.art) + '">' + ico('scale') + esc(n.art) + '</button>');
       if (n.peca) rod.push('<button class="mp-pc" type="button" data-peca="' + esc(n.peca) + '" data-no="' + n.id
-        + '">✍️ Abrir ' + esc(n.peca) + (n.pecaPronta ? '' : ' · em breve') + '</button>');
+        + '">' + ico('pen-line') + 'Abrir ' + esc(n.peca) + (n.pecaPronta ? '' : ' · em breve') + '</button>');
       if (n.ramos.length) rod.push('<button class="mp-ram" type="button" data-recolhe="' + n.id + '"'
         + ' aria-pressed="' + (st.recolhidas[n.id] ? 'true' : 'false') + '">'
         + (st.recolhidas[n.id] ? '⊞ ' + n.ramos.length : '⊟ ' + n.ramos.length) + '</button>');
@@ -556,8 +602,8 @@ function montar(raiz, op){
     avisar('Rito inteiro enquadrado: ' + vis.length + ' etapas visíveis.');
   }
   function centrar(id, z){
-    var n = G.porId[id || st.ativo]; if (!n) return;
-    if (recolhido(n) && n.origem) n = G.porId[n.origem];
+    var n = noDe(id || st.ativo); if (!n) return;
+    if (recolhido(n) && n.origem) n = noDe(n.origem) || n;
     if (!pronto()) { espera = { id: n.id, z: z }; return; }
     st.z = Math.min(1.25, Math.max(.4, z || Math.max(st.z, .78)));
     st.x = elPalco.clientWidth / 2 - (n.x + CARTAO.l / 2) * st.z;
@@ -565,7 +611,7 @@ function montar(raiz, op){
     aplicar(); guardar();
   }
   function ativar(id, centralizar){
-    if (!G.porId[id]) return;
+    if (!noDe(id)) return;
     st.ativo = id; repintar();
     if (centralizar !== false) centrar(id);
     avisar(G.porId[id].titulo + ' — ' + estadoDe(G.porId[id]) + '.');
@@ -650,7 +696,7 @@ function montar(raiz, op){
 
   /* painel da ETAPA */
   function abrirNo(id){
-    var n = G.porId[id]; if (!n) return;
+    var n = noDe(id); if (!n) return;
     st.aberto = { tipo: 'no', id: id };
     var corpo = '';
     corpo += sec('Situação', '<p><b>' + esc(ROTULO[n.tipo] || 'Ato') + ' ' + (n.ordem + 1)
@@ -661,9 +707,9 @@ function montar(raiz, op){
     if (n.ator) corpo += sec('Responsável pelo ato', '<p>' + esc(n.ator) + '</p>');
     if (n.art || (n.leis || []).length || (n.jurisps || []).length) {
       var refs = [];
-      if (n.art) refs.push('<button class="lei" type="button" data-legis="' + esc(n.art) + '">⚖️ ' + esc(n.art) + '</button>');
-      (n.leis || []).forEach(function (l){ refs.push('<button class="lei" type="button" data-legis="' + esc(l) + '">⚖️ ' + esc(l) + '</button>'); });
-      (n.jurisps || []).forEach(function (j){ refs.push('<button class="jur" type="button" data-juris="' + esc(j) + '">🏛️ ' + esc(j) + '</button>'); });
+      if (n.art) refs.push('<button class="lei" type="button" data-legis="' + esc(n.art) + '">' + ico('scale') + esc(n.art) + '</button>');
+      (n.leis || []).forEach(function (l){ refs.push('<button class="lei" type="button" data-legis="' + esc(l) + '">' + ico('scale') + esc(l) + '</button>'); });
+      (n.jurisps || []).forEach(function (j){ refs.push('<button class="jur" type="button" data-juris="' + esc(j) + '">' + ico('landmark') + esc(j) + '</button>'); });
       corpo += sec('Fundamento legal', '<div class="mp-refs">' + refs.join('') + '</div>');
     }
     if (n.nota) corpo += sec('Nota do rito', '<p>' + esc(n.nota) + '</p>');
@@ -679,7 +725,7 @@ function montar(raiz, op){
           + n.id + '">Desfazer esta escolha</button></div>' : ''));
     }
     if (n.peca) corpo += sec('Peça desta etapa',
-      '<div class="mp-refs"><button class="lei" type="button" data-peca="' + esc(n.peca) + '">✍️ Abrir '
+      '<div class="mp-refs"><button class="lei" type="button" data-peca="' + esc(n.peca) + '">' + ico('pen-line') + 'Abrir '
       + esc(n.peca) + '</button></div>'
       + (n.pecaPronta ? '' : '<p class="mp-vazio" style="margin-top:8px">O roteiro desta peça ainda não foi escrito.</p>'));
     corpo += sec('Minhas anotações',
@@ -698,9 +744,9 @@ function montar(raiz, op){
 
   /* painel da PEÇA */
   function abrirPeca(nome, deNo){
-    var p = PECAS[nome];
+    var p = pecaDe(nome);
     st.aberto = { tipo: 'peca', id: nome };
-    var no = deNo && G.porId[deNo];
+    var no = deNo && noDe(deNo);
     var corpo = '';
     if (!p) {
       corpo = sec('Roteiro', '<p class="mp-vazio">O roteiro desta peça ainda não foi escrito. '
@@ -719,8 +765,8 @@ function montar(raiz, op){
         '<ul>' + p.cego.map(function (t){ return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>');
       var refs = [];
       (p.blocos || []).forEach(function (b){
-        (b.lei || []).forEach(function (l){ refs.push('<button class="lei" type="button" data-legis="' + esc(l) + '">⚖️ ' + esc(l) + '</button>'); });
-        (b.juris || []).forEach(function (j){ refs.push('<button class="jur" type="button" data-juris="' + esc(j) + '">🏛️ ' + esc(j) + '</button>'); });
+        (b.lei || []).forEach(function (l){ refs.push('<button class="lei" type="button" data-legis="' + esc(l) + '">' + ico('scale') + esc(l) + '</button>'); });
+        (b.juris || []).forEach(function (j){ refs.push('<button class="jur" type="button" data-juris="' + esc(j) + '">' + ico('landmark') + esc(j) + '</button>'); });
       });
       if (refs.length) corpo += sec('Fundamentação', '<div class="mp-refs">' + refs.join('') + '</div>');
       var dicas = (p.dicas || []).map(function (d){ return typeof d === 'object' ? d.t : d; });
@@ -752,12 +798,19 @@ function montar(raiz, op){
     return t + '\n' + '='.repeat(t.length) + '\n\n' + painel.querySelector('.mp-pcorpo').innerText;
   }
 
+  /* a ida ao acervo a partir do PAINEL: o ponto de volta é o próprio painel (etapa ou peça
+     aberta), por id estável — 'p3', 'p3s1' saem da posição no rito (mapa-grafo.js) e a peça
+     pelo nome. Sem `peca` solto: com ele a volta abriria o roteiro lateral por cima. */
+  function pontoDoPainel(n, nomePeca){
+    var a = nomePeca ? { tipo: 'peca', id: String(nomePeca) } : (n ? { tipo: 'no', id: String(n.id) } : null);
+    return a ? { rito: G.rito, mapa: a } : { rito: G.rito };
+  }
   function ligarPainel(n, nomePeca){
     if (!painel) return;
     painel.querySelectorAll('[data-legis]').forEach(function (b){
-      b.onclick = function (){ if (op.aoAcervo) op.aoAcervo('legis', b.dataset.legis, { rito: G.rito, peca: nomePeca || null }); }; });
+      b.onclick = function (){ if (op.aoAcervo) op.aoAcervo('legis', b.dataset.legis, pontoDoPainel(n, nomePeca)); }; });
     painel.querySelectorAll('[data-juris]').forEach(function (b){
-      b.onclick = function (){ if (op.aoAcervo) op.aoAcervo('juris', b.dataset.juris, { rito: G.rito, peca: nomePeca || null }); }; });
+      b.onclick = function (){ if (op.aoAcervo) op.aoAcervo('juris', b.dataset.juris, pontoDoPainel(n, nomePeca)); }; });
     painel.querySelectorAll('[data-peca]').forEach(function (b){
       b.onclick = function (){ abrirPeca(b.dataset.peca, n && n.id); }; });
     painel.querySelectorAll('[data-escolhe]').forEach(function (b){
@@ -946,11 +999,34 @@ function montar(raiz, op){
   if (st.vista && isFinite(st.vista.x)) { st.x = st.vista.x; st.y = st.vista.y; st.z = st.vista.z || .72; aplicar(); }
   else ajustar();
 
+  /* reabre um painel pelo ponto que a ida levou (a volta do acervo). A peça sem a etapa de
+     origem pega a primeira etapa do rito que a pede — de preferência na rota escolhida —
+     para o prazo e o "etapa N" do cabeçalho continuarem certos. Não mexe no enquadramento
+     nem nas ramificações recolhidas: a vista é a que ela deixou. Devolve false se o ponto
+     não existe mais neste rito (fluxos.js mudou), e aí o mapa fica como está. */
+  function abrirPainel(tipo, id){
+    id = String(id == null ? '' : id);
+    if (tipo === 'no') {
+      if (!noDe(id)) return false;
+      st.ativo = id; repintar(); abrirNo(id); return true;
+    }
+    if (tipo === 'peca') {
+      var comPeca = G.nos.filter(function (n){ return n.peca === id; });
+      if (!comPeca.length && !pecaDe(id)) return false;
+      var no = comPeca.filter(function (n){ return naRota[n.id]; })[0] || comPeca[0] || null;
+      if (no) { st.ativo = no.id; repintar(); }
+      abrirPeca(id, no && no.id); return true;
+    }
+    return false;
+  }
+
   return {
     ir: function (id){ ativar(id); },
     ativo: function (){ return st.ativo; },
     ajustar: ajustar,
     abrirPeca: abrirPeca,
+    abrirPainel: abrirPainel,
+    aberto: function (){ return st.aberto ? { tipo: st.aberto.tipo, id: st.aberto.id } : null; },
     destruir: function (){ fechar();
       window.removeEventListener('resize', aoRedimensionar);
       document.removeEventListener('keydown', aoEscape);
