@@ -40,6 +40,10 @@ struct JurisAnnotationsPanel: View {
 
     private func jump(to range: NSRange) {
         guard let tv = markController.textView else { return }
+        // marcação vinda de um verbete fundido (JurisMigracaoIDs) pode apontar além do texto do canônico:
+        // pular para fora do texto derruba o NSTextView/UITextView — aí não pula.
+        let total = tv.textStorage?.length ?? 0
+        guard range.location >= 0, range.length >= 0, range.location + range.length <= total else { return }
         tv.scrollRangeToVisible(range)
         tv.showFindIndicator(for: range)
     }

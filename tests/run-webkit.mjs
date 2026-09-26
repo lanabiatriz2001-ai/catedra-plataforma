@@ -40,6 +40,7 @@ import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 import { testarMenuLateral } from './menu-lateral.mjs';
 import { testarSemDodEstatico, testarSemDodNavegador } from './sem-dod.mjs';
+import { testarMigracaoL4Navegador } from './teses-oficiais.mjs';
 import { testarSemMapasMentaisEstatico, testarSemMapasMentaisNavegador } from './sem-mapas-mentais.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -98,6 +99,14 @@ for (const [base, origem, arquivo] of ORIGENS) {
   catch (e) {
     ok(false, 'SEM DOD [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
       + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+  }
+  // lote L4 das teses oficiais: a migração de id do JURIS em JavaScriptCore (só http: semeia por /__semente)
+  if (origem === 'http') {
+    try { await testarMigracaoL4Navegador(page, base, ok, { motor, origem }); }
+    catch (e) {
+      ok(false, 'TESES OFICIAIS L4 [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
+        + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+    }
   }
   // preferência "mapa" salva cai no texto e o mfGen antigo fica, nas três origens
   try { await testarSemMapasMentaisNavegador(page, base, ok, { motor, origem, arquivo }); }

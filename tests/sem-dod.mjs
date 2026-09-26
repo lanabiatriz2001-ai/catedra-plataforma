@@ -15,7 +15,11 @@
    · (c) Swift: nenhum case, rótulo ou rawValue DOD nos módulos JURIS do Mac e do iPad, que
          continuam iguais no JurisEntry.swift;
    · (d) navegador: o JURIS abre com as quatro abas que sobraram, cada uma mostra o próprio
-         painel, e não há iframe nem painel de mapas.
+         painel, e não há iframe nem painel de mapas;
+   · (e) acervo (lote L5 das teses oficiais, 26/09/2026): juris-index.js, juris-text.js, as fatias
+         de dados/juris-text e o corpus.json nativo (origem e .app) lidos atrás de "dizerodireito"
+         (endereço, qualquer caixa) e "Dizer o Direito" — zero. Pega também o rodapé de PDF que
+         tinha ficado colado no INF2020-0854.
    "Dizer o Direito" é procurado com maiúsculas: "dizer o direito" em minúsculas é a juris
    dictio e aparece em enunciado legítimo (INF2024-0343, arguição oral). */
 import fs from 'fs';
@@ -90,6 +94,26 @@ export function testarSemDodEstatico(ok, opcoes = {}) {
     ok(Array.isArray(recs) && recs.length > 10000 && dod === 0,
       R + '(b) ' + rotulo + ': ' + (recs ? recs.length : '?') + ' registros, nenhum do Vade Mecum DOD (' + dod + ')');
   }
+
+  // (e) acervo: nem endereço nem nome do DoD em nenhum registro, web e nativo
+  // endereço em qualquer caixa; o nome com maiúsculas ("dizer o direito" minúsculo é a juris dictio)
+  const conta = (txt) => (txt.match(/dizerodireito/gi) || []).length + (txt.match(/Dizer o Direito/g) || []).length;
+  const alvosAcervo = [['juris-index.js', path.join(RAIZ, 'juris-index.js')], ['juris-text.js', path.join(RAIZ, 'juris-text.js')]];
+  const dirFat = path.join(RAIZ, 'dados', 'juris-text');
+  if (fs.existsSync(dirFat)) for (const a of fs.readdirSync(dirFat)) if (a.endsWith('.json')) alvosAcervo.push(['dados/juris-text/' + a, path.join(dirFat, a)]);
+  for (const [r, f] of corpora) alvosAcervo.push([r, f]);
+  let lidos = 0; const sujos = [];
+  for (const [r, f] of alvosAcervo) {
+    if (!fs.existsSync(f)) continue;
+    const txt = fs.readFileSync(f, 'utf8'); lidos++;
+    const n = conta(txt);
+    if (n) sujos.push(r + ' (' + n + ')');
+  }
+  ok(lidos >= 3 && sujos.length === 0, R + '(e) nenhum "dizerodireito" nem "Dizer o Direito" no acervo: ' + lidos + ' arquivos lidos (índice, texto, fatias e corpus nativo)'
+    + (sujos.length ? ' — ' + sujos.slice(0, 5).join(', ') : ''));
+  const TXTj = (() => { const e = {}; new Function('window', fs.readFileSync(path.join(RAIZ, 'juris-text.js'), 'utf8')).call(null, e); return e.__JURIS_TXT__; })();
+  ok(/Não existe razão para suspender[^]*dos Auditores Fiscais do Trabalho\. O estabelecimento de uma fiscalização menor/.test((TXTj['INF2020-0854'] || {}).en || ''),
+    R + '(e) INF2020-0854 (Info 975 do STF): o rodapé de PDF saiu e a frase "O estabelecimento de uma fiscalização menor…" voltou inteira');
 
   // (c) Swift
   const swifts = [];

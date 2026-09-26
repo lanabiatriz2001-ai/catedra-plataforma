@@ -14,7 +14,11 @@ import Foundation
 import SwiftUI
 
 extension Color { init(hex: String) { self = .clear } }   // do JurisTheme.swift; só pinta (MarkColor.color)
-struct JurisSRSCard: Codable, Hashable { var intervalDays: Int? }
+struct JurisSRSCard: Codable, Hashable {       // só os campos que a migração compara (JurisMigracaoIDs.maisAvancado)
+    var intervalDays: Int = 0
+    var reps: Int = 0
+    var lastReviewed: Date?
+}
 struct TribunalCustom: Codable, Hashable { var id: String? }
 struct ReadingChecklistItem: Codable, Hashable { var id: String? }
 
@@ -41,7 +45,8 @@ func regravar(_ d: Data) throws -> Data {
                                      metaDiaria: lido.metaDiaria, leiturasPorDia: lido.leiturasPorDia,
                                      coresFavoritas: lido.coresFavoritas, alinhamentos: lido.alinhamentos,
                                      textosEditados: lido.textosEditados, srs: lido.srs,
-                                     tribunaisCustom: lido.tribunaisCustom, readingChecklist: lido.readingChecklist)
+                                     tribunaisCustom: lido.tribunaisCustom, readingChecklist: lido.readingChecklist,
+                                     idsMigrados: lido.idsMigrados)
     legado.aplicar(em: &novo)
     return try JSONEncoder().encode(novo)
 }
@@ -120,6 +125,82 @@ let backup = json("""
 """)
 confere((try? JSONDecoder().decode(JurisEstadoPersistido.self, from: backup)) != nil,
         "backup antigo, até com campo desconhecido, abre sem erro")
+
+// ── 6. migração de ids do acervo (lote L4 das teses oficiais: um verbete por tema) ──────────
+// A tabela é a GERADA (scripts/aplicar-teses-oficiais.py): o teste usa um par real dela.
+let D = JurisMigracaoIDs.destinos, RET = JurisMigracaoIDs.retirados
+confere(D.count >= 113 && RET.count >= 46, "a tabela gerada tem as fusões e os retirados do L4 (\(D.count) destinos, \(RET.count) retirados)")
+confere(Set(D.keys).isDisjoint(with: RET) && D.values.allSatisfy { D[$0] == nil && !RET.contains($0) },
+        "nenhum id é fundido e retirado ao mesmo tempo, e nenhum destino saiu do acervo (sem cadeia)")
+let idAntigo = "repgeral-repercussao_geral-STF-1234-2", idCanon = "repgeral-repercussao_geral-STF-1234"
+confere(D[idAntigo] == idCanon, "\(idAntigo) → \(idCanon) está na tabela")
+func rtf(_ t: String) -> Data {
+    let a = NSAttributedString(string: t)
+    return try! a.data(from: NSRange(location: 0, length: a.length),
+                       documentAttributes: [.documentType: NSAttributedString.DocumentType.rtf])
+}
+func texto(_ d: Data?) -> String {
+    guard let d, let a = try? NSAttributedString(data: d, options: [.documentType: NSAttributedString.DocumentType.rtf],
+                                                 documentAttributes: nil) else { return "" }
+    return a.string
+}
+let hoje = Date(timeIntervalSince1970: 1_790_000_000)
+var st = JurisEstadoPersistido(favorites: [idAntigo], recents: [idAntigo, "STJ-SUM-7"], importantes: [],
+    annotations: [idAntigo: "nota do id antigo", idCanon: "nota do canônico"],
+    richNotes: [idAntigo: rtf("rica do id antigo"), idCanon: rtf("rica do canônico")],
+    marks: [idAntigo: [TextMark(start: 0, length: 4, kind: .grifar, colorHex: nil, note: "margem antiga")],
+            idCanon: [TextMark(start: 2, length: 3, kind: .sublinhar, colorHex: nil, note: nil)]],
+    colecoes: [Colecao(id: "c1", nome: "Meu edital", ids: [idAntigo], criadaEm: 1)],
+    lidos: [idAntigo, idCanon], dominados: [idAntigo],
+    afirmacoesFalsas: [idAntigo: "falsa antiga"], metaDiaria: 20, leiturasPorDia: nil, coresFavoritas: nil,
+    alinhamentos: [idAntigo: "justificado"], textosEditados: [idAntigo: "editado id antigo", idCanon: "editado canônico"],
+    srs: [idAntigo: JurisSRSCard(intervalDays: 12, reps: 4, lastReviewed: hoje),
+          idCanon: JurisSRSCard(intervalDays: 1, reps: 1, lastReviewed: hoje)],
+    tribunaisCustom: nil, readingChecklist: nil)
+JurisMigracaoIDs.migrar(&st)
+confere(st.favorites.contains(idCanon) && st.favorites.contains(idAntigo), "união: favorito do id antigo vale no canônico, e o id antigo fica como cópia")
+confere(st.lidos == [idAntigo, idCanon] && st.dominados == [idAntigo, idCanon] && st.recents.contains(idCanon), "união: lido, dominado e recente = OU, sem repetir")
+confere(st.annotations?[idCanon] == "nota do canônico\n\nnota do id antigo" && st.annotations?[idAntigo] == "nota do id antigo",
+        "união: anotações concatenadas (canônico primeiro) e a do id antigo continua no disco")
+confere(texto(st.richNotes?[idCanon]).contains("rica do canônico") && texto(st.richNotes?[idCanon]).contains("rica do id antigo")
+        && texto(st.richNotes?[idCanon]).range(of: "rica do canônico")!.lowerBound < texto(st.richNotes?[idCanon]).range(of: "rica do id antigo")!.lowerBound,
+        "união: nota rica (RTF) concatenada de verdade, legível, canônico primeiro")
+confere(st.marks?[idCanon]?.count == 2 && st.marks?[idCanon]?.contains { $0.note == "margem antiga" } == true, "união: marcações somadas, com o comentário na margem")
+confere(st.srs?[idCanon]?.reps == 4 && st.srs?[idCanon]?.intervalDays == 12, "união: fica o cartão de revisão mais avançado (4 repetições, 12 dias)")
+confere(st.textosEditados?[idCanon] == "editado canônico" && st.alinhamentos?[idCanon] == "justificado",
+        "texto editado do canônico fica; alinhamento do id antigo entra porque o canônico não tinha")
+confere(st.afirmacoesFalsas?[idCanon] == "falsa antiga" && st.colecoes?.first?.ids == [idAntigo, idCanon],
+        "afirmação falsa migra; a coleção ganha o canônico onde estava o id antigo")
+confere(st.idsMigrados == [idAntigo], "a união fica marcada (idsMigrados) só para o id que tinha estado")
+// idempotente e respeita o que a pessoa desfez depois
+let ordenado = JSONEncoder(); ordenado.outputFormatting = .sortedKeys
+let antesMig = try! ordenado.encode(st)
+JurisMigracaoIDs.migrar(&st)
+confere(try! ordenado.encode(st) == antesMig, "segunda abertura: a migração não muda nada (não concatena de novo)")
+st.favorites.removeAll { $0 == idCanon }
+JurisMigracaoIDs.migrar(&st)
+confere(!st.favorites.contains(idCanon), "a pessoa desfavoritou o canônico depois: o favorito não volta na abertura seguinte")
+// o marcador vai e volta do disco
+if let d = try? regravar(try! JSONEncoder().encode(st)) {
+    confere((objeto(d)["idsMigrados"] as? [String]) == [idAntigo], "idsMigrados volta ao disco na gravação")
+} else { confere(false, "idsMigrados volta ao disco na gravação") }
+// retirado: o estado fica, órfão, sem erro
+let ret = RET.sorted().first!
+var so = JurisEstadoPersistido(favorites: [ret, "STJ-SUM-7"], recents: [ret], importantes: nil, annotations: nil,
+    richNotes: [ret: rtf("minha nota")], marks: nil, colecoes: nil, lidos: [ret], dominados: nil, afirmacoesFalsas: nil,
+    metaDiaria: nil, leiturasPorDia: nil, coresFavoritas: nil, alinhamentos: nil, textosEditados: nil, srs: nil,
+    tribunaisCustom: nil, readingChecklist: nil)
+JurisMigracaoIDs.migrar(&so)
+confere(so.favorites == [ret, "STJ-SUM-7"] && texto(so.richNotes?[ret]) == "minha nota" && so.lidos == [ret] && so.idsMigrados == nil,
+        "retirado (\(ret)): favorito, nota e lido ficam no disco, intactos — nada é apagado nem inventado")
+confere(JurisMigracaoIDs.foraDoAcervo(ret) && JurisMigracaoIDs.foraDoAcervo(idAntigo) && !JurisMigracaoIDs.foraDoAcervo(idCanon),
+        "foraDoAcervo reconhece o retirado e a cópia antiga, não o canônico")
+// estado id antigo sem idsMigrados abre; estado sem nada dos ids não ganha marca
+var vazio = try! JSONDecoder().decode(JurisEstadoPersistido.self, from: json("""
+{"favorites":["STJ-SUM-7"],"recents":[]}
+"""))
+JurisMigracaoIDs.migrar(&vazio)
+confere(vazio.idsMigrados == nil && vazio.favorites == ["STJ-SUM-7"], "estado sem nenhum id migrado: nada muda e nenhuma marca é criada")
 
 print(falhas == 0 ? "\nestado do JURIS: tudo certo" : "\nestado do JURIS: \(falhas) falha(s)")
 exit(falhas == 0 ? 0 : 1)

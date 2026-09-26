@@ -218,7 +218,7 @@ struct JurisDashboardView: View {
             kpi("Verbetes", store.totalCount, "square.stack.3d.up.fill", Palette.accent) { store.ir(.todos); store.filtro = .todos }
             // "Lidos" abre a lista de LIDOS (Filtro.lidos) — antes caía em "Todos" sem filtro.
             kpi("Lidos", store.totalLidos, "checkmark.circle.fill", Palette.ok) { store.ir(.todos); store.filtro = .lidos }
-            kpi("Favoritos", store.favorites.count, "star.fill", Palette.importante) { store.ir(.favoritos) }
+            kpi("Favoritos", store.totalFavoritos, "star.fill", Palette.importante) { store.ir(.favoritos) }
             kpi("Anotações", store.richNotes.count, "square.and.pencil", Palette.fonteJT) { store.ir(.anotacoes) }
             kpi("Coleções", store.colecoes.count, "folder.fill", Palette.fonteRG) {
                 if let c = store.colecoes.first { store.ir(.colecao(c.id)) } else { store.ir(.todos) }
@@ -264,7 +264,7 @@ struct JurisDashboardView: View {
     @ViewBuilder private var atalhos: some View {
             Menu {
                 Button { abrirFlash(store.entries.filter { store.isFavorite($0.id) }, "Favoritos") }
-                    label: { Label("Favoritos (\(store.favorites.count))", systemImage: "star") }
+                    label: { Label("Favoritos (\(store.totalFavoritos))", systemImage: "star") }
                 Button { abrirFlash(Array(store.entries.lazy.filter { store.isImportante($0) }.prefix(500)), "Importantes") }
                     label: { Label("Importantes", systemImage: "bolt") }
                 if !store.colecoes.isEmpty {
