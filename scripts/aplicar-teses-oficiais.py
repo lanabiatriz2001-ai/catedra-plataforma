@@ -5,9 +5,11 @@ oficial do STF e do STJ, nas DUAS cópias do acervo JURIS, a partir da mesma ref
     python3 scripts/aplicar-teses-oficiais.py                  # web: juris-index.js e juris-text.js
     python3 scripts/aplicar-teses-oficiais.py --nativo DIR     # + VadeMecumJuris (DIR = raiz dele)
 
-Referência: docs/teses-oficiais/l1-referencia.json (lote L1, texto oficial literal, baixado em
-25/09/2026 — rotas no próprio arquivo). Depois da web, rode build-fatias, build-incidencia e
-build-semana-juris; depois do nativo, rode scripts/build_corpus.py lá.
+Referências: docs/teses-oficiais/l1-referencia.json, l2-referencia.json e l3-referencia.json
+(lotes L1 automático, L2 conferência com a auditoria e L3 revisão à mão; texto oficial literal,
+baixado em 25/09/2026 — rotas em cada arquivo). Um id só pode estar num lote. Depois da web, rode
+build-fatias, build-incidencia e build-semana-juris; depois do nativo, rode scripts/build_corpus.py
+e scripts/verificar_auditoria.py lá.
 
 Regras (decisões da dona, 25/09/2026):
 - id NUNCA muda (favorito, status e grifos são gravados por id); a ordem dos arquivos também não;
@@ -15,15 +17,22 @@ Regras (decisões da dona, 25/09/2026):
 - tema = título oficial (STF) ou questão submetida a julgamento (STJ). Na web, a coluna da lista
   (índice) leva o título cortado; o verbete mostra o inteiro (campo `tm` do juris-text);
 - `ramo` e o destaque (importante) ficam como estão; Nota do Cátedra (`co`) existente fica e é
-  marcada para reler na referência;
+  marcada para reler na referência. Registro com `co` na referência (L3: nota que aponta erro de
+  digitação na fonte oficial) tem a nota FINAL ali — a da auditoria, se havia, mais a nova;
+- relator (STF): o do julgamento de mérito, lido dos andamentos oficiais, com o redator do acórdão
+  quando o relator ficou vencido — a exportação do STF traz o relator ATUAL;
 - nativo: reescreve os registros em build/data/repercussao_geral.json (opção B: fonte nova, o
   build_corpus.py regenera o corpus.json), grava a trava literal em scripts/teses_oficiais.json
-  e retira as notas de estudo (notas.json) desses verbetes.
+  e retira as notas de estudo (notas.json) desses verbetes. A trava leva o registro oficial
+  inteiro: o build_corpus.py o põe por cima dos patches da auditoria (cuja correção o L2 conferiu
+  campo a campo contra o oficial) e dos 4 ids que a auditoria criou por patch "add".
 """
 import json, os, re, sys
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-REF = os.path.join(RAIZ, 'docs', 'teses-oficiais', 'l1-referencia.json')
+REFS = [os.path.join(RAIZ, 'docs', 'teses-oficiais', f'l{n}-referencia.json') for n in (1, 2, 3)]
+CAMPOS = ('tribunal', 'fonte', 'numero', 'titulo', 'enunciado', 'tema', 'orgaoJulgador', 'data', 'situacao',
+          'precedentes', 'observacao', 'url')
 CORTE_LISTA = 140          # caracteres do tema na coluna da lista web
 DOD = re.compile(r'dizer ?o ?direito|buscador|dizerodireito', re.I)
 OFICIAL = re.compile(r'^https://(portal\.stf\.jus\.br|processo\.stj\.jus\.br)/')
@@ -71,7 +80,7 @@ def aplica_web(ref):
         idx[k] = [r[0], o['tribunal'], o['fonte'], o['numero'], o['titulo'], r[5], tema, o['data'], o['situacao']] + r[9:]
         antigo = txt.get(r[0]) or {}
         novo = {'en': o['enunciado'], 'ur': o['url'], 'og': o['orgaoJulgador'], 'fp': o['fp'],
-                'co': antigo.get('co'), 'ob': o['observacao'], 'tm': o['tema'] if tema != o['tema'] else None}
+                'co': o['co'] if 'co' in o else antigo.get('co'), 'ob': o['observacao'], 'tm': o['tema'] if tema != o['tema'] else None}
         txt[r[0]] = {c: v for c, v in novo.items() if v}   # juris-text é um objeto: a ordem das chaves se mantém
     faltam = set(ref) - vistos
     assert not faltam, f'ids da referência ausentes da web: {sorted(faltam)[:5]}'
@@ -94,13 +103,26 @@ def aplica_nativo(ref, dir_nat):
                  'tema': o['tema'], 'orgaoJulgador': o['orgaoJulgador'], 'data': o['data'],
                  'situacao': o['situacao'], 'fontePublicacao': None, 'referencias': None,
                  'precedentes': o['precedentes'], 'observacao': o['observacao'], 'url': o['url'],
-                 'comentario': r.get('comentario')}
-    faltam = set(ref) - vistos
-    assert not faltam, f'ids da referência ausentes do repercussao_geral.json: {sorted(faltam)[:5]}'
+                 'comentario': o['co'] if 'co' in o else r.get('comentario')}
+    # ids que a auditoria criou por patch "add" (não estão no repercussao_geral.json): o registro
+    # oficial deles entra pela trava, por cima do patch, no build_corpus.py
+    por_patch = set()
+    for f in sorted(os.listdir(os.path.join(dir_nat, 'build', 'data'))):
+        if f.startswith('patches_auditoria_') and f.endswith('.json'):
+            por_patch |= {p['add']['id'] for p in json.load(open(os.path.join(dir_nat, 'build', 'data', f), encoding='utf-8')) if 'add' in p}
+    faltam = set(ref) - vistos - por_patch
+    assert not faltam, f'ids da referência ausentes do repercussao_geral.json e dos patches: {sorted(faltam)[:5]}'
     with open(p_rg, 'w', encoding='utf-8') as f:
         f.write(json.dumps(rg, ensure_ascii=False, indent=1))
-    # trava literal: o build_corpus.py não reformata esses textos e derruba o build se divergirem
-    trava = {i: {'enunciado': o['enunciado'], 'tema': o['tema'], 'url': o['url']} for i, o in sorted(ref.items())}
+    # trava: o registro oficial inteiro. O build_corpus.py não reformata esses textos, põe estes campos
+    # por cima de qualquer patch e derruba o build se o corpus divergir
+    def campos(o):
+        c = {k: o[k] for k in CAMPOS}
+        c.update({'fontePublicacao': None, 'referencias': None})
+        if 'co' in o:
+            c['comentario'] = o['co']
+        return c
+    trava = {i: campos(o) for i, o in sorted(ref.items())}
     with open(os.path.join(dir_nat, 'scripts', 'teses_oficiais.json'), 'w', encoding='utf-8') as f:
         json.dump({'descricao': 'Trava literal das teses repgeral-* já trocadas pela fonte oficial (gerada por '
                                 'scripts/aplicar-teses-oficiais.py do Cátedra). O build_corpus.py mantém esses textos '
@@ -114,12 +136,21 @@ def aplica_nativo(ref, dir_nat):
     notas = {k: v for k, v in notas.items() if k not in ref}
     with open(p_notas, 'w', encoding='utf-8') as f:
         f.write(json.dumps(notas, ensure_ascii=False))
-    print(f'nativo: {len(vistos)} registros trocados em repercussao_geral.json; '
+    print(f'nativo: {len(vistos)} registros trocados em repercussao_geral.json, {len(set(ref) - vistos)} pela trava '
+          f'(criados por patch da auditoria); trava com {len(trava)}; '
           f'notas de estudo retiradas: {antes - len(notas)} ({antes} → {len(notas)})')
 
 
 if __name__ == '__main__':
-    ref = json.load(open(REF, encoding='utf-8'))['registros']
+    ref = {}
+    for caminho in REFS:
+        if not os.path.exists(caminho):
+            continue
+        lote = json.load(open(caminho, encoding='utf-8'))['registros']
+        repetidos = set(ref) & set(lote)
+        assert not repetidos, f'id em dois lotes: {sorted(repetidos)[:5]}'
+        ref.update(lote)
+        print(f'{os.path.basename(caminho)}: {len(lote)} registros')
     confere(ref)
     aplica_web(ref)
     if '--nativo' in sys.argv:
