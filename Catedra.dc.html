@@ -283,7 +283,8 @@ html.ct-teclado .ct-scroll{ padding-bottom:12px !important; }
   font-variant-numeric:tabular-nums; }
 .cth-ritmos{ display:flex; gap:7px; flex-wrap:wrap; margin:8px 0 14px; }
 .cth-timer-actions{ display:flex; gap:9px; align-items:center; flex-wrap:wrap; }
-.cth-bghost{ border:1px solid rgba(255,255,255,.32); background:transparent; color:#fff; border-radius:var(--radius);
+.cth-bghost{ display:inline-flex; align-items:center; justify-content:center; gap:7px;
+  border:1px solid rgba(255,255,255,.32); background:transparent; color:#fff; border-radius:var(--radius);
   padding:10px 16px; font-weight:600; font-size:var(--fs-base); cursor:pointer; font-family:inherit; }
 .cth-bghost:hover{ background:rgba(255,255,255,.12); }
 .cth-bstrong{ margin-left:auto; background:#fff; color:#0c0b14; border:none; border-radius:var(--radius);
@@ -334,7 +335,8 @@ html.ct-teclado .ct-scroll{ padding-bottom:12px !important; }
 .cth-dot{ width:8px; height:8px; border-radius:50%; flex:none; }
 .cth-dur{ font-family:var(--mono); font-size:var(--fs-sm); font-weight:600; color:var(--text2);
   background:var(--surface2); border-radius:var(--r-md); padding:4px 9px; flex:none; }
-.cth-bfoco{ background:linear-gradient(120deg,var(--accentSolid),var(--accentSolidD)); color:var(--onAccent);
+.cth-bfoco{ display:inline-flex; align-items:center; gap:6px;
+  background:linear-gradient(120deg,var(--accentSolid),var(--accentSolidD)); color:var(--onAccent);
   font-weight:800; font-size:var(--fs-base); border:none; border-radius:var(--radius); padding:10px 16px; flex:none; cursor:pointer;
   font-family:inherit; box-shadow:0 8px 26px -8px color-mix(in oklab, var(--accent) 55%, transparent); transition:transform .12s; }
 .cth-bfoco:hover{ transform:translateY(-1px); }
@@ -434,7 +436,18 @@ html.ct-teclado .ct-scroll{ padding-bottom:12px !important; }
   background: linear-gradient(var(--surface),var(--surface)) padding-box, var(--heroVivo) border-box;
   padding:20px 24px; display:flex; align-items:center; gap:18px;
   box-shadow:0 22px 60px -24px color-mix(in oklab, var(--accent) 40%, rgba(20,15,10,.5)); position:relative; overflow:hidden; }
-.cth-foco .ico{ font-size:28px; flex:none; }
+.cth-foco .ico{ flex:none; display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px;
+  border-radius:var(--r-md); color:var(--accentD);
+  background:linear-gradient(135deg,color-mix(in oklab, var(--accent) 20%, var(--surface)),color-mix(in oklab, var(--accent) 8%, var(--surface))); }
+/* ÍCONE É SVG LUCIDE DE 16 PX, NÃO EMOJI (DESIGN.md). O banner do Início, o resto dele, a barra
+   lateral e o painel de notificações desenhavam emoji (alvo, chama, escudo, calendário, seta de
+   voltar, livro, balança, lupa, despertador, setas de repetir) — cada sistema pinta o seu, e no modo baixa estimulação eles eram o único enfeite que sobrava. O desenho de
+   16 px fica fixo; onde o emoji ocupava um lugar grande (foco sugerido, aviso), quem cresce é a
+   pastilha em volta, não o traço. O aviso diz o ícone pelo NOME (n.ico): o template resolve
+   nomes, então há um <sc-if> por ícone. */
+.cth-h3ico{ vertical-align:-2px; margin-right:8px; color:var(--accentD); }
+.ct-notif-ico{ flex:none; display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px;
+  border-radius:var(--r-md); background:var(--surface2); color:var(--accentD); }
 .cth-foco .tx{ flex:1; min-width:0; }
 .cth-foco .tx small{ display:block; font-size:var(--fs-2xs); font-weight:700; letter-spacing:.16em;
   text-transform:uppercase; color:var(--text3); margin-bottom:4px; }
@@ -746,7 +759,7 @@ window.ctPdfLib = (function(){
 
     <div class="ct-gam" style="background:var(--heroGrad);border-radius:var(--radius);padding:16px;color:#fff;box-shadow:0 10px 26px rgba(0,0,0,.28);">
       <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:22px;"><span class="ct-emo" aria-hidden="true">🔥</span></span>
+        <svg class="ct-emo" style="flex:none;" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>
         <div><div style="font-family:var(--display);font-weight:700;font-size:30px;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em;">{{ sidebarStreak }}</div><div style="font-size:var(--fs-xs);opacity:.85;">dias seguidos</div></div>
       </div>
       <div style="display:flex;gap:4px;margin-top:12px;">
@@ -806,7 +819,7 @@ window.ctPdfLib = (function(){
             <div class="ct-scroll" style="max-height:360px;overflow:auto;">
               <sc-for list="{{ notifs }}" as="n" hint-placeholder-count="4">
                 <button data-id="{{ n.id }}" data-view="{{ n.view }}" onclick="{{ goNotif }}" style="display:flex;gap:11px;align-items:flex-start;width:100%;text-align:left;cursor:pointer;border:none;border-bottom:1px solid var(--border);padding:13px 16px;font-family:inherit;background:{{ n.bgC }};">
-                  <span style="font-size:var(--fs-xl);flex:none;line-height:1.2;">{{ n.icon }}</span>
+                  <span class="ct-notif-ico"><sc-if value="{{ n.ico === 'alarm-clock' }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="alarm-clock"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2 2"></path><path d="M5 3 2 6"></path><path d="m22 6-3-3"></path><path d="M6.38 18.7 4 21"></path><path d="M17.64 18.67 20 21"></path></svg></sc-if><sc-if value="{{ n.ico === 'repeat' }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="repeat"><path d="m17 2 4 4-4 4"></path><path d="M3 11v-1a4 4 0 0 1 4-4h14"></path><path d="m7 22-4-4 4-4"></path><path d="M21 13v1a4 4 0 0 1-4 4H3"></path></svg></sc-if><sc-if value="{{ n.ico === 'target' }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="target"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></sc-if><sc-if value="{{ n.ico === 'calendar-days' }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="calendar-days"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path><path d="M8 18h.01"></path><path d="M12 18h.01"></path><path d="M16 18h.01"></path></svg></sc-if><sc-if value="{{ n.ico === 'triangle-alert' }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="triangle-alert"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg></sc-if><sc-if value="{{ n.ico === 'clipboard-list' }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="M12 11h4"></path><path d="M12 16h4"></path><path d="M8 11h.01"></path><path d="M8 16h.01"></path></svg></sc-if><sc-if value="{{ n.ico === 'flame' }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg></sc-if></span>
                   <div style="flex:1;min-width:0;"><div style="font-size:var(--fs-base);font-weight:600;color:var(--ink);">{{ n.titulo }}</div><div style="font-size:var(--fs-sm);color:var(--text2);margin-top:2px;line-height:1.45;">{{ n.texto }}</div><div style="font-size:var(--fs-2xs);color:var(--text3);margin-top:4px;">{{ n.tempo }}</div></div>
                   <span style="width:8px;height:8px;border-radius:99px;background:var(--accent);flex:none;margin-top:4px;opacity:{{ n.dotOp }};"></span>
                 </button>
@@ -865,7 +878,7 @@ window.ctPdfLib = (function(){
        <sc-if value="{{ pomoMenuOpen }}" hint-placeholder-val="{{ false }}">
         <div role="menu" aria-label="Cronômetro e foco" style="position:absolute;top:48px;right:0;z-index:60;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:8px;box-shadow:0 16px 40px rgba(0,0,0,.22);min-width:248px;">
           <div style="display:flex;gap:6px;margin-bottom:8px;">
-            <button onclick="{{ toggleTimer }}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 12px;font-size:var(--fs-sm);font-weight:700;cursor:pointer;font-family:inherit;">{{ focoBtnPlay }}</button>
+            <button onclick="{{ toggleTimer }}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 12px;font-size:var(--fs-sm);font-weight:700;cursor:pointer;font-family:inherit;"><sc-if value="{{ timerRunning }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="pause"><rect x="14" y="4" width="4" height="16" rx="1"></rect><rect x="6" y="4" width="4" height="16" rx="1"></rect></svg></sc-if><sc-if value="{{ !timerRunning }}" hint-placeholder-val="{{ true }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="play"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg></sc-if>{{ focoBtnPlay }}</button>
             <button onclick="{{ resetTimer }}" title="Zerar" style="flex:none;width:40px;border:1px solid var(--border);background:var(--surface2);border-radius:var(--r-md);cursor:pointer;color:var(--text2);display:flex;align-items:center;justify-content:center;font-family:inherit;">
               <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v4h-4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
             </button>
@@ -1126,7 +1139,7 @@ window.ctPdfLib = (function(){
                 <div style="padding:10px 12px 5px;font-size:var(--fs-2xs);text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--text3);">{{ p.secao }}</div>
               </sc-if>
               <button data-view="{{ p.view }}" data-act="{{ p.act }}" data-open="{{ p.open }}" data-kind="{{ p.kind }}" data-arg="{{ p.arg }}" onclick="{{ paletteGo }}" style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;cursor:pointer;background:transparent;border:none;border-radius:var(--r-md);padding:11px 12px;font-family:inherit;" style-hover="background:var(--surface2);">
-                <span style="width:28px;height:28px;border-radius:var(--r-md);background:var(--surface2);display:flex;align-items:center;justify-content:center;color:var(--accent);flex:none;font-size:15px;"><sc-if value="{{ p.ehTela }}" hint-placeholder-val="{{ true }}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if><sc-if value="{{ p.ehConteudo }}" hint-placeholder-val="{{ false }}">{{ p.ico }}</sc-if></span>
+                <span style="width:28px;height:28px;border-radius:var(--r-md);background:var(--surface2);display:flex;align-items:center;justify-content:center;color:var(--accent);flex:none;font-size:15px;"><sc-if value="{{ p.ehTela }}" hint-placeholder-val="{{ true }}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if><sc-if value="{{ p.ehConteudo }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ p.ico === 'scale' }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="scale"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path></svg></sc-if><sc-if value="{{ p.ico === 'landmark' }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="landmark"><path d="M10 18v-7"></path><path d="M11.12 2.198a2 2 0 0 1 1.76.006l7.866 3.847c.476.233.31.949-.22.949H3.474c-.53 0-.695-.716-.22-.949z"></path><path d="M14 18v-7"></path><path d="M18 18v-7"></path><path d="M3 22h18"></path><path d="M6 18v-7"></path></svg></sc-if><sc-if value="{{ p.ico === 'pen-line' }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="pen-line"><path d="M12 20h9"></path><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"></path></svg></sc-if><sc-if value="{{ p.ico === 'compass' }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="compass"><path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"></path><circle cx="12" cy="12" r="10"></circle></svg></sc-if></sc-if></span>
                 <span style="flex:1;min-width:0;font-size:var(--fs-base);color:var(--ink);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ p.label }}</span>
                 <span style="font-size:var(--fs-xs);color:var(--text3);max-width:44%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ p.hint }}</span>
               </button>
@@ -1476,7 +1489,7 @@ window.ctPdfLib = (function(){
              foco, e a próxima ação vem logo abaixo. Sem eyebrow — o título carrega o peso. -->
         <sc-if value="{{ contTem }}" hint-placeholder-val="{{ false }}">
           <div style="background:var(--surface);border:1px solid color-mix(in oklab, var(--accent) 38%, var(--border));border-radius:var(--radius) var(--radius) 0 0;border-bottom:none;padding:12px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;background-image:linear-gradient(90deg,color-mix(in oklab, var(--accent) 12%, transparent),transparent 44%);">
-            <span style="font-size:20px;flex:none;">↩️</span>
+            <svg style="flex:none;color:var(--accentD);" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="undo-2"><path d="M9 14 4 9l5-5"></path><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"></path></svg>
             <div style="flex:1;min-width:180px;">
               <div style="font-weight:600;color:var(--ink);">Continuar de onde parei · {{ contP.rotulo }}</div>
               <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:2px;">{{ contP.quando }}</div>
@@ -1505,14 +1518,14 @@ window.ctPdfLib = (function(){
         <div class="cth-hero">
           <div class="cth-hero-grid">
             <div>
-              <sc-if value="{{ heroObjShow }}" hint-placeholder-val="{{ false }}"><span class="cth-kicker"><span class="ct-emo" aria-hidden="true">🎯</span> Objetivo · {{ prefObjetivo }}</span></sc-if>
+              <sc-if value="{{ heroObjShow }}" hint-placeholder-val="{{ false }}"><span class="cth-kicker"><svg class="ct-emo" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="target"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg> Objetivo · {{ prefObjetivo }}</span></sc-if>
               <h1 class="cth-h1">{{ greeting }}, {{ userFirstName }}.</h1>
               <p class="cth-sub">{{ dateLabel }}<sc-if value="{{ homeRoteiroShow }}" hint-placeholder-val="{{ false }}"> · {{ manualFixedRoteiroAtual }}</sc-if><sc-if value="{{ homeLeituraShow }}" hint-placeholder-val="{{ false }}"> · Tabela Dia {{ homeLeitura.num }}</sc-if></p>
               <div class="cth-chips">
-                <span class="cth-chip ct-gam"><span class="ct-emo" aria-hidden="true">🔥</span> <b>{{ sidebarStreak }}</b></span>
-                <sc-if value="{{ escudoOn }}" hint-placeholder-val="{{ false }}"><span class="cth-chip ct-gam">🛡️ <b>{{ escudos }}</b> escudos</span></sc-if>
+                <span class="cth-chip ct-gam" role="img" aria-label="Ofensiva: {{ sidebarStreak }} dias seguidos" title="Ofensiva: {{ sidebarStreak }} dias seguidos"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg> <b>{{ sidebarStreak }}</b></span>
+                <sc-if value="{{ escudoOn }}" hint-placeholder-val="{{ false }}"><span class="cth-chip ct-gam"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="shield"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path></svg> <b>{{ escudos }}</b> escudos</span></sc-if>
                 <sc-if value="{{ capSimulados }}" hint-placeholder-val="{{ false }}"><button data-view="simulados" onclick="{{ onNav }}" class="cth-chip" style="cursor:pointer;border:none;font:inherit;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg> {{ simNudge }}</button></sc-if>
-                <sc-if value="{{ cdOn }}" hint-placeholder-val="{{ false }}"><span class="cth-chip">📅 <b>{{ cdDias }}</b> dias p/ prova</span></sc-if>
+                <sc-if value="{{ cdOn }}" hint-placeholder-val="{{ false }}"><span class="cth-chip"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="calendar-days"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path><path d="M8 18h.01"></path><path d="M12 18h.01"></path><path d="M16 18h.01"></path></svg> <b>{{ cdDias }}</b> dias p/ prova</span></sc-if>
                 <!-- E1: o ENAM tem contagem própria (não reaproveita catedra:prova: pode haver concurso e ENAM no mesmo semestre) -->
                 <sc-if value="{{ enamOn }}" hint-placeholder-val="{{ false }}"><span class="cth-chip" title="{{ enamHora }}" aria-label="ENAM {{ enamEdicao }}: {{ enamDiasLabel }}; {{ enamHora }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/></svg> ENAM {{ enamEdicao }} · <b>{{ enamDiasLabel }}</b><small style="opacity:.85;">· {{ enamChipSub }}</small></span></sc-if>
               </div>
@@ -1533,7 +1546,7 @@ window.ctPdfLib = (function(){
                 <sc-if value="{{ pmCustShow }}" hint-placeholder-val="{{ false }}"><button data-mode="pomo" data-f="{{ pmCustF }}" data-b="{{ pmCustB }}" onclick="{{ setTimerMode }}" title="Seu ritmo dos Ajustes (bloco·pausa)" style="{{ homePmCust }}">{{ pmCustLabel }} imersão</button></sc-if>
               </div>
               <div class="cth-timer-actions">
-                <button class="cth-bghost" onclick="{{ toggleTimer }}">{{ homeTimerBtn }}</button>
+                <button class="cth-bghost" onclick="{{ toggleTimer }}"><sc-if value="{{ timerRunning }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="pause"><rect x="14" y="4" width="4" height="16" rx="1"></rect><rect x="6" y="4" width="4" height="16" rx="1"></rect></svg></sc-if><sc-if value="{{ !timerRunning }}" hint-placeholder-val="{{ true }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="play"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg></sc-if>{{ homeTimerBtn }}</button>
                 <button class="cth-bghost" onclick="{{ resetTimer }}">Zerar</button>
                 <button class="cth-bstrong" onclick="{{ openSession }}">+ Registrar sessão</button>
               </div>
@@ -1579,7 +1592,7 @@ window.ctPdfLib = (function(){
 
 
         <!-- ESTUDO SEMANAL · sem cabeçalho de seção: as barras da semana são apoio, não bloco -->
-        <div class="cth-sec"><h2 style="font-size:var(--fs-md);">Estudo semanal</h2><span class="rule"></span><span class="meta">total <b>{{ heroSemTotal }}</b> na semana · {{ escudoProxLabel }}</span></div>
+        <div class="cth-sec"><h2 style="font-size:var(--fs-md);">Estudo semanal</h2><span class="rule"></span><span class="meta">total <b>{{ heroSemTotal }}</b> na semana · <svg style="vertical-align:-.2em;" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="shield"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path></svg> {{ escudoProxLabel }}</span></div>
         <div class="cth-card">
           <div class="cth-bars">
             <sc-for list="{{ heroSemBars }}" as="d" hint-placeholder-count="7">
@@ -1601,7 +1614,7 @@ window.ctPdfLib = (function(){
                       <div class="cth-tasknext">
                         <button data-i="{{ h.i }}" onclick="{{ toggleBlock }}" title="Concluir (abre o registro)" class="ct-alvo ct-miudo cth-chk" style="border-color:var(--accentRing);"></button>
                         <span class="tx"><b>{{ h.titulo }}</b><small><i class="cth-dot" style="background:{{ h.rail }};"></i>{{ h.sub }}</small></span>
-                        <button data-i="{{ h.i }}" onclick="{{ enterFocus }}" class="cth-bfoco">▶ Foco</button>
+                        <button data-i="{{ h.i }}" onclick="{{ enterFocus }}" class="cth-bfoco"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="play"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>Foco</button>
                         <span class="cth-dur">{{ h.min }}min</span>
                       </div>
                     </sc-if>
@@ -1620,7 +1633,7 @@ window.ctPdfLib = (function(){
               </sc-if>
             </div>
             <div class="cth-card">
-              <div class="cth-chead"><h3>📕 Leitura de leis<sc-if value="{{ homeLeituraShow }}" hint-placeholder-val="{{ false }}"> · Tabela Dia {{ homeLeitura.num }}</sc-if></h3><sc-if value="{{ homeLeituraShow }}" hint-placeholder-val="{{ false }}"><span class="meta"><b>{{ homeLeitura.resumo }}</b></span></sc-if></div>
+              <div class="cth-chead"><h3><svg class="cth-h3ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="book-open"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>Leitura de leis<sc-if value="{{ homeLeituraShow }}" hint-placeholder-val="{{ false }}"> · Tabela Dia {{ homeLeitura.num }}</sc-if></h3><sc-if value="{{ homeLeituraShow }}" hint-placeholder-val="{{ false }}"><span class="meta"><b>{{ homeLeitura.resumo }}</b></span></sc-if></div>
               <sc-if value="{{ homeLeituraShow }}" hint-placeholder-val="{{ false }}">
                 <div style="display:flex;flex-direction:column;">
                   <sc-for list="{{ homeLeitura.leis }}" as="n" hint-placeholder-count="4">
@@ -1631,7 +1644,7 @@ window.ctPdfLib = (function(){
                     </div>
                   </sc-for>
                   <sc-if value="{{ homeLeitura.temJuris }}" hint-placeholder-val="{{ false }}">
-                    <div class="cth-lawsep">⚖️ Jurisprudência · {{ homeLeitura.resumoJuris }}</div>
+                    <div class="cth-lawsep"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="scale"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path></svg><span>Jurisprudência · {{ homeLeitura.resumoJuris }}</span></div>
                     <sc-for list="{{ homeLeitura.juris }}" as="n" hint-placeholder-count="1">
                       <div class="cth-law" title="{{ n.law }} — {{ n.arts }}">
                         <button class="ct-alvo ct-miudo cth-chk" data-k="{{ n.k }}" data-law="{{ n.law }}" data-arts="{{ n.arts }}" data-disc="{{ n.disc }}" data-done="{{ n.doneN }}" onclick="{{ togglePlanoLegis }}" style="width:22px;height:22px;border-color:{{ n.checkBd }};background:{{ n.checkBg }};" aria-label="Marcar leitura como feita"><sc-if value="{{ n.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></button>
@@ -1868,7 +1881,7 @@ window.ctPdfLib = (function(){
         </sc-if>
         <sc-if value="{{ homeProxVazio }}" hint-placeholder-val="{{ true }}"><div class="cth-card" style="text-align:center;color:var(--text3);font-size:var(--fs-base);">Nenhuma revisão agendada.</div></sc-if>
         <div class="cth-foco">
-          <span class="ico"><span class="ct-emo" aria-hidden="true">🎯</span></span>
+          <span class="ico ct-emo" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="target"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span>
           <div class="tx"><small>Foco sugerido</small><p>{{ focoSugestao }}</p></div>
           <button data-view="{{ focoView }}" onclick="{{ onNav }}" class="cth-bfsug">{{ focoBtnLabel }}</button>
         </div>
@@ -1914,7 +1927,7 @@ window.ctPdfLib = (function(){
             <div class="ct-dashwrap" onclick="{{ dashToggle }}" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:8px;">
                 <span style="display:flex;align-items:center;gap:9px;font-weight:600;color:var(--ink);font-size:var(--fs-lg);"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="var(--accent)" stroke-width="1.9"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 1.6M9 2.5h6" stroke-linecap="round"></path></svg>Tempo de Estudo Diário</span>
-                <span style="font-family:var(--mono);font-size:var(--fs-sm);color:var(--text3);"><span class="ct-dx-hint">🔍 toque ou passe o mouse: 90 dias · </span>30 dias · {{ dashDailyTotal }}</span>
+                <span style="font-family:var(--mono);font-size:var(--fs-sm);color:var(--text3);"><span class="ct-dx-hint"><svg style="vertical-align:-.2em;" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="zoom-in"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path><path d="M11 8v6"></path><path d="M8 11h6"></path></svg> toque ou passe o mouse: 90 dias · </span>30 dias · {{ dashDailyTotal }}</span>
               </div>
               <div class="ct-dx-full" style="display:flex;align-items:flex-end;gap:1px;height:172px;">
                 <sc-for list="{{ paD90 }}" as="d" hint-placeholder-count="0">
@@ -1944,7 +1957,7 @@ window.ctPdfLib = (function(){
                 </div>
               </div>
               <div class="ct-dashwrap" onclick="{{ dashToggle }}" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
-                <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:18px;"><span style="font-weight:600;color:var(--ink);font-size:var(--fs-lg);">Tempo de Estudo Semanal</span><span class="ct-dx-hint" style="font-family:var(--mono);font-size:var(--fs-xs);color:var(--text3);">🔍 26 semanas</span></div>
+                <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:18px;"><span style="font-weight:600;color:var(--ink);font-size:var(--fs-lg);">Tempo de Estudo Semanal</span><span class="ct-dx-hint" style="font-family:var(--mono);font-size:var(--fs-xs);color:var(--text3);"><svg style="vertical-align:-.2em;" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="zoom-in"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path><path d="M11 8v6"></path><path d="M8 11h6"></path></svg> 26 semanas</span></div>
                 <div class="ct-dx-full" style="display:flex;align-items:flex-end;gap:2px;height:140px;">
                   <sc-for list="{{ paW26 }}" as="d" hint-placeholder-count="0">
                     <div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;justify-content:flex-end;" title="{{ d.tit }}">
@@ -2005,7 +2018,7 @@ window.ctPdfLib = (function(){
                 <sc-if value="{{ homeSemDiscVazio }}" hint-placeholder-val="{{ false }}"><div style="font-size:var(--fs-sm);color:var(--text3);padding:18px 0;text-align:center;">Registre sessões nesta semana para ver a distribuição.</div></sc-if>
               </div>
               <div class="ct-dashwrap" onclick="{{ dashToggle }}" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
-                <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:18px;"><span style="font-weight:600;color:var(--ink);font-size:var(--fs-lg);">Tempo de Estudo Mensal</span><span class="ct-dx-hint" style="font-family:var(--mono);font-size:var(--fs-xs);color:var(--text3);">🔍 12 meses</span></div>
+                <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:18px;"><span style="font-weight:600;color:var(--ink);font-size:var(--fs-lg);">Tempo de Estudo Mensal</span><span class="ct-dx-hint" style="font-family:var(--mono);font-size:var(--fs-xs);color:var(--text3);"><svg style="vertical-align:-.2em;" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="zoom-in"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path><path d="M11 8v6"></path><path d="M8 11h6"></path></svg> 12 meses</span></div>
                 <div class="ct-dx-full" style="display:flex;align-items:flex-end;gap:6px;height:140px;">
                   <sc-for list="{{ paM12 }}" as="d" hint-placeholder-count="0">
                     <div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;">
@@ -4497,7 +4510,7 @@ window.ctPdfLib = (function(){
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;">
           <div style="background:var(--heroGrad);border-radius:var(--radius);padding:20px;color:#fff;"><div style="font-size:var(--fs-2xs);letter-spacing:.12em;text-transform:uppercase;opacity:.85;font-weight:600;">Níveis alcançados</div><div style="font-family:var(--display);font-size:34px;font-weight:700;line-height:1;margin-top:6px;">{{ conqEarned }} <span style="font-size:var(--fs-lg);opacity:.8;">/ {{ conqTotalLevels }}</span></div></div>
           <div class="ct-card"><div style="font-size:var(--fs-xs);color:var(--text3);">Categorias no máximo</div><div style="font-family:var(--display);font-size:32px;font-weight:700;color:var(--ink);margin-top:6px;">{{ conqMaxed }}</div></div>
-          <div class="ct-card ct-gam"><div style="font-size:var(--fs-xs);color:var(--text3);">Sequência atual</div><div style="font-family:var(--display);font-size:32px;font-weight:700;color:var(--ink);margin-top:6px;"><span class="ct-emo" aria-hidden="true">🔥</span> {{ sidebarStreak }}</div><div style="font-size:var(--fs-xs);color:var(--text3);margin-top:4px;">{{ escudoProxLabel }}</div></div>
+          <div class="ct-card ct-gam"><div style="font-size:var(--fs-xs);color:var(--text3);">Sequência atual</div><div style="font-family:var(--display);font-size:32px;font-weight:700;color:var(--ink);margin-top:6px;"><span class="ct-emo" aria-hidden="true">🔥</span> {{ sidebarStreak }}</div><div style="font-size:var(--fs-xs);color:var(--text3);margin-top:4px;"><svg style="vertical-align:-.2em;" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="shield"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path></svg> {{ escudoProxLabel }}</div></div>
         </div>
 
         <!-- Em progresso · ESPELHO: o que ainda não foi atingido -->
@@ -11787,7 +11800,12 @@ class Component extends DCLogic {
       // O template resolve NOMES, não expressões: estilos condicionais saem prontos daqui.
       oralAbaJuris:aba(st.oralModo==='juris'), oralAbaLei:aba(st.oralModo==='lei'), oralAbaBancas:aba(st.oralModo==='bancas'),
       oralOuroLabel:st.oralBancaSoOuro?'Só com padrão de resposta ✓':'Só com padrão de resposta',
-      oralNotaStyle:c?('display:inline-block;font-size:var(--fs-xs);font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:5px 12px;border-radius:99px;background:'+(c.nota==='boa'?'var(--ok)':c.nota==='media'?'var(--warn)':'var(--danger)')+'1f;color:'+(c.nota==='boa'?'var(--ok)':c.nota==='media'?'var(--warn)':'var(--danger)')+';'):'',
+      // o fundo era var(--ok)+'1f' — hex com alfa colado num var() não é cor, o navegador jogava a
+      // declaração fora e a pílula saía sem fundo. A lavagem é color-mix do token; o texto é a
+      // cor de situação escurecida com a tinta (DESIGN.md: cor-texto ≠ cor-identidade, ≥ 4,5:1).
+      oralNotaStyle:c?(()=>{ const k=(c.nota==='boa'?'var(--ok)':c.nota==='media'?'var(--warn)':'var(--danger)');
+        return 'display:inline-block;font-size:var(--fs-xs);font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:5px 12px;border-radius:99px;'
+          +'background:color-mix(in srgb, '+k+' 14%, transparent);color:color-mix(in srgb, '+k+' 72%, var(--ink));'; })():'',
       oralPronto:st.oralPronto, oralErro:st.oralErro,
       oralRamoOpts:_chipz([{v:'',label:'Todas as disciplinas'}].concat(cont('ramo')).map(o=>({...o,sel:st.oralRamo===o.v}))),
       oralTribOpts:_chipz([{v:'',label:'Todos os tribunais'}].concat(cont('tribunal')).map(o=>({...o,sel:st.oralTribunal===o.v}))),
@@ -14790,7 +14808,8 @@ class Component extends DCLogic {
   _palConteudo(q, permite){
     if(!this._palIndice || !window.CT_BUSCA) return [];
     const SEC={lei:'Leis', verbete:'Jurisprudência', peca:'Peças', rito:'Ritos'};
-    const ICO={lei:'⚖️', verbete:'🏛️', peca:'✍️', rito:'🧭'};
+    // o ícone vai pelo NOME Lucide: o template tem um <sc-if> por ícone (emoji não é ícone — DESIGN.md)
+    const ICO={lei:'scale', verbete:'landmark', peca:'pen-line', rito:'compass'};
     const r=window.CT_BUSCA.buscar(this._palIndice, q, {porTipo:8});
     const out=[];
     window.CT_BUSCA.ORDEM.forEach(t=>{
@@ -16447,22 +16466,22 @@ class Component extends DCLogic {
     // não o store paralelo orient.al* — assim ligar/desligar um alerta realmente vale.
     const _alerts = this.state.prefs||{};
     const _liveNotifs=[];
-    if(_alerts.notifRevisao!==false && revOverdue.length){ _liveNotifs.push({id:'rev-overdue', tipo:'revisao', icon:'⏰', titulo:revOverdue.length+' revis'+(revOverdue.length>1?'ões atrasadas':'ão atrasada'), texto:revOverdue.slice(0,2).map(r=>r.disc.replace('Direito ','')).join(', ')+(revOverdue.length>2?' e mais':'')+' passaram da data.', tempo:'agora', view:'revisoes'}); }
-    if(_alerts.notifRevisao!==false && revToday.length){ _liveNotifs.push({id:'rev-today', tipo:'revisao', icon:'🔁', titulo:revToday.length+' revis'+(revToday.length>1?'ões para hoje':'ão para hoje'), texto:'Faça sua sessão de "Revisar agora" para manter o ciclo.', tempo:'hoje', view:'revisoes'}); }
+    if(_alerts.notifRevisao!==false && revOverdue.length){ _liveNotifs.push({id:'rev-overdue', tipo:'revisao', ico:'alarm-clock', titulo:revOverdue.length+' revis'+(revOverdue.length>1?'ões atrasadas':'ão atrasada'), texto:revOverdue.slice(0,2).map(r=>r.disc.replace('Direito ','')).join(', ')+(revOverdue.length>2?' e mais':'')+' passaram da data.', tempo:'agora', view:'revisoes'}); }
+    if(_alerts.notifRevisao!==false && revToday.length){ _liveNotifs.push({id:'rev-today', tipo:'revisao', ico:'repeat', titulo:revToday.length+' revis'+(revToday.length>1?'ões para hoje':'ão para hoje'), texto:'Faça sua sessão de "Revisar agora" para manter o ciclo.', tempo:'hoje', view:'revisoes'}); }
     const _metaThresh = _cob==='leve'?50 : (_cob==='rigido'?100 : 85);
-    if(_alerts.alSemanal!==false && B.totalMin>0 && metaPct<_metaThresh){ _liveNotifs.push({id:'meta', tipo:'meta', icon:this._baixa()?'':'🎯', titulo:'Faltam '+metaFaltamH+'h para a meta da semana', texto:'Você está em '+metaPct+'% das '+_metaAlvoH+'h planejadas.', tempo:'hoje', view:'inicio'}); }
-    if(_alerts.alProva!==false && this.state.provaData){ _liveNotifs.push({id:'prova', tipo:'prova', icon:'📅', titulo:'Faltam '+_diasProvaN+' dias para a prova', texto:'Mantenha o ritmo: '+Math.round(B.totalMin/60)+'h estudadas até aqui.', tempo:'hoje', view:'inicio'}); }
+    if(_alerts.alSemanal!==false && B.totalMin>0 && metaPct<_metaThresh){ _liveNotifs.push({id:'meta', tipo:'meta', ico:'target', titulo:'Faltam '+metaFaltamH+'h para a meta da semana', texto:'Você está em '+metaPct+'% das '+_metaAlvoH+'h planejadas.', tempo:'hoje', view:'inicio'}); }
+    if(_alerts.alProva!==false && this.state.provaData){ _liveNotifs.push({id:'prova', tipo:'prova', ico:'calendar-days', titulo:'Faltam '+_diasProvaN+' dias para a prova', texto:'Mantenha o ritmo: '+Math.round(B.totalMin/60)+'h estudadas até aqui.', tempo:'hoje', view:'inicio'}); }
     // 4 alertas inteligentes (a partir dos dados existentes) — gateados pelos mesmos toggles de Ajustes
     const _naNow=Date.now(), _naDay=864e5, _naS=this.state.sessions||[];
     // (2) queda de precisão (últimos 7 dias vs 7-21 dias)
     const _prec=(arr)=>{ const q=arr.reduce((a,s)=>a+(s.questoes||0),0); const li=arr.reduce((a,s)=>a+((s.acertos||0)-(s.erradas||0)),0); return q>=10?Math.round(li/q*100):null; };
     const _pRec=_prec(_naS.filter(s=>s.ts>=_naNow-7*_naDay)); const _pPrev=_prec(_naS.filter(s=>s.ts<_naNow-7*_naDay && s.ts>=_naNow-21*_naDay));
-    if(_alerts.alPrecisao!==false && _pRec!=null && _pPrev!=null && _pRec<_pPrev-8){ _liveNotifs.push({id:'precisao', tipo:'desempenho', icon:'⚠️', titulo:'Sua precisão caiu para '+_pRec+'%', texto:'Era '+_pPrev+'% na semana anterior. Reveja os tópicos com mais erros antes de avançar.', tempo:'esta semana', view:'analise'}); }
+    if(_alerts.alPrecisao!==false && _pRec!=null && _pPrev!=null && _pRec<_pPrev-8){ _liveNotifs.push({id:'precisao', tipo:'desempenho', ico:'triangle-alert', titulo:'Sua precisão caiu para '+_pRec+'%', texto:'Era '+_pPrev+'% na semana anterior. Reveja os tópicos com mais erros antes de avançar.', tempo:'esta semana', view:'analise'}); }
     // (4) lembrete de simulado (sem simulado há 7+ dias, já tendo estudado)
     const _sims=_naS.filter(s=>(Array.isArray(s.categorias)?s.categorias:[s.categoria]).includes('Simulado'));
     const _lastSim=_sims.length?Math.max.apply(null,_sims.map(s=>s.ts||0)):0;
     const _diasSim=_lastSim?Math.floor((_naNow-_lastSim)/_naDay):null;
-    if(_alerts.alSimulados!==false && B.totalMin>0 && ((_lastSim===0 && B.diasEstudados>=7) || (_diasSim!=null && _diasSim>=7))){ _liveNotifs.push({id:'simulado', tipo:'simulado', icon:'📝', titulo: _lastSim? ('Faz '+_diasSim+' dias sem simulado') : 'Hora do seu primeiro simulado', texto:'Um simulado cronometrado mede o que a teoria sozinha não mostra.', tempo:'hoje', view:'simulados'}); }
+    if(_alerts.alSimulados!==false && B.totalMin>0 && ((_lastSim===0 && B.diasEstudados>=7) || (_diasSim!=null && _diasSim>=7))){ _liveNotifs.push({id:'simulado', tipo:'simulado', ico:'clipboard-list', titulo: _lastSim? ('Faz '+_diasSim+' dias sem simulado') : 'Hora do seu primeiro simulado', texto:'Um simulado cronometrado mede o que a teoria sozinha não mostra.', tempo:'hoje', view:'simulados'}); }
     // aviso de fim de dia: ofensiva em risco (após as 20h, sem estudo hoje, com sequência a proteger)
     /* MELHOR TURNO passa a valer: era um trio de chips que ninguém lia. O aviso de
        ofensiva em risco tocava sempre às 20h — tarde demais para quem estuda de manhã e
@@ -16471,8 +16490,8 @@ class Component extends DCLogic {
     const _horaAviso = _turno==='manha' ? 14 : _turno==='tarde' ? 18 : 20;
     if(B.todayMin===0 && B.streak>0 && new Date().getHours()>=_horaAviso && !(this.state.sessions||[]).some(s=>s.date===this._hoje())){   // sessão só de questões (0 min) TAMBÉM protege o dia
       const _escN=this.state.escudos||0;
-      if(!this._baixa()) _liveNotifs.push({id:'ofensiva-'+this._hoje(), tipo:'meta', icon:'🔥', titulo:'Sua ofensiva de '+B.streak+' dia'+(B.streak>1?'s':'')+' está em risco',
-        texto:_escN>0?('Estude hoje — ou um dos seus '+_escN+' escudo(s) 🛡️ será usado automaticamente amanhã.'):'Estude nem que sejam 15 minutos para não perder a sequência (você não tem escudos).', tempo:'hoje', view:'inicio'});
+      if(!this._baixa()) _liveNotifs.push({id:'ofensiva-'+this._hoje(), tipo:'meta', ico:'flame', titulo:'Sua ofensiva de '+B.streak+' dia'+(B.streak>1?'s':'')+' está em risco',
+        texto:_escN>0?('Estude hoje — ou um dos seus '+_escN+' escudo(s) será usado automaticamente amanhã.'):'Estude nem que sejam 15 minutos para não perder a sequência (você não tem escudos).', tempo:'hoje', view:'inicio'});
     }
     // Aviso que leva a uma tela que a área não tem é aviso que termina num muro: o
     // lembrete de simulado nascia em qualquer área, inclusive onde não há banco de questões.
@@ -17239,7 +17258,7 @@ class Component extends DCLogic {
     const redCobColor=redCobertura>=75?'var(--ok)':redCobertura>=50?'var(--warn)':'var(--danger)';
     const redConceito=_redRes?(_redRes.conceito||''):'';
     const _redConcColor=_redRes?(_redRes.notaColor||'var(--accent)'):'var(--accent)';
-    const redConceitoStyle=`font-size:var(--fs-xs);font-weight:700;color:${_redConcColor};background:${_redRes&&_redRes.notaColor?_redRes.notaColor+'1e':'var(--accentSoft)'};padding:4px 11px;border-radius:99px;`;
+    const redConceitoStyle=`font-size:var(--fs-xs);font-weight:700;color:${_redConcColor};background:${_redRes&&_redRes.notaColor?'color-mix(in srgb, '+_redRes.notaColor+' 12%, transparent)':'var(--accentSoft)'};padding:4px 11px;border-radius:99px;`;
     const redEnunciadoShow=!!(_redRes && _redRes.enunciado);
     const redEnunciadoResult=_redRes?(_redRes.enunciado||''):'';
     const redTopCoberto=redTopicos.filter(t=>t.statusLabel==='Coberto').length;
@@ -18174,7 +18193,7 @@ class Component extends DCLogic {
       salaAnelResto:String((578.05*(1-(isPomo?Math.max(0,Math.min(100,phasePct))/100:1))).toFixed(1)),
       salaBtnPrim:'display:flex;align-items:center;gap:8px;background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:99px;padding:12px 24px;font-size:var(--fs-base);font-weight:700;cursor:pointer;font-family:inherit;',
       salaBtnSec:'display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.07);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.16);border-radius:99px;padding:12px 20px;font-size:var(--fs-base);font-weight:500;cursor:pointer;font-family:inherit;',
-      focoBtnPlay:(this.state.timerRunning?'❚❚ Pausar':((this.state.timerSeconds||this.state.studiedSeconds)?'▶ Retomar':'▶ Iniciar')),
+      focoBtnPlay:(this.state.timerRunning?'Pausar':((this.state.timerSeconds||this.state.studiedSeconds)?'Retomar':'Iniciar')),
       focoItemStyle:'display:flex;align-items:center;gap:10px;width:100%;text-align:left;cursor:pointer;background:transparent;border:none;border-radius:var(--r-md);padding:9px 10px;font-family:inherit;font-size:var(--fs-sm);color:var(--ink);',
       // D12: o estado do sync sai do topo — pontinho no avatar, frase no menu da conta,
       // e aviso visível SÓ quando o erro persiste (é a exceção que merece o espaço nobre).
@@ -18187,7 +18206,7 @@ class Component extends DCLogic {
       syncAlarme:!!(this.state.syncStatus==='erro' && this.state.syncErroDesde
         && (Date.now()-this.state.syncErroDesde)>5*60000),
       syncAlarmeTxt:'não consegui salvar — tentar agora',
-      homeTimerLabel, homeTimerBtn:(this.state.timerRunning?'❚❚ Pausar':((this.state.timerSeconds||this.state.studiedSeconds)?'▶ Retomar':'▶ Iniciar')), homePmLivre, homePm25, homePm50, homePm90, pmCustShow, pmCustF, pmCustB, pmCustLabel, homePmCust,
+      homeTimerLabel, homeTimerBtn:(this.state.timerRunning?'Pausar':((this.state.timerSeconds||this.state.studiedSeconds)?'Retomar':'Iniciar')), homePmLivre, homePm25, homePm50, homePm90, pmCustShow, pmCustF, pmCustB, pmCustLabel, homePmCust,
       reviewRate:this.reviewRate, reviewSnooze:this.reviewSnooze, reviewRemove:this.reviewRemove,
       startRevSession:this.startRevSession, revReveal:this.revReveal, revAnswer:this.revAnswer, revSkip:this.revSkip, closeRevSession:this.closeRevSession,
       abrirAcervoDaRevisao:this.abrirAcervoDaRevisao,
@@ -18657,8 +18676,8 @@ class Component extends DCLogic {
         const dias=ult?Math.floor((Date.now()-new Date(ult+'T12:00:00').getTime())/864e5):null;
         return { simNudgeShow:(dias===null||dias>=7), simNudge:(dias===null?'Nenhum simulado ainda — fazer o primeiro':dias+' dias sem simulado — fazer agora') }; })(),
       escudos:String(this.state.escudos||0), escudoOn:(this.state.escudos||0)>0, escudosProxDias:String(B.streak>0?(7-(B.streak%7))%7||7:7),
-      escudoProxLabel:(()=>{ const e=this.state.escudos||0; if(e>=3) return '🛡️ 3/3 escudos (máx)';
-        const d=B.streak>0?(7-(B.streak%7))%7||7:7; return '🛡️ '+e+' escudo(s) · próximo em '+d+'d'; })(),
+      escudoProxLabel:(()=>{ const e=this.state.escudos||0; if(e>=3) return '3/3 escudos (máx)';
+        const d=B.streak>0?(7-(B.streak%7))%7||7:7; return e+' escudo(s) · próximo em '+d+'d'; })(),
       paSemMedia:(()=>{ const dias=((new Date().getDay()+6)%7)+1; const m=Math.round((B.weekMin||0)/dias); return m>=60?(Math.floor(m/60)+'h'+String(m%60).padStart(2,'0')):(m+'min'); })(),   // divide pelos dias JÁ decorridos da semana, não por 7 fixo
       dashToggle:this.dashToggle, diasProva:((this.state.prefs.mostrarContagem!==false && this.state.provaData)?String(_diasProvaN):'—'), showContagem:this.state.prefs.mostrarContagem!==false, retencao:String(B.brutoPct), metaSemana, metaPct, metaWeekBars, planoMsg:_planoSemana.msg, planoCor:_planoSemana.cor, planoShow:_planoSemana.show, focoSugestao, objetivoShort, objetivoShortUp:String(objetivoShort||'').toUpperCase(), bancaLabel, bancaInfo, bancaPenLabel, bancaPenStyle,
       // histórico

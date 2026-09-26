@@ -35,6 +35,7 @@ import { testarPrioridadeErrosResolvidos } from './prioridade-erros-resolvidos.m
 import { testarRevisaoFonte } from './revisao-fonte.mjs';
 import { testarVoltaOrigem } from './volta-origem.mjs';
 import { testarContrasteDestaque } from './contraste-destaque.mjs';
+import { testarIconesAlvos } from './icones-alvos.mjs';
 import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
 import { testarOnboardingImportar } from './onboarding-importar.mjs';
 import { testarCotaIA } from './cota-ia.mjs';
@@ -8986,6 +8987,15 @@ catch (e) {
 try { await testarContrasteDestaque(page, URL0, ok, { motor }); }
 catch (e) {
   ok(false, 'CONTRASTE/DESTAQUE [' + motor + '] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+// Ícone é SVG Lucide, não emoji, no Início, na barra lateral e no painel de avisos; os alvos do
+// cronômetro do banner com 44 px no toque e intactos com mouse; a nota da Prova oral com fundo que
+// pinta (era var(--ok)+'1f', que não é cor) — tests/icones-alvos.mjs
+try { await testarIconesAlvos(page, URL0, ok, { motor }); }
+catch (e) {
+  ok(false, 'ÍCONES/ALVOS [' + motor + '] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
