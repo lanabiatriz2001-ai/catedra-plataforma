@@ -3,6 +3,8 @@
 // visualizador desktop do dc-runtime).
 //
 // O que ele faz:
+//  0. Confere a lista de cópia (arquivo ausente é erro) e APAGA public/ inteira: o
+//     que sai daqui é só o build da vez, sem sobra de build anterior.
 //  1. Lê Catedra.dc.html (a fonte pristina).
 //  2. Injeta, logo após <head>: o shim window.claude.complete (que chama a
 //     função serverless /api/complete), o <link rel="manifest"> e o registro
@@ -44,6 +46,31 @@ const REACTDOM_CDN = 'https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-do
 const SUPABASE_CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
 
 const pub = join(ROOT, 'public');
+
+/* O QUE VAI PARA public/ POR CÓPIA DIRETA. Arquivo citado aqui que não existe é ERRO, e
+   a conferência acontece ANTES de qualquer escrita e de qualquer rede. Antes o laço de
+   cópia pulava em silêncio o que faltava: um arquivo renomeado ou apagado saía do deploy
+   sem ninguém ver, e o satélite que dependia dele abria quebrado só em produção. */
+const COPIAR = ['support.js', 'icon.svg', 'auth.js', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-mapas-sv.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'discursivas-textos.js', 'espelhos.js', 'segunda-fase-web.html', 'prioridade-dados.js', 'prioridade-web.html', 'oral.js', 'oral-conteudo.js', 'treino.js', 'tema-satelite.js', 'satellite-base.css', 'leis-catalogo.js', 'busca-unica.js', 'prioridade-calc.js', 'ct-dados.js', 'leis-seca.js', 'leis-seca-areas.js', 'questoes-prova.js', 'area-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'mapa-grafo.js', 'mapa-processual.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'area-modulos.js', 'semana-juris.js', 'plataformas-questoes.js', 'espelho-sugerido.js', 'area-registry.js', 'casos.js', 'leitura-ativa.js', 'enam.js', 'questoes-enam.js', 'catedra-ui.css', 'juridico.js', 'termos.html', 'privacidade.html', 'sobre.html', 'incidencia-verbetes.js'];
+{
+  const faltam = COPIAR.filter((f) => !existsSync(join(ROOT, f)));
+  if (!existsSync(join(ROOT, 'dados'))) faltam.push('dados/');
+  if (faltam.length) {
+    console.error('\n✗ BUILD ABORTADO: a lista de cópia do build cita arquivo que não existe:');
+    for (const f of faltam) console.error('  · ' + f);
+    console.error('\n  Ou o arquivo sumiu do repositório (restaure), ou a lista está velha (tire-o');
+    console.error('  de COPIAR em scripts/build.mjs — e da lista do build-macos.mjs).\n');
+    process.exit(1);
+  }
+}
+
+/* LIMPA public/ INTEIRA ANTES DE ESCREVER. Antes só public/fonts era apagada: vendor/ era
+   criada por cima e dados/ ia por cpSync sem limpar. Como os blocos dos acervos têm hash
+   no nome, cada atualização deixava os blocos velhos lá — medido: 248 arquivos em
+   public/dados/juris-text contra 62 no repositório, e 104 MB de public/. Tudo isso ia para
+   a Vercel. Limpar aqui, antes das fontes, mantém a ordem do D9: sem rede, as faces ainda
+   chegam a public/fonts e o build aborta depois, pelas bibliotecas. */
+rmSync(pub, { recursive: true, force: true });
 mkdirSync(join(pub, 'vendor'), { recursive: true });
 
 // D9: vendoring que falha FAZ O BUILD FALHAR. Antes caía para o CDN, e aí o site
@@ -118,12 +145,10 @@ async function vendorarFontes() {
     console.error('  Sem elas o app publica sem tipografia.\n');
     process.exit(1);
   }
-  /* LIMPA ANTES DE COPIAR. As 48 faces do build antigo (nomes gerados pelo Google, com
-     cirílico e vietnamita) ficavam em public/fonts e, como a casca do worker passou a
-     levar tudo que está lá, elas voltariam para o precache pela porta dos fundos — o
-     oposto do que a filtragem antiga existia para evitar. Medido: a casca saltou de 37
-     para 85 arquivos por causa delas. */
-  rmSync(join(pub, 'fonts'), { recursive: true, force: true });
+  /* public/ INTEIRA já foi limpa no começo do build (ver acima). A limpeza nasceu aqui,
+     só para as fontes: as 48 faces do build antigo (nomes gerados pelo Google, com
+     cirílico e vietnamita) ficavam em public/fonts e, como a casca do worker leva tudo
+     que está lá, voltavam para o precache — a casca saltou de 37 para 85 arquivos. */
   mkdirSync(join(pub, 'fonts'), { recursive: true });
   const faces = readdirSync(origem).filter((f) => f.endsWith('.woff2'));
   if (!faces.length) {
@@ -319,9 +344,7 @@ if (fontsHref) {
 
 writeFileSync(join(pub, 'index.html'), out);
 
-for (const f of ['support.js', 'icon.svg', 'auth.js', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-mapas-sv.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'discursivas-textos.js', 'espelhos.js', 'segunda-fase-web.html', 'prioridade-dados.js', 'prioridade-web.html', 'oral.js', 'oral-conteudo.js', 'treino.js', 'tema-satelite.js', 'satellite-base.css', 'leis-catalogo.js', 'busca-unica.js', 'prioridade-calc.js', 'ct-dados.js', 'leis-seca.js', 'leis-seca-areas.js', 'questoes-prova.js', 'area-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'mapa-grafo.js', 'mapa-processual.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'incidencia-verbetes.js', 'area-modulos.js', 'semana-juris.js', 'plataformas-questoes.js', 'espelho-sugerido.js', 'area-registry.js', 'casos.js', 'leitura-ativa.js', 'enam.js', 'questoes-enam.js', 'catedra-ui.css', 'juridico.js', 'termos.html', 'privacidade.html', 'sobre.html']) {
-  if (existsSync(join(ROOT, f))) copyFileSync(join(ROOT, f), join(pub, f));
-}
+for (const f of COPIAR) copyFileSync(join(ROOT, f), join(pub, f));
 // fatias dos acervos (ct-dados/sw): pasta inteira, nomes com hash
 cpSync(join(ROOT, 'dados'), join(pub, 'dados'), { recursive: true });
 
@@ -447,7 +470,9 @@ if (somaAcervo + somaSobPedido > TETO_PEDIDO_SW) {
 
 // sw.js: entrada é index.html (não Catedra.dc.html) e as libs vendoradas entram
 // no precache — assim o app instalado abre offline sem depender de CDN nenhum.
-if (existsSync(join(ROOT, 'sw.js'))) {
+// sem sw.js o site sairia sem PWA nem offline — é arquivo obrigatório, não opcional
+if (!existsSync(join(ROOT, 'sw.js'))) { console.error('BUILD ABORTADO: sw.js não existe no repositório.'); process.exit(1); }
+{
   const sw = read('sw.js')
     .replace(/\.\/Catedra\.dc\.html/g, './index.html')
     .replace('/*__EXTRA_ASSETS__*/', 'ASSETS = ASSETS.concat(' + JSON.stringify(casca) + ');')
