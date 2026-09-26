@@ -147,29 +147,99 @@ async function prepararPonteReal(page, view) {
   };
   plantarOrfaos();
   const semRede = rodar({ NODE_OPTIONS: '--require ' + stub });
-  /* A limpeza vem ANTES das fontes e da rede: mesmo o build que aborta pelas bibliotecas
-     já não deixa a sobra de pé (e o contrato do D9 abaixo continua igual). */
+  /* A limpeza vem antes de qualquer escrita: o build sem rede (que agora publica) sai sem
+     a sobra do build anterior. */
   ok(!fs.existsSync(orfaoPag) && !fs.existsSync(orfaoBloco),
-     'BUILD LIMPO public/ é apagada inteira no começo, antes da rede (sobras somem mesmo no build que aborta)');
+     'BUILD LIMPO public/ é apagada inteira no começo (sobras somem também no build sem rede)');
   /* Sem rede o build ainda para — mas agora por causa das BIBLIOTECAS (react, supabase),
      que continuam sendo vendoradas da internet. O que mudou é que as FONTES saíram dessa
      lista: elas não são mais motivo de aborto. A asserção mira a causa, não o código de
      saída, senão ela passaria a medir o vendor das libs sem querer. */
   ok(!/vendorar as fontes|fonts\.googleapis|fonts\.gstatic/.test(semRede.saida),
      'D9 sem rede, as fontes NÃO são mais motivo de aborto');
-  /* Sem rede o build AINDA aborta — pelas bibliotecas, não pelas fontes. Este caso guarda
-     o outro lado do contrato: degradar em silêncio continua proibido. */
-  ok(semRede.code !== 0 && /vendorar react\.js|cdn\.jsdelivr/.test(semRede.saida),
-     'D9 sem rede o build aborta pelas BIBLIOTECAS');
-  /* E, mesmo abortando, as fontes já chegaram: a cópia acontece antes do vendor das libs,
-     de propósito (ver scripts/build.mjs). É por isso que este caso pode medir o build da
-     vez, com public/fonts apagada logo acima. */
+  /* O CONTRATO INVERTEU, DE NOVO E PELO MESMO MOTIVO DAS FONTES. As bibliotecas (React,
+     ReactDOM, supabase-js) eram baixadas do jsdelivr a cada build, sem checksum, e o
+     supabase-js flutuava em `@2` — sem rede o build tinha de abortar. Agora elas moram em
+     vendor/, congeladas e conferidas pelo sha256 de vendor/manifesto.json: sem rede o build
+     PUBLICA. O que continua proibido é degradar em silêncio, e isso passou a ser guardado
+     pelo hash (casos "vendor adulterado" e "vendor ausente" logo abaixo). */
+  ok(semRede.code === 0 && !/BUILD ABORTADO/.test(semRede.saida),
+     'D9 sem rede o build PUBLICA (código 0): as bibliotecas vêm de vendor/, não da internet (' + semRede.code + ')');
+  const manifestoVendor = JSON.parse(fs.readFileSync(path.join(RAIZ, 'vendor', 'manifesto.json'), 'utf8'));
+  const sha256De = (p) => createHash('sha256').update(fs.readFileSync(p)).digest('hex');
+  ok(['react.js', 'react-dom.js', 'supabase.js'].every((f) => {
+       const ent = manifestoVendor.arquivos.find((a) => a.arquivo === f);
+       const pub = path.join(RAIZ, 'public', 'vendor', f);
+       return ent && fs.existsSync(pub) && sha256De(pub) === ent.sha256
+         && Buffer.compare(fs.readFileSync(pub), fs.readFileSync(path.join(RAIZ, 'vendor', f))) === 0;
+     }),
+     'D9 sem rede public/vendor leva os três arquivos de vendor/, byte a byte e com o sha256 do manifesto');
+  /* Versões congeladas por decisão da dona (25/09/2026): React e ReactDOM 18.3.1, supabase-js
+     2.117.2 — a que estava em produção (byte a byte a do app instalado) no dia do congelamento;
+     o `@2` flutuante já tinha trocado 2.117.1 por 2.117.2 sozinho. Trocar é pelo
+     scripts/atualizar-vendor.mjs, e este caso muda junto, de propósito. */
+  const versaoDe = (f) => (manifestoVendor.arquivos.find((a) => a.arquivo === f) || {}).versao;
+  ok(versaoDe('react.js') === '18.3.1' && versaoDe('react-dom.js') === '18.3.1' && versaoDe('supabase.js') === '2.117.2',
+     'D9 versões congeladas: react 18.3.1, react-dom 18.3.1, supabase-js 2.117.2 (' + ['react.js', 'react-dom.js', 'supabase.js'].map(versaoDe).join(', ') + ')');
+  /* O React vendorado é o MESMO arquivo que o support.js aceitaria do unpkg: o sha384 dele
+     bate com o SRI que o runtime já carrega. Duas fontes independentes dizendo o mesmo byte. */
+  {
+    const sup = fs.readFileSync(path.join(RAIZ, 'support.js'), 'utf8');
+    const sri = (nome) => (sup.match(new RegExp('var ' + nome + ' = "(sha384-[^"]+)"')) || [])[1];
+    const sha384 = (f) => 'sha384-' + createHash('sha384').update(fs.readFileSync(path.join(RAIZ, 'vendor', f))).digest('base64');
+    ok(!!sri('REACT_SRI') && sri('REACT_SRI') === sha384('react.js') && sri('REACT_DOM_SRI') === sha384('react-dom.js'),
+       'D9 vendor/react.js e vendor/react-dom.js batem com o SRI (sha384) do support.js');
+  }
+  /* Nenhum download de biblioteca sobrou nos dois builds: nenhuma URL de CDN como LITERAL
+     (entre aspas — os comentários contam a história e citam o jsdelivr sem aspas) e ninguém
+     lê a saída de emergência CT_PERMITE_CDN, que perdeu a razão de existir. Não se tiram os
+     comentários com regex: `docs/juridico/*.md` num comentário de linha abria um falso
+     bloco e engolia o código. */
+  for (const b of ['build.mjs', 'build-macos.mjs']) {
+    const codigo = fs.readFileSync(path.join(RAIZ, 'scripts', b), 'utf8');
+    ok(!/['"`]https:\/\/(?:cdn\.jsdelivr\.net|unpkg\.com)/.test(codigo) && !/process\.env\.CT_PERMITE_CDN/.test(codigo)
+       && /lerVendor\(ROOT\)/.test(codigo) && !/\bfetch\(\s*url\b/.test(codigo),
+       'D9 ' + b + ' não baixa biblioteca: copia de vendor/ por lerVendor, sem URL de CDN nem CT_PERMITE_CDN');
+  }
   const fontesPub = path.join(RAIZ, 'public', 'fonts');
   ok(fs.existsSync(fontesPub) && fs.readdirSync(fontesPub).filter(f => f.endsWith('.woff2')).length >= 20,
      'D9 as 20 faces chegam a public/fonts mesmo sem rede');
-  /* O CT_PERMITE_CDN continua existindo para as BIBLIOTECAS (React, supabase), que ainda
-     são vendoradas da rede. O que saiu foi o uso dele nas FONTES: elas não têm mais de
-     onde falhar. A asserção mira a função, não o arquivo inteiro. */
+
+  /* VENDOR ADULTERADO OU AUSENTE DERRUBA O BUILD E NOMEIA O ARQUIVO. O arquivo de verdade é
+     posto de lado e volta no finally; a cópia adulterada difere em UM byte no fim (o tamanho
+     não muda, então só o hash pega). A conferência vem antes da limpeza de public/, então o
+     deploy do build anterior (o de agora há pouco, sem rede) tem de continuar de pé. */
+  const vendorCaso = (arquivo, estragar) => {
+    const alvo = path.join(RAIZ, 'vendor', arquivo), guardado = alvo + '.teste-' + process.pid;
+    fs.renameSync(alvo, guardado);
+    try {
+      if (estragar) {
+        const buf = Buffer.from(fs.readFileSync(guardado));
+        buf[buf.length - 1] = buf[buf.length - 1] === 0x20 ? 0x0a : 0x20;
+        fs.writeFileSync(alvo, buf);
+      }
+      return rodar({ NODE_OPTIONS: '--require ' + stub });
+    } finally {
+      fs.rmSync(alvo, { force: true });
+      fs.renameSync(guardado, alvo);
+    }
+  };
+  const idxAntes = fs.readFileSync(path.join(RAIZ, 'public', 'index.html'), 'utf8');
+  const adulterado = vendorCaso('supabase.js', true);
+  ok(adulterado.code !== 0 && /BUILD ABORTADO: vendor\/supabase\.js/.test(adulterado.saida) && /sha256/.test(adulterado.saida),
+     'D9 vendor/supabase.js adulterado (mesmo tamanho) derruba o build e nomeia o arquivo (' + adulterado.code + ')');
+  ok(fs.existsSync(path.join(RAIZ, 'public', 'index.html'))
+     && fs.readFileSync(path.join(RAIZ, 'public', 'index.html'), 'utf8') === idxAntes
+     && sha256De(path.join(RAIZ, 'public', 'vendor', 'supabase.js')) === manifestoVendor.arquivos.find((a) => a.arquivo === 'supabase.js').sha256,
+     'D9 o build que aborta pelo hash não apaga o deploy anterior (a conferência vem antes da limpeza)');
+  const ausente = vendorCaso('react-dom.js', false);
+  ok(ausente.code !== 0 && /BUILD ABORTADO: vendor\/react-dom\.js não existe/.test(ausente.saida),
+     'D9 vendor/react-dom.js ausente derruba o build e nomeia o arquivo (' + ausente.code + ')');
+  ok(sha256De(path.join(RAIZ, 'vendor', 'supabase.js')) === manifestoVendor.arquivos.find((a) => a.arquivo === 'supabase.js').sha256
+     && fs.existsSync(path.join(RAIZ, 'vendor', 'react-dom.js')),
+     'D9 os casos devolvem vendor/ intacto');
+  /* As fontes não têm saída de emergência para CDN (e, desde o vendor congelado, nem as
+     bibliotecas — ver o caso acima). A asserção mira a função das fontes. */
   const buildSrc = fs.readFileSync(path.join(RAIZ, 'scripts', 'build.mjs'), 'utf8');
   const fnFontes = buildSrc.slice(buildSrc.indexOf('async function vendorarFontes()'),
                                  buildSrc.indexOf("return './fonts.css';"));
@@ -180,8 +250,8 @@ async function prepararPonteReal(page, view) {
 
   /* LISTA DE CÓPIA SEM PULO SILENCIOSO. Arquivo citado na lista que não existe derruba o
      build e é nomeado — antes o laço pulava em silêncio e o deploy saía sem ele. O stub de
-     rede fica ligado de propósito: a conferência vem antes de qualquer rede, então a causa
-     do aborto tem de ser o arquivo (e não o vendor das bibliotecas). */
+     rede fica ligado de propósito: o build não usa rede nenhuma, então a causa do aborto
+     tem de ser o arquivo (e não o vendor das bibliotecas). */
   {
     const alvo = path.join(RAIZ, 'sobre.html'), escondido = alvo + '.ausente-no-teste';
     fs.renameSync(alvo, escondido);
@@ -189,7 +259,7 @@ async function prepararPonteReal(page, view) {
     try { semArquivo = rodar({ NODE_OPTIONS: '--require ' + stub }); }
     finally { fs.renameSync(escondido, alvo); }
     ok(semArquivo.code !== 0 && /sobre\.html/.test(semArquivo.saida) && /não existe/.test(semArquivo.saida)
-       && !/vendorar react\.js/.test(semArquivo.saida),
+       && !/BUILD ABORTADO: vendor\//.test(semArquivo.saida),
        'BUILD LIMPO item da lista de cópia ausente derruba o build e diz qual (' + semArquivo.code + ')');
   }
 
@@ -233,34 +303,73 @@ async function prepararPonteReal(page, view) {
 }
 
 /* ============= D9 NATIVO — O BUNDLE DO APP NÃO CAI PARA O CDN ============= */
-// O build-macos.mjs gera o bundle web do .app (Mac e iPad). Sem rede no build ele caía para
-// <script src="https://cdn…"> sem avisar, e o app instalado passava a precisar de internet
-// para abrir. Agora aborta. O bundle de verdade (mac/build/web) é posto de lado e volta no
-// fim: este caso não pode apagar o que o build do app ou a suíte WebKit vão usar.
+// O build-macos.mjs gera o bundle web do .app (Mac e iPad) e o do Xcode Cloud. Sem rede no
+// build ele caía para <script src="https://cdn…"> sem avisar; depois passou a abortar (#154).
+// Agora as bibliotecas vêm de vendor/, congeladas e conferidas pelo sha256: sem rede o build
+// PASSA, e o que aborta é vendor/ adulterado ou ausente. O bundle de verdade (mac/build/web)
+// é posto de lado e volta no fim: este caso não pode apagar o que o build do app ou a suíte
+// WebKit vão usar.
 {
   const { execFileSync } = await import('child_process');
   const stub = path.join(RAIZ, 'tests', 'offline-stub.cjs');
   const web = path.join(RAIZ, 'mac', 'build', 'web'), guardado = web + '.antes-do-teste-' + process.pid;
-  const tinha = fs.existsSync(web);
-  if (tinha) fs.renameSync(web, guardado);
-  let r, idx = null;
-  try {
+  const buildMac = (env) => {
     try {
       execFileSync(process.execPath, [path.join(RAIZ, 'scripts', 'build-macos.mjs')],
-        { cwd: RAIZ, env: { ...process.env, NODE_OPTIONS: '--require ' + stub }, stdio: 'pipe' });
-      r = { code: 0, saida: '' };
-    } catch (e) { r = { code: e.status ?? 1, saida: String(e.stdout || '') + String(e.stderr || '') }; }
+        { cwd: RAIZ, env: { ...process.env, ...env }, stdio: 'pipe' });
+      return { code: 0, saida: '' };
+    } catch (e) { return { code: e.status ?? 1, saida: String(e.stdout || '') + String(e.stderr || '') }; }
+  };
+  const manifesto = JSON.parse(fs.readFileSync(path.join(RAIZ, 'vendor', 'manifesto.json'), 'utf8'));
+  const hashDe = (p) => createHash('sha256').update(fs.readFileSync(p)).digest('hex');
+  const LIBS = ['react.js', 'react-dom.js', 'supabase.js'];
+  const bundleConfere = () => LIBS.every((f) => {
+    const p = path.join(web, 'vendor', f), ent = manifesto.arquivos.find((a) => a.arquivo === f);
+    return ent && fs.existsSync(p) && hashDe(p) === ent.sha256;
+  });
+  const tinha = fs.existsSync(web);
+  if (tinha) fs.renameSync(web, guardado);
+  let r, idx = null, libsOk = false, r3, idxDepois = null, libsDepois = false;
+  const supa = path.join(RAIZ, 'vendor', 'supabase.js'), supaGuardado = supa + '.teste-' + process.pid;
+  try {
+    r = buildMac({ NODE_OPTIONS: '--require ' + stub });
     const pIdx = path.join(web, 'index.html');
     if (fs.existsSync(pIdx)) idx = fs.readFileSync(pIdx, 'utf8');
+    libsOk = bundleConfere();
+    /* O caso do #154 ("sem rede o build-macos ABORTA") mudou de sentido: rede não é mais
+       motivo de aborto; vendor/ corrompido é. Adultera um byte do supabase.js (mesmo
+       tamanho), roda de novo sem rede e confere que o build para, nomeia o arquivo e deixa
+       o bundle que acabou de sair intacto (a conferência vem antes de apagar a saída). */
+    fs.renameSync(supa, supaGuardado);
+    try {
+      const buf = Buffer.from(fs.readFileSync(supaGuardado));
+      buf[buf.length - 1] = buf[buf.length - 1] === 0x20 ? 0x0a : 0x20;
+      fs.writeFileSync(supa, buf);
+      r3 = buildMac({ NODE_OPTIONS: '--require ' + stub });
+    } finally {
+      fs.rmSync(supa, { force: true });
+      fs.renameSync(supaGuardado, supa);
+    }
+    if (fs.existsSync(pIdx)) idxDepois = fs.readFileSync(pIdx, 'utf8');
+    libsDepois = bundleConfere();
   } finally {
     fs.rmSync(web, { recursive: true, force: true });
     if (tinha) fs.renameSync(guardado, web);
   }
-  ok(r.code !== 0 && /BUILD ABORTADO/.test(r.saida) && /vendorar react\.js/.test(r.saida),
-     'D9 NATIVO sem rede o build-macos ABORTA e diz qual biblioteca (' + r.code + ')');
+  ok(r.code === 0 && !/BUILD ABORTADO/.test(r.saida),
+     'D9 NATIVO sem rede o build-macos PASSA (código 0): as bibliotecas vêm de vendor/ (' + r.code + ')');
+  ok(libsOk, 'D9 NATIVO o bundle sem rede leva react.js, react-dom.js e supabase.js com o sha256 do manifesto');
+  ok(!!idx && LIBS.every((f) => idx.includes('src="./vendor/' + f + '"')),
+     'D9 NATIVO o index.html do bundle carrega as três bibliotecas de ./vendor/');
   // `[^>]*` e não `<script src=`: o prepararAbertura põe `defer` antes do src em toda <script>.
-  ok(!idx || !/<script\b[^>]*\bsrc="https?:\/\//.test(idx),
+  ok(!!idx && !/<script\b[^>]*\bsrc="https?:\/\//.test(idx),
      'D9 NATIVO o index.html do bundle nunca carrega <script> de CDN');
+  ok(r3 && r3.code !== 0 && /BUILD ABORTADO: vendor\/supabase\.js/.test(r3.saida) && /sha256/.test(r3.saida),
+     'D9 NATIVO vendor/supabase.js corrompido faz o build-macos ABORTAR e nomeia o arquivo (' + (r3 && r3.code) + ')');
+  ok(idxDepois === idx && libsDepois,
+     'D9 NATIVO o build que aborta pelo hash deixa o bundle anterior de pé (não apaga mac/build/web)');
+  ok(hashDe(supa) === manifesto.arquivos.find((a) => a.arquivo === 'supabase.js').sha256,
+     'D9 NATIVO o caso devolve vendor/supabase.js intacto');
   ok(!tinha || fs.existsSync(path.join(web, 'index.html')), 'D9 NATIVO o bundle anterior volta intacto depois do caso');
   // Lista de cópia do bundle também não pula em silêncio: um arquivo listado que sumiu do
   // repositório para o build e é nomeado (antes o bundle saía sem ele e o app quebrava calado).

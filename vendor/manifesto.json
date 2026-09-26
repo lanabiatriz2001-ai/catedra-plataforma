@@ -1,0 +1,29 @@
+{
+  "_leia": "Bibliotecas de terceiros CONGELADAS no repositório. Os builds (scripts/build.mjs e scripts/build-macos.mjs) copiam daqui e conferem o sha256 de cada arquivo; hash errado ou arquivo ausente aborta o build. Trocar versão é decisão da dona: scripts/atualizar-vendor.mjs.",
+  "arquivos": [
+    {
+      "arquivo": "react.js",
+      "pacote": "react",
+      "versao": "18.3.1",
+      "origem": "https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js",
+      "bytes": 10751,
+      "sha256": "d949f1c3687aedadcedac85261865f29b17cd273997e7f6b2bfc53b2f9d4c4dd"
+    },
+    {
+      "arquivo": "react-dom.js",
+      "pacote": "react-dom",
+      "versao": "18.3.1",
+      "origem": "https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js",
+      "bytes": 131835,
+      "sha256": "35f4f974f4b2bcd44da73963347f8952e341f83909e4498227d4e26b98f66f0d"
+    },
+    {
+      "arquivo": "supabase.js",
+      "pacote": "@supabase/supabase-js",
+      "versao": "2.117.2",
+      "origem": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2",
+      "bytes": 218237,
+      "sha256": "2eebfe06b1b5309985dc1526e8981ea3a18b71beeef83e7f38e04c303e142d6d"
+    }
+  ]
+}
