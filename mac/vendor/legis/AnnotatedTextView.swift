@@ -157,6 +157,15 @@ struct AnnotatedTextView: NSViewRepresentable {
     @Binding var focusedAnnotationID: UUID?
     var onCommand: (ReaderCommand) -> Void
     var textAlignment: NSTextAlignment = .natural
+    /// Número do artigo → julgados que o citam (sinal na margem + toque que abre a gaveta).
+    var contagens: [String: Int] = [:]
+    /// Entrelinha da preferência de leitura (readerLineSpacing) — antes era 7 fixo aqui.
+    var entrelinha: Double = 7
+    var onToqueArtigo: (CabecalhoArtigo) -> Void = { _ in }
+
+    private var chaveFonte: String {
+        "\(fontFamily)|\(fontSize)|\(textAlignment.rawValue)|\(entrelinha)|\(contagens.count)|\(contagens.values.reduce(0, +))"
+    }
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
@@ -184,6 +193,7 @@ struct AnnotatedTextView: NSViewRepresentable {
         textView.drawsBackground = true
         textView.backgroundColor = NSColor(AppTheme.surface)   // folha do tema, não branco do sistema
         textView.delegate = context.coordinator
+        textView.linkTextAttributes = [.foregroundColor: NSColor(AppTheme.ink), .cursor: NSCursor.pointingHand]
         textView.onCommand = { [weak coordinator = context.coordinator] command in
             coordinator?.parent.onCommand(command)
         }
@@ -208,7 +218,7 @@ struct AnnotatedTextView: NSViewRepresentable {
         coordinator.parent = self
         controller.textView = textView
 
-        let fontKey = "\(fontFamily)|\(fontSize)|\(textAlignment.rawValue)"
+        let fontKey = chaveFonte
         if coordinator.lastText != text || coordinator.lastFontKey != fontKey {
             applyFullText(to: textView, coordinator: coordinator)
             coordinator.lastAnnotationsKey = -1 // força reaplicar marcações
@@ -261,8 +271,8 @@ struct AnnotatedTextView: NSViewRepresentable {
         let bold = baseFont(ofSize: size, bold: true)
 
         let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.lineSpacing = 7       // leitura confortável (foco na leitura)
-        paragraphStyle.paragraphSpacing = 16
+        paragraphStyle.lineSpacing = CGFloat(entrelinha)
+        paragraphStyle.paragraphSpacing = max(12, CGFloat(entrelinha) + 9)
         paragraphStyle.alignment = textAlignment
 
         let attributed = NSMutableAttributedString(string: text, attributes: [
@@ -275,10 +285,20 @@ struct AnnotatedTextView: NSViewRepresentable {
         // da lei fica limpo na leitura corrida; os grifos do usuário é que dão o destaque.
         _ = bold  // (mantido pra assinatura de baseFont; sem uso automático)
 
+        // Cabeçalhos de artigo com julgados: atributo de contagem (desenhado na margem) e
+        // link que abre a gaveta. Só ATRIBUTOS — o texto não ganha nem perde caracteres.
+        let cabs = LeitorLogica.cabecalhos(em: text)
+        coordinator.cabecalhos = cabs
+        for c in cabs {
+            guard let n = contagens[c.numero], n > 0, let url = URL(string: "catedra-art:\(c.numero)") else { continue }
+            attributed.addAttribute(.catedraContagem, value: n, range: c.intervalo)
+            attributed.addAttribute(.link, value: url, range: c.intervalo)
+        }
+
         textView.textStorage?.setAttributedString(attributed)
         scheduleDocumentLayout(for: textView, coordinator: coordinator)
         coordinator.lastText = text
-        coordinator.lastFontKey = "\(fontFamily)|\(fontSize)|\(textAlignment.rawValue)"
+        coordinator.lastFontKey = chaveFonte
     }
 
     // Layout EM PEDAÇOS: um ensureLayout do documento inteiro numa tacada só
@@ -297,9 +317,9 @@ struct AnnotatedTextView: NSViewRepresentable {
                   let container = textView.textContainer else { return }
             let width = max(1, scrollView.contentSize.width)
             guard width > 1 else { return }
-            // Centraliza uma coluna de leitura de ~760pt (em vez do texto de ponta a
+            // Centraliza uma coluna de leitura de ~680pt; a margem mínima de 56pt abriga o número de julgados (em vez do texto de ponta a
             // ponta num monitor largo); o resto vira margem lateral.
-            let hInset = max(40, (width - 760) / 2)
+            let hInset = max(56, (width - 680) / 2)
             textView.textContainerInset = NSSize(width: hInset, height: 28)
             let inset = textView.textContainerInset
             textView.minSize = NSSize(width: 0, height: scrollView.contentSize.height)
@@ -381,6 +401,7 @@ struct AnnotatedTextView: NSViewRepresentable {
         var lastLayoutWidth: CGFloat = 0
         var pendingLayout: DispatchWorkItem?
         var layoutGeneration = 0
+        var cabecalhos: [CabecalhoArtigo] = []
 
         init(_ parent: AnnotatedTextView) { self.parent = parent }
 
@@ -421,6 +442,13 @@ struct AnnotatedTextView: NSViewRepresentable {
             }
             pendingLayout = next
             DispatchQueue.main.async(execute: next)   // cede ao run loop entre pedaços
+        }
+
+        func textView(_ textView: NSTextView, clickedOnLink link: Any, at charIndex: Int) -> Bool {
+            guard (link as? URL)?.scheme == "catedra-art",
+                  let c = cabecalhos.first(where: { NSLocationInRange(charIndex, $0.intervalo) }) else { return false }
+            parent.onToqueArtigo(c)
+            return true
         }
 
         func textViewDidChangeSelection(_ notification: Notification) {

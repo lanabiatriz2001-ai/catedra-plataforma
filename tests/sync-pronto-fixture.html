@@ -21,7 +21,8 @@ window.supabase = { createClient: function () { return {
   rpc: function () { return Promise.resolve({ data: null, error: null }); },
   from: function () { return {
     select: function () { return { eq: function () { return { maybeSingle: function () { return new Promise(function (res) { window.__responder = res; }); } }; } }; },
-    upsert: function () { return Promise.resolve({}); }
+    // preguiçoso como o postgrest-js: o upsert só "sai" no then() (ver auth-ipad-fixture.html)
+    upsert: function () { return { then: function (ok, er) { return Promise.resolve({}).then(ok, er); } }; }
   }; }
 }; } };
 </script>

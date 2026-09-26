@@ -374,8 +374,8 @@ struct ProvaOralLegisView: View {
     // "Sortear"/"Arguir" reparseava a lei inteira (CF/CPC ≈ 1 s de UI travada por clique).
     @State private var unidadesCache: [LawUnit] = []
     @State private var carregando = false
-    @AppStorage("readerFontSize") private var fontSize = 16.0
-    @AppStorage("readerFontFamily") private var fontFamily = "Sistema (Serifa)"
+    @AppStorage("readerFontSize") private var fontSize = 18.0
+    @AppStorage("readerFontFamily") private var fontFamily = "Spectral"
 
     struct Correcao: Codable { var nota: String?; var acertou: [String]?; var faltou: [String]?; var modelo: String? }
 
