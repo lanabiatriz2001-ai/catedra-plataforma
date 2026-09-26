@@ -1,14 +1,14 @@
 // scripts/verificar-cores-ramo.mjs — trava de design dos builds.
 //
-// POR QUE ISTO EXISTE: a cor por ramo vive em TRÊS lugares — CT_CORES_RAMO na web
-// (Catedra.dc.html), LawCategory.color no LEGIS (Theme.swift) e RamoStyle.stops no
-// JURIS (JurisTheme.swift) — e já divergiu uma vez (a web ficou meses fora da paleta
-// "vitrine" aprovada). Em 21/08/2026 os três foram alinhados por VALOR; esta checagem
-// roda no build e ABORTA se alguém mudar um lado e esquecer os outros.
+// POR QUE ISTO EXISTE: a cor por ramo vive em DOIS lugares — CT_CORES_RAMO na web
+// (Catedra.dc.html) e ios/vendor/design/CoresAcervo.swift no nativo (Mac e iPad, LEGIS e
+// JURIS; tabela única desde 25/09/2026). Já divergiu uma vez (a web ficou meses fora da
+// paleta "vitrine" aprovada); esta checagem roda no build e ABORTA se alguém mudar um lado
+// e esquecer o outro — ou se um Theme.swift/JurisTheme.swift voltar a ter tabela própria.
 //
 // O que compara: as famílias da paleta vitrine (constitucional, penal, civil, trabalho,
 // previdenciário, tributário, empresarial, administrativo, consumidor, ambiental,
-// digital, internacional) — o valor CLARO/base de cada uma nas três fontes.
+// digital, internacional) — o valor CLARO/base de cada uma nas duas fontes.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -25,45 +25,30 @@ const mWeb = ler('Catedra.dc.html').match(/const CT_CORES_RAMO = \{[\s\S]*?\n\};
 if (!mWeb) throw new Error('CT_CORES_RAMO não encontrado em Catedra.dc.html');
 for (const [, k, c] of mWeb[0].matchAll(/'([a-z\- ]+)':\s*\{c:'(#[0-9A-Fa-f]{6})'/g)) web[k] = c.toUpperCase();
 
-// LEGIS e JURIS: os DOIS lados (mac e ios são árvores gêmeas — cada uma pode divergir)
-const fontes = { web };
+// Nativo: UMA tabela (ios/vendor/design/CoresAcervo.swift), compilada pelo Mac e pelo iPad.
+const tabela = {};
+const mTab = ler('ios/vendor/design/CoresAcervo.swift').match(/var identidade: UInt32 \{[\s\S]*?\n    \}/);
+if (!mTab) throw new Error('bloco var identidade não encontrado em ios/vendor/design/CoresAcervo.swift');
+for (const [, caso, hex] of mTab[0].matchAll(/case \.(\w+):\s*return 0x([0-9A-Fa-f]{6})/g)) tabela[caso] = '#' + hex.toUpperCase();
+
+// Trava: nenhum Theme.swift / JurisTheme.swift volta a ter tabela própria de ramo.
+const paralelas = [];
 for (const lado of ['mac', 'ios']) {
-  const legis = {};
-  const mLegis = ler(`${lado}/vendor/legis/Theme.swift`).match(/var color: Color \{[\s\S]*?\n    \}/);
-  if (!mLegis) throw new Error(`bloco var color não encontrado em ${lado}/vendor/legis/Theme.swift`);
-  for (const [, caso, hex] of mLegis[0].matchAll(/case \.(\w+):\s*return Color\(hex: 0x([0-9A-Fa-f]{6})\)/g)) legis[caso] = '#' + hex.toUpperCase();
-  const juris = {};
-  for (const [, gatilhos, hex] of ler(`${lado}/vendor/juris/Design/JurisTheme.swift`)
-    .matchAll(/if hit\(([^)]*)\)\s*\{ return \[Color\(hex: "(#[0-9A-Fa-f]{6})"/g)) {
-    for (const g of gatilhos.matchAll(/"([^"]+)"/g)) juris[g[1]] = hex.toUpperCase();
-  }
-  fontes[`legis-${lado}`] = legis; fontes[`juris-${lado}`] = juris;
+  const legis = ler(`${lado}/vendor/legis/Theme.swift`).match(/var color: Color \{[\s\S]*?\n    \}/);
+  if (legis && /Color\(hex: 0x/.test(legis[0])) paralelas.push(`${lado}/vendor/legis/Theme.swift (LawCategory.color)`);
+  if (/if hit\([^)]*\)\s*\{ return \[Color\(hex: "#/.test(ler(`${lado}/vendor/juris/Design/JurisTheme.swift`)))
+    paralelas.push(`${lado}/vendor/juris/Design/JurisTheme.swift (RamoStyle.stops)`);
 }
 
-// equivalência de chaves entre as fontes (a nomenclatura difere de propósito)
-const CHAVE = {
-  web: (f) => f,
-  legis: (f) => ({ trabalho: 'trabalhista' }[f] || f),
-  juris: (f) => ({ constitucional: 'constituc', trabalho: 'trabalh', previdenciario: 'previden',
-    tributario: 'tribut', empresarial: 'empresar', administrativo: 'administr',
-    consumidor: 'consum', ambiental: 'ambient', digital: 'digital', internacional: 'internacional',
-    civil: 'civil', penal: 'penal' }[f] || f),
-};
-
-const erros = [];
+const erros = paralelas.map((p) => `tabela de ramo paralela reapareceu em ${p} — use ios/vendor/design/CoresAcervo.swift`);
 for (const f of FAMILIAS) {
-  const w = web[CHAVE.web(f)];
-  const vals = { web: w,
-    'legis-mac': fontes['legis-mac'][CHAVE.legis(f)], 'legis-ios': fontes['legis-ios'][CHAVE.legis(f)],
-    'juris-mac': fontes['juris-mac'][CHAVE.juris(f)], 'juris-ios': fontes['juris-ios'][CHAVE.juris(f)] };
-  const ausentes = Object.entries(vals).filter(([, v]) => !v).map(([k]) => k);
-  if (ausentes.length) { erros.push(`${f}: ausente em ${ausentes.join(', ')}`); continue; }
-  const distintos = new Set(Object.values(vals));
-  if (distintos.size > 1) erros.push(`${f}: ` + Object.entries(vals).map(([k, v]) => `${k} ${v}`).join(' · '));
+  const w = web[f], n = tabela[f];
+  if (!w || !n) { erros.push(`${f}: ausente em ${[!w && 'web', !n && 'tabela nativa'].filter(Boolean).join(', ')}`); continue; }
+  if (w !== n) erros.push(`${f}: web ${w} · nativo ${n}`);
 }
 if (erros.length) {
   throw new Error('\n✗ BUILD ABORTADO — paleta de ramos divergiu entre web e nativo:\n    '
     + erros.join('\n    ')
-    + '\n  Alinhe as três fontes (CT_CORES_RAMO, LawCategory.color, RamoStyle.stops) e rode de novo.');
+    + '\n  Alinhe CT_CORES_RAMO (Catedra.dc.html) e ios/vendor/design/CoresAcervo.swift e rode de novo.');
 }
-console.log(`✓ paleta vitrine consistente nas 5 fontes — web + legis/juris × mac/ios (${FAMILIAS.length} famílias)`);
+console.log(`✓ paleta vitrine consistente — web × tabela nativa única (${FAMILIAS.length} famílias)`);

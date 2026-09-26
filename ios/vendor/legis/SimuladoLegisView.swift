@@ -230,8 +230,8 @@ struct SimuladoLegisView: View {
     @State private var confirmarEntrega = false
     @State private var confirmarAbandono = false
     @State private var mostrarDiscursivas = false
-    @AppStorage("readerFontSize") private var fontSize = 16.0
-    @AppStorage("readerFontFamily") private var fontFamily = "Sistema (Serifa)"
+    @AppStorage("readerFontSize") private var fontSize = 18.0
+    @AppStorage("readerFontFamily") private var fontFamily = "Spectral"
     private let relogio = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     private var leis: [LawEntry] { store.laws.filter { $0.isRegularLaw && (categoria == nil || $0.category == categoria!) } }

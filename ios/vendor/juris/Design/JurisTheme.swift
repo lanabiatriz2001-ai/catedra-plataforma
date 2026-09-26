@@ -38,23 +38,8 @@ extension Color {
 /// rosé nos dois apps, Civil é teal, Constitucional é azul etc.
 enum RamoStyle {
     static func stops(_ ramo: String?) -> [Color] {
-        let n = (ramo ?? "")
-            .folding(options: .diacriticInsensitive, locale: Locale(identifier: "pt_BR"))
-            .lowercased()
-        func hit(_ parts: String...) -> Bool { parts.contains { n.contains($0) } }
-        if hit("constituc")                { return [Color(hex: "#2563EB"), Color(hex: "#38BDF8")] }
-        if hit("penal", "criminal")        { return [Color(hex: "#E11D48"), Color(hex: "#FB7185")] }
-        if hit("trabalh")                  { return [Color(hex: "#D97706"), Color(hex: "#FBBF24")] }
-        if hit("previden")                 { return [Color(hex: "#DB2777"), Color(hex: "#F472B6")] }
-        if hit("tribut")                   { return [Color(hex: "#7C3AED"), Color(hex: "#A78BFA")] }
-        if hit("empresar", "econom")       { return [Color(hex: "#65A30D"), Color(hex: "#A3E635")] }
-        if hit("administr", "eleitor")     { return [Color(hex: "#4F46E5"), Color(hex: "#818CF8")] }
-        if hit("consum")                   { return [Color(hex: "#EA580C"), Color(hex: "#FB923C")] }
-        if hit("ambient")                  { return [Color(hex: "#16A34A"), Color(hex: "#4ADE80")] }
-        if hit("digital", "propriedade intelectual") { return [Color(hex: "#C026D3"), Color(hex: "#E879F9")] }
-        if hit("internacional", "humanos") { return [Color(hex: "#0284C7"), Color(hex: "#7DD3FC")] }  // escurecido p/ contraste AA (igual à web)
-        if hit("civil")                    { return [Color(hex: "#0D9488"), Color(hex: "#2DD4BF")] }
-        return [Palette.accent, Palette.accentSoft]
+        guard let r = Ramo.deNome(ramo) else { return [Palette.accent, Palette.accentSoft] }
+        return [Color(hex: r.identidade), Color(hex: r.clara)]
     }
     static func color(_ ramo: String?) -> Color { stops(ramo)[0] }
     static func gradient(_ ramo: String?) -> LinearGradient {
@@ -78,9 +63,9 @@ enum Palette {
     // SEMÂNTICOS (verde/âmbar/vermelho) — espelham --ok/--warn/--bad do Cátedra e
     // seguem o claro/escuro espelhado em ThemeState.t.isDark. Antes cada tela cravava
     // "#16A34A"/"#D97706"/"#DC2626" no código e o escuro ficava com verde de tela clara.
-    static var ok: Color   { ThemeState.t.isDark ? Color(hex: "#4ADE80") : Color(hex: "#16A34A") }
-    static var warn: Color { ThemeState.t.isDark ? Color(hex: "#FBBF24") : Color(hex: "#D97706") }
-    static var bad: Color  { ThemeState.t.isDark ? Color(hex: "#F87171") : Color(hex: "#DC2626") }
+    static var ok: Color   { ThemeState.t.ok }
+    static var warn: Color { ThemeState.t.warn }
+    static var bad: Color  { ThemeState.t.danger }
     /// Tinta "forte" dos semânticos (texto sobre fundo lavado).
     static var okInk: Color  { ThemeState.t.isDark ? Color(hex: "#86EFAC") : Color(hex: "#15803D") }
     static var badInk: Color { ThemeState.t.isDark ? Color(hex: "#FCA5A5") : Color(hex: "#B91C1C") }
@@ -88,9 +73,9 @@ enum Palette {
     // RAIOS — três tamanhos, todos derivados do --radius do Cátedra. Antes havia
     // 9/10/11/12/14/16/18 cravados por tela; agora: cartão, interno (chips, campos,
     // blocos dentro de cartão) e hero (destaques grandes).
-    static var rCard: CGFloat  { ThemeState.t.radius }
-    static var rInner: CGFloat { max(6, ThemeState.t.radius - 4) }
-    static var rHero: CGFloat  { ThemeState.t.radius + 4 }
+    static var rCard: CGFloat  { DSRaio.card }
+    static var rInner: CGFloat { DSRaio.interno }
+    static var rHero: CGFloat  { DSRaio.hero }
 
     // Superfícies — tokens do Cátedra
     static var appBackground: Color    { ThemeState.t.bg }
@@ -120,27 +105,23 @@ enum Palette {
     // fixa (identidade do tribunal não muda com o tema); quem acompanha o tema é o
     // fundo, o texto e o acento da interface.
     static func corDeTribunal(_ nome: String) -> Color {
-        switch nome {
-        case "STF":  return Color(hex: "#1D4ED8")   // azul
-        case "STJ":  return Color(hex: "#0D9488")   // teal
-        case "TSE":  return Color(hex: "#7C3AED")   // roxo
-        case "TJRO": return Color(hex: "#64748B")   // ardósia
-        case "TCU":  return Color(hex: "#0F7A57")   // verde-cofre
-        default:     return ThemeState.t.accent
-        }
+        CorTribunal.identidade(nome).map { Color(hex: $0) } ?? ThemeState.t.accent
     }
 
     /// Cor de identidade de uma Central — a mesma do tribunal que ela reúne.
     /// `clara`: variante clareada para ícones sobre o navy da sidebar (mesma família).
     static func corDeCentral(_ c: JurisCentral, clara: Bool = false) -> Color {
+        let nome: String
         switch c {
-        case .stf: return clara ? Color(hex: "#739EFA") : corDeTribunal("STF")
-        case .stj: return clara ? Color(hex: "#47CCB3") : corDeTribunal("STJ")
-        case .tse: return clara ? Color(hex: "#A98CFA") : corDeTribunal("TSE")
-        case .especificos: return clara ? Color(hex: "#9EADC7") : corDeTribunal("TJRO")
-        case .contas: return clara ? Color(hex: "#3DB88C") : corDeTribunal("TCU")
-        case .outros: return clara ? Color(hex: "#F2B859") : fonteDOD
+        case .stf: nome = "STF"
+        case .stj: nome = "STJ"
+        case .tse: nome = "TSE"
+        case .especificos: nome = "TJRO"
+        case .contas: nome = "TCU"
+        case .outros: return Color(hex: clara ? CorTribunal.dodClara : CorTribunal.dod)
         }
+        if clara, let h = CorTribunal.clara(nome) { return Color(hex: h) }
+        return corDeTribunal(nome)
     }
 
     static var fonteSV: Color          { corDeTribunal("STF") }
@@ -155,7 +136,7 @@ enum Palette {
     static var fonteInfoTSE: Color     { corDeTribunal("TSE") }
     static var fonteTJRO: Color        { corDeTribunal("TJRO") }
     static var fonteTJROprec: Color    { corDeTribunal("TJRO") }
-    static var fonteDOD: Color         { Color(hex: "#C2790C") }   // âmbar — não é tribunal
+    static var fonteDOD: Color         { Color(hex: CorTribunal.dod) }   // âmbar — não é tribunal
     static var fonteContas: Color      { corDeTribunal("TCU") }
 }
 
@@ -174,28 +155,23 @@ enum Typo {
     /// plano do iPhone); a migração completa para text styles fica para outro ciclo.
     /// A raiz (RootView) recebe `.id(dynamicTypeSize)` para reavaliar quando a pessoa muda
     /// o tamanho com o app aberto.
-    static func escalado(_ size: CGFloat) -> CGFloat {
-        UIFontMetrics(forTextStyle: .body).scaledValue(for: max(11, size))
-    }
+    static func escalado(_ size: CGFloat) -> CGFloat { DS.escala(size) }
     static func serifTitle(_ size: CGFloat, _ weight: Font.Weight = .bold) -> Font {
-        // Font.custom(_:size:) já escala com o Dynamic Type sozinho — só o piso entra.
         if let fam = readingFamily { return Font.custom(fam, size: max(11, size)).weight(weight) }
-        // Unificação (21/08/2026): título segue o display do tema do Cátedra — serifado
-        // no Planilha/Tribunal, sans nos temas frios. Um produto, uma tipografia.
-        return .system(size: escalado(size), weight: weight, design: ThemeState.t.displaySerif ? .serif : .default)
+        return DS.display(size, weight)
     }
     static func serifBody(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
         if let fam = readingFamily { return Font.custom(fam, size: max(11, size)).weight(weight) }
-        return .system(size: escalado(size), weight: weight, design: .default)
+        return DS.interface(size, weight)   // DS já escala (Dynamic Type) — sem escalar duas vezes
     }
     /// Fonte da interface (chrome) — sempre o sistema, para manter a legibilidade.
     static func ui(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
-        .system(size: escalado(size), weight: weight, design: .default)
+        DS.interface(size, weight)
     }
     /// Números/KPIs: a fonte da interface com dígitos tabulares — no lugar do
     /// `design: .monospaced` que saía em Menlo no meio de uma tela SF Pro.
     static func num(_ size: CGFloat, _ weight: Font.Weight = .bold) -> Font {
-        Font.system(size: escalado(size), weight: weight, design: .default).monospacedDigit()
+        DS.interface(size, weight).monospacedDigit()
     }
 }
 
@@ -239,6 +215,8 @@ enum Selecao: Hashable {
     case provaOral                    // arguição local sobre o acervo, sem IA
     case oralBancas                   // material oficial de prova oral: pontos, perguntas, padrão de resposta
     case simulado                     // prova C/E + discursivas sorteadas do acervo (local, sem IA)
+    case destino(Destino)             // entrega 4: vitrine de Acervo/Treinar (o mesmo Destino do LEGIS)
+    case meuMaterial                  // entrega 4: anotações, mapas mentais, DOD — o que é seu ou de apoio
 
     var titulo: String {
         switch self {
@@ -247,7 +225,9 @@ enum Selecao: Hashable {
         case .provaOral: return "Prova oral"
         case .oralBancas: return "Prova oral · bancas"
         case .simulado: return "Simulado"
-        case .inicio: return "Início"
+        case .destino(let d): return d.titulo
+        case .meuMaterial: return "Meu material"
+        case .inicio: return "Hoje"
         case .hoje: return "Revisar hoje"
         case .todos: return "Todos os verbetes"
         case .favoritos: return "Favoritos"
@@ -301,6 +281,8 @@ enum Selecao: Hashable {
         case .provaOral: return "mic.fill"
         case .oralBancas: return "person.wave.2.fill"
         case .simulado: return "list.bullet.clipboard.fill"
+        case .destino(let d): return d.simbolo
+        case .meuMaterial: return "folder.fill"
         }
     }
 }
