@@ -8,7 +8,7 @@
 body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--body,'Inter',system-ui,sans-serif);font-size:13px;-webkit-font-smoothing:antialiased}
 .wrap{max-width:1200px;margin:0 auto;padding:20px 26px 90px}
 .head{display:flex;align-items:center;gap:14px;margin-bottom:14px}
-.head .ic{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,var(--accent,#0f7a57),var(--accentD,#0b5e43));display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;flex:none;box-shadow:0 6px 16px -4px rgba(20,15,10,.30)}
+.head .ic{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,var(--accentSolid,var(--accent,#0f7a57)),var(--accentSolidD,var(--accentD,#0b5e43)));display:flex;align-items:center;justify-content:center;color:var(--onAccent,#fff);font-size:20px;flex:none;box-shadow:0 6px 16px -4px rgba(20,15,10,.30)}
 .head h1{font-family:var(--display,'Spectral',Georgia,serif);font-size:25px;font-weight:800;letter-spacing:-.02em;line-height:1}
 .head p{font-size:12px;color:var(--text2,#5c564a);margin-top:3px}
 .search{position:relative;margin-bottom:12px}
@@ -21,6 +21,8 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 .chip small{color:var(--text2,#5c564a);font-weight:600;font-variant-numeric:tabular-nums}
 .chip.on{color:#fff;border-color:transparent}
 .chip.on small{color:rgba(255,255,255,.8)}
+.chip.on.destaque{color:var(--onAccent,#fff)}
+.chip.on.destaque small{color:inherit}
 .gedic{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:7px;margin:6px 0 4px}
 .edic{aspect-ratio:1;border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);border-radius:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font:800 14px inherit;color:var(--text2,#5c564a);font-variant-numeric:tabular-nums}
 .edic i{font-style:normal;font-size:9px;font-weight:700;color:var(--text2,#5c564a)}
@@ -43,7 +45,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 .diaTag{font:800 10px inherit;letter-spacing:.04em;text-transform:uppercase;border-radius:6px;padding:3px 8px;background:color-mix(in srgb,var(--accent,#0f7a57) 15%,transparent);color:var(--accentD,#0b5e43)}
 .diaAcoes{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
 .diaAcoes button{border:1.5px solid var(--accent,#0f7a57);background:none;color:var(--accent,#0f7a57);border-radius:10px;padding:9px 15px;font:700 12.5px inherit;cursor:pointer}
-.diaAcoes button.prim{background:var(--accent,#0f7a57);color:#fff}
+.diaAcoes button.prim{background:var(--accentSolid,var(--accent,#0f7a57));color:var(--onAccent,#fff)}
 .oral{margin-top:16px;border-top:1px dashed var(--border,#e6e1d4);padding-top:14px}
 .oral h4{margin-bottom:8px}
 .oral .perg{font-size:15px;line-height:1.6;font-weight:600;margin-bottom:10px}
@@ -177,14 +179,18 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
    então o anel dele seria só ruído. */
 #estQdSlot:focus{outline:none}
 .avEd{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:color-mix(in srgb,var(--accent,#0f7a57) 9%,transparent);border:1.5px solid var(--accent,#0f7a57);border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:12.5px;font-weight:600;color:var(--text2,#5c564a)}
-.avEd button{border:0;background:var(--accent,#0f7a57);color:#fff;border-radius:8px;padding:6px 12px;font:700 12px inherit;cursor:pointer}
+.avEd button{border:0;background:var(--accentSolid,var(--accent,#0f7a57));color:var(--onAccent,#fff);border-radius:8px;padding:6px 12px;font:700 12px inherit;cursor:pointer}
 .gmais{border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);border-radius:10px;padding:7px 14px;font:700 12px inherit;color:var(--text2,#5c564a);cursor:pointer;margin-top:8px}
 .statbar{display:flex;gap:20px;flex-wrap:wrap;background:var(--surface,#fffdf8);border:1px solid var(--border,#e6e1d4);border-radius:12px;padding:12px 18px;margin:6px 0 16px}
 .statbar .s1{display:flex;flex-direction:column}
 .statbar .s1 b{font-family:var(--display,'Spectral',Georgia,serif);font-size:21px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
 .statbar .s1 span{margin-top:3px}
-/* Entrega 7: sem faixa lateral (DESIGN.md) — a cor do ramo tinge a borda e lava o cartão. */
-.vcard{background:linear-gradient(90deg,color-mix(in srgb,var(--rc,#0f7a57) 12%,var(--surface,#fffdf8)),var(--surface,#fffdf8) 46%);border:1px solid color-mix(in srgb,var(--rc,#0f7a57) 38%,var(--border,#e6e1d4));border-radius:14px;margin-bottom:10px;overflow:hidden;position:relative}
+/* A cor do ramo (--rc) é a identidade do cartão. Ela NÃO fica numa faixa de 4 px encostada na
+   borda esquerda (DESIGN.md, "Não faça": o carimbo de interface gerada por máquina): tinge a
+   borda inteira e lava o fundo da esquerda para a direita — o item colorido da casa (.ct-item),
+   mesma leitura de relance. A borda vem depois da lista do satellite-base.css (que recua a de
+   todo cartão para 72% da neutra) e por isso a vence com a mesma especificidade. */
+.vcard{background:linear-gradient(90deg,color-mix(in srgb,var(--rc,#0f7a57) 18%,transparent),transparent 46%) var(--surface,#fffdf8);border:1px solid color-mix(in srgb,var(--rc,#0f7a57) 38%,var(--border,#e6e1d4));border-radius:14px;margin-bottom:10px;overflow:hidden;position:relative}
 .vhead{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;cursor:pointer}
 .vhead:hover{background:color-mix(in srgb,var(--rc) 5%,transparent)}
 .vmeta{flex:1;min-width:0}
@@ -195,7 +201,9 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
 .star{color:#e0a400;font-size:12px}
 .vtit{font-family:var(--display,'Spectral',Georgia,serif);font-size:15px;font-weight:700;line-height:1.25;color:var(--ink)}
 .vsub{display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap}
-.rtag{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:99px;background:color-mix(in srgb,var(--rc) 14%,transparent);color:var(--rc)}
+/* cor-texto ≠ cor-identidade: o selo é TINGIDO pela cor do ramo, e o texto é ela escurecida (no
+   claro) ou clareada (no escuro) pela tinta — a cor crua dava 3,1:1 e ficava abaixo de 4,5 */
+.rtag{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:99px;background:color-mix(in srgb,var(--rc) 14%,transparent);color:color-mix(in srgb,var(--rc,#0f7a57) 55%,var(--ink,#1f1c17))}
 .tema{font-size:11.5px;color:var(--text2,#5c564a);font-style:italic}
 .vact{display:flex;flex-direction:column;gap:6px;align-items:center;flex:none}
 .st{width:22px;height:22px;border-radius:99px;border:2px solid var(--border,#e6e1d4);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;background:none;color:var(--text3,#94a3b8)}
@@ -218,7 +226,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
 .foot a:hover{background:var(--accentSoft,#e6f0ea)}
 .loading{font-size:12px;color:var(--text2,#5c564a);padding:8px 0}
 .empty{text-align:center;padding:60px 20px;color:var(--text2,#5c564a)}
-.empty .ei{font-size:40px;opacity:.5;margin-bottom:10px}
+.empty .ei{margin:0 auto 10px}
 .more{text-align:center;padding:14px;color:var(--text2,#5c564a);font-size:12px}
 .skel{height:80px;border-radius:14px;background:linear-gradient(90deg,var(--surface2,#efeadd) 25%,var(--surface,#fffdf8) 50%,var(--surface2,#efeadd) 75%);background-size:200% 100%;animation:sh 1.3s infinite;margin-bottom:10px}
 @keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
@@ -230,9 +238,9 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
 .mode b{font-family:var(--display,'Spectral',Georgia,serif);font-size:15px;font-weight:800;color:var(--ink);line-height:1.1}
 .mode small{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3,#7a7368)}
 .mode:hover{border-color:var(--accent,#0f7a57)}
-.mode.on{border-color:transparent;background:linear-gradient(135deg,var(--accent,#0f7a57),var(--accentD,#0b5e43));box-shadow:0 12px 26px -14px rgba(20,15,10,.34)}
-.mode.on b{color:#fff}
-.mode.on small{color:rgba(255,255,255,.82)}
+.mode.on{border-color:transparent;background:linear-gradient(135deg,var(--accentSolid,var(--accent,#0f7a57)),var(--accentSolidD,var(--accentD,#0b5e43)));box-shadow:0 12px 26px -14px rgba(20,15,10,.34)}
+.mode.on b{color:var(--onAccent,#fff)}
+.mode.on small{color:var(--onAccent,#fff)}
 .tabs{display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap}
 .tab{border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);color:var(--text2,#5c564a);border-radius:10px;padding:7px 14px;font:800 12px inherit;cursor:pointer}
 .tab.on{background:var(--ink,#1f1c17);color:var(--bg,#f4f1ea);border-color:transparent}
@@ -242,16 +250,16 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
 .reg{margin:16px 0 8px;display:flex;align-items:center;gap:9px}
 .reg::after{content:"";flex:1;height:1px;background:var(--border,#e6e1d4)}
 .tcgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:10px}
-.tccard{background:var(--surface,#fffdf8);border:1px solid var(--border,#e6e1d4);border-radius:14px;padding:13px 15px 12px;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:7px}
-.tccard{background:linear-gradient(90deg,color-mix(in srgb,var(--rc,#0f7a57) 12%,var(--surface,#fffdf8)),var(--surface,#fffdf8) 46%);border-color:color-mix(in srgb,var(--rc,#0f7a57) 38%,var(--border,#e6e1d4))}
+/* a cor da região, como no .vcard: borda tingida e lavagem, nunca faixa lateral */
+.tccard{background:linear-gradient(90deg,color-mix(in srgb,var(--rc,#0f7a57) 18%,transparent),transparent 46%) var(--surface,#fffdf8);border:1px solid color-mix(in srgb,var(--rc,#0f7a57) 38%,var(--border,#e6e1d4));border-radius:14px;padding:13px 15px 12px;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:7px}
 .tccard .tct{display:flex;align-items:center;gap:8px}
 .tccard .sg{font-family:var(--display,'Spectral',Georgia,serif);font-size:16px;font-weight:800;color:var(--ink);letter-spacing:-.01em}
-.tccard .uf{font:800 10px inherit;letter-spacing:.05em;background:color-mix(in srgb,var(--rc) 15%,transparent);color:var(--rc);border-radius:6px;padding:3px 7px}
+.tccard .uf{font:800 10px inherit;letter-spacing:.05em;background:color-mix(in srgb,var(--rc) 15%,transparent);color:color-mix(in srgb,var(--rc,#0f7a57) 55%,var(--ink,#1f1c17));border-radius:6px;padding:3px 7px}
 .tccard .nm{font-size:11.5px;line-height:1.45;color:var(--text2,#5c564a)}
 .tccard .lks{display:flex;gap:6px;flex-wrap:wrap;margin-top:1px}
-.tccard .lks a{font:700 11px inherit;text-decoration:none;color:var(--rc,#0f7a57);border:1px solid color-mix(in srgb,var(--rc) 30%,transparent);border-radius:8px;padding:5px 9px}
+.tccard .lks a{font:700 11px inherit;text-decoration:none;color:color-mix(in srgb,var(--rc,#0f7a57) 55%,var(--ink,#1f1c17));border:1px solid color-mix(in srgb,var(--rc) 30%,transparent);border-radius:8px;padding:5px 9px}
 .tccard .lks a:hover{background:color-mix(in srgb,var(--rc) 10%,transparent)}
-.tccard .acv{margin-top:2px;border:none;background:color-mix(in srgb,var(--rc) 12%,transparent);color:var(--rc);border-radius:9px;padding:7px 10px;font:800 11.5px inherit;cursor:pointer;text-align:left}
+.tccard .acv{margin-top:2px;border:none;background:color-mix(in srgb,var(--rc) 12%,transparent);color:color-mix(in srgb,var(--rc,#0f7a57) 55%,var(--ink,#1f1c17));border-radius:9px;padding:7px 10px;font:800 11.5px inherit;cursor:pointer;text-align:left}
 .tccard .acv:hover{background:color-mix(in srgb,var(--rc) 20%,transparent)}
 .tccard .semacv{font-size:10.5px;color:var(--text2,#5c564a);font-style:italic;margin-top:2px}
 
@@ -403,7 +411,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   .vact{gap:4px}
   .st{width:44px;height:44px;font-size:16px}
   .fav{min-width:44px;min-height:44px;font-size:20px;display:flex;align-items:center;justify-content:center}
-  .vhead{padding:14px 12px 14px 18px}
+  .vhead{padding:14px 12px}
   .rdr .map{display:none}
   .rdr .doc{padding:18px 15px 120px}
   .rdr .top{position:relative;flex-wrap:nowrap;padding:10px 12px}
@@ -438,7 +446,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
 <script src="juris-index.js"></script>
 </head>
 <body><div class="wrap">
-<div class="head"><div class="ic" id="hIc"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg></div><div><h1 id="hTit">CátedraJURIS</h1><p id="hSub">Vade mecum de jurisprudência · STF, STJ, TSE, TJRO e os tribunais de contas</p></div></div>
+<div class="head"><div class="ic" id="hIc"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="scale"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path></svg></div><div><h1 id="hTit">CátedraJURIS</h1><p id="hSub">Vade mecum de jurisprudência · STF, STJ, TSE, TJRO e os tribunais de contas</p></div></div>
 <div class="tabs ct-chips ct-rolo" id="tabs">
   <button class="tab on" data-pane="acervo" aria-pressed="true">Acervo</button>
   <button class="tab" data-pane="dia" aria-pressed="false">Julgado do dia</button>
@@ -458,7 +466,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   <div id="infosLista"></div>
 </div>
 <div id="paneAcervo">
-<div class="search"><span class="mag">🔎</span><input id="q" aria-label="Buscar verbete por número, título ou tema" placeholder="Buscar por número, título, tema… (e enunciado após carregar)" autocomplete="off"></div>
+<div class="search"><span class="mag"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="search"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg></span><input id="q" aria-label="Buscar verbete por número, título ou tema" placeholder="Buscar por número, título, tema… (e enunciado após carregar)" autocomplete="off"></div>
 <div class="chips ct-chips ct-rolo" id="trib" role="group" aria-label="Filtrar por tribunal"></div>
 <!-- D3: tribunal é o corte usado toda hora e fica à vista; coleção e ramo empurravam o
      acervo para fora da primeira dobra e agora vivem dentro do botão. O que estiver
@@ -485,7 +493,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
 </div>
 <div id="paneTribunais" hidden>
   <div class="fonte" id="tcFonte"></div>
-  <div class="search"><span class="mag">🔎</span><input id="qtc" aria-label="Buscar tribunal de contas por sigla, estado ou nome" placeholder="Buscar tribunal por sigla, estado ou nome…" autocomplete="off"></div>
+  <div class="search"><span class="mag"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="search"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg></span><input id="qtc" aria-label="Buscar tribunal de contas por sigla, estado ou nome" placeholder="Buscar tribunal por sigla, estado ou nome…" autocomplete="off"></div>
   <div class="chips ct-chips" id="regs"></div>
   <div id="tcList"></div>
 </div>
@@ -499,19 +507,24 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   // Dois acervos moram nesta mesma tela e compartilham cards, leitor, grifos e
   // status de estudo. O que muda entre eles é só a origem dos dados e a paleta
   // de cores da faceta "ramo" — daí o descritor abaixo em vez de duplicar a view.
+  /* Ícone Lucide por NOME (cópia pequena do padrão do host — não há módulo compartilhado entre
+     os satélites): SVG 16 px, traço currentColor, aria-hidden e data-ico com o nome. Emoji não é
+     ícone (DESIGN.md). Só os desenhos que esta página usa; nome desconhecido sai vazio, sem glifo. */
+  var CT_ICO={'scale':'<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path>'};
+  function ctIco(nome){ return '<svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="'+nome+'">'+(CT_ICO[nome]||'')+'</svg>'; }
   var MODOS={
     juris:{ idx:window.__JURIS_IDX__||[], txt:null,
             idxSrc:null,               idxGlobal:'__JURIS_IDX__',
             txtSrc:'juris-text.js',    txtGlobal:'__JURIS_TXT__', fatia:'juris-text',
             cor:function(n){return ramoColor(n)}, comBase:false,
-            ic:'balança', tit:'CátedraJURIS',
+            ic:'scale', tit:'CátedraJURIS',
             sub:'Vade mecum de jurisprudência · súmulas e julgados do STF, STJ e TSE',
             vazio:'Base de jurisprudência não carregou.' },
     contas:{ idx:null, txt:null,
             idxSrc:'contas-index.js',  idxGlobal:'__CONTAS_IDX__',
             txtSrc:'contas-text.js',   txtGlobal:'__CONTAS_TXT__', fatia:'contas-text',
             cor:function(n){return areaColor(n)}, comBase:true,
-            ic:'colunas', tit:'Central de Contas',
+            ic:'landmark', tit:'Central de Contas',
             sub:'Controle externo · súmulas, boletins e informativos do TCU e dos tribunais de contas',
             vazio:'Acervo da Central de Contas não carregou.' }
   };
@@ -655,7 +668,8 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   }
   function chipBtn(active,label,cnt,col,onclick){
     var b=document.createElement('button'); b.className='chip'+(active?' on':'');
-    if(active)b.style.background=col||'var(--accent,#0f7a57)';
+    // sem cor própria, o chip ativo pinta o par do destaque (fundo e texto medidos no host)
+    if(active){ b.style.background=col||'var(--accentSolid,var(--accent,#0f7a57))'; if(!col) b.classList.add('destaque'); }
     b.setAttribute('aria-pressed',active?'true':'false');
     b.innerHTML=(col?'<span class="dot" aria-hidden="true" style="background:'+col+'"></span>':'')+esc(label)+' <small>'+cnt+'</small>';
     b.onclick=onclick; return b;
@@ -725,7 +739,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
     host.innerHTML='';
     at.forEach(function(x){
       var c=document.createElement('button');
-      c.className='chip on ativo'; c.style.background='var(--accent,#0f7a57)';
+      c.className='chip on ativo destaque'; c.style.background='var(--accentSolid,var(--accent,#0f7a57))';
       c.setAttribute('aria-label','Remover filtro '+x.rot);
       c.innerHTML=esc(x.rot)+' <span class="x" aria-hidden="true">✕</span>';
       c.onclick=function(){ if(x.k==='base')f.base=''; else f.ramo=''; build(); };
@@ -965,7 +979,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
     listEl.appendChild(frag);
     page++;
     var shown=Math.min(page*PAGE,filtered.length);
-    if(filtered.length===0){ listEl.innerHTML='<div class="empty"><div class="ei">⚖️</div>Nenhum verbete encontrado.<br>Ajuste a busca ou os filtros.</div>'; moreEl.textContent=''; }
+    if(filtered.length===0){ listEl.innerHTML='<div class="empty"><div class="ei ct-ladrilho ct-ladrilho-xg">'+ctIco('scale')+'</div>Nenhum verbete encontrado.<br>Ajuste a busca ou os filtros.</div>'; moreEl.textContent=''; }
     else moreEl.textContent=shown>=filtered.length?(filtered.length.toLocaleString('pt-BR')+' verbetes'):('Mostrando '+shown.toLocaleString('pt-BR')+' de '+filtered.length.toLocaleString('pt-BR')+' — role para ver mais');
   }
   var io=new IntersectionObserver(function(e){ if(e[0].isIntersecting && page*PAGE<filtered.length) renderPage(); },{rootMargin:'600px'});
@@ -1304,6 +1318,11 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
     try {
       q = String(q == null ? '' : q);
       var tenta = function (n) {
+        // Id exato de verbete (vem do "Abrir no JURIS" do LEGIS): abre ELE, não busca.
+        // O índice monta depois desta função: até lá (nulo), espera em vez de cair na busca.
+        var tem = (q && window.jurisTemId) ? window.jurisTemId(q) : (q ? null : false);
+        if (tem === null && n > 0) { setTimeout(function () { tenta(n - 1); }, 120); return; }
+        if (tem) { window.jurisAbrirPorId(q); return; }
         var el = document.getElementById('q');
         if (!el) { if (n > 0) setTimeout(function () { tenta(n - 1); }, 120); return; }
         el.value = q;
@@ -1319,32 +1338,93 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   window.addEventListener('message', function (e) {
     if (window.ctMensagemDoHost(e) && e.data && e.data.type === 'ctBusca') window.ctAplicarBusca(e.data.termo);
   });
-  // ?volta=1: ela veio do mapa do processo — a pílula devolve ao ponto exato (o host
-  // guarda rito/peça/bloco e responde ao ctVoltarAcervo). Só o host web manda este
-  // parâmetro; no app nativo as abas são nativas e esta página nem abre.
+  // ?volta=1: ela veio de um ponto do app (rito, peça, correção, revisão…) — a pílula
+  // devolve a ele. O host guarda a origem e responde ao ctVoltarAcervo; o texto do botão
+  // vem do host (&vr= na 1ª carga, `rotulo` no ctVoltaDisponivel). No app nativo o JURIS
+  // é a aba nativa e a volta é o botão dela; esta pílula só aparece no juris-web.
   (function ctVolta(){ try{
-    /* U1: o host acende/apaga a pílula por mensagem com o iframe vivo; ?volta=1 continua
-       valendo na primeira carga. */
-    var pedidoURL=new URLSearchParams(location.search).get('volta')==='1';
+    /* U1: o host acende/apaga a pílula por mensagem (ctVoltaDisponivel) com o iframe vivo;
+       o ?volta=1 continua valendo na primeira carga. */
+    var P=new URLSearchParams(location.search);
+    var pedidoURL=P.get('volta')==='1', rotURL=P.get('vr')||'';
+    var LEITOR=document.getElementById('jrdr');
+    var voltar=function(){ try{ window.ctEnviarAoHost({type:'ctVoltarAcervo'}); }catch(e){} };
+    var visivel=function(b){ return !!b && b.style.display!=='none' && !b.classList.contains('gaveta'); };
+    /* D1: o leitor (#jrdr, z 300) cobria a pílula (z 95) — ela chegava ao acervo pela revisão,
+       pela prova oral ou pelo simulado já com o leitor aberto e ficava sem caminho de volta.
+       Com o leitor aberto a pílula MUDA-SE para dentro dele (1º filho, z 9 no contexto do
+       leitor): fica acima da barra .top (3) e do palco (2) e abaixo da barra de grifo (310).
+       Subir o z no body não bastava: no LEGIS a barra de grifo mora DENTRO do .rdr, e qualquer
+       z acima de 300 no body passa por cima dela. E vai para a direita: à esquerda mora o
+       esquema do leitor (coluna no desktop), e embaixo não há controle — o texto tem folga
+       de 120–140px no fim. A barra .top fica em cima, longe. Fechou o leitor, volta ao body. */
+    /* K1: a pílula pinta com o par PRÓPRIO do host (--accentFill/--onAccentFill, calculado por
+       contraste WCAG: texto ≥ 4,5:1 sobre o fundo, fundo ≥ 3:1 contra --surface). O --accent e o
+       --onAccent do resto do app ficam como estão; host antigo sem o par cai neles. */
+    var estilo=function(){
+      if(document.getElementById('ct-volta-css')) return;
+      var s=document.createElement('style'); s.id='ct-volta-css';
+      s.textContent='#ct-volta{position:fixed;left:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:95;'
+        +'border:none;cursor:pointer;background:var(--accentFill,var(--accent,#0f7a57));color:var(--onAccentFill,var(--onAccent,#fff));border-radius:99px;'
+        // D8: 44px de altura mínima — a pílula de voltar é alvo de polegar, não de mouse
+        +'min-height:44px;align-items:center;gap:8px;max-width:calc(100vw - 28px);'
+        +'padding:10px 18px 10px 14px;font:700 12.5px var(--body,sans-serif);box-shadow:0 6px 20px rgba(20,15,10,.28)}'
+        +'#ct-volta svg{flex:none}'
+        +'#ct-volta span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'
+        +'#ct-volta:hover,#ct-volta:focus-visible{background:var(--accentFill,var(--accent,#0f7a57));color:var(--onAccentFill,var(--onAccent,#fff))}'
+      +'#ct-volta:hover{box-shadow:0 8px 24px rgba(20,15,10,.34)}'
+      +'#ct-volta:focus-visible{outline:2px solid var(--text,#1c1a17);outline-offset:3px}'
+        +'#ct-volta.sobre-leitor{z-index:9;left:auto;right:14px}'
+        /* os painéis da leitura ativa terminam em botões: com a pílula ali, ganham folga */
+        +'body.ct-volta-leitor .rdr .la-conf,body.ct-volta-leitor .rdr .la-gd{padding-bottom:88px}';
+      document.head.appendChild(s);
+    };
+    var sincronizar=function(){
+      var b=document.getElementById('ct-volta'); if(!b) return;
+      var aberto=!!LEITOR && LEITOR.classList.contains('on');
+      var casa=aberto ? LEITOR : document.body;
+      if(b.parentNode!==casa){ var tinhaFoco=document.activeElement===b;
+        casa.insertBefore(b, casa.firstChild); if(tinhaFoco) try{ b.focus(); }catch(e){} }
+      b.classList.toggle('sobre-leitor', aberto);
+      b.classList.toggle('gaveta', aberto && LEITOR.classList.contains('mapaAberto'));
+      document.body.classList.toggle('ct-volta-leitor', aberto && b.style.display!=='none');
+    };
     var montar=function(){
-    var b=document.createElement('button');
-    b.textContent='← Voltar ao ponto do processo';
-    b.style.cssText='position:fixed;left:14px;bottom:14px;z-index:95;border:none;cursor:pointer;'
-      +'background:var(--accent,#0f7a57);color:var(--onAccent,#fff);border-radius:99px;'
-      +'padding:10px 16px;font:700 12.5px var(--body,sans-serif);box-shadow:0 6px 20px rgba(20,15,10,.28)';
-    b.onclick=function(){ try{ window.ctEnviarAoHost({type:'ctVoltarAcervo'}); }catch(e){} };
-    b.id='ct-volta';
-    document.body.appendChild(b);
-    return b;
+      estilo();
+      var b=document.createElement('button');
+      b.type='button'; b.id='ct-volta';
+      /* a seta é desenho (Lucide arrow-left, aria-hidden): o nome acessível é só o rótulo */
+      b.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" '
+        +'stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" '
+        +'focusable="false"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg><span></span>';
+      b.onclick=voltar;
+      /* no começo do body: é a primeira parada do Tab (a posição na tela segue fixa) */
+      document.body.insertBefore(b, document.body.firstChild);
+      if(LEITOR && window.MutationObserver) new MutationObserver(sincronizar).observe(LEITOR, {attributes:true, attributeFilter:['class']});
+      return b;
     };
-    var mostrar=function(on){
+    var mostrar=function(on, rotulo){
       var b=document.getElementById('ct-volta');
-      if(on){ if(!b) b=montar(); b.style.display='block'; }
+      if(on){ if(!b) b=montar();
+        /* texto, nunca HTML: o rótulo vem do host */
+        b.querySelector('span').textContent=String(rotulo||'').replace(/\s+/g,' ').trim()||'Voltar';
+        b.style.display='inline-flex'; }
       else if(b) b.style.display='none';
+      sincronizar();
     };
-    if(pedidoURL) mostrar(true);
+    if(pedidoURL) mostrar(true, rotURL);
     window.addEventListener('message', function(e){
-      if(window.ctMensagemDoHost(e) && e.data && e.data.type==='ctVoltaDisponivel') mostrar(!!e.data.on);
+      if(window.ctMensagemDoHost(e) && e.data && e.data.type==='ctVoltaDisponivel') mostrar(!!e.data.on, e.data.rotulo);
+    });
+    /* Alt+← (o atalho da barra antiga) faz a mesma volta — só com a pílula à vista, e nunca
+       dentro de um campo de texto, onde Option+← é "palavra anterior" no Mac. O Esc
+       continua sendo dos leitores. */
+    document.addEventListener('keydown', function(e){
+      if(!e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || e.key!=='ArrowLeft') return;
+      if(!visivel(document.getElementById('ct-volta'))) return;
+      var t=e.target;
+      if(t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName||''))) return;
+      e.preventDefault(); voltar();
     });
   }catch(e){} })();
   document.querySelectorAll('#tabs .tab').forEach(function(b){ b.onclick=function(){ setPane(b.dataset.pane); }; });
@@ -1378,7 +1458,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   // ---- boot
   recount();
   renderTribChips(); renderBaseChips(); renderRamoChips(); renderFiltroBar();
-  if(!IDX.length){ listEl.innerHTML='<div class="empty"><div class="ei">⚖️</div>Base de jurisprudência não carregou.</div>'; }
+  if(!IDX.length){ listEl.innerHTML='<div class="empty"><div class="ei ct-ladrilho ct-ladrilho-xg">'+ctIco('scale')+'</div>Base de jurisprudência não carregou.</div>'; }
   else { applyFilter(); stats(); renderPage(); }
   setTimeout(carregaContas,60);          // funde o acervo de contas assim que a tela existe
 
@@ -2154,6 +2234,8 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   }
   // Abrir por id, não por posição: a lista exibida segue a ORDEM DE AUTORIDADE, não a do índice.
   window.jurisAbrirPorId=qdAbrir;
+  window.jurisTemId=function(id){ for(var k in byId) return !!byId[id]; return null; };   // null = índice ainda vazio
+  window.jurisVerbeteAberto=function(){ return _jr.classList.contains('on') ? curId : null; };
 
   /* Só objeto vira coluna: um registro gravado com "colunas": "abc" (ou com null no meio)
      pintava uma coluna por LETRA, e c.id de null derrubava o roteiro inteiro. */
@@ -2517,54 +2599,12 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
     _jtools.classList.toggle('aberto',on); _jmais.setAttribute('aria-expanded',on?'true':'false'); };
   _jtools.addEventListener('click',function(){
     _jtools.classList.remove('aberto'); _jmais.setAttribute('aria-expanded','false'); });
-  document.addEventListener('keydown',function(e){ if(!_jr.classList.contains('on'))return; if(e.key==='Escape')jClose(); else if(e.key==='ArrowLeft'&&curIdx>0)openVerbete(curIdx-1); else if(e.key==='ArrowRight'&&curIdx<filtered.length-1)openVerbete(curIdx+1); });
+  /* ←/→ trocam o verbete só SEM modificador: Alt+← é a volta da pílula (e Option/⌘/Ctrl+seta
+     são atalhos do sistema) — antes o mesmo Alt+← voltava ao app E trocava o verbete. */
+  document.addEventListener('keydown',function(e){ if(!_jr.classList.contains('on'))return; if(e.key==='Escape'){ jClose(); return; }
+    if(e.altKey||e.metaKey||e.ctrlKey) return;
+    if(e.key==='ArrowLeft'&&curIdx>0)openVerbete(curIdx-1); else if(e.key==='ArrowRight'&&curIdx<filtered.length-1)openVerbete(curIdx+1); });
 
-})();
-</script>
-<script>
-/* ==========================================================================
-   Barra de volta ao ponto de origem.
-   Quando o acervo é aberto por um clique num artigo do roteiro de peça ou do
-   fluxograma de um rito, o app manda ?de= com o rótulo daquele ponto e ?deTipo=
-   com a tela de onde veio. A barra devolve a pessoa exatamente para lá — antes
-   o caminho era de mão única e ela se perdia na lei seca.
-   Contraparte: ctAbrirAcervo / ctVoltarOrigem no Catedra.dc.html.
-   ========================================================================== */
-(function ctBarraVolta(){
-  try{
-    var P=new URLSearchParams(location.search);
-    var rot=P.get('de'), tipo=P.get('deTipo')||'';
-    window.CT_ORIGEM = rot ? {rotulo:rot, view:tipo} : null;   // repassado adiante nos saltos legis→juris
-    if(!rot) return;
-    var volta=function(){ try{ window.ctEnviarAoHost({type:'ctVoltarOrigem'}); }catch(e){} };
-    var barra=document.createElement('div');
-    barra.setAttribute('role','navigation');
-    barra.setAttribute('aria-label','Voltar ao ponto de origem');
-    barra.style.cssText='position:sticky;top:0;z-index:9999;display:flex;align-items:center;gap:10px;'
-      +'flex-wrap:wrap;padding:9px 15px;background:var(--accentSoft,#f3ecef);'
-      +'border-bottom:1px solid var(--border,#e4dcd6);'
-      +'font:600 12.5px/1.4 var(--body,"Inter",system-ui,sans-serif);color:var(--text2,#4b4a52)';
-    var bt=document.createElement('button');
-    bt.type='button';
-    bt.style.cssText='cursor:pointer;font:inherit;font-weight:800;flex:none;'
-      +'border:1px solid var(--border,#e4dcd6);background:var(--surface,#fff);'
-      +'color:var(--accentD,#8e0f3c);border-radius:99px;padding:6px 14px';
-    bt.textContent = tipo==='areamod' ? '← Voltar ao fluxograma'
-                   : tipo==='prioridade' ? '← Voltar ao painel'
-                   : tipo==='segundafase' ? '← Voltar à correção'
-                   : '← Voltar ao roteiro';
-    bt.onclick=volta;
-    var txt=document.createElement('span');
-    txt.style.cssText='min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
-    txt.textContent='você veio de ' + rot;
-    barra.appendChild(bt); barra.appendChild(txt);
-    var por=function(){ document.body.insertBefore(barra, document.body.firstChild); };
-    if(document.body) por(); else document.addEventListener('DOMContentLoaded', por);
-    document.addEventListener('keydown', function(e){
-      if(e.key==='Escape' && !document.querySelector('.on[role=dialog]')) { /* Esc já é usado pelos leitores */ }
-      if(e.altKey && e.key==='ArrowLeft'){ e.preventDefault(); volta(); }
-    });
-  }catch(e){}
 })();
 </script>
 </body></html>

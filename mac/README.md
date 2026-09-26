@@ -5,8 +5,11 @@ hospedando um `WKWebView` (o motor do Safari), **sem Electron/Chromium** nem Rus
 O `.app` resultante tem ~2 MB.
 
 O conteúdo web fica **embutido** dentro do bundle (`Contents/Resources/web/`), então
-o app abre offline. O build também **vendora React, ReactDOM e supabase-js** em
-`web/vendor/` (o `support.js` carregaria React do unpkg em runtime — ver gotchas).
+o app abre offline. O build também **copia React, ReactDOM e supabase-js** de `vendor/`
+(versionados no repositório, versões congeladas, sha256 conferido contra
+`vendor/manifesto.json`) para `web/vendor/` — o build não baixa nada; o `support.js`
+carregaria React do unpkg em runtime — ver gotchas. Trocar versão: `scripts/atualizar-vendor.mjs`,
+só por decisão da dona.
 Login e sincronização usam **Supabase** (precisa de internet).
 
 ## Construir
@@ -85,7 +88,7 @@ scripts/
   `react`/`react-dom` do unpkg.com em runtime — se a rede/CDN falha (ex.: rate-limit),
   a tela fica **branca** (o app React não inicia; só a gate de login, que não usa React,
   apareceria). Como o `loadReactUmd()` pula o download se `window.React` já existir, o
-  build vendora os dois em `web/vendor/` e os injeta **antes** do `support.js`. Não
+  build copia os dois de `vendor/` para `web/vendor/` e os injeta **antes** do `support.js`. Não
   precisa de Babel (o app não usa `<x-import>`).
 - **JavaScriptCore ≠ V8**: o `WKWebView` usa JavaScriptCore. Erros de JS podem ter
   fraseado diferente do Chrome (ex.: *"Cannot declare a const variable twice"* em vez de
