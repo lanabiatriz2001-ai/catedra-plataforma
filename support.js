@@ -1,4 +1,24 @@
-// GENERATED from dc-runtime/src/*.ts — do not edit. Rebuild with `cd dc-runtime && bun run build`.
+// support.js — o runtime do Cátedra: monta o Catedra.dc.html ({{ var }}, <sc-if>, <sc-for>).
+//
+// ATENÇÃO: este arquivo nasceu gerado de dc-runtime/src/*.ts (`cd dc-runtime && bun run build`),
+// mas o dc-runtime NÃO está neste repositório. Desde então o support.js é mantido À MÃO e é ele
+// a fonte de verdade. Regerá-lo a partir de um dc-runtime de fora apaga, em silêncio, as
+// correções locais abaixo — reaplique cada uma e rode `node tests/support-correcoes-locais.mjs`
+// (também roda na suíte), que acusa a que tiver sumido.
+//
+//   1. Releitura do template em file:// (b29e05f, PR #123), em boot(): o fetch(location.href)
+//      aceita `res.ok || res.status === 0`. No app do Mac e do iPad (WKWebView, file://) a
+//      resposta traz o arquivo inteiro com ok=false e status=0; descartá-la deixava valendo o
+//      template que o parser já tinha mutilado (no iPadOS 27 todo <sc-for> dentro de <select>
+//      some) e os menus de escolha ficavam com uma linha em branco e "Outra…".
+//   2. Arrastar e soltar (4d5e8c9), no EVENT_MAP: ondragover, ondragenter, ondragleave e ondrop.
+//      Sem essas entradas o atributo era ignorado e a zona de soltar arquivo não recebia evento.
+//   3. Destino do aviso __dc_booted (7b7e8dd, PR #136), em notifyHost: o postMessage ao pai vai
+//      para location.origin em http(s) e só usa "*" em file:// (origem opaca), em vez de "*"
+//      sempre — outra página não recebe o aviso de boot de uma tela embutida.
+//   4. Sem Babel de fora (PR #166), em ensureBabel(): o runtime original baixava o Babel standalone
+//      do unpkg para x-import de .jsx. O Cátedra não usa .jsx e não busca nada na rede: agora
+//      ensureBabel() recusa com o motivo, e x-import de .js segue funcionando.
 "use strict";
 (() => {
   var __defProp = Object.defineProperty;
@@ -997,26 +1017,19 @@
     }
     return cur;
   }
-  var BABEL_URL = "https://unpkg.com/@babel/standalone@7.26.4/babel.min.js";
   var GLOBAL_POLL_INTERVAL_MS = 50;
   var GLOBAL_POLL_TIMEOUT_MS = 3e4;
   function createExternalModules(onResolved) {
     const cache = /* @__PURE__ */ new Map();
-    let babelLoading = null;
     const reportedMissing = /* @__PURE__ */ new Map();
     const polling = /* @__PURE__ */ new Set();
+    // Correção local (Cátedra, 25/09/2026): o runtime original baixava o Babel standalone de
+    // um CDN para transpilar <x-import> de .jsx/.tsx. O Cátedra não tem x-import nenhum, e a
+    // regra da casa é nada de rede externa em tempo de execução: .jsx/.tsx agora falha com o
+    // motivo, e o x-import de .js segue funcionando. Guardado por tests/rede-externa.mjs.
     function ensureBabel() {
       if (window.Babel) return Promise.resolve();
-      if (babelLoading) return babelLoading;
-      babelLoading = new Promise((res, rej) => {
-        const s = document.createElement("script");
-        s.src = BABEL_URL;
-        s.crossOrigin = "anonymous";
-        s.onload = () => res();
-        s.onerror = rej;
-        document.head.appendChild(s);
-      });
-      return babelLoading;
+      return Promise.reject(new Error("x-import de .jsx/.tsx exige transpilar, e o C\u00e1tedra n\u00e3o baixa o Babel de fora (nada de rede externa): entregue o componente j\u00e1 em .js"));
     }
     function load(kind, url) {
       if (cache.has(url)) return;
@@ -1445,6 +1458,10 @@
   }
 
   // src/index.ts
+  // Fallback do runtime: só dispara quando window.React não existe. O site publicado e o bundle
+  // dos apps carregam ./vendor/react.js e ./vendor/react-dom.js ANTES deste arquivo, então aqui
+  // nada sai; o SRI abaixo é o sha384 desses mesmos bytes (D9 no tests/run.mjs). Exceção
+  // declarada em tests/rede-externa.mjs.
   var REACT_URL = "https://unpkg.com/react@18.3.1/umd/react.production.min.js";
   var REACT_SRI = "sha384-DGyLxAyjq0f9SPpVevD6IgztCFlnMF6oW/XQGmfe+IsZ8TqEiDrcHkMLKI6fiB/Z";
   var REACT_DOM_URL = "https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js";
