@@ -49,6 +49,7 @@ import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 import { testarMenuLateral } from './menu-lateral.mjs';
 import { testarSemDodEstatico, testarSemDodNavegador } from './sem-dod.mjs';
+import { testarTesesOficiaisEstatico, testarTesesOficiaisNavegador } from './teses-oficiais.mjs';
 import { testarSemMapasMentaisEstatico, testarSemMapasMentaisNavegador } from './sem-mapas-mentais.mjs';
 import { testarAssinaturaLimpa } from './assinatura-limpa.mjs';
 import { testarXcodeCloud } from './xcode-cloud.mjs';
@@ -362,10 +363,11 @@ async function prepararPonteReal(page, view) {
     'repgeral-repetitivo-STF-340', 'repgeral-repetitivo-STF-581', 'repgeral-repetitivo-STF-596'];
   ok(DO_STJ.every(id => por[id] && por[id][1] === 'STJ'),
     'JURIS os oito repetitivos de tese do STJ estão sob tribunal STJ');
-  // …e os dois que são MESMO do STF continuam no STF (não corrigir demais)
+  // …e os dois que são MESMO do STF continuam no STF (não corrigir demais). Desde o lote L1 das
+  // teses oficiais (25/09/2026) eles vêm da exportação do STF: são temas de repercussão geral.
   ok(['repgeral-repetitivo-STF-676', 'repgeral-repetitivo-STF-1127']
-      .every(id => por[id] && por[id][1] === 'STF'),
-    'JURIS Temas 676 e 1127, que são do STF, seguem no STF');
+      .every(id => por[id] && por[id][1] === 'STF' && por[id][2] === 'repercussao_geral'),
+    'JURIS Temas 676 e 1127, que são do STF, seguem no STF (como repercussão geral, pela fonte oficial)');
 
   // 3. o id é chave opaca de 'catedra:jurisEstudo' — mexer nele apaga favorito e status
   ok(NUMERO.every(([id]) => !!por[id]) && DO_STJ.every(id => !!por[id]),
@@ -9080,6 +9082,15 @@ try { testarSemDodEstatico(ok, { motor }); }
 catch (e) { ok(false, 'SEM DOD [' + motor + '] estático sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
 try { await testarSemDodNavegador(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) { ok(false, 'SEM DOD [' + motor + '] [http] o roteiro correu sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
+
+// Teses de RG e Repetitivos pela fonte oficial, lote L1 (tests/teses-oficiais.mjs): decisão da dona
+// de 25/09/2026. Cada registro trocado tem o texto oficial idêntico ao da referência versionada,
+// link oficial e nada do Dizer o Direito, na web e no nativo (web == nativo); o verbete pinta o
+// título oficial inteiro e a lista, o cortado.
+try { testarTesesOficiaisEstatico(ok, { motor }); }
+catch (e) { ok(false, 'TESES OFICIAIS L1 [' + motor + '] estático sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
+try { await testarTesesOficiaisNavegador(page, URL0, ok, { motor, origem: 'http' }); }
+catch (e) { ok(false, 'TESES OFICIAIS L1 [' + motor + '] [http] o roteiro correu sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
 
 // Sem mapas mentais (tests/sem-mapas-mentais.mjs): decisão da dona de 25/09/2026. Nenhum Swift do
 // Mac/iPad com a ferramenta, a folha, a galeria ou a seção; o state.json antigo do JURIS abre e

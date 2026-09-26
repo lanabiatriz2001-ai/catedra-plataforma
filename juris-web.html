@@ -2437,7 +2437,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   }
 
   function renderVerbete(r){
-    var _tm=txtDe(r), t=(_tm&&_tm[r[I.id]])||{};
+    var _tm=txtDe(r), t=(_tm&&_tm[r[I.id]])||{}, _te=t.tm||r[I.te];
     var h='<div class="vhero"><div class="htop"><span class="tb">'+esc(r[I.tr]||'—')+'</span>'
       +(r[I.fo]&&norm(r[I.fo])!==norm(r[I.tr])?'<span class="meta">'+esc(nomeColecao(r[I.fo]))+'</span>':'')
       +(r[I.nu]?'<span class="meta">nº '+esc(r[I.nu])+'</span>':'')
@@ -2446,8 +2446,9 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
       +'</div><h2>'+esc(r[I.ti]||'Verbete')+'</h2><div class="tags">'
       +(r[I.ra]?'<span class="rtag">'+esc(r[I.ra])+'</span>':'')
       // no acervo de contas o "tema" do card é o início da própria tese: repetir
-      // logo acima do enunciado inteiro seria eco
-      +(r[I.te]&&!(t.en&&norm(t.en).indexOf(norm(String(r[I.te]).replace(/…$/,'')))===0)?'<span class="tema">'+esc(r[I.te])+'</span>':'')+'</div></div>';
+      // logo acima do enunciado inteiro seria eco. Título oficial longo (teses de RG e
+      // repetitivos) vem cortado no índice, para a lista; o inteiro está em t.tm.
+      +(_te&&!(t.en&&norm(t.en).indexOf(norm(String(_te).replace(/…$/,'')))===0)?'<span class="tema">'+esc(_te)+'</span>':'')+'</div></div>';
     h+='<div class="venun"><div class="lbl">Enunciado</div><div class="bd">'+(t.en?jGr(t.en):'<span style="color:var(--rdim)">Sem enunciado.</span>')+'</div></div>';
     if(t.co)h+='<div class="vblk"><div class="lbl">Comentário</div><div class="bd">'+jGr(t.co)+'</div></div>';
     if(t.ob)h+='<div class="vblk"><div class="lbl">Observação</div><div class="bd">'+jGr(t.ob)+'</div></div>';
