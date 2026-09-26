@@ -16,6 +16,8 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Nenhuma chave de API no repositório
         run: node scripts/verificar-segredos.mjs
+      - name: Dívida visual do LEGIS/JURIS nativos só desce
+        run: node scripts/verificar-design-nativo.mjs
       - name: Build da plataforma
         run: node scripts/build.mjs
       - name: Testes de navegador (sync + acervo ida-e-volta)

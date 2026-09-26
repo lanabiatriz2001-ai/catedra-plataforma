@@ -33,21 +33,21 @@ struct UpdatesListView: View {
         HStack(spacing: 12) {
             IconBubble(symbol: "clock.arrow.circlepath", color: ThemeState.t.accent, size: 34)
             VStack(alignment: .leading, spacing: 3) {
-                Text(event.lawTitle).font(.system(size: 13.5, weight: .semibold)).foregroundStyle(AppTheme.ink).lineLimit(2)
+                Text(event.lawTitle).font(DS.interface(13.5, .semibold)).foregroundStyle(AppTheme.ink).lineLimit(2)
                 Text(event.date.formatted(date: .long, time: .shortened))
-                    .font(.system(size: 11.5)).foregroundStyle(AppTheme.secondaryInk)
+                    .font(DS.interface(11.5)).foregroundStyle(AppTheme.secondaryInk)
                 HStack(spacing: 8) {
                     Label("\(event.addedParagraphs.count) novos", systemImage: "plus.circle.fill")
-                        .font(.system(size: 10.5, weight: .medium))
+                        .font(DS.interface(10.5, .medium))
                         .foregroundStyle(AppTheme.ok)
                     Label("\(event.removedParagraphs.count) removidos", systemImage: "minus.circle.fill")
-                        .font(.system(size: 10.5, weight: .medium))
+                        .font(DS.interface(10.5, .medium))
                         .foregroundStyle(AppTheme.danger)
                 }
                 .padding(.top, 1)
             }
             Spacer(minLength: 6)
-            Image(systemName: "chevron.right").font(.system(size: 11, weight: .semibold))
+            Image(systemName: "chevron.right").font(DS.interface(11, .semibold))
                 .foregroundStyle(AppTheme.secondaryInk.opacity(0.6))
         }
         .padding(.horizontal, 13).padding(.vertical, 11)
