@@ -66,20 +66,8 @@ struct JurisSidebar: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Logo — mesmo bloco do CátedraLEGIS
-            HStack(spacing: 10) {
-                RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous)
-                    .fill(ThemeState.t.accent).frame(width: 34, height: 34)
-                    .overlay(Image(systemName: "building.columns.fill")
-                        .font(DS.interface(15, .bold)).foregroundStyle(.white))
-                VStack(alignment: .leading, spacing: 0) {
-                    Text("CátedraJURIS").font(DS.interface(14.5, .bold)).foregroundStyle(.white)
-                    Text("Vade Mecum de jurisprudência").font(DS.interface(10))
-                        .foregroundStyle(ThemeState.t.sidebarText.opacity(0.85))
-                        .lineLimit(1).minimumScaleFactor(0.8)
-                }
-            }
-            .padding(.horizontal, 14).padding(.top, 16).padding(.bottom, 10)
+            SeloLateral(nome: "CátedraJURIS", subtitulo: "Jurisprudência")
+            .padding(.horizontal, 14).padding(.top, 18).padding(.bottom, 14)
 
             // Busca em destaque logo abaixo do logo — igual ao CátedraLEGIS.
             buscaRow
@@ -89,15 +77,26 @@ struct JurisSidebar: View {
                 VStack(alignment: .leading, spacing: 2) {
                     // Entrega 4: os MESMOS 4 destinos do LEGIS. Tudo o que era linha solta está na
                     // vitrine do destino (JurisDestinoHub) — tabela de rastreio no PR.
-                    row(.inicio, Destino.hoje.titulo, Destino.hoje.simbolo, badge: store.srsDueCount + store.checklistPendingCount)
-                    row(.destino(.acervo), Destino.acervo.titulo, Destino.acervo.simbolo)
-                    row(.destino(.treinar), Destino.treinar.titulo, Destino.treinar.simbolo)
-                    row(.novidades, Destino.novidades.titulo, Destino.novidades.simbolo, ponto: store.novidadesNaoVistas > 0)
+                    linha(.inicio, .hoje, contagem: store.srsDueCount + store.checklistPendingCount)
+                    linha(.destino(.acervo), .acervo, contagem: store.entries.count)
+                    // Vitrine na lateral: com o Acervo aberto, os tribunais aparecem logo abaixo,
+                    // cada um com o ponto na sua cor — um toque abre a central dele.
+                    if ativa(.destino(.acervo)) {
+                        ForEach(JurisSidebar.tribunais, id: \.0) { t in
+                            SubLinhaLateral(titulo: t.0, cor: CorTribunal.identidade(t.1)) { store.ir(.central(t.2)) }
+                        }
+                    }
+                    linha(.destino(.treinar), .treinar)
+                    linha(.novidades, .novidades, contagem: store.novidadesNaoVistas)
                     secao("MEU MATERIAL")
-                    row(.meuMaterial, "Anotações, mapas e apoio", "folder")
+                    LinhaLateral(titulo: "Anotações, mapas e apoio", simbolo: "folder", ativa: ativa(.meuMaterial)) { store.ir(.meuMaterial) }
                 }
-                .padding(.horizontal, 8).padding(.bottom, 14)
+                .padding(.horizontal, 10).padding(.bottom, 14)
             }
+
+            // Meta do dia (a mesma de Ajustes → Meta diária), no rodapé da lateral.
+            MetaLateral(feito: store.lidosHoje, meta: max(store.metaDiaria, 1), unidade: "verbetes")
+                .padding(.horizontal, 12).padding(.bottom, 8)
 
             // Rodapé: progresso da atualização automática (quando rodando)
             if case .executando(let msg) = updater.fase {
@@ -149,9 +148,9 @@ struct JurisSidebar: View {
             }
             .padding(.horizontal, 14).padding(.vertical, 11)
         }
-        .frame(width: 210)
+        .frame(width: 236)
         .frame(maxHeight: .infinity)
-        .background(ThemeState.t.sidebarBg)
+        .fundoLateral()
         .alert("Nova coleção", isPresented: $novaColecao) {
             TextField("Nome (ex.: Meu edital)", text: $nomeColecao)
             Button("Criar") {
@@ -200,6 +199,15 @@ struct JurisSidebar: View {
     private var ehEscopoTodos: Bool {
         if case .todos = store.selecao { return store.leituraID == nil }
         return false
+    }
+
+    static let tribunais: [(String, String, JurisCentral)] = [
+        ("STF", "STF", .stf), ("STJ", "STJ", .stj), ("TSE", "TSE", .tse),
+        ("Tribunais estaduais", "TJRO", .especificos), ("Cortes de contas", "TCU", .contas),
+    ]
+
+    private func linha(_ sel: Selecao, _ d: Destino, contagem: Int? = nil) -> some View {
+        LinhaLateral(titulo: d.titulo, simbolo: d.simbolo, ativa: ativa(sel), contagem: contagem) { store.ir(sel) }
     }
 
     private func secao(_ t: String) -> some View {
