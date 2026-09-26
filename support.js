@@ -1,4 +1,24 @@
-// GENERATED from dc-runtime/src/*.ts — do not edit. Rebuild with `cd dc-runtime && bun run build`.
+// support.js — o runtime do Cátedra: monta o Catedra.dc.html ({{ var }}, <sc-if>, <sc-for>).
+//
+// ATENÇÃO: este arquivo nasceu gerado de dc-runtime/src/*.ts (`cd dc-runtime && bun run build`),
+// mas o dc-runtime NÃO está neste repositório. Desde então o support.js é mantido À MÃO e é ele
+// a fonte de verdade. Regerá-lo a partir de um dc-runtime de fora apaga, em silêncio, as
+// correções locais abaixo — reaplique cada uma e rode `node tests/support-correcoes-locais.mjs`
+// (também roda na suíte), que acusa a que tiver sumido.
+//
+//   1. Releitura do template em file:// (b29e05f, PR #123), em boot(): o fetch(location.href)
+//      aceita `res.ok || res.status === 0`. No app do Mac e do iPad (WKWebView, file://) a
+//      resposta traz o arquivo inteiro com ok=false e status=0; descartá-la deixava valendo o
+//      template que o parser já tinha mutilado (no iPadOS 27 todo <sc-for> dentro de <select>
+//      some) e os menus de escolha ficavam com uma linha em branco e "Outra…".
+//   2. Arrastar e soltar (4d5e8c9), no EVENT_MAP: ondragover, ondragenter, ondragleave e ondrop.
+//      Sem essas entradas o atributo era ignorado e a zona de soltar arquivo não recebia evento.
+//   3. Destino do aviso __dc_booted (7b7e8dd, PR #136), em notifyHost: o postMessage ao pai vai
+//      para location.origin em http(s) e só usa "*" em file:// (origem opaca), em vez de "*"
+//      sempre — outra página não recebe o aviso de boot de uma tela embutida.
+//   4. Sem Babel de fora (PR #166), em ensureBabel(): o runtime original baixava o Babel standalone
+//      do unpkg para x-import de .jsx. O Cátedra não usa .jsx e não busca nada na rede: agora
+//      ensureBabel() recusa com o motivo, e x-import de .js segue funcionando.
 "use strict";
 (() => {
   var __defProp = Object.defineProperty;
