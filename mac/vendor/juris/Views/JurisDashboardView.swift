@@ -81,18 +81,18 @@ struct JurisDashboardView: View {
             HStack(alignment: .top, spacing: 14) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(dataLonga)
-                        .font(.system(size: 10, weight: .bold)).tracking(1.1)
+                        .font(DS.interface(10, .bold)).tracking(1.1)
                         .foregroundStyle(.white.opacity(0.75))
                     Text("\(saudacao), vamos revisar jurisprudência?")
-                        .font(.system(size: 26, weight: .bold)).foregroundStyle(.white)
+                        .font(DS.interface(26, .bold)).foregroundStyle(.white)
                 }
                 Spacer(minLength: 0)
                 if !ThemeState.t.baixaEstimulacao { streakBadge }   // baixa estimulação: sem contador de dias
             }
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 8) {
-                    Image(systemName: "target").font(.system(size: 12, weight: .semibold)).foregroundStyle(.white.opacity(0.9))
-                    Text("Meta de hoje").font(.system(size: 12.5, weight: .semibold)).foregroundStyle(.white.opacity(0.9))
+                    Image(systemName: "target").font(DS.interface(12, .semibold)).foregroundStyle(.white.opacity(0.9))
+                    Text("Meta de hoje").font(DS.interface(12.5, .semibold)).foregroundStyle(.white.opacity(0.9))
                     Spacer()
                     Text("\(feito) / \(meta)")
                         .font(Typo.serifTitle(14, .bold))
@@ -104,7 +104,7 @@ struct JurisDashboardView: View {
                     .tint(.white)
                 if feito >= meta {
                     Label("Meta batida hoje!", systemImage: "checkmark.seal.fill")
-                        .font(.system(size: 11, weight: .semibold)).foregroundStyle(.white)
+                        .font(DS.interface(11, .semibold)).foregroundStyle(.white)
                 }
             }
             .padding(14)
@@ -121,7 +121,7 @@ struct JurisDashboardView: View {
     // Botões ± da meta — vivem no hero (gradiente): vidro branco.
     private func passo(_ icone: String, _ acao: @escaping () -> Void) -> some View {
         Button(action: acao) {
-            Image(systemName: icone).font(.system(size: 10, weight: .bold))
+            Image(systemName: icone).font(DS.interface(10, .bold))
                 .foregroundStyle(.white)
                 .frame(width: 22, height: 22)
                 .background(Color.white.opacity(0.18), in: Circle())
@@ -133,12 +133,12 @@ struct JurisDashboardView: View {
     private var streakBadge: some View {
         let s = store.streak
         return HStack(spacing: 8) {
-            Image(systemName: "flame.fill").font(.system(size: 18))
+            Image(systemName: "flame.fill").font(DS.interface(18))
                 .foregroundStyle(s > 0 ? Palette.warn : .white.opacity(0.45))
             VStack(alignment: .leading, spacing: 0) {
                 Text("\(s)").font(Typo.serifTitle(19, .bold)).foregroundStyle(.white)
                 Text(s == 1 ? "dia seguido" : "dias seguidos")
-                    .font(.system(size: 9.5)).foregroundStyle(.white.opacity(0.8))
+                    .font(DS.interface(9.5)).foregroundStyle(.white.opacity(0.8))
             }
         }
         .padding(.horizontal, 13).padding(.vertical, 8)
@@ -164,15 +164,15 @@ struct JurisDashboardView: View {
                 Spacer(minLength: 0)
             }
             HStack(spacing: 5) {
-                Text("Menos").font(.system(size: 9)).foregroundStyle(Palette.secondaryInk)
+                Text("Menos").font(DS.interface(9)).foregroundStyle(Palette.secondaryInk)
                 ForEach(0..<5, id: \.self) { n in
                     RoundedRectangle(cornerRadius: 2).fill(corIntensidade(n == 0 ? 0 : n * 3))
                         .frame(width: 11, height: 11)
                 }
-                Text("Mais").font(.system(size: 9)).foregroundStyle(Palette.secondaryInk)
+                Text("Mais").font(DS.interface(9)).foregroundStyle(Palette.secondaryInk)
                 Spacer()
                 Text("Cada quadradinho = 1 dia de estudo")
-                    .font(.system(size: 10)).foregroundStyle(Palette.secondaryInk)
+                    .font(DS.interface(10)).foregroundStyle(Palette.secondaryInk)
             }
         }
         .padding(15)
@@ -228,11 +228,11 @@ struct JurisDashboardView: View {
             HStack(spacing: 11) {
                 ZStack {
                     Circle().fill(cor.opacity(0.14)).frame(width: 34, height: 34)
-                    Image(systemName: icone).font(.system(size: 15)).foregroundStyle(cor)
+                    Image(systemName: icone).font(DS.interface(15)).foregroundStyle(cor)
                 }
                 VStack(alignment: .leading, spacing: 1) {
                     Text("\(valor)").font(Typo.serifTitle(20, .bold)).foregroundStyle(Palette.titleInk)
-                    Text(titulo).font(.system(size: 11)).foregroundStyle(Palette.secondaryInk)
+                    Text(titulo).font(DS.interface(11)).foregroundStyle(Palette.secondaryInk)
                 }
                 Spacer(minLength: 0)
             }
@@ -288,12 +288,12 @@ struct JurisDashboardView: View {
         HStack(spacing: 9) {
             ZStack {
                 Circle().fill(cor.opacity(0.14)).frame(width: 30, height: 30)
-                Image(systemName: icone).font(.system(size: 13)).foregroundStyle(cor)
+                Image(systemName: icone).font(DS.interface(13)).foregroundStyle(cor)
             }
-            Text(t).font(.system(size: 13, weight: .semibold)).foregroundStyle(Palette.bodyInk)
+            Text(t).font(DS.interface(13, .semibold)).foregroundStyle(Palette.bodyInk)
             Spacer(minLength: 0)
             if let badge, badge > 0 {
-                Text("\(badge)").font(.system(size: 10.5, weight: .bold)).foregroundStyle(.white)
+                Text("\(badge)").font(DS.interface(10.5, .bold)).foregroundStyle(.white)
                     .padding(.horizontal, 6).padding(.vertical, 1)
                     .background(cor, in: Capsule())
             }
@@ -334,11 +334,11 @@ struct JurisDashboardView: View {
         let frac = total == 0 ? 0 : Double(lidos) / Double(total)
         return Button { store.ir(.fonte(f)) } label: {
             HStack(spacing: 10) {
-                Image(systemName: f.simbolo).font(.system(size: 12)).foregroundStyle(f.cor).frame(width: 20)
-                Text(f.nome).font(.system(size: 12.5, weight: .medium)).foregroundStyle(Palette.bodyInk)
+                Image(systemName: f.simbolo).font(DS.interface(12)).foregroundStyle(f.cor).frame(width: 20)
+                Text(f.nome).font(DS.interface(12.5, .medium)).foregroundStyle(Palette.bodyInk)
                     .lineLimit(1).frame(width: 186, alignment: .leading)
                 ProgressView(value: frac).tint(f.cor)
-                Text("\(lidos)/\(total)").font(.system(size: 11, weight: .semibold))
+                Text("\(lidos)/\(total)").font(DS.interface(11, .semibold))
                     .foregroundStyle(Palette.secondaryInk).frame(width: 68, alignment: .trailing)
             }
         }

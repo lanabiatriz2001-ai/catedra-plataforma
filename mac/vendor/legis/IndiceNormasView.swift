@@ -40,7 +40,7 @@ struct IndiceNormasView: View {
                     let on = c.id == codeId
                     Button { codeId = c.id; collapsed = [] } label: {
                         HStack(spacing: 7) {
-                            Text(c.abbr).font(.system(size: 12, weight: .heavy))
+                            Text(c.abbr).font(DS.interface(12, .heavy))
                                 .foregroundStyle(on ? .white : col)
                             Text(c.ct).font(Typo.num(10, .semibold))
                                 .foregroundStyle(on ? Color.white.opacity(0.85) : AppTheme.secondaryInk)
@@ -69,7 +69,7 @@ struct IndiceNormasView: View {
                 }
                 if filteredTitulos(c).isEmpty {
                     Text("Nada encontrado para a busca neste código.")
-                        .font(.system(size: 12.5)).foregroundStyle(AppTheme.secondaryInk)
+                        .font(DS.interface(12.5)).foregroundStyle(AppTheme.secondaryInk)
                         .frame(maxWidth: .infinity).padding(.vertical, 30)
                 }
                 Color.clear.frame(height: 30)
@@ -82,10 +82,10 @@ struct IndiceNormasView: View {
         HStack(alignment: .top, spacing: 14) {
             RoundedRectangle(cornerRadius: AppTheme.rCard, style: .continuous).fill(col)
                 .frame(width: 52, height: 52)
-                .overlay(Text(c.abbr).font(.system(size: 15, weight: .heavy)).foregroundStyle(.white))
+                .overlay(Text(c.abbr).font(DS.interface(15, .heavy)).foregroundStyle(.white))
             VStack(alignment: .leading, spacing: 5) {
                 Text(c.name).font(AppTheme.displayFont(19, .heavy)).foregroundStyle(AppTheme.ink)
-                Text(c.full).font(.system(size: 12)).foregroundStyle(AppTheme.secondaryInk)
+                Text(c.full).font(DS.interface(12)).foregroundStyle(AppTheme.secondaryInk)
                 HStack(spacing: 6) {
                     ForEach(c.meta, id: \.self) { m in
                         LegisChip(m, tint: col, variant: .soft)
@@ -96,7 +96,7 @@ struct IndiceNormasView: View {
             Spacer(minLength: 8)
             if let law0 {
                 Button { readerMode = "estudo"; open(law0.id) } label: {
-                    Label("Abrir norma", systemImage: "book.fill").font(.system(size: 12, weight: .semibold))
+                    Label("Abrir norma", systemImage: "book.fill").font(DS.interface(12, .semibold))
                 }
                 .buttonStyle(.borderedProminent).tint(col).controlSize(.small)
             }
@@ -119,14 +119,14 @@ struct IndiceNormasView: View {
                 } label: {
                     HStack(spacing: 10) {
                         LegisChip(t.num, tint: col, variant: .soft, size: 11)
-                        Text(t.name).font(.system(size: 13.5, weight: .semibold)).foregroundStyle(AppTheme.ink)
+                        Text(t.name).font(DS.interface(13.5, .semibold)).foregroundStyle(AppTheme.ink)
                             .lineLimit(2)
                         Spacer(minLength: 6)
                         if !t.arts.isEmpty {
-                            Text(t.arts).font(.system(size: 10.5)).foregroundStyle(AppTheme.secondaryInk)
+                            Text(t.arts).font(DS.interface(10.5)).foregroundStyle(AppTheme.secondaryInk)
                         }
                         if hasCaps {
-                            Image(systemName: "chevron.right").font(.system(size: 10.5, weight: .semibold))
+                            Image(systemName: "chevron.right").font(DS.interface(10.5, .semibold))
                                 .foregroundStyle(AppTheme.secondaryInk.opacity(0.5))
                                 .rotationEffect(.degrees(isOpen ? 90 : 0))
                         }
@@ -135,7 +135,7 @@ struct IndiceNormasView: View {
                 .buttonStyle(.plain)
                 if let law0 {
                     Button { openArticle(law0, firstArt(t.arts)) } label: {
-                        Image(systemName: "arrow.up.right.square").font(.system(size: 13)).foregroundStyle(col)
+                        Image(systemName: "arrow.up.right.square").font(DS.interface(13)).foregroundStyle(col)
                     }
                     .buttonStyle(.plain).help("Abrir no leitor, no artigo")
                 }
@@ -147,9 +147,9 @@ struct IndiceNormasView: View {
                           alignment: .leading, spacing: 4) {
                     ForEach(Array(t.caps.enumerated()), id: \.offset) { _, cap in   // capítulos não são filtrados
                         HStack(alignment: .firstTextBaseline, spacing: 8) {
-                            Text(cap.k).font(.system(size: 10.5, weight: .heavy)).foregroundStyle(col)
+                            Text(cap.k).font(DS.interface(10.5, .heavy)).foregroundStyle(col)
                                 .frame(minWidth: 44, alignment: .leading)
-                            Text(cap.d).font(.system(size: 12)).foregroundStyle(AppTheme.secondaryInk)
+                            Text(cap.d).font(DS.interface(12)).foregroundStyle(AppTheme.secondaryInk)
                                 .fixedSize(horizontal: false, vertical: true)
                             Spacer(minLength: 0)
                         }

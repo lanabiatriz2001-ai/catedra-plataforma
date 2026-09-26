@@ -14,9 +14,9 @@ struct MapaMentalSheet: View {
         VStack(spacing: 0) {
             HStack(spacing: 10) {
                 Label("Mapa mental", systemImage: "brain.head.profile")
-                    .font(.system(size: 16, weight: .bold)).foregroundStyle(Palette.titleInk)
+                    .font(DS.interface(16, .bold)).foregroundStyle(Palette.titleInk)
                 if !temNotaCurada {
-                    Text("gerado do enunciado").font(.system(size: 10)).foregroundStyle(Palette.secondaryInk)
+                    Text("gerado do enunciado").font(DS.interface(10)).foregroundStyle(Palette.secondaryInk)
                         .padding(.horizontal, 6).padding(.vertical, 1)
                         .background(Palette.secondaryInk.opacity(0.12), in: Capsule())
                 }
@@ -92,21 +92,21 @@ struct MapaMentalView: View {
         HStack(alignment: .top, spacing: 10) {
             VStack(alignment: .leading, spacing: 3) {
                 Text(entry.fonteKind.nome.uppercased())
-                    .font(.system(size: 11, weight: .bold)).tracking(0.8)
+                    .font(DS.interface(11, .bold)).tracking(0.8)
                     .foregroundStyle(Color(hex: "#4F46E5"))
                 Text(entry.titulo)
-                    .font(.system(size: 22, weight: .bold, design: .serif))
+                    .font(DS.display(22, .bold))
                     .foregroundStyle(Color(hex: "#0F1B2D"))
                 if let t = entry.tema, t != entry.titulo {
-                    Text(t).font(.system(size: 12.5, design: .serif)).italic()
+                    Text(t).font(DS.display(12.5, .regular)).italic()
                         .foregroundStyle(Color(hex: "#6B7488")).lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
             Spacer(minLength: 0)
             HStack(spacing: 6) {
-                Image(systemName: "brain.head.profile").font(.system(size: 13))
-                Text("MAPA MENTAL").font(.system(size: 11, weight: .bold)).tracking(0.8)
+                Image(systemName: "brain.head.profile").font(DS.interface(13))
+                Text("MAPA MENTAL").font(DS.interface(11, .bold)).tracking(0.8)
             }
             .foregroundStyle(Color(hex: "#4F46E5"))
         }
@@ -131,9 +131,9 @@ struct MapaMentalView: View {
 
     private var noCentral: some View {
         VStack(spacing: 6) {
-            Text("TESE").font(.system(size: 9, weight: .bold)).tracking(1).foregroundStyle(.white.opacity(0.85))
+            Text("TESE").font(DS.interface(9, .bold)).tracking(1).foregroundStyle(.white.opacity(0.85))
             Text(nota.tese ?? entry.titulo)
-                .font(.system(size: 15, weight: .semibold, design: .serif))
+                .font(DS.display(15, .semibold))
                 .foregroundStyle(.white)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
@@ -150,7 +150,7 @@ struct MapaMentalView: View {
         VStack(spacing: 4) {
             ForEach(Array(passos.enumerated()), id: \.offset) { i, passo in
                 Text(passo)
-                    .font(.system(size: 12, weight: i == 0 ? .semibold : .regular))
+                    .font(DS.interface(12, i == 0 ? .semibold : .regular))
                     .foregroundStyle(Color(hex: "#14233A"))
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
@@ -159,7 +159,7 @@ struct MapaMentalView: View {
                     .background(Color(hex: "#EEF0FB"), in: RoundedRectangle(cornerRadius: Palette.rInner))
                     .overlay(RoundedRectangle(cornerRadius: Palette.rInner).strokeBorder(Color(hex: "#4F46E5").opacity(0.35), lineWidth: 1))
                 if i < passos.count - 1 {
-                    Image(systemName: "arrow.down").font(.system(size: 11, weight: .bold)).foregroundStyle(Color(hex: "#4F46E5"))
+                    Image(systemName: "arrow.down").font(DS.interface(11, .bold)).foregroundStyle(Color(hex: "#4F46E5"))
                 }
             }
         }
@@ -174,13 +174,13 @@ struct MapaMentalView: View {
             Rectangle().fill(r.cor).frame(width: 5)
             VStack(alignment: .leading, spacing: 5) {
                 HStack(spacing: 6) {
-                    Image(systemName: r.simbolo).font(.system(size: 11)).foregroundStyle(r.cor)
-                    Text(r.titulo.uppercased()).font(.system(size: 10, weight: .bold)).tracking(0.6).foregroundStyle(r.cor)
+                    Image(systemName: r.simbolo).font(DS.interface(11)).foregroundStyle(r.cor)
+                    Text(r.titulo.uppercased()).font(DS.interface(10, .bold)).tracking(0.6).foregroundStyle(r.cor)
                 }
                 ForEach(Array(r.itens.enumerated()), id: \.offset) { _, item in
                     HStack(alignment: .top, spacing: 6) {
-                        Text("•").font(.system(size: 12)).foregroundStyle(r.cor.opacity(0.7))
-                        Text(item).font(.system(size: 12.5)).foregroundStyle(Color(hex: "#1F2A3D"))
+                        Text("•").font(DS.interface(12)).foregroundStyle(r.cor.opacity(0.7))
+                        Text(item).font(DS.interface(12.5)).foregroundStyle(Color(hex: "#1F2A3D"))
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
@@ -195,11 +195,11 @@ struct MapaMentalView: View {
 
     private var rodape: some View {
         HStack {
-            Text("CátedraJURIS").font(.system(size: 9.5, weight: .semibold))
+            Text("CátedraJURIS").font(DS.interface(9.5, .semibold))
                 .foregroundStyle(Color(hex: "#4F46E5"))
-            Text("· mapa de estudo (não oficial)").font(.system(size: 9.5)).foregroundStyle(Color(hex: "#8A8FA3"))
+            Text("· mapa de estudo (não oficial)").font(DS.interface(9.5)).foregroundStyle(Color(hex: "#8A8FA3"))
             Spacer()
-            if let d = entry.data { Text(d).font(.system(size: 9.5)).foregroundStyle(Color(hex: "#8A8FA3")) }
+            if let d = entry.data { Text(d).font(DS.interface(9.5)).foregroundStyle(Color(hex: "#8A8FA3")) }
         }
         .padding(.horizontal, 30).padding(.top, 14).padding(.bottom, 22)
     }

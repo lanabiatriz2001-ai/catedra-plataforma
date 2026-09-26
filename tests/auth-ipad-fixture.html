@@ -53,12 +53,33 @@
           signOut: function () { chamou('signOut'); try { localStorage.removeItem('__ct:sessao'); } catch (_) {} return Promise.resolve({ error: null }); },
           getUser: function () { return Promise.resolve({ data: { user: null }, error: null }); }
         },
+        /* PREGUIÇOSO como o postgrest-js de verdade: select/upsert/insert/update/delete só
+           montam o pedido; a "requisição" (registrar em __ct:chamadas e responder) acontece
+           no then(). Um builder ansioso — que registrava na hora da construção — deixou passar
+           por anos o upsert solto da hidratação, que no app real nunca saiu (não tinha .then).
+           __ct:upsertAtraso (ms): a resposta do upsert demora esse tanto — é o que prova que o
+           dirty só some DEPOIS da resposta, e não quando o pedido é montado. __ct:selectAtraso
+           (ms): o mesmo para a leitura — abre a janela do "Carregando seus dados…". */
         from: function (tabela) {
-          var enc = { select: enc0, eq: enc0, maybeSingle: fimSelect, single: fimSelect, upsert: fimUpsert, insert: fimUpsert, update: fimUpsert, delete: fimUpsert };
-          function enc0() { return enc; }
-          function fimSelect() { chamou('select', tabela); return Promise.resolve(cfg('select', { data: null, error: null })); }
-          function fimUpsert(x) { chamou('upsert', x); return Promise.resolve(cfg('upsert', { data: null, error: null })); }
-          return enc;
+          var pedido = null;
+          var q = {
+            select: function () { if (!pedido) pedido = { nome: 'select', arg: tabela }; return q; },
+            eq: function () { return q; }, match: function () { return q; }, maybeSingle: function () { return q; }, single: function () { return q; },
+            upsert: function (x) { pedido = { nome: 'upsert', arg: x }; return q; },
+            insert: function (x) { pedido = { nome: 'upsert', arg: x }; return q; },
+            update: function (x) { pedido = { nome: 'upsert', arg: x }; return q; },
+            delete: function () { pedido = { nome: 'upsert', arg: null }; return q; },
+            then: function (ok, er) {
+              var p = pedido || { nome: 'select', arg: tabela };
+              chamou(p.nome, p.arg);
+              var resp = p.nome === 'select' ? cfg('select', { data: null, error: null }) : cfg('upsert', { data: null, error: null });
+              var atraso = +cfg(p.nome === 'upsert' ? 'upsertAtraso' : 'selectAtraso', 0) || 0;
+              var pr = atraso ? new Promise(function (res) { setTimeout(function () { res(resp); }, atraso); }) : Promise.resolve(resp);
+              return pr.then(ok, er);
+            },
+            catch: function (er) { return q.then(null, er); }
+          };
+          return q;
         },
         rpc: function (n) { chamou('rpc', n); return Promise.resolve({ data: null, error: null }); },
         channel: function () { return { on: function () { return this; }, subscribe: function () { return this; } }; },

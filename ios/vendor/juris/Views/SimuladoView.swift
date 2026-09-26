@@ -399,7 +399,7 @@ struct SimuladoView: View {
             Flow(espacamento: 10) {
                 EtiquetaEstudo(texto: p.disciplina ?? "Todas as disciplinas")
                 EtiquetaEstudo(texto: "\(p.respondidos)/\(p.itens.count) respondidos", cor: Palette.secondaryInk)
-                EtiquetaEstudo(texto: "⏱ \(SimuladoLocal.tempo(p.segundos))", cor: p.encerrado ? Palette.secondaryInk : Palette.importante)
+                EtiquetaEstudo(texto: "Tempo \(SimuladoLocal.tempo(p.segundos))", cor: p.encerrado ? Palette.secondaryInk : Palette.importante)
                 Spacer(minLength: 0)
                 if !p.encerrado {
                     Button("Encerrar e corrigir") { encerrar() }.buttonStyle(.borderedProminent).tint(Palette.accent)
