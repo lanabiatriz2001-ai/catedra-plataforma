@@ -155,6 +155,23 @@ confere(ordem.map(OrdemAutoridade.posicao) == ordem.map(OrdemAutoridade.posicao)
 confere(OrdemAutoridade.posicao("tjro") > OrdemAutoridade.posicao("sumula_stj"),
         "TJRO depois de STF e STJ (antes a lista abria pela Súmula 1 do TJRO)")
 
+// Lateral no padrão do Cátedra: texto claro sobre o navy e branco sobre a pílula verde.
+confere(DSCor.contraste(0xB9C3CF, 0x1E2B3A) >= 4.5, "texto da lateral dá 4,5:1 sobre o navy do tema de partida")
+confere(DSCor.contraste(0xFFFFFF, 0x0F7A57) >= 4.5, "branco sobre a pílula verde do item ativo dá 4,5:1")
+_ = LinhaLateral(titulo: "Acervo", simbolo: "books.vertical", ativa: true, acao: {})
+_ = MetaLateral(feito: 31, meta: 50, unidade: "verbetes")
+
+// ── Início (padrão do Cátedra) ─────────────────────────────────────────────
+let fk = DateFormatter(); fk.locale = Locale(identifier: "en_US_POSIX"); fk.dateFormat = "yyyy-MM-dd"
+let sab = fk.date(from: "2026-09-26")!   // sábado
+let sem = BarrasSemana.dias(["2026-09-26": 4, "2026-09-21": 2, "2026-09-19": 9], agora: sab)
+confere(sem.count == 7 && sem.last?.hoje == true && sem.last?.valor == 4 && sem.last?.rotulo == "SÁB · HOJE",
+        "estudo semanal: 7 dias, o último é hoje (sábado) com 4")
+confere(sem.first?.rotulo == "DOM" && sem[1].valor == 2 && !sem.contains { $0.valor == 9 },
+        "estudo semanal começa no domingo anterior e ignora o que é de mais de 7 dias")
+confere(HeroInicio<EmptyView>.saudacao(fk.date(from: "2026-09-26")!.addingTimeInterval(9 * 3600)) == "Bom dia",
+        "saudação das 9 h é Bom dia")
+
 // (Tasks 2 e 3 acrescentam blocos aqui, antes do fechamento.)
 
 print(falhas == 0 ? "\nbase visual: tudo certo" : "\nbase visual: \(falhas) falha(s)")
