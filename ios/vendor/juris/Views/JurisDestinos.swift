@@ -90,7 +90,7 @@ struct JurisDestinoHub: View {
                 SecaoHub(titulo: "", itens: [
                     item("anotacoes", "Minhas anotações", nil, "square.and.pencil", .anotacoes),
                     item("mapas", "Mapas mentais", nil, "brain.head.profile", .mapas),
-                    item("dod", "DOD & Precedentes", "Comentários de terceiros", "text.book.closed", .central(.outros), cor: CorTribunal.dod),
+                    item("dod", "Precedentes", "Precedentes obrigatórios e demais fontes", "text.book.closed", .central(.outros), cor: CorTribunal.dod),
                 ]),
             ])
         }

@@ -53,7 +53,7 @@ const pub = join(ROOT, 'public');
    a conferência acontece ANTES de qualquer escrita e de qualquer rede. Antes o laço de
    cópia pulava em silêncio o que faltava: um arquivo renomeado ou apagado saía do deploy
    sem ninguém ver, e o satélite que dependia dele abria quebrado só em produção. */
-const COPIAR = ['support.js', 'icon.svg', 'auth.js', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-mapas-sv.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'discursivas-textos.js', 'espelhos.js', 'segunda-fase-web.html', 'prioridade-dados.js', 'prioridade-web.html', 'oral.js', 'oral-conteudo.js', 'treino.js', 'tema-satelite.js', 'satellite-base.css', 'leis-catalogo.js', 'busca-unica.js', 'prioridade-calc.js', 'ct-dados.js', 'leis-seca.js', 'leis-seca-areas.js', 'questoes-prova.js', 'area-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'mapa-grafo.js', 'mapa-processual.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'area-modulos.js', 'semana-juris.js', 'plataformas-questoes.js', 'espelho-sugerido.js', 'area-registry.js', 'casos.js', 'leitura-ativa.js', 'enam.js', 'questoes-enam.js', 'catedra-ui.css', 'juridico.js', 'termos.html', 'privacidade.html', 'sobre.html', 'incidencia-verbetes.js'];
+const COPIAR = ['support.js', 'icon.svg', 'auth.js', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'discursivas-textos.js', 'espelhos.js', 'segunda-fase-web.html', 'prioridade-dados.js', 'prioridade-web.html', 'oral.js', 'oral-conteudo.js', 'treino.js', 'tema-satelite.js', 'satellite-base.css', 'leis-catalogo.js', 'busca-unica.js', 'prioridade-calc.js', 'ct-dados.js', 'leis-seca.js', 'leis-seca-areas.js', 'questoes-prova.js', 'area-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'mapa-grafo.js', 'mapa-processual.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'area-modulos.js', 'semana-juris.js', 'plataformas-questoes.js', 'espelho-sugerido.js', 'area-registry.js', 'casos.js', 'leitura-ativa.js', 'enam.js', 'questoes-enam.js', 'catedra-ui.css', 'juridico.js', 'termos.html', 'privacidade.html', 'sobre.html', 'incidencia-verbetes.js'];
 {
   const faltam = COPIAR.filter((f) => !existsSync(join(ROOT, f)));
   if (!existsSync(join(ROOT, 'dados'))) faltam.push('dados/');
@@ -321,6 +321,10 @@ if (fontsHref) {
 writeFileSync(join(pub, 'index.html'), out);
 
 for (const f of COPIAR) copyFileSync(join(ROOT, f), join(pub, f));
+/* Arquivos APOSENTADOS: saíram do repositório, mas um public/ de build antigo ainda os
+   teria, e o deploy (e o precache do worker) voltaria a servi-los. Os mapas das Súmulas
+   Vinculantes saíram em 25/09/2026, por decisão da dona. */
+for (const f of ['juris-mapas-sv.html']) rmSync(join(pub, f), { force: true });
 // fatias dos acervos (ct-dados/sw): pasta inteira, nomes com hash
 cpSync(join(ROOT, 'dados'), join(pub, 'dados'), { recursive: true });
 
@@ -404,7 +408,7 @@ const acervoOffline = [
   './questoes-prova.js', './questoes-enam.js', './espelhos.js', './oral.js', './modelos-edital.js', './discursivas.js',
   // 5. JURIS: o índice dos 14,6 mil verbetes (busca e navegação offline). O TEXTO
   //    fica de fora — são 10 MB, e é exatamente para isso que ele foi fatiado.
-  './juris-index.js', './juris-mapas-sv.html',
+  './juris-index.js',
 ];
 /* CAMADA 3 — os pesados, baixados só quando ela pedir ("Baixar tudo" nos Ajustes,
    via window.__catedraOffline.baixar()). Cada um desbloqueia UMA tela offline e

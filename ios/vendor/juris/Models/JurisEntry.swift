@@ -310,7 +310,6 @@ enum Fonte: String, CaseIterable, Identifiable {
     case informativoSTF = "informativo_stf"
     case informativoSTJ = "informativo_stj"
     case informativoTSE = "informativo_tse"
-    case vadeMecumDOD = "vademecum_dod"
     case precedentesObrig = "precedentes_obrig"
     case controleConst = "controle_const"
     case adi = "stf_adi"
@@ -346,7 +345,6 @@ enum Fonte: String, CaseIterable, Identifiable {
         case .informativoSTF: return "Informativos STF"
         case .informativoSTJ: return "Informativos STJ"
         case .informativoTSE: return "Informativos TSE"
-        case .vadeMecumDOD: return "Vade Mecum DOD"
         case .precedentesObrig: return "Precedentes Obrigatórios"
         case .controleConst: return "Controle de Constitucionalidade (teses)"
         case .adi: return "ADI — Ação Direta de Inconstitucionalidade"
@@ -379,7 +377,6 @@ enum Fonte: String, CaseIterable, Identifiable {
         case .informativoSTF: return "Info STF"
         case .informativoSTJ: return "Info STJ"
         case .informativoTSE: return "Info TSE"
-        case .vadeMecumDOD: return "VM DOD"
         case .precedentesObrig: return "Prec. Obrig."
         case .controleConst: return "Controle Const."
         case .adi: return "ADI"
@@ -412,7 +409,6 @@ enum Fonte: String, CaseIterable, Identifiable {
         case .informativoSTF: return "newspaper.fill"
         case .informativoSTJ: return "newspaper"
         case .informativoTSE: return "envelope.open.badge.clock"
-        case .vadeMecumDOD: return "book.fill"
         case .precedentesObrig: return "exclamationmark.octagon.fill"
         case .controleConst: return "shield.lefthalf.filled"
         case .adi: return "shield.fill"
@@ -443,7 +439,6 @@ enum Fonte: String, CaseIterable, Identifiable {
         case .informativoSTF: return Palette.fonteInfoSTF
         case .informativoSTJ: return Palette.fonteInfoSTJ
         case .informativoTSE: return Palette.fonteInfoTSE
-        case .vadeMecumDOD: return Palette.fonteDOD
         case .precedentesObrig: return Palette.fonteRG
         case .controleConst: return Palette.fonteSTF
         case .adi, .adc, .ado, .adpf: return Palette.fonteSV
@@ -481,7 +476,7 @@ enum Fonte: String, CaseIterable, Identifiable {
         [.tjro, .tjroPrec, .sumulaVinculante, .sumulaSTF, .sumulaSTJ, .sumulaTSE, .repercussaoGeral, .repetitivo,
          .adi, .adc, .ado, .adpf, .jurisEmTeses,
          .informativoSTF, .informativoSTJ, .informativoTSE,
-         .precedentesObrig, .controleConst, .selTJGO, .selTJRJ, .selTJPR, .vadeMecumDOD,
+         .precedentesObrig, .controleConst, .selTJGO, .selTJRJ, .selTJPR,
          .sumulaTCU, .sumulaTCE, .boletimJurisTCU, .boletimPessoalTCU, .infoLicTCU]
     }
 
@@ -499,7 +494,7 @@ enum Fonte: String, CaseIterable, Identifiable {
             return .especificos
         case .sumulaTCU, .sumulaTCE, .boletimJurisTCU, .boletimPessoalTCU, .infoLicTCU:
             return .contas
-        case .vadeMecumDOD, .precedentesObrig, .outro:
+        case .precedentesObrig, .outro:
             return .outros
         }
     }
@@ -518,7 +513,7 @@ enum JurisCentral: String, CaseIterable, Identifiable {
         case .tse: return "Central TSE"
         case .especificos: return "Tribunais Específicos"
         case .contas: return "Central de Contas"
-        case .outros: return "DOD & Precedentes"
+        case .outros: return "Precedentes"
         }
     }
     var subtitulo: String {
@@ -528,7 +523,7 @@ enum JurisCentral: String, CaseIterable, Identifiable {
         case .tse: return "Tribunal Superior Eleitoral — súmulas e informativos"
         case .especificos: return "Uma central para cada tribunal — TJRO, TJGO, TJRJ, TJPR e os que você cadastrar"
         case .contas: return "Controle externo — súmulas, boletins e informativos do TCU e dos tribunais de contas estaduais"
-        case .outros: return "Vade Mecum DOD, precedentes obrigatórios e demais fontes"
+        case .outros: return "Precedentes obrigatórios e demais fontes"
         }
     }
     var simbolo: String {
