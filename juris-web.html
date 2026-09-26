@@ -220,7 +220,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
 .foot a:hover{background:var(--accentSoft,#e6f0ea)}
 .loading{font-size:12px;color:var(--text2,#5c564a);padding:8px 0}
 .empty{text-align:center;padding:60px 20px;color:var(--text2,#5c564a)}
-.empty .ei{font-size:40px;opacity:.5;margin-bottom:10px}
+.empty .ei{margin:0 auto 10px}
 .more{text-align:center;padding:14px;color:var(--text2,#5c564a);font-size:12px}
 .skel{height:80px;border-radius:14px;background:linear-gradient(90deg,var(--surface2,#efeadd) 25%,var(--surface,#fffdf8) 50%,var(--surface2,#efeadd) 75%);background-size:200% 100%;animation:sh 1.3s infinite;margin-bottom:10px}
 @keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
@@ -440,7 +440,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
 <script src="juris-index.js"></script>
 </head>
 <body><div class="wrap">
-<div class="head"><div class="ic" id="hIc"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg></div><div><h1 id="hTit">CátedraJURIS</h1><p id="hSub">Vade mecum de jurisprudência · STF, STJ, TSE, TJRO e os tribunais de contas</p></div></div>
+<div class="head"><div class="ic" id="hIc"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="scale"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path></svg></div><div><h1 id="hTit">CátedraJURIS</h1><p id="hSub">Vade mecum de jurisprudência · STF, STJ, TSE, TJRO e os tribunais de contas</p></div></div>
 <div class="tabs ct-chips ct-rolo" id="tabs">
   <button class="tab on" data-pane="acervo" aria-pressed="true">Acervo</button>
   <button class="tab" data-pane="dia" aria-pressed="false">Julgado do dia</button>
@@ -468,7 +468,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
           style="width:100%;height:78vh;border:1px solid var(--bd,#2a3947);border-radius:12px;background:var(--surface,#fff);"></iframe>
 </div>
 <div id="paneAcervo">
-<div class="search"><span class="mag">🔎</span><input id="q" aria-label="Buscar verbete por número, título ou tema" placeholder="Buscar por número, título, tema… (e enunciado após carregar)" autocomplete="off"></div>
+<div class="search"><span class="mag"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="search"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg></span><input id="q" aria-label="Buscar verbete por número, título ou tema" placeholder="Buscar por número, título, tema… (e enunciado após carregar)" autocomplete="off"></div>
 <div class="chips ct-chips ct-rolo" id="trib" role="group" aria-label="Filtrar por tribunal"></div>
 <!-- D3: tribunal é o corte usado toda hora e fica à vista; coleção e ramo empurravam o
      acervo para fora da primeira dobra e agora vivem dentro do botão. O que estiver
@@ -495,7 +495,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
 </div>
 <div id="paneTribunais" hidden>
   <div class="fonte" id="tcFonte"></div>
-  <div class="search"><span class="mag">🔎</span><input id="qtc" aria-label="Buscar tribunal de contas por sigla, estado ou nome" placeholder="Buscar tribunal por sigla, estado ou nome…" autocomplete="off"></div>
+  <div class="search"><span class="mag"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="search"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg></span><input id="qtc" aria-label="Buscar tribunal de contas por sigla, estado ou nome" placeholder="Buscar tribunal por sigla, estado ou nome…" autocomplete="off"></div>
   <div class="chips ct-chips" id="regs"></div>
   <div id="tcList"></div>
 </div>
@@ -509,19 +509,24 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   // Dois acervos moram nesta mesma tela e compartilham cards, leitor, grifos e
   // status de estudo. O que muda entre eles é só a origem dos dados e a paleta
   // de cores da faceta "ramo" — daí o descritor abaixo em vez de duplicar a view.
+  /* Ícone Lucide por NOME (cópia pequena do padrão do host — não há módulo compartilhado entre
+     os satélites): SVG 16 px, traço currentColor, aria-hidden e data-ico com o nome. Emoji não é
+     ícone (DESIGN.md). Só os desenhos que esta página usa; nome desconhecido sai vazio, sem glifo. */
+  var CT_ICO={'scale':'<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path>'};
+  function ctIco(nome){ return '<svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="'+nome+'">'+(CT_ICO[nome]||'')+'</svg>'; }
   var MODOS={
     juris:{ idx:window.__JURIS_IDX__||[], txt:null,
             idxSrc:null,               idxGlobal:'__JURIS_IDX__',
             txtSrc:'juris-text.js',    txtGlobal:'__JURIS_TXT__', fatia:'juris-text',
             cor:function(n){return ramoColor(n)}, comBase:false,
-            ic:'balança', tit:'CátedraJURIS',
+            ic:'scale', tit:'CátedraJURIS',
             sub:'Vade mecum de jurisprudência · súmulas e julgados do STF, STJ e TSE',
             vazio:'Base de jurisprudência não carregou.' },
     contas:{ idx:null, txt:null,
             idxSrc:'contas-index.js',  idxGlobal:'__CONTAS_IDX__',
             txtSrc:'contas-text.js',   txtGlobal:'__CONTAS_TXT__', fatia:'contas-text',
             cor:function(n){return areaColor(n)}, comBase:true,
-            ic:'colunas', tit:'Central de Contas',
+            ic:'landmark', tit:'Central de Contas',
             sub:'Controle externo · súmulas, boletins e informativos do TCU e dos tribunais de contas',
             vazio:'Acervo da Central de Contas não carregou.' }
   };
@@ -976,7 +981,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
     listEl.appendChild(frag);
     page++;
     var shown=Math.min(page*PAGE,filtered.length);
-    if(filtered.length===0){ listEl.innerHTML='<div class="empty"><div class="ei">⚖️</div>Nenhum verbete encontrado.<br>Ajuste a busca ou os filtros.</div>'; moreEl.textContent=''; }
+    if(filtered.length===0){ listEl.innerHTML='<div class="empty"><div class="ei ct-ladrilho ct-ladrilho-xg">'+ctIco('scale')+'</div>Nenhum verbete encontrado.<br>Ajuste a busca ou os filtros.</div>'; moreEl.textContent=''; }
     else moreEl.textContent=shown>=filtered.length?(filtered.length.toLocaleString('pt-BR')+' verbetes'):('Mostrando '+shown.toLocaleString('pt-BR')+' de '+filtered.length.toLocaleString('pt-BR')+' — role para ver mais');
   }
   var io=new IntersectionObserver(function(e){ if(e[0].isIntersecting && page*PAGE<filtered.length) renderPage(); },{rootMargin:'600px'});
@@ -1458,7 +1463,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   // ---- boot
   recount();
   renderTribChips(); renderBaseChips(); renderRamoChips(); renderFiltroBar();
-  if(!IDX.length){ listEl.innerHTML='<div class="empty"><div class="ei">⚖️</div>Base de jurisprudência não carregou.</div>'; }
+  if(!IDX.length){ listEl.innerHTML='<div class="empty"><div class="ei ct-ladrilho ct-ladrilho-xg">'+ctIco('scale')+'</div>Base de jurisprudência não carregou.</div>'; }
   else { applyFilter(); stats(); renderPage(); }
   setTimeout(carregaContas,60);          // funde o acervo de contas assim que a tela existe
 

@@ -26,6 +26,13 @@ var CH = 'catedraMapaProcessual';          /* por aparelho, como o modo cego das
 function lerTudo(){ try { return JSON.parse(localStorage.getItem(CH)) || {}; } catch (e) { return {}; } }
 function gravarTudo(o){ try { localStorage.setItem(CH, JSON.stringify(o)); } catch (e) {} }
 
+/* Ícone Lucide por NOME (a mesma cópia pequena dos satélites): SVG 16 px, traço currentColor,
+   aria-hidden e data-ico. O botão continua nomeado pelo texto (o artigo, o julgado, a peça). */
+var ICO = {'scale':'<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path>',
+  'landmark':'<path d="M10 18v-7"></path><path d="M11.12 2.198a2 2 0 0 1 1.76.006l7.866 3.847c.476.233.31.949-.22.949H3.474c-.53 0-.695-.716-.22-.949z"></path><path d="M14 18v-7"></path><path d="M18 18v-7"></path><path d="M3 22h18"></path><path d="M6 18v-7"></path>',
+  'pen-line':'<path d="M12 20h9"></path><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"></path>'};
+function ico(nome){ return '<svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="' + nome + '" style="vertical-align:-.25em;margin-right:4px">' + (ICO[nome] || '') + '</svg>'; }
+
 function esc(s){ return String(s == null ? '' : s)
   .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
   .replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
@@ -453,9 +460,9 @@ function montar(raiz, op){
       if (n.rotulo) meta.push('<span class="mp-ator">via “' + esc(n.rotulo) + '”</span>');
       var rod = [];
       if (n.art) rod.push('<button class="mp-art" type="button" data-legis="' + esc(n.art) + '" data-no="' + n.id
-        + '" title="Abrir no CátedraLEGIS: ' + esc(n.art) + '">⚖️ ' + esc(n.art) + '</button>');
+        + '" title="Abrir no CátedraLEGIS: ' + esc(n.art) + '">' + ico('scale') + esc(n.art) + '</button>');
       if (n.peca) rod.push('<button class="mp-pc" type="button" data-peca="' + esc(n.peca) + '" data-no="' + n.id
-        + '">✍️ Abrir ' + esc(n.peca) + (n.pecaPronta ? '' : ' · em breve') + '</button>');
+        + '">' + ico('pen-line') + 'Abrir ' + esc(n.peca) + (n.pecaPronta ? '' : ' · em breve') + '</button>');
       if (n.ramos.length) rod.push('<button class="mp-ram" type="button" data-recolhe="' + n.id + '"'
         + ' aria-pressed="' + (st.recolhidas[n.id] ? 'true' : 'false') + '">'
         + (st.recolhidas[n.id] ? '⊞ ' + n.ramos.length : '⊟ ' + n.ramos.length) + '</button>');
@@ -682,9 +689,9 @@ function montar(raiz, op){
     if (n.ator) corpo += sec('Responsável pelo ato', '<p>' + esc(n.ator) + '</p>');
     if (n.art || (n.leis || []).length || (n.jurisps || []).length) {
       var refs = [];
-      if (n.art) refs.push('<button class="lei" type="button" data-legis="' + esc(n.art) + '">⚖️ ' + esc(n.art) + '</button>');
-      (n.leis || []).forEach(function (l){ refs.push('<button class="lei" type="button" data-legis="' + esc(l) + '">⚖️ ' + esc(l) + '</button>'); });
-      (n.jurisps || []).forEach(function (j){ refs.push('<button class="jur" type="button" data-juris="' + esc(j) + '">🏛️ ' + esc(j) + '</button>'); });
+      if (n.art) refs.push('<button class="lei" type="button" data-legis="' + esc(n.art) + '">' + ico('scale') + esc(n.art) + '</button>');
+      (n.leis || []).forEach(function (l){ refs.push('<button class="lei" type="button" data-legis="' + esc(l) + '">' + ico('scale') + esc(l) + '</button>'); });
+      (n.jurisps || []).forEach(function (j){ refs.push('<button class="jur" type="button" data-juris="' + esc(j) + '">' + ico('landmark') + esc(j) + '</button>'); });
       corpo += sec('Fundamento legal', '<div class="mp-refs">' + refs.join('') + '</div>');
     }
     if (n.nota) corpo += sec('Nota do rito', '<p>' + esc(n.nota) + '</p>');
@@ -700,7 +707,7 @@ function montar(raiz, op){
           + n.id + '">Desfazer esta escolha</button></div>' : ''));
     }
     if (n.peca) corpo += sec('Peça desta etapa',
-      '<div class="mp-refs"><button class="lei" type="button" data-peca="' + esc(n.peca) + '">✍️ Abrir '
+      '<div class="mp-refs"><button class="lei" type="button" data-peca="' + esc(n.peca) + '">' + ico('pen-line') + 'Abrir '
       + esc(n.peca) + '</button></div>'
       + (n.pecaPronta ? '' : '<p class="mp-vazio" style="margin-top:8px">O roteiro desta peça ainda não foi escrito.</p>'));
     corpo += sec('Minhas anotações',
@@ -740,8 +747,8 @@ function montar(raiz, op){
         '<ul>' + p.cego.map(function (t){ return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>');
       var refs = [];
       (p.blocos || []).forEach(function (b){
-        (b.lei || []).forEach(function (l){ refs.push('<button class="lei" type="button" data-legis="' + esc(l) + '">⚖️ ' + esc(l) + '</button>'); });
-        (b.juris || []).forEach(function (j){ refs.push('<button class="jur" type="button" data-juris="' + esc(j) + '">🏛️ ' + esc(j) + '</button>'); });
+        (b.lei || []).forEach(function (l){ refs.push('<button class="lei" type="button" data-legis="' + esc(l) + '">' + ico('scale') + esc(l) + '</button>'); });
+        (b.juris || []).forEach(function (j){ refs.push('<button class="jur" type="button" data-juris="' + esc(j) + '">' + ico('landmark') + esc(j) + '</button>'); });
       });
       if (refs.length) corpo += sec('Fundamentação', '<div class="mp-refs">' + refs.join('') + '</div>');
       var dicas = (p.dicas || []).map(function (d){ return typeof d === 'object' ? d.t : d; });
