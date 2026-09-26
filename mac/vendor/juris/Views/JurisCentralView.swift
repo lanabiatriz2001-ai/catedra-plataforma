@@ -33,18 +33,18 @@ struct JurisCentralView: View {
                 // Hero da Central — mesma assinatura visual da casa (gradiente + branco)
                 VStack(alignment: .leading, spacing: 6) {
                     HStack(spacing: 10) {
-                        Image(systemName: central.simbolo).font(.system(size: 22, weight: .semibold))
+                        Image(systemName: central.simbolo).font(DS.interface(22, .semibold))
                             .foregroundStyle(.white.opacity(0.9))
-                        Text(central.nome).font(.system(size: 26, weight: .bold)).foregroundStyle(.white)
+                        Text(central.nome).font(DS.interface(26, .bold)).foregroundStyle(.white)
                         Spacer()
                         Text("\(total) verbetes")
-                            .font(.system(size: 11.5, weight: .semibold)).monospacedDigit()
+                            .font(DS.interface(11.5, .semibold)).monospacedDigit()
                             .padding(.horizontal, 10).padding(.vertical, 4)
                             .background(Color.white.opacity(0.16), in: Capsule())
                             .foregroundStyle(.white)
                     }
                     Text(central.subtitulo)
-                        .font(.system(size: 12.5)).foregroundStyle(.white.opacity(0.85))
+                        .font(DS.interface(12.5)).foregroundStyle(.white.opacity(0.85))
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .padding(22)
@@ -125,23 +125,23 @@ struct JurisCentralView: View {
         return Button { if count > 0 { store.ir(.fonte(f)) } } label: {
             HStack(spacing: 10) {
                 Image(systemName: f.simbolo)
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(DS.interface(15, .semibold))
                     .foregroundStyle(Palette.accent)
                     .frame(width: 34, height: 34)
                     .background(Palette.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
                 VStack(alignment: .leading, spacing: 1) {
-                    Text(f.nome).font(.system(size: 12.5, weight: .semibold))
+                    Text(f.nome).font(DS.interface(12.5, .semibold))
                         .foregroundStyle(Palette.titleInk)
                         .lineLimit(2).multilineTextAlignment(.leading)
                         .fixedSize(horizontal: false, vertical: true)
                     Text(count > 0 ? "\(count) verbete\(count == 1 ? "" : "s")"
                                    : "use Atualizar em Novidades para buscar no site oficial")
-                        .font(.system(size: 10)).foregroundStyle(Palette.secondaryInk)
+                        .font(DS.interface(10)).foregroundStyle(Palette.secondaryInk)
                         .lineLimit(1).minimumScaleFactor(0.8)
                 }
                 Spacer(minLength: 4)
                 if count > 0 {
-                    Image(systemName: "chevron.right").font(.system(size: 10, weight: .semibold))
+                    Image(systemName: "chevron.right").font(DS.interface(10, .semibold))
                         .foregroundStyle(Palette.secondaryInk)
                 }
             }
@@ -161,21 +161,21 @@ struct JurisCentralView: View {
         Button { store.ir(.ramoDetalhe(EscopoFiltrado(central: central, ramo: nome))) } label: {
             HStack(spacing: 10) {
                 Image(systemName: "bookmark")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(DS.interface(14, .semibold))
                     .foregroundStyle(Palette.accent)
                     .frame(width: 34, height: 34)
                     .background(Palette.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
                 VStack(alignment: .leading, spacing: 1) {
-                    Text(nome).font(.system(size: 12.5, weight: .semibold))
+                    Text(nome).font(DS.interface(12.5, .semibold))
                         .foregroundStyle(Palette.titleInk)
                         .lineLimit(2).multilineTextAlignment(.leading)
                         .fixedSize(horizontal: false, vertical: true)
                     Text("\(count) verbete\(count == 1 ? "" : "s") · assuntos e tipos")
-                        .font(.system(size: 10)).foregroundStyle(Palette.secondaryInk)
+                        .font(DS.interface(10)).foregroundStyle(Palette.secondaryInk)
                         .lineLimit(1).minimumScaleFactor(0.8)
                 }
                 Spacer(minLength: 4)
-                Image(systemName: "chevron.right").font(.system(size: 10, weight: .semibold))
+                Image(systemName: "chevron.right").font(DS.interface(10, .semibold))
                     .foregroundStyle(Palette.secondaryInk)
             }
             .padding(12)
@@ -193,26 +193,26 @@ struct JurisCentralView: View {
         return Button { store.ir(.tribunal(t.id)) } label: {
             HStack(spacing: 10) {
                 Text(t.sigla)
-                    .font(.system(size: 11, weight: .bold))
+                    .font(DS.interface(11, .bold))
                     .minimumScaleFactor(0.6).lineLimit(1)
                     .foregroundStyle(.white)
                     .frame(width: 42, height: 34)
                     .background(Palette.accent, in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
                 VStack(alignment: .leading, spacing: 1) {
-                    Text(t.nome).font(.system(size: 12.5, weight: .semibold))
+                    Text(t.nome).font(DS.interface(12.5, .semibold))
                         .foregroundStyle(Palette.titleInk).lineLimit(1)
                     Text(count > 0 ? "\(count) verbete\(count == 1 ? "" : "s")"
                                    : "sem verbetes no acervo ainda")
-                        .font(.system(size: 10)).foregroundStyle(Palette.secondaryInk)
+                        .font(DS.interface(10)).foregroundStyle(Palette.secondaryInk)
                         .lineLimit(1).minimumScaleFactor(0.8)
                 }
                 Spacer(minLength: 4)
                 if t.aoVivo {
                     Image(systemName: "antenna.radiowaves.left.and.right")
-                        .font(.system(size: 10, weight: .semibold)).foregroundStyle(Palette.accent)
+                        .font(DS.interface(10, .semibold)).foregroundStyle(Palette.accent)
                         .help("Tem busca ao vivo no site do tribunal")
                 }
-                Image(systemName: "chevron.right").font(.system(size: 10, weight: .semibold))
+                Image(systemName: "chevron.right").font(DS.interface(10, .semibold))
                     .foregroundStyle(Palette.secondaryInk)
             }
             .padding(12)
@@ -236,15 +236,15 @@ struct JurisCentralView: View {
         Button { nomeTribunal = ""; siglaTribunal = ""; novoTribunal = true } label: {
             HStack(spacing: 10) {
                 Image(systemName: "plus")
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(DS.interface(15, .semibold))
                     .foregroundStyle(Palette.accent)
                     .frame(width: 34, height: 34)
                     .background(Palette.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
                 VStack(alignment: .leading, spacing: 1) {
-                    Text("Nova central de tribunal").font(.system(size: 12.5, weight: .semibold))
+                    Text("Nova central de tribunal").font(DS.interface(12.5, .semibold))
                         .foregroundStyle(Palette.titleInk)
                     Text("cadastre o tribunal que você quiser (ex.: TJSP)")
-                        .font(.system(size: 10)).foregroundStyle(Palette.secondaryInk)
+                        .font(DS.interface(10)).foregroundStyle(Palette.secondaryInk)
                         .lineLimit(1).minimumScaleFactor(0.8)
                 }
                 Spacer(minLength: 4)

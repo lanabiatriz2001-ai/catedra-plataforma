@@ -43,7 +43,7 @@ button,select{font-family:inherit}
 .top{position:sticky;top:0;z-index:30;background:var(--surface);border-bottom:1px solid var(--border)}
 .l1{display:flex;align-items:center;gap:14px;padding:13px 18px;max-width:1180px;margin:0 auto;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:11px;flex:none}
-.brand .ic{width:36px;height:36px;border-radius:11px;background:var(--accent);color:var(--onAccent);
+.brand .ic{width:36px;height:36px;border-radius:11px;background:var(--accentSolid,var(--accent));color:var(--onAccent);
   display:flex;align-items:center;justify-content:center;font-size:var(--t-titulo);flex:none}
 .brand b{font:800 18px/1 var(--display);letter-spacing:-.02em;display:block}
 .brand small{display:block;font-size:var(--t-micro);color:var(--text2);margin-top:4px}
@@ -93,9 +93,9 @@ button,select{font-family:inherit}
 .acoes{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
 .acoes .ac{cursor:pointer;border:1px solid var(--border);background:var(--bg);color:var(--ink);
   border-radius:10px;padding:9px 14px;font:600 12.5px inherit;min-height:38px;text-align:left}
-.acoes .ac-1{background:var(--accent);border-color:var(--accent);color:var(--onAccent)}
+.acoes .ac-1{background:var(--accentSolid,var(--accent));border-color:var(--accentSolid,var(--accent));color:var(--onAccent)}
 .acoes .ac:hover{border-color:var(--accent)}
-.acoes .ac-1:hover{filter:brightness(1.06)}
+.acoes .ac-1:hover{background:var(--accentSolidD,var(--accentD))}
 .arts{display:flex;flex-wrap:wrap;gap:6px}
 .arts button{cursor:pointer;border:1px solid var(--border);background:var(--bg);color:var(--ink);
   border-radius:10px;padding:6px 11px;font-size:var(--t-micro);text-align:left;line-height:1.35}
@@ -176,10 +176,11 @@ const pct=x=>(x*100).toFixed(0)+'%';
 const abertos={};
 
 /* o clique num dispositivo abre a lei seca no app — e leva a origem junto, para
-   a barra de volta do CátedraLEGIS devolver a pessoa a esta linha */
+   a pílula de voltar do CátedraLEGIS devolver a pessoa a esta linha (o host manda
+   ctAbrirBloco {disc} na volta). O rótulo segue a régua do host e serve ao botão nativo. */
 function abrirAcervo(termo, disc){
   try{ window.ctEnviarAoHost({type:'ctAbrirAcervo', alvo:'legis', termo,
-    origem:{view:'prioridade', disc, rotulo:'Painel de prioridade · '+disc}}); }catch(e){}
+    origem:{view:'prioridade', disc, rotulo:'Voltar ao painel de prioridade'}}); }catch(e){}
 }
 
 /* O ranking dizia o que estudar e parava aí. O host recebe isto e abre a plataforma de
@@ -288,11 +289,19 @@ function pinta(){
 
 $('fonte').onchange=pinta; $('filtro').onchange=pinta;
 
-/* ?disc=Nome abre a disciplina já expandida (volta do acervo) */
-try{ const d=new URLSearchParams(location.search).get('disc'); if(d) abertos[d]=true; }catch(e){}
+/* Volta do acervo: reabre a linha da disciplina e rola até ela. Uma função só para
+   o ?disc= da 1ª carga e para o ctAbrirBloco {disc} do host com o iframe vivo. */
+function abrirDisc(d){
+  if(!d) return;
+  abertos[d]=true;
+  pinta();
+  try{ const el=[].slice.call(document.querySelectorAll('.linha')).find(x=>x.dataset.d===d);
+    if(el) setTimeout(()=>el.scrollIntoView({block:'center',behavior:(document.documentElement.getAttribute('data-baixa')==='1'||(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches))?'auto':'smooth'}),120); }catch(e){}
+}
 pinta();
-try{ const d=new URLSearchParams(location.search).get('disc');
-  if(d){ const el=document.querySelector('.linha[data-d="'+d.replace(/"/g,'\\"')+'"]');
-    if(el) setTimeout(()=>el.scrollIntoView({block:'center',behavior:(document.documentElement.getAttribute('data-baixa')==='1'||(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches))?'auto':'smooth'}),120); } }catch(e){}
+try{ abrirDisc(new URLSearchParams(location.search).get('disc')||''); }catch(e){}
+window.addEventListener('message', function(e){
+  if(window.ctMensagemDoHost(e) && e.data && e.data.type==='ctAbrirBloco' && e.data.disc) abrirDisc(String(e.data.disc));
+});
 </script>
 </body></html>

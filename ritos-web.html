@@ -48,7 +48,7 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible{
 .top{position:sticky;top:0;z-index:30;background:var(--surface);border-bottom:1px solid var(--border)}
 .l1{display:flex;align-items:center;gap:14px;padding:12px 18px;max-width:1240px;margin:0 auto}
 .brand{display:flex;align-items:center;gap:11px;flex:none}
-.brand .ic{width:36px;height:36px;border-radius:11px;background:var(--accent);color:var(--onAccent);
+.brand .ic{width:36px;height:36px;border-radius:11px;background:var(--accentSolid,var(--accent));color:var(--onAccent);
   display:flex;align-items:center;justify-content:center;font-size:var(--t-titulo);flex:none}
 .brand b{font:800 18px/1 var(--display);letter-spacing:-.02em;display:block}
 .brand small{display:block;font-size:var(--t-micro);color:var(--text2);margin-top:4px}
@@ -297,7 +297,7 @@ body.semnotas .nota{display:none}
 
 <header class="top">
   <div class="l1">
-    <div class="brand"><span class="ic">🧭</span><div><b>Ritos processuais</b>
+    <div class="brand"><span class="ic"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="compass"><path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"></path><circle cx="12" cy="12" r="10"></circle></svg></span><div><b>Ritos processuais</b>
       <small>o caminho do processo e o que acontece em cada bifurcação</small></div></div>
     <span class="acs" id="acs">
       <button id="bMais" class="mais" type="button" aria-label="Mais ações" aria-haspopup="true"
@@ -594,17 +594,34 @@ $('bPrint').onclick=()=>{ fecharMenu(); window.print(); };
 /* U1: uma função só para "abrir neste ponto", chamada pela URL (1ª carga, deep-link,
    testes) E pela mensagem do host (iframe vivo, sem recarregar). Dois caminhos separados
    divergiriam na primeira correção. */
-window.ctAbrirPonto = function (rito, peca, bloco) {
+/* mapa='tipo:id' (volta de uma referência do painel do Mapa de Processo): reabre aquele
+   painel no mapa. O rito MESMO com o mapa já montado não remonta: remontar fecharia o
+   painel e perderia o que está na tela à toa (é o caso da volta com o iframe vivo). */
+window.ctAbrirPonto = function (rito, peca, bloco, mapaPt) {
   try {
+    const alvo = lerPontoMapa(mapaPt);
     if (rito && ORDEM.includes(rito)) {
+      const muda = rito !== atual;
       atual = rito;
       pintaBotao();
-      pinta();
-      if (modo === 'mapa') montarMapa();
-    }
-    if (peca && PECAS[peca]) setTimeout(() => R.abrir(peca, (bloco == null ? undefined : bloco)), 60);
+      if (muda || modo !== 'mapa' || !mapa) pinta();
+      if (alvo && modo !== 'mapa') aplicarModo('mapa', false);          // já monta o mapa
+      else if (modo === 'mapa' && (muda || !mapa)) montarMapa();
+    } else if (alvo && modo !== 'mapa') aplicarModo('mapa', false);
+    if (alvo && mapa && mapa.abrirPainel) mapa.abrirPainel(alvo.tipo, alvo.id);
+    if (pecaPropria(peca)) setTimeout(() => R.abrir(peca, (bloco == null ? undefined : bloco)), 60);
   } catch (e) {}
 };
+/* K3: id que vem de fora (URL, mensagem do host) nunca é propriedade herdada — 'constructor',
+   'toString', '__proto__' existem em qualquer objeto e passariam num PECAS[id] truthy. */
+function idProprio(id){ const s = String(id == null ? '' : id); return s !== '' && !(s in Object.prototype); }
+function pecaPropria(nome){ return idProprio(nome) && Object.prototype.hasOwnProperty.call(PECAS, String(nome)); }
+function lerPontoMapa(v){
+  const s = String(v == null ? '' : v), i = s.indexOf(':');
+  if (i < 1) return null;
+  const tipo = s.slice(0, i), id = s.slice(i + 1);
+  return ((tipo === 'no' || tipo === 'peca') && idProprio(id)) ? { tipo, id } : null;
+}
 
 /* ═══════════════ MODO DE LEITURA: fluxo vertical ou mapa horizontal ═══════════
    O mesmo rito, os mesmos dados, dois desenhos. O FLUXO é a leitura de cima para
@@ -668,11 +685,14 @@ pinta();
   aplicarModo(m==='mapa'?'mapa':'fluxo', false);
 })();
 try{ const u=new URLSearchParams(location.search), pc=u.get('peca');
-  if(pc && PECAS[pc]) setTimeout(()=>R.abrir(pc, u.get('bloco')), 60); }catch(e){}
+  if(pecaPropria(pc)) setTimeout(()=>R.abrir(pc, u.get('bloco')), 60); }catch(e){}
+/* ?mapa=tipo:id — a 1ª carga da volta ao painel do Mapa de Processo (o mesmo caminho da mensagem) */
+try{ const mp=new URLSearchParams(location.search).get('mapa');
+  if(mp) window.ctAbrirPonto(atual, '', null, mp); }catch(e){}
 
 window.addEventListener('message', function (e) {
   if (window.ctMensagemDoHost(e) && e.data && e.data.type === 'ctAbrirBloco') {
-    window.ctAbrirPonto(e.data.rito, e.data.peca, e.data.bloco);
+    window.ctAbrirPonto(e.data.rito, e.data.peca, e.data.bloco, e.data.mapa);
   }
 });
 </script>

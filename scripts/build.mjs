@@ -3,14 +3,17 @@
 // visualizador desktop do dc-runtime).
 //
 // O que ele faz:
+//  0. Confere a lista de cópia (arquivo ausente é erro) e APAGA public/ inteira: o
+//     que sai daqui é só o build da vez, sem sobra de build anterior.
 //  1. Lê Catedra.dc.html (a fonte pristina).
 //  2. Injeta, logo após <head>: o shim window.claude.complete (que chama a
 //     função serverless /api/complete), o <link rel="manifest"> e o registro
 //     do service worker (PWA).
 //  3. Escreve o resultado em public/index.html.
 //  4. Copia support.js, sw.js, manifest.webmanifest e icon.svg para public/.
-//  5. Ajusta o sw.js: entrada em index.html (e não Catedra.dc.html) e as três
-//     listas de precache do U10 (casca, acervo e "baixar tudo") já MEDIDAS em bytes.
+//  5. Ajusta o sw.js: entrada em index.html (e não Catedra.dc.html), as três
+//     listas de precache do U10 (casca, acervo e "baixar tudo") já MEDIDAS em bytes
+//     e a versão do cache (hash do conteúdo do deploy, scripts/sw-versao.mjs).
 
 import { cpSync, readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync, readdirSync, statSync, rmSync} from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -22,6 +25,8 @@ import './verificar-cores-leitura.mjs';   // trava: grade de leitura ativa legí
 import './verificar-cores-texto.mjs';   // trava: cor de ramo como texto ≥ 4,5:1 (P16)
 import './build-juridico.mjs';   // Termos e Política: docs/juridico/*.md → termos.html, privacidade.html, juridico.js
 import { prepararAbertura } from './build-abertura.mjs';   // primeira pintura usa as paletas reais do host
+import { lerVendor, PDFJS } from './vendor-libs.mjs';   // React, ReactDOM, supabase-js e PDF.js congelados em vendor/ (sha256)
+import { versaoDoCache, MARCADOR_VERSAO, linhaVersao } from './sw-versao.mjs';   // versão do cache do worker = hash do deploy
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (f) => readFileSync(join(ROOT, f), 'utf8');
@@ -34,65 +39,63 @@ const src = read('Catedra.dc.html');
 const SUPABASE_URL = 'https://frcnfqxniwzdyykvgqqu.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_nCm4a-RzzY8e8jVC9O6Gfg_4V6EOrI2';
 
-// ── libs de terceiros: baixadas AGORA, servidas do nosso domínio ─────────────
+// ── libs de terceiros: do REPOSITÓRIO, servidas do nosso domínio ──────────────
 // Antes, React/ReactDOM (o support.js os buscava no unpkg em runtime) e o
 // supabase-js vinham de CDN a cada carregamento: CDN fora do ar ou bloqueado =
-// tela branca, e nada disso sobrevivia offline no PWA. Vendorando em public/vendor/
-// o app depende só do próprio deploy. Versões casam com as do support.js.
-const REACT_CDN = 'https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js';
-const REACTDOM_CDN = 'https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js';
-const SUPABASE_CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+// tela branca, e nada disso sobrevivia offline no PWA. Depois passaram a ser baixadas
+// do jsdelivr a CADA BUILD, sem checksum e com o supabase-js flutuando em `@2`. Agora
+// moram em vendor/ (versões congeladas, sha256 em vendor/manifesto.json) e o build só
+// copia e confere — ver scripts/vendor-libs.mjs. Versões casam com as do support.js.
 
 const pub = join(ROOT, 'public');
+
+/* O QUE VAI PARA public/ POR CÓPIA DIRETA. Arquivo citado aqui que não existe é ERRO, e
+   a conferência acontece ANTES de qualquer escrita e de qualquer rede. Antes o laço de
+   cópia pulava em silêncio o que faltava: um arquivo renomeado ou apagado saía do deploy
+   sem ninguém ver, e o satélite que dependia dele abria quebrado só em produção. */
+const COPIAR = ['support.js', 'icon.svg', 'auth.js', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-mapas-sv.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'discursivas-textos.js', 'espelhos.js', 'segunda-fase-web.html', 'prioridade-dados.js', 'prioridade-web.html', 'oral.js', 'oral-conteudo.js', 'treino.js', 'tema-satelite.js', 'satellite-base.css', 'leis-catalogo.js', 'busca-unica.js', 'prioridade-calc.js', 'ct-dados.js', 'leis-seca.js', 'leis-seca-areas.js', 'questoes-prova.js', 'area-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'mapa-grafo.js', 'mapa-processual.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'area-modulos.js', 'semana-juris.js', 'plataformas-questoes.js', 'espelho-sugerido.js', 'area-registry.js', 'casos.js', 'leitura-ativa.js', 'enam.js', 'questoes-enam.js', 'catedra-ui.css', 'juridico.js', 'termos.html', 'privacidade.html', 'sobre.html', 'incidencia-verbetes.js'];
+{
+  const faltam = COPIAR.filter((f) => !existsSync(join(ROOT, f)));
+  if (!existsSync(join(ROOT, 'dados'))) faltam.push('dados/');
+  if (faltam.length) {
+    console.error('\n✗ BUILD ABORTADO: a lista de cópia do build cita arquivo que não existe:');
+    for (const f of faltam) console.error('  · ' + f);
+    console.error('\n  Ou o arquivo sumiu do repositório (restaure), ou a lista está velha (tire-o');
+    console.error('  de COPIAR em scripts/build.mjs — e da lista do build-macos.mjs).\n');
+    process.exit(1);
+  }
+}
+
+/* AS BIBLIOTECAS SÃO CONFERIDAS ANTES DE QUALQUER ESCRITA, junto com a lista de cópia: vendor/
+   ausente ou adulterado aborta aqui nomeando o arquivo, e public/ do build anterior fica
+   como estava em vez de virar um deploy pela metade. */
+const LIBS_VENDOR = lerVendor(ROOT);
+// O PDF.js entra pela mesma conferência, mas não vira <script>: o host o pede sob demanda de
+// ./vendor/pdfjs/ (window.ctPdfLib) ao importar PDF — antes vinha do cdnjs em tempo de execução.
+const PDFJS_VENDOR = lerVendor(ROOT, PDFJS);
+
+/* LIMPA public/ INTEIRA ANTES DE ESCREVER. Antes só public/fonts era apagada: vendor/ era
+   criada por cima e dados/ ia por cpSync sem limpar. Como os blocos dos acervos têm hash
+   no nome, cada atualização deixava os blocos velhos lá — medido: 248 arquivos em
+   public/dados/juris-text contra 62 no repositório, e 104 MB de public/. Tudo isso ia para
+   a Vercel. Limpar aqui, antes de escrever qualquer coisa, garante que o que sai é só o
+   build da vez. */
+rmSync(pub, { recursive: true, force: true });
 mkdirSync(join(pub, 'vendor'), { recursive: true });
 
-// D9: vendoring que falha FAZ O BUILD FALHAR. Antes caía para o CDN, e aí o site
-// publicado dependia de cdn.jsdelivr.net/unpkg em runtime — numa rede que bloqueia CDN
+// D9: o site publicado nunca depende de CDN em runtime — numa rede que bloqueia CDN
 // (faculdade, tribunal, sandbox) o app simplesmente não abria. Foi exatamente o que
-// aconteceu no ambiente de teste. Degradar em silêncio é pior que não publicar.
-//
-// Escape hatch consciente: CT_PERMITE_CDN=1 volta ao comportamento antigo, para depurar.
-// Não use em deploy — o aviso abaixo diz isso em voz alta.
-const PERMITE_CDN = process.env.CT_PERMITE_CDN === '1';
+// aconteceu no ambiente de teste. As bibliotecas saem de vendor/ conferidas pelo sha256;
+// arquivo ausente ou adulterado ABORTA o build nomeando o arquivo (lerVendor). Não há mais
+// rede nem saída de emergência para CDN aqui: o CT_PERMITE_CDN deixou de existir.
 const vendorados = [];
-async function baixar(url, minLen) {
-  // uma tentativa e mais duas: rede treme, e falhar o build por soluço seria pior
-  let ultimo;
-  for (let tentativa = 1; tentativa <= 3; tentativa++) {
-    try {
-      const r = await fetch(url, { redirect: 'follow' });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      const txt = await r.text();
-      if (!txt || txt.length < minLen) throw new Error('corpo suspeito (' + (txt ? txt.length : 0) + ' bytes)');
-      return txt;
-    } catch (e) {
-      ultimo = e;
-      if (tentativa < 3) await new Promise((r) => setTimeout(r, 400 * tentativa));
-    }
-  }
-  throw ultimo;
-}
-function abortar(oque, url, e) {
-  console.error('\n✗ BUILD ABORTADO: não consegui vendorar ' + oque + '.');
-  console.error('  fonte: ' + url);
-  console.error('  erro:  ' + (e && e.message ? e.message : e));
-  console.error('\n  Publicar assim deixaria o site dependendo de um CDN em runtime — e em');
-  console.error('  rede que bloqueia CDN o app não abre. Conserte a rede do build, ou rode');
-  console.error('  com CT_PERMITE_CDN=1 se for DEBUG (nunca para deploy).\n');
-  process.exit(1);
-}
-async function vendor(url, file, minLen = 1000) {
-  try {
-    const js = await baixar(url, minLen);
-    writeFileSync(join(pub, 'vendor', file), js);
-    console.log('  · ' + file + ' vendorado (' + js.length + ' bytes)');
-    vendorados.push('./vendor/' + file);
-    return `<script src="./vendor/${file}"></script>`;
-  } catch (e) {
-    if (!PERMITE_CDN) abortar(file, url, e);
-    console.log('  ⚠ ' + file + ' via CDN (CT_PERMITE_CDN=1 — deploy NÃO deve sair assim): ' + e.message);
-    return `<script src="${url}"></script>`;
-  }
+function vendorLocal() {
+  return LIBS_VENDOR.map(({ arquivo, pacote, versao, conteudo }) => {
+    writeFileSync(join(pub, 'vendor', arquivo), conteudo);
+    console.log('  · ' + arquivo + ' do repositório (' + pacote + '@' + versao + ', ' + conteudo.length + ' bytes, sha256 conferido)');
+    vendorados.push('./vendor/' + arquivo);
+    return `<script src="./vendor/${arquivo}"></script>`;
+  });
 }
 
 // ── fontes: mesmo tratamento (resolve o offline junto) ──────────────────────
@@ -118,12 +121,10 @@ async function vendorarFontes() {
     console.error('  Sem elas o app publica sem tipografia.\n');
     process.exit(1);
   }
-  /* LIMPA ANTES DE COPIAR. As 48 faces do build antigo (nomes gerados pelo Google, com
-     cirílico e vietnamita) ficavam em public/fonts e, como a casca do worker passou a
-     levar tudo que está lá, elas voltariam para o precache pela porta dos fundos — o
-     oposto do que a filtragem antiga existia para evitar. Medido: a casca saltou de 37
-     para 85 arquivos por causa delas. */
-  rmSync(join(pub, 'fonts'), { recursive: true, force: true });
+  /* public/ INTEIRA já foi limpa no começo do build (ver acima). A limpeza nasceu aqui,
+     só para as fontes: as 48 faces do build antigo (nomes gerados pelo Google, com
+     cirílico e vietnamita) ficavam em public/fonts e, como a casca do worker leva tudo
+     que está lá, voltavam para o precache — a casca saltou de 37 para 85 arquivos. */
   mkdirSync(join(pub, 'fonts'), { recursive: true });
   const faces = readdirSync(origem).filter((f) => f.endsWith('.woff2'));
   if (!faces.length) {
@@ -144,18 +145,18 @@ async function vendorarFontes() {
   return './fonts.css';
 }
 
-/* AS FONTES VÊM ANTES DAS BIBLIOTECAS, e a ordem é o ponto. As faces são copiadas do
-   repositório e não pedem nada à rede; as libs ainda são baixadas do jsdelivr e ABORTAM o
-   build quando a rede falta. Com o vendorarFontes() no fim, um build sem rede morria no
-   react e public/fonts nunca era escrita — quem não tivesse sobra de um build anterior
-   ficava sem as 20 faces. Copiando primeiro, o passo que não depende de rede sempre
-   acontece, e o aborto das libs continua igual. */
+/* Fontes e bibliotecas vêm, as duas, do repositório: o build não pede nada à rede e,
+   sem internet, publica igual. (As libs já foram conferidas lá em cima, antes da limpeza.) */
 const fontsHref = await vendorarFontes();
 
 // React antes de ReactDOM (que usa o global React), ambos antes do support.js.
-const reactTag = await vendor(REACT_CDN, 'react.js');
-const reactDomTag = await vendor(REACTDOM_CDN, 'react-dom.js');
-const supabaseTag = await vendor(SUPABASE_CDN, 'supabase.js');
+const [reactTag, reactDomTag, supabaseTag] = vendorLocal();
+// PDF.js: só a cópia (sem <script>, sem casca). Fica no "Baixar tudo" do worker, logo abaixo.
+mkdirSync(join(pub, 'vendor', 'pdfjs'), { recursive: true });
+for (const { arquivo, pacote, versao, conteudo } of PDFJS_VENDOR) {
+  writeFileSync(join(pub, 'vendor', arquivo), conteudo);
+  console.log('  · ' + arquivo + ' do repositório (' + pacote + '@' + versao + ', ' + conteudo.length + ' bytes, sha256 conferido, sob demanda)');
+}
 
 // Carimbo do build. Sem ele, um relato de bug de testador chega sem dizer QUAL versão
 // quebrou — e aí não dá para saber se já foi corrigido. Na Vercel o sha vem do ambiente.
@@ -319,9 +320,7 @@ if (fontsHref) {
 
 writeFileSync(join(pub, 'index.html'), out);
 
-for (const f of ['support.js', 'icon.svg', 'auth.js', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-mapas-sv.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'discursivas-textos.js', 'espelhos.js', 'segunda-fase-web.html', 'prioridade-dados.js', 'prioridade-web.html', 'oral.js', 'oral-conteudo.js', 'treino.js', 'tema-satelite.js', 'satellite-base.css', 'leis-catalogo.js', 'busca-unica.js', 'prioridade-calc.js', 'ct-dados.js', 'leis-seca.js', 'leis-seca-areas.js', 'questoes-prova.js', 'area-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'mapa-grafo.js', 'mapa-processual.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'area-modulos.js', 'semana-juris.js', 'plataformas-questoes.js', 'espelho-sugerido.js', 'area-registry.js', 'casos.js', 'leitura-ativa.js', 'enam.js', 'questoes-enam.js', 'catedra-ui.css', 'juridico.js', 'termos.html', 'privacidade.html', 'sobre.html']) {
-  if (existsSync(join(ROOT, f))) copyFileSync(join(ROOT, f), join(pub, f));
-}
+for (const f of COPIAR) copyFileSync(join(ROOT, f), join(pub, f));
 // fatias dos acervos (ct-dados/sw): pasta inteira, nomes com hash
 cpSync(join(ROOT, 'dados'), join(pub, 'dados'), { recursive: true });
 
@@ -391,7 +390,7 @@ const acervoOffline = [
   // 2. os scripts que cada satélite carrega
   './ritos.js', './pecas.js', './fluxos.js', './peca-roteiro.js',
   './mapa-grafo.js', './mapa-processual.js', './area-modulos.js',
-  './treino.js', './leis-catalogo.js', './prioridade-dados.js', './incidencia.js',
+  './treino.js', './leis-catalogo.js', './prioridade-dados.js', './incidencia.js', './incidencia-verbetes.js',
   // 3. lei seca em blocos (4,3 MB): é o treino diário, e o acervoLeis() do treino.js
   //    pede o acervo INTEIRO — offline, bloco faltando vira lista de leis vazia,
   //    em silêncio. Vão para o cache de dados, não para o da casca.
@@ -415,6 +414,9 @@ const acervoSobPedido = [
   './oral-conteudo.js',     // as 999 perguntas de banca da arguição oral
   './leis-seca-areas.js',   // as 35 leis das áreas não jurídicas
   './discursivas-textos.js',// enunciados completos e padrões de resposta — a Redação abre prova offline
+  // PDF.js (1,4 MB): só serve para importar PDF (gabarito da Redação). Fora da casca e do
+  // aquecimento automático por ser grande; o network-first já o guarda no primeiro uso online.
+  ...PDFJS.map((f) => './vendor/' + f),
 ];
 const medir = (lista) => lista.map((p) => [p, bytesDe(p)]).filter(([p, b]) => {
   if (!b) console.log('  ⚠ acervo offline ausente do deploy, fora do precache: ' + p);
@@ -447,13 +449,22 @@ if (somaAcervo + somaSobPedido > TETO_PEDIDO_SW) {
 
 // sw.js: entrada é index.html (não Catedra.dc.html) e as libs vendoradas entram
 // no precache — assim o app instalado abre offline sem depender de CDN nenhum.
-if (existsSync(join(ROOT, 'sw.js'))) {
+// sem sw.js o site sairia sem PWA nem offline — é arquivo obrigatório, não opcional
+if (!existsSync(join(ROOT, 'sw.js'))) { console.error('BUILD ABORTADO: sw.js não existe no repositório.'); process.exit(1); }
+{
   const sw = read('sw.js')
     .replace(/\.\/Catedra\.dc\.html/g, './index.html')
     .replace('/*__EXTRA_ASSETS__*/', 'ASSETS = ASSETS.concat(' + JSON.stringify(casca) + ');')
     .replace('/*__ACERVOS__*/', 'ACERVOS = ' + JSON.stringify(acervos) + ';')
     .replace('/*__ACERVOS_SOB_PEDIDO__*/', 'ACERVOS_SOB_PEDIDO = ' + JSON.stringify(sobPedido) + ';');
-  writeFileSync(join(pub, 'sw.js'), sw);
+  /* Versão do cache = hash do CONTEÚDO do deploy (ver scripts/sw-versao.mjs). Tem de ser a
+     última escrita em public/ antes do sw.js: tudo o que já está lá entra na conta. Sem o
+     marcador, o worker publicado ficaria com a versão de desenvolvimento para sempre —
+     exatamente o cache que sobrevivia de um deploy ao outro. */
+  if (!sw.includes(MARCADOR_VERSAO)) { console.error('BUILD ABORTADO: sw.js sem o marcador ' + MARCADOR_VERSAO + '.'); process.exit(1); }
+  const versaoSw = versaoDoCache(pub, sw);
+  writeFileSync(join(pub, 'sw.js'), sw.replace(MARCADOR_VERSAO, linhaVersao(versaoSw)));
+  console.log('  · service worker: cache catedra-' + versaoSw + ' (hash do conteúdo do deploy)');
 }
 
 // Última porta antes da internet: public/ vai inteiro para a Vercel, sem autenticação.
