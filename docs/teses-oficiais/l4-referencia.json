@@ -1,0 +1,779 @@
+{
+ "descricao": "Lote L4 da troca das Teses de RG e Repetitivos (compilação repgeral-*, vinda do Dizer o Direito) pela fonte oficial: um verbete por tema (fusões, com migração do estado da pessoa do id que sai para o canônico) e retiradas (sem tema oficial; o estado da pessoa fica no disco, órfão). Decisões da dona de 25/09/2026. O gerador scripts/aplicar-teses-oficiais.py tira os ids de fundir/retirar das duas cópias do acervo, grava a tabela de migração no juris-web.html e no JURIS nativo e aplica o registro de \"aplicar\".",
+ "obtido_em": "2026-09-25",
+ "rotas": {
+  "STF": [
+   "https://portal.stf.jus.br/jurisprudenciaRepercussao/exportarDados.asp (exportação de todos os temas)",
+   "https://portal.stf.jus.br/repercussaogeral/retornartesesrepercussaogeral.asp (banco de teses, tipo=com/sem)",
+   "https://portal.stf.jus.br/jurisprudenciaRepercussao/verAndamentoProcesso.asp (andamentos do tema)"
+  ],
+  "STJ": [
+   "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp (faixas de 50 temas)"
+  ]
+ },
+ "contagem": {
+  "fundir": 105,
+  "retirar": 46,
+  "aplicar": 1,
+  "notas_retiradas": 3,
+  "verbetes_repgeral_antes": 1943,
+  "verbetes_repgeral_depois": 1792
+ },
+ "regra_de_uniao": "Migração nunca apaga: a chave antiga fica como cópia. Quando os dois ids têm estado: favorito, lido, dominado, importante e recente = OU; status do estudo (web) = o mais avançado (dominado > em revisão > nada); anotação, nota rica e afirmação falsa = concatenadas (canônico primeiro, depois a do id antigo, sem repetir texto que já está lá); grifos e marcações = união sem repetir; revisão espaçada (cartão) = a mais avançada (mais repetições; empate: maior intervalo; depois a próxima revisão mais tardia); coleção = o canônico entra onde o antigo estava; texto editado, alinhamento e roteiro de IA = o do canônico, e o do antigo só se o canônico não tiver. Roda uma vez por id (marca no próprio estado), para não reunir de novo o que a pessoa desfez depois.",
+ "aplicar": {
+  "repgeral-repercussao_geral-STF-569-2": {
+   "tribunal": "STF",
+   "fonte": "repercussao_geral",
+   "numero": 569,
+   "titulo": "Tema 569 (RG)",
+   "tema": "Concurso público para a contratação de empregados por pessoa jurídica que integra o chamado “Sistema S”.",
+   "enunciado": "Os serviços sociais autônomos integrantes do denominado Sistema \"S\" não estão submetidos à exigência de concurso público para contratação de pessoal, nos moldes do art. 37, II, da Constituição Federal.",
+   "orgaoJulgador": "Plenário",
+   "data": "17/09/2014",
+   "situacao": "Trânsito em Julgado",
+   "precedentes": "RE 789874 (leading case), Rel. Min. Teori Zavascki",
+   "observacao": null,
+   "url": "https://portal.stf.jus.br/jurisprudenciaRepercussao/verAndamentoProcesso.asp?incidente=4511459&numeroProcesso=789874&classeProcesso=RE&numeroTema=569",
+   "fp": "RE 789874 · Rel. Min. Teori Zavascki",
+   "origem_tese": "banco de teses do STF",
+   "justificativa": "O texto antigo do 569-2 é o do Tema 569/STF (serviços sociais autônomos não precisam de concurso para contratar pessoal, RE 789874); ia fundir no STF-569, que foi retirado por tratar de outra questão (legitimidade do MPT). Fica o 569-2, com a tese oficial do Tema 569."
+  }
+ },
+ "fundir": {
+  "repgeral-repercussao_geral-STF-100-2": {
+   "canonico": "repgeral-repercussao_geral-STF-100",
+   "tema": "STF 100",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-100 (mesmo Tema 100/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-1002-2": {
+   "canonico": "repgeral-repercussao_geral-STF-1002",
+   "tema": "STF 1002",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-1002 (mesmo Tema 1002/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-1019-2": {
+   "canonico": "repgeral-repercussao_geral-STF-1019",
+   "tema": "STF 1019",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-1019 (mesmo Tema 1019/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-1031-2": {
+   "canonico": "repgeral-repercussao_geral-STF-1031",
+   "tema": "STF 1031",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-1031 (mesmo Tema 1031/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-1041-2": {
+   "canonico": "repgeral-repercussao_geral-STF-1041",
+   "tema": "STF 1041",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-1041 (mesmo Tema 1041/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-1075-2": {
+   "canonico": "repgeral-repercussao_geral-STF-1075",
+   "tema": "STF 1075",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-1075 (mesmo Tema 1075/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-1120-2": {
+   "canonico": "repgeral-repercussao_geral-STF-1120",
+   "tema": "STF 1120",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-1120 (mesmo Tema 1120/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-116-2": {
+   "canonico": "repgeral-repercussao_geral-STF-116",
+   "tema": "STF 116",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-116 (mesmo Tema 116/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-1169-2": {
+   "canonico": "repgeral-repercussao_geral-STF-1169",
+   "tema": "STF 1169",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-1169 (mesmo Tema 1169/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-1170-2": {
+   "canonico": "repgeral-repercussao_geral-STF-1170",
+   "tema": "STF 1170",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-1170 (mesmo Tema 1170/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-1170-3": {
+   "canonico": "repgeral-repercussao_geral-STF-1170",
+   "tema": "STF 1170",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-1170 (mesmo Tema 1170/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-1234-2": {
+   "canonico": "repgeral-repercussao_geral-STF-1234",
+   "tema": "STF 1234",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-1234 (mesmo Tema 1234/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-1262-2": {
+   "canonico": "repgeral-repercussao_geral-STF-1262",
+   "tema": "STF 1262",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-1262 (mesmo Tema 1262/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-1282-2": {
+   "canonico": "repgeral-repercussao_geral-STF-1282",
+   "tema": "STF 1282",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-1282 (mesmo Tema 1282/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-1370-2": {
+   "canonico": "repgeral-repercussao_geral-STF-1370",
+   "tema": "STF 1370",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-1370 (mesmo Tema 1370/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-210-2": {
+   "canonico": "repgeral-repercussao_geral-STF-210",
+   "tema": "STF 210",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-210 (mesmo Tema 210/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-210-3": {
+   "canonico": "repgeral-repercussao_geral-STF-210",
+   "tema": "STF 210",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-210 (mesmo Tema 210/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-27-2": {
+   "canonico": "repgeral-repercussao_geral-STF-27",
+   "tema": "STF 27",
+   "origem": "L3",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-27 (L3, caso e)"
+  },
+  "repgeral-repercussao_geral-STF-312": {
+   "canonico": "repgeral-repercussao_geral-STF-27",
+   "tema": "STF 27",
+   "origem": "L3",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-27 (L3, caso e)"
+  },
+  "repgeral-repercussao_geral-STF-323-2": {
+   "canonico": "repgeral-repercussao_geral-STF-323",
+   "tema": "STF 323",
+   "origem": "L3",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-323 (L3, caso e)"
+  },
+  "repgeral-repercussao_geral-STF-323-3": {
+   "canonico": "repgeral-repercussao_geral-STF-323",
+   "tema": "STF 323",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-323 (mesmo Tema 323/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-393-2": {
+   "canonico": "repgeral-repercussao_geral-STF-393",
+   "tema": "STF 393",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-393 (mesmo Tema 393/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-477-2": {
+   "canonico": "repgeral-repercussao_geral-STF-477",
+   "tema": "STF 477",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-477 (mesmo Tema 477/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-478-2": {
+   "canonico": "repgeral-repercussao_geral-STF-478",
+   "tema": "STF 478",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-478 (mesmo Tema 478/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-492-2": {
+   "canonico": "repgeral-repercussao_geral-STF-492",
+   "tema": "STF 492",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-492 (mesmo Tema 492/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-545-2": {
+   "canonico": "repgeral-repercussao_geral-STF-545",
+   "tema": "STF 545",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-545 (mesmo Tema 545/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-627-2": {
+   "canonico": "repgeral-repercussao_geral-STF-627",
+   "tema": "STF 627",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-627 (mesmo Tema 627/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-733-2": {
+   "canonico": "repgeral-repercussao_geral-STF-733",
+   "tema": "STF 733",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-733 (mesmo Tema 733/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-761-2": {
+   "canonico": "repgeral-repercussao_geral-STF-761",
+   "tema": "STF 761",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-761 (mesmo Tema 761/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-771-2": {
+   "canonico": "repgeral-repercussao_geral-STF-771",
+   "tema": "STF 771",
+   "origem": "L3",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-771 (L3, caso e)"
+  },
+  "repgeral-repercussao_geral-STF-771-3": {
+   "canonico": "repgeral-repercussao_geral-STF-771",
+   "tema": "STF 771",
+   "origem": "L3",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-771 (L3, caso e)"
+  },
+  "repgeral-repercussao_geral-STF-857-2": {
+   "canonico": "repgeral-repercussao_geral-STF-857",
+   "tema": "STF 857",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-857 (mesmo Tema 857/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-881-2": {
+   "canonico": "repgeral-repercussao_geral-STF-881",
+   "tema": "STF 881",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-881 (mesmo Tema 881/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-881-3": {
+   "canonico": "repgeral-repercussao_geral-STF-881",
+   "tema": "STF 881",
+   "origem": "L3",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-881 (L3, caso e)"
+  },
+  "repgeral-repercussao_geral-STF-967-2": {
+   "canonico": "repgeral-repercussao_geral-STF-967",
+   "tema": "STF 967",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-967 (mesmo Tema 967/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-x110": {
+   "canonico": "repgeral-repercussao_geral-STF-642",
+   "tema": "STF 642",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-642 (mesmo Tema 642/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-x117": {
+   "canonico": "repgeral-repercussao_geral-STF-642",
+   "tema": "STF 642",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-642 (mesmo Tema 642/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-x1371": {
+   "canonico": "repgeral-repercussao_geral-STF-32",
+   "tema": "STF 32",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-32 (mesmo Tema 32/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STF-x1713": {
+   "canonico": "repgeral-repercussao_geral-STF-669",
+   "tema": "STF 669",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-669 (mesmo Tema 669/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STJ-x1120": {
+   "canonico": "repgeral-repercussao_geral-STF-82",
+   "tema": "STF 499",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-82 (mesmo Tema 499/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STJ-x1298": {
+   "canonico": "repgeral-repercussao_geral-STF-1068",
+   "tema": "STF 1068",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-1068 (mesmo Tema 1068/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repercussao_geral-STJ-x1702": {
+   "canonico": "repgeral-repercussao_geral-STF-495",
+   "tema": "STF 495",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-495 (mesmo Tema 495/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STF-185-2": {
+   "canonico": "repgeral-repetitivo-STF-185",
+   "tema": "STJ 185",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STF-185 (mesmo Tema 185/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STF-x1175": {
+   "canonico": "repgeral-repetitivo-STJ-157",
+   "tema": "STJ 157",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-157 (mesmo Tema 157/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STF-x1201": {
+   "canonico": "repgeral-repetitivo-STJ-1155",
+   "tema": "STJ 1155",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-1155 (mesmo Tema 1155/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-1000-2": {
+   "canonico": "repgeral-repetitivo-STJ-1000",
+   "tema": "STJ 1000",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-1000 (mesmo Tema 1000/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-1059-2": {
+   "canonico": "repgeral-repetitivo-STJ-1059",
+   "tema": "STJ 1059",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-1059 (mesmo Tema 1059/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-1074-2": {
+   "canonico": "repgeral-repetitivo-STJ-1074",
+   "tema": "STJ 1074",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-1074 (mesmo Tema 1074/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-108-2": {
+   "canonico": "repgeral-repetitivo-STJ-108",
+   "tema": "STJ 108",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-108 (mesmo Tema 108/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-1092-2": {
+   "canonico": "repgeral-repetitivo-STJ-1092",
+   "tema": "STJ 1092",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-1092 (mesmo Tema 1092/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-1093-2": {
+   "canonico": "repgeral-repetitivo-STJ-1093",
+   "tema": "STJ 1093",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-1093 (mesmo Tema 1093/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-1112-2": {
+   "canonico": "repgeral-repetitivo-STJ-1112",
+   "tema": "STJ 1112",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-1112 (mesmo Tema 1112/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-1134-2": {
+   "canonico": "repgeral-repetitivo-STJ-1134",
+   "tema": "STJ 1134",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-1134 (mesmo Tema 1134/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-1149-2": {
+   "canonico": "repgeral-repetitivo-STJ-1149",
+   "tema": "STJ 1149",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-1149 (mesmo Tema 1149/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-117-2": {
+   "canonico": "repgeral-repetitivo-STJ-117",
+   "tema": "STJ 117",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-117 (mesmo Tema 117/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-1190-2": {
+   "canonico": "repgeral-repetitivo-STJ-1190",
+   "tema": "STJ 1190",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-1190 (mesmo Tema 1190/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-1194-2": {
+   "canonico": "repgeral-repetitivo-STJ-1194",
+   "tema": "STJ 1194",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-1194 (mesmo Tema 1194/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-1215-2": {
+   "canonico": "repgeral-repetitivo-STJ-1215",
+   "tema": "STJ 1215",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-1215 (mesmo Tema 1215/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-1218-2": {
+   "canonico": "repgeral-repetitivo-STJ-1218",
+   "tema": "STJ 1218",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-1218 (mesmo Tema 1218/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-1218-3": {
+   "canonico": "repgeral-repetitivo-STJ-1218",
+   "tema": "STJ 1218",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-1218 (mesmo Tema 1218/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-1245-2": {
+   "canonico": "repgeral-repetitivo-STJ-1245",
+   "tema": "STJ 1245",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-1245 (mesmo Tema 1245/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-1265-2": {
+   "canonico": "repgeral-repetitivo-STJ-1265",
+   "tema": "STJ 1265",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-1265 (mesmo Tema 1265/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-1347-2": {
+   "canonico": "repgeral-repetitivo-STJ-1347",
+   "tema": "STJ 1347",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-1347 (mesmo Tema 1347/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-1408-2": {
+   "canonico": "repgeral-repetitivo-STJ-1408",
+   "tema": "STJ 1408",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-1408 (mesmo Tema 1408/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-1410-2": {
+   "canonico": "repgeral-repetitivo-STJ-1410",
+   "tema": "STJ 1410",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-1410 (mesmo Tema 1410/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-16-2": {
+   "canonico": "repgeral-repetitivo-STJ-16",
+   "tema": "STJ 16",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-16 (mesmo Tema 16/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-17-2": {
+   "canonico": "repgeral-repetitivo-STJ-17",
+   "tema": "STJ 17",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-17 (mesmo Tema 17/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-230-2": {
+   "canonico": "repgeral-repetitivo-STJ-230",
+   "tema": "STJ 230",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-230 (mesmo Tema 230/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-260-2": {
+   "canonico": "repgeral-repetitivo-STJ-260",
+   "tema": "STJ 260",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-260 (mesmo Tema 260/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-293-2": {
+   "canonico": "repgeral-repetitivo-STJ-293",
+   "tema": "STJ 293",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-293 (mesmo Tema 293/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-368-2": {
+   "canonico": "repgeral-repetitivo-STJ-368",
+   "tema": "STJ 368",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-368 (mesmo Tema 368/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-371-2": {
+   "canonico": "repgeral-repetitivo-STJ-371",
+   "tema": "STJ 371",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-371 (mesmo Tema 371/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-380-2": {
+   "canonico": "repgeral-repetitivo-STJ-380",
+   "tema": "STJ 380",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-380 (mesmo Tema 380/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-588-2": {
+   "canonico": "repgeral-repetitivo-STJ-588",
+   "tema": "STJ 588",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-588 (mesmo Tema 588/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-589-2": {
+   "canonico": "repgeral-repetitivo-STJ-589",
+   "tema": "STJ 589",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-589 (mesmo Tema 589/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-614-2": {
+   "canonico": "repgeral-repetitivo-STJ-614",
+   "tema": "STJ 614",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-614 (mesmo Tema 614/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-660-2": {
+   "canonico": "repgeral-repetitivo-STJ-660",
+   "tema": "STJ 660",
+   "origem": "L3",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-660 (L3, caso e)"
+  },
+  "repgeral-repetitivo-STJ-660-4": {
+   "canonico": "repgeral-repetitivo-STJ-660",
+   "tema": "STJ 660",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-660 (mesmo Tema 660/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-671-2": {
+   "canonico": "repgeral-repetitivo-STJ-871",
+   "tema": "STJ 871",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-871 (mesmo Tema 871/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-677-2": {
+   "canonico": "repgeral-repetitivo-STJ-677",
+   "tema": "STJ 677",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-677 (mesmo Tema 677/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-689-2": {
+   "canonico": "repgeral-repetitivo-STJ-689",
+   "tema": "STJ 689",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-689 (mesmo Tema 689/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-692-2": {
+   "canonico": "repgeral-repetitivo-STJ-692",
+   "tema": "STJ 692",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-692 (mesmo Tema 692/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-717-2": {
+   "canonico": "repgeral-repetitivo-STJ-717",
+   "tema": "STJ 717",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-717 (mesmo Tema 717/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-766-2": {
+   "canonico": "repgeral-repetitivo-STJ-766",
+   "tema": "STJ 766",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-766 (mesmo Tema 766/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-86-2": {
+   "canonico": "repgeral-repetitivo-STJ-86",
+   "tema": "STJ 86",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-86 (mesmo Tema 86/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-905-2": {
+   "canonico": "repgeral-repetitivo-STJ-905",
+   "tema": "STJ 905",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-905 (mesmo Tema 905/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-919-2": {
+   "canonico": "repgeral-repetitivo-STJ-919",
+   "tema": "STJ 919",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-919 (mesmo Tema 919/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-938-2": {
+   "canonico": "repgeral-repetitivo-STJ-938",
+   "tema": "STJ 938",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-938 (mesmo Tema 938/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-958-2": {
+   "canonico": "repgeral-repetitivo-STJ-958",
+   "tema": "STJ 958",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-958 (mesmo Tema 958/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-958-3": {
+   "canonico": "repgeral-repetitivo-STJ-958",
+   "tema": "STJ 958",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-958 (mesmo Tema 958/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-970-2": {
+   "canonico": "repgeral-repetitivo-STJ-970",
+   "tema": "STJ 970",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-970 (mesmo Tema 970/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-972-2": {
+   "canonico": "repgeral-repetitivo-STJ-972",
+   "tema": "STJ 972",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-972 (mesmo Tema 972/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-972-3": {
+   "canonico": "repgeral-repetitivo-STJ-972",
+   "tema": "STJ 972",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-972 (mesmo Tema 972/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-980-2": {
+   "canonico": "repgeral-repetitivo-STJ-980",
+   "tema": "STJ 980",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-980 (mesmo Tema 980/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-996-2": {
+   "canonico": "repgeral-repetitivo-STJ-996",
+   "tema": "STJ 996",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-996 (mesmo Tema 996/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-996-3": {
+   "canonico": "repgeral-repetitivo-STJ-996",
+   "tema": "STJ 996",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-996 (mesmo Tema 996/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-996-4": {
+   "canonico": "repgeral-repetitivo-STJ-996",
+   "tema": "STJ 996",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-996 (mesmo Tema 996/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-x1153": {
+   "canonico": "repgeral-repetitivo-STJ-x1139",
+   "tema": "STJ 515",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-x1139 (mesmo Tema 515/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-x1253": {
+   "canonico": "repgeral-repetitivo-STJ-x1251",
+   "tema": "STJ 1249",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-x1251 (mesmo Tema 1249/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-x1255": {
+   "canonico": "repgeral-repetitivo-STJ-x1251",
+   "tema": "STJ 1249",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-x1251 (mesmo Tema 1249/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-x1825": {
+   "canonico": "repgeral-repetitivo-STJ-478",
+   "tema": "STJ 478",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-478 (mesmo Tema 478/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-x360": {
+   "canonico": "repgeral-repercussao_geral-STF-942",
+   "tema": "STF 942",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repercussao_geral-STF-942 (mesmo Tema 942/STF) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-x663": {
+   "canonico": "repgeral-repetitivo-STJ-970",
+   "tema": "STJ 970",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-970 (mesmo Tema 970/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-x666": {
+   "canonico": "repgeral-repetitivo-STJ-938",
+   "tema": "STJ 938",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-938 (mesmo Tema 938/STJ) — retirar e redirecionar o id"
+  },
+  "repgeral-repetitivo-STJ-x838": {
+   "canonico": "repgeral-repetitivo-STJ-x837",
+   "tema": "STJ 743",
+   "origem": "prévia (L0)",
+   "decisao": "FUNDIR em repgeral-repetitivo-STJ-x837 (mesmo Tema 743/STJ) — retirar e redirecionar o id"
+  }
+ },
+ "retirar": {
+  "repgeral-repercussao_geral-STF-569": "L3 pendente: trata só da legitimidade do MPT para recorrer ao STF contra decisão do TST, preliminar do RE 789874; o Tema 569 é outro (Sistema S sem concurso), que fica com o 569-2 — decisão da dona (L4)",
+  "repgeral-repercussao_geral-STF-x100": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repercussao_geral-STF-x1436": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repercussao_geral-STF-x150": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repercussao_geral-STF-x151": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repercussao_geral-STF-x1647": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repercussao_geral-STF-x1648": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repercussao_geral-STF-x1859": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repercussao_geral-STF-x1960": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repercussao_geral-STF-x258": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repercussao_geral-STF-x263": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repercussao_geral-STF-x287": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repercussao_geral-STF-x288": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repercussao_geral-STF-x412": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repercussao_geral-STF-x477": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repercussao_geral-STF-x604": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repercussao_geral-STF-x814": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repercussao_geral-STF-x970": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repercussao_geral-STJ-x116": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repercussao_geral-STJ-x1381": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repercussao_geral-STJ-x1625": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repercussao_geral-STJ-x1669": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repercussao_geral-STJ-x2014": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repercussao_geral-STJ-x229": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repercussao_geral-STJ-x350": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repercussao_geral-STJ-x616": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repercussao_geral-STJ-x618": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repercussao_geral-STJ-x631": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repetitivo-STF-x1197": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repetitivo-STF-x1207": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repetitivo-STJ-x1060": "L3 pendente: IAC 3 do STJ, não é repetitivo nem RG e não tem rota oficial — decisão da dona (L4)",
+  "repgeral-repetitivo-STJ-x1199": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repetitivo-STJ-x1248": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repetitivo-STJ-x1265": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repetitivo-STJ-x1286": "L3 pendente: julgado da 5ª Turma (Pet no REsp 1.468.085-PA), não é repetitivo; nenhum tema oficial trata da questão — decisão da dona (L4)",
+  "repgeral-repetitivo-STJ-x1320": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repetitivo-STJ-x1410": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repetitivo-STJ-x1462": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repetitivo-STJ-x1752": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repetitivo-STJ-x235": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repetitivo-STJ-x267": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repetitivo-STJ-x55": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repetitivo-STJ-x641": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repetitivo-STJ-x657": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repetitivo-STJ-x676": "sem tema oficial — decisão da dona (25/09/2026)",
+  "repgeral-repetitivo-STJ-x938": "sem tema oficial — decisão da dona (25/09/2026)"
+ },
+ "notas_retiradas": {
+  "repgeral-repetitivo-STJ-1300": "a nota dizia que o texto do verbete era o do Tema 130 e não o do 1300; com a troca, o verbete mostra a tese oficial do Tema 130 e a nota perdeu o objeto",
+  "repgeral-repetitivo-STJ-x678": "a nota dizia que o julgado citado (EAREsp 793.323-RJ) não era repetitivo; com a troca, o verbete é a tese oficial do Tema 1032 e a nota perdeu o objeto",
+  "repgeral-repetitivo-STJ-x1242": "a nota dizia que o julgado (REsp 1.468.099-MG, 6ª Turma) não era repetitivo; com a troca, o verbete é a tese oficial do Tema 901 e a nota perdeu o objeto"
+ },
+ "retirados_com_tese_oficial_de_tema_livre": [
+  {
+   "id": "repgeral-repercussao_geral-STF-x1436",
+   "tema": "STF 962",
+   "cobertura_da_tese_oficial_no_texto": 1.0
+  },
+  {
+   "id": "repgeral-repercussao_geral-STF-x151",
+   "tema": "STF 1253",
+   "cobertura_da_tese_oficial_no_texto": 0.94
+  },
+  {
+   "id": "repgeral-repercussao_geral-STF-x1647",
+   "tema": "STF 304",
+   "cobertura_da_tese_oficial_no_texto": 1.0
+  },
+  {
+   "id": "repgeral-repercussao_geral-STF-x1648",
+   "tema": "STF 304",
+   "cobertura_da_tese_oficial_no_texto": 0.92
+  },
+  {
+   "id": "repgeral-repercussao_geral-STF-x1960",
+   "tema": "STF 985",
+   "cobertura_da_tese_oficial_no_texto": 1.0
+  },
+  {
+   "id": "repgeral-repercussao_geral-STF-x477",
+   "tema": "STF 666",
+   "cobertura_da_tese_oficial_no_texto": 1.0
+  },
+  {
+   "id": "repgeral-repercussao_geral-STJ-x1381",
+   "tema": "STF 437",
+   "cobertura_da_tese_oficial_no_texto": 1.0
+  },
+  {
+   "id": "repgeral-repercussao_geral-STJ-x2014",
+   "tema": "STF 1166",
+   "cobertura_da_tese_oficial_no_texto": 1.0
+  },
+  {
+   "id": "repgeral-repetitivo-STF-x1207",
+   "tema": "STJ 924",
+   "cobertura_da_tese_oficial_no_texto": 1.0
+  },
+  {
+   "id": "repgeral-repetitivo-STJ-x1265",
+   "tema": "STF 712",
+   "cobertura_da_tese_oficial_no_texto": 1.0
+  }
+ ]
+}

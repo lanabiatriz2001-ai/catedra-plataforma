@@ -1096,12 +1096,17 @@ async function comIA(ctx, base, ok, R) {
   const familia = tt[0] || '', familia2 = tt[1] || '';
   const infoStf = primeiro(INFORMATIVO_STF)[0] || '';
   const par = duplicataReal();
+  // Desde o lote L4 das teses oficiais (26/09/2026) o acervo tem UM verbete por tema: a duplicata real
+  // (…-N e …-N-2) foi fundida e não existe mais. Sem ela, os estados (12) de falha e de recusa da IA
+  // rodam no verbete canônico de uma dessas fusões, que tem vizinhos de verdade.
+  const CANONICOS_L4 = ['repgeral-repercussao_geral-STF-1234', 'repgeral-repetitivo-STJ-1093', 'repgeral-repetitivo-STJ-905'];
+  const alvoEstados = par ? par.original : (primeiro(CANONICOS_L4)[0] || '');
   const semVizinho = primeiro(SEM_VIZINHO);
   const repubs = repub.filter(p => existe.has(p.a) && existe.has(p.b));
 
   // Um roteiro v1 (sem quadro) para cada um: é o que faz o botão "Montar o quadro" aparecer.
   // A frase carrega o id — é por ela que se sabe que o roteiro na tela é o do verbete certo.
-  const alvos = [familia, familia2, infoStf, par && par.original, ...semVizinho, ...repubs.map(p => p.a)].filter(Boolean);
+  const alvos = [familia, familia2, infoStf, alvoEstados, ...semVizinho, ...repubs.map(p => p.a)].filter(Boolean);
   const sem = {};
   for (const id of alvos) sem[id] = { ts: 1, frase: 'SEMENTE ' + id, chave: ['um ponto', 'outro ponto'], jurisprudencia: ['STF · Tema 1'] };
   await page.goto(base + '/__semente');
@@ -1238,13 +1243,14 @@ async function comIA(ctx, base, ok, R) {
 
   /* ---------- (10) a duplicata REAL fica fora + (12) estados (c) e (b) ---------- */
   const vistos = {};
-  ok(!!par, R + '(10) o acervo tem o par de duplicata real para o caso (' + (par ? par.original + ' = ' + par.copia : 'nenhum') + ')');
-  if (par && await abrir(par.original)) {
+  if (par) ok(true, R + '(10) o acervo tem o par de duplicata real para o caso (' + par.original + ' = ' + par.copia + ')');
+  else ok(!!alvoEstados, R + '(10) o acervo não tem mais duplicata real (lote L4: um verbete por tema) e os estados (12) rodam no canônico ' + (alvoEstados || '— nenhum de ' + CANONICOS_L4.join(', ')));
+  if (alvoEstados && await abrir(alvoEstados)) {
     const p = await pedirQuadro();
     const { cands } = lerPrompt(p ? p.prompt : '');
     ok(!!p && cands.length >= 1,
-      R + '(10) ' + par.original + ' tem candidatos — a busca rodou (' + cands.length + ')');
-    ok(!!p && cands.every(c => c.id !== par.copia),
+      R + '(10) ' + alvoEstados + ' tem candidatos — a busca rodou (' + cands.length + ')');
+    if (par) ok(!!p && cands.every(c => c.id !== par.copia),
       R + '(10) a duplicata REAL (' + par.copia + ', o mesmo tema em outro registro) NÃO é candidata do original');
     if (p) {
       // (c) a IA falhou
@@ -1255,12 +1261,12 @@ async function comIA(ctx, base, ok, R) {
       const p2 = await pedirQuadro();
       ok(!!p2, R + '(12) "Tentar de novo" pede o quadro outra vez');
       if (p2) {
-        ok(lerPrompt(p2.prompt).cands.every(c => c.id !== par.copia),
+        if (par) ok(lerPrompt(p2.prompt).cands.every(c => c.id !== par.copia),
           R + '(10) no segundo pedido a duplicata real continua fora');
         await responder(p2.i, JSON.stringify({ colunas: [] }));
         ok(await esperarEstado(['recusado']), R + '(12) a recusa da IA chega à tela como estado próprio ("recusado")');
         vistos.recusado = await desfecho();
-        ok(vistos.recusado.mais.length >= 1 && vistos.recusado.mais.indexOf(par.copia) < 0,
+        ok(vistos.recusado.mais.length >= 1 && (!par || vistos.recusado.mais.indexOf(par.copia) < 0),
           R + '(10) e "Do mesmo assunto" mostra os vizinhos reais sem a duplicata (' + vistos.recusado.mais.length + ' itens)');
       }
     }

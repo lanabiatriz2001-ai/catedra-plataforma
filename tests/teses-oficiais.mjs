@@ -21,7 +21,17 @@
          notas.json. Pasta que não existe na máquina (a CI não tem o nativo) fica de fora COM
          aviso — nunca fingida;
    · (d) navegador: o verbete pinta o tema inteiro e o enunciado oficial; a lista, o tema cortado;
-         e a quebra de linha da tese oficial (parágrafos, itens) PINTA no verbete (medida). */
+         e a quebra de linha da tese oficial (parágrafos, itens) PINTA no verbete (medida).
+   Lote L4 (fusões e retiradas) e L5 (fechamento), decisões da dona de 25/09/2026:
+   · (e) um verbete por tema: os 105 ids fundidos e os 46 retirados saíram do índice, do texto, das
+         fatias e do corpus nativo; nenhum registro repgeral-* sobra com texto do DoD — todos têm link
+         oficial, título com o número do tema e um tema só; as 3 Notas do Cátedra que perderam o objeto
+         saíram; o relator do STJ é rotulado "Rel. atual"; a tabela de migração é a mesma na web, no
+         Mac/iPad e no app independente (gerada da referência);
+   · (f) navegador: favorito, status e grifo de um id FUNDIDO aparecem no canônico (união, uma vez só —
+         o que a pessoa desfaz depois não volta); estado de id RETIRADO fica no localStorage, órfão,
+         sem erro de página e fora das contagens. O lado Swift da migração é provado pelo harness
+         tests/estado-juris (scripts/testar-estado-juris.sh), que tests/sem-mapas-mentais.mjs roda. */
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -29,6 +39,7 @@ import { fileURLToPath } from 'url';
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DIR_REF = path.join(RAIZ, 'docs', 'teses-oficiais');
 const LOTES = ['L1', 'L2', 'L3'];
+const L4 = () => JSON.parse(fs.readFileSync(path.join(DIR_REF, 'l4-referencia.json'), 'utf8'));
 const DOD = /dizer ?o ?direito|buscador|dizerodireito/i;
 const OFICIAL = /^https:\/\/(portal\.stf\.jus\.br|processo\.stj\.jus\.br)\//;
 const CORTE = 140;
@@ -38,10 +49,11 @@ const numDoTitulo = (t) => { const m = /^Tema\s+(\d+)\b/.exec(String(t || '')); 
 
 const lerLote = (l) => JSON.parse(fs.readFileSync(path.join(DIR_REF, l.toLowerCase() + '-referencia.json'), 'utf8'));
 
-/** Registros dos três lotes num objeto só, cada um com `lote`. */
+/** Registros dos lotes num objeto só, cada um com `lote` (L1–L3 e o "aplicar" do L4). */
 export function lerReferencia() {
   const tudo = {};
   for (const l of LOTES) for (const [i, r] of Object.entries(lerLote(l).registros)) tudo[i] = { ...r, lote: l };
+  for (const [i, r] of Object.entries(L4().aplicar)) tudo[i] = { ...r, lote: 'L4' };
   return tudo;
 }
 
@@ -51,10 +63,12 @@ export function testarTesesOficiaisEstatico(ok, opcoes = {}) {
   const ref = lerReferencia();
   const ids = Object.keys(ref);
   const nLote = Object.fromEntries(LOTES.map(l => [l, Object.keys(lerLote(l).registros).length]));
-  const soma = LOTES.reduce((a, l) => a + nLote[l], 0);
-  ok(nLote.L1 >= 1300 && nLote.L2 >= 200 && nLote.L3 >= 100 && soma === ids.length && ids.every(i => i.startsWith('repgeral-')),
+  const l4 = L4();
+  nLote.L4 = Object.keys(l4.aplicar).length;
+  const soma = LOTES.reduce((a, l) => a + nLote[l], 0) + nLote.L4;
+  ok(nLote.L1 >= 1300 && nLote.L2 >= 200 && nLote.L3 >= 100 && nLote.L4 === 1 && soma === ids.length && ids.every(i => i.startsWith('repgeral-')),
     R + 'as referências versionadas têm ' + ids.length + ' registros (L1 ' + nLote.L1 + ', L2 ' + nLote.L2 + ', L3 ' + nLote.L3
-      + '), cada id num lote só, todos da compilação repgeral-*');
+      + ', L4 ' + nLote.L4 + '), cada id num lote só, todos da compilação repgeral-*');
   const l2 = ids.filter(i => ref[i].lote === 'L2'), l3 = ids.filter(i => ref[i].lote === 'L3');
   ok(l2.every(i => Array.isArray(ref[i].conferencia_auditoria) && ref[i].conferencia_auditoria.length >= 2
       && /^auditoria mexeu/.test(ref[i].conferencia_auditoria[0])),
@@ -69,9 +83,14 @@ export function testarTesesOficiaisEstatico(ok, opcoes = {}) {
   const repet = Object.entries(porTema).filter(([, v]) => v.length > 1);
   ok(repet.length === 0, R + "(a'') nenhum tema oficial aparece em dois verbetes" + (repet.length ? ' (' + repet.slice(0, 2).map(([k, v]) => k + ': ' + v.join(' + ')).join('; ') + ')' : ''));
   const pend = JSON.parse(fs.readFileSync(path.join(DIR_REF, 'pendentes-l2-l4.json'), 'utf8'));
-  const fora = ['L3_pendentes', 'L4_fundir', 'L4_retirar'].flatMap(k => (pend[k] || []).map(x => x.id));
+  const aindaPend = ['L3_pendentes', 'L4_fundir', 'L4_retirar'].flatMap(k => (pend[k] || []).map(x => x.id));
+  ok(aindaPend.length === 0, R + "(a'') nada ficou pendente depois do L4 (pendentes-l2-l4.json vazio)" + (aindaPend.length ? ' (' + aindaPend.slice(0, 3).join(', ') + ')' : ''));
+  const fora = [...Object.keys(l4.fundir), ...Object.keys(l4.retirar)];
   const trocado = fora.filter(i => i in ref);
-  ok(fora.length > 100 && trocado.length === 0, R + "(a'') nenhum dos " + fora.length + ' registros pendentes ou do L4 está nas referências' + (trocado.length ? ' (' + trocado.slice(0, 3).join(', ') + ')' : ''));
+  ok(Object.keys(l4.fundir).length === 105 && Object.keys(l4.retirar).length === 46 && trocado.length === 0,
+    R + "(a'') os " + fora.length + ' ids que saem no L4 (105 fundidos + 46 retirados) não têm registro oficial' + (trocado.length ? ' (' + trocado.slice(0, 3).join(', ') + ')' : ''));
+  ok(Object.values(l4.fundir).every(v => v.canonico in ref && !(v.canonico in l4.fundir) && !(v.canonico in l4.retirar)),
+    R + "(a'') todo id fundido aponta um canônico que tem a tese oficial do tema e que fica no acervo");
   ok(ids.every(i => OFICIAL.test(ref[i].url) && ref[i].enunciado && !DOD.test(JSON.stringify(ref[i]))),
     R + 'a própria referência só tem texto e link oficiais');
 
@@ -93,7 +112,7 @@ export function testarTesesOficiaisEstatico(ok, opcoes = {}) {
     if (r[1] !== o.tribunal || r[2] !== o.fonte || r[7] !== o.data || r[8] !== o.situacao
       || (t.og || null) !== o.orgaoJulgador || (t.ob || null) !== o.observacao || (t.fp || null) !== o.fp) ruins.campos.push(i);
     // Nota do Cátedra: a da referência (L3, caso d) é a que pinta; a que existia fica (reler_nota)
-    if ('co' in o ? t.co !== o.co : (o.reler_nota ? !/^Nota do Cátedra/.test(t.co || '') : false)) ruins.nota.push(i);
+    if ('co' in o ? (t.co || null) !== o.co : (o.reler_nota ? !/^Nota do Cátedra/.test(t.co || '') : false)) ruins.nota.push(i);
     const inteiro = t.tm || r[6];
     const cortado = (o.tema || '').length > CORTE;
     if (inteiro !== o.tema || (cortado
@@ -128,8 +147,52 @@ export function testarTesesOficiaisEstatico(ok, opcoes = {}) {
   }
   const presid = ids.filter(i => /Min\. (Presidente|Relator)\b/.test((TXT[i] || {}).fp || ''));
   ok(presid.length === 0, R + "(a') nenhuma citação do STF sai como \"Rel. Min. Presidente\"" + mostra(presid));
+  // relator do STJ: o portal só dá o de HOJE — rotulado como tal (decisão da dona, L4)
+  const stj = ids.filter(i => ref[i].tribunal === 'STJ');
+  const relMau = stj.filter(i => /Rel\. (Min\.|Presidente|Vice|Des\.|Juiz)/.test((TXT[i] || {}).fp || '') || /Rel\. (Min\.|Presidente|Vice|Des\.|Juiz)/.test(ref[i].precedentes || ''));
+  const relBom = stj.filter(i => / · Rel\. atual: /.test((TXT[i] || {}).fp || ''));
+  ok(relMau.length === 0 && relBom.length > 700, R + '(e) STJ: a citação diz "Rel. atual: …" (' + relBom.length + ' de ' + stj.length + '), nunca "Rel. Min." como se tivesse julgado' + mostra(relMau));
   const nCortados = ids.filter(i => TXT[i] && TXT[i].tm).length;
   ok(nCortados > 0, R + '(a) há títulos longos cortados na lista (' + nCortados + '), o caso existe de fato');
+
+  // (e) L4: um verbete por tema, fundidos e retirados fora, notas sem objeto fora
+  const repg = linhas.filter(r => r[0].startsWith('repgeral-'));
+  const semRef = repg.filter(r => !(r[0] in ref)).map(r => r[0]);
+  ok(repg.length === ids.length && semRef.length === 0,
+    R + '(e) o acervo web tem exatamente os ' + ids.length + ' verbetes repgeral-* das referências (1.943 − 105 − 46)' + mostra(semRef));
+  const voltou = fora.filter(i => IDX[i] || TXT[i]);
+  ok(voltou.length === 0, R + '(e) nenhum dos 151 ids fundidos ou retirados está no índice nem no texto web' + mostra(voltou));
+  const porTemaWeb = {};
+  for (const r of repg) (porTemaWeb[r[1] + ' ' + r[3]] ||= []).push(r[0]);
+  const duas = Object.entries(porTemaWeb).filter(([, v]) => v.length > 1);
+  ok(duas.length === 0, R + '(e) um verbete por tema no acervo web (' + Object.keys(porTemaWeb).length + ' temas)' + (duas.length ? ' (' + duas.slice(0, 2).map(([k, v]) => k + ': ' + v.join(' + ')).join('; ') + ')' : ''));
+  const repDod = repg.filter(r => DOD.test(JSON.stringify(r)) || DOD.test(JSON.stringify(TXT[r[0]] || {}))).map(r => r[0]);
+  const repLink = repg.filter(r => !OFICIAL.test((TXT[r[0]] || {}).ur || '')).map(r => r[0]);
+  const repTit = repg.filter(r => numDoTitulo(r[4]) !== r[3] || r[3] == null).map(r => r[0]);
+  ok(repDod.length === 0, R + '(e) nenhum registro repgeral-* do acervo web tem texto ou link do DoD' + mostra(repDod));
+  ok(repLink.length === 0 && repTit.length === 0, R + '(e) todos os repgeral-* têm link oficial e título com o número do tema' + mostra(repLink.concat(repTit)));
+  const t569 = 'repgeral-repercussao_geral-STF-569-2';
+  ok(IDX[t569] && IDX[t569][3] === 569 && /Sistema "S"/.test((TXT[t569] || {}).en || '') && !IDX['repgeral-repercussao_geral-STF-569'],
+    R + '(e) STF-569-2 é o Tema 569 (Sistema S sem concurso) e o STF-569 (legitimidade do MPT) saiu');
+  const notasFora = Object.keys(l4.notas_retiradas);
+  ok(notasFora.length === 3 && notasFora.every(i => TXT[i] && !TXT[i].co && ref[i].co === null && ref[i].nota_retirada),
+    R + '(e) as 3 Notas do Cátedra que perderam o objeto saíram (' + notasFora.map(i => i.replace(/^repgeral-repetitivo-/, '')).join(', ') + ')');
+  // tabela de migração: a mesma nas três casas, igual à referência
+  const esperado = Object.entries(l4.fundir).map(([a, v]) => a + '→' + v.canonico).sort().join('|');
+  const retEsp = Object.keys(l4.retirar).sort().join('|');
+  const blocoDe = (src, nome) => { const m = src.match(new RegExp('<gerado:teses-oficiais-l4:' + nome + '>[^\\n]*\\n([\\s\\S]*?)\\n[^\\n]*</gerado:teses-oficiais-l4:' + nome + '>')); return m ? m[1] : null; };
+  const paresDe = (b) => b == null ? null : [...b.matchAll(/['"]([^'"]+)['"]\s*:\s*['"]([^'"]+)['"]/g)].map(m => m[1] + '→' + m[2]).sort().join('|');
+  const idsDe = (b) => b == null ? null : [...b.matchAll(/['"]([^'"]+)['"]/g)].map(m => m[1]).sort().join('|');
+  const casas = [['juris-web.html', path.join(RAIZ, 'juris-web.html')],
+    ['mac JurisEstadoPersistido.swift', path.join(RAIZ, 'mac/vendor/juris/Store/JurisEstadoPersistido.swift')],
+    ['ios JurisEstadoPersistido.swift', path.join(RAIZ, 'ios/vendor/juris/Store/JurisEstadoPersistido.swift')],
+    ['VadeMecumJuris LibraryStore.swift', path.join(process.env.HOME || '', 'App Jurisprudências', 'VadeMecumJuris', 'Sources', 'VadeMecum', 'Store', 'LibraryStore.swift')]];
+  for (const [rot, f] of casas) {
+    if (!fs.existsSync(f)) { console.log('  · ' + R + rot + ' não existe nesta máquina — fica de fora'); continue; }
+    const src = fs.readFileSync(f, 'utf8');
+    ok(paresDe(blocoDe(src, 'migracoes')) === esperado && idsDe(blocoDe(src, 'retirados')) === retEsp,
+      R + '(e) ' + rot + ': a tabela de migração tem as 105 fusões e os 46 retirados da referência');
+  }
 
   // (b) fatias: o texto que o app baixa sob demanda é o mesmo
   const dirF = path.join(RAIZ, 'dados', 'juris-text');
@@ -139,6 +202,8 @@ export function testarTesesOficiaisEstatico(ok, opcoes = {}) {
   const difF = ids.filter(i => JSON.stringify(fat[i]) !== JSON.stringify(TXT[i]));
   ok(man.chaves === Object.keys(TXT).length && difF.length === 0,
     R + '(b) as fatias de dados/juris-text servem o texto oficial igual ao juris-text.js' + mostra(difF));
+  const foraFat = fora.filter(i => i in fat);
+  ok(foraFat.length === 0, R + '(b) nenhum id fundido ou retirado sobrou nas fatias' + mostra(foraFat));
 
   // (c) nativo
   const corpora = [['VadeMecumJuris (origem)', path.join(process.env.HOME || '', 'App Jurisprudências', 'VadeMecumJuris', 'Sources', 'VadeMecum', 'Resources')]];
@@ -159,10 +224,14 @@ export function testarTesesOficiaisEstatico(ok, opcoes = {}) {
         || (n.comentario || null) !== (t.co || null) || DOD.test(JSON.stringify(n));
     });
     ok(dif.length === 0, R + '(c) ' + rotulo + ': web == nativo nos ' + ids.length + ' registros dos lotes' + mostra(dif));
+    const natRep = Object.keys(nat).filter(i => i.startsWith('repgeral-'));
+    const natFora = fora.filter(i => i in nat), natSemRef = natRep.filter(i => !(i in ref));
+    ok(natRep.length === ids.length && natFora.length === 0 && natSemRef.length === 0,
+      R + '(e) ' + rotulo + ': ' + natRep.length + ' verbetes repgeral-*, nenhum fundido ou retirado, nenhum fora das referências' + mostra(natFora.concat(natSemRef)));
     const fn = path.join(dir, 'notas.json');
     if (fs.existsSync(fn)) {
       const notas = JSON.parse(fs.readFileSync(fn, 'utf8'));
-      const sobrou = ids.filter(i => i in notas);
+      const sobrou = ids.concat(fora).filter(i => i in notas);
       ok(sobrou.length === 0 && Object.keys(notas).length > 1000,
         R + '(c) ' + rotulo + ': as notas de estudo dos registros dos lotes saíram do notas.json (' + Object.keys(notas).length + ' notas restantes)' + mostra(sobrou));
     }
@@ -229,4 +298,71 @@ export async function testarTesesOficiaisNavegador(page, base, ok, opcoes = {}) 
   const boas = q.quebras.filter(x => x.novaLinha && x.rente).length;
   ok(/^pre-(wrap|line)$/.test(q.ws) && q.quebras.length === oq.enunciado.split('\n').length - 1 && boas === q.quebras.length,
     R + '(d) ' + idq + ': as ' + q.quebras.length + ' quebras de linha da tese oficial pintam como linha nova, rente à margem (' + boas + ' de ' + q.quebras.length + '; white-space ' + q.ws + ')');
+}
+
+/** Caso de navegador (f): migração de id do lote L4. Semeia por base + '/__semente' (404 na mesma
+    origem, sem o app aberto — nada de corrida com o autosave) num contexto próprio e só então abre
+    o JURIS. Só na origem http. */
+export async function testarMigracaoL4Navegador(page, base, ok, opcoes = {}) {
+  const R = 'TESES OFICIAIS L4 [' + (opcoes.motor || '?') + '] [' + (opcoes.origem || '?') + '] ';
+  const l4 = L4();
+  const pares = Object.entries(l4.fundir).sort((a, b) => a[0] < b[0] ? -1 : 1);
+  const [fundido, { canonico }] = pares.find(([i]) => i === 'repgeral-repercussao_geral-STF-1234-2') || pares[0];
+  const [fundido2, { canonico: canonico2 }] = pares.find(([i, v]) => i !== fundido && v.canonico !== canonico);
+  const retirado = Object.keys(l4.retirar).sort()[0];
+  const vivo = 'STJ-SUM-7';
+  const ctx = await page.context().browser().newContext();
+  const p = await ctx.newPage();
+  const erros = [];
+  p.on('pageerror', (e) => erros.push(String(e && e.message || e)));
+  try {
+    await p.goto(base + '/__semente');
+    await p.evaluate(({ fundido, fundido2, canonico2, retirado, vivo }) => {
+      localStorage.clear();
+      localStorage.setItem('catedra:jurisEstudo', JSON.stringify({
+        fav: { [fundido]: 1, [retirado]: 1, [vivo]: 1 },
+        stat: { [fundido]: 'rev', [fundido2]: 'dom', [canonico2]: 'rev', [retirado]: 'dom' }
+      }));
+      localStorage.setItem('catedra:grifosJuris:' + fundido, JSON.stringify([{ gi: 0, s: 0, t: 'grifo do fundido' }]));
+      localStorage.setItem('catedra:grifosJuris:' + retirado, JSON.stringify([{ gi: 0, s: 0, t: 'grifo órfão' }]));
+    }, { fundido, fundido2, canonico2, retirado, vivo });
+    const abre = async () => {
+      await p.goto(base + '/juris-web.html');
+      await p.waitForFunction(() => typeof window.jurisAbrirPorId === 'function' && document.querySelectorAll('.vcard').length > 0, null, { timeout: 25000 });
+      await p.waitForTimeout(300);
+    };
+    await abre();
+    const lido = () => p.evaluate(({ canonico, fundido, retirado }) => ({
+      est: JSON.parse(localStorage.getItem('catedra:jurisEstudo') || '{}'),
+      grifosCanon: JSON.parse(localStorage.getItem('catedra:grifosJuris:' + canonico) || '[]'),
+      grifosFundido: localStorage.getItem('catedra:grifosJuris:' + fundido),
+      grifosRetirado: localStorage.getItem('catedra:grifosJuris:' + retirado),
+      fav: (document.querySelector('#s1Fav b') || {}).textContent || null,
+      dom: (document.querySelector('#s1Dom b') || {}).textContent || null
+    }), { canonico, fundido, retirado });
+    const a = await lido();
+    ok(a.est.fav[canonico] === 1 && a.est.fav[fundido] === 1 && a.grifosCanon.some(g => g.t === 'grifo do fundido') && !!a.grifosFundido,
+      R + '(f) favorito e grifo do id fundido ' + fundido + ' aparecem no canônico ' + canonico + ', e a chave antiga fica como cópia');
+    ok(a.est.stat[canonico] === 'rev' && a.est.stat[canonico2] === 'dom',
+      R + '(f) status: vale o mais avançado (' + fundido2 + ' dominado > ' + canonico2 + ' em revisão)');
+    ok(a.est.mig && a.est.mig[fundido] === 1 && a.est.mig[fundido2] === 1 && !a.est.mig[retirado],
+      R + '(f) a união fica marcada em est.mig só para os ids fundidos que tinham estado');
+    ok(a.est.fav[retirado] === 1 && a.est.stat[retirado] === 'dom' && !!a.grifosRetirado,
+      R + '(f) o estado do id retirado ' + retirado + ' fica no localStorage, órfão (nada é apagado)');
+    // favoritos no acervo: STJ-SUM-7 e o canônico; a cópia do fundido e o retirado não contam
+    // dominados: só o canonico2 (o dominado do retirado e o do fundido2 não contam)
+    ok(a.fav === '2' && a.dom === '1', R + '(f) as contagens ignoram cópias antigas e órfãos (favoritos ' + a.fav + ', dominados ' + a.dom + ')');
+    // a pessoa desfaz no canônico: não volta na abertura seguinte
+    await p.evaluate((c) => { const e = JSON.parse(localStorage.getItem('catedra:jurisEstudo')); delete e.fav[c]; localStorage.setItem('catedra:jurisEstudo', JSON.stringify(e)); }, canonico);
+    await abre();
+    const b = await lido();
+    ok(!b.est.fav[canonico] && b.est.fav[fundido] === 1 && b.grifosCanon.filter(g => g.t === 'grifo do fundido').length === 1,
+      R + '(f) a união roda uma vez só: o favorito desfeito no canônico não volta e o grifo não duplica');
+    // abrir o retirado por id não quebra nada (não existe; não abre)
+    const abriu = await p.evaluate((i) => { try { window.jurisAbrirPorId(i); return 'ok'; } catch (e) { return String(e); } }, retirado);
+    ok(abriu === 'ok', R + '(f) abrir por id um verbete retirado não dá erro (' + abriu + ')');
+    ok(erros.length === 0, R + '(f) sem erro de página com estado órfão e cópias antigas (' + erros.slice(0, 1).join('').slice(0, 120) + ')');
+  } finally {
+    await ctx.close();
+  }
 }
