@@ -591,6 +591,231 @@ function pdfjsNaSaida(dir) {
     'U10 o build segura o beforeinstallprompt (senão o item dos Ajustes não teria o que chamar)');
   ok(/window\.__catedraOffline\s*=/.test(idxHtml) && /ctAquecerAcervos/.test(idxHtml),
     'U10 o host tem por onde ler o estado do acervo offline e mandar baixar o resto');
+
+  /* 8. CACHE POR DEPLOY (decisão da dona, 25/09/2026). Antes VERSION era 'catedra-v5' fixo: a
+     casca e o acervo guardados sobreviviam de um deploy ao outro, o aquecimento pulava o que
+     já tinha, o estado offline contava cópia de qualquer versão como "pronta", o install
+     engolia falha de arquivo e ativava com cache parcial, e os blocos órfãos de dados/ se
+     acumulavam. Aqui o worker PUBLICADO roda contra caches e rede de mentira, pelos mesmos
+     eventos que o navegador dispara (install, activate, message) — nada de atalho interno. */
+  {
+    const { execFileSync } = await import('child_process');
+    const pubDir = path.join(RAIZ, 'public');
+    const versaoDe = (txt) => { const m = txt.match(/^\s*VERSION = '(catedra-[^']+)';/m) || txt.match(/var VERSION = '(catedra-[^']+)';/); return m && m[1]; };
+    const buildSite = () => execFileSync(process.execPath, [path.join(RAIZ, 'scripts', 'build.mjs')], { cwd: RAIZ, stdio: 'pipe' });
+
+    // 8a. a versão é injetada pelo build e sai do CONTEÚDO: mesmo conteúdo, mesma versão
+    const vA = versaoDe(swSrc);
+    ok(/^catedra-[0-9a-f]{12}$/.test(vA || '') && !swSrc.includes('/*__VERSAO__*/'),
+      'U10/VERSÃO o build injeta no sw.js a versão do cache tirada do conteúdo (' + vA + ')');
+    let calc = null;
+    try {
+      const { versaoDoCache, linhaVersao, MARCADOR_VERSAO } = await import('../scripts/sw-versao.mjs');
+      calc = versaoDoCache(pubDir, swSrc.replace(linhaVersao(vA.replace('catedra-', '')), MARCADOR_VERSAO));
+    } catch (_) {}
+    ok(!!calc && vA === 'catedra-' + calc,
+      'U10/VERSÃO a versão publicada é o hash do deploy (public/ + texto do sw.js), recalculado aqui igual');
+    buildSite();
+    const vDeNovo = versaoDe(fs.readFileSync(path.join(pubDir, 'sw.js'), 'utf8'));
+    // um deploy com UM byte diferente num acervo: a sonda é posta e tirada no finally
+    const sonda = path.join(RAIZ, 'modelos-edital.js'), sondaOrig = fs.readFileSync(sonda);
+    let swB = null;
+    try {
+      fs.writeFileSync(sonda, Buffer.concat([sondaOrig, Buffer.from('\n/* sonda U10 */\n')]));
+      buildSite();
+      swB = fs.readFileSync(path.join(pubDir, 'sw.js'), 'utf8');
+    } finally {
+      fs.writeFileSync(sonda, sondaOrig);
+      buildSite();
+    }
+    const vB = swB && versaoDe(swB);
+    const vVolta = versaoDe(fs.readFileSync(path.join(pubDir, 'sw.js'), 'utf8'));
+    ok(vDeNovo === vA && vVolta === vA,
+      'U10/VERSÃO dois builds do mesmo conteúdo dão a mesma versão (' + vDeNovo + ', ' + vVolta + ')');
+    ok(!!vB && vB !== vA && /^catedra-[0-9a-f]{12}$/.test(vB),
+      'U10/VERSÃO um byte a mais num acervo dá versão nova (' + vB + ')');
+
+    // 8b. o ambiente de mentira: caches com a semântica do Cache Storage e uma rede que
+    //     serve os manifestos de verdade e, no resto, um texto que diz de qual deploy veio
+    const ORIGEM = 'https://catedra.exemplo.app';
+    const chave = (k) => new URL(typeof k === 'string' ? k : k.url, ORIGEM + '/sw.js').pathname;
+    const criarAmbiente = () => {
+      const lojas = new Map(), falhasRede = new Set(), log = [];
+      const amb = { lojas, falhasRede, log, deploy: 'A', skipWaiting: 0 };
+      amb.fetch = async (req) => {
+        const p = chave(req); log.push(p);
+        if (falhasRede.has(p)) return new Response('falhou', { status: 500 });
+        if (/\/dados\/[^/]+\/manifesto\.json$/.test(p)) return new Response(fs.readFileSync(path.join(pubDir, p)), { status: 200 });
+        return new Response('deploy ' + amb.deploy + ' ' + p, { status: 200 });
+      };
+      const abrir = (nome) => {
+        if (!lojas.has(nome)) lojas.set(nome, new Map());
+        const m = lojas.get(nome);
+        return {
+          match: async (k) => { const r = m.get(chave(k)); return r ? r.clone() : undefined; },
+          put: async (k, r) => { m.set(chave(k), r); },
+          add: async (k) => { const r = await amb.fetch(k); if (!r.ok) throw new TypeError('add ' + chave(k)); m.set(chave(k), r); },
+          addAll: async (ks) => {   // tudo-ou-nada, como o Cache.addAll de verdade
+            const rs = await Promise.all(ks.map((k) => amb.fetch(k)));
+            if (rs.some((r) => !r.ok)) throw new TypeError('addAll');
+            ks.forEach((k, i) => m.set(chave(k), rs[i]));
+          },
+          keys: async () => [...m.keys()].map((p) => new Request(ORIGEM + p)),
+          delete: async (k) => m.delete(chave(k)),
+        };
+      };
+      amb.caches = {
+        open: async (n) => abrir(n),
+        keys: async () => [...lojas.keys()],
+        delete: async (n) => lojas.delete(n),
+        has: async (n) => lojas.has(n),
+        match: async (k) => { for (const m of lojas.values()) { const r = m.get(chave(k)); if (r) return r.clone(); } },
+      };
+      return amb;
+    };
+    const subirWorker = (amb, texto) => {
+      const eventos = {};
+      const self = {
+        location: new URL(ORIGEM + '/sw.js'),
+        addEventListener: (t, fn) => { (eventos[t] = eventos[t] || []).push(fn); },
+        // saveData: o aquecimento AUTOMÁTICO do activate fica quieto; o teste pede o dele
+        navigator: { storage: { estimate: () => Promise.resolve({ quota: 2e9, usage: 0 }) }, connection: { saveData: true } },
+        skipWaiting: () => { amb.skipWaiting++; return Promise.resolve(); },
+        clients: { claim: () => Promise.resolve(), matchAll: () => Promise.resolve([]) },
+        registration: { showNotification: () => Promise.resolve() },
+      };
+      new Function('self', 'caches', 'fetch', texto)(self, amb.caches, amb.fetch);
+      const disparar = async (tipo, extra) => {
+        let espera = Promise.resolve();
+        const ev = Object.assign({ waitUntil: (p) => { espera = p; } }, extra || {});
+        eventos[tipo][0](ev);
+        return espera;
+      };
+      const perguntar = (type) => new Promise((ok2) => {
+        disparar('message', { data: { type }, ports: [{ postMessage: ok2 }] });
+      });
+      return { api: self.__ctSW, disparar, perguntar };
+    };
+    const resultado = async (p) => { try { await p; return 'ok'; } catch (_) { return 'rejeitou'; } };
+    const lojaTem = (amb, nome, p) => !!(amb.lojas.get(nome) && amb.lojas.get(nome).has(p));
+    const swA = swSrc;
+
+    // 8c. install ATÔMICO: crítico falhou → rejeita, sem skipWaiting, e o worker antigo segue
+    {
+      const amb = criarAmbiente();
+      amb.lojas.set('catedra-v5', new Map([['/index.html', new Response('deploy antigo')]]));
+      amb.falhasRede.add('/support.js');
+      const w = subirWorker(amb, swA);
+      const r = await resultado(w.disparar('install'));
+      ok(r === 'rejeitou' && amb.skipWaiting === 0,
+        'U10/INSTALL item crítico (support.js) que falha REJEITA o install e não chama skipWaiting (' + r + ', skipWaiting ' + amb.skipWaiting + ')');
+      ok(!lojaTem(amb, vA, '/index.html') && lojaTem(amb, 'catedra-v5', '/index.html'),
+        'U10/INSTALL o install que rejeita não deixa cache parcial da versão nova, e o da versão antiga fica intacto');
+      const crit = (w.api && w.api.CRITICOS) || [];
+      ok(['./', './index.html', './support.js', './auth.js', './catedra-ui.css', './fonts.css'].every((c) => crit.includes(c))
+         && crit.some((c) => /^\.\/vendor\/[^/]+\.js$/.test(c)) && !crit.some((c) => /pdfjs|icon|manifesto/.test(c)),
+        'U10/INSTALL a lista crítica é a casca da abertura (documento, runtime, auth, vendor, CSS, fontes) — ' + crit.length + ' itens');
+      for (const falho of ['/auth.js', '/vendor/react.js', '/catedra-ui.css', '/fonts.css']) {
+        const amb2 = criarAmbiente(); amb2.falhasRede.add(falho);
+        const r2 = await resultado(subirWorker(amb2, swA).disparar('install'));
+        ok(r2 === 'rejeitou' && amb2.skipWaiting === 0, 'U10/INSTALL ' + falho + ' falhando também derruba o install (' + r2 + ')');
+      }
+    }
+    // …e o não crítico falhando NÃO segura a instalação
+    {
+      const amb = criarAmbiente();
+      amb.falhasRede.add('/icon.svg');
+      const r = await resultado(subirWorker(amb, swA).disparar('install'));
+      ok(r === 'ok' && amb.skipWaiting === 1 && lojaTem(amb, vA, '/index.html') && lojaTem(amb, vA, '/support.js')
+         && !lojaTem(amb, vA, '/icon.svg'),
+        'U10/INSTALL item não crítico (icon.svg) que falha não impede o install: casca guardada e skipWaiting (' + r + ')');
+    }
+
+    // 8d. troca de deploy: activate apaga as versões antigas e os blocos órfãos; o aquecimento
+    //     baixa tudo de novo; o estado offline só conta a versão atual
+    {
+      const amb = criarAmbiente();
+      const wA = subirWorker(amb, swA);
+      await wA.disparar('install'); await wA.disparar('activate');
+      const aqA = await wA.perguntar('ctAquecerAcervos');
+      const lista = SW.ACERVOS.concat(SW.ACERVOS_SOB_PEDIDO).map(([c]) => c);
+      const ehBloco = (c) => /\/dados\/[^/]+\/(?!manifesto\.json$)[^/]+\.json$/.test(c);
+      // o que a casca já trouxe no install desta versão (ex.: catedra-ui.css) conta como "já tinha"
+      const tambemNaCasca = lista.filter((c) => SW.ASSETS.includes(c));
+      ok(aqA && aqA.ok && aqA.resultado.falhas === 0 && aqA.resultado.baixados === lista.length - tambemNaCasca.length
+         && aqA.resultado.jaTinha === tambemNaCasca.length,
+        'U10/DEPLOY o primeiro aquecimento baixa o acervo inteiro (' + (aqA && aqA.resultado && aqA.resultado.baixados) + ' + '
+        + tambemNaCasca.length + ' da casca, de ' + lista.length + ')');
+
+      // lixo de antes: a versão fixa antiga, outra versão velha, um bloco órfão, uma pasta que sumiu
+      // (acrescenta, sem trocar a loja: no HEAD antigo 'catedra-v5' É a versão A inteira)
+      if (!amb.lojas.has('catedra-v5')) amb.lojas.set('catedra-v5', new Map([['/index.html', new Response('v5')]]));
+      amb.lojas.set('catedra-0123456789ab', new Map([['/index.html', new Response('velho')]]));
+      const dados = amb.lojas.get(SW.CACHE_DADOS) || new Map(); amb.lojas.set(SW.CACHE_DADOS, dados);
+      const juris = JSON.parse(fs.readFileSync(path.join(pubDir, 'dados', 'juris-text', 'manifesto.json'), 'utf8'));
+      const blocoValido = '/dados/juris-text/' + juris.arquivos[0];
+      dados.set(blocoValido, new Response('{}'));
+      dados.set('/dados/juris-text/zz-00000000.json', new Response('{}'));
+      dados.set('/dados/sumiu/aa-11111111.json', new Response('{}'));
+      const blocosLeis = lista.filter(ehBloco);
+
+      amb.deploy = 'B'; amb.log.length = 0;
+      const wB = subirWorker(amb, swB || swA);
+      const vNova = wB.api && wB.api.VERSION;
+      await wB.disparar('install');
+      const estAntes = await wB.perguntar('ctEstadoOffline');
+      await wB.disparar('activate');
+      const nomes = [...amb.lojas.keys()];
+      ok(vNova && vNova !== vA && !nomes.includes(vA) && !nomes.includes('catedra-v5') && !nomes.includes('catedra-0123456789ab')
+         && nomes.includes(vNova) && nomes.includes(SW.CACHE_DADOS),
+        'U10/DEPLOY a ativação apaga o cache da versão anterior, o catedra-v5 e outra versão velha (ficam: ' + nomes.join(', ') + ')');
+      ok(!dados.has('/dados/juris-text/zz-00000000.json') && !dados.has('/dados/sumiu/aa-11111111.json'),
+        'U10/DEPLOY o bloco órfão (fora dos manifestos atuais) e o de pasta que sumiu saem do cache de dados');
+      ok(dados.has(blocoValido) && blocosLeis.every((b) => dados.has(chave(b))),
+        'U10/DEPLOY os blocos que os manifestos atuais citam ficam (' + (blocosLeis.length + 1) + ')');
+
+      // estado offline logo depois do install do deploy novo: só os blocos imutáveis contam
+      const est = estAntes && estAntes.estado;
+      ok(!!est && est.versao === vNova && est.prontos === blocosLeis.length + tambemNaCasca.length,
+        'U10/DEPLOY o estado offline conta só a versão atual: da versão anterior valem apenas os blocos imutáveis ('
+        + (est && est.prontos) + ' prontos de ' + lista.length + ')');
+
+      const aqB = await wB.perguntar('ctAquecerAcervos');
+      const naoBlocos = lista.filter((c) => !ehBloco(c)).map(chave);
+      const rebaixados = naoBlocos.filter((p) => amb.log.includes(p));
+      ok(aqB && aqB.ok && rebaixados.length === naoBlocos.length && aqB.resultado.baixados === naoBlocos.length - tambemNaCasca.length
+         && aqB.resultado.jaTinha === blocosLeis.length + tambemNaCasca.length,
+        'U10/DEPLOY o aquecimento da versão nova baixa de novo tudo o que não é bloco imutável ('
+        + rebaixados.length + ' de ' + naoBlocos.length + '; ' + (aqB && aqB.resultado && aqB.resultado.jaTinha) + ' blocos reaproveitados)');
+      const cNovo = amb.lojas.get(vNova) || new Map();
+      const corpo = cNovo.get('/juris-index.js') ? await cNovo.get('/juris-index.js').clone().text() : '';
+      ok(/^deploy B /.test(corpo), 'U10/DEPLOY o acervo guardado depois da troca é o do deploy novo (' + corpo.slice(0, 30) + ')');
+      const estDepois = (await wB.perguntar('ctEstadoOffline')).estado;
+      ok(estDepois && estDepois.prontos === lista.length && estDepois.versao === vNova,
+        'U10/DEPLOY depois do "Baixar tudo" o estado offline da versão nova fica completo (' + (estDepois && estDepois.prontos) + ')');
+    }
+
+    // 8e. a condição de produção não mudou — nem a do worker, nem a da página (senão volta o
+    //     laço de recarga em localhost, ou o worker some da produção)
+    const COND_SW = "var IS_PROD = (self.location.protocol === 'https:') && HOST !== 'localhost' && HOST !== '127.0.0.1' && HOST !== '';";
+    const COND_PAG = "var ctProd = location.protocol === 'https:' && !/^(localhost|127\\.0\\.0\\.1)$/.test(location.hostname);";
+    // O trecho injetado é um template literal no build.mjs: o `\.` sai como `.` no index.html
+    // publicado (casa 127.0.0.1 do mesmo jeito). É o texto PUBLICADO que roda, então é ele que se avalia.
+    const COND_PAG_PUB = COND_PAG.replace(/\\\./g, '.');
+    const fonteSw = fs.readFileSync(path.join(RAIZ, 'sw.js'), 'utf8');
+    const buildTxt = fs.readFileSync(path.join(RAIZ, 'scripts', 'build.mjs'), 'utf8');
+    ok(fonteSw.includes(COND_SW) && swSrc.includes(COND_SW) && buildTxt.includes(COND_PAG) && idxHtml.includes(COND_PAG_PUB),
+      'U10/PROD a condição de produção do sw.js e a do registro na página seguem as mesmas (fonte e publicado)');
+    const decide = (href) => {
+      const loc = new URL(href);
+      const noSw = new Function('self', 'var HOST = self.location.hostname; ' + COND_SW + ' return IS_PROD;')({ location: loc });
+      const naPag = new Function('location', COND_PAG_PUB + ' return ctProd;')(loc);
+      return [noSw, naPag];
+    };
+    const amostras = ['https://catedra.app/', 'https://x.vercel.app/', 'http://localhost:8461/', 'https://localhost/', 'https://127.0.0.1/', 'http://catedra.app/', 'file:///x/index.html'];
+    ok(amostras.every((u) => { const [a, b] = decide(u); return a === b && a === /^https:\/\/(?!localhost|127\.)/.test(u); }),
+      'U10/PROD o worker e a página decidem igual em ' + amostras.length + ' endereços (produção só em https fora de localhost)');
+  }
 }
 
 /* ================= JURIS — RÓTULO DO VERBETE (auditoria 15/09/2026) =================
