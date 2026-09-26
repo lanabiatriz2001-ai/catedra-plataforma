@@ -19,6 +19,12 @@ export const VENDOR_DIR = 'vendor';
 export const MANIFESTO = 'vendor/manifesto.json';
 // Ordem de carga: React antes de ReactDOM (que usa o global React), ambos antes do support.js.
 export const LIBS = ['react.js', 'react-dom.js', 'supabase.js'];
+// O PDF.js (3.11.174) fica FORA de LIBS de propósito: não vira <script> no boot. O host o carrega
+// sob demanda (window.ctPdfLib, no Catedra.dc.html) de ./vendor/pdfjs/ quando a pessoa importa um
+// PDF — são ~1,4 MB que só servem para isso. Antes vinha do cdnjs em tempo de execução, e offline
+// (ou no app nativo sem rede) a importação morria em "pdfjs unavailable". Os builds copiam estes
+// dois para <saída>/vendor/pdfjs/ pelo mesmo lerVendor, conferindo o sha256.
+export const PDFJS = ['pdfjs/pdf.min.js', 'pdfjs/pdf.worker.min.js'];
 
 export const sha256 = (buf) => createHash('sha256').update(buf).digest('hex');
 

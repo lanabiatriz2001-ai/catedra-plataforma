@@ -54,6 +54,7 @@ import { testarJurisQuadro } from './juris-quadro.mjs';
 import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 import { testarMenuLateral } from './menu-lateral.mjs';
+import { testarPdfjsLocal } from './pdfjs-local.mjs';
 import { testarAssinaturaLimpa } from './assinatura-limpa.mjs';
 import { testarXcodeCloud } from './xcode-cloud.mjs';
 import { testarDesignNativo } from './design-nativo.mjs';
@@ -101,6 +102,34 @@ async function prepararPonteReal(page, view) {
         }
       });
     }
+  });
+}
+
+/* Todo HTML/JS/CSS/JSON que um build copiou, procurado por URL do cdnjs. O D9 abaixo olhava só
+   jsdelivr/unpkg/Google no index.html — e o PDF.js vinha do cdnjs.cloudflare.com, por um
+   <script> criado em tempo de execução dentro do host: nenhum caso via. Agora qualquer arquivo
+   de texto da saída (public/ ou mac/build/web/) que cite o cdnjs reprova, e o caso nomeia qual.
+   Não olha comentário à parte: citar o cdnjs num arquivo publicado já é convite a voltar a ele. */
+function citamCdnjs(dir) {
+  const achados = [];
+  const andar = (d) => {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) andar(p);
+      else if (/\.(html?|m?js|css|json|webmanifest)$/i.test(e.name) && /cdnjs\.cloudflare\.com/i.test(fs.readFileSync(p, 'utf8'))) {
+        achados.push(path.relative(dir, p));
+      }
+    }
+  };
+  if (fs.existsSync(dir)) andar(dir);
+  return achados;
+}
+/* O PDF.js vendorado (vendor/pdfjs/) chegou à saída do build, byte a byte com o manifesto. */
+function pdfjsNaSaida(dir) {
+  const manifesto = JSON.parse(fs.readFileSync(path.join(RAIZ, 'vendor', 'manifesto.json'), 'utf8'));
+  return ['pdfjs/pdf.min.js', 'pdfjs/pdf.worker.min.js'].every((f) => {
+    const ent = manifesto.arquivos.find((a) => a.arquivo === f), p = path.join(dir, 'vendor', f);
+    return !!ent && fs.existsSync(p) && createHash('sha256').update(fs.readFileSync(p)).digest('hex') === ent.sha256;
   });
 }
 
@@ -295,6 +324,19 @@ async function prepararPonteReal(page, view) {
   const html = fs.readFileSync(path.join(RAIZ, 'public', 'index.html'), 'utf8');
   const terceiros = (html.match(/(?:src|href)="https:\/\/[^"]*(?:jsdelivr|unpkg|fonts\.googleapis|fonts\.gstatic)[^"]*"/g) || []);
   ok(terceiros.length === 0, 'D9 HTML publicado não carrega nada de CDN nem do Google Fonts');
+  {
+    const cdnjs = citamCdnjs(path.join(RAIZ, 'public'));
+    ok(cdnjs.length === 0, 'D9 nenhum HTML/JS/CSS copiado para public/ cita o cdnjs (' + (cdnjs.join(', ') || 'nenhum') + ')');
+    ok(pdfjsNaSaida(path.join(RAIZ, 'public')),
+       'D9 public/vendor/pdfjs leva pdf.min.js e pdf.worker.min.js com o sha256 do manifesto');
+    /* E o caso reprova quando devia: um arquivo copiado que volta a citar o cdnjs é nomeado.
+       (Plantado depois do build, só para a varredura — some logo em seguida.) */
+    const isca = path.join(RAIZ, 'public', 'isca-cdnjs-' + process.pid + '.js');
+    fs.writeFileSync(isca, 'var B="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";');
+    let pega;
+    try { pega = citamCdnjs(path.join(RAIZ, 'public')); } finally { fs.rmSync(isca, { force: true }); }
+    ok(pega.length === 1 && /isca-cdnjs/.test(pega[0]), 'D9 a varredura do cdnjs acusa e nomeia o arquivo que o cita (' + pega.join(', ') + ')');
+  }
   ok(/href="\.\/fonts\.css"/.test(html), 'D9 as fontes vêm do próprio domínio');
   const cssFontes = fs.readFileSync(path.join(RAIZ, 'public', 'fonts.css'), 'utf8');
   ok(/font-display:\s*swap/.test(cssFontes), 'D9 font-display:swap preservado');
@@ -329,13 +371,15 @@ async function prepararPonteReal(page, view) {
   });
   const tinha = fs.existsSync(web);
   if (tinha) fs.renameSync(web, guardado);
-  let r, idx = null, libsOk = false, r3, idxDepois = null, libsDepois = false;
+  let r, idx = null, libsOk = false, r3, idxDepois = null, libsDepois = false, cdnjsNoBundle = null, pdfjsNoBundle = false;
   const supa = path.join(RAIZ, 'vendor', 'supabase.js'), supaGuardado = supa + '.teste-' + process.pid;
   try {
     r = buildMac({ NODE_OPTIONS: '--require ' + stub });
     const pIdx = path.join(web, 'index.html');
     if (fs.existsSync(pIdx)) idx = fs.readFileSync(pIdx, 'utf8');
     libsOk = bundleConfere();
+    cdnjsNoBundle = citamCdnjs(web);
+    pdfjsNoBundle = pdfjsNaSaida(web);
     /* O caso do #154 ("sem rede o build-macos ABORTA") mudou de sentido: rede não é mais
        motivo de aborto; vendor/ corrompido é. Adultera um byte do supabase.js (mesmo
        tamanho), roda de novo sem rede e confere que o build para, nomeia o arquivo e deixa
@@ -364,6 +408,9 @@ async function prepararPonteReal(page, view) {
   // `[^>]*` e não `<script src=`: o prepararAbertura põe `defer` antes do src em toda <script>.
   ok(!!idx && !/<script\b[^>]*\bsrc="https?:\/\//.test(idx),
      'D9 NATIVO o index.html do bundle nunca carrega <script> de CDN');
+  ok(Array.isArray(cdnjsNoBundle) && cdnjsNoBundle.length === 0,
+     'D9 NATIVO nenhum HTML/JS/CSS do bundle cita o cdnjs (' + ((cdnjsNoBundle || ['bundle não saiu']).join(', ') || 'nenhum') + ')');
+  ok(pdfjsNoBundle, 'D9 NATIVO o bundle sem rede leva vendor/pdfjs (lib e worker) com o sha256 do manifesto');
   ok(r3 && r3.code !== 0 && /BUILD ABORTADO: vendor\/supabase\.js/.test(r3.saida) && /sha256/.test(r3.saida),
      'D9 NATIVO vendor/supabase.js corrompido faz o build-macos ABORTAR e nomeia o arquivo (' + (r3 && r3.code) + ')');
   ok(idxDepois === idx && libsDepois,
@@ -481,6 +528,12 @@ async function prepararPonteReal(page, view) {
     'U10 os três pesados não entram no aquecimento automático');
   ok(['./juris-text.js', './oral-conteudo.js', './leis-seca-areas.js'].every(p => pedido.indexOf(p) >= 0),
     'U10 …mas estão na lista de "Baixar tudo" (senão o simulado de súmulas nunca abriria offline)');
+  /* O PDF.js (1,4 MB) só serve para importar PDF: fica no aquecimento SOB PEDIDO, nunca na casca
+     (install bloqueante) nem no automático. Online, o network-first já o guarda no primeiro uso. */
+  ok(['./vendor/pdfjs/pdf.min.js', './vendor/pdfjs/pdf.worker.min.js'].every(p => pedido.indexOf(p) >= 0)
+     && SW.ACERVOS_SOB_PEDIDO.filter(([c]) => /\/vendor\/pdfjs\//.test(c)).every(([, b]) => b > 300000)
+     && !tudoQueSeCacheia.some(p => /\/vendor\/pdfjs\//.test(p)),
+    'U10 o PDF.js (lib e worker) entra no "Baixar tudo", medido, e fica fora da casca e do aquecimento automático');
   const somaPedido = SW.ACERVOS.concat(SW.ACERVOS_SOB_PEDIDO).reduce((s, [, b]) => s + b, 0);
   ok(somaPedido <= SW.ORCAMENTO_PEDIDO && SW.ORCAMENTO_PEDIDO > SW.ORCAMENTO_ACERVO,
     'U10 o pedido explícito tem orçamento próprio e maior (' + (somaPedido / 1048576).toFixed(1)
@@ -9363,6 +9416,13 @@ catch (e) {
   ok(false, 'MENU/BARALHO [' + motor + '] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
+// PDF.js local (tests/pdfjs-local.mjs): o app extrai texto de PDF com toda origem externa
+// bloqueada — em http (o site) e em file:// (o caminho dos apps nativos, com o worker falso).
+try {
+  const { pathToFileURL } = await import('url');
+  await testarPdfjsLocal(browser, ok, { motor, origens: [[URL0, 'http', 'Catedra.dc.html'], [pathToFileURL(RAIZ).href, 'file', 'Catedra.dc.html']] });
+}
+catch (e) { ok(false, 'PDFJS LOCAL [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
 
 await browser.close();
 srv.close();

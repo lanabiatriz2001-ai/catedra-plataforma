@@ -648,18 +648,24 @@ html.ct-teclado .ct-scroll{ padding-bottom:12px !important; }
 .ct-calev .ct-callbl{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
 @media (max-width:520px){.ct-calev span.ct-callbl{display:none;}}
 </style>
-<!-- pdf.js NÃO entra no boot: são ~350 KB que só servem para importar edital e para
-     o leitor de PDF. window.ctPdfLib() baixa sob demanda (uma vez só) e devolve a lib. -->
+<!-- pdf.js NÃO entra no boot: são ~1,4 MB (lib + worker) que só servem para importar PDF.
+     window.ctPdfLib() carrega sob demanda (uma vez só) e devolve a lib. Os dois arquivos moram
+     em ./vendor/pdfjs/ (3.11.174, sha256 em vendor/manifesto.json) — antes vinham de um CDN, e
+     offline ou no app nativo sem rede a importação morria em "pdfjs unavailable". O caminho é
+     resolvido contra a página: vale no site (public/vendor/pdfjs), em file:// no repositório e no
+     bundle nativo (web/vendor/pdfjs). Em file:// o Web Worker pode não subir; o PDF.js cai então
+     sozinho no worker falso, que carrega o pdf.worker.min.js por <script> na thread principal. -->
 <script>
 window.ctPdfLib = (function(){
-  var B='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/', p=null;
+  var B='./vendor/pdfjs/', p=null;
+  function abs(f){ try{ return new URL(B+f, document.baseURI).href; }catch(e){ return B+f; } }
   return function(){
-    if (window.pdfjsLib) { try{ if(!window.pdfjsLib.GlobalWorkerOptions.workerSrc) window.pdfjsLib.GlobalWorkerOptions.workerSrc=B+'pdf.worker.min.js'; }catch(e){}
+    if (window.pdfjsLib) { try{ if(!window.pdfjsLib.GlobalWorkerOptions.workerSrc) window.pdfjsLib.GlobalWorkerOptions.workerSrc=abs('pdf.worker.min.js'); }catch(e){}
       return Promise.resolve(window.pdfjsLib); }
     if (p) return p;
     p = new Promise(function(ok, fail){
-      var s=document.createElement('script'); s.src=B+'pdf.min.js';
-      s.onload=function(){ try{ window.pdfjsLib.GlobalWorkerOptions.workerSrc=B+'pdf.worker.min.js'; }catch(e){}
+      var s=document.createElement('script'); s.src=abs('pdf.min.js');
+      s.onload=function(){ try{ window.pdfjsLib.GlobalWorkerOptions.workerSrc=abs('pdf.worker.min.js'); }catch(e){}
         window.pdfjsLib ? ok(window.pdfjsLib) : fail(new Error('pdfjs unavailable')); };
       s.onerror=function(){ p=null; fail(new Error('pdfjs unavailable')); };
       document.head.appendChild(s);
@@ -13515,6 +13521,9 @@ class Component extends DCLogic {
   _loadFC(){ try{ return JSON.parse(localStorage.getItem(this._chave('fc'))||'[]'); }catch(e){ return []; } }
   _saveFC(f){ try{ localStorage.setItem(this._chave('fc'), JSON.stringify(f)); }catch(e){} }
   _pdfLib(){ return window.ctPdfLib ? window.ctPdfLib() : Promise.reject(new Error('pdfjs unavailable')); }
+  // Bytes do arquivo escolhido, para o PDF.js. Saiu junto com a Biblioteca (18c394c) e o
+  // _extractEditalPdf continuou chamando: importar gabarito em PDF dava "Não consegui ler o arquivo".
+  _readFileBytes(file){ return new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(new Uint8Array(fr.result)); fr.onerror=()=>rej(fr.error||new Error('leitura falhou')); fr.readAsArrayBuffer(file); }); }
   _toast(msg){
     // P16: sem celebração na baixa estimulação (🎉 some inteiro) e sem emoji decorativo nos demais avisos
     if(this._baixa()){ if(/\u{1F389}/u.test(String(msg||''))) return; msg=this._emo(msg); }
