@@ -336,7 +336,9 @@ async function abrirPagina(ctx, base, sem) {
    com o quadro do verbete anterior, que ainda está na tela. */
 async function abrirVerbete(page, i) {
   await page.evaluate(() => { window.__ctHostAnterior = document.getElementById('jrEstudo') || null; });
-  await page.evaluate((k) => window.openVerbete(k), i);
+  // i é a posição no ÍNDICE (ordem do arquivo); a lista exibida segue a ordem de autoridade,
+  // então abre-se pelo id.
+  await page.evaluate((k) => window.jurisAbrirPorId(window.__JURIS_IDX__[k][0]), i);
   // 12 s, e não os 1600 ms fixos do bloco JURIS da suíte: openVerbete cai no caminho
   // assíncrono quando o texto do verbete ainda não está em memória (pinta .rdr-spin e busca
   // a fatia), e sob carga o tempo fixo vira flake.
@@ -1110,7 +1112,7 @@ async function comIA(ctx, base, ok, R) {
   const abrir = async (id) => {
     const i = await fr.evaluate((k) => (window.__JURIS_IDX__ || []).findIndex(x => x[0] === k), id);
     if (i < 0) return false;
-    await fr.evaluate((k) => window.openVerbete(k), i);
+    await fr.evaluate((k) => window.jurisAbrirPorId(k), id);
     return esperar(fr, (k) => { const p = document.querySelector('#jrEstudo .estFrase p');
       return !!p && p.textContent === 'SEMENTE ' + k; }, id, 12000);
   };

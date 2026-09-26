@@ -135,6 +135,8 @@ struct JurisPagina: View {
         case .julgadoDoDia: JulgadoDoDiaView(pagina: true)
         case .provaOral: ProvaOralJurisView()
         case .simulado: SimuladoView()
+        case .destino(let d): JurisDestinoHub(destino: d)
+        case .meuMaterial: JurisDestinoHub(destino: nil)
         case .oralBancas: OralBancasView()
         case .tjroHub: TJROHubView()
         case .mapas: JurisMapasGaleria()

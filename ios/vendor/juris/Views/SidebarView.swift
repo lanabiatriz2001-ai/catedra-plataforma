@@ -48,7 +48,14 @@ struct JurisSidebar: View {
         }
     }
 
-    private func ativa(_ s: Selecao) -> Bool { store.leituraID == nil && selecaoAtual == s }
+    private func ativa(_ s: Selecao) -> Bool {
+        guard store.leituraID == nil else { return false }
+        switch s {
+        case .destino(let d): return JurisDestinos.pai(selecaoAtual) == d
+        case .meuMaterial: return JurisDestinos.ehMeuMaterial(selecaoAtual)
+        default: return selecaoAtual == s
+        }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -73,30 +80,14 @@ struct JurisSidebar: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 2) {
-                    // Os grupos e as linhas vêm de JurisMenu (JurisCompacto.swift): a MESMA
-                    // definição desenha esta sidebar no iPad e a lista "Seções" no iPhone.
-                    ForEach(JurisMenu.grupos) { g in
-                        secao(g.titulo)
-                        ForEach(g.itens) { it in
-                            row(it.selecao, it.rotulo, it.simbolo, chevron: it.chevron,
-                                ponto: it.ponto(store), badge: it.badge(store))
-                        }
-                    }
-                    ForEach(store.colecoes) { c in
-                        row(.colecao(c.id), c.nome, "folder")
-                    }
-                    Button { nomeColecao = ""; novaColecao = true } label: {
-                        HStack(spacing: 11) {
-                            Image(systemName: "plus").font(Typo.ui(12, .semibold)).frame(width: 20)
-                            Text("Nova coleção").font(Typo.ui(13, .medium))
-                            Spacer(minLength: 0)
-                        }
-                        .padding(.horizontal, 11).padding(.vertical, 6)
-                        .frame(minHeight: 44)   // alvo de 44 pt (regra da casa)
-                        .foregroundStyle(ThemeState.t.sidebarText.opacity(0.8))
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
+                    // Entrega 4: os MESMOS 4 destinos do LEGIS; o resto está na vitrine de cada destino
+                    // (JurisDestinoHub). O JurisMenu segue servindo a lista "Seções" do iPhone.
+                    row(.inicio, Destino.hoje.titulo, Destino.hoje.simbolo, badge: store.srsDueCount + store.checklistPendingCount)
+                    row(.destino(.acervo), Destino.acervo.titulo, Destino.acervo.simbolo)
+                    row(.destino(.treinar), Destino.treinar.titulo, Destino.treinar.simbolo)
+                    row(.novidades, Destino.novidades.titulo, Destino.novidades.simbolo, ponto: store.novidadesNaoVistas > 0)
+                    secao("MEU MATERIAL")
+                    row(.meuMaterial, "Anotações, mapas e apoio", "folder")
                 }
                 .padding(.horizontal, 8).padding(.bottom, 14)
             }

@@ -9,7 +9,7 @@ struct RedactionComparisonView: View {
     let entries: [Entry]          // vigente primeiro; depois anteriores (nova → antiga)
     let accent: Color
     @Environment(\.dismiss) private var dismiss
-    @AppStorage("readerFontSize") private var fontSize = 16.0
+    @AppStorage("readerFontSize") private var fontSize = 18.0
 
     struct Entry: Identifiable {
         let id = UUID()
@@ -145,7 +145,7 @@ private struct RedactionRow: View {
     }
 
     private func tag(_ text: String, _ fg: Color, _ bg: Color) -> some View {
-        Text(text).font(.system(size: 10, weight: .heavy)).tracking(0.5)
+        Text(text).font(DS.interface(10, .heavy)).tracking(0.5)
             .foregroundStyle(fg)
             .padding(.horizontal, 8).padding(.vertical, 3)
             .background(Capsule().fill(bg))

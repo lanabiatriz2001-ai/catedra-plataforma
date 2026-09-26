@@ -216,13 +216,26 @@ let pares = 0;
 for (const k of Object.keys(quem)) {
   porArtigo[k] = { nome: (saida[k] || {}).nome || k, artigos: {} };
   for (const art of Object.keys(quem[k])) {
-    const lista = [...quem[k][art]].map((id) => ({ id, ...(META_ID[id] || { t: id, trib: '', ramo: '', tema: '', data: '' }) }))
+    // Só o que o JURIS consegue abrir (id no índice) e chave sem ponto de milhar ("1.015" →
+    // "1015"), a mesma forma que o leitor nativo e o web procuram.
+    const chave = art.replace(/\./g, '');
+    const lista = [...new Set([...quem[k][art], ...((porArtigo[k].artigos[chave] || []).map(v => v.id))])].filter(id => META_ID[id]).map((id) => ({ id, ...(META_ID[id] || { t: id, trib: '', ramo: '', tema: '', data: '' }) }))
       .sort((a, b) => dataNum(b.data) - dataNum(a.data)).slice(0, 40);
-    porArtigo[k].artigos[art] = lista;
+    if (lista.length) porArtigo[k].artigos[chave] = lista;
     pares += lista.length;
   }
 }
 writeFileSync(join(ROOT, 'incidencia-verbetes.json'), JSON.stringify({ meta: META, diplomas: porArtigo }));
+// Entrega 7: a MESMA ligação artigo→verbete para o leitor web (legis-web.html), como script —
+// carrega em file:// e no WKWebView sem fetch. Só os campos que a gaveta mostra.
+{
+  const leve = {};
+  for (const [k, d] of Object.entries(porArtigo)) {
+    leve[k] = { nome: d.nome, artigos: {} };
+    for (const [art, lista] of Object.entries(d.artigos)) leve[k].artigos[art] = lista.map(v => [v.id, v.t, v.trib, v.data]);
+  }
+  writeFileSync(join(ROOT, 'incidencia-verbetes.js'), 'window.__INC_VERB__=' + JSON.stringify({ meta: META, diplomas: leve }) + ';\n');
+}
 console.log(`✓ incidencia-verbetes.json — ${pares.toLocaleString('pt-BR')} pares artigo→verbete (até 40 por artigo)`);
 
 // Produto 3: INCIDÊNCIA EM PROVA (2ª fase) — dos espelhos oficiais do banco de discursivas

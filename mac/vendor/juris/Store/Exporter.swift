@@ -9,36 +9,36 @@ struct CartaoExport: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 8) {
                 Text(entry.fonteKind.nome.uppercased())
-                    .font(.system(size: 10, weight: .bold)).tracking(0.6)
+                    .font(DS.interface(10, .bold)).tracking(0.6)
                     .foregroundStyle(Color(hex: "#4F46E5"))
                 if let s = entry.situacao {
-                    Text(s.uppercased()).font(.system(size: 9, weight: .bold))
+                    Text(s.uppercased()).font(DS.interface(9, .bold))
                         .foregroundStyle(Color(hex: "#1F7A5A"))
                 }
                 Spacer()
             }
             Text(entry.titulo)
-                .font(.system(size: 26, weight: .bold, design: .serif))
+                .font(DS.display(26, .bold))
                 .foregroundStyle(Color(hex: "#0F1B2D"))
             if let t = entry.tema, t != entry.titulo {
-                Text(t).font(.system(size: 13, design: .serif)).italic()
+                Text(t).font(DS.display(13, .regular)).italic()
                     .foregroundStyle(Color(hex: "#6B7488"))
             }
             Rectangle().fill(Color(hex: "#4F46E5")).frame(width: 46, height: 2)
             Text(entry.enunciado)
-                .font(.system(size: 15, design: .serif))
+                .font(DS.display(15, .regular))
                 .foregroundStyle(Color(hex: "#14233A"))
                 .lineSpacing(6)
                 .fixedSize(horizontal: false, vertical: true)
             if let p = entry.precedentes, !p.isEmpty {
-                Text(p).font(.system(size: 11)).foregroundStyle(Color(hex: "#6B7488"))
+                Text(p).font(DS.interface(11)).foregroundStyle(Color(hex: "#6B7488"))
                     .lineLimit(3).fixedSize(horizontal: false, vertical: true)
             }
             HStack {
                 Text("Vade Mecum de Jurisprudência")
-                    .font(.system(size: 9, weight: .semibold)).foregroundStyle(Color(hex: "#4F46E5"))
+                    .font(DS.interface(9, .semibold)).foregroundStyle(Color(hex: "#4F46E5"))
                 Spacer()
-                if let d = entry.data { Text(d).font(.system(size: 9)).foregroundStyle(Color(hex: "#6B7488")) }
+                if let d = entry.data { Text(d).font(DS.interface(9)).foregroundStyle(Color(hex: "#6B7488")) }
             }
             .padding(.top, 4)
         }
@@ -541,7 +541,7 @@ struct ExportAnkiSheet: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 8) {
                 Image(systemName: "rectangle.on.rectangle.angled").foregroundStyle(Palette.accent)
-                Text("Exportar para o Anki").font(.system(size: 17, weight: .bold))
+                Text("Exportar para o Anki").font(DS.interface(17, .bold))
             }
             Text("\(entries.count) verbete\(entries.count == 1 ? "" : "s") · \(titulo)")
                 .font(.caption).foregroundStyle(.secondary)
@@ -552,8 +552,8 @@ struct ExportAnkiSheet: View {
                         get: { tipos.contains(t) },
                         set: { on in if on { tipos.insert(t) } else { tipos.remove(t) } })) {
                         VStack(alignment: .leading, spacing: 1) {
-                            Text(t.nome).font(.system(size: 13, weight: .medium))
-                            Text(t.descricao).font(.system(size: 11)).foregroundStyle(.secondary)
+                            Text(t.nome).font(DS.interface(13, .medium))
+                            Text(t.descricao).font(DS.interface(11)).foregroundStyle(.secondary)
                         }
                     }
                     .toggleStyle(.checkbox)
@@ -564,15 +564,15 @@ struct ExportAnkiSheet: View {
             .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Palette.hairline, lineWidth: 1))
 
             Text("Um arquivo .txt por tipo, já apontando para os SEUS modelos de nota (Basic, Aulão, Basic - Certo e Errado, Cloze, Cloze - Digite a Resposta). No Anki: Arquivo ▸ Importar — o modelo, o baralho \"Jurisprudência\" e as etiquetas já vêm no arquivo. O Cloze só é gerado para textos curtos (súmulas/teses); enunciados longos, como IRDR/repetitivos, saem como Basic/Aulão/Certo-Errado.")
-                .font(.system(size: 11)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                .font(DS.interface(11)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
 
             if tipos.contains(.certoErrado) {
                 VStack(alignment: .leading, spacing: 6) {
                     Toggle(isOn: $autoErrado) {
                         VStack(alignment: .leading, spacing: 1) {
-                            Text("Gerar afirmação ERRADO automaticamente").font(.system(size: 12, weight: .medium))
+                            Text("Gerar afirmação ERRADO automaticamente").font(DS.interface(12, .medium))
                             Text("Inverte o operador da tese (constitucional↔inconstitucional, incide↔não incide, pode↔não pode, Justiça Estadual↔Federal…). O verso mostra sempre a versão correta.")
-                                .font(.system(size: 10.5)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                                .font(DS.interface(10.5)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                         }
                     }
                     .toggleStyle(.checkbox)
@@ -581,7 +581,7 @@ struct ExportAnkiSheet: View {
                         ? "Sem cards ERRADO nesta seleção (nenhum operador reconhecido)."
                         : "\(total) card\(total == 1 ? "" : "s") ERRADO: \(comFalsa) manua\(comFalsa == 1 ? "l" : "is")\(autoErrado ? " + \(comAuto) automático\(comAuto == 1 ? "" : "s")" : "").",
                         systemImage: total == 0 ? "info.circle" : "checkmark.circle.fill")
-                        .font(.system(size: 11))
+                        .font(DS.interface(11))
                         .foregroundStyle(total == 0 ? Color.secondary : Palette.fonteSTJ)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -592,17 +592,17 @@ struct ExportAnkiSheet: View {
             DisclosureGroup(isExpanded: $mostrarNomes) {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Confirme os nomes EXATOS dos seus modelos no Anki (acentos e maiúsculas). O Anki casa por nome ao importar.")
-                        .font(.system(size: 10.5)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                        .font(DS.interface(10.5)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     ForEach(AnkiTipo.allCases.filter { tipos.contains($0) }) { t in
                         HStack(spacing: 8) {
-                            Text(t.nome).font(.system(size: 11)).frame(width: 150, alignment: .leading)
-                            TextField("", text: nomeBinding(t)).textFieldStyle(.roundedBorder).font(.system(size: 11))
+                            Text(t.nome).font(DS.interface(11)).frame(width: 150, alignment: .leading)
+                            TextField("", text: nomeBinding(t)).textFieldStyle(.roundedBorder).font(DS.interface(11))
                         }
                     }
                 }
                 .padding(.top, 6)
             } label: {
-                Label("Nomes dos modelos de nota", systemImage: "tag").font(.system(size: 12, weight: .medium))
+                Label("Nomes dos modelos de nota", systemImage: "tag").font(DS.interface(12, .medium))
             }
             .padding(10)
             .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: 9))

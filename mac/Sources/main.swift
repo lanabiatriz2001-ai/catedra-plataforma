@@ -84,6 +84,33 @@ let bridgeJS = """
     }
     return false;
   }
+  // Contrato da volta: a origem ('de', ou 'origem' no formato antigo) leva a view do host
+  // de onde a pessoa saiu, e a casca a devolve inteira em window.catedraVoltarAcervo.
+  // Só a mensagem do próprio host (e.source === window) repassa o 'de' que trouxe. A de um
+  // frame NUNCA passa crua: frame legis/juris -> a origem que o host guardou ao entrar no
+  // acervo (window.__catedraOrigemAcervo); demais frames -> a régua do host para mensagem de
+  // satélite (window.__catedraOrigemDoFrame, a mesma _normalizarDe da web), com a view do
+  // data-ct-view do iframe que falou. Frame desconhecido ou régua ausente -> null (sem volta).
+  function origemComView(e) {
+    var d = e.data.de, o = e.data.origem;
+    var de = (d && typeof d === 'object') ? d : ((o && typeof o === 'object') ? o : null);
+    if (e.source === window) return (de && !Array.isArray(de)) ? de : null;
+    var fs = document.querySelectorAll('iframe[data-ct-view][data-ct-frame]');
+    for (var j = 0; j < fs.length; j++) {
+      if (fs[j].contentWindow !== e.source) continue;
+      var fv = fs[j].getAttribute('data-ct-view') || '';
+      var r = null;
+      try {
+        if (fv === 'legis' || fv === 'juris') {
+          r = (typeof window.__catedraOrigemAcervo === 'function') ? window.__catedraOrigemAcervo() : null;
+        } else if (typeof window.__catedraOrigemDoFrame === 'function') {
+          r = window.__catedraOrigemDoFrame(de, fv);
+        }
+      } catch (err) { r = null; }
+      return (r && typeof r === 'object' && !Array.isArray(r)) ? r : null;
+    }
+    return null;
+  }
   window.addEventListener('message', function (e) {
     try {
       if (!e || !e.data || e.data.type !== 'ctAbrirAcervo') return;
@@ -94,8 +121,7 @@ let bridgeJS = """
       // pessoa chegava no acervo inteiro, sem busca e sem caminho de volta.
       window.webkit.messageHandlers.catedraNav.postMessage({
         alvo: alvo, termo: String(e.data.termo || ''),
-        de: (e.data.de && typeof e.data.de === 'object') ? e.data.de
-          : (e.data.origem && typeof e.data.origem === 'object' ? e.data.origem : null)
+        de: origemComView(e)
       });
       e.stopImmediatePropagation();
     } catch (err) {}
@@ -169,6 +195,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     private var jurisSettingsWindow: NSWindow?
     private weak var tabControl: NSSegmentedControl?
     private weak var voltaButton: NSButton?     // item 5: volta ao ponto do processo
+    private weak var voltaItem: NSToolbarItem?  // o item da barra: rótulo do menu de estouro
     private var currentTab = 0                   // 0 = Cátedra, 1 = CátedraLEGIS
     /* A ÁREA DE ESTUDO CHEGA DA WEB (handler catedraArea). Esta barra é escrita em Swift
        e não passa pelo guarda de rota do app web — sem isto, quem estuda Enfermagem
@@ -219,6 +246,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     private var legisReviewsBaseline: Int?            // reviewedToday no início da rajada
 
     func applicationDidFinishLaunching(_ n: Notification) {
+        DSFontes.registrar()       // fontes da casa (web/fonts) para o LEGIS/JURIS nativos
+        // Gaveta do leitor do LEGIS: texto OFICIAL do verbete lido do acervo do JURIS.
+        JurisPorArtigo.textoOficial = { [weak self] id in
+            self?.jurisStore?.entries.first { $0.id == id }?.enunciado
+        }
         buildMenu()
         setupMenuBarExtra()
         startWidgetSync()
@@ -462,11 +494,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         [.flexibleSpace, AppDelegate.tabItemID, AppDelegate.voltaItemID]
     }
 
-    // Item 5: "← Voltar ao ponto do processo". Nasce escondido; só aparece quando a pessoa
+    // Item 5: "Voltar ao ponto do processo" (chevron.left + rótulo). Nasce escondido; só aparece quando a pessoa
     // chegou ao acervo por um chip do mapa de Processo e peças (antes, mão única).
     static let voltaItemID = NSToolbarItem.Identifier("catedraVoltaAcervo")
     private func makeVoltaItem(_ id: NSToolbarItem.Identifier) -> NSToolbarItem {
-        let b = NSButton(title: "← Voltar ao processo", target: self, action: #selector(voltarAoProcesso))
+        // A seta é o SF Symbol ao lado do texto, não um caractere no título: assim o
+        // VoiceOver lê só o rótulo ("Voltar ao mapa do processo"), sem "seta para a esquerda".
+        let b = NSButton(title: "Voltar ao processo", target: self, action: #selector(voltarAoProcesso))
+        b.image = NSImage(systemSymbolName: "chevron.left", accessibilityDescription: nil)
+        b.imagePosition = .imageLeading
         b.bezelStyle = .rounded
         b.controlSize = .small
         b.isHidden = true
@@ -474,15 +510,33 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         let item = NSToolbarItem(itemIdentifier: id)
         item.view = b
         item.label = "Voltar ao processo"
+        item.paletteLabel = "Voltar ao processo"
+        // Com a janela estreita o item cai no menu de estouro (>>), que lê o
+        // menuFormRepresentation, não o botão: sem ele o menu dizia sempre "Voltar ao processo".
+        let mi = NSMenuItem(title: "Voltar ao processo", action: #selector(voltarAoProcesso), keyEquivalent: "")
+        mi.target = self
+        mi.isHidden = true
+        item.menuFormRepresentation = mi
         item.visibilityPriority = .low
+        voltaItem = item
         return item
     }
 
     /// Mostra/esconde o botão conforme haja um ponto de origem vivo e estejamos numa aba nativa.
+    /// O rótulo da origem vai para os três lugares onde a volta aparece: o botão, o rótulo do
+    /// item da barra e o item do menu de estouro.
     func atualizarBotaoVoltarAcervo() {
         let o = AcervoEntrada.shared.origem
-        voltaButton?.isHidden = (o == nil || currentTab == 0)
-        if let o { voltaButton?.title = "← " + o.rotulo }
+        let escondido = (o == nil || currentTab == 0)
+        voltaButton?.isHidden = escondido
+        voltaItem?.menuFormRepresentation?.isHidden = escondido
+        if let o {
+            voltaButton?.title = o.rotulo
+            voltaButton?.setAccessibilityLabel(o.rotulo)
+            voltaItem?.label = o.rotulo
+            voltaItem?.paletteLabel = o.rotulo
+            voltaItem?.menuFormRepresentation?.title = o.rotulo
+        }
     }
 
     @objc func voltarAoProcesso() {
@@ -701,6 +755,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         // O LEGIS pediu para abrir um verbete do acervo (jurisprudência do artigo): troca
         // para a aba JURIS e leva o store até ele. O store pode ainda não existir (aba
         // nunca aberta) — switchTo cria; por isso o abrirVerbete vem depois.
+        // Entrega 3: "Abrir no LEGIS" a partir do verbete — troca de aba; o ContentView do LEGIS
+        // consome o pedido pendente (JurisPorArtigo.pedidoLegis).
+        NotificationCenter.default.addObserver(forName: JurisPorArtigo.notificacaoAbrirLegis, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.switchTo(1) }
+        }
         NotificationCenter.default.addObserver(forName: JurisPorArtigo.notificacaoAbrir, object: nil, queue: .main) { [weak self] n in
             MainActor.assumeIsolated {
                 guard let self, let id = n.userInfo?["id"] as? String else { return }
@@ -1472,6 +1531,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         var t = ThemeState.t
         if let c = col("bg")       { t.bg = c }
         if let c = col("surface")  { t.surface = c }
+        if let h = (d["surface"] as? String).flatMap(Color.hexDe(css:)) { t.surfaceHex = h }
         if let c = col("surface2") { t.surface2 = c }
         if let c = col("border")   { t.border = c }
         if let c = col("ink")      { t.ink = c }
@@ -1486,6 +1546,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
             let l = disp.lowercased()
             t.displaySerif = l.contains("spectral") || l.contains("georgia")
                 || (l.contains("serif") && !l.contains("sans-serif"))
+            if let fam = DS.familiaDisplay(css: disp) { t.displayFamilia = fam }
         }
         if let c = col("sbg")      { t.sidebarBg = c }
         if let c = col("stext")    { t.sidebarText = c }
@@ -1677,6 +1738,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
                 termo = (d["termo"] as? String) ?? ""
                 origem = AcervoEntrada.origem(de: d["de"] as? [String: Any])
             }
+            // A área sem jurisprudência não abre o JURIS (switchTo(2) volta cedo). Testar ANTES
+            // do chegou(): senão a origem e o termo ficavam gravados para uma aba que não abriu,
+            // o termo ia para a busca do LEGIS e o botão de volta aparecia numa ida à mão.
+            if dest == "juris" && !jurisDisponivel { dest = "" }
             if dest == "legis" || dest == "juris" {
                 AcervoEntrada.shared.chegou(termo: termo, origem: origem)
                 if dest == "legis" { switchTo(1) } else { switchTo(2) }
