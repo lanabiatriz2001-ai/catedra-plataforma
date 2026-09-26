@@ -34,41 +34,83 @@ struct HomeView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 26) {
-                // Entrega 5 — Hoje (spec §7): continuar, revisar hoje e o julgado do dia. Saíram a
-                // busca duplicada (⌘K), meta, ofensiva, KPIs e prateleiras — o acervo está no
-                // destino Acervo e o treino em Treinar.
+                JurisCampoBusca(prompt: "Buscar em toda a jurisprudência…", texto: $busca, aoSubmeter: submeterBusca)
+                    .jurisMargemPagina()
+
+                // Início no padrão do Cátedra (host web, .cth-*): próxima ação, hero com saudação,
+                // chips e painel de vidro, números sobrepostos ao pé do hero e o estudo semanal.
                 Group {
                     if let ultimo = store.recentEntries.first {
-                        CartaoContinuar(titulo: ultimo.titulo, detalhe: ultimo.tema ?? ultimo.ramoDireito,
-                                        cor: CorTribunal.identidade(ultimo.tribunal) ?? Ramo.deNome(ultimo.ramoDireito)?.identidade,
-                                        acao: { store.lerCheio(ultimo.id) })
+                        FaixaProximaAcao(titulo: "Continuar: \(ultimo.titulo)", motivo: ultimo.tema ?? ultimo.ramoDireito ?? "Volte ao verbete em que parou.",
+                                         meta: ultimo.tribunal, botao: "Abrir o verbete", acao: { store.lerCheio(ultimo.id) })
                     } else {
-                        CartaoContinuar(titulo: "Comece pelo Acervo", detalhe: "STF, STJ, informativos e mais",
-                                        cor: nil, acao: { store.ir(.destino(.acervo)) })
+                        FaixaProximaAcao(titulo: "Comece pelo Acervo", motivo: "STF, STJ, TSE, tribunais estaduais e cortes de contas.",
+                                         botao: "Abrir o Acervo", acao: { store.ir(.destino(.acervo)) })
                     }
                 }
                 .jurisMargemPagina()
-                JurisHojeResumo()
-                    .jurisMargemPagina()
-                // Julgado do dia em cartão curto: só o texto do tribunal (o roteiro fica no Estudar).
-                if let j = store.verbeteDoDia {
-                    Button { store.lerCheio(j.id) } label: {
-                        VStack(alignment: .leading, spacing: DSEspaco.e2) {
-                            Text("JULGADO DO DIA · \(j.tribunal)").font(DS.interface(12, .semibold)).tracking(0.8)
-                                .foregroundStyle(ThemeState.t.text3)
-                            Text(j.titulo).font(DS.display(19, .bold)).foregroundStyle(ThemeState.t.ink)
-                            Text(j.enunciado).font(DS.display(16, .regular)).foregroundStyle(ThemeState.t.text2)
-                                .lineLimit(4).multilineTextAlignment(.leading)
+                VStack(spacing: 0) {
+                    let meta = max(store.metaDiaria, 1), feito = store.lidosHoje
+                    HeroInicio(saudacao: HeroInicio<EmptyView>.saudacao() + ".",
+                               subtitulo: HeroInicio<EmptyView>.dataLonga() + " · \(store.entries.count) verbetes no acervo",
+                               chips: ThemeState.t.baixaEstimulacao
+                                   ? [ChipHero(simbolo: "star.fill", valor: "\(store.favorites.count)", rotulo: "favoritos")]
+                                   : [ChipHero(simbolo: "flame.fill", valor: "\(store.streak)", rotulo: store.streak == 1 ? "dia seguido" : "dias seguidos"),
+                                      ChipHero(simbolo: "star.fill", valor: "\(store.favorites.count)", rotulo: "favoritos")]) {
+                        VStack(alignment: .leading, spacing: 14) {
+                            PainelVidroNumero(rotulo: "Meta de hoje", valor: "\(feito)/\(meta)",
+                                              detalhe: feito >= meta ? "Meta cumprida — bom trabalho." : "faltam \(meta - feito) verbetes para a meta")
+                            HStack {
+                                BotaoVidro(titulo: "Revisar hoje", forte: false) { store.ir(.hoje) }
+                                Spacer(minLength: 8)
+                                BotaoVidro(titulo: "Julgado do dia") { if let j = store.verbeteDoDia { store.lerCheio(j.id) } else { store.ir(.julgadoDoDia) } }
+                            }
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(DSEspaco.e5)
-                        .background(RoundedRectangle(cornerRadius: DSRaio.card, style: .continuous).fill(ThemeState.t.surface))
-                        .overlay(RoundedRectangle(cornerRadius: DSRaio.card, style: .continuous).strokeBorder(ThemeState.t.border))
-                        .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
-                    .padding(.horizontal, 26)
+                    HStack(alignment: .top, spacing: 16) {
+                        CartaoNumeroInicio(rotulo: "Meta de hoje", valor: "\(min(100, feito * 100 / meta))", unidade: "%",
+                                           apoio: "\(feito)/\(meta) verbetes", fracao: Double(feito) / Double(meta))
+                        CartaoNumeroInicio(rotulo: "Revisões", valor: "\(store.srsDueCount)", apoio: "cartões vencidos hoje")
+                        CartaoNumeroInicio(rotulo: "Favoritos", valor: "\(store.favorites.count)", apoio: "verbetes marcados com estrela")
+                    }
+                    .padding(.horizontal, 2).offset(y: -42).padding(.bottom, -42)
                 }
+                .jurisMargemPagina()
+                SecaoInicio(titulo: "Estudo semanal",
+                            meta: "\(BarrasSemana.dias(store.leiturasPorDia).map(\.valor).reduce(0, +)) verbetes na semana")
+                    .jurisMargemPagina()
+                BarrasSemana(atividade: store.leiturasPorDia)
+                    .jurisMargemPagina()
+                DestaquesEstudoView(parte: .julgado)
+
+                bloco("Treinar", "graduationcap.fill")
+                gradeTreinar
+                JurisDashboardView(partes: [.atalhos])
+
+                bloco("Acompanhar", "newspaper.fill")
+                DestaquesEstudoView(parte: .informativos)
+                if !novidadeVerbetes.isEmpty {
+                    Prateleira(titulo: "Novidades dos tribunais", simbolo: "sparkles",
+                               verTodos: { store.ir(.novidades) }) {
+                        ForEach(novidadeVerbetes) { CartaoJuris(entry: $0) }
+                    }
+                }
+                if !store.recentEntries.isEmpty {
+                    Prateleira(titulo: "Continue de onde parou", simbolo: "clock.arrow.circlepath") {
+                        ForEach(store.recentEntries.prefix(14)) { CartaoJuris(entry: $0) }
+                    }
+                }
+                // Baixa estimulação: a ofensiva (heatmap) não entra; os dados continuam lá.
+                JurisDashboardView(partes: ThemeState.t.baixaEstimulacao ? [.kpis, .fontes] : [.kpis, .ofensiva, .fontes])
+
+                bloco("Acervo", "books.vertical.fill")
+                if store.favorites.count > 0 {
+                    Prateleira(titulo: "Seus favoritos", simbolo: "star.fill",
+                               verTodos: { store.ir(.favoritos) }) {
+                        ForEach(amostra { store.isFavorite($0.id) }) { CartaoJuris(entry: $0) }
+                    }
+                }
+                ramosShelf
                 Color.clear.frame(height: 20)
             }
             .padding(.top, 22)
@@ -77,14 +119,11 @@ struct HomeView: View {
     }
 
     /// Divisor de bloco: caixa-alta + filete — a "voz de seção grande" da Home.
+    /// Título de bloco no padrão do Início do Cátedra (serifa + fio).
     private func bloco(_ t: String, _ simbolo: String) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: simbolo).font(Typo.ui(13, .bold)).foregroundStyle(Palette.accent)
-            Text(t.uppercased()).font(Typo.ui(12, .heavy)).tracking(1.2).foregroundStyle(Palette.secondaryInk)
-            Rectangle().fill(Palette.hairline).frame(height: 1)
-        }
-        .jurisMargemPagina(28).padding(.top, 6)
+        SecaoInicio(titulo: t).jurisMargemPagina()
     }
+
 
     /// As ações de treino em azulejos grandes — todas alcançáveis também pela sidebar.
     private var gradeTreinar: some View {
@@ -133,12 +172,12 @@ private struct RamoTile: View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 6) {
                 Image(systemName: "books.vertical.fill").font(Typo.ui(16))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DS.sobreCor)
                 Spacer(minLength: 0)
                 Text(nome).font(Typo.ui(12.5, .bold))
-                    .foregroundStyle(.white).lineLimit(2)
+                    .foregroundStyle(DS.sobreCor).lineLimit(2)
                 Text("\(count) verbetes").font(Typo.ui(10, .medium))
-                    .foregroundStyle(.white.opacity(0.85))
+                    .foregroundStyle(DS.sobreCor.opacity(0.85))
             }
             .padding(13).frame(width: 168, height: 104, alignment: .topLeading)
             .background(RamoStyle.gradient(nome), in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
@@ -175,7 +214,7 @@ struct JurisHojeResumo: View {
                 }
                 Spacer(minLength: 0)
                 if srs + metas > 0 {
-                    Text("\(srs + metas)").font(Typo.num(12)).foregroundStyle(.white)
+                    Text("\(srs + metas)").font(Typo.num(12)).foregroundStyle(DS.sobreCor)
                         .padding(.horizontal, 8).padding(.vertical, 3)
                         .background(Palette.accent, in: Capsule())
                 }

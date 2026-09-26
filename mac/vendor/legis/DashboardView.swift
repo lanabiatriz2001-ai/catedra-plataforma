@@ -83,7 +83,7 @@ struct DashboardView: View {
                         }
                         Spacer()
                         if due > 0 {
-                            Text("Revisar").font(DS.interface(13, .bold)).foregroundStyle(.white)
+                            Text("Revisar").font(DS.interface(13, .bold)).foregroundStyle(DS.sobreCor)
                                 .padding(.horizontal, 14).padding(.vertical, 7)
                                 .background(Capsule().fill(AppTheme.srs))
                         } else {
@@ -190,48 +190,230 @@ struct DashboardView: View {
     // Célula de número-chave dentro do hero (fundo translúcido sobre o gradiente).
     private func heroStat(_ value: String, _ label: String) -> some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text(value).font(Typo.num(20)).foregroundStyle(.white)
-            Text(label).font(DS.interface(11)).foregroundStyle(.white.opacity(0.85))
+            Text(value).font(Typo.num(20)).foregroundStyle(DS.sobreCor)
+            Text(label).font(DS.interface(11)).foregroundStyle(DS.sobreCor.opacity(0.85))
         }
         .padding(.horizontal, 14).padding(.vertical, 11)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous).fill(Color.white.opacity(0.13)))
-        .overlay(RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous).strokeBorder(Color.white.opacity(0.16), lineWidth: 1))
+        .background(RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous).fill(DS.sobreCor.opacity(0.13)))
+        .overlay(RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous).strokeBorder(DS.sobreCor.opacity(0.16), lineWidth: 1))
     }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                // Entrega 5 — Hoje (spec §7): só o que decide a próxima leitura. Saíram o hero de
-                // números, as metas diárias, a ofensiva, o heatmap e a "Biblioteca" (as matérias
-                // estão no Acervo; alterações em Novidades; o treino em Treinar).
+                // Início no padrão do Cátedra (host web, .cth-*): próxima ação, hero com saudação,
+                // chips e painel de vidro, números sobrepostos ao pé do hero e o estudo semanal.
                 if let law = lastStudied {
-                    CartaoContinuar(titulo: law.title,
-                                    detalhe: UserDefaults.standard.string(forKey: "lastStudiedUnitLabel"),
-                                    cor: law.customCategory == nil ? law.category.ramo?.identidade : nil,
-                                    acao: { openLaw(law.id) })
+                    FaixaProximaAcao(titulo: "Continuar: \(law.title)",
+                                     motivo: UserDefaults.standard.string(forKey: "lastStudiedUnitLabel").map { "Você parou em \($0)." } ?? "Volte exatamente ao ponto em que parou.",
+                                     meta: law.category.rawValue, botao: "Abrir a lei", acao: { openLaw(law.id) })
                 } else {
-                    CartaoContinuar(titulo: "Comece pelo Acervo", detalhe: "Escolha uma norma para ler",
-                                    cor: nil, acao: { openSection(.destino(.acervo)) })
+                    FaixaProximaAcao(titulo: "Comece pelo Acervo", motivo: "Escolha uma norma para ler — o Cátedra guarda onde você parou.",
+                                     botao: "Abrir o Acervo", acao: { openSection(.destino(.acervo)) })
                 }
-                srsCard
-                Button { openSection(.planoLeitura) } label: {
-                    HStack {
-                        Label("Plano de leitura", systemImage: "calendar").font(DS.interface(15, .semibold))
-                        Spacer()
-                        Image(systemName: "chevron.right").font(DS.interface(13))
+                VStack(spacing: 0) {
+                    let due = store.srsDueCount()
+                    HeroInicio(saudacao: HeroInicio<EmptyView>.saudacao() + ".",
+                               subtitulo: HeroInicio<EmptyView>.dataLonga() + " · \(lawCount) normas na sua biblioteca",
+                               chips: ThemeState.t.baixaEstimulacao
+                                   ? [ChipHero(simbolo: "calendar", valor: "\(store.activeDaysLastYear)", rotulo: "dias ativos")]
+                                   : [ChipHero(simbolo: "flame.fill", valor: "\(store.currentStreak)", rotulo: store.currentStreak == 1 ? "dia seguido" : "dias seguidos"),
+                                      ChipHero(simbolo: "calendar", valor: "\(store.activeDaysLastYear)", rotulo: "dias ativos")]) {
+                        VStack(alignment: .leading, spacing: 14) {
+                            PainelVidroNumero(rotulo: "Revisão de hoje", valor: "\(due)",
+                                              detalhe: due == 0 ? "Você está em dia com a repetição espaçada." : (due == 1 ? "artigo para revisar hoje" : "artigos para revisar hoje"))
+                            HStack {
+                                BotaoVidro(titulo: "Plano de leitura", forte: false) { openSection(.planoLeitura) }
+                                Spacer(minLength: 8)
+                                BotaoVidro(titulo: due > 0 ? "Revisar agora" : "Treinar") {
+                                    if due > 0 { activeSheet = .review } else { openSection(.destino(.treinar)) }
+                                }
+                            }
+                        }
                     }
-                    .foregroundStyle(ThemeState.t.ink)
-                    .padding(DSEspaco.e4).frame(minHeight: 44)
+                    HStack(alignment: .top, spacing: 16) {
+                        CartaoNumeroInicio(rotulo: "Artigos lidos", valor: "\(store.totalReadUnits)", apoio: "\(store.study.count) normas com leitura")
+                        CartaoNumeroInicio(rotulo: "Para revisão", valor: "\(store.totalReviewUnits)", apoio: "artigos marcados para rever")
+                        CartaoNumeroInicio(rotulo: "Marcações", valor: "\(store.annotations.count)", apoio: "grifos e notas nas normas")
+                    }
+                    .padding(.horizontal, 2).offset(y: -42).padding(.bottom, -42)
+                }
+                SecaoInicio(titulo: "Estudo semanal",
+                            meta: "\(BarrasSemana.dias(store.activity).map(\.valor).reduce(0, +)) na semana")
+                BarrasSemana(atividade: store.activity)
+
+                // Três blocos, na ordem de uso (pente fino 21/08): HOJE (o que fazer agora),
+                // TREINAR (as ferramentas de estudo) e BIBLIOTECA (o acervo e sua saúde).
+                // Os StatCards e o "Painel de revisão" repetiam números do hero/SRS — saíram.
+
+                // ── HOJE ──────────────────────────────────────────────────────────
+                SecaoInicio(titulo: "Hoje")
+                srsCard
+                DailyGoalsCard()
+                ChecklistMiniCard(openChecklist: { openSection(.checklist) })
+
+                // ── TREINAR ───────────────────────────────────────────────────────
+                SecaoInicio(titulo: "Treinar")
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 200), spacing: 10)], spacing: 10) {
+                    ForEach(treinoTiles, id: \.0) { t in treinoTile(t.0, t.1, t.2, t.3) }
+                }
+
+                // ── BIBLIOTECA ────────────────────────────────────────────────────
+                SecaoInicio(titulo: "Biblioteca")
+
+                // MATÉRIAS — tiles coloridos com a identidade de cada área (linguagem vitrine).
+                let cats = LawCategory.allCases.filter { categoryCount($0) > 0 && $0 != .personalizada }
+                if !cats.isEmpty {
+                    VStack(alignment: .leading, spacing: 11) {
+                        LegisSectionHeader(title: "Matérias", count: cats.count)
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 148), spacing: 10)], spacing: 10) {
+                            ForEach(cats) { cat in materiaTile(cat) }
+                        }
+                    }
+                    .padding(.top, 4)
+                }
+
+                // Tempo de estudo por norma (alimentado pelo cronômetro do leitor)
+                tempoPorNormaSection
+
+                // Heatmap de leitura
+                VStack(alignment: .leading, spacing: 8) {
+                    LegisSectionHeader(title: "Heatmap de leitura", icon: "square.grid.3x3.fill", tint: ThemeState.t.accent)
+                    Text("Atividade dos últimos 119 dias.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    ActivityHeatmap(series: store.activitySeries(days: 119))
+                }
+                .padding(14)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .appSurface()
+
+                // Progresso por norma
+                let progressed = store.laws.compactMap { law -> (LawEntry, StudyRecord)? in
+                    guard let record = store.study[law.id.uuidString],
+                          record.unitTotal > 0, !record.readKeys.isEmpty else { return nil }
+                    return (law, record)
+                }
+                .sorted { $0.1.readKeys.count > $1.1.readKeys.count }
+                VStack(alignment: .leading, spacing: 10) {
+                    LegisSectionHeader(title: "Por norma", icon: "chart.line.uptrend.xyaxis", tint: ThemeState.t.accent)
+                    if progressed.isEmpty {
+                        Text("Você ainda não marcou nenhum artigo como lido. Abra uma norma no modo Estudo e comece!")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    ForEach(progressed.prefix(6), id: \.0.id) { law, record in
+                        Button {
+                            openLaw(law.id)
+                        } label: {
+                            VStack(alignment: .leading, spacing: 3) {
+                                HStack {
+                                    Text(law.title).font(.callout).lineLimit(1)
+                                    Spacer()
+                                    Text("\(record.readKeys.count)/\(record.unitTotal)")
+                                        .font(Typo.num(11, .regular))
+                                        .foregroundStyle(.secondary)
+                                }
+                                ProgressView(value: min(1, Double(record.readKeys.count) / Double(record.unitTotal)))
+                                    .tint(ThemeState.t.accent)
+                            }
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(14)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .appSurface()
+
+                // Verificação
+                VStack(alignment: .leading, spacing: 8) {
+                    LegisSectionHeader(title: "Monitoramento", icon: "bell.badge", tint: ThemeState.t.accent,
+                                       trailing: AnyView(HStack(spacing: 8) {
+                                           if store.isChecking { ProgressView().controlSize(.small) }
+                                           Button(store.isChecking ? "Verificando…" : "Verificar agora") {
+                                               Task { await store.checkAllUpdates(manual: true) }
+                                           }
+                                           .buttonStyle(.legisPrimary)
+                                           .disabled(store.isChecking)
+                                       }))
+                    if store.isChecking && !store.checkProgress.isEmpty {
+                        Text(store.checkProgress).font(.caption).foregroundStyle(.secondary)
+                    } else {
+                        Text(store.lastCheckDate.map {
+                            "Última verificação: \($0.formatted(date: .abbreviated, time: .shortened))"
+                        } ?? "Nenhuma verificação realizada ainda.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    }
+                }
+                .padding(14)
+                .appSurface()
+
+                // Últimas alterações
+                if !store.updates.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        LegisSectionHeader(title: "Últimas alterações", icon: "clock.arrow.circlepath",
+                                           count: store.updates.count, tint: ThemeState.t.accent,
+                                           trailing: AnyView(Button("Ver todas") { openUpdates() }.buttonStyle(.legisGhost)))
+                        ForEach(store.updates.prefix(5)) { event in
+                            Button {
+                                openUpdate(event.id)
+                            } label: {
+                                HStack {
+                                    Circle().fill(ThemeState.t.accent).frame(width: 7, height: 7)
+                                    Text(event.lawTitle).lineLimit(1)
+                                    Spacer()
+                                    Text(event.date.formatted(date: .abbreviated, time: .omitted))
+                                        .foregroundStyle(.secondary)
+                                }
+                                .font(.callout)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(14)
                     .appSurface()
                 }
-                .buttonStyle(.plain)
-                ChecklistMiniCard(openChecklist: { openSection(.checklist) })
+
+                // Anotações recentes
+                let recent = store.annotations.sorted { $0.createdAt > $1.createdAt }.prefix(5)
+                if !recent.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        LegisSectionHeader(title: "Anotações recentes", icon: "highlighter", tint: ThemeState.t.accent)
+                        ForEach(Array(recent)) { annotation in
+                            Button {
+                                openLaw(annotation.lawID)
+                            } label: {
+                                HStack(alignment: .top, spacing: 8) {
+                                    RoundedRectangle(cornerRadius: 2)
+                                        .fill(Color(hexRGBA: annotation.colorHex))
+                                        .frame(width: 4, height: 28)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("“\(annotation.selectedText)”")
+                                            .font(.callout.italic())
+                                            .lineLimit(1)
+                                        Text(store.laws.first { $0.id == annotation.lawID }?.title ?? "")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    Spacer()
+                                }
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(14)
+                    .appSurface()
+                }
             }
             .padding(AppTheme.pageInset)
         }
         .background(AppTheme.pageBackground)
-        .navigationTitle("Hoje")
+        .navigationTitle("Início")
         .sheet(item: $activeSheet) { sheet in
             switch sheet {
             case .review:       SRSReviewView().environmentObject(store)
@@ -422,15 +604,15 @@ private struct MateriaTile: View {
             VStack(alignment: .leading, spacing: 6) {
                 Image(systemName: cat.symbol)
                     .font(DS.interface(19, .semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DS.sobreCor)
                 Spacer(minLength: 4)
                 Text(cat.shortName)
                     .font(DS.interface(13.5, .bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(DS.sobreCor)
                     .lineLimit(1).minimumScaleFactor(0.75)
                 Text("\(count) norma\(count == 1 ? "" : "s")")
                     .font(DS.interface(10.5, .medium))
-                    .foregroundStyle(.white.opacity(0.85))
+                    .foregroundStyle(DS.sobreCor.opacity(0.85))
             }
             .padding(14)
             .frame(maxWidth: .infinity, minHeight: 92, alignment: .leading)
