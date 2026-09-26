@@ -133,7 +133,6 @@ struct HomeView: View {
             ("Prova oral · bancas", "Pontos, perguntas e padrão de resposta publicados", "person.wave.2.fill", .oralBancas),
             ("Plano de leitura", "Súmulas STF, STJ e TSE no seu roteiro", "calendar", .plano),
             ("Grade de informativos", "Edições do STF, STJ e TSE por semana", "square.grid.3x3.fill", .gradeInformativos),
-            ("Mapas mentais", "Galeria dos mapas que você já abriu", "brain.head.profile", .mapas),
         ]
         return LazyVGrid(columns: [GridItem(.adaptive(minimum: 210), spacing: 12)], spacing: 12) {
             ForEach(itens, id: \.0) { it in

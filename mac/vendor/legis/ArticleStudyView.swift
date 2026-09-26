@@ -55,7 +55,7 @@ struct ArticleStudyView: View {
 
     // Um único .sheet(item:) — empilhar vários .sheet(isPresented:) no mesmo view
     // confunde o SwiftUI (macOS) sobre qual apresentar (armadilha corrigida na v36).
-    private enum StudySheet: Int, Identifiable { case index, map; var id: Int { rawValue } }
+    private enum StudySheet: Int, Identifiable { case index; var id: Int { rawValue } }
     @State private var filter = ""
     @State private var onlyReview = false
     @AppStorage("studyLayout") private var layout = "foco"   // "foco" | "cartoes"
@@ -155,12 +155,6 @@ struct ArticleStudyView: View {
                     layout = "foco"; activeSheet = nil
                     goTo(id) // salva a posição, como Anterior/Próximo
                 }
-            case .map:
-                if let unit = focusUnit {
-                    ArticleMapSheet(unit: unit,
-                                    lawTitle: store.laws.first { $0.id == lawID }?.title ?? "",
-                                    accent: accent)
-                }
             }
         }
     }
@@ -185,13 +179,6 @@ struct ArticleStudyView: View {
             .tint(accent)
 
             if layout == "foco" {
-                Button { activeSheet = .map } label: {
-                    Label("Mapa", systemImage: "point.3.connected.trianglepath.dotted")
-                        .font(.caption.weight(.semibold))
-                }
-                .buttonStyle(.bordered)
-                .help("Gera um mapa/esquema visual deste artigo — copiar ou exportar PNG")
-
                 Button { withAnimation(.easeInOut(duration: 0.15)) { leituraAtiva.toggle() } } label: {
                     Label("Leitura ativa", systemImage: leituraAtiva ? "book.and.wrench.fill" : "book.and.wrench")
                         .font(.caption.weight(.semibold))

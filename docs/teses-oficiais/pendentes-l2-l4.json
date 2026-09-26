@@ -1,0 +1,11 @@
+{
+ "descricao": "Nada pendente: o que estava aqui depois dos lotes L1–L3 (3 pendentes do L3, 106 fusões e 43 retiradas) foi resolvido no lote L4 (docs/teses-oficiais/l4-referencia.json e l4-decisoes.md).",
+ "contagem": {
+  "L3_pendentes": 0,
+  "L4_fundir": 0,
+  "L4_retirar": 0
+ },
+ "L3_pendentes": [],
+ "L4_fundir": [],
+ "L4_retirar": []
+}

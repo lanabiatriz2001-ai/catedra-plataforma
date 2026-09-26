@@ -208,10 +208,23 @@ function termoBusca(rotulo, alvo){
 /* Junto com o termo vai o PONTO DE ORIGEM (rito, peça, bloco): o host guarda e,
    quando o acervo pedir "voltar", devolve a página ao bloco exato — sem isso a
    volta cai no topo e ela procura o lugar de novo. O rito vem da URL porque o
-   ritos-web mantém o ?rito= atualizado a cada troca de pílula. */
+   ritos-web mantém o ?rito= atualizado a cada troca de pílula.
+   A VIEW não vai daqui: esta página não sabe em que tela do app está (ritos-web ou
+   pecas-web). Na web o host a tira do quadro que mandou; no Mac/iPad o shim injeta o
+   data-ct-view do iframe. O `rotulo` segue a régua do host (_rotuloVolta) e só é lido
+   pelo botão nativo — na web o host recalcula e não confia neste texto. */
 function abrirAcervo(alvo, termo, de){
   const org=Object.assign({}, de||{});
   if(org.rito==null){ try{ const r=new URLSearchParams(location.search).get('rito'); if(r) org.rito=r; }catch(e){} }
+  /* do painel do Mapa de Processo vem mapa:{tipo:'no'|'peca', id} — o painel a reabrir.
+     Só passa adiante se tiver a forma certa; o resto é descartado aqui mesmo. */
+  const m=org.mapa;
+  if(m && typeof m==='object' && (m.tipo==='no'||m.tipo==='peca') && m.id!=null && String(m.id)!=='')
+    org.mapa={tipo:m.tipo, id:String(m.id)};
+  else delete org.mapa;
+  const b=(org.bloco!=null && org.bloco!=='' && isFinite(org.bloco)) ? (' · bloco '+(Number(org.bloco)+1)) : '';
+  org.rotulo = org.mapa ? 'Voltar ao mapa do processo'
+             : org.peca ? ('Voltar à peça'+b) : (org.rito ? 'Voltar ao rito' : 'Voltar ao roteiro');
   try{ window.ctEnviarAoHost({type:'ctAbrirAcervo', alvo, termo, de:org}); }catch(e){}
 }
 
