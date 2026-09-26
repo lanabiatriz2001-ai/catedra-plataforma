@@ -76,6 +76,9 @@ iconutil -c icns "$ICONSET" -o "$BUILD/AppIcon.icns"
 echo "→ 3/5  Compilando o app (Swift + WebKit + CátedraLEGIS + CátedraJURIS)…"
 LEGIS_SOURCES=$(find "$HERE/vendor/legis" -name '*.swift')
 JURIS_SOURCES=$(find "$HERE/vendor/juris" -name '*.swift')
+# Base visual comum (tema, cor, tipografia): mora em ios/vendor/design porque o iPad e o
+# Xcode Cloud compilam ios/vendor inteiro. Um arquivo só para os dois alvos.
+DESIGN_SOURCES=$(find "$ROOT/ios/vendor/design" -name '*.swift')
 # Macros do SwiftUI (@State, @Environment… viraram macros nos SDKs novos): o plugin
 # libSwiftUIMacros.dylib mora na PLATAFORMA, não na toolchain. O Xcode passa esse
 # caminho sozinho; o swiftc na linha de comando não — sem isto o build morre com
@@ -111,7 +114,7 @@ else echo "     aviso: plugins de macro não encontrados em $PLUGIN_DIR — se o
 # Se a fatia Intel falhar (SDK sem suporte na máquina), seguimos só com arm64 avisando,
 # em vez de derrubar o build inteiro.
 compilar_fatia() {
-  swiftc -O -target "$1" "${SDK_FLAGS[@]}" "${PLUGIN_FLAGS[@]}" $LEGIS_SOURCES $JURIS_SOURCES "$HERE/Sources/main.swift" -o "$2" \
+  swiftc -O -target "$1" "${SDK_FLAGS[@]}" "${PLUGIN_FLAGS[@]}" $LEGIS_SOURCES $JURIS_SOURCES $DESIGN_SOURCES "$HERE/Sources/main.swift" -o "$2" \
     -framework Cocoa -framework WebKit -framework UserNotifications -framework SwiftUI \
     -framework Network -framework PDFKit
 }

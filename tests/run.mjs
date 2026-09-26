@@ -3,7 +3,7 @@
    · SYNC: o mergeAll do auth.js (carimbo por chave, vazio nunca apaga cheio,
      união por id, lápides, histórico × lixeira) via tests/sync-fixture.html;
    · ACERVO ida-e-volta: rito/peça/bloco na URL, mensagens ctAbrirAcervo com origem,
-     pílula de voltar no LEGIS/JURIS e o ciclo completo via tests/harness-acervo.html;
+     pílula de voltar no LEGIS/JURIS e a volta à origem no host real (tests/volta-origem.mjs);
    · ORAL LEI SECA: a aba Lei seca da Prova oral lista as leis (tests/oral-lei-seca.mjs).
    Servidor e navegador vêm de tests/_infra.mjs. O motor padrão é o Chromium — executável
    de CT_CHROME ou dos caminhos usuais (CI: google-chrome); CT_BROWSER=webkit troca pelo
@@ -16,11 +16,12 @@ import { SAIDA_ESVAZIADOS } from '../scripts/verificar-pasta-sincronizada.mjs';
 import fs from 'fs';
 import path from 'path';
 import { createHash } from 'crypto';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import { iniciarServidor, lancarNavegador } from './_infra.mjs';
 import { testarOralLeiSeca } from './oral-lei-seca.mjs';
 import { testarPastaSincronizada } from './pasta-sincronizada.mjs';
 import { testarLegisGuiado } from './legis-guiado.mjs';
+import { testarLeitorWeb } from './leitor-web.mjs';
 import { testarCicloInteligente } from './ciclo-inteligente.mjs';
 import { testarRegistroSessao } from './registro-sessao.mjs';
 import { testarIntegracaoModulos } from './integracao-modulos.mjs';
@@ -32,6 +33,10 @@ import { testarIphoneHost390 } from './iphone-host-390.mjs';
 import { testarReguaUnica } from './regua-unica.mjs';
 import { testarPrioridadeErrosResolvidos } from './prioridade-erros-resolvidos.mjs';
 import { testarRevisaoFonte } from './revisao-fonte.mjs';
+import { testarVoltaOrigem } from './volta-origem.mjs';
+import { testarContrasteDestaque } from './contraste-destaque.mjs';
+import { testarIconesAlvos } from './icones-alvos.mjs';
+import { testarFaixaMapaAlvos } from './faixa-mapa-alvos.mjs';
 import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
 import { testarOnboardingImportar } from './onboarding-importar.mjs';
 import { testarCotaIA } from './cota-ia.mjs';
@@ -40,6 +45,8 @@ import { testarIpadToqueSatelites } from './ipad-toque-satelites.mjs';
 import { testarIpadToque } from './ipad-toque.mjs';
 import { testarAuthIpad } from './auth-ipad.mjs';
 import { testarAuthAbertura } from './auth-abertura.mjs';
+import { testarAuthHidratacao } from './auth-hidratacao.mjs';
+import { testarAuthFechamento } from './auth-fechamento.mjs';
 import { testarCarregamentoInicial, testarAberturaEmbutida } from './carregamento-inicial.mjs';
 import { testarSelectHost } from './select-host.mjs';
 import { testarEditalSubtopicos } from './edital-subtopicos.mjs';
@@ -47,9 +54,12 @@ import { testarJurisQuadro } from './juris-quadro.mjs';
 import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 import { testarMenuLateral } from './menu-lateral.mjs';
+import { testarPdfjsLocal } from './pdfjs-local.mjs';
+import { testarVarreduraRedeExterna, testarSupportSemRede, testarHarnessSemRede, testarRedeExternaExecucao, resumoRedeSuite } from './rede-externa.mjs';
 import { testarAssinaturaLimpa } from './assinatura-limpa.mjs';
 import { testarXcodeCloud } from './xcode-cloud.mjs';
 import { testarSupportCorrecoesLocais } from './support-correcoes-locais.mjs';
+import { testarDesignNativo } from './design-nativo.mjs';
 import { montar as montarEnam, parseProva as parseProvaEnam, parseGabarito as parseGabaritoEnam, carregarAreas as areasEnam, EDICOES as EDICOES_ENAM } from '../scripts/build-questoes-enam.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -97,6 +107,34 @@ async function prepararPonteReal(page, view) {
   });
 }
 
+/* Todo HTML/JS/CSS/JSON que um build copiou, procurado por URL do cdnjs. O D9 abaixo olhava só
+   jsdelivr/unpkg/Google no index.html — e o PDF.js vinha do cdnjs.cloudflare.com, por um
+   <script> criado em tempo de execução dentro do host: nenhum caso via. Agora qualquer arquivo
+   de texto da saída (public/ ou mac/build/web/) que cite o cdnjs reprova, e o caso nomeia qual.
+   Não olha comentário à parte: citar o cdnjs num arquivo publicado já é convite a voltar a ele. */
+function citamCdnjs(dir) {
+  const achados = [];
+  const andar = (d) => {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) andar(p);
+      else if (/\.(html?|m?js|css|json|webmanifest)$/i.test(e.name) && /cdnjs\.cloudflare\.com/i.test(fs.readFileSync(p, 'utf8'))) {
+        achados.push(path.relative(dir, p));
+      }
+    }
+  };
+  if (fs.existsSync(dir)) andar(dir);
+  return achados;
+}
+/* O PDF.js vendorado (vendor/pdfjs/) chegou à saída do build, byte a byte com o manifesto. */
+function pdfjsNaSaida(dir) {
+  const manifesto = JSON.parse(fs.readFileSync(path.join(RAIZ, 'vendor', 'manifesto.json'), 'utf8'));
+  return ['pdfjs/pdf.min.js', 'pdfjs/pdf.worker.min.js'].every((f) => {
+    const ent = manifesto.arquivos.find((a) => a.arquivo === f), p = path.join(dir, 'vendor', f);
+    return !!ent && fs.existsSync(p) && createHash('sha256').update(fs.readFileSync(p)).digest('hex') === ent.sha256;
+  });
+}
+
 /* ============= D9 — BUILD SEM CDN: FALHAR EM VEZ DE DEGRADAR ============= */
 // Este é o único teste que não usa navegador: o que se prova aqui é o comportamento do
 // processo de build. Um deploy que depende de CDN em runtime não abre em rede que
@@ -128,26 +166,111 @@ async function prepararPonteReal(page, view) {
      asserção passava sem que o build da vez tivesse copiado nada — em clone ou worktree
      novo, onde public/ não existe, ela falhava. Apagando, o que sobrar é do build de agora. */
   fs.rmSync(path.join(RAIZ, 'public', 'fonts'), { recursive: true, force: true });
+  /* BUILD LIMPO: public/ sai só com o build da vez. Planta uma página que nenhuma lista cita
+     e um bloco de acervo com hash que não existe no repositório — o retrato das sobras que
+     se acumulavam (248 blocos em public/dados/juris-text contra 62 no repositório). */
+  const orfaoPag = path.join(RAIZ, 'public', 'orfao.html');
+  const orfaoBloco = path.join(RAIZ, 'public', 'dados', 'juris-text', 'zz-00000000.json');
+  const plantarOrfaos = () => {
+    fs.mkdirSync(path.dirname(orfaoBloco), { recursive: true });
+    fs.writeFileSync(orfaoPag, '<!doctype html><p>sobra de build antigo</p>');
+    fs.writeFileSync(orfaoBloco, '{"sobra":true}');
+  };
+  plantarOrfaos();
   const semRede = rodar({ NODE_OPTIONS: '--require ' + stub });
+  /* A limpeza vem antes de qualquer escrita: o build sem rede (que agora publica) sai sem
+     a sobra do build anterior. */
+  ok(!fs.existsSync(orfaoPag) && !fs.existsSync(orfaoBloco),
+     'BUILD LIMPO public/ é apagada inteira no começo (sobras somem também no build sem rede)');
   /* Sem rede o build ainda para — mas agora por causa das BIBLIOTECAS (react, supabase),
      que continuam sendo vendoradas da internet. O que mudou é que as FONTES saíram dessa
      lista: elas não são mais motivo de aborto. A asserção mira a causa, não o código de
      saída, senão ela passaria a medir o vendor das libs sem querer. */
   ok(!/vendorar as fontes|fonts\.googleapis|fonts\.gstatic/.test(semRede.saida),
      'D9 sem rede, as fontes NÃO são mais motivo de aborto');
-  /* Sem rede o build AINDA aborta — pelas bibliotecas, não pelas fontes. Este caso guarda
-     o outro lado do contrato: degradar em silêncio continua proibido. */
-  ok(semRede.code !== 0 && /vendorar react\.js|cdn\.jsdelivr/.test(semRede.saida),
-     'D9 sem rede o build aborta pelas BIBLIOTECAS');
-  /* E, mesmo abortando, as fontes já chegaram: a cópia acontece antes do vendor das libs,
-     de propósito (ver scripts/build.mjs). É por isso que este caso pode medir o build da
-     vez, com public/fonts apagada logo acima. */
+  /* O CONTRATO INVERTEU, DE NOVO E PELO MESMO MOTIVO DAS FONTES. As bibliotecas (React,
+     ReactDOM, supabase-js) eram baixadas do jsdelivr a cada build, sem checksum, e o
+     supabase-js flutuava em `@2` — sem rede o build tinha de abortar. Agora elas moram em
+     vendor/, congeladas e conferidas pelo sha256 de vendor/manifesto.json: sem rede o build
+     PUBLICA. O que continua proibido é degradar em silêncio, e isso passou a ser guardado
+     pelo hash (casos "vendor adulterado" e "vendor ausente" logo abaixo). */
+  ok(semRede.code === 0 && !/BUILD ABORTADO/.test(semRede.saida),
+     'D9 sem rede o build PUBLICA (código 0): as bibliotecas vêm de vendor/, não da internet (' + semRede.code + ')');
+  const manifestoVendor = JSON.parse(fs.readFileSync(path.join(RAIZ, 'vendor', 'manifesto.json'), 'utf8'));
+  const sha256De = (p) => createHash('sha256').update(fs.readFileSync(p)).digest('hex');
+  ok(['react.js', 'react-dom.js', 'supabase.js'].every((f) => {
+       const ent = manifestoVendor.arquivos.find((a) => a.arquivo === f);
+       const pub = path.join(RAIZ, 'public', 'vendor', f);
+       return ent && fs.existsSync(pub) && sha256De(pub) === ent.sha256
+         && Buffer.compare(fs.readFileSync(pub), fs.readFileSync(path.join(RAIZ, 'vendor', f))) === 0;
+     }),
+     'D9 sem rede public/vendor leva os três arquivos de vendor/, byte a byte e com o sha256 do manifesto');
+  /* Versões congeladas por decisão da dona (25/09/2026): React e ReactDOM 18.3.1, supabase-js
+     2.117.2 — a que estava em produção (byte a byte a do app instalado) no dia do congelamento;
+     o `@2` flutuante já tinha trocado 2.117.1 por 2.117.2 sozinho. Trocar é pelo
+     scripts/atualizar-vendor.mjs, e este caso muda junto, de propósito. */
+  const versaoDe = (f) => (manifestoVendor.arquivos.find((a) => a.arquivo === f) || {}).versao;
+  ok(versaoDe('react.js') === '18.3.1' && versaoDe('react-dom.js') === '18.3.1' && versaoDe('supabase.js') === '2.117.2',
+     'D9 versões congeladas: react 18.3.1, react-dom 18.3.1, supabase-js 2.117.2 (' + ['react.js', 'react-dom.js', 'supabase.js'].map(versaoDe).join(', ') + ')');
+  /* O React vendorado é o MESMO arquivo que o support.js aceitaria do unpkg: o sha384 dele
+     bate com o SRI que o runtime já carrega. Duas fontes independentes dizendo o mesmo byte. */
+  {
+    const sup = fs.readFileSync(path.join(RAIZ, 'support.js'), 'utf8');
+    const sri = (nome) => (sup.match(new RegExp('var ' + nome + ' = "(sha384-[^"]+)"')) || [])[1];
+    const sha384 = (f) => 'sha384-' + createHash('sha384').update(fs.readFileSync(path.join(RAIZ, 'vendor', f))).digest('base64');
+    ok(!!sri('REACT_SRI') && sri('REACT_SRI') === sha384('react.js') && sri('REACT_DOM_SRI') === sha384('react-dom.js'),
+       'D9 vendor/react.js e vendor/react-dom.js batem com o SRI (sha384) do support.js');
+  }
+  /* Nenhum download de biblioteca sobrou nos dois builds: nenhuma URL de CDN como LITERAL
+     (entre aspas — os comentários contam a história e citam o jsdelivr sem aspas) e ninguém
+     lê a saída de emergência CT_PERMITE_CDN, que perdeu a razão de existir. Não se tiram os
+     comentários com regex: `docs/juridico/*.md` num comentário de linha abria um falso
+     bloco e engolia o código. */
+  for (const b of ['build.mjs', 'build-macos.mjs']) {
+    const codigo = fs.readFileSync(path.join(RAIZ, 'scripts', b), 'utf8');
+    ok(!/['"`]https:\/\/(?:cdn\.jsdelivr\.net|unpkg\.com)/.test(codigo) && !/process\.env\.CT_PERMITE_CDN/.test(codigo)
+       && /lerVendor\(ROOT\)/.test(codigo) && !/\bfetch\(\s*url\b/.test(codigo),
+       'D9 ' + b + ' não baixa biblioteca: copia de vendor/ por lerVendor, sem URL de CDN nem CT_PERMITE_CDN');
+  }
   const fontesPub = path.join(RAIZ, 'public', 'fonts');
   ok(fs.existsSync(fontesPub) && fs.readdirSync(fontesPub).filter(f => f.endsWith('.woff2')).length >= 20,
      'D9 as 20 faces chegam a public/fonts mesmo sem rede');
-  /* O CT_PERMITE_CDN continua existindo para as BIBLIOTECAS (React, supabase), que ainda
-     são vendoradas da rede. O que saiu foi o uso dele nas FONTES: elas não têm mais de
-     onde falhar. A asserção mira a função, não o arquivo inteiro. */
+
+  /* VENDOR ADULTERADO OU AUSENTE DERRUBA O BUILD E NOMEIA O ARQUIVO. O arquivo de verdade é
+     posto de lado e volta no finally; a cópia adulterada difere em UM byte no fim (o tamanho
+     não muda, então só o hash pega). A conferência vem antes da limpeza de public/, então o
+     deploy do build anterior (o de agora há pouco, sem rede) tem de continuar de pé. */
+  const vendorCaso = (arquivo, estragar) => {
+    const alvo = path.join(RAIZ, 'vendor', arquivo), guardado = alvo + '.teste-' + process.pid;
+    fs.renameSync(alvo, guardado);
+    try {
+      if (estragar) {
+        const buf = Buffer.from(fs.readFileSync(guardado));
+        buf[buf.length - 1] = buf[buf.length - 1] === 0x20 ? 0x0a : 0x20;
+        fs.writeFileSync(alvo, buf);
+      }
+      return rodar({ NODE_OPTIONS: '--require ' + stub });
+    } finally {
+      fs.rmSync(alvo, { force: true });
+      fs.renameSync(guardado, alvo);
+    }
+  };
+  const idxAntes = fs.readFileSync(path.join(RAIZ, 'public', 'index.html'), 'utf8');
+  const adulterado = vendorCaso('supabase.js', true);
+  ok(adulterado.code !== 0 && /BUILD ABORTADO: vendor\/supabase\.js/.test(adulterado.saida) && /sha256/.test(adulterado.saida),
+     'D9 vendor/supabase.js adulterado (mesmo tamanho) derruba o build e nomeia o arquivo (' + adulterado.code + ')');
+  ok(fs.existsSync(path.join(RAIZ, 'public', 'index.html'))
+     && fs.readFileSync(path.join(RAIZ, 'public', 'index.html'), 'utf8') === idxAntes
+     && sha256De(path.join(RAIZ, 'public', 'vendor', 'supabase.js')) === manifestoVendor.arquivos.find((a) => a.arquivo === 'supabase.js').sha256,
+     'D9 o build que aborta pelo hash não apaga o deploy anterior (a conferência vem antes da limpeza)');
+  const ausente = vendorCaso('react-dom.js', false);
+  ok(ausente.code !== 0 && /BUILD ABORTADO: vendor\/react-dom\.js não existe/.test(ausente.saida),
+     'D9 vendor/react-dom.js ausente derruba o build e nomeia o arquivo (' + ausente.code + ')');
+  ok(sha256De(path.join(RAIZ, 'vendor', 'supabase.js')) === manifestoVendor.arquivos.find((a) => a.arquivo === 'supabase.js').sha256
+     && fs.existsSync(path.join(RAIZ, 'vendor', 'react-dom.js')),
+     'D9 os casos devolvem vendor/ intacto');
+  /* As fontes não têm saída de emergência para CDN (e, desde o vendor congelado, nem as
+     bibliotecas — ver o caso acima). A asserção mira a função das fontes. */
   const buildSrc = fs.readFileSync(path.join(RAIZ, 'scripts', 'build.mjs'), 'utf8');
   const fnFontes = buildSrc.slice(buildSrc.indexOf('async function vendorarFontes()'),
                                  buildSrc.indexOf("return './fonts.css';"));
@@ -156,17 +279,175 @@ async function prepararPonteReal(page, view) {
   ok(!/PERMITE_CDN/.test(fnSemComentario), 'D9 as fontes não têm mais saída de emergência para CDN');
   ok(!/fonts\.gstatic|fonts\.googleapis/.test(fnFontes), 'D9 a função de fontes não fala com o Google');
 
+  /* LISTA DE CÓPIA SEM PULO SILENCIOSO. Arquivo citado na lista que não existe derruba o
+     build e é nomeado — antes o laço pulava em silêncio e o deploy saía sem ele. O stub de
+     rede fica ligado de propósito: o build não usa rede nenhuma, então a causa do aborto
+     tem de ser o arquivo (e não o vendor das bibliotecas). */
+  {
+    const alvo = path.join(RAIZ, 'sobre.html'), escondido = alvo + '.ausente-no-teste';
+    fs.renameSync(alvo, escondido);
+    let semArquivo;
+    try { semArquivo = rodar({ NODE_OPTIONS: '--require ' + stub }); }
+    finally { fs.renameSync(escondido, alvo); }
+    ok(semArquivo.code !== 0 && /sobre\.html/.test(semArquivo.saida) && /não existe/.test(semArquivo.saida)
+       && !/BUILD ABORTADO: vendor\//.test(semArquivo.saida),
+       'BUILD LIMPO item da lista de cópia ausente derruba o build e diz qual (' + semArquivo.code + ')');
+  }
+
   // build normal: nada de terceiro sobra no HTML publicado
+  plantarOrfaos();
   const normal = rodar({});
   ok(normal.code === 0, 'D9 build com rede passa');
+  ok(!fs.existsSync(orfaoPag) && !fs.existsSync(orfaoBloco),
+     'BUILD LIMPO o build completo não deixa sobra de build anterior em public/');
+  {
+    /* "O resto saiu": public/dados é o espelho exato de dados/ (nem bloco velho, nem bloco
+       faltando), e cada item da lista de cópia chegou. */
+    const arvore = (base) => {
+      const out = [];
+      const andar = (d) => { for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+        const p = path.join(d, e.name);
+        if (e.isDirectory()) andar(p); else out.push(path.relative(base, p));
+      } };
+      if (fs.existsSync(base)) andar(base);
+      return out.sort();
+    };
+    const dRepo = arvore(path.join(RAIZ, 'dados')), dPub = arvore(path.join(RAIZ, 'public', 'dados'));
+    ok(dRepo.length > 0 && dRepo.join('\n') === dPub.join('\n'),
+       'BUILD LIMPO public/dados é o espelho exato de dados/ (' + dPub.length + ' de ' + dRepo.length + ' arquivos)');
+    const src = fs.readFileSync(path.join(RAIZ, 'scripts', 'build.mjs'), 'utf8');
+    const m = src.match(/const COPIAR = (\[[^\]]*\]);/);
+    const copiar = m ? JSON.parse(m[1].replace(/'/g, '"')) : [];
+    ok(copiar.length > 20 && copiar.every(f => fs.existsSync(path.join(RAIZ, 'public', f)))
+       && ['index.html', 'sw.js', 'manifest.webmanifest', 'fonts.css', 'vendor/react.js', 'vendor/react-dom.js', 'vendor/supabase.js']
+          .every(f => fs.existsSync(path.join(RAIZ, 'public', f))),
+       'BUILD LIMPO o resto do deploy saiu inteiro (' + copiar.length + ' cópias + index, sw, manifest, fontes e vendor)');
+  }
   const html = fs.readFileSync(path.join(RAIZ, 'public', 'index.html'), 'utf8');
   const terceiros = (html.match(/(?:src|href)="https:\/\/[^"]*(?:jsdelivr|unpkg|fonts\.googleapis|fonts\.gstatic)[^"]*"/g) || []);
   ok(terceiros.length === 0, 'D9 HTML publicado não carrega nada de CDN nem do Google Fonts');
+  {
+    const cdnjs = citamCdnjs(path.join(RAIZ, 'public'));
+    ok(cdnjs.length === 0, 'D9 nenhum HTML/JS/CSS copiado para public/ cita o cdnjs (' + (cdnjs.join(', ') || 'nenhum') + ')');
+    ok(pdfjsNaSaida(path.join(RAIZ, 'public')),
+       'D9 public/vendor/pdfjs leva pdf.min.js e pdf.worker.min.js com o sha256 do manifesto');
+    /* E o caso reprova quando devia: um arquivo copiado que volta a citar o cdnjs é nomeado.
+       (Plantado depois do build, só para a varredura — some logo em seguida.) */
+    const isca = path.join(RAIZ, 'public', 'isca-cdnjs-' + process.pid + '.js');
+    fs.writeFileSync(isca, 'var B="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";');
+    let pega;
+    try { pega = citamCdnjs(path.join(RAIZ, 'public')); } finally { fs.rmSync(isca, { force: true }); }
+    ok(pega.length === 1 && /isca-cdnjs/.test(pega[0]), 'D9 a varredura do cdnjs acusa e nomeia o arquivo que o cita (' + pega.join(', ') + ')');
+  }
+  // TRAVA GERAL (tests/rede-externa.mjs): nenhum arquivo de texto de public/ carrega URL externa
+  // fora da lista de exceções — src=, <link rel>, @import, url(), fetch, Worker, import(), literal
+  // de recurso, host de CDN —, com isca que prova que a varredura acusa arquivo:linha.
+  testarVarreduraRedeExterna(ok, path.join(RAIZ, 'public'), 'public');
+  testarSupportSemRede(ok, { motor: 'node' });
   ok(/href="\.\/fonts\.css"/.test(html), 'D9 as fontes vêm do próprio domínio');
   const cssFontes = fs.readFileSync(path.join(RAIZ, 'public', 'fonts.css'), 'utf8');
   ok(/font-display:\s*swap/.test(cssFontes), 'D9 font-display:swap preservado');
   ok(!/fonts\.gstatic\.com/.test(cssFontes), 'D9 o CSS das fontes aponta para arquivos locais');
   ok(fs.readdirSync(path.join(RAIZ, 'public', 'fonts')).length > 10, 'D9 os .woff2 estão no deploy');
+}
+
+/* ============= D9 NATIVO — O BUNDLE DO APP NÃO CAI PARA O CDN ============= */
+// O build-macos.mjs gera o bundle web do .app (Mac e iPad) e o do Xcode Cloud. Sem rede no
+// build ele caía para <script src="https://cdn…"> sem avisar; depois passou a abortar (#154).
+// Agora as bibliotecas vêm de vendor/, congeladas e conferidas pelo sha256: sem rede o build
+// PASSA, e o que aborta é vendor/ adulterado ou ausente. O bundle de verdade (mac/build/web)
+// é posto de lado e volta no fim: este caso não pode apagar o que o build do app ou a suíte
+// WebKit vão usar.
+{
+  const { execFileSync } = await import('child_process');
+  const stub = path.join(RAIZ, 'tests', 'offline-stub.cjs');
+  const web = path.join(RAIZ, 'mac', 'build', 'web'), guardado = web + '.antes-do-teste-' + process.pid;
+  const buildMac = (env) => {
+    try {
+      execFileSync(process.execPath, [path.join(RAIZ, 'scripts', 'build-macos.mjs')],
+        { cwd: RAIZ, env: { ...process.env, ...env }, stdio: 'pipe' });
+      return { code: 0, saida: '' };
+    } catch (e) { return { code: e.status ?? 1, saida: String(e.stdout || '') + String(e.stderr || '') }; }
+  };
+  const manifesto = JSON.parse(fs.readFileSync(path.join(RAIZ, 'vendor', 'manifesto.json'), 'utf8'));
+  const hashDe = (p) => createHash('sha256').update(fs.readFileSync(p)).digest('hex');
+  const LIBS = ['react.js', 'react-dom.js', 'supabase.js'];
+  const bundleConfere = () => LIBS.every((f) => {
+    const p = path.join(web, 'vendor', f), ent = manifesto.arquivos.find((a) => a.arquivo === f);
+    return ent && fs.existsSync(p) && hashDe(p) === ent.sha256;
+  });
+  const tinha = fs.existsSync(web);
+  if (tinha) fs.renameSync(web, guardado);
+  let r, idx = null, libsOk = false, r3, idxDepois = null, libsDepois = false, cdnjsNoBundle = null, pdfjsNoBundle = false;
+  const supa = path.join(RAIZ, 'vendor', 'supabase.js'), supaGuardado = supa + '.teste-' + process.pid;
+  try {
+    r = buildMac({ NODE_OPTIONS: '--require ' + stub });
+    const pIdx = path.join(web, 'index.html');
+    if (fs.existsSync(pIdx)) idx = fs.readFileSync(pIdx, 'utf8');
+    libsOk = bundleConfere();
+    cdnjsNoBundle = citamCdnjs(web);
+    pdfjsNoBundle = pdfjsNaSaida(web);
+    // a mesma trava geral sobre o bundle que ACABOU de sair (não o que estava na máquina)
+    testarVarreduraRedeExterna(ok, web, 'bundle');
+    /* O caso do #154 ("sem rede o build-macos ABORTA") mudou de sentido: rede não é mais
+       motivo de aborto; vendor/ corrompido é. Adultera um byte do supabase.js (mesmo
+       tamanho), roda de novo sem rede e confere que o build para, nomeia o arquivo e deixa
+       o bundle que acabou de sair intacto (a conferência vem antes de apagar a saída). */
+    fs.renameSync(supa, supaGuardado);
+    try {
+      const buf = Buffer.from(fs.readFileSync(supaGuardado));
+      buf[buf.length - 1] = buf[buf.length - 1] === 0x20 ? 0x0a : 0x20;
+      fs.writeFileSync(supa, buf);
+      r3 = buildMac({ NODE_OPTIONS: '--require ' + stub });
+    } finally {
+      fs.rmSync(supa, { force: true });
+      fs.renameSync(supaGuardado, supa);
+    }
+    if (fs.existsSync(pIdx)) idxDepois = fs.readFileSync(pIdx, 'utf8');
+    libsDepois = bundleConfere();
+  } finally {
+    fs.rmSync(web, { recursive: true, force: true });
+    if (tinha) fs.renameSync(guardado, web);
+  }
+  ok(r.code === 0 && !/BUILD ABORTADO/.test(r.saida),
+     'D9 NATIVO sem rede o build-macos PASSA (código 0): as bibliotecas vêm de vendor/ (' + r.code + ')');
+  ok(libsOk, 'D9 NATIVO o bundle sem rede leva react.js, react-dom.js e supabase.js com o sha256 do manifesto');
+  ok(!!idx && LIBS.every((f) => idx.includes('src="./vendor/' + f + '"')),
+     'D9 NATIVO o index.html do bundle carrega as três bibliotecas de ./vendor/');
+  // `[^>]*` e não `<script src=`: o prepararAbertura põe `defer` antes do src em toda <script>.
+  ok(!!idx && !/<script\b[^>]*\bsrc="https?:\/\//.test(idx),
+     'D9 NATIVO o index.html do bundle nunca carrega <script> de CDN');
+  ok(Array.isArray(cdnjsNoBundle) && cdnjsNoBundle.length === 0,
+     'D9 NATIVO nenhum HTML/JS/CSS do bundle cita o cdnjs (' + ((cdnjsNoBundle || ['bundle não saiu']).join(', ') || 'nenhum') + ')');
+  ok(pdfjsNoBundle, 'D9 NATIVO o bundle sem rede leva vendor/pdfjs (lib e worker) com o sha256 do manifesto');
+  ok(r3 && r3.code !== 0 && /BUILD ABORTADO: vendor\/supabase\.js/.test(r3.saida) && /sha256/.test(r3.saida),
+     'D9 NATIVO vendor/supabase.js corrompido faz o build-macos ABORTAR e nomeia o arquivo (' + (r3 && r3.code) + ')');
+  ok(idxDepois === idx && libsDepois,
+     'D9 NATIVO o build que aborta pelo hash deixa o bundle anterior de pé (não apaga mac/build/web)');
+  ok(hashDe(supa) === manifesto.arquivos.find((a) => a.arquivo === 'supabase.js').sha256,
+     'D9 NATIVO o caso devolve vendor/supabase.js intacto');
+  ok(!tinha || fs.existsSync(path.join(web, 'index.html')), 'D9 NATIVO o bundle anterior volta intacto depois do caso');
+  // Lista de cópia do bundle também não pula em silêncio: um arquivo listado que sumiu do
+  // repositório para o build e é nomeado (antes o bundle saía sem ele e o app quebrava calado).
+  const sobre = path.join(RAIZ, 'sobre.html'), sobreGuardado = sobre + '.teste-' + process.pid;
+  const tinha2 = fs.existsSync(web); if (tinha2) fs.renameSync(web, guardado);
+  let r2;
+  fs.renameSync(sobre, sobreGuardado);
+  try {
+    try {
+      execFileSync(process.execPath, [path.join(RAIZ, 'scripts', 'build-macos.mjs')], { cwd: RAIZ, stdio: 'pipe' });
+      r2 = { code: 0, saida: '' };
+    } catch (e) { r2 = { code: e.status ?? 1, saida: String(e.stdout || '') + String(e.stderr || '') }; }
+  } finally {
+    fs.renameSync(sobreGuardado, sobre);
+    fs.rmSync(web, { recursive: true, force: true });
+    if (tinha2) fs.renameSync(guardado, web);
+  }
+  ok(r2.code !== 0 && /BUILD ABORTADO: sobre\.html/.test(r2.saida),
+     'D9 NATIVO item da lista de cópia ausente derruba o build-macos e é nomeado (' + r2.code + ')');
+  // o sw.js é obrigatório no build do site: sem ele não haveria PWA nem offline
+  ok(/if \(!existsSync\(join\(ROOT, 'sw\.js'\)\)\) \{ console\.error\('BUILD ABORTADO/.test(fs.readFileSync(path.join(RAIZ, 'scripts', 'build.mjs'), 'utf8')),
+     'BUILD LIMPO sem sw.js o build do site para, em vez de sair sem PWA');
 }
 
 /* ============= U10 — PWA INSTALÁVEL E OFFLINE DE VERDADE ============= */
@@ -256,6 +537,12 @@ async function prepararPonteReal(page, view) {
     'U10 os três pesados não entram no aquecimento automático');
   ok(['./juris-text.js', './oral-conteudo.js', './leis-seca-areas.js'].every(p => pedido.indexOf(p) >= 0),
     'U10 …mas estão na lista de "Baixar tudo" (senão o simulado de súmulas nunca abriria offline)');
+  /* O PDF.js (1,4 MB) só serve para importar PDF: fica no aquecimento SOB PEDIDO, nunca na casca
+     (install bloqueante) nem no automático. Online, o network-first já o guarda no primeiro uso. */
+  ok(['./vendor/pdfjs/pdf.min.js', './vendor/pdfjs/pdf.worker.min.js'].every(p => pedido.indexOf(p) >= 0)
+     && SW.ACERVOS_SOB_PEDIDO.filter(([c]) => /\/vendor\/pdfjs\//.test(c)).every(([, b]) => b > 300000)
+     && !tudoQueSeCacheia.some(p => /\/vendor\/pdfjs\//.test(p)),
+    'U10 o PDF.js (lib e worker) entra no "Baixar tudo", medido, e fica fora da casca e do aquecimento automático');
   const somaPedido = SW.ACERVOS.concat(SW.ACERVOS_SOB_PEDIDO).reduce((s, [, b]) => s + b, 0);
   ok(somaPedido <= SW.ORCAMENTO_PEDIDO && SW.ORCAMENTO_PEDIDO > SW.ORCAMENTO_ACERVO,
     'U10 o pedido explícito tem orçamento próprio e maior (' + (somaPedido / 1048576).toFixed(1)
@@ -313,6 +600,231 @@ async function prepararPonteReal(page, view) {
     'U10 o build segura o beforeinstallprompt (senão o item dos Ajustes não teria o que chamar)');
   ok(/window\.__catedraOffline\s*=/.test(idxHtml) && /ctAquecerAcervos/.test(idxHtml),
     'U10 o host tem por onde ler o estado do acervo offline e mandar baixar o resto');
+
+  /* 8. CACHE POR DEPLOY (decisão da dona, 25/09/2026). Antes VERSION era 'catedra-v5' fixo: a
+     casca e o acervo guardados sobreviviam de um deploy ao outro, o aquecimento pulava o que
+     já tinha, o estado offline contava cópia de qualquer versão como "pronta", o install
+     engolia falha de arquivo e ativava com cache parcial, e os blocos órfãos de dados/ se
+     acumulavam. Aqui o worker PUBLICADO roda contra caches e rede de mentira, pelos mesmos
+     eventos que o navegador dispara (install, activate, message) — nada de atalho interno. */
+  {
+    const { execFileSync } = await import('child_process');
+    const pubDir = path.join(RAIZ, 'public');
+    const versaoDe = (txt) => { const m = txt.match(/^\s*VERSION = '(catedra-[^']+)';/m) || txt.match(/var VERSION = '(catedra-[^']+)';/); return m && m[1]; };
+    const buildSite = () => execFileSync(process.execPath, [path.join(RAIZ, 'scripts', 'build.mjs')], { cwd: RAIZ, stdio: 'pipe' });
+
+    // 8a. a versão é injetada pelo build e sai do CONTEÚDO: mesmo conteúdo, mesma versão
+    const vA = versaoDe(swSrc);
+    ok(/^catedra-[0-9a-f]{12}$/.test(vA || '') && !swSrc.includes('/*__VERSAO__*/'),
+      'U10/VERSÃO o build injeta no sw.js a versão do cache tirada do conteúdo (' + vA + ')');
+    let calc = null;
+    try {
+      const { versaoDoCache, linhaVersao, MARCADOR_VERSAO } = await import('../scripts/sw-versao.mjs');
+      calc = versaoDoCache(pubDir, swSrc.replace(linhaVersao(vA.replace('catedra-', '')), MARCADOR_VERSAO));
+    } catch (_) {}
+    ok(!!calc && vA === 'catedra-' + calc,
+      'U10/VERSÃO a versão publicada é o hash do deploy (public/ + texto do sw.js), recalculado aqui igual');
+    buildSite();
+    const vDeNovo = versaoDe(fs.readFileSync(path.join(pubDir, 'sw.js'), 'utf8'));
+    // um deploy com UM byte diferente num acervo: a sonda é posta e tirada no finally
+    const sonda = path.join(RAIZ, 'modelos-edital.js'), sondaOrig = fs.readFileSync(sonda);
+    let swB = null;
+    try {
+      fs.writeFileSync(sonda, Buffer.concat([sondaOrig, Buffer.from('\n/* sonda U10 */\n')]));
+      buildSite();
+      swB = fs.readFileSync(path.join(pubDir, 'sw.js'), 'utf8');
+    } finally {
+      fs.writeFileSync(sonda, sondaOrig);
+      buildSite();
+    }
+    const vB = swB && versaoDe(swB);
+    const vVolta = versaoDe(fs.readFileSync(path.join(pubDir, 'sw.js'), 'utf8'));
+    ok(vDeNovo === vA && vVolta === vA,
+      'U10/VERSÃO dois builds do mesmo conteúdo dão a mesma versão (' + vDeNovo + ', ' + vVolta + ')');
+    ok(!!vB && vB !== vA && /^catedra-[0-9a-f]{12}$/.test(vB),
+      'U10/VERSÃO um byte a mais num acervo dá versão nova (' + vB + ')');
+
+    // 8b. o ambiente de mentira: caches com a semântica do Cache Storage e uma rede que
+    //     serve os manifestos de verdade e, no resto, um texto que diz de qual deploy veio
+    const ORIGEM = 'https://catedra.exemplo.app';
+    const chave = (k) => new URL(typeof k === 'string' ? k : k.url, ORIGEM + '/sw.js').pathname;
+    const criarAmbiente = () => {
+      const lojas = new Map(), falhasRede = new Set(), log = [];
+      const amb = { lojas, falhasRede, log, deploy: 'A', skipWaiting: 0 };
+      amb.fetch = async (req) => {
+        const p = chave(req); log.push(p);
+        if (falhasRede.has(p)) return new Response('falhou', { status: 500 });
+        if (/\/dados\/[^/]+\/manifesto\.json$/.test(p)) return new Response(fs.readFileSync(path.join(pubDir, p)), { status: 200 });
+        return new Response('deploy ' + amb.deploy + ' ' + p, { status: 200 });
+      };
+      const abrir = (nome) => {
+        if (!lojas.has(nome)) lojas.set(nome, new Map());
+        const m = lojas.get(nome);
+        return {
+          match: async (k) => { const r = m.get(chave(k)); return r ? r.clone() : undefined; },
+          put: async (k, r) => { m.set(chave(k), r); },
+          add: async (k) => { const r = await amb.fetch(k); if (!r.ok) throw new TypeError('add ' + chave(k)); m.set(chave(k), r); },
+          addAll: async (ks) => {   // tudo-ou-nada, como o Cache.addAll de verdade
+            const rs = await Promise.all(ks.map((k) => amb.fetch(k)));
+            if (rs.some((r) => !r.ok)) throw new TypeError('addAll');
+            ks.forEach((k, i) => m.set(chave(k), rs[i]));
+          },
+          keys: async () => [...m.keys()].map((p) => new Request(ORIGEM + p)),
+          delete: async (k) => m.delete(chave(k)),
+        };
+      };
+      amb.caches = {
+        open: async (n) => abrir(n),
+        keys: async () => [...lojas.keys()],
+        delete: async (n) => lojas.delete(n),
+        has: async (n) => lojas.has(n),
+        match: async (k) => { for (const m of lojas.values()) { const r = m.get(chave(k)); if (r) return r.clone(); } },
+      };
+      return amb;
+    };
+    const subirWorker = (amb, texto) => {
+      const eventos = {};
+      const self = {
+        location: new URL(ORIGEM + '/sw.js'),
+        addEventListener: (t, fn) => { (eventos[t] = eventos[t] || []).push(fn); },
+        // saveData: o aquecimento AUTOMÁTICO do activate fica quieto; o teste pede o dele
+        navigator: { storage: { estimate: () => Promise.resolve({ quota: 2e9, usage: 0 }) }, connection: { saveData: true } },
+        skipWaiting: () => { amb.skipWaiting++; return Promise.resolve(); },
+        clients: { claim: () => Promise.resolve(), matchAll: () => Promise.resolve([]) },
+        registration: { showNotification: () => Promise.resolve() },
+      };
+      new Function('self', 'caches', 'fetch', texto)(self, amb.caches, amb.fetch);
+      const disparar = async (tipo, extra) => {
+        let espera = Promise.resolve();
+        const ev = Object.assign({ waitUntil: (p) => { espera = p; } }, extra || {});
+        eventos[tipo][0](ev);
+        return espera;
+      };
+      const perguntar = (type) => new Promise((ok2) => {
+        disparar('message', { data: { type }, ports: [{ postMessage: ok2 }] });
+      });
+      return { api: self.__ctSW, disparar, perguntar };
+    };
+    const resultado = async (p) => { try { await p; return 'ok'; } catch (_) { return 'rejeitou'; } };
+    const lojaTem = (amb, nome, p) => !!(amb.lojas.get(nome) && amb.lojas.get(nome).has(p));
+    const swA = swSrc;
+
+    // 8c. install ATÔMICO: crítico falhou → rejeita, sem skipWaiting, e o worker antigo segue
+    {
+      const amb = criarAmbiente();
+      amb.lojas.set('catedra-v5', new Map([['/index.html', new Response('deploy antigo')]]));
+      amb.falhasRede.add('/support.js');
+      const w = subirWorker(amb, swA);
+      const r = await resultado(w.disparar('install'));
+      ok(r === 'rejeitou' && amb.skipWaiting === 0,
+        'U10/INSTALL item crítico (support.js) que falha REJEITA o install e não chama skipWaiting (' + r + ', skipWaiting ' + amb.skipWaiting + ')');
+      ok(!lojaTem(amb, vA, '/index.html') && lojaTem(amb, 'catedra-v5', '/index.html'),
+        'U10/INSTALL o install que rejeita não deixa cache parcial da versão nova, e o da versão antiga fica intacto');
+      const crit = (w.api && w.api.CRITICOS) || [];
+      ok(['./', './index.html', './support.js', './auth.js', './catedra-ui.css', './fonts.css'].every((c) => crit.includes(c))
+         && crit.some((c) => /^\.\/vendor\/[^/]+\.js$/.test(c)) && !crit.some((c) => /pdfjs|icon|manifesto/.test(c)),
+        'U10/INSTALL a lista crítica é a casca da abertura (documento, runtime, auth, vendor, CSS, fontes) — ' + crit.length + ' itens');
+      for (const falho of ['/auth.js', '/vendor/react.js', '/catedra-ui.css', '/fonts.css']) {
+        const amb2 = criarAmbiente(); amb2.falhasRede.add(falho);
+        const r2 = await resultado(subirWorker(amb2, swA).disparar('install'));
+        ok(r2 === 'rejeitou' && amb2.skipWaiting === 0, 'U10/INSTALL ' + falho + ' falhando também derruba o install (' + r2 + ')');
+      }
+    }
+    // …e o não crítico falhando NÃO segura a instalação
+    {
+      const amb = criarAmbiente();
+      amb.falhasRede.add('/icon.svg');
+      const r = await resultado(subirWorker(amb, swA).disparar('install'));
+      ok(r === 'ok' && amb.skipWaiting === 1 && lojaTem(amb, vA, '/index.html') && lojaTem(amb, vA, '/support.js')
+         && !lojaTem(amb, vA, '/icon.svg'),
+        'U10/INSTALL item não crítico (icon.svg) que falha não impede o install: casca guardada e skipWaiting (' + r + ')');
+    }
+
+    // 8d. troca de deploy: activate apaga as versões antigas e os blocos órfãos; o aquecimento
+    //     baixa tudo de novo; o estado offline só conta a versão atual
+    {
+      const amb = criarAmbiente();
+      const wA = subirWorker(amb, swA);
+      await wA.disparar('install'); await wA.disparar('activate');
+      const aqA = await wA.perguntar('ctAquecerAcervos');
+      const lista = SW.ACERVOS.concat(SW.ACERVOS_SOB_PEDIDO).map(([c]) => c);
+      const ehBloco = (c) => /\/dados\/[^/]+\/(?!manifesto\.json$)[^/]+\.json$/.test(c);
+      // o que a casca já trouxe no install desta versão (ex.: catedra-ui.css) conta como "já tinha"
+      const tambemNaCasca = lista.filter((c) => SW.ASSETS.includes(c));
+      ok(aqA && aqA.ok && aqA.resultado.falhas === 0 && aqA.resultado.baixados === lista.length - tambemNaCasca.length
+         && aqA.resultado.jaTinha === tambemNaCasca.length,
+        'U10/DEPLOY o primeiro aquecimento baixa o acervo inteiro (' + (aqA && aqA.resultado && aqA.resultado.baixados) + ' + '
+        + tambemNaCasca.length + ' da casca, de ' + lista.length + ')');
+
+      // lixo de antes: a versão fixa antiga, outra versão velha, um bloco órfão, uma pasta que sumiu
+      // (acrescenta, sem trocar a loja: no HEAD antigo 'catedra-v5' É a versão A inteira)
+      if (!amb.lojas.has('catedra-v5')) amb.lojas.set('catedra-v5', new Map([['/index.html', new Response('v5')]]));
+      amb.lojas.set('catedra-0123456789ab', new Map([['/index.html', new Response('velho')]]));
+      const dados = amb.lojas.get(SW.CACHE_DADOS) || new Map(); amb.lojas.set(SW.CACHE_DADOS, dados);
+      const juris = JSON.parse(fs.readFileSync(path.join(pubDir, 'dados', 'juris-text', 'manifesto.json'), 'utf8'));
+      const blocoValido = '/dados/juris-text/' + juris.arquivos[0];
+      dados.set(blocoValido, new Response('{}'));
+      dados.set('/dados/juris-text/zz-00000000.json', new Response('{}'));
+      dados.set('/dados/sumiu/aa-11111111.json', new Response('{}'));
+      const blocosLeis = lista.filter(ehBloco);
+
+      amb.deploy = 'B'; amb.log.length = 0;
+      const wB = subirWorker(amb, swB || swA);
+      const vNova = wB.api && wB.api.VERSION;
+      await wB.disparar('install');
+      const estAntes = await wB.perguntar('ctEstadoOffline');
+      await wB.disparar('activate');
+      const nomes = [...amb.lojas.keys()];
+      ok(vNova && vNova !== vA && !nomes.includes(vA) && !nomes.includes('catedra-v5') && !nomes.includes('catedra-0123456789ab')
+         && nomes.includes(vNova) && nomes.includes(SW.CACHE_DADOS),
+        'U10/DEPLOY a ativação apaga o cache da versão anterior, o catedra-v5 e outra versão velha (ficam: ' + nomes.join(', ') + ')');
+      ok(!dados.has('/dados/juris-text/zz-00000000.json') && !dados.has('/dados/sumiu/aa-11111111.json'),
+        'U10/DEPLOY o bloco órfão (fora dos manifestos atuais) e o de pasta que sumiu saem do cache de dados');
+      ok(dados.has(blocoValido) && blocosLeis.every((b) => dados.has(chave(b))),
+        'U10/DEPLOY os blocos que os manifestos atuais citam ficam (' + (blocosLeis.length + 1) + ')');
+
+      // estado offline logo depois do install do deploy novo: só os blocos imutáveis contam
+      const est = estAntes && estAntes.estado;
+      ok(!!est && est.versao === vNova && est.prontos === blocosLeis.length + tambemNaCasca.length,
+        'U10/DEPLOY o estado offline conta só a versão atual: da versão anterior valem apenas os blocos imutáveis ('
+        + (est && est.prontos) + ' prontos de ' + lista.length + ')');
+
+      const aqB = await wB.perguntar('ctAquecerAcervos');
+      const naoBlocos = lista.filter((c) => !ehBloco(c)).map(chave);
+      const rebaixados = naoBlocos.filter((p) => amb.log.includes(p));
+      ok(aqB && aqB.ok && rebaixados.length === naoBlocos.length && aqB.resultado.baixados === naoBlocos.length - tambemNaCasca.length
+         && aqB.resultado.jaTinha === blocosLeis.length + tambemNaCasca.length,
+        'U10/DEPLOY o aquecimento da versão nova baixa de novo tudo o que não é bloco imutável ('
+        + rebaixados.length + ' de ' + naoBlocos.length + '; ' + (aqB && aqB.resultado && aqB.resultado.jaTinha) + ' blocos reaproveitados)');
+      const cNovo = amb.lojas.get(vNova) || new Map();
+      const corpo = cNovo.get('/juris-index.js') ? await cNovo.get('/juris-index.js').clone().text() : '';
+      ok(/^deploy B /.test(corpo), 'U10/DEPLOY o acervo guardado depois da troca é o do deploy novo (' + corpo.slice(0, 30) + ')');
+      const estDepois = (await wB.perguntar('ctEstadoOffline')).estado;
+      ok(estDepois && estDepois.prontos === lista.length && estDepois.versao === vNova,
+        'U10/DEPLOY depois do "Baixar tudo" o estado offline da versão nova fica completo (' + (estDepois && estDepois.prontos) + ')');
+    }
+
+    // 8e. a condição de produção não mudou — nem a do worker, nem a da página (senão volta o
+    //     laço de recarga em localhost, ou o worker some da produção)
+    const COND_SW = "var IS_PROD = (self.location.protocol === 'https:') && HOST !== 'localhost' && HOST !== '127.0.0.1' && HOST !== '';";
+    const COND_PAG = "var ctProd = location.protocol === 'https:' && !/^(localhost|127\\.0\\.0\\.1)$/.test(location.hostname);";
+    // O trecho injetado é um template literal no build.mjs: o `\.` sai como `.` no index.html
+    // publicado (casa 127.0.0.1 do mesmo jeito). É o texto PUBLICADO que roda, então é ele que se avalia.
+    const COND_PAG_PUB = COND_PAG.replace(/\\\./g, '.');
+    const fonteSw = fs.readFileSync(path.join(RAIZ, 'sw.js'), 'utf8');
+    const buildTxt = fs.readFileSync(path.join(RAIZ, 'scripts', 'build.mjs'), 'utf8');
+    ok(fonteSw.includes(COND_SW) && swSrc.includes(COND_SW) && buildTxt.includes(COND_PAG) && idxHtml.includes(COND_PAG_PUB),
+      'U10/PROD a condição de produção do sw.js e a do registro na página seguem as mesmas (fonte e publicado)');
+    const decide = (href) => {
+      const loc = new URL(href);
+      const noSw = new Function('self', 'var HOST = self.location.hostname; ' + COND_SW + ' return IS_PROD;')({ location: loc });
+      const naPag = new Function('location', COND_PAG_PUB + ' return ctProd;')(loc);
+      return [noSw, naPag];
+    };
+    const amostras = ['https://catedra.app/', 'https://x.vercel.app/', 'http://localhost:8461/', 'https://localhost/', 'https://127.0.0.1/', 'http://catedra.app/', 'file:///x/index.html'];
+    ok(amostras.every((u) => { const [a, b] = decide(u); return a === b && a === /^https:\/\/(?!localhost|127\.)/.test(u); }),
+      'U10/PROD o worker e a página decidem igual em ' + amostras.length + ' endereços (produção só em https fora de localhost)');
+  }
 }
 
 /* ================= JURIS — RÓTULO DO VERBETE (auditoria 15/09/2026) =================
@@ -628,13 +1140,19 @@ const a3 = await page.evaluate(async () => {
 });
 ok(a3.de && a3.de.peca && a3.de.bloco != null, 'ACERVO chip do painel manda de.peca+bloco');
 
-// pílula de voltar nos dois acervos, e só com ?volta=1
-for (const pg of ['legis-web.html?volta=1', 'juris-web.html?volta=1']) {
+// pílula de voltar nos dois acervos, e só com ?volta=1. O TEXTO vem do host (&vr=, depois
+// ctVoltaDisponivel {rotulo}); sem ele a pílula diz só "Voltar". A seta é um SVG aria-hidden
+// fora do texto (o nome acessível é só o rótulo). A volta de ponta a ponta,
+// no host real e com a pílula medida, está em tests/volta-origem.mjs.
+for (const [pg, texto] of [['legis-web.html?volta=1&vr=' + encodeURIComponent('Voltar à peça · bloco 3'), 'Voltar à peça · bloco 3'],
+                           ['juris-web.html?volta=1', 'Voltar']]) {
   await page.goto(URL0 + '/' + pg);
   await page.waitForTimeout(400);
-  const a4 = await page.evaluate(async () => {
-    const b = [...document.querySelectorAll('button')].find(x => /Voltar ao ponto/.test(x.textContent || ''));
-    if (!b) return { pill: false };
+  const a4 = await page.evaluate(async (texto) => {
+    const b = document.getElementById('ct-volta');
+    const svg = b && b.querySelector('svg');
+    if (!b || getComputedStyle(b).display === 'none' || (b.textContent || '').trim() !== texto
+      || !svg || svg.getAttribute('aria-hidden') !== 'true') return { pill: false, achou: b && b.textContent };
     const got = new Promise(resolve => {
       const original = window.ctEnviarAoHost;
       let resolveu = false;
@@ -649,61 +1167,17 @@ for (const pg of ['legis-web.html?volta=1', 'juris-web.html?volta=1']) {
     });
     b.click();
     return { pill: true, msg: await got };
-  });
-  ok(a4.pill && a4.msg && a4.msg.type === 'ctVoltarAcervo', 'ACERVO pílula funciona em ' + pg);
+  }, texto);
+  ok(a4.pill && a4.msg && a4.msg.type === 'ctVoltarAcervo', 'ACERVO pílula "' + texto + '" funciona em ' + pg.split('?')[0]);
 }
 await page.goto(URL0 + '/legis-web.html');
 await page.waitForTimeout(300);
-const a4b = await page.evaluate(() => ![...document.querySelectorAll('button')].some(x => /Voltar ao ponto/.test(x.textContent || '')));
+const a4b = await page.evaluate(() => { const b = document.getElementById('ct-volta'); return !b || getComputedStyle(b).display === 'none'; });
 ok(a4b, 'ACERVO sem volta=1 não há pílula');
 
-// ciclo completo no harness que simula o host. SEM TEMPO FIXO (11/09/2026): sob carga o
-// iframe ainda não tinha trocado de página quando o teste lia o painel, e a volta falhava sem
-// defeito no app. Cada passo espera a sua condição (a cada 50 ms, até 8 s); elemento ausente
-// vira falha nomeada, não exceção que derruba a suíte.
-await page.goto(URL0 + '/tests/harness-acervo.html');
-const a5 = await page.evaluate(async (PECA) => {
-  const w = ms => new Promise(r => setTimeout(r, ms));
-  const fr = document.getElementById('fr');
-  for (let i = 0; i < 160 && !(fr.contentWindow && fr.contentWindow.CTRoteiro); i++) await w(50);
-  if (!fr.contentWindow.CTRoteiro) return { erro: 'o mapa não carregou no iframe' };
-  fr.contentWindow.CTRoteiro.abrir(PECA);
-  const acha = () => [...fr.contentDocument.querySelectorAll('.ctr .rf button')].find(b => +b.dataset.b > 0);
-  for (let i = 0; i < 160 && !acha(); i++) await w(50);
-  const chip = acha(); if (!chip) return { erro: 'sem chip de bloco no painel' };
-  const n = window.__log.length;
-  chip.click();
-  for (let i = 0; i < 160 && window.__log.length === n; i++) await w(50);
-  return window.__log[window.__log.length - 1];
-}, PECA);
-ok(!a5.erro && /legis-web/.test(a5.src) && /volta=1/.test(a5.src) && /q=/.test(a5.src), 'ACERVO ida: LEGIS com q= e volta=1' + (a5.erro ? ' (' + a5.erro + ')' : ''));
-const a6 = await page.evaluate(async () => {
-  const w = ms => new Promise(r => setTimeout(r, ms));
-  const fr = document.getElementById('fr');
-  // o LEGIS entra no lugar do mapa: espera a pílula DELE, não 1,5 s fixos
-  const pilula = () => { const d = fr.contentDocument; return d && /legis-web/.test(d.location.pathname) && [...d.querySelectorAll('button')].find(x => /Voltar ao ponto/.test(x.textContent || '')); };
-  for (let i = 0; i < 160 && !pilula(); i++) await w(50);
-  const b = pilula();
-  if (!b) return { erro: 'sem pílula no iframe' };
-  const n = window.__log.length;
-  b.click();
-  for (let i = 0; i < 160 && window.__log.length === n; i++) await w(50);
-  return window.__log[window.__log.length - 1];
-});
-ok(!a6.erro && a6.view === 'areamod' && /peca=/.test(a6.src) && /bloco=/.test(a6.src), 'ACERVO volta: mapa com peca+bloco' + (a6.erro ? ' (' + a6.erro + ')' : ''));
-const a7 = await page.evaluate(async () => {
-  const w = ms => new Promise(r => setTimeout(r, ms));
-  // espera o iframe TROCAR de página (sai o LEGIS, entra o mapa com ?bloco=) e o painel reabrir
-  // no bloco — espera e leitura no mesmo passo, sem 1,2 s fixos no meio
-  const doc = () => document.getElementById('fr').contentDocument;
-  const pronto = () => { const d = doc(); return !!d && /bloco=/.test(d.location.search) && !!d.querySelector('.ctr.on') && [...d.querySelectorAll('.ctr .blk')].some(b => b.classList.contains('volta')); };
-  for (let i = 0; i < 160 && !pronto(); i++) await w(50);
-  const d = doc(), rot = d && d.querySelector('.ctr');
-  return { aberto: !!rot && rot.classList.contains('on'),
-           destacou: !!d && [...d.querySelectorAll('.ctr .blk')].some(b => b.classList.contains('volta')),
-           onde: d ? d.location.pathname + d.location.search : 'sem documento no iframe' };
-});
-ok(a7.aberto && a7.destacou, 'ACERVO volta reabre o painel no bloco destacado' + (a7.aberto && a7.destacou ? '' : ' (' + a7.onde + ')'));
+// O ciclo completo (ida → pílula → volta ao bloco) rodava em tests/harness-acervo.html, uma
+// cópia ANTIGA do host sem os ramos de prioridade, ciclo e 2ª fase e sem os iframes vivos.
+// Saiu em 24/09/2026: tests/volta-origem.mjs faz o mesmo e mais no Catedra.dc.html real.
 
 /* ===== JURIS — INFORMATIVOS DO STF: EDIÇÃO, TRIBUNAL E DATA (auditoria 15/09/2026) =====
 
@@ -2077,6 +2551,7 @@ for (const [k, v] of Object.entries(la5m)) ok(v, 'LEITURA/CLOZE ' + k);
   const pg = await ctx.newPage();
   try { await testarLegisGuiado(pg, URL0, ok, { motor, origem: 'http' }); }
   catch (e) { ok(false, 'LEGIS GUIADO o roteiro correu sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
+  try { await testarLeitorWeb(pg, URL0, ok); } catch (e) { ok(false, 'LEITOR WEB: exceção — ' + (e && e.message)); }
   await ctx.close();
   // filtros "só incidência alta" e "só o que ainda não li"
   await page.goto(URL0 + '/legis-web.html?area=juridica');
@@ -2906,8 +3381,8 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
   r.tokensSemHexFixoNoTexto = /var\(--ink,/.test(termos) && /var\(--bg,/.test(termos) && /min-height: 44px/.test(termos);
   await import('../juridico.js');
   const J = globalThis.CT_JURIDICO;
-  r.versaoVigente = J.versao === '1.0/1.0' && J.termos.arquivo === 'termos.html' && J.privacidade.data === '2026-09-02';
-  r.aceiteVigentePuro = J.aceiteVigente({ versao: '1.0/1.0', ts: 1 }) === true && J.aceiteVigente('{"versao":"1.0/1.0","ts":5}') === true && J.aceiteVigente({ versao: '0.9/1.0', ts: 1 }) === false && J.aceiteVigente(null) === false && J.aceiteVigente('lixo') === false && J.aceiteVigente({ versao: '1.0/1.0' }) === false;
+  r.versaoVigente = J.versao === '1.0/1.1' && J.termos.arquivo === 'termos.html' && J.privacidade.data === '2026-09-25';
+  r.aceiteVigentePuro = J.aceiteVigente({ versao: '1.0/1.1', ts: 1 }) === true && J.aceiteVigente('{"versao":"1.0/1.1","ts":5}') === true && J.aceiteVigente({ versao: '0.9/1.0', ts: 1 }) === false && J.aceiteVigente(null) === false && J.aceiteVigente('lixo') === false && J.aceiteVigente({ versao: '1.0/1.1' }) === false;
   const auth = fs.readFileSync(path.join(RAIZ, 'auth.js'), 'utf8');
   r.portaoDeLoginPedeAceite = /aceiteVigente\(aceiteLocal, row && row\.data && row\.data\['catedra:aceite'\]\)/.test(auth) && /showAceite\(function \(\) \{ try \{ _si\('catedra:aceite'/.test(auth) && /data-doc="termos\.html"/.test(auth) && /data-doc="privacidade\.html"/.test(auth);
   r.exclusaoPelaRpc = /sb\.rpc\('excluir_minha_conta'\)/.test(auth) && /excluirConta: excluirConta/.test(auth) && fs.existsSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-excluir-minha-conta.sql'));
@@ -2964,10 +3439,10 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     window.__catedraGoView('ajustes'); await w(600);
     const abaDados = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => b.dataset.s === 'dados'); if (abaDados) { abaDados.click(); await w(600); }
     const card = document.querySelector('main [data-card="juridico"]');
-    r.cardEmAjustes = !!card && /Termos de uso/.test(card.textContent) && /Política de privacidade/.test(card.textContent) && /versão 1\.0\/1\.0 · 02\/09\/2026/.test(card.textContent);
+    r.cardEmAjustes = !!card && /Termos de uso/.test(card.textContent) && /Política de privacidade/.test(card.textContent) && /versão 1\.0\/1\.1 · 02\/09\/2026/.test(card.textContent);
     r.aceiteAindaNao = /ainda não foi aceita nesta conta/.test(card.querySelector('[data-aceite-txt]').textContent);
-    app.setState({ aceite: { versao: '1.0/1.0', ts: Date.now() } }); await w(300);
-    r.aceiteMostrado = /Você aceitou a versão 1\.0\/1\.0 em/.test(document.querySelector('main [data-aceite-txt]').textContent);
+    app.setState({ aceite: { versao: '1.0/1.1', ts: Date.now() } }); await w(300);
+    r.aceiteMostrado = /Você aceitou a versão 1\.0\/1\.1 em/.test(document.querySelector('main [data-aceite-txt]').textContent);
     r.iaAutorizadaNoTexto = /Autorizado em/.test(document.querySelector('main [data-ia-txt]').textContent);
     [...document.querySelectorAll('main [data-card="juridico"] button')].find(b => /Revogar o consentimento/.test(b.textContent)).click(); await w(900);
     r.revogarApaga = guardado() === null && /Nenhum recurso de IA é chamado/.test(document.querySelector('main [data-ia-txt]').textContent);
@@ -4200,6 +4675,14 @@ catch (e) {
 try { await testarSupportCorrecoesLocais(ok); }
 catch (e) {
   ok(false, 'SUP o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+/* ============= BASE VISUAL NATIVA (LEGIS/JURIS) =============
+   Catraca de hex/tamanho fixo/emoji fora de ios/vendor/design e, no Mac, os testes Swift
+   da base. Roteiro em tests/design-nativo.mjs (a catraca roda também na CI). */
+try { await testarDesignNativo(ok); }
+catch (e) {
+  ok(false, 'DESIGN NATIVO o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
@@ -9010,6 +9493,39 @@ catch (e) {
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
+// Volta à origem: a pílula do LEGIS/JURIS e o botão nativo levam ao ponto exato (tests/volta-origem.mjs)
+try { await testarVoltaOrigem(page, URL0, ok, { motor, origem: 'http' }); }
+catch (e) {
+  ok(false, 'VOLTA [' + motor + '] [http] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+// Texto sobre o destaque: --onAccent por contraste WCAG no pior ponto e --accentSolid onde o
+// destaque cru não dá 4,5:1, com o --accent de identidade intacto (tests/contraste-destaque.mjs)
+try { await testarContrasteDestaque(page, URL0, ok, { motor }); }
+catch (e) {
+  ok(false, 'CONTRASTE/DESTAQUE [' + motor + '] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+// Ícone é SVG Lucide, não emoji, no Início, na barra lateral, no painel de avisos, nas outras telas
+// do host (d), nos satélites e no portão de login (e); os alvos do
+// cronômetro do banner com 44 px no toque e intactos com mouse; a nota da Prova oral com fundo que
+// pinta (era var(--ok)+'1f', que não é cor) — tests/icones-alvos.mjs
+try { await testarIconesAlvos(page, URL0, ok, { motor }); }
+catch (e) {
+  ok(false, 'ÍCONES/ALVOS [' + motor + '] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+// JURIS sem faixa lateral colorida no cartão (a cor do ramo tinge a borda e lava o fundo) e os
+// alvos do mapa processual com 44 px no toque, intactos com mouse (tests/faixa-mapa-alvos.mjs)
+try { await testarFaixaMapaAlvos(page, URL0, ok, { motor }); }
+catch (e) {
+  ok(false, 'FAIXA/ALVOS [' + motor + '] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
 // Integração entre os módulos: edital → ciclo → sessão → acervo → progresso (tests/integracao-modulos.mjs)
 try { await testarIntegracaoModulos(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
@@ -9075,6 +9591,18 @@ catch (e) {
   ok(false, 'AUTH IPAD [' + motor + '] [http] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
+// Hidratação que não finge que enviou (tests/auth-hidratacao.mjs): o pushNow pós-reload sobe o que o aparelho trouxe
+try { await testarAuthHidratacao(page, URL0, ok, { motor }); }
+catch (e) {
+  ok(false, 'AUTH HIDRATAÇÃO [' + motor + '] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+// Fechamento e Sair sem sobrescrever a nuvem (tests/auth-fechamento.mjs): PATCH condicional no pagehide, Sair espera o pushNow
+try { await testarAuthFechamento(page, URL0, ok, { motor }); }
+catch (e) {
+  ok(false, 'AUTH FECHAMENTO [' + motor + '] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
 
 // iPad por toque (tests/ipad-toque.mjs): o mesmo roteiro do runner WebKit, aqui no Chromium
 try { await testarIpadToque(page, URL0, ok, { motor, origem: 'http' }); }
@@ -9132,8 +9660,24 @@ catch (e) {
   ok(false, 'MENU/BARALHO [' + motor + '] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
+// PDF.js local (tests/pdfjs-local.mjs): o app extrai texto de PDF com toda origem externa
+// bloqueada — em http (o site) e em file:// (o caminho dos apps nativos, com o worker falso).
+try {
+  const { pathToFileURL } = await import('url');
+  await testarPdfjsLocal(browser, ok, { motor, origens: [[URL0, 'http', 'Catedra.dc.html'], [pathToFileURL(RAIZ).href, 'file', 'Catedra.dc.html']] });
+}
+catch (e) { ok(false, 'PDFJS LOCAL [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
+
+// TRAVA GERAL DE REDE (tests/rede-externa.mjs): o harness que deixa a suíte sem rede tira uma
+// dependência real (o host cru não abre offline sem ele), e o app PUBLICADO (public/, pelo
+// servidor da suíte) abre, monta LEGIS e JURIS e importa um PDF com toda origem de fora abortada,
+// sem pedido externo fora das exceções. O bundle nativo roda na suíte WebKit.
+try { await testarHarnessSemRede(browser, ok, { motor, origens: [[URL0, 'http'], [pathToFileURL(RAIZ).href, 'file']] }); }
+catch (e) { ok(false, 'REDE DA SUÍTE [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
+await testarRedeExternaExecucao(browser, ok, { motor, origens: [[URL0, 'publicado', 'public/index.html']] });
 
 await browser.close();
 srv.close();
+console.log('\n' + resumoRedeSuite());
 console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
 process.exit(falhas.length ? 1 : 0);

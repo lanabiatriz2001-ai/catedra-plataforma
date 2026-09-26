@@ -11,7 +11,8 @@
      b29e05f, PR #123;
    · SUP2 o EVENT_MAP tem os quatro eventos de arrastar e soltar — 4d5e8c9;
    · SUP3 o aviso __dc_booted ao pai não vai para "*" em http(s) — 7b7e8dd, PR #136;
-   · SUP4 o cabeçalho não diz mais "do not edit" e lista as três correções pelo commit;
+   · SUP4 o cabeçalho não diz mais "do not edit" e lista as correções locais;
+   · SUP5 nenhum Babel buscado de fora (unpkg) — PR #166;
    · controle: cada correção desfeita em memória REPROVA na mesma régua (a régua não é
      frouxa a ponto de aprovar o arquivo antigo).
 
@@ -42,7 +43,7 @@ function bloco(src, inicio) {
 
 // Devolve { SUP1: [...], SUP2: [...], SUP3: [...], SUP4: [...] } com os problemas de cada régua.
 export function problemasDoSupport(bruto) {
-  const p = { SUP1: [], SUP2: [], SUP3: [], SUP4: [] };
+  const p = { SUP1: [], SUP2: [], SUP3: [], SUP4: [], SUP5: [] };
   // As réguas de código olham só o código: linha de comentário sai (o próprio cabeçalho cita
   // `fetch(location.href)` e `res.ok || res.status === 0`, e não pode contar como correção).
   const src = bruto.replace(/^[ \t]*\/\/.*$/gm, '');
@@ -93,18 +94,22 @@ export function problemasDoSupport(bruto) {
   // SUP4 — o cabeçalho honesto.
   const cab = bruto.split('\n').slice(0, 40).join('\n');
   if (/do not edit/i.test(cab)) p.SUP4.push('o cabeçalho voltou a dizer "do not edit" — o arquivo é mantido à mão');
+  if (!/PR #166/.test(cab)) p.SUP4.push('o cabeçalho não lista a correção local do Babel (PR #166)');
+  // SUP5 — nada de Babel buscado na rede (o código ignora comentários).
+  if (/unpkg\.com\/@babel|babel\.min\.js|BABEL_URL/.test(src)) p.SUP5.push('o support.js voltou a buscar o Babel standalone no unpkg');
   for (const c of ['b29e05f', '4d5e8c9', '7b7e8dd']) {
     if (!cab.includes(c)) p.SUP4.push('o cabeçalho não lista a correção local ' + c);
   }
   return p;
 }
 
-const COMMIT = { SUP1: 'b29e05f', SUP2: '4d5e8c9', SUP3: '7b7e8dd', SUP4: 'b29e05f' };
+const COMMIT = { SUP1: 'b29e05f', SUP2: '4d5e8c9', SUP3: '7b7e8dd', SUP4: 'b29e05f', SUP5: 'PR #166' };
 const NOME = {
   SUP1: 'a releitura do template aceita file:// (status 0) e os menus do Mac e do iPad listam as opções',
   SUP2: 'o EVENT_MAP entrega arrastar e soltar (ondragover/ondragenter/ondragleave/ondrop)',
   SUP3: 'o aviso __dc_booted vai para location.origin em http(s), não para "*"',
   SUP4: 'o cabeçalho diz que o arquivo é mantido à mão e lista as correções locais',
+  SUP5: 'o runtime não busca o Babel standalone no unpkg',
 };
 
 export async function testarSupportCorrecoesLocais(ok, arquivo = path.join(RAIZ, 'support.js')) {

@@ -28,6 +28,8 @@ import { testarIpadToque } from './ipad-toque.mjs';
 import { testarIpadToqueSatelites } from './ipad-toque-satelites.mjs';
 import { testarAuthIpad } from './auth-ipad.mjs';
 import { testarAuthAbertura } from './auth-abertura.mjs';
+import { testarAuthHidratacao } from './auth-hidratacao.mjs';
+import { testarAuthFechamento } from './auth-fechamento.mjs';
 import { testarCarregamentoInicial, testarAberturaEmbutida } from './carregamento-inicial.mjs';
 import { testarTemplateFileUrl } from './template-file-url.mjs';
 import { testarAuthModoLocal } from './auth-modo-local.mjs';
@@ -35,10 +37,16 @@ import { testarSelectHost } from './select-host.mjs';
 import { testarJurisQuadro } from './juris-quadro.mjs';
 import { testarPrioridadeErrosResolvidos } from './prioridade-erros-resolvidos.mjs';
 import { testarRevisaoFonte } from './revisao-fonte.mjs';
+import { testarVoltaOrigem } from './volta-origem.mjs';
+import { testarContrasteDestaque } from './contraste-destaque.mjs';
+import { testarIconesAlvos } from './icones-alvos.mjs';
+import { testarFaixaMapaAlvos } from './faixa-mapa-alvos.mjs';
 import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
 import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 import { testarMenuLateral } from './menu-lateral.mjs';
+import { testarPdfjsLocal } from './pdfjs-local.mjs';
+import { testarVarreduraRedeExterna, testarHarnessSemRede, testarRedeExternaExecucao, resumoRedeSuite } from './rede-externa.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 // porta própria por padrão: run.mjs usa a 8123, e as duas suítes podem rodar lado a lado
@@ -98,6 +106,18 @@ for (const [base, origem, arquivo] of ORIGENS) {
     }
   }
   if (origem === 'http') {
+    // hidratação que não finge que enviou: semeia por base+'/__semente', por isso só em http
+    try { await testarAuthHidratacao(page, base, ok, { motor }); }
+    catch (e) {
+      ok(false, 'AUTH HIDRATAÇÃO [' + motor + '] o roteiro correu sem exceção ('
+        + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+    }
+    // fechamento e Sair sem sobrescrever a nuvem: PATCH condicional no pagehide, Sair espera o pushNow
+    try { await testarAuthFechamento(page, base, ok, { motor }); }
+    catch (e) {
+      ok(false, 'AUTH FECHAMENTO [' + motor + '] o roteiro correu sem exceção ('
+        + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+    }
     await testarCarregamentoInicial(page, base, ok);
     await testarAberturaEmbutida(ok);
     try { await testarPrioridadeDiscursiva(page, base, ok); } catch(e) { ok(false, 'DISCURSIVA exceção: '+e.message); }
@@ -139,6 +159,18 @@ for (const [base, origem, arquivo] of ORIGENS) {
     // o motor do WKWebView é o que o iPad pinta
     try { await testarMenuLateral(page, base, ok, { motor, origem }); }
     catch (e) { ok(false, 'MENU/BARALHO [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
+    // o texto sobre o destaque medido no motor da Apple: gradiente, color-mix e os tokens por
+    // cópia no LEGIS são o que o iPad e o Mac pintam
+    try { await testarContrasteDestaque(page, base, ok, { motor }); }
+    catch (e) { ok(false, 'CONTRASTE/DESTAQUE [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
+    // os ícones do app, dos satélites e do portão (SVG Lucide, não emoji) e os alvos do cronômetro no toque, no motor que o
+    // iPad pinta — e a nota da Prova oral, cujo fundo inválido o WebKit também descartava
+    try { await testarIconesAlvos(page, base, ok, { motor }); }
+    catch (e) { ok(false, 'ÍCONES/ALVOS [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
+    // o cartão do JURIS sem faixa lateral (borda tingida + lavagem, color-mix) e os alvos do mapa
+    // processual no toque — o motor da Apple é o que o iPad pinta
+    try { await testarFaixaMapaAlvos(page, base, ok, { motor }); }
+    catch (e) { ok(false, 'FAIXA/ALVOS [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
     try { await testarJurisQuadro(page, base, ok, { motor, origem }); }
     catch (e) {
       ok(false, 'JURIS/QUADRO [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
@@ -147,6 +179,17 @@ for (const [base, origem, arquivo] of ORIGENS) {
     try { await testarPostMessageSeguranca(page, base, ok, { motor, origem, arquivo }); }
     catch (e) {
       ok(false, 'PONTE [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
+        + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+    }
+  }
+  // Volta à origem: a pílula do LEGIS/JURIS e o botão nativo (shim extraído do Swift) levam ao
+  // ponto exato. Em http, todas as origens; em file:// (o caminho dos apps), a ida-e-volta do
+  // rito e o shim nativo, falando com os satélites pelo Frame (origem opaca). O bundle fica de
+  // fora: é uma cópia gerada que pode estar velha em relação ao código sob teste.
+  if (origem !== 'bundle') {
+    try { await testarVoltaOrigem(page, base, ok, { motor, origem, arquivo }); }
+    catch (e) {
+      ok(false, 'VOLTA [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
         + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
     }
   }
@@ -163,7 +206,32 @@ for (const [base, origem, arquivo] of ORIGENS) {
   await ctx.close();
 }
 
+// PDF.js local (tests/pdfjs-local.mjs): extrair texto de PDF com toda origem externa bloqueada,
+// nas mesmas origens — http, file:// e o bundle nativo quando existir. É no motor do WKWebView
+// que o Worker em file:// pode não subir e o PDF.js cai no worker falso.
+try { await testarPdfjsLocal(browser, ok, { motor, origens: ORIGENS }); }
+catch (e) { ok(false, 'PDFJS LOCAL [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
+
+// TRAVA GERAL DE REDE (tests/rede-externa.mjs), no motor do WKWebView:
+// · varredura estática do bundle nativo (mac/build/web), quando ele está na lista de origens;
+// · o harness da suíte tira uma dependência real (sem ele, offline, o host cru não abre);
+// · o app PUBLICADO (public/, pelo servidor da suíte) e o BUNDLE em file:// abrem, montam LEGIS e
+//   JURIS e importam um PDF com toda origem de fora abortada, sem pedido fora das exceções.
+if (ORIGENS.some(([, o]) => o === 'bundle')) testarVarreduraRedeExterna(ok, BUNDLE, 'bundle');
+try { await testarHarnessSemRede(browser, ok, { motor, origens: ORIGENS.filter(([, o]) => o !== 'bundle') }); }
+catch (e) { ok(false, 'REDE DA SUÍTE [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
+{
+  const exec = [];
+  const PUB = path.join(RAIZ, 'public');
+  if (fs.existsSync(path.join(PUB, 'index.html')) && !listarEsvaziados([PUB]).length) exec.push([URL0, 'publicado', 'public/index.html']);
+  else console.log('[' + motor + '] sem public/index.html utilizável — o app publicado fica de fora da trava de rede (gere com: node scripts/build.mjs)');
+  const b = ORIGENS.find(([, o]) => o === 'bundle');
+  if (b) exec.push(b);
+  await testarRedeExternaExecucao(browser, ok, { motor, origens: exec });
+}
+
 await browser.close();
 srv.close();
+console.log('\n' + resumoRedeSuite());
 console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
 process.exit(falhas.length ? 1 : 0);

@@ -10,12 +10,13 @@
    marcar progresso, não uma fonte de consulta.
 
    Formato: { nome, icone, sub, legenda, disc, grupos:[{n, c, itens:[{t, d}]}] }
+   - icone = NOME Lucide (area-web.html desenha com ctIco); emoji não é ícone
    - disc = disciplina sugerida ao abrir o registro de sessão a partir do item
    - t = título do ponto | d = o que revisar dentro dele (roteiro curto) */
 window.CT_MODULOS = {
 
   saude: {
-    nome:'Corpo humano', icone:'🩺', disc:'Anatomia e Fisiologia',
+    nome:'Corpo humano', icone:'stethoscope', disc:'Anatomia e Fisiologia',
     sub:'Os sistemas do corpo, estrutura por estrutura — marque o que já domina',
     legenda:'Mapa de estudo da anatomia e fisiologia humana. Cada sistema tem uma barra de progresso: o verde enche conforme você marca as estruturas como dominadas.',
     grupos:[
@@ -97,7 +98,7 @@ window.CT_MODULOS = {
     ]},
 
   social: {
-    nome:'SUAS e política social', icone:'🤝', disc:'Serviço Social',
+    nome:'SUAS e política social', icone:'handshake', disc:'Serviço Social',
     sub:'A engrenagem da assistência social — proteções, equipamentos, benefícios e instrumentos',
     legenda:'Estrutura do Sistema Único de Assistência Social e do trabalho profissional. Complementa o CátedraLEGIS, que traz a letra da LOAS, do SUAS e dos estatutos.',
     grupos:[
@@ -135,7 +136,7 @@ window.CT_MODULOS = {
     ]},
 
   contas: {
-    nome:'Controle externo', icone:'🏦', disc:'Controle Externo',
+    nome:'Controle externo', icone:'landmark', disc:'Controle Externo',
     sub:'Como o Tribunal de Contas fiscaliza — processos, instrumentos e responsabilização',
     legenda:'Estrutura do controle externo brasileiro. A letra da lei (CF, Lei 4.320, LRF, licitações) fica no CátedraLEGIS; aqui está a engrenagem que a prova cobra.',
     grupos:[
@@ -177,7 +178,7 @@ window.CT_MODULOS = {
     ]},
 
   juridica: {
-    nome:'Processo e peças', icone:'⚖️', disc:'Direito Processual Civil',
+    nome:'Processo e peças', icone:'scale', disc:'Direito Processual Civil',
     sub:'As fases do processo e as peças de cada momento — o esqueleto que a prova cobra',
     legenda:'Complementa o CátedraLEGIS (letra da lei) e o CátedraJURIS (súmulas e teses): aqui fica a ESTRUTURA do processo e das peças, que é o que organiza a resposta na prova prática.',
     grupos:[
@@ -211,7 +212,7 @@ window.CT_MODULOS = {
     ]},
 
   policial: {
-    nome:'Prática policial', icone:'🚔', disc:'Direito Processual Penal',
+    nome:'Prática policial', icone:'siren', disc:'Direito Processual Penal',
     sub:'Do local de crime ao inquérito — o que a atividade policial exige na prática',
     legenda:'Estrutura do trabalho policial e da investigação. A letra da lei fica no CátedraLEGIS; aqui está a sequência que a prova cobra em questões práticas.',
     grupos:[
@@ -244,7 +245,7 @@ window.CT_MODULOS = {
     ]},
 
   fiscal: {
-    nome:'Tributos e controle', icone:'📊', disc:'Direito Tributário',
+    nome:'Tributos e controle', icone:'chart-column', disc:'Direito Tributário',
     sub:'Quem cobra o quê, e como o dinheiro público é controlado',
     legenda:'Competências tributárias como estão na Constituição e a estrutura do controle da administração. Alíquotas, prazos e regras específicas mudam — confira sempre na lei vigente pelo CátedraLEGIS.',
     grupos:[
@@ -279,7 +280,7 @@ window.CT_MODULOS = {
     ]},
 
   administrativa: {
-    nome:'Administração pública', icone:'🏛️', disc:'Direito Administrativo',
+    nome:'Administração pública', icone:'building-2', disc:'Direito Administrativo',
     sub:'Princípios, atos, contratos e servidores — o dia a dia da máquina pública',
     legenda:'Estrutura da administração pública. A letra da lei (estatuto, licitações, processo administrativo) fica no CátedraLEGIS.',
     grupos:[
@@ -315,7 +316,7 @@ window.CT_MODULOS = {
     ]},
 
   educacao: {
-    nome:'Fundamentos da educação', icone:'📚', disc:'Fundamentos da Educação',
+    nome:'Fundamentos da educação', icone:'graduation-cap', disc:'Fundamentos da Educação',
     sub:'Estrutura do ensino, currículo, didática e gestão — o que a prova de magistério cobra',
     legenda:'Estrutura da educação básica e do trabalho docente. A letra da LDB e dos estatutos fica no CátedraLEGIS.',
     grupos:[
@@ -344,7 +345,7 @@ window.CT_MODULOS = {
     ]},
 
   tecnologia: {
-    nome:'Fundamentos de TI', icone:'💻', disc:'Tecnologia da Informação',
+    nome:'Fundamentos de TI', icone:'laptop', disc:'Tecnologia da Informação',
     sub:'Redes, dados, algoritmos e segurança — a base que cai em qualquer prova da área',
     legenda:'Fundamentos estáveis da computação. Versões de ferramenta e sintaxe específica mudam; aqui ficam os conceitos que a prova cobra.',
     grupos:[
@@ -380,7 +381,7 @@ window.CT_MODULOS = {
     ]},
 
   militar: {
-    nome:'Exatas para concurso militar', icone:'🎖️', disc:'Matemática',
+    nome:'Exatas para concurso militar', icone:'medal', disc:'Matemática',
     sub:'Matemática, física e química — os pilares das provas das escolas militares',
     legenda:'Roteiro de conteúdo das provas militares. Marque o que já domina para enxergar onde o estudo está descoberto.',
     grupos:[
