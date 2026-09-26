@@ -139,7 +139,6 @@ struct JurisPagina: View {
         case .meuMaterial: JurisDestinoHub(destino: nil)
         case .oralBancas: OralBancasView()
         case .tjroHub: TJROHubView()
-        case .mapas: JurisMapasGaleria()
         case .checklist: JurisChecklistView()
         case .plano: PlanoLeituraJurisView()
         case .central(let c): JurisCentralView(central: c)

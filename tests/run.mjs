@@ -55,6 +55,8 @@ import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 import { testarMenuLateral } from './menu-lateral.mjs';
 import { testarSemDodEstatico, testarSemDodNavegador } from './sem-dod.mjs';
+import { testarTesesOficiaisEstatico, testarTesesOficiaisNavegador, testarMigracaoL4Navegador, lerReferencia as lerTesesOficiais } from './teses-oficiais.mjs';
+import { testarSemMapasMentaisEstatico, testarSemMapasMentaisNavegador } from './sem-mapas-mentais.mjs';
 import { testarPdfjsLocal } from './pdfjs-local.mjs';
 import { testarVarreduraRedeExterna, testarSupportSemRede, testarHarnessSemRede, testarRedeExternaExecucao, resumoRedeSuite } from './rede-externa.mjs';
 import { testarAssinaturaLimpa } from './assinatura-limpa.mjs';
@@ -867,15 +869,18 @@ function pdfjsNaSaida(dir) {
     'JURIS nenhum dos quatro voltou ao número de tema antigo');
 
   // 2. tese do STJ não fica sob a bandeira do STF (some do filtro por tribunal)
+  // desde o lote L4 das teses oficiais (um verbete por tema), o STF-185-2 foi fundido no STF-185 (Tema 185
+  // do STJ): sobram sete ids, e o fundido não pode voltar
   const DO_STJ = ['repgeral-repetitivo-STF-18', 'repgeral-repetitivo-STF-185',
-    'repgeral-repetitivo-STF-185-2', 'repgeral-repetitivo-STF-220', 'repgeral-repetitivo-STF-292',
+    'repgeral-repetitivo-STF-220', 'repgeral-repetitivo-STF-292',
     'repgeral-repetitivo-STF-340', 'repgeral-repetitivo-STF-581', 'repgeral-repetitivo-STF-596'];
-  ok(DO_STJ.every(id => por[id] && por[id][1] === 'STJ'),
-    'JURIS os oito repetitivos de tese do STJ estão sob tribunal STJ');
-  // …e os dois que são MESMO do STF continuam no STF (não corrigir demais)
+  ok(DO_STJ.every(id => por[id] && por[id][1] === 'STJ') && !por['repgeral-repetitivo-STF-185-2'],
+    'JURIS os sete repetitivos de tese do STJ estão sob tribunal STJ (o STF-185-2 foi fundido no STF-185)');
+  // …e os dois que são MESMO do STF continuam no STF (não corrigir demais). Desde o lote L1 das
+  // teses oficiais (25/09/2026) eles vêm da exportação do STF: são temas de repercussão geral.
   ok(['repgeral-repetitivo-STF-676', 'repgeral-repetitivo-STF-1127']
-      .every(id => por[id] && por[id][1] === 'STF'),
-    'JURIS Temas 676 e 1127, que são do STF, seguem no STF');
+      .every(id => por[id] && por[id][1] === 'STF' && por[id][2] === 'repercussao_geral'),
+    'JURIS Temas 676 e 1127, que são do STF, seguem no STF (como repercussão geral, pela fonte oficial)');
 
   // 3. o id é chave opaca de 'catedra:jurisEstudo' — mexer nele apaga favorito e status
   ok(NUMERO.every(([id]) => !!por[id]) && DO_STJ.every(id => !!por[id]),
@@ -1440,16 +1445,20 @@ ok(a4b, 'ACERVO sem volta=1 não há pílula');
     'STJ Tema 453: a tese do repetitivo substitui o julgado da 3ª Turma que dizia o contrário');
 
   // 4. tema e edição onde a fonte mostra o julgado
-  ok(IDX['repgeral-repetitivo-STJ-x1253'][4] === 'Tema 1249 (Repetitivo)' && IDX['repgeral-repetitivo-STJ-x1253'][3] === 1249,
-    'STJ "Tema s/n" das medidas protetivas passa a dizer Tema 1249');
+  // desde o L4 (um verbete por tema) o x1253 foi fundido no x1251, que é o verbete do Tema 1249
+  ok(IDX['repgeral-repetitivo-STJ-x1251'][4] === 'Tema 1249 (Repetitivo)' && IDX['repgeral-repetitivo-STJ-x1251'][3] === 1249
+    && !IDX['repgeral-repetitivo-STJ-x1253'],
+    'STJ "Tema s/n" das medidas protetivas passa a dizer Tema 1249 (num verbete só)');
   ok(IDX['INF2020-0016'][4] === 'Info 681 · STJ',
     'STJ INF2020-0016: RMS 61.302 saiu no Informativo 681, não no 678');
   ok(IDX['INF2023-0395'][4] === 'Ed. Extraordinária 9 · STJ' && IDX['INF2023-0395'][3] === 9 && (TXT['INF2023-0395'] || {}).fp === 'Ed. Extraordinária 9 STJ',
     'STJ INF2023-0395: título, número e citação apontam a Edição Extraordinária 9');
 
   // 5. lixo e tese perdida inteira
-  ok(!/buscadordizerodireito_com_br/.test(en('repgeral-repetitivo-STJ-588-2')) && /ADI 3\.106/.test(en('repgeral-repetitivo-STJ-588-2')),
-    'STJ Tema 588: o enunciado deixa de ser um pedaço de URL e traz a tese');
+  // desde o L4 o 588-2 foi fundido no 588, que traz a tese oficial do STJ
+  ok(!/dizerodireito/i.test(en('repgeral-repetitivo-STJ-588')) && /ADI 3\.106/.test(en('repgeral-repetitivo-STJ-588'))
+    && !IDX['repgeral-repetitivo-STJ-588-2'],
+    'STJ Tema 588: o enunciado deixa de ser um pedaço de URL e traz a tese (num verbete só)');
   ok(/dispensa do dever de cola[çc][ãa]o exige declara[çc][ãa]o formal/.test(en('SELTJGO-0202')),
     'STJ SELTJGO-0202: a tese deixa de ser só "legítima." e volta inteira');
 
@@ -1499,8 +1508,11 @@ ok(a4b, 'ACERVO sem volta=1 não há pílula');
   ok(/^Se o prazo da prescri[çc][ãa]o/.test(t('COORD-REP-1126').en) && !/Stock Option/.test(t('COORD-REP-1126').en)
     && (t('COORD-REP-1126').co || '').startsWith(PREFIXO) && /Afetado/.test(t('COORD-REP-1126').co) && IDX['COORD-REP-1126'][6] === 'DIREITO PROCESSUAL PENAL',
     'STJ-2 COORD-REP-1126: sai a tese do Stock Option (Tema 1226); entra a questão oficial do Tema 1126 com a nota de que está afetado, sem tese');
-  ok((t('repgeral-repetitivo-STJ-1300').co || '').startsWith(PREFIXO) && /Tema 130 do STJ/.test(t('repgeral-repetitivo-STJ-1300').co),
-    'STJ-2 Tema "1300": a nota avisa que o texto é o do Tema 130');
+  // a nota avisava que o texto era o do Tema 130; desde o L4 o verbete É o Tema 130 (tese oficial) e a
+  // nota, que perdeu o objeto, saiu (decisão da dona)
+  ok(IDX['repgeral-repetitivo-STJ-1300'][3] === 130 && t('repgeral-repetitivo-STJ-1300').co === undefined
+    && /ADI nº 2\.189-3/.test(t('repgeral-repetitivo-STJ-1300').en),
+    'STJ-2 Tema "1300": o verbete é o Tema 130 (tese oficial) e a nota sem objeto saiu');
 
   // 5. lixo, órgão, data e citação
   ok(/^Pedro depositou/.test(t('INF2020-0378').en), 'STJ-2 INF2020-0378: o rótulo "Hipótese 2 :" saiu do enunciado');
@@ -1508,7 +1520,8 @@ ok(a4b, 'ACERVO sem volta=1 não há pílula');
     'STJ-2 INF2024-0788: data e órgão são os da nota oficial (Primeira Seção, 14/08/2024)');
   ok(t('COORD-REP-1088').og === '1ª Seção' && (t('COORD-REP-1088').co || '').startsWith(PREFIXO) && /Sobrestado/.test(t('COORD-REP-1088').co),
     'STJ-2 COORD-REP-1088: ganha o órgão da ficha e a nota de que o tema está sobrestado');
-  ok(t('repgeral-repetitivo-STF-581').fp === 'REsp 1110520/SP',
+  // desde o lote L3 das teses oficiais a citação traz também o relator ("REsp 1110520/SP · Rel. atual: Min. …" desde o L4)
+  ok(/^REsp 1110520\/SP( · Rel\. |$)/.test(t('repgeral-repetitivo-STF-581').fp || '') && !/Info/.test(t('repgeral-repetitivo-STF-581').fp || ''),
     'STJ-2 Tema 581: a citação de origem é o processo da ficha, não "Info 835"');
 
   // 6. guarda: no STJ, título e número nunca divergem — o #115 trocou títulos de edição e deixou o
@@ -1535,28 +1548,38 @@ ok(a4b, 'ACERVO sem volta=1 não há pílula');
   const TXT = carrega('juris-text.js', '__JURIS_TXT__');
   const IDX = Object.fromEntries(linhas.map(r => [r[0], r]));
   const ids = ["INF2020-0260","INF2020-0351","INF2021-0224","INF2021-0285","INF2021-0533","INF2021-0664","INF2022-0393","INF2022-0604","INF2023-0498","INF2024-0496","INF2025-0518","SELTJGO-0163","SELTJGO-0265","SELTJGO-0313","SELTJGO-0417","SELTJGO-0433","SELTJGO-0438","SELTJGO-0520","SELTJPR-0190","SELTJPR-0285","SELTJRJ-0451","SELTJRJ-0545","SELTJRJ-0562","repgeral-repetitivo-STJ-1093-2","repgeral-repetitivo-STJ-1149-2","repgeral-repetitivo-STJ-1195","repgeral-repetitivo-STJ-1295","repgeral-repetitivo-STJ-905","repgeral-repetitivo-STJ-905-2","repgeral-repetitivo-STJ-x1060","repgeral-repetitivo-STJ-x1139","repgeral-repetitivo-STJ-x640","repgeral-repetitivo-STJ-x641"];
-  const retrato = Object.fromEntries(ids.map(id => [id, IDX[id] ? { indice: IDX[id], texto: TXT[id] || null } : null]));
+  // Desde os lotes L2/L3 das teses oficiais (25/09/2026), 4 destes ids (Temas 1195, 1295, 905 e 1139 do
+  // STJ) têm o texto OFICIAL do STJ, que a auditoria conferiu antes da troca: esses provam igualdade
+  // exata com a referência versionada. No lote L4 (um verbete por tema) saíram 5: 1093-2, 1149-2 e 905-2
+  // (fundidos nos Temas 1093, 1149 e 905) e x1060 (IAC 3) e x641 (julgado de Turma), retirados. Os outros
+  // 24 seguem com o retrato validado (digest 24b098c5… — o mesmo antes e depois do L4; o dos 29, antes do
+  // L4, era 7cc4c4e8…, e o dos 33, antes dos lotes, ae9e557f…).
+  const OFI = lerTesesOficiais();
+  const L4 = JSON.parse(fs.readFileSync(path.join(RAIZ, 'docs', 'teses-oficiais', 'l4-referencia.json'), 'utf8'));
+  const saiuL4 = ids.filter(id => id in L4.fundir || id in L4.retirar);
+  const noLote = ids.filter(id => id in OFI), fora = ids.filter(id => !(id in OFI) && !saiuL4.includes(id));
+  const retrato = Object.fromEntries(fora.map(id => [id, IDX[id] ? { indice: IDX[id], texto: TXT[id] || null } : null]));
   const digest = createHash('sha256').update(JSON.stringify(retrato)).digest('hex');
-  ok(digest === 'ae9e557f3edb64dfa8e7c1ab1f53becd07946a9df107316bc64da277ae91e1dc',
-    'STJ-SALDO os 33 registros mantêm exatamente as 49 correções e 2 exclusões validadas (' + digest.slice(0, 12) + ')');
+  ok(fora.length === 24 && digest === '24b098c50aa40848d7848c4288e8ad5093cd49686cbd974caf9587fd30a33da2',
+    'STJ-SALDO os ' + fora.length + ' registros fora da troca oficial mantêm exatamente as correções e exclusões validadas (' + digest.slice(0, 12) + ')');
+  ok(saiuL4.length === 5 && saiuL4.every(id => !IDX[id] && !TXT[id]),
+    'STJ-SALDO os 5 que o lote L4 fundiu ou retirou saíram das duas tabelas web (' + saiuL4.map(i => i.replace('repgeral-repetitivo-', '')).join(', ') + ')');
+  ok(noLote.length === 4 && noLote.every(id => TXT[id] && TXT[id].en === OFI[id].enunciado && TXT[id].ur === OFI[id].url && IDX[id][3] === OFI[id].numero),
+    'STJ-SALDO os 4 trocados pela fonte oficial têm o texto, o link e o número oficiais da referência (' + noLote.join(', ') + ')');
 
   ok(!IDX['repgeral-repetitivo-STJ-x640'] && !TXT['repgeral-repetitivo-STJ-x640']
     && !IDX['SELTJGO-0438'] && !TXT['SELTJGO-0438'],
     'STJ-SALDO o híbrido x640 e a duplicata SELTJGO-0438 saíram das duas tabelas web');
-  ok(IDX['repgeral-repetitivo-STJ-x1060'][2] === 'precedentes_obrig'
-    && IDX['repgeral-repetitivo-STJ-x1060'][3] === 3
-    && /IAC 3/.test(IDX['repgeral-repetitivo-STJ-x1060'][4]),
-    'STJ-SALDO o IAC 3 não é mais apresentado como recurso repetitivo');
-  ok(IDX['repgeral-repetitivo-STJ-x641'][2] === 'informativo_stj'
-    && IDX['repgeral-repetitivo-STJ-x641'][3] === 788,
-    'STJ-SALDO o julgado de Turma x641 aponta o Informativo 788, sem rótulo de repetitivo');
-  ok((TXT['repgeral-repetitivo-STJ-1093-2'].en.match(/^\d\./gm) || []).length === 5
-    && /podem lhe gerar cr[ée]ditos/.test(TXT['repgeral-repetitivo-STJ-1093-2'].en)
-    && /\(sejam mantidos\)/.test(TXT['repgeral-repetitivo-STJ-1093-2'].en)
-    && TXT['repgeral-repetitivo-STJ-1093-2'].fp === 'Info 734',
-    'STJ-SALDO o Tema 1093 traz os cinco itens, sem artefato, e cita o Info 734');
-  ok(/Lei (?:n\. )?9\.696\/1998/.test(TXT['repgeral-repetitivo-STJ-1149-2'].en),
-    'STJ-SALDO o Tema 1149 cita a Lei 9.696/1998');
+  // o IAC 3 (x1060) e o julgado de Turma (x641) não são repetitivos: saíram no L4 (decisão da dona). Os
+  // Temas 1093 e 1149 ficam num verbete só cada, com a tese OFICIAL: a do 1093 tem os itens numerados; a
+  // do 1149 fica literal como o STJ publicou ("Lei 9.969/1998") e a Nota do Cátedra diz que é a 9.696/1998.
+  ok(!IDX['repgeral-repetitivo-STJ-x1060'] && !IDX['repgeral-repetitivo-STJ-x641'],
+    'STJ-SALDO o IAC 3 e o julgado de Turma x641 não aparecem mais como recurso repetitivo (saíram do acervo)');
+  ok(TXT['repgeral-repetitivo-STJ-1093'].en === OFI['repgeral-repetitivo-STJ-1093'].enunciado
+    && (TXT['repgeral-repetitivo-STJ-1093'].en.match(/^\d\./gm) || []).length >= 2,
+    'STJ-SALDO o Tema 1093 traz a tese oficial, com os itens numerados');
+  ok(/Lei 9\.969\/1998/.test(TXT['repgeral-repetitivo-STJ-1149'].en) && /Lei (?:n\. )?9\.696\/1998/.test(TXT['repgeral-repetitivo-STJ-1149'].co || ''),
+    'STJ-SALDO o Tema 1149 traz a tese oficial literal e a Nota do Cátedra aponta a Lei 9.696/1998');
   ok(/REsp 2\.029\.719-RJ/.test(TXT['SELTJGO-0163'].fp || '')
     && !/RMS 70\.921/.test(TXT['SELTJGO-0163'].en || ''),
     'STJ-SALDO SELTJGO-0163 preserva o julgado do show artístico e sua citação própria');
@@ -1577,10 +1600,17 @@ ok(a4b, 'ACERVO sem volta=1 não há pílula');
   const TXT = carrega('juris-text.js', '__JURIS_TXT__');
   const IDX = Object.fromEntries(linhas.map(r => [r[0], r]));
   const ids = ["CTRLCONST-0292","INF2020-0381","INF2020-0484","INF2020-0522","INF2020-0551","INF2023-0082","INF2023-0088","INF2023-0092","INF2023-0111","INF2023-0113","INF2023-0143","INF2023-0159","INF2023-0212","INF2023-0250","INF2023-0451","INF2023-0552","INF2023-0643","INF2023-0677","INF2023-0692","INF2023-0735","INF2023-0770","INF2023-0774","INF2024-0188","INF2024-0563","INF2024-0583","INF2024-0680","INF2025-0174","INF2025-0427","INF2025-0565","INF2025-0585","INF2025-0897","SELTJGO-0461","SELTJGO-0627","SELTJGO-0640","SELTJGO-0642","SELTJGO-0643","SELTJPR-0186","SELTJRJ-0570","SELTJRJ-0596","repgeral-repercussao_geral-STF-1015","repgeral-repercussao_geral-STF-1090","repgeral-repercussao_geral-STF-1277","repgeral-repercussao_geral-STF-21","repgeral-repercussao_geral-STF-324","repgeral-repercussao_geral-STF-370","repgeral-repercussao_geral-STF-432","repgeral-repercussao_geral-STF-476","repgeral-repercussao_geral-STF-554","repgeral-repercussao_geral-STF-580","repgeral-repercussao_geral-STF-703","repgeral-repercussao_geral-STF-820","repgeral-repercussao_geral-STF-825","repgeral-repercussao_geral-STF-881","repgeral-repercussao_geral-STF-967","repgeral-repercussao_geral-STF-x1198","repgeral-repercussao_geral-STF-x1586","repgeral-repercussao_geral-STF-x1590","repgeral-repercussao_geral-STJ-x257","repgeral-repetitivo-STF-x1319","repgeral-repetitivo-STJ-1196","repgeral-repetitivo-STJ-1197","repgeral-repetitivo-STJ-1235","repgeral-repetitivo-STJ-931"];
-  const retrato = Object.fromEntries(ids.map(id => [id, IDX[id] ? { indice: IDX[id], texto: TXT[id] || null } : null]));
+  // Desde os lotes L2/L3 das teses oficiais (25/09/2026), 19 destes ids têm o texto OFICIAL do STF/STJ
+  // (igualdade exata com a referência versionada); os outros 44 seguem com o retrato validado (o
+  // digest dos 44 era o mesmo antes da troca — 06e4bffa… — e o dos 63 era 42175d7f…).
+  const OFI = lerTesesOficiais();
+  const noLote = ids.filter(id => id in OFI), fora = ids.filter(id => !(id in OFI));
+  const retrato = Object.fromEntries(fora.map(id => [id, IDX[id] ? { indice: IDX[id], texto: TXT[id] || null } : null]));
   const digest = createHash('sha256').update(JSON.stringify(retrato)).digest('hex');
-  ok(digest === '42175d7f3884d6e10b28e1c5c8f4f31628c352980926c0a3599e2b9ef7fd6c9b',
-    'JURIS-CORTES os 58 fragmentos e seus cinco destinos mantêm a redação oficial validada (' + digest.slice(0, 12) + ')');
+  ok(fora.length === 44 && digest === '06e4bffa6e17fb4d8a5148dd5ceff8305ac0b092af128f5498777d322765e51f',
+    'JURIS-CORTES os ' + fora.length + ' fragmentos e destinos fora da troca oficial mantêm a redação validada (' + digest.slice(0, 12) + ')');
+  ok(noLote.length === 19 && noLote.every(id => TXT[id] && TXT[id].en === OFI[id].enunciado && TXT[id].ur === OFI[id].url && IDX[id][3] === OFI[id].numero),
+    'JURIS-CORTES os 19 destinos trocados pela fonte oficial têm o texto, o link e o número oficiais da referência');
 
   const antigos = ['repgeral-repercussao_geral-STF-x1198', 'repgeral-repetitivo-STF-x1319',
     'repgeral-repercussao_geral-STJ-x257', 'repgeral-repercussao_geral-STF-x1586',
@@ -9607,6 +9637,28 @@ try { testarSemDodEstatico(ok, { motor }); }
 catch (e) { ok(false, 'SEM DOD [' + motor + '] estático sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
 try { await testarSemDodNavegador(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) { ok(false, 'SEM DOD [' + motor + '] [http] o roteiro correu sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
+
+// Teses de RG e Repetitivos pela fonte oficial, lotes L1, L2 e L3 (tests/teses-oficiais.mjs): decisão
+// da dona de 25/09/2026. Cada registro trocado tem o texto oficial idêntico ao da referência versionada,
+// link oficial e nada do Dizer o Direito, na web e no nativo (web == nativo); relator do STF é o do
+// julgamento; o verbete pinta o título oficial inteiro e a lista, o cortado; a quebra de linha da tese
+// oficial pinta como linha nova.
+try { testarTesesOficiaisEstatico(ok, { motor }); }
+catch (e) { ok(false, 'TESES OFICIAIS [' + motor + '] estático sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
+try { await testarTesesOficiaisNavegador(page, URL0, ok, { motor, origem: 'http' }); }
+catch (e) { ok(false, 'TESES OFICIAIS [' + motor + '] [http] o roteiro correu sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
+// Lote L4: favorito/status/grifo de id fundido aparece no canônico (uma vez só); estado de id retirado
+// fica órfão, sem erro e fora das contagens.
+try { await testarMigracaoL4Navegador(page, URL0, ok, { motor, origem: 'http' }); }
+catch (e) { ok(false, 'TESES OFICIAIS L4 [' + motor + '] [http] o roteiro correu sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
+
+// Sem mapas mentais (tests/sem-mapas-mentais.mjs): decisão da dona de 25/09/2026. Nenhum Swift do
+// Mac/iPad com a ferramenta, a folha, a galeria ou a seção; o state.json antigo do JURIS abre e
+// devolve os campos da galeria iguais (Swift, no Mac); na web, o formato "mapa" da IA saiu.
+try { testarSemMapasMentaisEstatico(ok, { motor }); }
+catch (e) { ok(false, 'SEM MAPAS MENTAIS [' + motor + '] estático sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
+try { await testarSemMapasMentaisNavegador(page, URL0, ok, { motor, origem: 'http' }); }
+catch (e) { ok(false, 'SEM MAPAS MENTAIS [' + motor + '] [http] o roteiro correu sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
 
 // JURIS: o quadro "Não confunda com" no lugar da lista de Relacionados (tests/juris-quadro.mjs).
 // Roteiro em módulo próprio porque o caso precisa de RELOAD com semente — o mapa ROT do

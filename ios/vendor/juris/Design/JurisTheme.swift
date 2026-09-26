@@ -97,8 +97,8 @@ enum Palette {
     // Fontes seguem o ACENTO (monocromático, como as matérias no CátedraLEGIS).
     // Todas estas resolviam para ThemeState.t.accent — o app inteiro num tom só. O
     // FonteBadge (a peça mais repetida da tela), os KPIs do painel, as barras por fonte
-    // e o mapa de calor ficavam indistinguíveis, e o mapa mental chegou a desistir dos
-    // tokens e cravar 7 hex no código por causa disso.
+    // e o mapa de calor ficavam indistinguíveis, e um canvas de exportação chegou a
+    // desistir dos tokens e cravar 7 hex no código por causa disso.
     //
     // Agora cada fonte herda a cor do TRIBUNAL a que pertence — a mesma paleta que o
     // CátedraJURIS da web usa em TRIBC, para o STJ ser teal nos dois lados. A cor é
@@ -202,7 +202,6 @@ enum Selecao: Hashable {
     case edicao(Int)          // uma edição do Juris em Teses
     case infoEdicao(Fonte, Int)  // um informativo (STF/STJ/TSE)
     case colecao(String)      // uma coleção "Meu edital"
-    case mapas                // galeria de mapas mentais feitos
     case checklist             // checklist de leitura PRÓPRIA do JURIS (metas livres)
     case plano                 // Plano de leitura de súmulas (roteiro por dia)
     case central(JurisCentral) // página-hub de um tribunal (Central STF, STJ…)
@@ -216,7 +215,7 @@ enum Selecao: Hashable {
     case oralBancas                   // material oficial de prova oral: pontos, perguntas, padrão de resposta
     case simulado                     // prova C/E + discursivas sorteadas do acervo (local, sem IA)
     case destino(Destino)             // entrega 4: vitrine de Acervo/Treinar (o mesmo Destino do LEGIS)
-    case meuMaterial                  // entrega 4: anotações, mapas mentais, DOD — o que é seu ou de apoio
+    case meuMaterial                  // entrega 4: anotações e precedentes — o que é seu ou de apoio
 
     var titulo: String {
         switch self {
@@ -241,7 +240,6 @@ enum Selecao: Hashable {
         case .edicao(let n): return "Edição \(n)"
         case .infoEdicao(let f, let n): return "Info \(n) · \(f.nomeCurto.replacingOccurrences(of: "Info ", with: ""))"
         case .colecao: return "Coleção"
-        case .mapas: return "Mapas mentais"
         case .checklist: return "Checklist de leitura"
         case .plano: return "Plano de leitura"
         case .central(let c): return c.nome
@@ -268,7 +266,6 @@ enum Selecao: Hashable {
         case .edicao: return "text.book.closed.fill"
         case .infoEdicao: return "newspaper"
         case .colecao: return "folder.fill"
-        case .mapas: return "brain.head.profile"
         case .checklist: return "checklist"
         case .plano: return "calendar"
         case .central(let c): return c.simbolo

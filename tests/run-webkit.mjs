@@ -46,6 +46,8 @@ import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 import { testarMenuLateral } from './menu-lateral.mjs';
 import { testarSemDodEstatico, testarSemDodNavegador } from './sem-dod.mjs';
+import { testarMigracaoL4Navegador } from './teses-oficiais.mjs';
+import { testarSemMapasMentaisEstatico, testarSemMapasMentaisNavegador } from './sem-mapas-mentais.mjs';
 import { testarPdfjsLocal } from './pdfjs-local.mjs';
 import { testarVarreduraRedeExterna, testarHarnessSemRede, testarRedeExternaExecucao, resumoRedeSuite } from './rede-externa.mjs';
 
@@ -65,6 +67,10 @@ catch (e) { ok(false, 'PRIORIDADE erro resolvido exceção: ' + e.message); }
 // estática roda uma vez (public/ e o bundle nativo, se existirem); a de navegador, em cada origem.
 try { testarSemDodEstatico(ok, { motor }); }
 catch (e) { ok(false, 'SEM DOD [' + motor + '] estático sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
+// Sem mapas mentais (tests/sem-mapas-mentais.mjs): Swift do Mac e do iPad, o state.json antigo do
+// JURIS (decodificado no Mac) e o formato "mapa" da web — estático, uma vez.
+try { testarSemMapasMentaisEstatico(ok, { motor }); }
+catch (e) { ok(false, 'SEM MAPAS MENTAIS [' + motor + '] estático sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
 
 // pathToFileURL não põe barra final; o teste concatena '/' + arquivo
 const ORIGENS = [[URL0, 'http', 'Catedra.dc.html'], [pathToFileURL(RAIZ).href, 'file', 'Catedra.dc.html']];
@@ -100,6 +106,20 @@ for (const [base, origem, arquivo] of ORIGENS) {
   try { await testarSemDodNavegador(page, base, ok, { motor, origem }); }
   catch (e) {
     ok(false, 'SEM DOD [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
+      + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+  }
+  // lote L4 das teses oficiais: a migração de id do JURIS em JavaScriptCore (só http: semeia por /__semente)
+  if (origem === 'http') {
+    try { await testarMigracaoL4Navegador(page, base, ok, { motor, origem }); }
+    catch (e) {
+      ok(false, 'TESES OFICIAIS L4 [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
+        + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+    }
+  }
+  // preferência "mapa" salva cai no texto e o mfGen antigo fica, nas três origens
+  try { await testarSemMapasMentaisNavegador(page, base, ok, { motor, origem, arquivo }); }
+  catch (e) {
+    ok(false, 'SEM MAPAS MENTAIS [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
       + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
   }
   // iPad por toque (retrato 820 e paisagem 1180, hasTouch): quadradinhos, gaveta, giro,

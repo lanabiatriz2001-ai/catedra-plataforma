@@ -47,7 +47,6 @@ enum JurisMenu {
             JurisMenuItem(selecao: .oralBancas, rotulo: "Prova oral · bancas", simbolo: "person.wave.2"),
             JurisMenuItem(selecao: .julgadoDoDia, rotulo: "Julgado do dia", simbolo: "sun.max"),
             JurisMenuItem(selecao: .plano, rotulo: "Plano de leitura", simbolo: "calendar"),
-            JurisMenuItem(selecao: .mapas, rotulo: "Mapas mentais", simbolo: "brain.head.profile"),
         ]),
         JurisMenuGrupo(titulo: "ACERVO", itens: [
             JurisMenuItem(selecao: .todos, rotulo: "Todos os verbetes", simbolo: "square.stack.3d.up"),
@@ -484,30 +483,6 @@ struct JurisAbreNoToque: ViewModifier {
     }
 }
 
-/// Prévia ESCALADA de um canvas de largura fixa (o mapa mental tem 1040 pt, feitos para
-/// exportar): cabe inteiro na largura que houver, sem arrastar em dois eixos.
-struct JurisPreviaEscalada<Conteudo: View>: View {
-    let larguraNatural: CGFloat
-    @ViewBuilder let conteudo: () -> Conteudo
-    @State private var alturaNatural: CGFloat = 0
-
-    var body: some View {
-        GeometryReader { geo in
-            let escala = min(1, max(0.1, geo.size.width / larguraNatural))
-            ScrollView(.vertical) {
-                conteudo()
-                    .background(GeometryReader { g in
-                        Color.clear
-                            .onAppear { alturaNatural = g.size.height }
-                            .onChange(of: g.size.height) { _, nova in alturaNatural = nova }
-                    })
-                    .scaleEffect(escala, anchor: .topLeading)
-                    .frame(width: larguraNatural * escala, height: alturaNatural * escala, alignment: .topLeading)
-            }
-        }
-    }
-}
-
 extension View {
     func jurisMargemPagina(_ regular: CGFloat = 26) -> some View { modifier(JurisMargemPagina(regular: regular)) }
     func jurisAbreNoToque(_ id: String) -> some View { modifier(JurisAbreNoToque(id: id)) }
@@ -517,7 +492,7 @@ extension View {
 
 #if targetEnvironment(simulator)
 /// Ganchos de VERIFICAÇÃO por captura, ligados por argumentos de lançamento do simulador
-/// (`xcrun simctl launch … -abaJuris -jurisIr todos -jurisVerbete -jurisFolha mapa -jurisMedir`).
+/// (`xcrun simctl launch … -abaJuris -jurisIr todos -jurisVerbete -jurisFolha revisao -jurisMedir`).
 /// Servem para abrir a mesma tela sempre, sem toque, e para medir os alvos: a árvore de
 /// acessibilidade (o que o `inspect` devolve) sai no log unificado, um elemento por linha,
 /// com moldura em pontos. Nada disto entra no binário do aparelho.
@@ -540,7 +515,6 @@ enum JurisEnsaio {
         case "novidades": return .novidades
         case "simulado": return .simulado
         case "indice": return .indice
-        case "mapas": return .mapas
         default: return nil
         }
     }
