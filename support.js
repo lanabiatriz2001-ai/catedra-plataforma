@@ -997,26 +997,19 @@
     }
     return cur;
   }
-  var BABEL_URL = "https://unpkg.com/@babel/standalone@7.26.4/babel.min.js";
   var GLOBAL_POLL_INTERVAL_MS = 50;
   var GLOBAL_POLL_TIMEOUT_MS = 3e4;
   function createExternalModules(onResolved) {
     const cache = /* @__PURE__ */ new Map();
-    let babelLoading = null;
     const reportedMissing = /* @__PURE__ */ new Map();
     const polling = /* @__PURE__ */ new Set();
+    // Correção local (Cátedra, 25/09/2026): o runtime original baixava o Babel standalone de
+    // um CDN para transpilar <x-import> de .jsx/.tsx. O Cátedra não tem x-import nenhum, e a
+    // regra da casa é nada de rede externa em tempo de execução: .jsx/.tsx agora falha com o
+    // motivo, e o x-import de .js segue funcionando. Guardado por tests/rede-externa.mjs.
     function ensureBabel() {
       if (window.Babel) return Promise.resolve();
-      if (babelLoading) return babelLoading;
-      babelLoading = new Promise((res, rej) => {
-        const s = document.createElement("script");
-        s.src = BABEL_URL;
-        s.crossOrigin = "anonymous";
-        s.onload = () => res();
-        s.onerror = rej;
-        document.head.appendChild(s);
-      });
-      return babelLoading;
+      return Promise.reject(new Error("x-import de .jsx/.tsx exige transpilar, e o C\u00e1tedra n\u00e3o baixa o Babel de fora (nada de rede externa): entregue o componente j\u00e1 em .js"));
     }
     function load(kind, url) {
       if (cache.has(url)) return;
@@ -1445,6 +1438,10 @@
   }
 
   // src/index.ts
+  // Fallback do runtime: só dispara quando window.React não existe. O site publicado e o bundle
+  // dos apps carregam ./vendor/react.js e ./vendor/react-dom.js ANTES deste arquivo, então aqui
+  // nada sai; o SRI abaixo é o sha384 desses mesmos bytes (D9 no tests/run.mjs). Exceção
+  // declarada em tests/rede-externa.mjs.
   var REACT_URL = "https://unpkg.com/react@18.3.1/umd/react.production.min.js";
   var REACT_SRI = "sha384-DGyLxAyjq0f9SPpVevD6IgztCFlnMF6oW/XQGmfe+IsZ8TqEiDrcHkMLKI6fiB/Z";
   var REACT_DOM_URL = "https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js";

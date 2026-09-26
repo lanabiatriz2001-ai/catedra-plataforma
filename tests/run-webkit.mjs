@@ -46,6 +46,7 @@ import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 import { testarMenuLateral } from './menu-lateral.mjs';
 import { testarPdfjsLocal } from './pdfjs-local.mjs';
+import { testarVarreduraRedeExterna, testarHarnessSemRede, testarRedeExternaExecucao, resumoRedeSuite } from './rede-externa.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 // porta própria por padrão: run.mjs usa a 8123, e as duas suítes podem rodar lado a lado
@@ -211,7 +212,26 @@ for (const [base, origem, arquivo] of ORIGENS) {
 try { await testarPdfjsLocal(browser, ok, { motor, origens: ORIGENS }); }
 catch (e) { ok(false, 'PDFJS LOCAL [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
 
+// TRAVA GERAL DE REDE (tests/rede-externa.mjs), no motor do WKWebView:
+// · varredura estática do bundle nativo (mac/build/web), quando ele está na lista de origens;
+// · o harness da suíte tira uma dependência real (sem ele, offline, o host cru não abre);
+// · o app PUBLICADO (public/, pelo servidor da suíte) e o BUNDLE em file:// abrem, montam LEGIS e
+//   JURIS e importam um PDF com toda origem de fora abortada, sem pedido fora das exceções.
+if (ORIGENS.some(([, o]) => o === 'bundle')) testarVarreduraRedeExterna(ok, BUNDLE, 'bundle');
+try { await testarHarnessSemRede(browser, ok, { motor, origens: ORIGENS.filter(([, o]) => o !== 'bundle') }); }
+catch (e) { ok(false, 'REDE DA SUÍTE [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
+{
+  const exec = [];
+  const PUB = path.join(RAIZ, 'public');
+  if (fs.existsSync(path.join(PUB, 'index.html')) && !listarEsvaziados([PUB]).length) exec.push([URL0, 'publicado', 'public/index.html']);
+  else console.log('[' + motor + '] sem public/index.html utilizável — o app publicado fica de fora da trava de rede (gere com: node scripts/build.mjs)');
+  const b = ORIGENS.find(([, o]) => o === 'bundle');
+  if (b) exec.push(b);
+  await testarRedeExternaExecucao(browser, ok, { motor, origens: exec });
+}
+
 await browser.close();
 srv.close();
+console.log('\n' + resumoRedeSuite());
 console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
 process.exit(falhas.length ? 1 : 0);
