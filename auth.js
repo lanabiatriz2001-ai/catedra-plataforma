@@ -579,7 +579,10 @@
   };
   function _accent() {
     try { var a = localStorage.getItem('catedra:accent'); if (a) { a = JSON.parse(a);
-      if (typeof a === 'string' && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(a)) return a; } } catch (_) {}
+      if (typeof a === 'string' && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(a)) return a;
+      // "vermelho"/"laranja" do seletor: a cor de situação do modo (a mesma do app)
+      if (a === 'var(--danger)') return DARK ? '#ff7b6e' : '#c0392f';
+      if (a === 'var(--warn)') return DARK ? '#f0a24a' : '#a36306'; } } catch (_) {}
     try { var par = ACENTO_DIR[localStorage.getItem('catedra:dir')] || ACENTO_DIR.sutil; return par[DARK ? 1 : 0]; } catch (_) {}
     return '#0f7a57';
   }

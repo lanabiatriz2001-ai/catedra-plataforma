@@ -39,7 +39,8 @@
    Consertos da 3ª rodada:
    · K1: a pílula pinta o par próprio --accentFill/--onAccentFill (≥ 4,5:1 no texto e ≥ 3:1
      contra a --surface), com o destaque padrão, #84cc16, #0d9488 e #d6457f, claro e escuro;
-     o --accent/--onAccent do app ficam os de antes (hex escolhido + régua de luma antiga);
+     o --accent do app fica o de antes (o hex escolhido); o --onAccent saiu da régua de luma
+     em 25/09 (tests/contraste-destaque.mjs);
      a cor livre do seletor (setAccentColor) chega ao LEGIS aberto;
    · o foco da volta pela lista de revisões continua no botão de origem ~700 ms depois;
    · o toast de ações apagado não intercepta: a 390 px a pílula recebe o toque de verdade;
@@ -277,7 +278,7 @@ function instalarAjudantes() {
      *  _temaTokens copia) e os que chegaram à raiz do satélite; e o destaque do tema/escolhido,
      *  para comparar com a régua antiga do --onAccent. */
     tokens(v) {
-      const K = ['--accent', '--onAccent', '--accentFill', '--onAccentFill', '--surface'];
+      const K = ['--accent', '--onAccent', '--accentSolid', '--accentFill', '--onAccentFill', '--surface'];
       const ler = cs => { const o = {}; K.forEach(k => { o[k] = cs ? cs.getPropertyValue(k).trim().toLowerCase() : ''; }); return o; };
       const el = document.querySelector('[data-dark][data-dir]');
       const f = v ? this.fr(v) : null;
@@ -386,8 +387,6 @@ function contrasteDe(a, b) {
   const x = rgbDe(a), y = rgbDe(b); if (!x || !y) return 0;
   const p = L(x), q = L(y); return Math.round((Math.max(p, q) + 0.05) / (Math.min(p, q) + 0.05) * 100) / 100;
 }
-/** A régua de --onAccent de antes da pílula (7b7e8dd), que o resto do app continua usando. */
-function onAccentAntigo(hex) { const c = rgbDe(hex); if (!c) return '#fff'; return (0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]) > 170 ? '#10231c' : '#fff'; }
 
 /** O toast de ações do host (o "desfazer" do gabarito) nasce ao encerrar o simulado. Depois
  *  que ele SOME, a 390 px — onde ele morava por cima da pílula —, a caixa apagada não pode
@@ -708,7 +707,7 @@ async function roteiroWeb(page, ok, R, origem) {
       const H = t.host, S = t.sat || {};
       const nome = dir + ' · ' + (acc || 'destaque padrão') + (escuro ? ' no escuro' : ' no claro');
       if (dir === 'sutil') fundos[(acc || 'padrão do tema') + (escuro ? ' no escuro' : ' no claro')] = p.fundo;
-      pares[nome] = { fill: H['--accentFill'], onFill: H['--onAccentFill'], accent: H['--accent'], onAccent: H['--onAccent'] };
+      pares[nome] = { fill: H['--accentFill'], onFill: H['--onAccentFill'], accent: H['--accent'], onAccent: H['--onAccent'], solid: H['--accentSolid'] };
       const [fg, bg] = String(p.cores || '').split(' / ');
       ok(p.visivel && p.contraste >= 4.5, R + 'CONTRASTE pílula ' + nome + ': texto ' + p.contraste + ':1 (' + p.cores + ')');
       ok(mesmaCor(bg, H['--accentFill']) && mesmaCor(fg, H['--onAccentFill']) && S['--accentFill'] === H['--accentFill'] && S['--onAccentFill'] === H['--onAccentFill'],
@@ -716,19 +715,26 @@ async function roteiroWeb(page, ok, R, origem) {
         + ', no LEGIS ' + S['--accentFill'] + '/' + S['--onAccentFill'] + ', pintado ' + p.cores + ')');
       const borda = contrasteDe(H['--accentFill'], H['--surface']);
       ok(borda >= 3, R + 'CONTRASTE pílula ' + nome + ': o fundo se destaca da --surface por ≥ 3:1 (' + borda + ':1 — ' + H['--accentFill'] + ' sobre ' + H['--surface'] + ')');
-      // K1: o destaque do app é o escolhido (ou o do tema) e o texto sobre ele segue a régua antiga
-      const accEsperado = acc || t.tema.accent, onEsperado = acc ? onAccentAntigo(acc) : t.tema.onAccent;
-      ok(mesmaCor(H['--accent'], accEsperado) && mesmaCor(H['--onAccent'], onEsperado) && S['--accent'] === H['--accent'],
-        R + 'CONTRASTE ' + nome + ': a pílula NÃO reescreve --accent/--onAccent do app (host ' + H['--accent'] + '/' + H['--onAccent'] + ', esperado ' + accEsperado + '/' + onEsperado
-        + ' pela régua antiga; no LEGIS --accent=' + S['--accent'] + ')');
+      // K1: o destaque do app é o escolhido (ou o do tema) — a pílula não o reescreve. O
+      // --onAccent deixou a régua de luma (tests/contraste-destaque.mjs mede o texto sobre o
+      // --accentSolid em cada componente); aqui basta que ele passe sobre o fundo que o carrega.
+      const accEsperado = acc || t.tema.accent;
+      const onSobreSolid = contrasteDe(H['--onAccent'], H['--accentSolid']);
+      ok(mesmaCor(H['--accent'], accEsperado) && S['--accent'] === H['--accent'] && onSobreSolid >= 4.5,
+        R + 'CONTRASTE ' + nome + ': a pílula NÃO reescreve o --accent do app (host ' + H['--accent'] + ', esperado ' + accEsperado
+        + '; no LEGIS --accent=' + S['--accent'] + ') e o --onAccent passa sobre o --accentSolid (' + onSobreSolid + ':1)');
     }
     const claros = ['padrão do tema no claro', '#84cc16 no claro', '#0d9488 no claro', '#d6457f no claro'].map(k => fundos[k]);
     ok(new Set(claros).size === 4, R + 'CONTRASTE o destaque escolhido chega mesmo à pílula (quatro fundos diferentes no claro: ' + claros.join(' | ') + ')');
     // o par é da pílula: onde o destaque cru não dá 4,5:1, o fundo ou o texto dela divergem do
     // --accent/--onAccent — e esses continuam os de antes (casos acima)
     const lima = pares['sutil · #84cc16 no claro'] || {}, aur = pares['aurora · destaque padrão no claro'] || {};
-    ok(!mesmaCor(lima.fill, lima.accent) && !mesmaCor(aur.onFill, aur.onAccent),
-      R + 'CONTRASTE o par da pílula é próprio: #84cc16 no claro tem fundo ' + lima.fill + ' (≠ --accent ' + lima.accent + '), aurora no claro tem texto ' + aur.onFill + ' (≠ --onAccent ' + aur.onAccent + ')');
+    // o par da pílula também exige 3:1 contra a --surface, então não é o par dos botões
+    // (--accentSolid/--onAccent): no Aurora claro a pílula fica no ciano cru com texto escuro,
+    // e os botões, no ciano escurecido com texto branco
+    ok(!mesmaCor(lima.fill, lima.accent) && !(mesmaCor(aur.fill, aur.solid) && mesmaCor(aur.onFill, aur.onAccent)),
+      R + 'CONTRASTE o par da pílula é próprio: #84cc16 no claro tem fundo ' + lima.fill + ' (≠ --accent ' + lima.accent + '), aurora no claro pinta '
+      + aur.fill + '/' + aur.onFill + ' (≠ par dos botões ' + aur.solid + '/' + aur.onAccent + ')');
     await V(() => { const app = window.__vo.app(); app.setState({ dir: 'sutil', accent: null, darkMode: false }, () => app._temaBroadcast()); });
     await page.waitForTimeout(600);
     await tocarPilula(page, 'legis');

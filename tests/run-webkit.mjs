@@ -36,6 +36,7 @@ import { testarJurisQuadro } from './juris-quadro.mjs';
 import { testarPrioridadeErrosResolvidos } from './prioridade-erros-resolvidos.mjs';
 import { testarRevisaoFonte } from './revisao-fonte.mjs';
 import { testarVoltaOrigem } from './volta-origem.mjs';
+import { testarContrasteDestaque } from './contraste-destaque.mjs';
 import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
 import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
@@ -140,6 +141,10 @@ for (const [base, origem, arquivo] of ORIGENS) {
     // o motor do WKWebView é o que o iPad pinta
     try { await testarMenuLateral(page, base, ok, { motor, origem }); }
     catch (e) { ok(false, 'MENU/BARALHO [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
+    // o texto sobre o destaque medido no motor da Apple: gradiente, color-mix e os tokens por
+    // cópia no LEGIS são o que o iPad e o Mac pintam
+    try { await testarContrasteDestaque(page, base, ok, { motor }); }
+    catch (e) { ok(false, 'CONTRASTE/DESTAQUE [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
     try { await testarJurisQuadro(page, base, ok, { motor, origem }); }
     catch (e) {
       ok(false, 'JURIS/QUADRO [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('

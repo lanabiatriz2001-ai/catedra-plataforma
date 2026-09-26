@@ -54,6 +54,7 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
     var itemTopo: UINavigationItem!                    // item da barra: o seletor de produto é o titleView
     var botaoAjustes: UIBarButtonItem!                 // engrenagem dos módulos nativos (LEGIS/JURIS)
     var corSobreAcento: UIColor?                       // --onAccent do tema: texto do segmento selecionado
+    var corPilula: UIColor?                            // --accentSolid do tema: fundo da pílula selecionada (par do --onAccent)
     var abaAtual = 0                                   // última aba MONTADA (o segmento muda antes do montar)
     var nativeRevTimer: Timer?                         // agenda única: LEGIS/JURIS → Revisões do Cátedra
     var temaTimer: Timer?                              // a casca segue o tema do app (claro/escuro/acento)
@@ -407,6 +408,9 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
             ink:g('--ink'), text2:g('--text2'), text3:g('--text3'),
             accent:g('--accent'), accentD:g('--accentD'),
             accentSoft:g('--accentSoft'), accentRing:g('--accentRing'), onAccent:g('--onAccent'),
+            // o PAR que pinta texto sobre o destaque: --accentSolid (fundo) + --onAccent (texto),
+            // calculado no app para dar 4,5:1; o --accent cru segue como identidade (tint)
+            accentSolid:g('--accentSolid'),
             ok:g('--ok'), warn:g('--warn'), danger:g('--danger'),
             radius:g('--radius'), display:g('--display'), body:g('--body'), mono:g('--mono'),
             sbg:g('--sbg'), stext:g('--stext'), sactbg:g('--sactbg'), sacttext:g('--sacttext'),
@@ -472,6 +476,10 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         // Texto sobre o acento (--onAccent): a struct do tema não tem esse campo, então a
         // casca guarda aqui para o segmento selecionado; vazio → o contraste decide.
         corSobreAcento = col("onAccent").map { UIColor($0) }
+        // O fundo da pílula é o --accentSolid, o mesmo dos botões do app: o --onAccent foi
+        // medido contra ELE. Pintar a pílula com o --accent cru (Aurora, Solar, Holo, #0d9488,
+        // #d6457f) deixava o texto abaixo de 4,5:1. App antigo sem o token → volta ao --accent.
+        corPilula = col("accentSolid").map { UIColor($0) }
         ThemeState.t = t
         // As duas chaves existem porque LEGIS e JURIS guardam o modo com vocabulários
         // diferentes ("light"/"dark" e "claro"/"escuro"); trocá-las colidiria.
@@ -1681,9 +1689,11 @@ extension RootViewController {
         // O seletor é desenhado pelo app (SeletorProduto), e não um UISegmentedControl: o iOS 27
         // ignora selectedSegmentTintColor e pinta a própria pílula clara, mas respeita a cor do
         // texto — o acento sumia e "JURIS" ficava branco sobre cinza. Desenhando, a pílula é
-        // sempre o acento e o texto sobre ela é o --onAccent (sem ele, o contraste decide).
-        let sobreAcento = corSobreAcento ?? (Self.luminancia(acento) < 0.5 ? .white : .black)
-        segmento?.aplicarCores(fundo: UIColor(t.surface2), acento: acento,
+        // sempre o --accentSolid (o acento movido o mínimo para o texto passar de 4,5:1; sem ele,
+        // o --accent) e o texto sobre ela é o --onAccent (sem ele, o contraste decide).
+        let pilula = corPilula ?? acento
+        let sobreAcento = corSobreAcento ?? (Self.luminancia(pilula) < 0.5 ? .white : .black)
+        segmento?.aplicarCores(fundo: UIColor(t.surface2), acento: pilula,
                                sobreAcento: sobreAcento, texto: UIColor(t.ink))
         setNeedsStatusBarAppearanceUpdate()
     }
