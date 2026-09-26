@@ -252,3 +252,52 @@ struct BarrasSemana: View {
         .overlay(RoundedRectangle(cornerRadius: DSRaio.card, style: .continuous).strokeBorder(ThemeState.t.border, lineWidth: 1))
     }
 }
+
+/// Hero de página (Acervo, Treinar, Novidades…): o gradiente do tema com os círculos de
+/// luz, título em serifa grande, subtítulo e chips — o mesmo hero do Início, sem o painel.
+struct HeroPagina: View {
+    let titulo: String
+    let subtitulo: String
+    var chips: [ChipHero] = []
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(titulo).font(DS.display(44, .heavy)).tracking(-0.6).foregroundStyle(DS.sobreCor)
+                .lineLimit(1).minimumScaleFactor(0.6)
+            if !subtitulo.isEmpty {
+                Text(subtitulo).font(DS.interface(15.5, .medium)).foregroundStyle(DS.sobreCor.opacity(0.88))
+                    .padding(.top, 8).lineLimit(2)
+            }
+            if !chips.isEmpty {
+                HStack(spacing: 9) {
+                    ForEach(chips) { c in
+                        HStack(spacing: 7) {
+                            Image(systemName: c.simbolo).font(DS.interface(13, .semibold)).accessibilityHidden(true)
+                            Text(c.valor).font(DS.mono(13, .bold))
+                            Text(c.rotulo).font(DS.interface(13, .medium))
+                        }
+                        .foregroundStyle(DS.sobreCor)
+                        .padding(.horizontal, 12).frame(minHeight: 34)
+                        .background(Capsule().fill(Color.black.opacity(0.34)))
+                        .overlay(Capsule().strokeBorder(DS.sobreCor.opacity(0.14), lineWidth: 1))
+                        .accessibilityElement(children: .combine)
+                    }
+                }
+                .padding(.top, 16)
+            }
+        }
+        .padding(.horizontal, DSEspaco.e6).padding(.vertical, 30)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            ZStack(alignment: .topTrailing) {
+                LinearGradient(colors: ThemeState.t.heroStops, startPoint: .topLeading, endPoint: .bottomTrailing)
+                Circle().fill(DS.sobreCor.opacity(0.09)).frame(width: 230, height: 230).offset(x: 70, y: -70)
+                Circle().fill(DS.sobreCor.opacity(0.05)).frame(width: 170, height: 170).offset(x: -90, y: 150)
+            }
+            .accessibilityHidden(true)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: DSRaio.hero, style: .continuous))
+        .shadow(color: ThemeState.t.accent.opacity(0.22), radius: 18, x: 0, y: 8)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isHeader)
+    }
+}

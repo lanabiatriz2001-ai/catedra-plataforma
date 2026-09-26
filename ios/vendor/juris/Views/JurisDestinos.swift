@@ -52,7 +52,10 @@ struct JurisDestinoHub: View {
     private var conteudo: some View {
         switch destino {
         case .acervo?:
-            DestinoHub(titulo: "Acervo", subtitulo: "\(store.entries.count) verbetes", secoes: [
+            DestinoHub(titulo: "Acervo", subtitulo: "Súmulas, teses e julgados dos tribunais, na ordem de autoridade",
+                       destaques: [ChipHero(simbolo: "books.vertical.fill", valor: "\(store.entries.count)", rotulo: "verbetes"),
+                                   ChipHero(simbolo: "star.fill", valor: "\(store.favorites.count)", rotulo: "favoritos")],
+                       secoes: [
                 SecaoHub(titulo: "Tribunais", itens: [
                     item("stf", "STF", "Súmulas, vinculantes, repercussão geral", "building.columns", .central(.stf), cor: CorTribunal.identidade("STF")),
                     item("stj", "STJ", "Súmulas, repetitivos, teses", "building.columns", .central(.stj), cor: CorTribunal.identidade("STJ")),
@@ -73,7 +76,9 @@ struct JurisDestinoHub: View {
                                     acao: { nomeColecao = ""; novaColecao = true })]),
             ])
         case .treinar?:
-            DestinoHub(titulo: "Treinar", subtitulo: "", secoes: [
+            DestinoHub(titulo: "Treinar", subtitulo: "Revisão espaçada, simulados, prova oral e o seu plano",
+                       destaques: [ChipHero(simbolo: "brain.head.profile", valor: "\(store.srsDueCount)", rotulo: "para revisar hoje")],
+                       secoes: [
                 SecaoHub(titulo: "", itens: [
                     item("revisar", "Revisar hoje", "Revisão espaçada e checklist", "sun.horizon", .hoje,
                          n: store.srsDueCount + store.checklistPendingCount),
