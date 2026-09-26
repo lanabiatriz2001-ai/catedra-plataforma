@@ -36,6 +36,7 @@ import { testarRevisaoFonte } from './revisao-fonte.mjs';
 import { testarVoltaOrigem } from './volta-origem.mjs';
 import { testarContrasteDestaque } from './contraste-destaque.mjs';
 import { testarIconesAlvos } from './icones-alvos.mjs';
+import { testarFaixaMapaAlvos } from './faixa-mapa-alvos.mjs';
 import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
 import { testarOnboardingImportar } from './onboarding-importar.mjs';
 import { testarCotaIA } from './cota-ia.mjs';
@@ -8997,6 +8998,14 @@ catch (e) {
 try { await testarIconesAlvos(page, URL0, ok, { motor }); }
 catch (e) {
   ok(false, 'ÍCONES/ALVOS [' + motor + '] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+// JURIS sem faixa lateral colorida no cartão (a cor do ramo tinge a borda e lava o fundo) e os
+// alvos do mapa processual com 44 px no toque, intactos com mouse (tests/faixa-mapa-alvos.mjs)
+try { await testarFaixaMapaAlvos(page, URL0, ok, { motor }); }
+catch (e) {
+  ok(false, 'FAIXA/ALVOS [' + motor + '] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 

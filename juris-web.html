@@ -185,8 +185,12 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
 .statbar .s1{display:flex;flex-direction:column}
 .statbar .s1 b{font-family:var(--display,'Spectral',Georgia,serif);font-size:21px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
 .statbar .s1 span{margin-top:3px}
-/* Entrega 7: sem faixa lateral (DESIGN.md) — a cor do ramo tinge a borda e lava o cartão. */
-.vcard{background:linear-gradient(90deg,color-mix(in srgb,var(--rc,#0f7a57) 12%,var(--surface,#fffdf8)),var(--surface,#fffdf8) 46%);border:1px solid color-mix(in srgb,var(--rc,#0f7a57) 38%,var(--border,#e6e1d4));border-radius:14px;margin-bottom:10px;overflow:hidden;position:relative}
+/* A cor do ramo (--rc) é a identidade do cartão. Ela NÃO fica numa faixa de 4 px encostada na
+   borda esquerda (DESIGN.md, "Não faça": o carimbo de interface gerada por máquina): tinge a
+   borda inteira e lava o fundo da esquerda para a direita — o item colorido da casa (.ct-item),
+   mesma leitura de relance. A borda vem depois da lista do satellite-base.css (que recua a de
+   todo cartão para 72% da neutra) e por isso a vence com a mesma especificidade. */
+.vcard{background:linear-gradient(90deg,color-mix(in srgb,var(--rc,#0f7a57) 18%,transparent),transparent 46%) var(--surface,#fffdf8);border:1px solid color-mix(in srgb,var(--rc,#0f7a57) 38%,var(--border,#e6e1d4));border-radius:14px;margin-bottom:10px;overflow:hidden;position:relative}
 .vhead{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;cursor:pointer}
 .vhead:hover{background:color-mix(in srgb,var(--rc) 5%,transparent)}
 .vmeta{flex:1;min-width:0}
@@ -197,7 +201,9 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
 .star{color:#e0a400;font-size:12px}
 .vtit{font-family:var(--display,'Spectral',Georgia,serif);font-size:15px;font-weight:700;line-height:1.25;color:var(--ink)}
 .vsub{display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap}
-.rtag{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:99px;background:color-mix(in srgb,var(--rc) 14%,transparent);color:var(--rc)}
+/* cor-texto ≠ cor-identidade: o selo é TINGIDO pela cor do ramo, e o texto é ela escurecida (no
+   claro) ou clareada (no escuro) pela tinta — a cor crua dava 3,1:1 e ficava abaixo de 4,5 */
+.rtag{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:99px;background:color-mix(in srgb,var(--rc) 14%,transparent);color:color-mix(in srgb,var(--rc,#0f7a57) 55%,var(--ink,#1f1c17))}
 .tema{font-size:11.5px;color:var(--text2,#5c564a);font-style:italic}
 .vact{display:flex;flex-direction:column;gap:6px;align-items:center;flex:none}
 .st{width:22px;height:22px;border-radius:99px;border:2px solid var(--border,#e6e1d4);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;background:none;color:var(--text3,#94a3b8)}
@@ -244,16 +250,16 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
 .reg{margin:16px 0 8px;display:flex;align-items:center;gap:9px}
 .reg::after{content:"";flex:1;height:1px;background:var(--border,#e6e1d4)}
 .tcgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:10px}
-.tccard{background:var(--surface,#fffdf8);border:1px solid var(--border,#e6e1d4);border-radius:14px;padding:13px 15px 12px;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:7px}
-.tccard{background:linear-gradient(90deg,color-mix(in srgb,var(--rc,#0f7a57) 12%,var(--surface,#fffdf8)),var(--surface,#fffdf8) 46%);border-color:color-mix(in srgb,var(--rc,#0f7a57) 38%,var(--border,#e6e1d4))}
+/* a cor da região, como no .vcard: borda tingida e lavagem, nunca faixa lateral */
+.tccard{background:linear-gradient(90deg,color-mix(in srgb,var(--rc,#0f7a57) 18%,transparent),transparent 46%) var(--surface,#fffdf8);border:1px solid color-mix(in srgb,var(--rc,#0f7a57) 38%,var(--border,#e6e1d4));border-radius:14px;padding:13px 15px 12px;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:7px}
 .tccard .tct{display:flex;align-items:center;gap:8px}
 .tccard .sg{font-family:var(--display,'Spectral',Georgia,serif);font-size:16px;font-weight:800;color:var(--ink);letter-spacing:-.01em}
-.tccard .uf{font:800 10px inherit;letter-spacing:.05em;background:color-mix(in srgb,var(--rc) 15%,transparent);color:var(--rc);border-radius:6px;padding:3px 7px}
+.tccard .uf{font:800 10px inherit;letter-spacing:.05em;background:color-mix(in srgb,var(--rc) 15%,transparent);color:color-mix(in srgb,var(--rc,#0f7a57) 55%,var(--ink,#1f1c17));border-radius:6px;padding:3px 7px}
 .tccard .nm{font-size:11.5px;line-height:1.45;color:var(--text2,#5c564a)}
 .tccard .lks{display:flex;gap:6px;flex-wrap:wrap;margin-top:1px}
-.tccard .lks a{font:700 11px inherit;text-decoration:none;color:var(--rc,#0f7a57);border:1px solid color-mix(in srgb,var(--rc) 30%,transparent);border-radius:8px;padding:5px 9px}
+.tccard .lks a{font:700 11px inherit;text-decoration:none;color:color-mix(in srgb,var(--rc,#0f7a57) 55%,var(--ink,#1f1c17));border:1px solid color-mix(in srgb,var(--rc) 30%,transparent);border-radius:8px;padding:5px 9px}
 .tccard .lks a:hover{background:color-mix(in srgb,var(--rc) 10%,transparent)}
-.tccard .acv{margin-top:2px;border:none;background:color-mix(in srgb,var(--rc) 12%,transparent);color:var(--rc);border-radius:9px;padding:7px 10px;font:800 11.5px inherit;cursor:pointer;text-align:left}
+.tccard .acv{margin-top:2px;border:none;background:color-mix(in srgb,var(--rc) 12%,transparent);color:color-mix(in srgb,var(--rc,#0f7a57) 55%,var(--ink,#1f1c17));border-radius:9px;padding:7px 10px;font:800 11.5px inherit;cursor:pointer;text-align:left}
 .tccard .acv:hover{background:color-mix(in srgb,var(--rc) 20%,transparent)}
 .tccard .semacv{font-size:10.5px;color:var(--text2,#5c564a);font-style:italic;margin-top:2px}
 
@@ -405,7 +411,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   .vact{gap:4px}
   .st{width:44px;height:44px;font-size:16px}
   .fav{min-width:44px;min-height:44px;font-size:20px;display:flex;align-items:center;justify-content:center}
-  .vhead{padding:14px 12px 14px 18px}
+  .vhead{padding:14px 12px}
   .rdr .map{display:none}
   .rdr .doc{padding:18px 15px 120px}
   .rdr .top{position:relative;flex-wrap:nowrap;padding:10px 12px}
