@@ -54,6 +54,7 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
     var itemTopo: UINavigationItem!                    // item da barra: o seletor de produto é o titleView
     var botaoAjustes: UIBarButtonItem!                 // engrenagem dos módulos nativos (LEGIS/JURIS)
     var corSobreAcento: UIColor?                       // --onAccent do tema: texto do segmento selecionado
+    var corPilula: UIColor?                            // --accentSolid do tema: fundo da pílula selecionada (par do --onAccent)
     var abaAtual = 0                                   // última aba MONTADA (o segmento muda antes do montar)
     var nativeRevTimer: Timer?                         // agenda única: LEGIS/JURIS → Revisões do Cátedra
     var temaTimer: Timer?                              // a casca segue o tema do app (claro/escuro/acento)
@@ -407,6 +408,9 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
             ink:g('--ink'), text2:g('--text2'), text3:g('--text3'),
             accent:g('--accent'), accentD:g('--accentD'),
             accentSoft:g('--accentSoft'), accentRing:g('--accentRing'), onAccent:g('--onAccent'),
+            // o PAR que pinta texto sobre o destaque: --accentSolid (fundo) + --onAccent (texto),
+            // calculado no app para dar 4,5:1; o --accent cru segue como identidade (tint)
+            accentSolid:g('--accentSolid'),
             ok:g('--ok'), warn:g('--warn'), danger:g('--danger'),
             radius:g('--radius'), display:g('--display'), body:g('--body'), mono:g('--mono'),
             sbg:g('--sbg'), stext:g('--stext'), sactbg:g('--sactbg'), sacttext:g('--sacttext'),
@@ -472,6 +476,10 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         // Texto sobre o acento (--onAccent): a struct do tema não tem esse campo, então a
         // casca guarda aqui para o segmento selecionado; vazio → o contraste decide.
         corSobreAcento = col("onAccent").map { UIColor($0) }
+        // O fundo da pílula é o --accentSolid, o mesmo dos botões do app: o --onAccent foi
+        // medido contra ELE. Pintar a pílula com o --accent cru (Aurora, Solar, Holo, #0d9488,
+        // #d6457f) deixava o texto abaixo de 4,5:1. App antigo sem o token → volta ao --accent.
+        corPilula = col("accentSolid").map { UIColor($0) }
         ThemeState.t = t
         // As duas chaves existem porque LEGIS e JURIS guardam o modo com vocabulários
         // diferentes ("light"/"dark" e "claro"/"escuro"); trocá-las colidiria.
@@ -591,6 +599,33 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         }
         return false;
       }
+      // Contrato da volta: a origem ('de', ou 'origem' no formato antigo) leva a view do host
+      // de onde a pessoa saiu, e a casca a devolve inteira em window.catedraVoltarAcervo.
+      // Só a mensagem do próprio host (e.source === window) repassa o 'de' que trouxe. A de um
+      // frame NUNCA passa crua: frame legis/juris -> a origem que o host guardou ao entrar no
+      // acervo (window.__catedraOrigemAcervo); demais frames -> a régua do host para mensagem de
+      // satélite (window.__catedraOrigemDoFrame, a mesma _normalizarDe da web), com a view do
+      // data-ct-view do iframe que falou. Frame desconhecido ou régua ausente -> null (sem volta).
+      function origemComView(e) {
+        var d = e.data.de, o = e.data.origem;
+        var de = (d && typeof d === 'object') ? d : ((o && typeof o === 'object') ? o : null);
+        if (e.source === window) return (de && !Array.isArray(de)) ? de : null;
+        var fs = document.querySelectorAll('iframe[data-ct-view][data-ct-frame]');
+        for (var j = 0; j < fs.length; j++) {
+          if (fs[j].contentWindow !== e.source) continue;
+          var fv = fs[j].getAttribute('data-ct-view') || '';
+          var r = null;
+          try {
+            if (fv === 'legis' || fv === 'juris') {
+              r = (typeof window.__catedraOrigemAcervo === 'function') ? window.__catedraOrigemAcervo() : null;
+            } else if (typeof window.__catedraOrigemDoFrame === 'function') {
+              r = window.__catedraOrigemDoFrame(de, fv);
+            }
+          } catch (err) { r = null; }
+          return (r && typeof r === 'object' && !Array.isArray(r)) ? r : null;
+        }
+        return null;
+      }
       window.addEventListener('message', function (e) {
         try {
           if (!e || !e.data || e.data.type !== 'ctAbrirAcervo') return;
@@ -598,8 +633,7 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
           // Item 5: o termo e o ponto de origem viajam junto (antes ia só a aba).
           window.webkit.messageHandlers.catedraAcervo.postMessage({
             alvo: String(e.data.alvo || ''), termo: String(e.data.termo || ''),
-            de: (e.data.de && typeof e.data.de === 'object') ? e.data.de
-              : (e.data.origem && typeof e.data.origem === 'object' ? e.data.origem : null)
+            de: origemComView(e)
           });
           e.stopImmediatePropagation();
         } catch (err) {}
@@ -1195,7 +1229,7 @@ extension RootViewController {
     }
 
     /// Troca para a aba nativa pedida, levando o termo (JURIS busca direto) e o ponto de
-    /// origem para a volta ("← Voltar ao processo").
+    /// origem para a volta (o botão de voltar do sistema, com o rótulo da origem).
     func irParaAcervo(alvo: String, termo: String, origem: AcervoEntrada.Origem?) {
         guard alvo == "legis" || alvo == "juris" else { return }
         if alvo == "juris" && !jurisDisponivel { return }   // a área não oferece jurisprudência
@@ -1655,9 +1689,11 @@ extension RootViewController {
         // O seletor é desenhado pelo app (SeletorProduto), e não um UISegmentedControl: o iOS 27
         // ignora selectedSegmentTintColor e pinta a própria pílula clara, mas respeita a cor do
         // texto — o acento sumia e "JURIS" ficava branco sobre cinza. Desenhando, a pílula é
-        // sempre o acento e o texto sobre ela é o --onAccent (sem ele, o contraste decide).
-        let sobreAcento = corSobreAcento ?? (Self.luminancia(acento) < 0.5 ? .white : .black)
-        segmento?.aplicarCores(fundo: UIColor(t.surface2), acento: acento,
+        // sempre o --accentSolid (o acento movido o mínimo para o texto passar de 4,5:1; sem ele,
+        // o --accent) e o texto sobre ela é o --onAccent (sem ele, o contraste decide).
+        let pilula = corPilula ?? acento
+        let sobreAcento = corSobreAcento ?? (Self.luminancia(pilula) < 0.5 ? .white : .black)
+        segmento?.aplicarCores(fundo: UIColor(t.surface2), acento: pilula,
                                sobreAcento: sobreAcento, texto: UIColor(t.ink))
         setNeedsStatusBarAppearanceUpdate()
     }
