@@ -41,10 +41,10 @@ struct RevisaoEspacadaView: View {
             Spacer()
             VStack(spacing: 1) {
                 Label("Revisão espaçada", systemImage: "brain.head.profile")
-                    .font(.system(size: 13, weight: .bold)).foregroundStyle(Palette.accent)
+                    .font(DS.interface(13, .bold)).foregroundStyle(Palette.accent)
                 if !fila.isEmpty {
                     Text("Restam \(fila.count) · \(revisados.count) revisados")
-                        .font(.system(size: 10.5)).foregroundStyle(Palette.secondaryInk)
+                        .font(DS.interface(10.5)).foregroundStyle(Palette.secondaryInk)
                 }
             }
             Spacer()
@@ -66,14 +66,14 @@ struct RevisaoEspacadaView: View {
             HStack {
                 FonteBadge(fonte: e.fonteKind)
                 Spacer()
-                Text(e.titulo).font(.system(size: 11, weight: .semibold)).foregroundStyle(Palette.secondaryInk).lineLimit(1)
+                Text(e.titulo).font(DS.interface(11, .semibold)).foregroundStyle(Palette.secondaryInk).lineLimit(1)
             }
             .padding(.horizontal, 20).padding(.top, 14).padding(.bottom, 8)
             Divider().overlay(Palette.hairline)
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    Text(rotuloPergunta(card.cardKind)).font(.system(size: 11, weight: .bold)).tracking(0.5)
+                    Text(rotuloPergunta(card.cardKind)).font(DS.interface(11, .bold)).tracking(0.5)
                         .foregroundStyle(Palette.accent)
                     Text(card.prompt ?? e.titulo)
                         .font(Typo.serifBody(19)).lineSpacing(5).foregroundStyle(Palette.readingInk)
@@ -121,14 +121,14 @@ struct RevisaoEspacadaView: View {
             HStack(alignment: .top, spacing: 8) {
                 Image(systemName: certo ? "checkmark.seal.fill" : "xmark.seal.fill")
                     .foregroundStyle(certo ? Palette.ok : Palette.bad)
-                Text(card.answer ?? "").font(.system(size: 15, weight: .semibold))
+                Text(card.answer ?? "").font(DS.interface(15, .semibold))
                     .foregroundStyle(certo ? Palette.ok : Palette.bad)
                     .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
             }
         } else if let a = card.answer {
             HStack(spacing: 8) {
                 Image(systemName: "key.fill").foregroundStyle(Palette.accent)
-                Text(a).font(.system(size: 16, weight: .bold)).foregroundStyle(Palette.accent).textSelection(.enabled)
+                Text(a).font(DS.interface(16, .bold)).foregroundStyle(Palette.accent).textSelection(.enabled)
             }
         }
     }
@@ -136,14 +136,14 @@ struct RevisaoEspacadaView: View {
     private func gradeBar(_ id: String) -> some View {
         VStack(spacing: 6) {
             Divider().overlay(Palette.hairline)
-            Text("Como foi lembrar?").font(.system(size: 11)).foregroundStyle(Palette.secondaryInk)
+            Text("Como foi lembrar?").font(DS.interface(11)).foregroundStyle(Palette.secondaryInk)
             HStack(spacing: 8) {
                 ForEach(JurisSRSGrade.allCases) { grade in
                     Button { aplicar(id, grade) } label: {
                         VStack(spacing: 2) {
-                            Text(grade.label).font(.system(size: 12, weight: .semibold))
+                            Text(grade.label).font(DS.interface(12, .semibold))
                             Text(JurisSpacedRepetition.intervalLabel(store.srsPreview(id, grade)))
-                                .font(.system(size: 9).monospacedDigit()).foregroundStyle(Palette.secondaryInk)
+                                .font(DS.interface(9).monospacedDigit()).foregroundStyle(Palette.secondaryInk)
                         }
                         .frame(maxWidth: .infinity).padding(.vertical, 6)
                     }
@@ -165,13 +165,13 @@ struct RevisaoEspacadaView: View {
 
     private var fim: some View {
         VStack(spacing: 12) {
-            Image(systemName: "checkmark.seal.fill").font(.system(size: 44)).foregroundStyle(Palette.fonteSTJ)
+            Image(systemName: "checkmark.seal.fill").font(DS.interface(44)).foregroundStyle(Palette.fonteSTJ)
             Text(total == 0 ? "Nada para revisar agora" : "Revisão concluída!")
-                .font(.system(size: 18, weight: .bold)).foregroundStyle(Palette.titleInk)
+                .font(DS.interface(18, .bold)).foregroundStyle(Palette.titleInk)
             Text(total == 0
                  ? "Seu baralho está em dia. Crie flashcards nos verbetes para revisar aqui."
                  : "\(revisados.count) cartão\(revisados.count == 1 ? "" : "s") revisado\(revisados.count == 1 ? "" : "s") nesta sessão.")
-                .font(.system(size: 12)).foregroundStyle(Palette.secondaryInk).multilineTextAlignment(.center)
+                .font(DS.interface(12)).foregroundStyle(Palette.secondaryInk).multilineTextAlignment(.center)
             Button("Fechar") { dismiss() }.buttonStyle(.borderedProminent).tint(Palette.accent)
         }
         .padding(40).frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -196,11 +196,11 @@ struct BaralhoView: View {
         VStack(spacing: 0) {
             HStack {
                 Label("Baralho · \(itens.count) \(itens.count == 1 ? "cartão" : "cartões")", systemImage: "rectangle.stack")
-                    .font(.system(size: 14, weight: .bold)).foregroundStyle(Palette.titleInk)
+                    .font(DS.interface(14, .bold)).foregroundStyle(Palette.titleInk)
                 Spacer()
                 let due = store.srsDueCount
                 if due > 0 {
-                    Text("\(due) vencido\(due == 1 ? "" : "s")").font(.system(size: 11, weight: .semibold))
+                    Text("\(due) vencido\(due == 1 ? "" : "s")").font(DS.interface(11, .semibold))
                         .foregroundStyle(.white).padding(.horizontal, 7).padding(.vertical, 2)
                         .background(Palette.accent, in: Capsule())
                 }
@@ -214,10 +214,10 @@ struct BaralhoView: View {
 
             if itens.isEmpty {
                 VStack(spacing: 10) {
-                    Image(systemName: "rectangle.stack.badge.plus").font(.system(size: 40)).foregroundStyle(Palette.secondaryInk)
-                    Text("Baralho vazio").font(.system(size: 15, weight: .semibold)).foregroundStyle(Palette.titleInk)
+                    Image(systemName: "rectangle.stack.badge.plus").font(DS.interface(40)).foregroundStyle(Palette.secondaryInk)
+                    Text("Baralho vazio").font(DS.interface(15, .semibold)).foregroundStyle(Palette.titleInk)
                     Text("Abra um verbete e use “Criar flashcard” para adicioná-lo ao baralho.")
-                        .font(.system(size: 12)).foregroundStyle(Palette.secondaryInk).multilineTextAlignment(.center)
+                        .font(DS.interface(12)).foregroundStyle(Palette.secondaryInk).multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity).padding(30)
             } else {
@@ -249,18 +249,18 @@ struct BaralhoView: View {
     private func linha(_ it: Item) -> some View {
         let venc = store.srsIsDue(it.card)
         return HStack(alignment: .top, spacing: 10) {
-            Image(systemName: estiloSimbolo(it.card.cardKind)).font(.system(size: 13)).foregroundStyle(it.entry.fonteKind.cor)
+            Image(systemName: estiloSimbolo(it.card.cardKind)).font(DS.interface(13)).foregroundStyle(it.entry.fonteKind.cor)
                 .frame(width: 18)
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
-                    Text(it.entry.titulo).font(.system(size: 12, weight: .bold)).foregroundStyle(Palette.titleInk)
+                    Text(it.entry.titulo).font(DS.interface(12, .bold)).foregroundStyle(Palette.titleInk)
                     Text(venc ? "vencido" : JurisSpacedRepetition.intervalLabel(store.srsDaysUntilDue(it.card)))
-                        .font(.system(size: 9.5, weight: .semibold))
+                        .font(DS.interface(9.5, .semibold))
                         .foregroundStyle(venc ? .white : Palette.secondaryInk)
                         .padding(.horizontal, 6).padding(.vertical, 1)
                         .background(venc ? Palette.accent : Palette.hairline, in: Capsule())
                 }
-                Text(it.card.prompt ?? it.entry.enunciado).font(.system(size: 11.5))
+                Text(it.card.prompt ?? it.entry.enunciado).font(DS.interface(11.5))
                     .foregroundStyle(Palette.bodyInk).lineLimit(2).fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)

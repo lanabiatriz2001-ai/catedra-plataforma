@@ -21,6 +21,7 @@ import { iniciarServidor, lancarNavegador } from './_infra.mjs';
 import { testarOralLeiSeca } from './oral-lei-seca.mjs';
 import { testarPastaSincronizada } from './pasta-sincronizada.mjs';
 import { testarLegisGuiado } from './legis-guiado.mjs';
+import { testarLeitorWeb } from './leitor-web.mjs';
 import { testarCicloInteligente } from './ciclo-inteligente.mjs';
 import { testarRegistroSessao } from './registro-sessao.mjs';
 import { testarIntegracaoModulos } from './integracao-modulos.mjs';
@@ -53,6 +54,7 @@ import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 import { testarMenuLateral } from './menu-lateral.mjs';
 import { testarAssinaturaLimpa } from './assinatura-limpa.mjs';
 import { testarXcodeCloud } from './xcode-cloud.mjs';
+import { testarDesignNativo } from './design-nativo.mjs';
 import { montar as montarEnam, parseProva as parseProvaEnam, parseGabarito as parseGabaritoEnam, carregarAreas as areasEnam, EDICOES as EDICOES_ENAM } from '../scripts/build-questoes-enam.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -2042,6 +2044,7 @@ for (const [k, v] of Object.entries(la5m)) ok(v, 'LEITURA/CLOZE ' + k);
   const pg = await ctx.newPage();
   try { await testarLegisGuiado(pg, URL0, ok, { motor, origem: 'http' }); }
   catch (e) { ok(false, 'LEGIS GUIADO o roteiro correu sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
+  try { await testarLeitorWeb(pg, URL0, ok); } catch (e) { ok(false, 'LEITOR WEB: exceção — ' + (e && e.message)); }
   await ctx.close();
   // filtros "só incidência alta" e "só o que ainda não li"
   await page.goto(URL0 + '/legis-web.html?area=juridica');
@@ -4154,6 +4157,15 @@ catch (e) {
 try { await testarXcodeCloud(ok); }
 catch (e) {
   ok(false, 'XCODE CLOUD o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+/* ============= BASE VISUAL NATIVA (LEGIS/JURIS) =============
+   Catraca de hex/tamanho fixo/emoji fora de ios/vendor/design e, no Mac, os testes Swift
+   da base. Roteiro em tests/design-nativo.mjs (a catraca roda também na CI). */
+try { await testarDesignNativo(ok); }
+catch (e) {
+  ok(false, 'DESIGN NATIVO o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
