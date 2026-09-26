@@ -428,7 +428,10 @@ private struct SectionScreen: View {
         case .hoje:
             EmptyView()
         case .acervo:
-            DestinoHub(titulo: "Acervo", subtitulo: "\(normas.count) normas", secoes: [
+            DestinoHub(titulo: "Acervo", subtitulo: "Lei seca oficial, organizada por matéria",
+                       destaques: [ChipHero(simbolo: "books.vertical.fill", valor: "\(normas.count)", rotulo: "normas"),
+                                   ChipHero(simbolo: "star.fill", valor: "\(store.favoriteCount)", rotulo: "favoritos")],
+                       secoes: [
                 SecaoHub(titulo: "", itens: [
                     ItemHub(id: "all", titulo: "Todas as normas", detalhe: nil, simbolo: "books.vertical", cor: nil, contagem: normas.count, acao: { openSection(.all) }),
                     ItemHub(id: "fav", titulo: "Favoritos", detalhe: nil, simbolo: "star", cor: nil, contagem: store.favoriteCount, acao: { openSection(.favorites) }),
@@ -447,7 +450,9 @@ private struct SectionScreen: View {
                          } + [ItemHub(id: "nova", titulo: "Nova matéria", detalhe: nil, simbolo: "plus", cor: nil, contagem: nil, acao: novaMateria)]),
             ])
         case .treinar:
-            DestinoHub(titulo: "Treinar", subtitulo: "", secoes: [
+            DestinoHub(titulo: "Treinar", subtitulo: "Simulado, prova oral, incidência e o seu plano de leitura",
+                       destaques: [ChipHero(simbolo: "brain.head.profile", valor: "\(store.srsDueCount())", rotulo: "para revisar hoje")],
+                       secoes: [
                 SecaoHub(titulo: "", itens: [
                     ItemHub(id: "simulado", titulo: "Simulado de lei seca", detalhe: "C/E do texto oficial", simbolo: "checkmark.seal", cor: nil, contagem: nil, acao: { openSection(.simuladoLegis) }),
                     ItemHub(id: "oral", titulo: "Prova oral", detalhe: "Arguição sobre o artigo", simbolo: "mic", cor: nil, contagem: nil, acao: { openSection(.provaOral) }),
