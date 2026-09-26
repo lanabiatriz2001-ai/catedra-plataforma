@@ -16,7 +16,7 @@ import { SAIDA_ESVAZIADOS } from '../scripts/verificar-pasta-sincronizada.mjs';
 import fs from 'fs';
 import path from 'path';
 import { createHash } from 'crypto';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import { iniciarServidor, lancarNavegador } from './_infra.mjs';
 import { testarOralLeiSeca } from './oral-lei-seca.mjs';
 import { testarPastaSincronizada } from './pasta-sincronizada.mjs';
@@ -48,6 +48,7 @@ import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 import { testarMenuLateral } from './menu-lateral.mjs';
 import { testarPdfjsLocal } from './pdfjs-local.mjs';
+import { testarVarreduraRedeExterna, testarSupportSemRede, testarHarnessSemRede, testarRedeExternaExecucao, resumoRedeSuite } from './rede-externa.mjs';
 import { testarAssinaturaLimpa } from './assinatura-limpa.mjs';
 import { testarXcodeCloud } from './xcode-cloud.mjs';
 import { montar as montarEnam, parseProva as parseProvaEnam, parseGabarito as parseGabaritoEnam, carregarAreas as areasEnam, EDICOES as EDICOES_ENAM } from '../scripts/build-questoes-enam.mjs';
@@ -329,6 +330,11 @@ function pdfjsNaSaida(dir) {
     try { pega = citamCdnjs(path.join(RAIZ, 'public')); } finally { fs.rmSync(isca, { force: true }); }
     ok(pega.length === 1 && /isca-cdnjs/.test(pega[0]), 'D9 a varredura do cdnjs acusa e nomeia o arquivo que o cita (' + pega.join(', ') + ')');
   }
+  // TRAVA GERAL (tests/rede-externa.mjs): nenhum arquivo de texto de public/ carrega URL externa
+  // fora da lista de exceções — src=, <link rel>, @import, url(), fetch, Worker, import(), literal
+  // de recurso, host de CDN —, com isca que prova que a varredura acusa arquivo:linha.
+  testarVarreduraRedeExterna(ok, path.join(RAIZ, 'public'), 'public');
+  testarSupportSemRede(ok, { motor: 'node' });
   ok(/href="\.\/fonts\.css"/.test(html), 'D9 as fontes vêm do próprio domínio');
   const cssFontes = fs.readFileSync(path.join(RAIZ, 'public', 'fonts.css'), 'utf8');
   ok(/font-display:\s*swap/.test(cssFontes), 'D9 font-display:swap preservado');
@@ -372,6 +378,8 @@ function pdfjsNaSaida(dir) {
     libsOk = bundleConfere();
     cdnjsNoBundle = citamCdnjs(web);
     pdfjsNoBundle = pdfjsNaSaida(web);
+    // a mesma trava geral sobre o bundle que ACABOU de sair (não o que estava na máquina)
+    testarVarreduraRedeExterna(ok, web, 'bundle');
     /* O caso do #154 ("sem rede o build-macos ABORTA") mudou de sentido: rede não é mais
        motivo de aborto; vendor/ corrompido é. Adultera um byte do supabase.js (mesmo
        tamanho), roda de novo sem rede e confere que o build para, nomeia o arquivo e deixa
@@ -9624,7 +9632,16 @@ try {
 }
 catch (e) { ok(false, 'PDFJS LOCAL [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
 
+// TRAVA GERAL DE REDE (tests/rede-externa.mjs): o harness que deixa a suíte sem rede tira uma
+// dependência real (o host cru não abre offline sem ele), e o app PUBLICADO (public/, pelo
+// servidor da suíte) abre, monta LEGIS e JURIS e importa um PDF com toda origem de fora abortada,
+// sem pedido externo fora das exceções. O bundle nativo roda na suíte WebKit.
+try { await testarHarnessSemRede(browser, ok, { motor, origens: [[URL0, 'http'], [pathToFileURL(RAIZ).href, 'file']] }); }
+catch (e) { ok(false, 'REDE DA SUÍTE [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
+await testarRedeExternaExecucao(browser, ok, { motor, origens: [[URL0, 'publicado', 'public/index.html']] });
+
 await browser.close();
 srv.close();
+console.log('\n' + resumoRedeSuite());
 console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
 process.exit(falhas.length ? 1 : 0);
