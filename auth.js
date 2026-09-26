@@ -352,6 +352,43 @@
       m[k] = Date.now(); _si('catedra:_kts', JSON.stringify(m));
     } catch (_) {}
   }
+  /* catedra:aceite ({versao: "termos/privacidade", ts}): o aceite de versão MAIS NOVA vence, com
+     ou sem carimbo. O showAceite gravava sem carimbo (_kts); na hidratação o empate dava a
+     vitória à nuvem, o aceite antigo de lá desfazia o vigente recém-dado, e o portão pedia de
+     novo a cada abertura com sessionStorage novo (todo lançamento no Mac e no iPad). O carimbo
+     agora vai junto, mas o aparelho que aceitou antes dele não tem — daí a regra pela versão.
+     Versão "a" é mais nova que "b" quando nenhuma parte (termos, privacidade) é menor e alguma é
+     maior. Devolve o lado vencedor, ou null quando a versão não decide (mesma versão, ilegível,
+     partes que não se comparam): aí vale a regra geral (carimbo, depois a direção do merge). */
+  function versaoAceite(s) { var v = parseJ(s); return (v && typeof v === 'object' && typeof v.versao === 'string' && +v.ts > 0) ? v.versao : null; }
+  function cmpVersaoAceite(a, b) {
+    var pa = a.split('/'), pb = b.split('/'), maior = false, menor = false;
+    if (pa.length !== pb.length) return 0;
+    for (var i = 0; i < pa.length; i++) {
+      var xa = pa[i].split('.'), xb = pb[i].split('.'), c = 0;
+      for (var j = 0; j < Math.max(xa.length, xb.length) && !c; j++) {
+        var sa = xa[j] == null ? '0' : xa[j], sb2 = xb[j] == null ? '0' : xb[j];
+        if (!/^\d+$/.test(sa) || !/^\d+$/.test(sb2)) return 0;
+        c = (+sa > +sb2) ? 1 : (+sa < +sb2) ? -1 : 0;
+      }
+      if (c > 0) maior = true; else if (c < 0) menor = true;
+    }
+    return maior && !menor ? 1 : menor && !maior ? -1 : 0;
+  }
+  function aceiteVencedor(sv, lc) {
+    var a = versaoAceite(sv), b = versaoAceite(lc);
+    if (a && !b) return sv;
+    if (b && !a) return lc;
+    if (!a || a === b) return null;
+    var c = cmpVersaoAceite(a, b);
+    if (c > 0) return sv;
+    if (c < 0) return lc;
+    try {
+      var J = window.CT_JURIDICO;
+      if (J && J.aceiteVigente) { var va = J.aceiteVigente(sv), vb = J.aceiteVigente(lc); if (va && !vb) return sv; if (vb && !va) return lc; }
+    } catch (_) {}
+    return null;
+  }
   // serverObj/localObj: {chave: stringJSON}. preferServer decide escalares sem carimbo.
   function mergeAll(serverObj, localObj, preferServer) {
     serverObj = serverObj || {}; localObj = localObj || {};
@@ -379,6 +416,7 @@
         out[k] = sv; return;
       }
       if (sv === lc) { out[k] = lc; return; }
+      if (k === 'catedra:aceite') { var ac = aceiteVencedor(sv, lc); if (ac != null) { out[k] = ac; return; } }
       if (k === 'catedra:lib') { var ml = mergeLibArr(parseJ(sv), parseJ(lc), !!preferServer); ml = dropTombed(k, ml); out[k] = ml !== undefined ? JSON.stringify(ml) : (preferServer ? sv : lc); return; }
       if (ehArrayId(k)) { var m = mergeArr(parseJ(sv), parseJ(lc), !!preferServer); m = dropTombed(k, m); out[k] = m !== undefined ? JSON.stringify(m) : (preferServer ? sv : lc); return; }
       if (k === 'catedra:hl') { var h = mergeHl(parseJ(sv), parseJ(lc), !!preferServer); out[k] = h !== undefined ? JSON.stringify(h) : (preferServer ? sv : lc); return; }
@@ -632,11 +670,12 @@
     // caminho seguro (pushNow faz read-before-write). O envio com keepalive (condicional,
     // ver enviarCondicional) fica só para o pagehide, onde não há tempo de reler o servidor.
     if (document.visibilityState === 'hidden') { if (hidratacaoEmCurso) return; clearTimeout(pushT); if (isDirty()) pushNow(); }
-    else if (document.visibilityState === 'visible') { if (pendente) reconfirmarSessao(); else pullAndMerge(); }
+    else if (document.visibilityState === 'visible') { if (pendente) reconfirmarSessao(); else if (!refazerHidratacao()) pullAndMerge(); }
   });
   window.addEventListener('pagehide', flushSync);
   window.addEventListener('online', function () {
     if (pendente) { reconfirmarSessao(); return; }
+    if (refazerHidratacao()) return;   // a leitura da hidratação tinha falhado sem aceite vigente
     if (hidratacaoEmCurso) return;   // a própria hidratação está lendo a nuvem; o selo sai dela
     // "enviando" só quando há o que enviar; limpo, o pull decide o selo (salvo/erro/offline)
     if (isDirty()) setStatus('enviando');
@@ -1163,6 +1202,7 @@
     // Daqui até o reload nada sobe nem desce fora desta hidratação (ver hidratacaoEmCurso).
     hidratacaoEmCurso = true;
     showLoading('Carregando seus dados…');
+    var leitura = ++leituraHidratacao;   // resposta de leitura abandonada (ver refazerHidratacao) não vale
     sb.from('user_data').select('data,updated_at').eq('user_id', u.id).maybeSingle().then(function (res) {
       // FALHA DE LEITURA NÃO É "CONTA VAZIA".
       // O supabase-js NÃO rejeita a promise quando a rede/JWT/RLS falha: ele RESOLVE
@@ -1175,13 +1215,11 @@
       // É o sintoma histórico "meu edital sumiu ao entrar em outro aparelho".
       // Casos reais: abrir sem internet com token ainda válido, wi-fi de hotel/portal
       // cativo devolvendo HTML, JWT recusado.
-      if (user !== u) return;   // a sessão caiu no meio da hidratação: o login já está na tela
+      if (user !== u || leitura !== leituraHidratacao) return;   // a sessão caiu no meio da hidratação (o login já está na tela), ou a leitura foi abandonada
+      leituraRespondida = leitura;
       if (res && res.error) {
         if (sessaoCaiu(res)) { sessaoExpirou(); return; }   // JWT recusado: é login, não "erro" (showLoginState solta a trava)
-        // sem reload: solta a trava, senão as edições desta sessão nunca subiriam
-        soltarTravaHidratacao();
-        _si('catedra:auth', '1'); hydrating = false; hide();
-        setStatus(navigator.onLine === false ? 'offline' : 'erro');
+        abrirSemHidratar();
         return;   // NÃO carimba lastSrv, NÃO marca hydrated, NÃO recarrega — a próxima
                   // abertura tenta hidratar de novo e o dado do servidor volta sozinho.
       }
@@ -1243,8 +1281,49 @@
       // (catedra:aceite) e sobe junto na mescla.
       var aceiteLocal = null; try { aceiteLocal = localStorage.getItem('catedra:aceite'); } catch (_) {}
       if (aceiteVigente(aceiteLocal, row && row.data && row.data['catedra:aceite'])) prosseguir();
-      else showAceite(function () { try { _si('catedra:aceite', JSON.stringify({ versao: window.CT_JURIDICO.versao, ts: Date.now() })); } catch (_) {} prosseguir(); });
-    }).catch(function () { if (user !== u) return; soltarTravaHidratacao(); _si('catedra:auth', '1'); hydrating = false; hide(); });
+      // O aceite novo leva carimbo (_kts): escrita da pessoa, como qualquer outra — sem ele o
+      // empate na mescla da hidratação devolvia o aceite antigo da nuvem (ver aceiteVencedor).
+      else showAceite(function () { try { _si('catedra:aceite', JSON.stringify({ versao: window.CT_JURIDICO.versao, ts: Date.now() })); ktsStamp('catedra:aceite'); } catch (_) {} prosseguir(); });
+    }).catch(function () { if (user !== u || leitura !== leituraHidratacao) return; leituraRespondida = leitura; abrirSemHidratar(); });
+  }
+  /* A leitura da hidratação falhou (rede, portal cativo, erro do servidor): o app abre com o que
+     está no aparelho, sem hydrated e sem carimbar _lastSrv — a próxima hidratação repara.
+     Com o aceite VIGENTE dos Termos neste aparelho, a trava é solta: as edições marcam sujo e sobem
+     quando a rede voltar (pushNow relê a nuvem antes de gravar). SEM ele, a trava FICA: antes, o
+     app abria destravado, a pessoa editava, a rede voltava e o pushNow subia os dados sem o aceite
+     vigente (P14: nada sobe antes do aceite). O app segue usável offline — as escritas marcam o
+     sujo, só não sobe nada — e, quando a rede volta ('online') ou o app reaparece ('visible'), a
+     hidratação é refeita (refazerHidratacao): a tela de aceite aparece antes de qualquer envio.
+     A nova tentativa só sai desses dois eventos, nunca de um temporizador: sem rede, um laço
+     cobriria o app com "Carregando seus dados…" a cada volta. */
+  var hidratacaoPendente = false, leituraHidratacao = 0, leituraRespondida = 0, PRAZO_RETENTATIVA = 15000;
+  function abrirSemHidratar() {
+    var aceiteLocal = null; try { aceiteLocal = localStorage.getItem('catedra:aceite'); } catch (_) {}
+    if (aceiteVigente(aceiteLocal, null)) { hidratacaoPendente = false; soltarTravaHidratacao(); }
+    else hidratacaoPendente = true;
+    viaPendente = false;   // não há reload a adiar
+    _si('catedra:auth', '1'); hydrating = false; hide();
+    setStatus(navigator.onLine === false ? 'offline' : 'erro');
+  }
+  // Devolve true quando assumiu o evento (refez a hidratação). Um disparo por pendência: a flag cai
+  // antes do onLogin, que religa a trava; se a leitura falhar de novo, abrirSemHidratar a rearma.
+  // A pessoa estava estudando: uma leitura que não responde (portal cativo que segura a conexão)
+  // não pode deixar o "Carregando seus dados…" sobre o app. Passado o prazo, a leitura é
+  // abandonada (a resposta atrasada é descartada pelo contador) e o app volta como estava.
+  function refazerHidratacao() {
+    if (!hidratacaoPendente) return false;
+    if (!user || saindo) { hidratacaoPendente = false; return false; }
+    hidratacaoPendente = false;
+    viaPendente = true;   // o app estava vivo: dá ao autosave (500 ms) o tempo de gravar antes do reload
+    var dono = user;
+    onLogin(dono);
+    var n = leituraHidratacao;
+    setTimeout(function () {
+      if (user !== dono || leituraHidratacao !== n || leituraRespondida === n || !hidratacaoEmCurso) return;
+      leituraHidratacao++;   // abandona a leitura em voo
+      abrirSemHidratar();
+    }, PRAZO_RETENTATIVA);
+    return true;
   }
   function showLoginState() {
     user = null; pendente = null;
@@ -1255,7 +1334,7 @@
     try { sessionStorage.removeItem('catedra:_pend'); } catch (_) {}
     // A hidratação que estivesse em curso morreu com a sessão (o `user !== u` dela sai sem mexer
     // em nada): a trava é solta aqui para o próximo login — que liga a dele — e para não vazar.
-    soltarTravaHidratacao();
+    soltarTravaHidratacao(); hidratacaoPendente = false;
     _ri('catedra:auth'); sessionStorage.removeItem('catedra:hydrated'); hydrating = false; showForm();
   }
   // Sessão derrubada ou expirada DE VERDADE (SIGNED_OUT que não veio do Sair, 401/PGRST301 no
@@ -1489,7 +1568,7 @@
         : 'Há estudos deste aparelho que ainda não subiram para a sua conta — e agora não há como subir (' + (online() ? 'a sessão expirou' : 'sem internet') + ').\n\nSair vai apagá-los daqui de vez. Para não perder nada, ' + (online() ? 'entre de novo' : 'espere a conexão voltar') + ' e saia depois. Quer sair mesmo assim?';
       if (!confirm(msg)) {
         if (user) _si('catedra:auth', '1');                      // "não saio": o app segue logado
-        if (podeSubir && user) { setStatus('enviando'); pushNow(); }   // e termina de sincronizar
+        if (podeSubir && user && !hidratacaoEmCurso) { setStatus('enviando'); pushNow(); }   // e termina de sincronizar (com a trava, nada sobe: o selo fica)
         return;
       }
       if (podeSubir) { try { enviarCondicional(); } catch (_) {} }   // última tentativa (keepalive sobrevive ao reload)
