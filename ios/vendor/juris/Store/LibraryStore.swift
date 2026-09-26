@@ -1146,21 +1146,20 @@ final class LibraryStore {
         tribunaisCustom = s.tribunaisCustom ?? []
         readingChecklist = s.readingChecklist ?? []
         // migra notas antigas em texto simples -> RTF
-        if let legado = s.annotations {
-            for (id, texto) in legado where richNotes[id] == nil {
-                let t = texto.trimmingCharacters(in: .whitespacesAndNewlines)
-                if t.isEmpty { continue }
-                let attr = NSAttributedString(string: texto,
-                    attributes: [.font: NSFont.systemFont(ofSize: 14),
-                                 .foregroundColor: NSColor.label])   // textColor é do AppKit
-                let opcRTF: [NSAttributedString.DocumentAttributeKey: Any] =
-                    [.documentType: NSAttributedString.DocumentType.rtf]
-                if let rtf = try? attr.data(from: NSRange(location: 0, length: attr.length),
-                                            documentAttributes: opcRTF) {
-                    richNotes[id] = rtf
-                }
-            }
+        for (id, texto) in (s.annotations ?? [:]) where richNotes[id] == nil {
+            if let rtf = Self.rtfDeNotaLegada(texto) { richNotes[id] = rtf }
         }
+    }
+
+    /// Nota legada em texto simples (`annotations`) como nota rica (RTF); nil se vazia.
+    private static func rtfDeNotaLegada(_ texto: String) -> Data? {
+        guard !texto.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+        let attr = NSAttributedString(string: texto,
+            attributes: [.font: NSFont.systemFont(ofSize: 14),
+                         .foregroundColor: NSColor.label])   // textColor é do AppKit
+        let opcRTF: [NSAttributedString.DocumentAttributeKey: Any] =
+            [.documentType: NSAttributedString.DocumentType.rtf]
+        return try? attr.data(from: NSRange(location: 0, length: attr.length), documentAttributes: opcRTF)
     }
 
     // DEBOUNCE da gravação: cada `didSet` chamava persist() na hora — marcar 20 lidos
@@ -1204,11 +1203,10 @@ final class LibraryStore {
         }
     }
 
-    private func persistAgora() {
-        persistPendente = false
+    /// O estado da memória no formato do disco (state.json, iCloud e backup), com o legado da galeria.
+    private func retratoPersistido() -> Persisted {
         var s = Persisted(favorites: Array(favorites), recents: recents,
-                          importantes: Array(marcadosImportantes),
-                          annotations: nil,
+                          importantes: Array(marcadosImportantes), annotations: nil,
                           richNotes: richNotes, marks: marks,
                           colecoes: colecoes, lidos: Array(lidos), dominados: Array(dominados),
                           afirmacoesFalsas: afirmacoesFalsas,
@@ -1218,6 +1216,12 @@ final class LibraryStore {
                           tribunaisCustom: tribunaisCustom, readingChecklist: readingChecklist,
                           idsMigrados: idsMigrados)
         legadoGaleria.aplicar(em: &s)
+        return s
+    }
+
+    private func persistAgora() {
+        persistPendente = false
+        let s = retratoPersistido()
         guard let data = try? JSONEncoder().encode(s) else { return }
         try? data.write(to: stateURL, options: .atomic)
         syncKVS(s)
@@ -1239,42 +1243,42 @@ final class LibraryStore {
     /// Exporta todos os dados pessoais para um arquivo (backup).
     func exportarBackup() -> Data? {
         flushPersist()
-        var s = Persisted(favorites: Array(favorites), recents: recents,
-                          importantes: Array(marcadosImportantes), annotations: nil,
-                          richNotes: richNotes, marks: marks,
-                          colecoes: colecoes, lidos: Array(lidos), dominados: Array(dominados),
-                          afirmacoesFalsas: afirmacoesFalsas,
-                          metaDiaria: metaDiaria, leiturasPorDia: leiturasPorDia,
-                          coresFavoritas: coresFavoritas, alinhamentos: alinhamentos,
-                          textosEditados: textosEditados, srs: srs,
-                          tribunaisCustom: tribunaisCustom, readingChecklist: readingChecklist,
-                          idsMigrados: idsMigrados)
-        legadoGaleria.aplicar(em: &s)
-        return try? JSONEncoder().encode(s)
+        return try? JSONEncoder().encode(retratoPersistido())
     }
 
-    /// Restaura dados pessoais de um backup (mescla).
+    /// Restaura dados pessoais de um backup (mescla) — regra em JurisEstadoPersistido.mesclarBackup: soma o
+    /// que é conjunto, entra o que falta aqui, e o que o backup traz num id fundido passa ao canônico pela
+    /// regra da união (JurisMigracaoIDs.migrarRestaurado). Backup antigo com id fundido deixava esse estudo
+    /// órfão: a migração da abertura pula o id que este aparelho já marcou em `idsMigrados`.
     func importarBackup(_ data: Data) -> Bool {
-        guard let s = try? JSONDecoder().decode(Persisted.self, from: data) else { return false }
-        favorites.formUnion(s.favorites)
-        marcadosImportantes.formUnion(s.importantes ?? [])
-        lidos.formUnion(s.lidos ?? [])
-        dominados.formUnion(s.dominados ?? [])
-        for (k, v) in (s.richNotes ?? [:]) where richNotes[k] == nil { richNotes[k] = v }
-        for (k, v) in (s.marks ?? [:]) where marks[k] == nil { marks[k] = v }
-        for (k, v) in (s.afirmacoesFalsas ?? [:]) where afirmacoesFalsas[k] == nil { afirmacoesFalsas[k] = v }
-        for (k, v) in (s.leiturasPorDia ?? [:]) { leiturasPorDia[k] = max(leiturasPorDia[k] ?? 0, v) }
-        for (k, v) in (s.alinhamentos ?? [:]) where alinhamentos[k] == nil { alinhamentos[k] = v }
-        for (k, v) in (s.textosEditados ?? [:]) where textosEditados[k] == nil { textosEditados[k] = v }
-        for (k, v) in (s.srs ?? [:]) where srs[k] == nil { srs[k] = v }
-        for hex in (s.coresFavoritas ?? []) { adicionarCorFavorita(hex) }
+        guard var b = try? JSONDecoder().decode(Persisted.self, from: data) else { return false }
+        // backup antigo com nota em texto simples (`annotations`): vira nota rica, como no loadState
+        var ricas = b.richNotes ?? [:]
+        for (id, texto) in (b.annotations ?? [:]) where ricas[id] == nil {
+            if let rtf = Self.rtfDeNotaLegada(texto) { ricas[id] = rtf }
+        }
+        if !ricas.isEmpty { b.richNotes = ricas }
+        var s = retratoPersistido()
+        s.mesclarBackup(b)
+        favorites = Set(s.favorites)
+        recents = s.recents
+        marcadosImportantes = Set(s.importantes ?? [])
+        lidos = Set(s.lidos ?? [])
+        dominados = Set(s.dominados ?? [])
+        richNotes = s.richNotes ?? [:]
+        marks = s.marks ?? [:]
+        afirmacoesFalsas = s.afirmacoesFalsas ?? [:]
+        leiturasPorDia = s.leiturasPorDia ?? [:]
+        alinhamentos = s.alinhamentos ?? [:]
+        textosEditados = s.textosEditados ?? [:]
+        srs = s.srs ?? [:]
         if let m = s.metaDiaria { metaDiaria = m }
-        let existentes = Set(colecoes.map(\.id))
-        colecoes.append(contentsOf: (s.colecoes ?? []).filter { !existentes.contains($0.id) })
-        let tribExistentes = Set(tribunaisCustom.map(\.id))
-        tribunaisCustom.append(contentsOf: (s.tribunaisCustom ?? []).filter { !tribExistentes.contains($0.id) })
-        let checklistExistentes = Set(readingChecklist.map(\.id))
-        readingChecklist.append(contentsOf: (s.readingChecklist ?? []).filter { !checklistExistentes.contains($0.id) })
+        colecoes = s.colecoes ?? []
+        tribunaisCustom = s.tribunaisCustom ?? []
+        readingChecklist = s.readingChecklist ?? []
+        idsMigrados = s.idsMigrados
+        for hex in (b.coresFavoritas ?? []) { adicionarCorFavorita(hex) }
+        persist()   // `recents` não tem didSet: grava também quando só ela mudou
         return true
     }
 }
