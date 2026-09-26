@@ -34,6 +34,7 @@ import { testarReguaUnica } from './regua-unica.mjs';
 import { testarPrioridadeErrosResolvidos } from './prioridade-erros-resolvidos.mjs';
 import { testarRevisaoFonte } from './revisao-fonte.mjs';
 import { testarVoltaOrigem } from './volta-origem.mjs';
+import { testarContrasteDestaque } from './contraste-destaque.mjs';
 import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
 import { testarOnboardingImportar } from './onboarding-importar.mjs';
 import { testarCotaIA } from './cota-ia.mjs';
@@ -8977,6 +8978,14 @@ catch (e) {
 try { await testarVoltaOrigem(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'VOLTA [' + motor + '] [http] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+// Texto sobre o destaque: --onAccent por contraste WCAG no pior ponto e --accentSolid onde o
+// destaque cru não dá 4,5:1, com o --accent de identidade intacto (tests/contraste-destaque.mjs)
+try { await testarContrasteDestaque(page, URL0, ok, { motor }); }
+catch (e) {
+  ok(false, 'CONTRASTE/DESTAQUE [' + motor + '] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 

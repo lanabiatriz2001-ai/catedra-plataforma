@@ -210,7 +210,7 @@ aside nav button{ transition:background .15s, transform .15s, box-shadow .15s; }
   .ct-alvo{position:relative;}
   .ct-alvo::after{content:"";position:absolute;top:50%;left:50%;width:max(44px,100%);height:44px;transform:translate(-50%,-50%);}
 }
-.ct-skip{position:fixed;left:10px;top:-60px;z-index:200;background:var(--accent);color:var(--onAccent);padding:10px 16px;border-radius:var(--r-md);font-size:var(--fs-base);font-weight:600;text-decoration:none;transition:top .15s;}
+.ct-skip{position:fixed;left:10px;top:-60px;z-index:200;background:var(--accentSolid);color:var(--onAccent);padding:10px 16px;border-radius:var(--r-md);font-size:var(--fs-base);font-weight:600;text-decoration:none;transition:top .15s;}
 .ct-skip:focus{top:10px;}
 #ct-main:focus{outline:none;}
 #ct-view-titulo:focus:not(:focus-visible){outline:none;}
@@ -254,11 +254,13 @@ html.ct-teclado .ct-scroll{ padding-bottom:12px !important; }
 .cth-sub, .cth-h1, .cth-chip{ overflow-wrap:anywhere; }
 .cth-chip{ max-width:100%; }
 .cth-kicker{ display:inline-flex; align-items:center; gap:8px; font-size:var(--fs-xs); font-weight:700;
-  letter-spacing:.18em; text-transform:uppercase; color:rgba(255,255,255,.85);
+  letter-spacing:.18em; text-transform:uppercase; color:#fff;
   background:rgba(8,7,15,.28); border:1px solid rgba(255,255,255,.22); border-radius:30px; padding:6px 14px; }
 .cth-h1{ margin:12px 0 0; font-family:var(--display); font-size:clamp(34px,3.6vw,54px); font-weight:800;
   letter-spacing:-.03em; color:#fff; line-height:1.02; text-shadow:0 2px 30px rgba(8,7,15,.35); }
-.cth-sub{ margin-top:9px; color:rgba(255,255,255,.88); font-size:var(--fs-lg); font-weight:500; }
+/* o texto do banner é branco opaco: o translúcido somava a cor do fundo e caía abaixo de
+   4,5:1 justo onde o gradiente clareia (ver --heroGrad no render) */
+.cth-sub{ margin-top:9px; color:#fff; font-size:var(--fs-lg); font-weight:500; }
 .cth-chips{ display:flex; flex-wrap:wrap; gap:9px; margin-top:16px; }
 .cth-chip{ display:inline-flex; align-items:center; gap:7px; background:rgba(8,7,15,.34);
   border:1px solid rgba(255,255,255,.2); color:#fff; border-radius:30px; padding:6px 13px;
@@ -291,7 +293,7 @@ html.ct-teclado .ct-scroll{ padding-bottom:12px !important; }
 .cth-kpis{ position:relative; z-index:2; margin-top:-42px; padding:0 2px;
   display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; }
 .cth-gcard{ border:1px solid transparent; border-radius:var(--radius);
-  background: linear-gradient(var(--surface),var(--surface)) padding-box, var(--heroGrad) border-box;
+  background: linear-gradient(var(--surface),var(--surface)) padding-box, var(--heroVivo) border-box;
   box-shadow:0 18px 48px -20px rgba(0,0,0,.4); }
 .cth-kpi{ padding:18px 20px 16px; position:relative; overflow:hidden; }
 .cth-kpi .cth-lbl{ font-size:var(--fs-2xs); font-weight:700; letter-spacing:.15em; text-transform:uppercase; color:var(--text3); }
@@ -301,7 +303,7 @@ html.ct-teclado .ct-scroll{ padding-bottom:12px !important; }
 .cth-kpi .cth-ksub{ margin-top:8px; color:var(--text2); font-size:var(--fs-sm); }
 .cth-kpi .cth-ksub b{ color:var(--ink); font-weight:600; }
 .cth-kbar{ margin-top:11px; height:7px; border-radius:var(--r-sm); background:var(--surface2); overflow:hidden; }
-.cth-kbar i{ display:block; height:100%; border-radius:var(--r-sm); background:var(--heroGrad); }
+.cth-kbar i{ display:block; height:100%; border-radius:var(--r-sm); background:var(--heroVivo); }
 .cth-sec{ display:flex; align-items:baseline; gap:14px; margin:14px 2px 0; }
 .cth-sec .eyebrow{ font-size:var(--fs-2xs); font-weight:700; letter-spacing:.16em; color:var(--text3); text-transform:uppercase; }
 .cth-sec h2{ margin:0; font-family:var(--display); font-size:23px; font-weight:750; letter-spacing:-.015em; color:var(--ink); }
@@ -320,7 +322,7 @@ html.ct-teclado .ct-scroll{ padding-bottom:12px !important; }
 .cth-task{ display:flex; align-items:center; gap:12px; padding:11px 11px; border-radius:var(--radius); border:1px solid transparent; width:100%; text-align:left; background:transparent; cursor:pointer; font-family:inherit; }
 .cth-task + .cth-task, .cth-tasknext + .cth-task, .cth-task + .cth-tasknext{ margin-top:6px; }
 .cth-tasknext{ display:flex; align-items:center; gap:12px; border-radius:var(--radius); padding:14px 12px; border:1px solid transparent;
-  background: linear-gradient(var(--accentSoft),var(--accentSoft)) padding-box, var(--heroGrad) border-box;
+  background: linear-gradient(var(--accentSoft),var(--accentSoft)) padding-box, var(--heroVivo) border-box;
   box-shadow:0 14px 44px -16px color-mix(in oklab, var(--accent) 42%, transparent); }
 .cth-chk{ width:24px; height:24px; border-radius:var(--r-md); border:2px solid var(--border); flex:none;
   display:flex; align-items:center; justify-content:center; color:#fff; background:transparent; cursor:pointer; padding:0; }
@@ -332,7 +334,7 @@ html.ct-teclado .ct-scroll{ padding-bottom:12px !important; }
 .cth-dot{ width:8px; height:8px; border-radius:50%; flex:none; }
 .cth-dur{ font-family:var(--mono); font-size:var(--fs-sm); font-weight:600; color:var(--text2);
   background:var(--surface2); border-radius:var(--r-md); padding:4px 9px; flex:none; }
-.cth-bfoco{ background:linear-gradient(120deg,var(--accent),var(--accentD)); color:var(--onAccent);
+.cth-bfoco{ background:linear-gradient(120deg,var(--accentSolid),var(--accentSolidD)); color:var(--onAccent);
   font-weight:800; font-size:var(--fs-base); border:none; border-radius:var(--radius); padding:10px 16px; flex:none; cursor:pointer;
   font-family:inherit; box-shadow:0 8px 26px -8px color-mix(in oklab, var(--accent) 55%, transparent); transition:transform .12s; }
 .cth-bfoco:hover{ transform:translateY(-1px); }
@@ -401,20 +403,20 @@ html.ct-teclado .ct-scroll{ padding-bottom:12px !important; }
 .cth-liq i b{ position:absolute; inset:0; border-radius:4px; display:block; }
 .cth-prova{ display:flex; align-items:center; gap:20px; padding:20px 22px; }
 .cth-prova .big{ font-family:var(--mono); font-weight:700; font-size:52px; line-height:.95; letter-spacing:-.03em;
-  background:var(--heroGrad); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  background:var(--heroVivo); -webkit-background-clip:text; background-clip:text; color:transparent; }
 .cth-prova .big small{ display:block; -webkit-text-fill-color:var(--text3); font-family:inherit;
   font-size:var(--fs-xs); font-weight:700; letter-spacing:.14em; text-transform:uppercase; margin-top:5px; }
 .cth-prova .body{ flex:1; min-width:0; }
 .cth-prova .body b{ font-size:var(--fs-lg); font-weight:700; color:var(--ink); }
 .cth-prova .body small{ display:block; color:var(--text2); font-size:var(--fs-sm); margin:3px 0 9px; }
 .cth-pbar{ height:8px; border-radius:var(--r-sm); background:var(--surface2); overflow:hidden; }
-.cth-pbar i{ display:block; height:100%; background:var(--heroGrad); border-radius:var(--r-sm); }
+.cth-pbar i{ display:block; height:100%; background:var(--heroVivo); border-radius:var(--r-sm); }
 .cth-mtop{ display:flex; align-items:baseline; gap:12px; }
 .cth-mtop .pct{ font-family:var(--mono); font-weight:700; font-size:36px; letter-spacing:-.02em; color:var(--ink); }
 .cth-mtop .frac{ color:var(--text2); font-size:var(--fs-md); }
 .cth-mtop .frac b{ color:var(--ink); font-family:var(--mono); }
 .cth-mbar{ margin-top:11px; height:10px; border-radius:var(--r-sm); background:var(--surface2); overflow:hidden; }
-.cth-mbar i{ display:block; height:100%; border-radius:var(--r-sm); background:var(--heroGrad); }
+.cth-mbar i{ display:block; height:100%; border-radius:var(--r-sm); background:var(--heroVivo); }
 .cth-mdays{ display:grid; grid-template-columns:repeat(7,1fr); gap:7px; margin-top:13px; }
 .cth-mday{ height:30px; border-radius:var(--r-md); background:var(--surface2); position:relative; overflow:hidden; }
 .cth-revs{ display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:14px; }
@@ -429,7 +431,7 @@ html.ct-teclado .ct-scroll{ padding-bottom:12px !important; }
 .cth-rev .foot{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
 .cth-rev .int{ font-family:var(--mono); font-size:var(--fs-xs); color:var(--text3); }
 .cth-foco{ margin-top:16px; border:1px solid transparent; border-radius:var(--radius);
-  background: linear-gradient(var(--surface),var(--surface)) padding-box, var(--heroGrad) border-box;
+  background: linear-gradient(var(--surface),var(--surface)) padding-box, var(--heroVivo) border-box;
   padding:20px 24px; display:flex; align-items:center; gap:18px;
   box-shadow:0 22px 60px -24px color-mix(in oklab, var(--accent) 40%, rgba(20,15,10,.5)); position:relative; overflow:hidden; }
 .cth-foco .ico{ font-size:28px; flex:none; }
@@ -437,7 +439,7 @@ html.ct-teclado .ct-scroll{ padding-bottom:12px !important; }
 .cth-foco .tx small{ display:block; font-size:var(--fs-2xs); font-weight:700; letter-spacing:.16em;
   text-transform:uppercase; color:var(--text3); margin-bottom:4px; }
 .cth-foco .tx p{ margin:0; font-size:var(--fs-lg); font-weight:600; color:var(--ink); }
-.cth-bfsug{ background:linear-gradient(120deg,var(--accent),var(--accentD)); color:var(--onAccent);
+.cth-bfsug{ background:linear-gradient(120deg,var(--accentSolid),var(--accentSolidD)); color:var(--onAccent);
   font-weight:800; font-size:var(--fs-md); border:none; border-radius:var(--radius); padding:12px 20px; flex:none; cursor:pointer;
   font-family:inherit; box-shadow:0 10px 30px -8px color-mix(in oklab, var(--accent) 55%, transparent); transition:transform .12s; }
 .cth-bfsug:hover{ transform:translateY(-1px); }
@@ -678,8 +680,8 @@ window.ctPdfLib = (function(){
     <nav style="display:flex;flex-direction:column;gap:3px;">
       <button data-view="inicio" aria-current="{{ navCur.inicio }}" onclick="{{ onNav }}" style="{{ navStyle.inicio }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 12 12 3l9 9M5 10v10h14V10" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Início</span></button>
       <button data-view="ciclo" aria-current="{{ navCur.ciclo }}" onclick="{{ onNav }}" style="{{ navStyle.ciclo }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 4h16v4H4zM4 10h16v4H4zM4 16h16v4H4z" stroke-linejoin="round"></path></svg><span>Ciclo de Estudos</span></button>
-      <button data-view="revisoes" aria-current="{{ navCur.revisoes }}" onclick="{{ onNav }}" style="{{ navStyle.revisoes }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v4h-4" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Revisões</span><sc-if value="{{ revHasPend }}" hint-placeholder-val="{{ false }}"><span style="margin-left:auto;background:var(--accent);color:var(--onAccent);font-size:var(--fs-xs);font-weight:700;min-width:20px;height:20px;border-radius:99px;display:flex;align-items:center;justify-content:center;padding:0 5px;">{{ revPendStr }}</span></sc-if></button>
-      <button data-view="flashcards" aria-current="{{ navCur.flashcards }}" onclick="{{ onNav }}" style="{{ navStyle.flashcards }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M8 6h11a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2zM3 16V5a2 2 0 0 1 2-2h11" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Baralho</span><sc-if value="{{ fcTemDue }}" hint-placeholder-val="{{ false }}"><span style="margin-left:auto;background:var(--accent);color:var(--onAccent);font-size:var(--fs-xs);font-weight:700;min-width:20px;height:20px;border-radius:99px;display:flex;align-items:center;justify-content:center;padding:0 5px;">{{ fcDueStr }}</span></sc-if></button>
+      <button data-view="revisoes" aria-current="{{ navCur.revisoes }}" onclick="{{ onNav }}" style="{{ navStyle.revisoes }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v4h-4" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Revisões</span><sc-if value="{{ revHasPend }}" hint-placeholder-val="{{ false }}"><span style="margin-left:auto;background:var(--accentSolid);color:var(--onAccent);font-size:var(--fs-xs);font-weight:700;min-width:20px;height:20px;border-radius:99px;display:flex;align-items:center;justify-content:center;padding:0 5px;">{{ revPendStr }}</span></sc-if></button>
+      <button data-view="flashcards" aria-current="{{ navCur.flashcards }}" onclick="{{ onNav }}" style="{{ navStyle.flashcards }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M8 6h11a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2zM3 16V5a2 2 0 0 1 2-2h11" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Baralho</span><sc-if value="{{ fcTemDue }}" hint-placeholder-val="{{ false }}"><span style="margin-left:auto;background:var(--accentSolid);color:var(--onAccent);font-size:var(--fs-xs);font-weight:700;min-width:20px;height:20px;border-radius:99px;display:flex;align-items:center;justify-content:center;padding:0 5px;">{{ fcDueStr }}</span></sc-if></button>
       <button data-view="calendario" aria-current="{{ navCur.calendario }}" onclick="{{ onNav }}" style="{{ navCalendario }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M3 9h18M8 2v4M16 2v4" stroke-linecap="round"></path></svg><span>Calendário</span></button>
     </nav>
     <div style="font-size:var(--fs-2xs);letter-spacing:.14em;text-transform:uppercase;color:var(--stext);opacity:.65;font-weight:600;padding:18px 8px 8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);">Estudo base</div>
@@ -793,7 +795,7 @@ window.ctPdfLib = (function(){
       <div class="ct-sino-barra" style="position:relative;flex:none;">
         <button onclick="{{ toggleNotif }}" title="Notificações" style="position:relative;border:1px solid var(--border);background:var(--surface2);border-radius:99px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 4a4 4 0 0 1 4 4v2.4c0 .9.3 1.8.9 2.5L18.5 15H5.5l1.6-2.1c.6-.7.9-1.6.9-2.5V8a4 4 0 0 1 4-4Z" stroke-linejoin="round"></path><path d="M10 19a2 2 0 0 0 4 0" stroke-linecap="round"></path></svg>
-          <sc-if value="{{ hasUnread }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;top:-2px;right:-2px;min-width:17px;height:17px;border-radius:99px;background:var(--danger);color:#fff;font-size:var(--fs-2xs);font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--surface);">{{ notifUnreadStr }}</span></sc-if>
+          <sc-if value="{{ hasUnread }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;top:-2px;right:-2px;min-width:17px;height:17px;border-radius:99px;background:var(--danger);color:var(--onDanger);font-size:var(--fs-2xs);font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--surface);">{{ notifUnreadStr }}</span></sc-if>
         </button>
         <sc-if value="{{ notifOpen }}" hint-placeholder-val="{{ false }}">
           <div style="position:absolute;top:46px;right:0;z-index:70;width:340px;max-width:86vw;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 16px 40px rgba(0,0,0,.22);overflow:hidden;">
@@ -831,7 +833,7 @@ window.ctPdfLib = (function(){
             <div style="padding:6px;">
               <!-- D12 no celular: o sino se recolhe aqui, com o badge junto -->
               <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
-                <button onclick="{{ toggleNotif }}" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;cursor:pointer;background:transparent;border:none;border-radius:var(--r-md);padding:10px 11px;font-family:inherit;font-size:var(--fs-base);color:var(--ink);"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--text3)" stroke-width="1.9"><path d="M12 4a4 4 0 0 1 4 4v2.4c0 .9.3 1.8.9 2.5L18.5 15H5.5l1.6-2.1c.6-.7.9-1.6.9-2.5V8a4 4 0 0 1 4-4Z" stroke-linejoin="round"></path><path d="M10 19a2 2 0 0 0 4 0" stroke-linecap="round"></path></svg>Notificações<sc-if value="{{ hasUnread }}" hint-placeholder-val="{{ false }}"><span style="margin-left:auto;min-width:19px;height:19px;border-radius:99px;background:var(--danger);color:#fff;font-size:var(--fs-2xs);font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 5px;">{{ notifUnreadStr }}</span></sc-if></button>
+                <button onclick="{{ toggleNotif }}" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;cursor:pointer;background:transparent;border:none;border-radius:var(--r-md);padding:10px 11px;font-family:inherit;font-size:var(--fs-base);color:var(--ink);"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--text3)" stroke-width="1.9"><path d="M12 4a4 4 0 0 1 4 4v2.4c0 .9.3 1.8.9 2.5L18.5 15H5.5l1.6-2.1c.6-.7.9-1.6.9-2.5V8a4 4 0 0 1 4-4Z" stroke-linejoin="round"></path><path d="M10 19a2 2 0 0 0 4 0" stroke-linecap="round"></path></svg>Notificações<sc-if value="{{ hasUnread }}" hint-placeholder-val="{{ false }}"><span style="margin-left:auto;min-width:19px;height:19px;border-radius:99px;background:var(--danger);color:var(--onDanger);font-size:var(--fs-2xs);font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 5px;">{{ notifUnreadStr }}</span></sc-if></button>
               </sc-if>
               <button data-view="ajustes" onclick="{{ userMenuGo }}" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;cursor:pointer;background:transparent;border:none;border-radius:var(--r-md);padding:10px 11px;font-family:inherit;font-size:var(--fs-base);color:var(--ink);"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--text3)" stroke-width="1.9"><circle cx="12" cy="12" r="3"></circle><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2l-.3-2.5h-4l-.3 2.5a7 7 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2 1.2l.3 2.5h4l.3-2.5a7 7 0 0 0 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2Z" stroke-linejoin="round"></path></svg>Ajustes</button>
             </div>
@@ -863,7 +865,7 @@ window.ctPdfLib = (function(){
        <sc-if value="{{ pomoMenuOpen }}" hint-placeholder-val="{{ false }}">
         <div role="menu" aria-label="Cronômetro e foco" style="position:absolute;top:48px;right:0;z-index:60;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:8px;box-shadow:0 16px 40px rgba(0,0,0,.22);min-width:248px;">
           <div style="display:flex;gap:6px;margin-bottom:8px;">
-            <button onclick="{{ toggleTimer }}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 12px;font-size:var(--fs-sm);font-weight:700;cursor:pointer;font-family:inherit;">{{ focoBtnPlay }}</button>
+            <button onclick="{{ toggleTimer }}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 12px;font-size:var(--fs-sm);font-weight:700;cursor:pointer;font-family:inherit;">{{ focoBtnPlay }}</button>
             <button onclick="{{ resetTimer }}" title="Zerar" style="flex:none;width:40px;border:1px solid var(--border);background:var(--surface2);border-radius:var(--r-md);cursor:pointer;color:var(--text2);display:flex;align-items:center;justify-content:center;font-family:inherit;">
               <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v4h-4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
             </button>
@@ -1042,7 +1044,7 @@ window.ctPdfLib = (function(){
           </div>
           <div style="display:flex;justify-content:flex-end;gap:10px;padding:14px 22px;border-top:1px solid var(--border);background:var(--surface2);border-radius:0 0 18px 18px;">
             <button onclick="{{ closeHistEdit }}" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 18px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;font-weight:500;">Cancelar</button>
-            <button onclick="{{ saveHistEdit }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 18px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Salvar alterações</button>
+            <button onclick="{{ saveHistEdit }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 18px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Salvar alterações</button>
           </div>
         </div>
       </div>
@@ -1353,7 +1355,7 @@ window.ctPdfLib = (function(){
               <div style="font-family:var(--display);font-size:22px;font-weight:700;color:var(--ink);margin-top:8px;">Treino concluído</div>
               <div style="display:flex;justify-content:center;gap:20px;margin:18px 0;"><div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--ok);">{{ treinoRight }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">acertos</div></div><div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--danger);">{{ treinoWrong }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">erros</div></div></div>
               <sc-if value="{{ treinoTemWrong }}" hint-placeholder-val="{{ false }}">
-                <button onclick="{{ treinoAgendarRevisoes }}" style="width:100%;background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:13px;font-weight:700;font-size:var(--fs-md);cursor:pointer;font-family:inherit;margin-bottom:9px;">Agendar revisão dos {{ treinoWrongN }} que errei</button>
+                <button onclick="{{ treinoAgendarRevisoes }}" style="width:100%;background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:13px;font-weight:700;font-size:var(--fs-md);cursor:pointer;font-family:inherit;margin-bottom:9px;">Agendar revisão dos {{ treinoWrongN }} que errei</button>
               </sc-if>
               <button onclick="{{ treinoClose }}" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:var(--r-md);padding:12px;font-weight:600;font-size:var(--fs-md);cursor:pointer;font-family:inherit;">Fechar</button>
             </div>
@@ -1372,7 +1374,7 @@ window.ctPdfLib = (function(){
               <div style="font-size:var(--fs-xs);letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;">Passo 1 de 4</div>
               <h2 style="font-family:var(--display);font-size:24px;font-weight:600;color:var(--ink);margin:10px 0 6px;">Bem-vindo à Cátedra <span class="ct-emo" aria-hidden="true">👋</span></h2>
               <p style="font-size:var(--fs-md);color:var(--text2);line-height:1.6;margin:0 0 22px;">Sua plataforma de estudos para concursos: ciclo inteligente, revisão espaçada SM-2, simulados com raio-X e prognóstico de aprovação. Vamos configurar em 4 passos.</p>
-              <button onclick="{{ onboardNext }}" style="width:100%;background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:13px;font-weight:600;font-size:var(--fs-lg);cursor:pointer;font-family:inherit;">Começar</button>
+              <button onclick="{{ onboardNext }}" style="width:100%;background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:13px;font-weight:600;font-size:var(--fs-lg);cursor:pointer;font-family:inherit;">Começar</button>
             </sc-if>
             <sc-if value="{{ onboardStep2 }}" hint-placeholder-val="{{ false }}">
               <div style="font-size:var(--fs-xs);letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;">Passo 2 de 4</div>
@@ -1383,7 +1385,7 @@ window.ctPdfLib = (function(){
                   <button data-a="{{ a.id }}" onclick="{{ proporArea }}" style="{{ a.style }}"><span style="{{ a.labelStyle }}">{{ a.emoji }} {{ a.label }}{{ a.check }}</span><span style="font-size:var(--fs-xs);color:var(--text3);line-height:1.45;">{{ a.desc }}</span></button>
                 </sc-for>
               </div>
-              <button onclick="{{ onboardNext }}" style="width:100%;margin-top:18px;background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:13px;font-weight:600;font-size:var(--fs-lg);cursor:pointer;font-family:inherit;">Continuar</button>
+              <button onclick="{{ onboardNext }}" style="width:100%;margin-top:18px;background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:13px;font-weight:600;font-size:var(--fs-lg);cursor:pointer;font-family:inherit;">Continuar</button>
               <div style="text-align:center;font-size:var(--fs-xs);color:var(--text3);margin-top:9px;">Dá para mudar depois em Ajustes.</div>
             </sc-if>
             <sc-if value="{{ onboardStep3 }}" hint-placeholder-val="{{ false }}">
@@ -1395,7 +1397,7 @@ window.ctPdfLib = (function(){
               </div>
               <!-- Backup é coisa de quem JÁ usava: fora da escolha principal de quem acabou de chegar. -->
               <button type="button" onclick="{{ onboardImportar }}" style="display:block;width:100%;min-height:44px;margin-top:10px;background:none;border:none;color:var(--text2);font-size:var(--fs-sm);font-family:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px;">Já usava o Cátedra? Importe seu backup</button>
-              <button onclick="{{ onboardNext }}" style="width:100%;margin-top:20px;background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:13px;font-weight:600;font-size:var(--fs-lg);cursor:pointer;font-family:inherit;">Continuar</button>
+              <button onclick="{{ onboardNext }}" style="width:100%;margin-top:20px;background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:13px;font-weight:600;font-size:var(--fs-lg);cursor:pointer;font-family:inherit;">Continuar</button>
             </sc-if>
             <sc-if value="{{ onboardStep4 }}" hint-placeholder-val="{{ false }}">
               <div style="font-size:var(--fs-xs);letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;">Passo 4 de 4</div>
@@ -1405,7 +1407,7 @@ window.ctPdfLib = (function(){
                 <label style="display:block;"><span style="display:block;font-size:var(--fs-sm);color:var(--text2);font-weight:600;margin-bottom:6px;">Data da prova <span style="color:var(--text3);font-weight:400;">(opcional — sem problema se ainda não tiver)</span></span><div style="display:flex;gap:8px;align-items:center;"><input type="date" value="{{ retaProvaData }}" onchange="{{ setProvaData }}" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:inherit;"><sc-if value="{{ retaProvaData }}" hint-placeholder-val="{{ false }}"><button type="button" onclick="{{ clearProvaData }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-sm);color:var(--text2);cursor:pointer;font-family:inherit;white-space:nowrap;">Ainda não sei</button></sc-if></div></label>
                 <label style="display:block;"><span style="display:block;font-size:var(--fs-sm);color:var(--text2);font-weight:600;margin-bottom:6px;">Meta de estudo por dia (horas)</span><input type="number" min="1" max="12" value="{{ prefMetaDiaria }}" onchange="{{ setMetaDiaria }}" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 13px;font-size:var(--fs-md);color:var(--ink);font-family:inherit;"></label>
               </div>
-              <button onclick="{{ onboardFinish }}" style="width:100%;background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:13px;font-weight:600;font-size:var(--fs-lg);cursor:pointer;font-family:inherit;">{{ onbFinishLabel }}</button>
+              <button onclick="{{ onboardFinish }}" style="width:100%;background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:13px;font-weight:600;font-size:var(--fs-lg);cursor:pointer;font-family:inherit;">{{ onbFinishLabel }}</button>
             </sc-if>
           </div>
         </div>
@@ -1437,7 +1439,7 @@ window.ctPdfLib = (function(){
             <label style="display:block;font-size:var(--fs-sm);color:var(--text2);font-weight:500;margin-bottom:6px;">Senha</label>
             <input data-k="pass" value="{{ loginPass }}" oninput="{{ onLoginField }}" type="password" placeholder="••••••••" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:12px 14px;font-size:var(--fs-md);color:var(--ink);font-family:inherit;margin-bottom:8px;">
             <div style="display:flex;justify-content:flex-end;margin-bottom:18px;"><a onclick="{{ forgotPass }}" style="font-size:var(--fs-sm);color:var(--accent);cursor:pointer;text-decoration:none;">Sobre senha local</a></div>
-            <button type="submit" style="width:100%;background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:13px;font-weight:600;font-size:var(--fs-lg);cursor:pointer;font-family:inherit;">Entrar no protótipo</button>
+            <button type="submit" style="width:100%;background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:13px;font-weight:600;font-size:var(--fs-lg);cursor:pointer;font-family:inherit;">Entrar no protótipo</button>
             <button type="button" onclick="{{ doLogin }}" style="width:100%;background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:var(--r-md);padding:12px;font-weight:600;font-size:var(--fs-md);cursor:pointer;font-family:inherit;margin-top:10px;">Entrar como visitante</button>
             <p style="font-size:var(--fs-sm);color:var(--text3);text-align:center;margin:18px 0 0;">Primeiro acesso? <span onclick="{{ doLogin }}" style="color:var(--accent);cursor:pointer;font-weight:600;">Criar perfil local</span></p>
           </form>
@@ -1479,7 +1481,7 @@ window.ctPdfLib = (function(){
               <div style="font-weight:600;color:var(--ink);">Continuar de onde parei · {{ contP.rotulo }}</div>
               <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:2px;">{{ contP.quando }}</div>
             </div>
-            <button onclick="{{ voltarAoPonto }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">{{ contP.acao }}</button>
+            <button onclick="{{ voltarAoPonto }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">{{ contP.acao }}</button>
             <button class="ct-alvo" onclick="{{ dispensarPonto }}" aria-label="Dispensar" title="Dispensar" style="background:transparent;border:none;color:var(--text3);font-size:var(--fs-lg);cursor:pointer;font-family:inherit;padding:4px 8px;flex:none;"><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">✕</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
           </div>
         </sc-if>
@@ -1496,7 +1498,7 @@ window.ctPdfLib = (function(){
           <sc-if value="{{ paTemMeta }}" hint-placeholder-val="{{ false }}">
             <span style="flex:none;font-size:var(--fs-xs);font-weight:700;color:var(--text2);background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:5px 12px;">{{ paMeta }}</span>
           </sc-if>
-          <button data-view="{{ paView }}" data-acao="{{ paAcao }}" onclick="{{ paIr }}" style="flex:none;background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:12px 22px;font-size:var(--fs-base);font-weight:700;cursor:pointer;font-family:inherit;">{{ paCta }}</button>
+          <button data-view="{{ paView }}" data-acao="{{ paAcao }}" onclick="{{ paIr }}" style="flex:none;background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:12px 22px;font-size:var(--fs-base);font-weight:700;cursor:pointer;font-family:inherit;">{{ paCta }}</button>
         </div>
 
         <!-- HERO: manchete + cronômetro em vidro -->
@@ -1796,7 +1798,7 @@ window.ctPdfLib = (function(){
                 <div style="font-size:var(--fs-sm);color:var(--text3);line-height:1.5;">{{ p.motivo }}</div>
                 <sc-if value="{{ p.temDados }}" hint-placeholder-val="{{ true }}">
                   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
-                    <button data-d="{{ p.disc }}" onclick="{{ prioRevisar }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:8px 13px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;">Revisar agora</button>
+                    <button data-d="{{ p.disc }}" onclick="{{ prioRevisar }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:8px 13px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;">Revisar agora</button>
                     <button data-d="{{ p.disc }}" onclick="{{ prioErros }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:8px 13px;font-size:var(--fs-sm);color:var(--text2);cursor:pointer;font-family:inherit;">Ver desempenho</button>
                     <button data-d="{{ p.disc }}" onclick="{{ prioEstudar }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:8px 13px;font-size:var(--fs-sm);color:var(--text2);cursor:pointer;font-family:inherit;">Estudar</button>
                     <!-- C2: sai do diagnóstico direto para a prática, na plataforma que ela assina -->
@@ -2567,7 +2569,7 @@ window.ctPdfLib = (function(){
             </div>
             <div style="display:flex;gap:10px;justify-content:flex-end;padding:22px 28px 26px;">
               <button onclick="{{ cancelarTrocaArea }}" style="background:transparent;color:var(--text2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 20px;font-family:inherit;font-size:var(--fs-base);font-weight:600;cursor:pointer;">Cancelar</button>
-              <button onclick="{{ confirmarTrocaArea }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 22px;font-family:inherit;font-size:var(--fs-base);font-weight:700;cursor:pointer;">Trocar para {{ pvPara }}</button>
+              <button onclick="{{ confirmarTrocaArea }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 22px;font-family:inherit;font-size:var(--fs-base);font-weight:700;cursor:pointer;">Trocar para {{ pvPara }}</button>
             </div>
           </div>
         </div>
@@ -2591,7 +2593,7 @@ window.ctPdfLib = (function(){
             </div>
           </sc-if>
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:22px;">
-            <button data-view="inicio" onclick="{{ onNav }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 20px;font-family:inherit;font-size:var(--fs-base);font-weight:700;cursor:pointer;">Voltar ao meu painel</button>
+            <button data-view="inicio" onclick="{{ onNav }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 20px;font-family:inherit;font-size:var(--fs-base);font-weight:700;cursor:pointer;">Voltar ao meu painel</button>
             <button data-view="ajustes" onclick="{{ onNav }}" style="background:transparent;color:var(--text2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 20px;font-family:inherit;font-size:var(--fs-base);font-weight:600;cursor:pointer;">Trocar de área de estudo</button>
           </div>
         </div>
@@ -2634,7 +2636,7 @@ window.ctPdfLib = (function(){
 
             <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:22px;">
               <sc-if value="{{ casoTemMais }}" hint-placeholder-val="{{ true }}">
-                <button onclick="{{ casoRevelar }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 20px;font-family:inherit;font-size:var(--fs-base);font-weight:700;cursor:pointer;">Revelar a próxima parte</button>
+                <button onclick="{{ casoRevelar }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 20px;font-family:inherit;font-size:var(--fs-base);font-weight:700;cursor:pointer;">Revelar a próxima parte</button>
               </sc-if>
               <sc-if value="{{ casoTreTemPerg }}" hint-placeholder-val="{{ false }}">
                 <button onclick="{{ casoVerRespostas }}" style="background:transparent;color:var(--text2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 18px;font-family:inherit;font-size:var(--fs-base);cursor:pointer;">Minhas respostas</button>
@@ -2697,7 +2699,7 @@ window.ctPdfLib = (function(){
             </sc-if>
 
             <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:22px;">
-              <button onclick="{{ casoSalvar }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 20px;font-family:inherit;font-size:var(--fs-base);font-weight:700;cursor:pointer;">Guardar o caso</button>
+              <button onclick="{{ casoSalvar }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 20px;font-family:inherit;font-size:var(--fs-base);font-weight:700;cursor:pointer;">Guardar o caso</button>
               <button onclick="{{ casoCancelar }}" style="background:transparent;color:var(--text2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 18px;font-family:inherit;font-size:var(--fs-base);cursor:pointer;">Cancelar</button>
               <sc-if value="{{ casoEditSalvoOn }}" hint-placeholder-val="{{ false }}">
                 <button onclick="{{ casoExcluir }}" style="margin-left:auto;background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 18px;font-family:inherit;font-size:var(--fs-base);cursor:pointer;">Apagar</button>
@@ -2711,14 +2713,14 @@ window.ctPdfLib = (function(){
           <div class="ct-secao">
             <div class="ct-secao-titulo">Meus {{ casosPlural }}</div>
             <div class="ct-secao-nota">{{ casosTotal }} guardado(s) · {{ casosTreinados }} já treinado(s) · {{ casosUltimo }}</div>
-            <div class="ct-secao-fim"><button onclick="{{ casoNovo }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 18px;font-family:inherit;font-size:var(--fs-base);font-weight:700;cursor:pointer;">Novo caso</button></div>
+            <div class="ct-secao-fim"><button onclick="{{ casoNovo }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 18px;font-family:inherit;font-size:var(--fs-base);font-weight:700;cursor:pointer;">Novo caso</button></div>
           </div>
 
           <sc-if value="{{ casosVazio }}" hint-placeholder-val="{{ false }}">
             <div class="ct-estado">
               <div class="ct-estado-titulo">Nenhum caso guardado ainda</div>
               <div class="ct-estado-desc">{{ casosResumo }} O conteúdo é seu: o Cátedra não traz caso pronto nem adapta material de outra área. Guarde sem nada que identifique alguém — "homem, 54 anos" no lugar do nome.</div>
-              <button class="ct-estado-acao" onclick="{{ casoNovo }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 20px;font-family:inherit;font-size:var(--fs-base);font-weight:700;cursor:pointer;">Escrever o primeiro</button>
+              <button class="ct-estado-acao" onclick="{{ casoNovo }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 20px;font-family:inherit;font-size:var(--fs-base);font-weight:700;cursor:pointer;">Escrever o primeiro</button>
             </div>
           </sc-if>
 
@@ -2731,7 +2733,7 @@ window.ctPdfLib = (function(){
                     <div class="ct-linha-nota">{{ c.situacao }} · {{ c.nPerg }} pergunta(s)</div>
                   </div>
                   <div class="ct-linha-fim">
-                    <button data-id="{{ c.id }}" onclick="{{ casoTreinar }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:8px 15px;font-family:inherit;font-size:var(--fs-sm);font-weight:700;cursor:pointer;">{{ casosVerbo }}</button>
+                    <button data-id="{{ c.id }}" onclick="{{ casoTreinar }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:8px 15px;font-family:inherit;font-size:var(--fs-sm);font-weight:700;cursor:pointer;">{{ casosVerbo }}</button>
                     <button data-id="{{ c.id }}" onclick="{{ casoAbrir }}" style="background:transparent;color:var(--text2);border:1px solid var(--border);border-radius:var(--r-md);padding:8px 14px;font-family:inherit;font-size:var(--fs-sm);cursor:pointer;">Editar</button>
                   </div>
                 </div>
@@ -2776,7 +2778,7 @@ window.ctPdfLib = (function(){
         </sc-if>
 
         <!-- Modelo pré-cadastrado: o edital não precisa começar do zero -->
-        <div style="border:1px solid transparent;border-radius:var(--radius);background:linear-gradient(var(--surface),var(--surface)) padding-box,var(--heroGrad) border-box;padding:18px 20px;">
+        <div style="border:1px solid transparent;border-radius:var(--radius);background:linear-gradient(var(--surface),var(--surface)) padding-box,var(--heroVivo) border-box;padding:18px 20px;">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
             <div style="min-width:240px;flex:1;">
               <div style="font-family:var(--display);font-weight:700;font-size:var(--fs-lg);color:var(--ink);">📚 Começar com um modelo</div>
@@ -2815,7 +2817,7 @@ window.ctPdfLib = (function(){
                 </sc-for>
               </div>
               <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
-                <button onclick="{{ aplicarModelo }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">{{ modeloAplicarLabel }}</button>
+                <button onclick="{{ aplicarModelo }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">{{ modeloAplicarLabel }}</button>
                 <span style="font-size:var(--fs-xs);color:var(--text3);align-self:center;">Some ao que você já tem — não apaga nada.</span>
               </div>
               </sc-if>
@@ -2827,7 +2829,7 @@ window.ctPdfLib = (function(){
           <div style="font-size:var(--fs-sm);color:var(--text3);">Exporte o edital com o seu progresso — para imprimir, revisar offline ou compartilhar.</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button onclick="{{ exportEditalTXT }}" title="Baixa o edital como texto (.txt)" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:8px 13px;font-weight:600;font-size:var(--fs-sm);color:var(--text2);cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10" stroke-linecap="round"></path></svg>Texto (.txt)</button>
-            <button onclick="{{ exportEditalPDF }}" title="Baixa o edital como PDF pronto para imprimir" style="display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:8px 13px;font-weight:600;font-size:var(--fs-sm);cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h9l5 5v15H6z" stroke-linejoin="round"></path><path d="M14 2v6h6" stroke-linecap="round" stroke-linejoin="round"></path></svg>PDF</button>
+            <button onclick="{{ exportEditalPDF }}" title="Baixa o edital como PDF pronto para imprimir" style="display:inline-flex;align-items:center;gap:6px;background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:8px 13px;font-weight:600;font-size:var(--fs-sm);cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h9l5 5v15H6z" stroke-linejoin="round"></path><path d="M14 2v6h6" stroke-linecap="round" stroke-linejoin="round"></path></svg>PDF</button>
           </div>
         </div>
 
@@ -2932,7 +2934,7 @@ window.ctPdfLib = (function(){
           <sc-if value="{{ hasParsed }}" hint-placeholder-val="{{ false }}">
             <div style="margin-top:18px;border-top:1px solid var(--border);padding-top:16px;">
               <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px;">
-                <span style="width:22px;height:22px;border-radius:99px;background:var(--accent);color:var(--onAccent);display:flex;align-items:center;justify-content:center;flex:none;font-size:var(--fs-base);">✓</span>
+                <span style="width:22px;height:22px;border-radius:99px;background:var(--accentSolid);color:var(--onAccent);display:flex;align-items:center;justify-content:center;flex:none;font-size:var(--fs-base);">✓</span>
                 <span class="ct-titulo" style="font-size:var(--fs-md);">Reconhecemos {{ edParsedDisc }} disciplinas, {{ edParsedTopics }} tópicos<sc-if value="{{ edParsedSubs }}" hint-placeholder-val="{{ false }}"> e {{ edParsedSubs }} subtópicos</sc-if></span>
               </div>
               <div class="ct-scroll" style="display:flex;flex-direction:column;gap:8px;max-height:280px;overflow:auto;">
@@ -2945,7 +2947,7 @@ window.ctPdfLib = (function(){
                 </sc-for>
               </div>
               <div style="display:flex;gap:10px;margin-top:14px;">
-                <button onclick="{{ edConfirm }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 18px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Adicionar ao edital</button>
+                <button onclick="{{ edConfirm }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 18px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Adicionar ao edital</button>
                 <button onclick="{{ edDiscard }}" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 16px;font-weight:500;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Descartar</button>
               </div>
             </div>
@@ -2973,7 +2975,7 @@ window.ctPdfLib = (function(){
             <div><label class="ct-rotulo">Tópico</label><input data-k="topico" value="{{ cad.topico }}" oninput="{{ onCad }}" placeholder="ex.: Benefícios" class="ct-campo"></div>
             <div><label class="ct-rotulo">Subtópico <span style="color:var(--text3);font-weight:400;">(opcional)</span></label><input data-k="sub" value="{{ cad.sub }}" oninput="{{ onCad }}" placeholder="ex.: Aposentadoria por idade" class="ct-campo"></div>
           </div>
-          <button onclick="{{ addCadastro }}" style="margin-top:14px;background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 18px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Adicionar ao edital</button>
+          <button onclick="{{ addCadastro }}" style="margin-top:14px;background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 18px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Adicionar ao edital</button>
         </div>
        </div>
       </sc-if>
@@ -3099,7 +3101,7 @@ window.ctPdfLib = (function(){
                   <button data-id="{{ r.id }}" data-q="2" onclick="{{ reviewRate }}" title="Errei (q≤2)" style="background:var(--surface2);color:var(--danger);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;">Errei</button>
                   <button data-id="{{ r.id }}" data-q="3" onclick="{{ reviewRate }}" title="Difícil (q=3)" style="background:var(--surface2);color:var(--warn);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;">Difícil</button>
                   <button data-id="{{ r.id }}" data-q="4" onclick="{{ reviewRate }}" title="Bom (q=4)" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;">Bom</button>
-                  <button data-id="{{ r.id }}" data-q="5" onclick="{{ reviewRate }}" title="Fácil (q=5)" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;">Fácil</button>
+                  <button data-id="{{ r.id }}" data-q="5" onclick="{{ reviewRate }}" title="Fácil (q=5)" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;">Fácil</button>
                   <button data-id="{{ r.id }}" onclick="{{ reviewSnooze }}" style="background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:500;cursor:pointer;font-family:inherit;">Adiar</button>
                   <button data-id="{{ r.id }}" onclick="{{ reviewRemove }}" title="Tirar da fila de revisão" aria-label="Tirar da fila de revisão" style="background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:500;cursor:pointer;font-family:inherit;">Tirar da fila</button>
                 </div>
@@ -3130,7 +3132,7 @@ window.ctPdfLib = (function(){
                   <button data-id="{{ r.id }}" data-q="2" onclick="{{ reviewRate }}" title="Errei (q≤2)" style="background:var(--surface2);color:var(--danger);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;">Errei</button>
                   <button data-id="{{ r.id }}" data-q="3" onclick="{{ reviewRate }}" title="Difícil (q=3)" style="background:var(--surface2);color:var(--warn);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;">Difícil</button>
                   <button data-id="{{ r.id }}" data-q="4" onclick="{{ reviewRate }}" title="Bom (q=4)" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;">Bom</button>
-                  <button data-id="{{ r.id }}" data-q="5" onclick="{{ reviewRate }}" title="Fácil (q=5)" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;">Fácil</button>
+                  <button data-id="{{ r.id }}" data-q="5" onclick="{{ reviewRate }}" title="Fácil (q=5)" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;">Fácil</button>
                   <button data-id="{{ r.id }}" onclick="{{ reviewSnooze }}" style="background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:500;cursor:pointer;font-family:inherit;">Adiar</button>
                   <button data-id="{{ r.id }}" onclick="{{ reviewRemove }}" title="Tirar da fila de revisão" aria-label="Tirar da fila de revisão" style="background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 10px;font-size:var(--fs-sm);font-weight:500;cursor:pointer;font-family:inherit;">Tirar da fila</button>
                 </div>
@@ -3493,7 +3495,7 @@ window.ctPdfLib = (function(){
               <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:4px;">Na ordem em que a banca desconta — comece pelo primeiro.</div>
               <sc-for list="{{ redPlano }}" as="p" hint-placeholder-count="3">
                 <div style="display:flex;gap:14px;margin-top:18px;align-items:flex-start;">
-                  <span style="flex:none;width:30px;height:30px;border-radius:var(--r-md);background:var(--accent);color:var(--onAccent,#fff);display:flex;align-items:center;justify-content:center;font-size:var(--fs-base);font-weight:800;font-family:var(--mono);">{{ p.n }}</span>
+                  <span style="flex:none;width:30px;height:30px;border-radius:var(--r-md);background:var(--accentSolid);color:var(--onAccent,#fff);display:flex;align-items:center;justify-content:center;font-size:var(--fs-base);font-weight:800;font-family:var(--mono);">{{ p.n }}</span>
                   <div><div style="font-size:var(--fs-md);font-weight:700;color:var(--ink);">{{ p.t }}</div>
                     <div style="font-size:var(--fs-base);color:var(--text2);line-height:1.65;margin-top:4px;">{{ p.d }}</div></div>
                 </div>
@@ -3750,7 +3752,7 @@ window.ctPdfLib = (function(){
                   <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:2px;line-height:1.5;">5 perguntas sorteadas, cronômetro correndo e o padrão só depois — como na banca.</div>
                 </div>
                 <div style="display:flex;gap:6px;flex-wrap:wrap;"><sc-for list="{{ argMinOpts }}" as="o" hint-placeholder-count="3"><button data-v="{{ o.v }}" onclick="{{ setArgMin }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></div>
-                <button onclick="{{ iniciarArguicao }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Começar</button>
+                <button onclick="{{ iniciarArguicao }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Começar</button>
               </div>
             </sc-if>
             <sc-if value="{{ !oralQPronto }}" hint-placeholder-val="{{ true }}">
@@ -3770,7 +3772,7 @@ window.ctPdfLib = (function(){
               <div style="font-size:var(--fs-xl);color:var(--ink);line-height:1.6;margin-top:16px;white-space:pre-wrap;">{{ argPergunta }}</div>
               <sc-if value="{{ argRodando }}" hint-placeholder-val="{{ true }}">
                 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;">
-                  <button onclick="{{ argResponder }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Respondi — ver o padrão</button>
+                  <button onclick="{{ argResponder }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Respondi — ver o padrão</button>
                   <button onclick="{{ argMaisTempo }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 16px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;">+1 min</button>
                   <button onclick="{{ argVozToggle }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 16px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;">{{ argVozLabel }}</button>
                   <span style="flex:1;"></span>
@@ -3785,9 +3787,9 @@ window.ctPdfLib = (function(){
                 <div style="border-top:1px solid var(--border);margin-top:18px;padding-top:16px;">
                   <div style="font-size:var(--fs-sm);color:var(--text3);margin-bottom:10px;">Como foi? O que não fechou vira erro, flashcard e revisão.</div>
                   <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                    <button data-v="bem" onclick="{{ argAvaliar }}" style="background:var(--ok);color:#fff;border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Respondi bem</button>
-                    <button data-v="parcial" onclick="{{ argAvaliar }}" style="background:var(--warn);color:#fff;border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Parcial</button>
-                    <button data-v="nao" onclick="{{ argAvaliar }}" style="background:var(--danger);color:#fff;border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Não sabia</button>
+                    <button data-v="bem" onclick="{{ argAvaliar }}" style="background:var(--ok);color:var(--onOk);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Respondi bem</button>
+                    <button data-v="parcial" onclick="{{ argAvaliar }}" style="background:var(--warn);color:var(--onWarn);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Parcial</button>
+                    <button data-v="nao" onclick="{{ argAvaliar }}" style="background:var(--danger);color:var(--onDanger);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Não sabia</button>
                   </div>
                 </div>
               </div>
@@ -3805,7 +3807,7 @@ window.ctPdfLib = (function(){
                 <div><div style="font-family:var(--mono);font-size:24px;font-weight:700;color:var(--ink);">{{ argResumo.media }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">tempo médio</div></div>
               </div>
               <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;">
-                <button onclick="{{ iniciarArguicao }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Nova arguição</button>
+                <button onclick="{{ iniciarArguicao }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Nova arguição</button>
                 <button onclick="{{ argEncerrar }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 18px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;">Voltar ao material</button>
               </div>
             </div>
@@ -3814,7 +3816,7 @@ window.ctPdfLib = (function(){
           <sc-if value="{{ oralQTem }}" hint-placeholder-val="{{ false }}">
             <div style="background:var(--surface);border:1px solid color-mix(in oklab, var(--accent) 38%, var(--border));border-radius:var(--radius);padding:20px;background-image:linear-gradient(90deg,color-mix(in oklab, var(--accent) 19%, transparent),transparent 46%);">
               <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-                <span style="font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding:3px 9px;border-radius:99px;background:var(--accent);color:#fff;">{{ oralQRef }}</span>
+                <span style="font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding:3px 9px;border-radius:99px;background:var(--accentSolid);color:var(--onAccent);">{{ oralQRef }}</span>
                 <sc-if value="{{ oralQDiscAt }}" hint-placeholder-val="{{ true }}"><span style="font-size:var(--fs-2xs);font-weight:700;padding:3px 9px;border-radius:99px;background:var(--surface2);color:var(--text2);">{{ oralQDiscAt }}</span></sc-if>
                 <sc-if value="{{ oralQPonto }}" hint-placeholder-val="{{ false }}"><span style="font-size:var(--fs-2xs);font-weight:700;padding:3px 9px;border-radius:99px;background:var(--surface2);color:var(--text2);">{{ oralQPonto }}</span></sc-if>
               </div>
@@ -3852,7 +3854,7 @@ window.ctPdfLib = (function(){
               <sc-for list="{{ oralConcursos }}" as="c" hint-placeholder-count="6">
                 <button data-id="{{ c.id }}" onclick="{{ abrirConcursoOral }}" style="text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;cursor:pointer;font-family:inherit;">
                   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:7px;">
-                    <span style="font-size:var(--fs-2xs);font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 8px;border-radius:99px;background:var(--accent);color:#fff;">{{ c.carreira }}</span>
+                    <span style="font-size:var(--fs-2xs);font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 8px;border-radius:99px;background:var(--accentSolid);color:var(--onAccent);">{{ c.carreira }}</span>
                     <sc-if value="{{ c.banca }}" hint-placeholder-val="{{ true }}"><span style="font-size:var(--fs-2xs);font-weight:600;padding:3px 8px;border-radius:99px;background:var(--surface2);color:var(--text2);">{{ c.banca }}</span></sc-if>
                     <sc-if value="{{ c.ouro }}" hint-placeholder-val="{{ true }}"><span style="font-size:var(--fs-2xs);font-weight:700;padding:3px 8px;border-radius:99px;background:#f59e0b22;color:#b8770a;">padrão de resposta</span></sc-if>
                   </div>
@@ -4229,7 +4231,7 @@ window.ctPdfLib = (function(){
             <sc-for list="{{ simChart }}" as="c" hint-placeholder-count="5">
               <div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;justify-content:flex-end;">
                 <span style="font-family:var(--mono);font-size:var(--fs-xs);color:var(--text2);font-weight:600;">{{ c.v }}</span>
-                <div style="width:100%;background:var(--heroGrad);border-radius:var(--r-sm) 7px 0 0;height:{{ c.h }}px;"></div>
+                <div style="width:100%;background:var(--heroVivo);border-radius:var(--r-sm) 7px 0 0;height:{{ c.h }}px;"></div>
                 <span style="font-size:var(--fs-2xs);color:var(--text3);">{{ c.lbl }}</span>
               </div>
             </sc-for>
@@ -4268,7 +4270,7 @@ window.ctPdfLib = (function(){
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;">
             <sc-for list="{{ anaKpis }}" as="k" hint-placeholder-count="4">
               <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;position:relative;overflow:hidden;">
-                <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--heroGrad);"></div>
+                <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--heroVivo);"></div>
                 <div style="font-size:var(--fs-xs);letter-spacing:.04em;text-transform:uppercase;color:var(--text3);font-weight:600;">{{ k.label }}</div>
                 <div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--ink);line-height:1;margin-top:8px;font-variant-numeric:tabular-nums;letter-spacing:-.02em;">{{ k.value }}</div>
                 <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:6px;">{{ k.sub }}</div>
@@ -4384,7 +4386,7 @@ window.ctPdfLib = (function(){
             <div style="display:flex;align-items:center;padding:13px 0;border-bottom:1px solid var(--border);">
               <span style="flex:1;display:flex;align-items:center;gap:10px;font-size:var(--fs-base);color:var(--ink);font-weight:500;"><i style="width:9px;height:9px;border-radius:3px;background:{{ r.color }};"></i>{{ r.disc }}</span>
               <span style="width:70px;text-align:right;font-family:var(--mono);font-size:var(--fs-base);color:var(--text2);">{{ r.pct }}%</span>
-              <span style="width:90px;text-align:right;"><span style="font-size:var(--fs-xs);font-weight:700;padding:4px 10px;border-radius:99px;color:#fff;background:{{ r.riskColor }};">{{ r.risk }}</span></span>
+              <span style="width:90px;text-align:right;"><span style="font-size:var(--fs-xs);font-weight:700;padding:4px 10px;border-radius:99px;color:{{ r.riskTx }};background:{{ r.riskColor }};">{{ r.risk }}</span></span>
             </div>
           </sc-for>
          </div>
@@ -4399,7 +4401,7 @@ window.ctPdfLib = (function(){
             <sc-for list="{{ radarTemas }}" as="t" hint-placeholder-count="5">
               <div style="display:flex;align-items:center;gap:13px;padding:12px 14px;background:var(--surface2);border-radius:var(--radius);border:1px solid color-mix(in oklab, {{ t.color }} 38%, var(--border));background-image:linear-gradient(90deg,color-mix(in oklab, {{ t.color }} 19%, transparent),transparent 46%);">
                 <div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:var(--fs-base);color:var(--ink);line-height:1.3;">{{ t.topic }}</div><div style="font-size:var(--fs-xs);color:var(--text2);margin-top:3px;">{{ t.disc }} · {{ t.motivo }} · {{ t.incStr }}</div></div>
-                <span style="font-size:var(--fs-xs);font-weight:700;padding:4px 11px;border-radius:99px;color:#fff;background:{{ t.tagColor }};flex:none;">{{ t.tag }}</span>
+                <span style="font-size:var(--fs-xs);font-weight:700;padding:4px 11px;border-radius:99px;color:{{ t.tagTx }};background:{{ t.tagColor }};flex:none;">{{ t.tag }}</span>
               </div>
             </sc-for>
            </div>
@@ -4414,7 +4416,7 @@ window.ctPdfLib = (function(){
             <sc-for list="{{ risco }}" as="r" hint-placeholder-count="3">
               <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--surface2);border-radius:var(--radius);border:1px solid color-mix(in oklab, {{ r.color }} 38%, var(--border));background-image:linear-gradient(90deg,color-mix(in oklab, {{ r.color }} 19%, transparent),transparent 46%);">
                 <div style="flex:1;min-width:0;"><div class="ct-titulo" style="font-size:var(--fs-md);">{{ r.disc }}</div><div style="font-size:var(--fs-sm);color:var(--text2);margin-top:2px;">{{ r.why }}</div></div>
-                <span style="font-size:var(--fs-xs);font-weight:700;padding:5px 12px;border-radius:99px;color:#fff;background:{{ r.color }};flex:none;">{{ r.tag }}</span>
+                <span style="font-size:var(--fs-xs);font-weight:700;padding:5px 12px;border-radius:99px;color:{{ r.tagTx }};background:{{ r.color }};flex:none;">{{ r.tag }}</span>
               </div>
             </sc-for>
           </div>
@@ -4422,7 +4424,7 @@ window.ctPdfLib = (function(){
          <div class="ct-card">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
            <div><div class="ct-titulo">Plano de ataque das lacunas</div><div class="ct-nota ct-nota-solta">diagnóstico das suas fraquezas + o que está esfriando, com ordem de prioridade</div></div>
-           <button onclick="{{ analisarLacunas }}" style="display:inline-flex;align-items:center;gap:7px;background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 15px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;flex:none;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8" stroke-linecap="round"></path></svg>{{ lacunasLabel }}</button>
+           <button onclick="{{ analisarLacunas }}" style="display:inline-flex;align-items:center;gap:7px;background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 15px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;flex:none;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8" stroke-linecap="round"></path></svg>{{ lacunasLabel }}</button>
           </div>
           <sc-if value="{{ lacunasTem }}" hint-placeholder-val="{{ false }}"><div style="margin-top:14px;padding:14px 16px;background:var(--accentSoft);border:1px solid var(--accentRing);border-radius:var(--radius);color:var(--ink);font-size:var(--fs-base);line-height:1.55;white-space:pre-wrap;">{{ lacunas }}</div></sc-if>
          </div>
@@ -4449,7 +4451,7 @@ window.ctPdfLib = (function(){
          <div style="display:flex;flex-direction:column;gap:16px;">
           <div class="rel-noprint" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
             <div style="display:flex;gap:8px;flex-wrap:wrap;"><sc-for list="{{ relPeriodOpts }}" as="o" hint-placeholder-count="3"><button data-v="{{ o.v }}" onclick="{{ setRelPeriod }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></div>
-            <button onclick="{{ relPrint }}" style="display:flex;align-items:center;gap:8px;background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 16px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 9V3h12v6M6 18H4v-6h16v6h-2M8 14h8v7H8z" stroke-linecap="round" stroke-linejoin="round"></path></svg>Imprimir / Salvar PDF</button>
+            <button onclick="{{ relPrint }}" style="display:flex;align-items:center;gap:8px;background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 16px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 9V3h12v6M6 18H4v-6h16v6h-2M8 14h8v7H8z" stroke-linecap="round" stroke-linejoin="round"></path></svg>Imprimir / Salvar PDF</button>
           </div>
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:clamp(20px,3vw,30px);">
             <div style="border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:18px;"><div style="font-family:var(--display);font-size:22px;font-weight:700;color:var(--ink);">Relatório de acompanhamento</div><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;">últimos {{ relPeriodN }} dias · {{ objetivoShort }} · {{ bancaLabel }}</div></div>
@@ -4591,7 +4593,7 @@ window.ctPdfLib = (function(){
                 </sc-if>
                 <sc-if value="{{ c.notOut }}" hint-placeholder-val="{{ true }}">
                   <button data-d="{{ c.day }}" onclick="{{ calPick }}" title="Ver dia" class="ct-calcell" style="border-radius:var(--r-md);padding:7px 8px;display:flex;flex-direction:column;gap:4px;cursor:pointer;text-align:left;font-family:inherit;background:{{ c.cellBg }};border:1px solid {{ c.cellBorder }};">
-                    <sc-if value="{{ c.todayDot }}" hint-placeholder-val="{{ false }}"><span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:99px;background:var(--accent);color:var(--onAccent);font-family:var(--display);font-weight:700;font-size:var(--fs-base);flex:none;">{{ c.day }}</span></sc-if>
+                    <sc-if value="{{ c.todayDot }}" hint-placeholder-val="{{ false }}"><span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:99px;background:var(--accentSolid);color:var(--onAccent);font-family:var(--display);font-weight:700;font-size:var(--fs-base);flex:none;">{{ c.day }}</span></sc-if>
                     <sc-if value="{{ c.notToday }}" hint-placeholder-val="{{ true }}"><span style="font-family:var(--display);font-size:var(--fs-lg);font-weight:700;color:{{ c.dayColor }};font-variant-numeric:tabular-nums;padding:2px 2px 0;">{{ c.day }}</span></sc-if>
                     <span style="display:flex;flex-direction:column;gap:3px;width:100%;overflow:hidden;"><sc-for list="{{ c.evs }}" as="e" hint-placeholder-count="0"><span class="ct-calev" style="background:{{ e.pillBg }};border-radius:5px;padding:1px 5px;"><span style="width:6px;height:6px;border-radius:99px;background:{{ e.color }};flex:none;"></span><span class="ct-callbl" style="color:var(--ink);">{{ e.titulo }}</span></span></sc-for></span>
                     <sc-if value="{{ c.hasMore }}" hint-placeholder-val="{{ false }}"><span style="font-size:var(--fs-2xs);font-weight:700;color:var(--text3);margin-top:auto;padding-left:2px;">{{ c.more }}</span></sc-if>
@@ -4609,7 +4611,7 @@ window.ctPdfLib = (function(){
                       <sc-if value="{{ e.isManual }}" hint-placeholder-val="{{ true }}"><button class="ct-alvo ct-miudo" data-id="{{ e.id }}" onclick="{{ toggleEvent }}" title="Concluir" style="width:22px;height:22px;border-radius:var(--r-sm);flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border:2px solid {{ e.checkBd }};background:{{ e.checkBg }};color:#fff;"><sc-if value="{{ e.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></button></sc-if>
                       <sc-if value="{{ e.notManual }}" hint-placeholder-val="{{ false }}"><span style="width:11px;height:11px;border-radius:99px;background:{{ e.color }};flex:none;"></span></sc-if>
                       <div style="flex:1;min-width:120px;"><div style="font-weight:600;font-size:var(--fs-base);color:var(--ink);text-decoration:{{ e.strike }};">{{ e.titulo }}</div><div style="font-size:var(--fs-xs);color:var(--text3);margin-top:1px;">{{ e.tipoLabel }}</div></div>
-                      <sc-if value="{{ e.isReview }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;"><button data-id="{{ e.refId }}" data-q="2" onclick="{{ reviewRate }}" title="Errei" style="background:var(--surface);color:var(--danger);border:1px solid var(--border);border-radius:var(--r-sm);padding:5px 9px;font-size:var(--fs-xs);font-weight:600;cursor:pointer;font-family:inherit;">Errei</button><button data-id="{{ e.refId }}" data-q="3" onclick="{{ reviewRate }}" title="Difícil" style="background:var(--surface);color:var(--warn);border:1px solid var(--border);border-radius:var(--r-sm);padding:5px 9px;font-size:var(--fs-xs);font-weight:600;cursor:pointer;font-family:inherit;">Difícil</button><button data-id="{{ e.refId }}" data-q="4" onclick="{{ reviewRate }}" title="Bom" style="background:var(--surface);color:var(--text2);border:1px solid var(--border);border-radius:var(--r-sm);padding:5px 9px;font-size:var(--fs-xs);font-weight:600;cursor:pointer;font-family:inherit;">Bom</button><button data-id="{{ e.refId }}" data-q="5" onclick="{{ reviewRate }}" title="Fácil" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-sm);padding:5px 9px;font-size:var(--fs-xs);font-weight:600;cursor:pointer;font-family:inherit;">Fácil</button></div></sc-if>
+                      <sc-if value="{{ e.isReview }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;"><button data-id="{{ e.refId }}" data-q="2" onclick="{{ reviewRate }}" title="Errei" style="background:var(--surface);color:var(--danger);border:1px solid var(--border);border-radius:var(--r-sm);padding:5px 9px;font-size:var(--fs-xs);font-weight:600;cursor:pointer;font-family:inherit;">Errei</button><button data-id="{{ e.refId }}" data-q="3" onclick="{{ reviewRate }}" title="Difícil" style="background:var(--surface);color:var(--warn);border:1px solid var(--border);border-radius:var(--r-sm);padding:5px 9px;font-size:var(--fs-xs);font-weight:600;cursor:pointer;font-family:inherit;">Difícil</button><button data-id="{{ e.refId }}" data-q="4" onclick="{{ reviewRate }}" title="Bom" style="background:var(--surface);color:var(--text2);border:1px solid var(--border);border-radius:var(--r-sm);padding:5px 9px;font-size:var(--fs-xs);font-weight:600;cursor:pointer;font-family:inherit;">Bom</button><button data-id="{{ e.refId }}" data-q="5" onclick="{{ reviewRate }}" title="Fácil" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-sm);padding:5px 9px;font-size:var(--fs-xs);font-weight:600;cursor:pointer;font-family:inherit;">Fácil</button></div></sc-if>
                       <sc-if value="{{ e.isManual }}" hint-placeholder-val="{{ true }}"><button class="ct-alvo ct-miudo" data-id="{{ e.id }}" onclick="{{ removeEvent }}" title="Excluir" style="width:26px;height:26px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer;flex:none;">×</button></sc-if>
                     </div>
                   </sc-for>
@@ -4625,7 +4627,7 @@ window.ctPdfLib = (function(){
               <div style="width:62px;"><label style="display:block;font-size:var(--fs-2xs);color:var(--text3);font-weight:500;margin-bottom:4px;">Dia</label><input type="number" min="1" max="31" data-k="dia" value="{{ eventDraft.dia }}" oninput="{{ onEventDraft }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:8px;font-size:var(--fs-base);color:var(--ink);font-family:var(--mono);"></div>
               <div style="width:110px;"><label style="display:block;font-size:var(--fs-2xs);color:var(--text3);font-weight:500;margin-bottom:4px;">Tipo</label><select data-k="tipo" aria-label="Tipo do evento" value="{{ eventDraft.tipo }}" onchange="{{ onEventDraft }}" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:8px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;"><option>Tarefa</option><option>Revisão</option><option>Simulado</option><option>Meta</option></select></div>
               <div style="flex:1;min-width:120px;"><label style="display:block;font-size:var(--fs-2xs);color:var(--text3);font-weight:500;margin-bottom:4px;">Título</label><input data-k="titulo" value="{{ eventDraft.titulo }}" oninput="{{ onEventDraft }}" placeholder="ex.: Resolver 30 questões" style="width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:8px 10px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;"></div>
-              <button onclick="{{ addEvent }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:9px 14px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">+ Incluir</button>
+              <button onclick="{{ addEvent }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:9px 14px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">+ Incluir</button>
             </div>
             <div style="font-size:var(--fs-xs);letter-spacing:.05em;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:10px;">{{ calTitle }} · {{ calStats.total }} compromissos</div>
             <div style="display:flex;flex-direction:column;gap:9px;max-height:420px;overflow:auto;">
@@ -4673,7 +4675,7 @@ window.ctPdfLib = (function(){
                       <sc-if value="{{ e.isManual }}" hint-placeholder-val="{{ true }}"><button class="ct-alvo ct-miudo" data-id="{{ e.id }}" onclick="{{ toggleEvent }}" title="Concluir" style="width:22px;height:22px;border-radius:var(--r-sm);flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border:2px solid {{ e.checkBd }};background:{{ e.checkBg }};color:#fff;"><sc-if value="{{ e.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></button></sc-if>
                       <sc-if value="{{ e.notManual }}" hint-placeholder-val="{{ false }}"><span style="width:11px;height:11px;border-radius:99px;background:{{ e.color }};flex:none;"></span></sc-if>
                       <div style="flex:1;min-width:120px;"><div style="font-weight:600;font-size:var(--fs-base);color:var(--ink);text-decoration:{{ e.strike }};">{{ e.titulo }}</div><div style="font-size:var(--fs-xs);color:var(--text3);margin-top:1px;">{{ e.tipoLabel }}</div></div>
-                      <sc-if value="{{ e.isReview }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;"><button data-id="{{ e.refId }}" data-q="2" onclick="{{ reviewRate }}" title="Errei" style="background:var(--surface);color:var(--danger);border:1px solid var(--border);border-radius:var(--r-sm);padding:5px 9px;font-size:var(--fs-xs);font-weight:600;cursor:pointer;font-family:inherit;">Errei</button><button data-id="{{ e.refId }}" data-q="3" onclick="{{ reviewRate }}" title="Difícil" style="background:var(--surface);color:var(--warn);border:1px solid var(--border);border-radius:var(--r-sm);padding:5px 9px;font-size:var(--fs-xs);font-weight:600;cursor:pointer;font-family:inherit;">Difícil</button><button data-id="{{ e.refId }}" data-q="4" onclick="{{ reviewRate }}" title="Bom" style="background:var(--surface);color:var(--text2);border:1px solid var(--border);border-radius:var(--r-sm);padding:5px 9px;font-size:var(--fs-xs);font-weight:600;cursor:pointer;font-family:inherit;">Bom</button><button data-id="{{ e.refId }}" data-q="5" onclick="{{ reviewRate }}" title="Fácil" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-sm);padding:5px 9px;font-size:var(--fs-xs);font-weight:600;cursor:pointer;font-family:inherit;">Fácil</button></div></sc-if>
+                      <sc-if value="{{ e.isReview }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;"><button data-id="{{ e.refId }}" data-q="2" onclick="{{ reviewRate }}" title="Errei" style="background:var(--surface);color:var(--danger);border:1px solid var(--border);border-radius:var(--r-sm);padding:5px 9px;font-size:var(--fs-xs);font-weight:600;cursor:pointer;font-family:inherit;">Errei</button><button data-id="{{ e.refId }}" data-q="3" onclick="{{ reviewRate }}" title="Difícil" style="background:var(--surface);color:var(--warn);border:1px solid var(--border);border-radius:var(--r-sm);padding:5px 9px;font-size:var(--fs-xs);font-weight:600;cursor:pointer;font-family:inherit;">Difícil</button><button data-id="{{ e.refId }}" data-q="4" onclick="{{ reviewRate }}" title="Bom" style="background:var(--surface);color:var(--text2);border:1px solid var(--border);border-radius:var(--r-sm);padding:5px 9px;font-size:var(--fs-xs);font-weight:600;cursor:pointer;font-family:inherit;">Bom</button><button data-id="{{ e.refId }}" data-q="5" onclick="{{ reviewRate }}" title="Fácil" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-sm);padding:5px 9px;font-size:var(--fs-xs);font-weight:600;cursor:pointer;font-family:inherit;">Fácil</button></div></sc-if>
                       <sc-if value="{{ e.isManual }}" hint-placeholder-val="{{ true }}"><button class="ct-alvo ct-miudo" data-id="{{ e.id }}" onclick="{{ removeEvent }}" title="Excluir" style="width:26px;height:26px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer;flex:none;">×</button></sc-if>
                     </div>
                   </sc-for>
@@ -4770,7 +4772,7 @@ window.ctPdfLib = (function(){
             <div style="flex:1;min-width:150px;"><div style="font-size:var(--fs-base);font-weight:600;color:var(--ink);">{{ t.topic }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">{{ t.disc }} · {{ t.metaInfo }}</div></div>
             <div style="flex:0 1 110px;min-width:56px;height:8px;border-radius:99px;background:var(--surface2);overflow:hidden;"><i style="display:block;height:100%;width:{{ t.barW }}%;background:{{ t.levelColor }};border-radius:99px;"></i></div>
             <span style="font-family:var(--display);font-size:var(--fs-lg);color:var(--ink);font-weight:700;width:42px;text-align:right;font-variant-numeric:tabular-nums;">{{ t.domStr }}</span>
-            <span style="font-size:var(--fs-2xs);font-weight:700;padding:4px 8px;border-radius:99px;color:#fff;background:{{ t.levelColor }};flex:none;width:82px;text-align:center;">{{ t.level }}</span>
+            <span style="font-size:var(--fs-2xs);font-weight:700;padding:4px 8px;border-radius:99px;color:{{ t.levelTx }};background:{{ t.levelColor }};flex:none;width:82px;text-align:center;">{{ t.level }}</span>
           </div>
         </sc-for>
        </div>
@@ -4792,7 +4794,7 @@ window.ctPdfLib = (function(){
           <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
             <div style="flex:1;min-width:200px;"><label class="ct-rotulo">Objetivo</label><input data-k="titulo" value="{{ metaDraft.titulo }}" oninput="{{ onMetaDraft }}" placeholder="ex.: Ler 300 páginas no mês" class="ct-campo"></div>
             <div><label class="ct-rotulo">Alvo</label><input type="number" data-k="alvo" value="{{ metaDraft.alvo }}" oninput="{{ onMetaDraft }}" style="width:100px;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:10px 12px;font-size:var(--fs-md);color:var(--ink);font-family:var(--mono);"></div>
-            <button onclick="{{ addMeta }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Criar meta</button>
+            <button onclick="{{ addMeta }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Criar meta</button>
           </div>
         </div>
         <sc-for list="{{ metas }}" as="m" hint-placeholder-count="3">
@@ -4802,7 +4804,7 @@ window.ctPdfLib = (function(){
               <sc-if value="{{ m.auto }}" hint-placeholder-val="{{ true }}"><span class="ct-titulo" style="font-size:var(--fs-md);">{{ m.titulo }}</span></sc-if>
               <div style="display:flex;align-items:center;gap:8px;"><span style="font-family:var(--mono);font-size:var(--fs-base);color:var(--text2);display:inline-flex;align-items:center;gap:5px;">{{ m.prog }} / <sc-if value="{{ m.manual }}" hint-placeholder-val="{{ false }}"><input data-id="{{ m.id }}" data-field="alvo" type="number" min="1" value="{{ m.alvo }}" oninput="{{ editMeta }}" title="Editar alvo" style="width:62px;font-family:var(--mono);font-size:var(--fs-base);color:var(--text2);border:1px solid var(--border);background:var(--surface2);border-radius:var(--r-sm);padding:4px 6px;"></sc-if><sc-if value="{{ m.auto }}" hint-placeholder-val="{{ true }}">{{ m.alvo }}</sc-if> {{ m.unidade }}</span><sc-if value="{{ m.auto }}" hint-placeholder-val="{{ true }}"><span title="Atualizada automaticamente pelos seus registros" style="font-size:var(--fs-3xs);font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--accentD);background:var(--accentSoft);border:1px solid var(--accentRing);border-radius:var(--r-sm);padding:3px 7px;">auto</span></sc-if><sc-if value="{{ m.manual }}" hint-placeholder-val="{{ false }}"><button data-id="{{ m.id }}" onclick="{{ metaPlus }}" style="width:44px;height:44px;border-radius:var(--r-md);border:1px solid var(--border);background:var(--accentSoft);color:var(--accentD);cursor:pointer;font-weight:700;font-family:inherit;">+</button></sc-if><button data-id="{{ m.id }}" onclick="{{ removeMeta }}" class="ct-alvo ct-miudo" style="width:30px;height:30px;border-radius:var(--r-md);border:1px solid var(--border);background:var(--surface2);color:var(--text3);cursor:pointer;font-family:inherit;">×</button></div>
             </div>
-            <div style="height:10px;border-radius:99px;background:var(--surface2);overflow:hidden;margin-top:12px;"><i style="display:block;height:100%;width:100%;transform:translateX(calc({{ m.pct }}% - 100%));background:var(--heroGrad);border-radius:99px;transition:transform .35s;will-change:transform;"></i></div>
+            <div style="height:10px;border-radius:99px;background:var(--surface2);overflow:hidden;margin-top:12px;"><i style="display:block;height:100%;width:100%;transform:translateX(calc({{ m.pct }}% - 100%));background:var(--heroVivo);border-radius:99px;transition:transform .35s;will-change:transform;"></i></div>
             <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:7px;">{{ m.pct }}% concluído</div>
           </div>
         </sc-for>
@@ -5173,7 +5175,7 @@ window.ctPdfLib = (function(){
                   <span style="font-size:var(--fs-xs);color:{{ h.statusColor }};font-weight:600;">{{ h.statusHab }}</span>
                   <div style="display:flex;gap:6px;">
                     <button data-k="{{ h.k }}" data-step="{{ h.step }}" onclick="{{ habDec }}" aria-label="Diminuir" style="width:44px;height:44px;border-radius:var(--r-md);border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:var(--fs-xl);font-weight:700;cursor:pointer;font-family:inherit;line-height:1;display:flex;align-items:center;justify-content:center;">−</button>
-                    <button data-k="{{ h.k }}" data-step="{{ h.step }}" onclick="{{ habInc }}" aria-label="Aumentar" style="width:44px;height:44px;border-radius:var(--r-md);border:none;background:var(--accent);color:var(--onAccent);font-size:var(--fs-xl);font-weight:700;cursor:pointer;font-family:inherit;line-height:1;display:flex;align-items:center;justify-content:center;">+</button>
+                    <button data-k="{{ h.k }}" data-step="{{ h.step }}" onclick="{{ habInc }}" aria-label="Aumentar" style="width:44px;height:44px;border-radius:var(--r-md);border:none;background:var(--accentSolid);color:var(--onAccent);font-size:var(--fs-xl);font-weight:700;cursor:pointer;font-family:inherit;line-height:1;display:flex;align-items:center;justify-content:center;">+</button>
                   </div>
                 </div>
               </div>
@@ -5292,7 +5294,7 @@ window.ctPdfLib = (function(){
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;">
             <div style="display:flex;gap:8px;align-items:flex-end;">
               <div style="flex:1;"><label class="ct-rotulo">Criar um grupo</label><input data-k="nome" value="{{ grupoDraft.nome }}" oninput="{{ onGrupoDraft }}" placeholder="ex.: Foco PF 2026" class="ct-campo"></div>
-              <button onclick="{{ addGrupo }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 16px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;white-space:nowrap;">Criar</button>
+              <button onclick="{{ addGrupo }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 16px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;white-space:nowrap;">Criar</button>
             </div>
             <div style="display:flex;gap:8px;align-items:flex-end;">
               <div style="flex:1;"><label class="ct-rotulo">Entrar com código</label><input data-k="codigo" value="{{ grupoDraft.codigo }}" oninput="{{ onGrupoDraft }}" placeholder="ex.: 7KQ2ZP" maxlength="8" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:10px 12px;font-size:var(--fs-base);color:var(--ink);font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;"></div>
@@ -5963,42 +5965,42 @@ window.ctPdfLib = (function(){
           <div class="ct-nota ct-nota-antes">muda tipografia, cores e formas em toda a plataforma — claro e escuro para cada uma</div>
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;">
             <button data-dir="sutil" onclick="{{ onDir }}" style="{{ dirCardSutil }}">
-              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><div style="font-family:'Spectral',serif;font-weight:600;font-size:var(--fs-xl);color:var(--ink);">Planilha</div><sc-if value="{{ dirIsSutil }}" hint-placeholder-val="{{ true }}"><span style="width:18px;height:18px;border-radius:99px;background:var(--accent);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="var(--onAccent)" stroke-width="3"><path d="M5 12l4.5 4.5L19 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></sc-if></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><div style="font-family:'Spectral',serif;font-weight:600;font-size:var(--fs-xl);color:var(--ink);">Planilha</div><sc-if value="{{ dirIsSutil }}" hint-placeholder-val="{{ true }}"><span style="width:18px;height:18px;border-radius:99px;background:var(--accentSolid);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="var(--onAccent)" stroke-width="3"><path d="M5 12l4.5 4.5L19 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></sc-if></div>
               <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:4px;line-height:1.4;">A identidade aprovada — papel, serifa, verde e navy.</div>
               <div style="display:flex;gap:5px;margin-top:12px;"><i style="width:22px;height:22px;border-radius:var(--r-sm);background:#0f7a57;"></i><i style="width:22px;height:22px;border-radius:var(--r-sm);background:#f4f1ea;border:1px solid #e4dfd2;"></i><i style="width:22px;height:22px;border-radius:var(--r-sm);background:#1e2b3a;"></i></div>
             </button>
             <button data-dir="premium" onclick="{{ onDir }}" style="{{ dirCardPremium }}">
-              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><div style="font-family:'Spectral',serif;font-weight:600;font-size:var(--fs-xl);color:var(--ink);">Tribunal</div><sc-if value="{{ dirIsPremium }}" hint-placeholder-val="{{ false }}"><span style="width:18px;height:18px;border-radius:99px;background:var(--accent);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="var(--onAccent)" stroke-width="3"><path d="M5 12l4.5 4.5L19 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></sc-if></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><div style="font-family:'Spectral',serif;font-weight:600;font-size:var(--fs-xl);color:var(--ink);">Tribunal</div><sc-if value="{{ dirIsPremium }}" hint-placeholder-val="{{ false }}"><span style="width:18px;height:18px;border-radius:99px;background:var(--accentSolid);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="var(--onAccent)" stroke-width="3"><path d="M5 12l4.5 4.5L19 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></sc-if></div>
               <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:4px;line-height:1.4;">Marfim, vinho profundo e latão. Biblioteca de tribunal.</div>
               <div style="display:flex;gap:5px;margin-top:12px;"><i style="width:22px;height:22px;border-radius:var(--r-sm);background:#7b2434;"></i><i style="width:22px;height:22px;border-radius:var(--r-sm);background:#b08433;"></i><i style="width:22px;height:22px;border-radius:var(--r-sm);background:#f3efe6;border:1px solid #e2dac8;"></i></div>
             </button>
             <button data-dir="clean" onclick="{{ onDir }}" style="{{ dirCardClean }}">
-              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><div style="font-family:'Inter Tight','Inter',sans-serif;font-weight:700;font-size:var(--fs-xl);color:var(--ink);letter-spacing:-.01em;">Fibra</div><sc-if value="{{ dirIsClean }}" hint-placeholder-val="{{ false }}"><span style="width:18px;height:18px;border-radius:99px;background:var(--accent);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="var(--onAccent)" stroke-width="3"><path d="M5 12l4.5 4.5L19 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></sc-if></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><div style="font-family:'Inter Tight','Inter',sans-serif;font-weight:700;font-size:var(--fs-xl);color:var(--ink);letter-spacing:-.01em;">Fibra</div><sc-if value="{{ dirIsClean }}" hint-placeholder-val="{{ false }}"><span style="width:18px;height:18px;border-radius:99px;background:var(--accentSolid);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="var(--onAccent)" stroke-width="3"><path d="M5 12l4.5 4.5L19 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></sc-if></div>
               <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:4px;line-height:1.4;">Branco frio, grafite e índigo. Plano, denso, zero ruído.</div>
               <div style="display:flex;gap:5px;margin-top:12px;"><i style="width:22px;height:22px;border-radius:var(--r-sm);background:#4f46e5;"></i><i style="width:22px;height:22px;border-radius:var(--r-sm);background:#ffffff;border:1px solid #e7e7ea;"></i><i style="width:22px;height:22px;border-radius:var(--r-sm);background:#17181c;"></i></div>
             </button>
             <button data-dir="moderno" onclick="{{ onDir }}" style="{{ dirCardModerno }}">
-              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><div style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:var(--fs-xl);color:var(--ink);">Neon</div><sc-if value="{{ dirIsModerno }}" hint-placeholder-val="{{ false }}"><span style="width:18px;height:18px;border-radius:99px;background:var(--accent);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="var(--onAccent)" stroke-width="3"><path d="M5 12l4.5 4.5L19 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></sc-if></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><div style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:var(--fs-xl);color:var(--ink);">Neon</div><sc-if value="{{ dirIsModerno }}" hint-placeholder-val="{{ false }}"><span style="width:18px;height:18px;border-radius:99px;background:var(--accentSolid);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="var(--onAccent)" stroke-width="3"><path d="M5 12l4.5 4.5L19 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></sc-if></div>
               <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:4px;line-height:1.4;">Violeta elétrico com magenta. Futurista, brilho colorido.</div>
               <div style="display:flex;gap:5px;margin-top:12px;"><i style="width:22px;height:22px;border-radius:var(--r-sm);background:#7c3aed;"></i><i style="width:22px;height:22px;border-radius:var(--r-sm);background:#d926a9;"></i><i style="width:22px;height:22px;border-radius:var(--r-sm);background:#f4f2fb;border:1px solid #e0dbf1;"></i></div>
             </button>
             <button data-dir="aurora" onclick="{{ onDir }}" style="{{ dirCardAurora }}">
-              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><div style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:var(--fs-xl);color:var(--ink);">Aurora</div><sc-if value="{{ dirIsAurora }}" hint-placeholder-val="{{ false }}"><span style="width:18px;height:18px;border-radius:99px;background:var(--accent);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="var(--onAccent)" stroke-width="3"><path d="M5 12l4.5 4.5L19 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></sc-if></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><div style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:var(--fs-xl);color:var(--ink);">Aurora</div><sc-if value="{{ dirIsAurora }}" hint-placeholder-val="{{ false }}"><span style="width:18px;height:18px;border-radius:99px;background:var(--accentSolid);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="var(--onAccent)" stroke-width="3"><path d="M5 12l4.5 4.5L19 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></sc-if></div>
               <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:4px;line-height:1.4;">Azul-gelo, ciano boreal e noite polar. Glacial e elétrico.</div>
               <div style="display:flex;gap:5px;margin-top:12px;"><i style="width:22px;height:22px;border-radius:var(--r-sm);background:#0891b2;"></i><i style="width:22px;height:22px;border-radius:var(--r-sm);background:#2563eb;"></i><i style="width:22px;height:22px;border-radius:var(--r-sm);background:#edf5fa;border:1px solid #d7e6f0;"></i></div>
             </button>
             <button data-dir="solar" onclick="{{ onDir }}" style="{{ dirCardSolar }}">
-              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><div style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:var(--fs-xl);color:var(--ink);">Solar</div><sc-if value="{{ dirIsSolar }}" hint-placeholder-val="{{ false }}"><span style="width:18px;height:18px;border-radius:99px;background:var(--accent);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="var(--onAccent)" stroke-width="3"><path d="M5 12l4.5 4.5L19 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></sc-if></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><div style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:var(--fs-xl);color:var(--ink);">Solar</div><sc-if value="{{ dirIsSolar }}" hint-placeholder-val="{{ false }}"><span style="width:18px;height:18px;border-radius:99px;background:var(--accentSolid);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="var(--onAccent)" stroke-width="3"><path d="M5 12l4.5 4.5L19 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></sc-if></div>
               <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:4px;line-height:1.4;">Areia, coral vivo e pôr-do-sol coral→magenta. Quente.</div>
               <div style="display:flex;gap:5px;margin-top:12px;"><i style="width:22px;height:22px;border-radius:var(--r-sm);background:#ea580c;"></i><i style="width:22px;height:22px;border-radius:var(--r-sm);background:#db2777;"></i><i style="width:22px;height:22px;border-radius:var(--r-sm);background:#faf4ec;border:1px solid #ecdfcc;"></i></div>
             </button>
             <button data-dir="terminal" onclick="{{ onDir }}" style="{{ dirCardTerminal }}">
-              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><div style="font-family:'JetBrains Mono',monospace;font-weight:600;font-size:var(--fs-xl);color:var(--ink);">Terminal</div><sc-if value="{{ dirIsTerminal }}" hint-placeholder-val="{{ false }}"><span style="width:18px;height:18px;border-radius:99px;background:var(--accent);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="var(--onAccent)" stroke-width="3"><path d="M5 12l4.5 4.5L19 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></sc-if></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><div style="font-family:'JetBrains Mono',monospace;font-weight:600;font-size:var(--fs-xl);color:var(--ink);">Terminal</div><sc-if value="{{ dirIsTerminal }}" hint-placeholder-val="{{ false }}"><span style="width:18px;height:18px;border-radius:99px;background:var(--accentSolid);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="var(--onAccent)" stroke-width="3"><path d="M5 12l4.5 4.5L19 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></sc-if></div>
               <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:4px;line-height:1.4;">Carbono e lima néon, tipografia mono. Reto e afiado.</div>
               <div style="display:flex;gap:5px;margin-top:12px;"><i style="width:22px;height:22px;border-radius:var(--r-sm);background:#a3e635;"></i><i style="width:22px;height:22px;border-radius:var(--r-sm);background:#101410;"></i><i style="width:22px;height:22px;border-radius:var(--r-sm);background:#f3f6f2;border:1px solid #dbe4d8;"></i></div>
             </button>
             <button data-dir="holo" onclick="{{ onDir }}" style="{{ dirCardHolo }}">
-              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><div style="font-family:'Inter Tight','Inter',sans-serif;font-weight:600;font-size:var(--fs-xl);color:var(--ink);">Holo</div><sc-if value="{{ dirIsHolo }}" hint-placeholder-val="{{ false }}"><span style="width:18px;height:18px;border-radius:99px;background:var(--accent);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="var(--onAccent)" stroke-width="3"><path d="M5 12l4.5 4.5L19 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></sc-if></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><div style="font-family:'Inter Tight','Inter',sans-serif;font-weight:600;font-size:var(--fs-xl);color:var(--ink);">Holo</div><sc-if value="{{ dirIsHolo }}" hint-placeholder-val="{{ false }}"><span style="width:18px;height:18px;border-radius:99px;background:var(--accentSolid);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="var(--onAccent)" stroke-width="3"><path d="M5 12l4.5 4.5L19 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></sc-if></div>
               <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:4px;line-height:1.4;">Perolado com iridescência violeta→ciano→rosa.</div>
               <div style="display:flex;gap:5px;margin-top:12px;"><i style="width:22px;height:22px;border-radius:var(--r-sm);background:#8b5cf6;"></i><i style="width:22px;height:22px;border-radius:var(--r-sm);background:#0ea5e9;"></i><i style="width:22px;height:22px;border-radius:var(--r-sm);background:#ec4899;"></i></div>
             </button>
@@ -6026,7 +6028,7 @@ window.ctPdfLib = (function(){
           </div>
           <div style="display:flex;align-items:center;gap:12px;margin-top:18px;padding:14px;border-radius:var(--radius);background:var(--surface2);">
             <span style="font-size:var(--fs-xs);color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.06em;">Prévia</span>
-            <button style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:8px 14px;font-size:var(--fs-sm);font-weight:600;font-family:inherit;">Botão</button>
+            <button style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:8px 14px;font-size:var(--fs-sm);font-weight:600;font-family:inherit;">Botão</button>
             <span style="font-size:var(--fs-sm);font-weight:600;color:var(--accent);">Link de destaque</span>
             <span style="flex:1;height:8px;border-radius:99px;background:var(--surface);overflow:hidden;min-width:60px;"><i style="display:block;height:100%;width:65%;background:var(--accent);border-radius:99px;"></i></span>
             <span style="font-family:var(--mono);font-size:var(--fs-sm);color:var(--text2);text-transform:uppercase;">{{ accentValue }}</span>
@@ -6141,7 +6143,7 @@ window.ctPdfLib = (function(){
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;display:flex;flex-direction:column;gap:10px;">
               <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:22px;">{{ c.icon }}</span><span class="ct-titulo">{{ c.title }}</span></div>
               <p style="margin:0;font-size:var(--fs-sm);color:var(--text3);line-height:1.5;flex:1;">{{ c.desc }}</p>
-              <button data-k="{{ c.k }}" onclick="{{ retaCriarBloco }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:9px 14px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Criar bloco no ciclo</button>
+              <button data-k="{{ c.k }}" onclick="{{ retaCriarBloco }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:9px 14px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Criar bloco no ciclo</button>
             </div>
           </sc-for>
         </div>
@@ -6255,7 +6257,7 @@ window.ctPdfLib = (function(){
           <div class="ct-titulo ct-titulo-com-nota">Notificações</div>
           <div style="font-size:var(--fs-sm);color:var(--text3);line-height:1.5;margin-bottom:14px;">Com a permissão ativa, o app avisa (com a aba/PWA aberta) sobre <b style="color:var(--text2);">revisões vencidas</b>, <b style="color:var(--text2);">meta da semana em risco</b> e <b style="color:var(--text2);">ofensiva prestes a quebrar</b> — no máximo 1 aviso por gatilho por dia. No iPhone, instale o app na Tela de Início.</div>
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-            <button onclick="{{ requestNotifPerm }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 18px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">{{ notifPermBtnLabel }}</button>
+            <button onclick="{{ requestNotifPerm }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 18px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">{{ notifPermBtnLabel }}</button>
             <span style="font-size:var(--fs-sm);color:{{ notifPermColor }};font-weight:600;">{{ notifPermStatus }}</span>
           </div>
           <!-- U12: lembrete de revisão no horário escolhido. Vem DESLIGADO: aviso que a
@@ -6327,7 +6329,7 @@ window.ctPdfLib = (function(){
           <div class="ct-titulo ct-titulo-com-nota">Versão e suporte</div>
           <div style="font-size:var(--fs-sm);color:var(--text3);margin-bottom:14px;">achou um problema? copie o relatório e mande para quem te convidou — ele já vem com a versão exata e o estado do app</div>
           <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-            <button onclick="{{ enviarFeedback }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 16px;font-size:var(--fs-base);cursor:pointer;font-family:inherit;font-weight:600;">Enviar problema ou sugestão</button>
+            <button onclick="{{ enviarFeedback }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 16px;font-size:var(--fs-base);cursor:pointer;font-family:inherit;font-weight:600;">Enviar problema ou sugestão</button>
             <button onclick="{{ copiarRelatorio }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 16px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;font-weight:600;">Copiar relatório</button>
             <span class="ct-dado">{{ buildLabel }}</span>
           </div>
@@ -6343,8 +6345,8 @@ window.ctPdfLib = (function(){
             <div style="font-weight:600;color:var(--ink);">Backup na sua nuvem pessoal</div>
             <div style="font-size:var(--fs-sm);color:var(--text3);margin:4px 0 10px;line-height:1.5;">{{ backupNuvemDica }}</div>
             <div style="display:flex;gap:10px;flex-wrap:wrap;">
-              <sc-if value="{{ backupNativoShow }}" hint-placeholder-val="{{ false }}"><button onclick="{{ backupICloud }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 16px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><path d="M12 13v8"/><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="m8 17 4-4 4 4"/></svg> Salvar no iCloud Drive</button><button onclick="{{ restaurarICloud }}" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 16px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;">Restaurar do iCloud Drive</button></sc-if>
-              <sc-if value="{{ driveShow }}" hint-placeholder-val="{{ false }}"><button onclick="{{ backupDrive }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 16px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Salvar no Google Drive</button><button onclick="{{ restaurarDrive }}" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 16px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;">Restaurar do Google Drive</button></sc-if>
+              <sc-if value="{{ backupNativoShow }}" hint-placeholder-val="{{ false }}"><button onclick="{{ backupICloud }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 16px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><path d="M12 13v8"/><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="m8 17 4-4 4 4"/></svg> Salvar no iCloud Drive</button><button onclick="{{ restaurarICloud }}" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 16px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;">Restaurar do iCloud Drive</button></sc-if>
+              <sc-if value="{{ driveShow }}" hint-placeholder-val="{{ false }}"><button onclick="{{ backupDrive }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 16px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Salvar no Google Drive</button><button onclick="{{ restaurarDrive }}" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 16px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;">Restaurar do Google Drive</button></sc-if>
             </div>
             <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:8px;">{{ backupNuvemStatus }}</div>
           </div>
@@ -6358,7 +6360,7 @@ window.ctPdfLib = (function(){
             <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:6px;line-height:1.5;">{{ backupAutoEfeito }}</div>
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <button onclick="{{ exportJSON }}" style="background:var(--accent);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 16px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Exportar backup JSON</button>
+            <button onclick="{{ exportJSON }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 16px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Exportar backup JSON</button>
             <button onclick="{{ exportFlashcardsCSV }}" title="Flashcards em .txt que o Anki importa direto" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 16px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;font-weight:600;">Flashcards → Anki</button>
             <button onclick="{{ exportICS }}" title="Revisões e data da prova como .ics para o Calendário" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 16px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;font-weight:600;">Revisões → Calendário (.ics)</button>
             <button onclick="{{ exportPDF }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 16px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;font-weight:600;">Exportar relatório PDF</button>
@@ -6415,10 +6417,10 @@ window.ctPdfLib = (function(){
       <button data-view="inicio" aria-current="{{ navCur.inicio }}" onclick="{{ onNav }}" aria-label="Início" style="{{ bnInicio }}"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 11l9-8 9 8M5 9v11h5v-6h4v6h5V9" stroke-linecap="round" stroke-linejoin="round"></path></svg>Início</button>
       <button data-view="ciclo" aria-current="{{ navCur.ciclo }}" onclick="{{ onNav }}" aria-label="Ciclo de Estudos" style="{{ bnCiclo }}"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 4h16v4H4zM4 10h16v4H4zM4 16h16v4H4z" stroke-linejoin="round"></path></svg>Ciclo</button>
       <button onclick="{{ openSession }}" aria-label="Registrar sessão" style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;background:transparent;border:none;cursor:pointer;padding:0 2px 7px;font-family:inherit;font-size:var(--fs-2xs);font-weight:700;color:var(--accent);">
-        <span style="width:46px;height:46px;border-radius:99px;background:var(--accent);color:var(--onAccent);display:flex;align-items:center;justify-content:center;margin-top:-18px;box-shadow:0 4px 14px rgba(0,0,0,.22);border:3px solid var(--surface);"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14" stroke-linecap="round"></path></svg></span>Registrar
+        <span style="width:46px;height:46px;border-radius:99px;background:var(--accentSolid);color:var(--onAccent);display:flex;align-items:center;justify-content:center;margin-top:-18px;box-shadow:0 4px 14px rgba(0,0,0,.22);border:3px solid var(--surface);"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14" stroke-linecap="round"></path></svg></span>Registrar
       </button>
       <button data-view="revisoes" aria-current="{{ navCur.revisoes }}" onclick="{{ onNav }}" aria-label="Revisões" style="{{ bnRevisoes }}">
-        <span style="position:relative;display:inline-flex;"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v4h-4" stroke-linecap="round" stroke-linejoin="round"></path></svg><sc-if value="{{ revHasPend }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:-6px;right:-9px;background:var(--accent);color:var(--onAccent);font-size:var(--fs-3xs);font-weight:700;min-width:15px;height:15px;border-radius:99px;display:flex;align-items:center;justify-content:center;padding:0 3px;">{{ revPendStr }}</span></sc-if></span>Revisões
+        <span style="position:relative;display:inline-flex;"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v4h-4" stroke-linecap="round" stroke-linejoin="round"></path></svg><sc-if value="{{ revHasPend }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:-6px;right:-9px;background:var(--accentSolid);color:var(--onAccent);font-size:var(--fs-3xs);font-weight:700;min-width:15px;height:15px;border-radius:99px;display:flex;align-items:center;justify-content:center;padding:0 3px;">{{ revPendStr }}</span></sc-if></span>Revisões
       </button>
       <button onclick="{{ toggleMenu }}" aria-label="Abrir menu completo" style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;background:transparent;border:none;cursor:pointer;padding:7px 2px;font-family:inherit;font-size:var(--fs-2xs);font-weight:600;color:var(--text3);"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round"></path></svg>Menu</button>
     </nav>
@@ -6561,6 +6563,11 @@ const CT_DIRS = ['sutil','premium','clean','moderno','aurora','solar','terminal'
    é esta palavra, com conteúdo, para o merge da nuvem tratá-la como escolha e não como
    ausência (ver _accentGuardado). */
 const CT_ACCENT_TEMA = 'tema';
+/* As duas cores do seletor que não são hex: "vermelho" e "laranja" seguem a cor de situação
+   do MODO (--danger/--warn clareiam no escuro). Guardadas como a própria palavra, voltam
+   coerentes ao trocar claro/escuro; gravar o hex resolvido prenderia o tom de um modo só.
+   Lista FECHADA: qualquer outro var()/texto continua sendo "padrão do tema". */
+const CT_ACCENT_SITUACAO = ['var(--danger)', 'var(--warn)'];
 
 const CT_CORES_RAMO = {
   'constitucional':      {c:'#2563EB', d:'#38BDF8'},
@@ -7052,8 +7059,8 @@ class Component extends DCLogic {
         // com o corpo fixo do seu próprio CSS: quem escolhia "texto grande" nos Ajustes via
         // o app crescer e o iframe dentro dele continuar miúdo.
         const V=['--bg','--surface','--surface2','--border','--ink','--text','--text2','--text3',
-                 '--accent','--accentD','--accentSoft','--accentRing','--onAccent','--accentFill','--onAccentFill',
-                 '--ok','--warn','--danger','--radius','--r-sm','--r-md',
+                 '--accent','--accentD','--accentSoft','--accentRing','--onAccent','--accentSolid','--accentSolidD','--accentFill','--onAccentFill',
+                 '--ok','--warn','--danger','--onOk','--onWarn','--onDanger','--radius','--r-sm','--r-md',
                  '--display','--body','--mono','--heroGrad',
                  '--fs-3xs','--fs-2xs','--fs-xs','--fs-sm','--fs-base','--fs-md',
                  '--fs-lg','--fs-xl','--fs-2xl','--control-h',
@@ -8209,10 +8216,13 @@ class Component extends DCLogic {
      verde sempre"). Por isso o padrão do tema é guardado como a palavra CT_ACCENT_TEMA —
      um valor COM conteúdo, que disputa pelo carimbo como qualquer outro. Um aparelho novo,
      que semeia "null", perde para ele (vazio nunca apaga cheio) — que é o certo. Só cor
-     em hex volta como cor: qualquer outra coisa (a palavra, lixo antigo) é padrão do tema. */
+     em hex volta como cor — e as duas palavras de CT_ACCENT_SITUACAO ("vermelho" e "laranja"
+     do seletor, que antes voltavam como padrão do tema ao recarregar); qualquer outra coisa
+     (a palavra "tema", lixo antigo) é padrão do tema. */
   _accentGuardado(){
     try{ const r=localStorage.getItem(this._chave('accent')); if(r==null) return null;
-      const v=JSON.parse(r); return (typeof v==='string' && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v)) ? v : null; }catch(_){ return null; }
+      const v=JSON.parse(r);
+      return (typeof v==='string' && (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v) || CT_ACCENT_SITUACAO.includes(v))) ? v : null; }catch(_){ return null; }
   }
   /** como cada chave vai para o disco — só a cor tem forma própria (ver _accentGuardado) */
   _serializar(k, v){ return (k==='accent' && v==null) ? JSON.stringify(CT_ACCENT_TEMA) : JSON.stringify(v); }
@@ -9183,31 +9193,37 @@ class Component extends DCLogic {
       light:{ bg:'#f4f2fb', surface:'#ffffff', surface2:'#efecf9', border:'#e0dbf1', ink:'#14101f', text2:'#4b4460', text3:'#6c6582',
         accent:'#7c3aed', accentD:'#6428c9', accentSoft:'#efe7fd', accentRing:'#d4bff8', onAccent:'#ffffff',
         sidebarBg:'#17102b', sidebarText:'#a99fc7', sidebarActiveBg:'rgba(167,139,250,.22)', sidebarActiveText:'#c4b5fd',
-        heroGrad:'linear-gradient(135deg,#7c3aed,#d926a9)' },
+        heroVivo:'linear-gradient(135deg,#7c3aed,#d926a9)',
+        heroGrad:'linear-gradient(135deg,#6d28d9 0%,#9333ea 50%,#c026d3 100%)' },
       dark:{ bg:'#0d0817', surface:'#161022', surface2:'#1d152c', border:'#2c2140', ink:'#efeaff', text2:'#a79ec4', text3:'#867da0',
         accent:'#a78bfa', accentD:'#8b5cf6', accentSoft:'#1e1533', accentRing:'#443066', onAccent:'#130a26',
         sidebarBg:'#0a0612', sidebarText:'#8d81ad', sidebarActiveBg:'rgba(167,139,250,.20)', sidebarActiveText:'#c4b5fd',
-        heroGrad:'linear-gradient(135deg,#8b5cf6,#e040b0)' } },
+        heroVivo:'linear-gradient(135deg,#8b5cf6,#e040b0)',
+        heroGrad:'linear-gradient(135deg,#7c3aed 0%,#9d27c9 50%,#c026d3 100%)' } },
     aurora:{ label:'Aurora', font:"'Space Grotesk', sans-serif", desc:'Glacial e elétrico — azul-gelo, ciano boreal e noite polar na sidebar.',
       display:"'Space Grotesk', sans-serif", body:"'Inter', sans-serif", mono:"'JetBrains Mono', monospace", radius:'16px',
       light:{ bg:'#edf5fa', surface:'#ffffff', surface2:'#e7f1f7', border:'#d7e6f0', ink:'#0c1a24', text2:'#41586a', text3:'#5a6f7c',
         accent:'#0891b2', accentD:'#0a748f', accentSoft:'#dff3f9', accentRing:'#ade1ef', onAccent:'#ffffff',
         sidebarBg:'#0b1526', sidebarText:'#8fa8c4', sidebarActiveBg:'rgba(34,211,238,.18)', sidebarActiveText:'#67e8f9',
-        heroGrad:'linear-gradient(135deg,#0891b2,#2563eb)' },
+        heroVivo:'linear-gradient(135deg,#0891b2,#2563eb)',
+        heroGrad:'linear-gradient(135deg,#0e7490 0%,#1d4ed8 55%,#7c3aed 100%)' },
       dark:{ bg:'#081019', surface:'#0e1926', surface2:'#13202f', border:'#1e3042', ink:'#e6f2fb', text2:'#93aabe', text3:'#778c9e',
         accent:'#22d3ee', accentD:'#06b6d4', accentSoft:'#0b2531', accentRing:'#155e73', onAccent:'#04181e',
         sidebarBg:'#050b13', sidebarText:'#7c94ad', sidebarActiveBg:'rgba(34,211,238,.16)', sidebarActiveText:'#67e8f9',
-        heroGrad:'linear-gradient(135deg,#0ea5be,#1d4ed8)' } },
+        heroVivo:'linear-gradient(135deg,#0ea5be,#1d4ed8)',
+        heroGrad:'linear-gradient(135deg,#0b7a93 0%,#2548d0 55%,#7c3aed 100%)' } },
     solar:{ label:'Solar', font:"'Space Grotesk', sans-serif", desc:'Futurismo quente — areia clara, coral vivo e pôr-do-sol coral→magenta.',
       display:"'Space Grotesk', sans-serif", body:"'Inter', sans-serif", mono:"'JetBrains Mono', monospace", radius:'18px',
       light:{ bg:'#faf4ec', surface:'#fffdf9', surface2:'#f6ecdf', border:'#ecdfcc', ink:'#231710', text2:'#5f4f42', text3:'#796859',
         accent:'#ea580c', accentD:'#c2410c', accentSoft:'#fdeadb', accentRing:'#f8c9a4', onAccent:'#ffffff',
         sidebarBg:'#1c1210', sidebarText:'#c4a793', sidebarActiveBg:'rgba(251,146,60,.20)', sidebarActiveText:'#fdba74',
-        heroGrad:'linear-gradient(135deg,#ea580c,#db2777)' },
+        heroVivo:'linear-gradient(135deg,#ea580c,#db2777)',
+        heroGrad:'linear-gradient(135deg,#c2410c 0%,#c43c12 38%,#c2255a 74%,#db2777 100%)' },
       dark:{ bg:'#150e09', surface:'#1e1510', surface2:'#271b14', border:'#3a2a1e', ink:'#f4e9de', text2:'#b39c88', text3:'#958373',
         accent:'#fb923c', accentD:'#f97316', accentSoft:'#2b1a0d', accentRing:'#7c4a1e', onAccent:'#1e0f04',
         sidebarBg:'#0e0805', sidebarText:'#a08a76', sidebarActiveBg:'rgba(251,146,60,.18)', sidebarActiveText:'#fdba74',
-        heroGrad:'linear-gradient(135deg,#f97316,#e0447e)' } },
+        heroVivo:'linear-gradient(135deg,#f97316,#e0447e)',
+        heroGrad:'linear-gradient(135deg,#c43d0b 0%,#c6390f 38%,#c01f4e 74%,#e0447e 100%)' } },
     terminal:{ label:'Terminal', font:"'JetBrains Mono', monospace", desc:'Tech de terminal — carbono, lima néon e tipografia mono. Reto e afiado.',
       display:"'JetBrains Mono', monospace", body:"'Inter', sans-serif", mono:"'JetBrains Mono', monospace", radius:'6px',
       light:{ bg:'#f3f6f2', surface:'#ffffff', surface2:'#ecf1ea', border:'#dbe4d8', ink:'#131a12', text2:'#48544a', text3:'#636f61',
@@ -9223,11 +9239,13 @@ class Component extends DCLogic {
       light:{ bg:'#f7f7fc', surface:'#ffffff', surface2:'#f1f1f9', border:'#e3e2f0', ink:'#191726', text2:'#4f4c63', text3:'#6e6b7e',
         accent:'#0ea5e9', accentD:'#0284c7', accentSoft:'#e4f4fd', accentRing:'#b3e2f8', onAccent:'#ffffff',
         sidebarBg:'#151322', sidebarText:'#a09cc0', sidebarActiveBg:'rgba(56,189,248,.18)', sidebarActiveText:'#7dd3fc',
-        heroGrad:'linear-gradient(120deg,#8b5cf6 0%,#0ea5e9 55%,#ec4899 110%)' },
+        heroVivo:'linear-gradient(120deg,#8b5cf6 0%,#0ea5e9 55%,#ec4899 110%)',
+        heroGrad:'linear-gradient(120deg,#6d28d9 0%,#2563eb 38%,#0a72c2 60%,#ec4899 110%)' },
       dark:{ bg:'#0c0b14', surface:'#14121e', surface2:'#1a1827', border:'#282540', ink:'#eeedf7', text2:'#a5a1bd', text3:'#8885a0',
         accent:'#38bdf8', accentD:'#0ea5e9', accentSoft:'#11202e', accentRing:'#1e4a63', onAccent:'#06121b',
         sidebarBg:'#08070f', sidebarText:'#8b86ab', sidebarActiveBg:'rgba(56,189,248,.16)', sidebarActiveText:'#7dd3fc',
-        heroGrad:'linear-gradient(120deg,#7c5cf0 0%,#0ea5e9 55%,#e0479d 110%)' } }
+        heroVivo:'linear-gradient(120deg,#7c5cf0 0%,#0ea5e9 55%,#e0479d 110%)',
+        heroGrad:'linear-gradient(120deg,#6a3be0 0%,#2a62e8 38%,#0a72c2 60%,#e0479d 110%)' } }
   };}
 
   // O Mac e o iPad têm CátedraLEGIS e CátedraJURIS como ABAS no topo da janela. Ter as
@@ -10184,7 +10202,7 @@ class Component extends DCLogic {
       {disc:'Revisão · Anki', kind:'Flashcards', tag:'Bloco 3', min:25, done:false}]
   };}
   _estiloAbaCiclo(ativa){ return 'flex:1;min-width:0;padding:9px 14px;border-radius:99px;border:none;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);font-weight:700;'
-    + (ativa ? 'background:var(--accent);color:var(--onAccent);box-shadow:0 1px 3px rgba(16,24,40,.16);' : 'background:transparent;color:var(--text2);'); }
+    + (ativa ? 'background:var(--accentSolid);color:var(--onAccent);box-shadow:0 1px 3px rgba(16,24,40,.16);' : 'background:transparent;color:var(--text2);'); }
   /* O CTA do cartão de próxima ação era um onNav puro: com a leitura da semana ele
      apontava para o iframe do JURIS, que não tem botão "Já vi" — oferecia uma ação que
      não satisfazia a condição de o cartão sumir. Agora leva à seção do Início onde a
@@ -10834,6 +10852,13 @@ class Component extends DCLogic {
   _mostraPiP(){ try{ return !(this._temAbasNativas() && !this._pipDisponivel()); }catch(_){ return true; } }
   // Cor da plataforma (accent) resolvida em HEX. O PiP é OUTRA janela (ou um canvas):
   // não herda as CSS vars do app, então precisa da cor literal.
+  /** o par que pinta texto sobre o destaque (--accentSolid/--onAccent), lido da raiz do tema:
+   *  a janela do PiP é outro documento e não herda as variáveis. */
+  _tintaDestaque(){
+    try{ const el=document.querySelector('[data-dark][data-dir]'); if(el){ const cs=getComputedStyle(el);
+      const f=cs.getPropertyValue('--accentSolid').trim(), t=cs.getPropertyValue('--onAccent').trim(); if(f && t) return { fundo:f, texto:t }; } }catch(_){}
+    return { fundo:this._accentHex(), texto:'#fff' };
+  }
   _accentHex(){
     try{ if(this.state.accent) return this.state.accent; }catch(_){}
     try{ const v=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim(); if(v) return v; }catch(_){}
@@ -10874,7 +10899,7 @@ class Component extends DCLogic {
     if(bar){ bar.style.transform='translateX('+(Math.round(v.pct*100)-100)+'%)'; bar.style.background=v.color; }
     if(toggle){ toggle.textContent=v.running?'Pausar':'Retomar';
       // mantém o botão na COR DA PLATAFORMA mesmo se ela mudar com o PiP aberto
-      const acc=this._accentHex(); toggle.style.background=acc; toggle.style.boxShadow='0 6px 18px '+this._hexRgba(acc,.42); }
+      const acc=this._accentHex(), tinta=this._tintaDestaque(); toggle.style.background=tinta.fundo; toggle.style.color=tinta.texto; toggle.style.boxShadow='0 6px 18px '+this._hexRgba(acc,.42); }
   }
   async _openDocPiP(){
     const w=await window.documentPictureInPicture.requestWindow({width:380,height:272});
@@ -10909,8 +10934,8 @@ class Component extends DCLogic {
         .actions{display:flex;gap:8px;margin-top:16px}
         button{border:none;border-radius:var(--radius);cursor:pointer;font:inherit;color:#fff;transition:transform .08s ease, filter .2s, background .2s}
         button:active{transform:scale(.96)}
-        .primary{flex:1;height:42px;background:${acc};font-size:var(--fs-md);font-weight:750;letter-spacing:.01em;box-shadow:0 6px 18px ${accShadow}}
-        .primary:hover{filter:brightness(1.08)}
+        .primary{flex:1;height:42px;background:${this._tintaDestaque().fundo};color:${this._tintaDestaque().texto};font-size:var(--fs-md);font-weight:750;letter-spacing:.01em;box-shadow:0 6px 18px ${accShadow}}
+        .primary:hover{outline:2px solid ${accLine};outline-offset:2px}
         .ghost{width:46px;height:42px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.78)}
         .ghost:hover{background:rgba(255,255,255,.14);color:#fff}
         .ghost svg{width:17px;height:17px}
@@ -11978,10 +12003,10 @@ class Component extends DCLogic {
   // Aqui sobrou o que é de estado, não de aparência: qual passo é o atual. O valor vai
   // para aria-current, que serve ao leitor de tela E ao seletor de CSS — uma fonte só.
   _passo(ativo){ return ativo ? 'step' : ''; }
-  _chip(on){ return 'border:1px solid '+(on?'var(--accent)':'var(--border)')+';background:'+(on?'var(--accent)':'var(--surface)')
+  _chip(on){ return 'border:1px solid '+(on?'var(--accentSolid)':'var(--border)')+';background:'+(on?'var(--accentSolid)':'var(--surface)')
     +';color:'+(on?'var(--onAccent)':'var(--ink)')+';border-radius:99px;padding:6px 12px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;min-height:var(--ct-alvo,0px);'; }
   _sjBotao(on){ return 'flex:1;border-radius:var(--r-md);padding:14px;font-size:var(--fs-md);font-weight:800;cursor:pointer;font-family:inherit;border:2px solid '
-    +(on?'var(--accent)':'var(--border)')+';background:'+(on?'var(--accent)':'var(--surface)')+';color:'+(on?'#fff':'var(--ink)')+';'; }
+    +(on?'var(--accentSolid)':'var(--border)')+';background:'+(on?'var(--accentSolid)':'var(--surface)')+';color:'+(on?'var(--onAccent)':'var(--ink)')+';'; }
 
   abrirSimuladoJogo = ()=>{
     // setState aqui é síncrono: calcular `abre` ANTES, senão a checagem lê o valor já novo
@@ -14965,10 +14990,41 @@ class Component extends DCLogic {
     const P = DIR[mode];
     const T = { display:DIR.display, body:DIR.body, mono:DIR.mono, radius:DIR.radius, isDark:mode==='dark', ...P };
     const acc = this.state.accent || T.accent;
-    const accD = this.state.accent ? this.darken(this.state.accent,0.22) : T.accentD;
-    const heroGrad = this.state.accent ? `linear-gradient(135deg,${this.state.accent},${this.darken(this.state.accent,0.32)})` : T.heroGrad;
-    const sbgVal = this.state.accent ? this.mixDark(this.state.accent, T.isDark?0.82:0.80) : T.sidebarBg;
-    const bgVal = this.state.accent ? (T.isDark ? this.mixDark(this.state.accent,0.90) : this.mixWhite(this.state.accent,0.93)) : T.bg;
+    const _hex6 = (c)=> /^#[0-9a-f]{6}$/i.test(String(c||'').trim()) ? String(c).trim() : '';
+    const _danger = T.isDark?'#ff7b6e':'#c0392f', _warn = T.isDark?'#f0a24a':'#a36306';
+    /** texto de um selo pintado com a cor `c`: as de situação usam o --onX calculado no
+        rootStyle; um hex (ou o --text3 do tema) ganha branco ou a própria cor escurecida 82%,
+        o de maior contraste — antes era #fff fixo, e #b08433 e o --text3 do escuro davam 3,4:1 */
+    const _txSit = (c)=>{ const m={'var(--danger)':'var(--onDanger)','var(--warn)':'var(--onWarn)','var(--ok)':'var(--onOk)'};
+      if(m[c]) return m[c];
+      const h=_hex6(c==='var(--text3)' ? T.text3 : c); if(!h) return '#fff';
+      try{ const esc=this.darkenHex(h,0.82); return CT_RATIO('#ffffff',h)>=CT_RATIO(esc,h) ? '#ffffff' : esc; }catch(_){ return '#fff'; } };
+    const accHex = (()=>{ const a=String(this.state.accent||'').trim(); if(!a) return '';
+      if(a==='var(--danger)') return _danger; if(a==='var(--warn)') return _warn;
+      if(/^#[0-9a-f]{3}$/i.test(a)) return '#'+a.slice(1).replace(/./g,'$&$&');
+      return _hex6(a); })();
+    const _accB = accHex || this.state.accent;   // a base das derivadas: hex, também para var(--danger)/var(--warn)
+    const accD = this.state.accent ? this.darken(_accB,0.22) : T.accentD;
+    /* BANNER (--heroGrad) × IDENTIDADE (--heroVivo). O --heroGrad é o fundo que CARREGA texto
+       branco (o banner do Início, os cartões de gradiente, a lateral do login, os avatares):
+       cada direção tem o seu, desenhado para o texto passar de 4,5:1 em todo ponto onde ele
+       fica (medido nos pixels em tests/contraste-destaque.mjs). O --heroVivo é o gradiente
+       original, mais luminoso, e segue só onde não há texto por cima: barras, bordas e o
+       número recortado do cartão da prova — no escuro o gradiente do banner, mais fundo,
+       sumiria sobre a superfície. Com cor personalizada, o banner parte do destaque aprofundado o mínimo
+       (mesmo matiz) até o branco dar 5:1 — folga para o realce claro do canto. Se a cor já
+       passa, é o desenho de antes (escurece 32% até a outra ponta); se precisou aprofundar, a
+       cor pura volta no canto de baixo, atrás do cronômetro, onde não há texto direto. */
+    const heroVivo = this.state.accent ? `linear-gradient(135deg,${accHex||this.state.accent},${this.darken(_accB,0.32)})` : (T.heroVivo||T.heroGrad);
+    let heroGrad = T.heroGrad;
+    if(this.state.accent){
+      let h1 = accHex;
+      try{ if(h1){ for(let f=0.02; f<=0.9001 && CT_RATIO('#ffffff',h1)<5; f+=0.02) h1=this.darkenHex(accHex,f); } }catch(_){ h1=''; }
+      heroGrad = !h1 ? heroVivo : (h1===accHex ? `linear-gradient(135deg,${h1},${this.darkenHex(h1,0.32)})`
+        : `linear-gradient(135deg,${h1} 0%,${this.darkenHex(h1,0.2)} 58%,${accHex} 115%)`);
+    }
+    const sbgVal = this.state.accent ? this.mixDark(_accB, T.isDark?0.82:0.80) : T.sidebarBg;
+    const bgVal = this.state.accent ? (T.isDark ? this.mixDark(_accB,0.90) : this.mixWhite(_accB,0.93)) : T.bg;
     const pf0 = this.state.prefs;
     // ===== Área de estudo =====
     // Declarado AQUI, no topo: tudo abaixo (ciclo, edital, registro de sessão, bancas)
@@ -15039,7 +15095,7 @@ class Component extends DCLogic {
     // Ajustes em abas (refeito 21/08): uma tela por vez
     const _ajTab = this.state.ajTab || 'voce';
     const _ajBtn = (on)=>`border:none;cursor:pointer;font-family:inherit;border-radius:99px;padding:11px 20px;font-size:var(--fs-md);font-weight:700;transition:all .15s;`+
-      (on?'background:linear-gradient(90deg,var(--accent),var(--accentD));color:var(--onAccent);box-shadow:0 6px 16px -6px var(--accent);':'background:transparent;color:var(--text2);');
+      (on?'background:linear-gradient(90deg,var(--accentSolid),var(--accentSolidD));color:var(--onAccent);box-shadow:0 6px 16px -6px var(--accent);':'background:transparent;color:var(--text2);');
     const _orChipAp=(on)=>'border:1px solid '+(on?'var(--accent)':'var(--border)')+';background:'+(on?'var(--accentSoft)':'var(--surface2)')
       +';color:'+(on?'var(--accentD)':'var(--ink)')+';border-radius:99px;padding:9px 15px;font-size:var(--fs-sm);font-weight:700;cursor:pointer;font-family:inherit;';
     // ===== AJUSTES: seções, selo de "fora do padrão" e perfis =====
@@ -15048,7 +15104,7 @@ class Component extends DCLogic {
       +`border-radius:99px;padding:10px 17px;font-size:var(--fs-sm);font-weight:700;transition:all .15s;white-space:nowrap;`
       +(on?'background:var(--accentSoft);color:var(--accentD);':'background:var(--surface);color:var(--text2);');
     const _ajSelo = (on)=>`font-family:var(--mono);font-size:var(--fs-2xs);font-weight:700;border-radius:99px;padding:1px 7px;`
-      +(on?'background:var(--accent);color:var(--onAccent);':'background:var(--surface2);color:var(--text3);');
+      +(on?'background:var(--accentSolid);color:var(--onAccent);':'background:var(--surface2);color:var(--text3);');
     const _ajDiffs = {}; AJ_SECOES.forEach(x=>{ _ajDiffs[x.id]=this._ajDiffSecao(x.id); });
     const _ajSecAtual = AJ_SECOES.find(x=>x.id===_ajSec) || AJ_SECOES[0];
     const _ajDiffAtual = _ajDiffs[_ajSecAtual.id] || [];
@@ -15162,25 +15218,57 @@ class Component extends DCLogic {
     const _dens = (pf0.density==='compacta') ? 'compacta' : 'confortavel';
     const espTokens = `--control-h:${_dens==='compacta'?'34px':'38px'};`;
     const fsTokens = `--fs-3xs:${_fs(10.5)};--fs-2xs:${_fs(11)};--fs-xs:${_fs(11.5)};--fs-sm:${_fs(12.5)};--fs-base:${_fs(13.5)};--fs-md:${_fs(14.5)};--fs-lg:${_fs(15.5)};--fs-xl:${_fs(17)};--fs-2xl:${_fs(19)};`;
-    const accSoft = this.state.accent ? (T.isDark ? this.mixDark(this.state.accent,0.78) : this.mixWhite(this.state.accent,0.88)) : T.accentSoft;
-    const accRing = this.state.accent ? (T.isDark ? this.mixDark(this.state.accent,0.45) : this.mixWhite(this.state.accent,0.62)) : T.accentRing;
-    // --onAccent segue a régua antiga (luma aproximada): trocá-la mexe em todo o app e
-    // fica como pendência própria. A pílula de volta usa o par calculado abaixo.
-    const accOn = this.state.accent ? (()=>{ try{ const [r,g,b]=this.hexToRgb(this.state.accent); return (0.299*r+0.587*g+0.114*b)>170?'#10231c':'#fff'; }catch(_){ return '#fff'; } })() : T.onAccent;
+    const accSoft = this.state.accent ? (T.isDark ? this.mixDark(_accB,0.78) : this.mixWhite(_accB,0.88)) : T.accentSoft;
+    const accRing = this.state.accent ? (T.isDark ? this.mixDark(_accB,0.45) : this.mixWhite(_accB,0.62)) : T.accentRing;
+    /* TEXTO SOBRE O DESTAQUE (--onAccent) e o FUNDO que carrega esse texto
+       (--accentSolid/--accentSolidD), por contraste WCAG calculado.
+       Antes o --onAccent vinha de uma régua de luma (limiar 170) e ficava abaixo de 4,5:1 com
+       destaques oferecidos no seletor (#84cc16 1,98:1; #0d9488 3,74:1) e com o padrão de
+       Aurora, Solar e Holo no claro. Agora:
+       · o texto é #fff ou o escuro do tema (o mais escuro entre a tinta do claro e os onAccent
+         da direção) — o que tiver o MAIOR contraste no PIOR ponto dos fundos em que ele pinta:
+         o destaque, a ponta funda (--accentD), o meio do gradiente entre os dois e a ponta
+         escurecida do .ct-btn (82% do destaque com preto);
+       · se nenhum dos dois passa de 4,5:1 nesses pontos, o FUNDO se move o mínimo: escurecido
+         (texto branco) ou clareado (texto escuro), o mesmo passo nas duas pontas, pelo caminho
+         que exigir o menor passo — no empate, escurecer (clarear empalidece a vitrine).
+       O --accent (identidade: texto, anel, borda, barra) NÃO muda. Só os componentes que
+       pintam texto sobre o destaque trocam var(--accent) por var(--accentSolid).
+       'var(--danger)'/'var(--warn)' do seletor viram o hex do modo para as contas (e para as
+       derivadas), senão hexToRgb dava NaN e o --accentD, a lateral e o fundo saíam inválidos. */
+    const _escuros=[DIR.light&&DIR.light.ink, DIR.light&&DIR.light.onAccent, DIR.dark&&DIR.dark.onAccent, T.onAccent]
+      .map(_hex6).filter(c=>c && CT_LUM(c)<0.2).sort((x,y)=>CT_LUM(x)-CT_LUM(y));
+    const escuroTema=_escuros[0]||'#10231c';
+    let accOn = this.state.accent ? '#ffffff' : T.onAccent, accSolid = acc, accSolidD = accD;
+    try{
+      const A=accHex || _hex6(T.accent), Dd=accHex ? this.darkenHex(accHex,0.22) : _hex6(T.accentD);
+      if(A && Dd){
+        const meio=(x,y)=>'#'+[0,2,4].map(i=>Math.round((parseInt(x.slice(1+i,3+i),16)+parseInt(y.slice(1+i,3+i),16))/2).toString(16).padStart(2,'0')).join('');
+        const pior=(t,f,fd)=>Math.min(CT_RATIO(t,f), CT_RATIO(t,fd), CT_RATIO(t,meio(f,fd)), CT_RATIO(t,this.darkenHex(f,0.18)));
+        const cb=pior('#ffffff',A,Dd), ce=pior(escuroTema,A,Dd);
+        if(Math.max(cb,ce)>=4.5){ accOn = cb>=ce ? '#ffffff' : escuroTema; }
+        else {
+          let passoB=-1, passoE=-1;
+          for(let i=1; i<=45 && (passoB<0 || passoE<0); i++){ const f=i*0.02;
+            if(passoB<0 && pior('#ffffff', this.darkenHex(A,f), this.darkenHex(Dd,f))>=4.5) passoB=f;
+            if(passoE<0 && pior(escuroTema, this.lightenHex(A,f), this.lightenHex(Dd,f))>=4.5) passoE=f; }
+          if(passoE>=0 && (passoB<0 || passoE<passoB)){ accOn=escuroTema; accSolid=this.lightenHex(A,passoE); accSolidD=this.lightenHex(Dd,passoE); }
+          else if(passoB>=0){ accOn='#ffffff'; accSolid=this.darkenHex(A,passoB); accSolidD=this.darkenHex(Dd,passoB); }
+          else { accOn = cb>=ce ? '#ffffff' : escuroTema; }
+        }
+      }
+    }catch(_){ accSolid=acc; accSolidD=accD; }
     /* PAR DA PÍLULA DE VOLTA (--accentFill/--onAccentFill), por contraste WCAG calculado.
        Só a pílula consome: --accent/--onAccent do resto do app não mudam. Texto: #fff ou o
        escuro do tema (o mais escuro entre a tinta do claro e os onAccent da direção), o de
        maior contraste. Fundo: o próprio destaque, ajustado aos poucos até o texto passar de
        4,5:1 e o fundo se destacar da --surface por 3:1 — no claro escurecendo, no escuro
        CLAREANDO. Se a borda de 3:1 não fecha, vale o primeiro passo com o texto em 4,5:1. */
-    const _hex6 = (c)=> /^#[0-9a-f]{6}$/i.test(String(c||'').trim()) ? String(c).trim() : '';
     let accFill = acc, accOnFill = accOn;
     try{
-      const base=_hex6(acc);
+      const base=accHex || _hex6(acc);
       if(base){
-        const escuros=[DIR.light&&DIR.light.ink, DIR.light&&DIR.light.onAccent, DIR.dark&&DIR.dark.onAccent, T.onAccent]
-          .map(_hex6).filter(c=>c && CT_LUM(c)<0.2).sort((x,y)=>CT_LUM(x)-CT_LUM(y));
-        const escuro=escuros[0]||'#10231c';
+        const escuro=escuroTema;
         const sup=_hex6(T.surface)||(T.isDark?'#201d17':'#fffdf8');
         const par=(fundo)=>{ const cb=CT_RATIO('#ffffff',fundo), ce=CT_RATIO(escuro,fundo);
           return cb>=ce ? {f:fundo, t:'#ffffff', r:cb, s:CT_RATIO(fundo,sup)} : {f:fundo, t:escuro, r:ce, s:CT_RATIO(fundo,sup)}; };
@@ -15194,11 +15282,22 @@ class Component extends DCLogic {
         if(fim){ accFill=fim.f; accOnFill=fim.t; }
       }
     }catch(_){ accFill=acc; accOnFill=accOn; }
+    /* TEXTO SOBRE AS CORES DE SITUAÇÃO (--onDanger/--onWarn/--onOk). O sino, o contador de
+       notificações, os selos "entendimento superado"/"divergência" e os botões de avaliação
+       pintavam #fff fixo sobre --danger/--warn/--ok — no claro passa (5,4 · 4,8 · 5,0), mas no
+       escuro essas cores clareiam (#ff7b6e, #f0a24a, #3ddba0) e o branco caía para 1,7–2,6:1.
+       Agora o texto é o branco ou a mesma cor escurecida 82% (mesmo matiz), o que tiver o
+       maior contraste. A cor de situação, que é identidade em texto, ponto e barra, não muda. */
+    const _okCor = T.isDark?'#3ddba0':'#0e7f58';
+    const _sobreSit = (bg)=>{ try{ const esc=this.darkenHex(bg,0.82), cb=CT_RATIO('#ffffff',bg), ce=CT_RATIO(esc,bg);
+      if(Math.max(cb,ce)>=4.5) return cb>=ce ? '#ffffff' : esc;
+      return CT_RATIO('#000000',bg)>cb ? '#000000' : '#ffffff'; }catch(_){ return '#ffffff'; } };
+    const onDanger=_sobreSit(_danger), onWarn=_sobreSit(_warn), onOk=_sobreSit(_okCor);
     const rootStyle = `--bg:${T.bg};--surface:${T.surface};--surface2:${T.surface2};--border:${T.border};`+
       `--ink:${T.ink};--text2:${T.text2};--text3:${T.text3};--accent:${acc};--accentD:${accD};`+
-      `--accentSoft:${accSoft};--accentRing:${accRing};--onAccent:${accOn};--accentFill:${accFill};--onAccentFill:${accOnFill};--radius:${radiusVal};--r-sm:${rSm};--r-md:${rMd};`+fsTokens+espTokens+
-      `--display:${T.display};--body:${T.body};--mono:${T.mono};--heroGrad:${heroGrad};`+
-      `--danger:${T.isDark?'#ff7b6e':'#c0392f'};--dangerSoft:${T.isDark?'rgba(255,123,110,.14)':'#faeceb'};--dangerBd:${T.isDark?'rgba(255,123,110,.35)':'#f0d3d1'};--ok:${T.isDark?'#3ddba0':'#0e7f58'};--warn:${T.isDark?'#f0a24a':'#a36306'};--warnSoft:${T.isDark?'rgba(240,162,74,.14)':'#faf0e0'};--info:${T.isDark?'#54cfe8':'#06809a'};--infoSoft:${T.isDark?'rgba(84,207,232,.14)':'#e0f5fa'};`+
+      `--accentSoft:${accSoft};--accentRing:${accRing};--onAccent:${accOn};--accentSolid:${accSolid};--accentSolidD:${accSolidD};--accentFill:${accFill};--onAccentFill:${accOnFill};--radius:${radiusVal};--r-sm:${rSm};--r-md:${rMd};`+fsTokens+espTokens+
+      `--display:${T.display};--body:${T.body};--mono:${T.mono};--heroGrad:${heroGrad};--heroVivo:${heroVivo};`+
+      `--danger:${_danger};--dangerSoft:${T.isDark?'rgba(255,123,110,.14)':'#faeceb'};--dangerBd:${T.isDark?'rgba(255,123,110,.35)':'#f0d3d1'};--ok:${_okCor};--warn:${_warn};--onDanger:${onDanger};--onWarn:${onWarn};--onOk:${onOk};--warnSoft:${T.isDark?'rgba(240,162,74,.14)':'#faf0e0'};--info:${T.isDark?'#54cfe8':'#06809a'};--infoSoft:${T.isDark?'rgba(84,207,232,.14)':'#e0f5fa'};`+
       `--sbg:${sbgVal};--stext:${T.sidebarText};--sactbg:${this.state.accent?'rgba(255,255,255,.14)':T.sidebarActiveBg};--sacttext:${this.state.accent?'#fff':T.sidebarActiveText};`+
       `--bg:${bgVal};background:${bgVal};color:${T.ink};font-family:${T.body};font-size:${fontScalePx};`;
     // largura por view: telas de grade (muitos cards/colunas) ficam largas; telas em coluna única ficam num limite de leitura confortável
@@ -15235,7 +15334,7 @@ class Component extends DCLogic {
       if((id==='legis'||id==='juris') && this._temAbasNativas()) return 'display:none;';
       return `display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:none;cursor:pointer;`+
         `padding:11px 13px;border-radius:var(--radius);font-size:var(--fs-md);font-weight:${on?'700':'500'};font-family:inherit;`+
-        `transition:all .18s;background:${on?'linear-gradient(90deg,var(--accent),var(--accentD))':'transparent'};`+
+        `transition:all .18s;background:${on?'linear-gradient(90deg,var(--accentSolid),var(--accentSolidD))':'transparent'};`+
         `color:${on?'var(--onAccent)':'var(--stext)'};box-shadow:${on?'0 8px 22px -8px var(--accent)':'none'};`+
         `transform:${on?'translateX(2px)':'none'};`;
     };
@@ -15256,11 +15355,11 @@ class Component extends DCLogic {
     const dirBtn = (id)=>{
       const on = this.state.dir===id;
       return `padding:6px 13px;border-radius:99px;border:none;cursor:pointer;font-size:var(--fs-sm);font-weight:600;font-family:inherit;`+
-        `transition:all .15s;background:${on?'var(--accent)':'transparent'};color:${on?'var(--onAccent)':'var(--text2)'};`;
+        `transition:all .15s;background:${on?'var(--accentSolid)':'transparent'};color:${on?'var(--onAccent)':'var(--text2)'};`;
     };
     // abas do hub "Desempenho" (Análise + Domínio); ativa deriva de view+anaTab
     const _desempAtivo = this.state.view==='dominio' ? 'dominio' : this.state.anaTab;
-    const _desempTab = (id)=>{ const on=_desempAtivo===id; return `padding:9px 16px;border:none;cursor:pointer;font-family:inherit;font-size:var(--fs-base);font-weight:600;border-radius:var(--r-md);white-space:nowrap;transition:all .15s;background:${on?'var(--accent)':'transparent'};color:${on?'var(--onAccent)':'var(--text2)'};`; };
+    const _desempTab = (id)=>{ const on=_desempAtivo===id; return `padding:9px 16px;border:none;cursor:pointer;font-family:inherit;font-size:var(--fs-base);font-weight:600;border-radius:var(--r-md);white-space:nowrap;transition:all .15s;background:${on?'var(--accentSolid)':'transparent'};color:${on?'var(--onAccent)':'var(--text2)'};`; };
     const desempTabStyle = { visao:_desempTab('visao'), disciplina:_desempTab('disciplina'), risco:_desempTab('risco'), historico:_desempTab('historico'), relatorio:_desempTab('relatorio'), dominio:_desempTab('dominio') };
 
     // ===== Ciclo =====
@@ -15666,7 +15765,7 @@ class Component extends DCLogic {
       return { i:String(i), nome, cor:cor||'var(--accent)', on,
         contagem:(tops||[]).length+' tópicos'+(nsub?(' · '+nsub+' sub'):'')+(_mTemE(nome)?' · já no seu edital':''),
         style:`display:flex;align-items:center;gap:9px;width:100%;text-align:left;cursor:pointer;font-family:inherit;padding:9px 11px;border-radius:var(--r-md);border:1px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accentSoft)':'var(--surface)'};`,
-        box:`width:18px;height:18px;border-radius:var(--r-sm);flex:none;display:flex;align-items:center;justify-content:center;border:2px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accent)':'transparent'};color:var(--onAccent);` }; });
+        box:`width:18px;height:18px;border-radius:var(--r-sm);flex:none;display:flex;align-items:center;justify-content:center;border:2px solid ${on?'var(--accentSolid)':'var(--border)'};background:${on?'var(--accentSolid)':'transparent'};color:var(--onAccent);` }; });
     const _mAtual=CT_MODELOS.find(m=>m.id===_mId)||{};
     const _mTotT=_mAtual.nt||0, _mTotS=_mAtual.ns||0, _mND=_mAtual.nd||0;
     const modeloResumo=modeloVazio ? ('sem edital pronto de '+_area.label+' — cole o seu abaixo')
@@ -15741,7 +15840,8 @@ class Component extends DCLogic {
     const accRows = (B.discList.length?B.discList:edital.map(d=>({disc:d.disc,color:d.color,liqPct:0}))).map(d=>{
       const pct=Math.max(0,Math.min(100,d.liqPct||0));
       const risk=pct>=70?'Sólido':pct>=55?'Atenção':'Risco';
-      return {disc:d.disc, color:d.color||'#0f7a57', pct, risk, riskColor: risk==='Sólido'?'var(--ok)':risk==='Atenção'?'var(--warn)':'var(--danger)'};
+      return {disc:d.disc, color:d.color||'#0f7a57', pct, risk, riskColor: risk==='Sólido'?'var(--ok)':risk==='Atenção'?'var(--warn)':'var(--danger)',
+        riskTx: _txSit(risk==='Sólido'?'var(--ok)':risk==='Atenção'?'var(--warn)':'var(--danger)')};
     }).sort((a,b)=>b.pct-a.pct);
     const _evolSource = _allSessionsForDash.filter(x=>x.questoes).sort((a,b)=>(a.ts||0)-(b.ts||0)).slice(-8);
     const evol = (_evolSource.length?_evolSource:[{questoes:0, acertos:0}]).map((x,i)=>{
@@ -15750,9 +15850,10 @@ class Component extends DCLogic {
     });
     const risco = accRows.filter(r=>r.pct<70).sort((a,b)=>a.pct-b.pct).slice(0,3).map(r=>{
       const tag=r.pct<50?'Crítico':r.pct<60?'Alto':'Médio';
-      return {disc:r.disc, why:r.pct+'% líquido/acerto registrado · priorize revisão e questões comentadas', tag, color:tag==='Crítico'?'var(--danger)':tag==='Alto'?'var(--warn)':'#b08433'};
+      return {disc:r.disc, why:r.pct+'% líquido/acerto registrado · priorize revisão e questões comentadas', tag, color:tag==='Crítico'?'var(--danger)':tag==='Alto'?'var(--warn)':'#b08433',
+        tagTx:_txSit(tag==='Crítico'?'var(--danger)':tag==='Alto'?'var(--warn)':'#b08433')};
     });
-    if(!risco.length) risco.push({disc:'Sem risco crítico', why:'As disciplinas com dados registrados estão acima de 70%.', tag:'Ok', color:'var(--ok)'});
+    if(!risco.length) risco.push({disc:'Sem risco crítico', why:'As disciplinas com dados registrados estão acima de 70%.', tag:'Ok', color:'var(--ok)', tagTx:'var(--onOk)'});
     // ===== Radar de prioridades POR TEMA (Fase 3): esquecimento + fraqueza × incidência =====
     const radarTemas = (()=>{
       const now=Date.now(); const TAU=45, MINQ=6; const out=[];
@@ -15770,7 +15871,8 @@ class Component extends DCLogic {
           if(!motivo) return;
           const score=Math.round(base + inc*0.15);           // incidência (questões do edital) pondera
           out.push({disc:short, topic:tp.name, motivo, score, incStr:(inc>0?(inc+'q no edital'):''), color:d.color||'#0f7a57',
-            tag:(score>=80?'Urgente':score>=64?'Alto':'Médio'), tagColor:(score>=80?'var(--danger)':score>=64?'var(--warn)':'#b08433')});
+            tag:(score>=80?'Urgente':score>=64?'Alto':'Médio'), tagColor:(score>=80?'var(--danger)':score>=64?'var(--warn)':'#b08433'),
+            tagTx:_txSit(score>=80?'var(--danger)':score>=64?'var(--warn)':'#b08433')});
         });
       });
       return out.sort((a,b)=>b.score-a.score).slice(0,8);
@@ -16307,13 +16409,13 @@ class Component extends DCLogic {
     const mfFmtLabel=_mfFmtNames[_mfFmt]||'conteúdo';
     const mfGenLabel=mfBusyNow?'Gerando com IA…':'Gerar com IA ✦';
     const multiFmtKey=_mfFmt;
-    const mfGenBtnStyle=`display:inline-flex;align-items:center;gap:8px;background:${mfBusyNow?'var(--surface2)':'var(--accent)'};color:${mfBusyNow?'var(--text3)':'var(--onAccent)'};border:1px solid ${mfBusyNow?'var(--border)':'var(--accent)'};border-radius:var(--r-md);padding:11px 20px;font-weight:600;font-size:var(--fs-base);cursor:${mfBusyNow?'default':'pointer'};font-family:inherit;`;
+    const mfGenBtnStyle=`display:inline-flex;align-items:center;gap:8px;background:${mfBusyNow?'var(--surface2)':'var(--accentSolid)'};color:${mfBusyNow?'var(--text3)':'var(--onAccent)'};border:1px solid ${mfBusyNow?'var(--border)':'var(--accentSolid)'};border-radius:var(--r-md);padding:11px 20px;font-weight:600;font-size:var(--fs-base);cursor:${mfBusyNow?'default':'pointer'};font-family:inherit;`;
     // conteúdo derivado apenas do que a IA gerou
     const mfTextoParas=(_mfGen&&Array.isArray(_mfGen.paras))?_mfGen.paras.map(String):[];
     const mfAudioPreview=(_mfGen&&_mfGen.preview)?String(_mfGen.preview):'';
     const mfNodes=(_mfGen&&Array.isArray(_mfGen.nodes))?_mfGen.nodes.slice(0,6).map((n,i)=>({title:String(n.title||''), text:String(n.text||''), style:'border:1px solid color-mix(in oklab, '+_mfPal[i%_mfPal.length]+' 38%, var(--border));border-radius:var(--radius);padding:12px 14px;background-image:linear-gradient(90deg,color-mix(in oklab, '+_mfPal[i%_mfPal.length]+' 19%, transparent),transparent 46%);'})):[];
     const _mfChaps=(_mfGen&&Array.isArray(_mfGen.chapters))?_mfGen.chapters.slice(0,6):[];
-    const mfChapters=_mfChaps.map((t,i)=>({n:i+1, title:String(t), style:`font-size:var(--fs-sm);font-weight:${i===0?700:600};color:${i===0?'#fff':(i<2?'var(--accentD)':'var(--text3)')};background:${i===0?'var(--accent)':(i<2?'var(--accentSoft)':'var(--surface2)')};border-radius:var(--r-md);padding:6px 11px;flex:none;white-space:nowrap;`}));
+    const mfChapters=_mfChaps.map((t,i)=>({n:i+1, title:String(t), style:`font-size:var(--fs-sm);font-weight:${i===0?700:600};color:${i===0?'var(--onAccent)':(i<2?'var(--accentD)':'var(--text3)')};background:${i===0?'var(--accentSolid)':(i<2?'var(--accentSoft)':'var(--surface2)')};border-radius:var(--r-md);padding:6px 11px;flex:none;white-space:nowrap;`}));
     const mfVideoTitle=(_mfGen&&_mfGen.title)?String(_mfGen.title):mfFonte;
     const mfCards=(_mfGen&&Array.isArray(_mfGen.cards))?_mfGen.cards.map(c=>({front:String(c.front||''), back:String(c.back||'')})):[];
     const mfCardsCount=String(mfCards.length);
@@ -16417,7 +16519,7 @@ class Component extends DCLogic {
     const edParsedDisc = this.state.edParsed ? this.state.edParsed.length : 0;
     const edParsedTopics = this.state.edParsed ? this.state.edParsed.reduce((a,d)=>a+d.topics.length,0) : 0;
     const edParsedSubs = this.state.edParsed ? this.state.edParsed.reduce((a,d)=>a+d.topics.reduce((b,t)=>b+((t.subs&&t.subs.length)||0),0),0) : 0;
-    const segBtn=(on)=>`flex:1;padding:9px;border:none;cursor:pointer;font-family:inherit;font-size:var(--fs-base);font-weight:600;border-radius:var(--r-md);transition:all .15s;background:${on?'var(--accent)':'transparent'};color:${on?'var(--onAccent)':'var(--text2)'};`;
+    const segBtn=(on)=>`flex:1;padding:9px;border:none;cursor:pointer;font-family:inherit;font-size:var(--fs-base);font-weight:600;border-radius:var(--r-md);transition:all .15s;background:${on?'var(--accentSolid)':'transparent'};color:${on?'var(--onAccent)':'var(--text2)'};`;
 
     // (plano inteligente removido do Início)
 
@@ -16546,7 +16648,7 @@ class Component extends DCLogic {
       const mx=Math.max(60,...arr.map(x=>x.m));
       return arr.map(x=>{ const hj=x.i===dow; const h=x.m>0?Math.max(6,Math.round(x.m/mx*100)):0;
         return { val:x.m>0?_fmtHM2(x.m):'—', dia:L[x.i]+(hj?' · hoje':''),
-          barStyle:'width:min(64px,72%);border-radius:var(--r-md) 11px 7px 7px;height:'+(x.m>0?h+'%':'5px')+';'+(hj?'background:var(--heroGrad);box-shadow:0 10px 34px -8px rgba(124,92,240,.55);':(x.m>0?'background:linear-gradient(180deg,var(--accentRing),var(--accentSoft));border:1px solid var(--accentRing);':'background:var(--surface2);border:1px solid var(--border);')),
+          barStyle:'width:min(64px,72%);border-radius:var(--r-md) 11px 7px 7px;height:'+(x.m>0?h+'%':'5px')+';'+(hj?'background:var(--heroVivo);box-shadow:0 10px 34px -8px rgba(124,92,240,.55);':(x.m>0?'background:linear-gradient(180deg,var(--accentRing),var(--accentSoft));border:1px solid var(--accentRing);':'background:var(--surface2);border:1px solid var(--border);')),
           valStyle:'font-family:var(--mono);font-size:var(--fs-base);'+(hj?'font-weight:700;color:var(--ink);':'font-weight:600;color:var(--text2);'),
           diaStyle:'font-size:var(--fs-sm);font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:'+(hj?'var(--accent)':'var(--text3)')+';' }; });
     })();
@@ -16555,7 +16657,7 @@ class Component extends DCLogic {
       for(let i=0;i<7;i++){ const k=this._ymd(seg.getTime()+i*864e5); const m=S.filter(s=>s.date===k && s.countMeta!==false).reduce((a,s)=>a+(s.min||0),0);
         const w=Math.min(100,Math.round(m/alvo*100)); const hj=i===dow;
         out.push({ l:L[i],
-          fillStyle:'position:absolute;inset:0;width:'+w+'%;background:'+(hj?'var(--heroGrad)':'var(--accentRing)')+';',
+          fillStyle:'position:absolute;inset:0;width:'+w+'%;background:'+(hj?'var(--heroVivo)':'var(--accentRing)')+';',
           lStyle:'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:var(--fs-xs);font-weight:700;color:'+(hj?'#fff':'var(--text3)')+';z-index:1;text-transform:uppercase;' }); }
       return out; })();
     const homeDesemp=(B.discList||[]).filter(d=>d.q>0).slice(0,6).map(d=>({nome:d.disc.replace('Direito ',''), pct:String(Math.max(0,Math.min(100,d.liqPct))), cor:_homeCor(d.disc)}));
@@ -16795,7 +16897,7 @@ class Component extends DCLogic {
     const _enam = (()=>{
       const E=window.CT_ENAM, en=this.state.enam, on=!!(en&&en.ativo&&E);
       const r={ on, edicao:on?String(en.edicao||''):'', dias:null, diasLabel:'', chipSub:'', hora:'', dataFmt:'', edicoes:[], meta:on?(+en.metaAcertos||56):56, proximaFrase:'',
-        metaStyle:(m)=>'min-height:44px;padding:0 16px;border-radius:99px;font-family:inherit;font-size:var(--fs-base);font-weight:700;cursor:pointer;border:1px solid '+(r.meta===m?'transparent':'var(--border)')+';background:'+(r.meta===m?'var(--accent)':'var(--surface2)')+';color:'+(r.meta===m?'var(--onAccent)':'var(--text2)')+';' };
+        metaStyle:(m)=>'min-height:44px;padding:0 16px;border-radius:99px;font-family:inherit;font-size:var(--fs-base);font-weight:700;cursor:pointer;border:1px solid '+(r.meta===m?'transparent':'var(--border)')+';background:'+(r.meta===m?'var(--accentSolid)':'var(--surface2)')+';color:'+(r.meta===m?'var(--onAccent)':'var(--text2)')+';' };
       const fmtData=(iso, opc)=>{ try{ return new Date(iso+'T12:00:00').toLocaleDateString('pt-BR', opc); }catch(_){ return iso; } };
       if(E){ const px=E.proxima(); r.proximaFrase=px?('A próxima edição é a '+px.id+', em '+fmtData(px.data,{day:'2-digit',month:'long',year:'numeric'})+'.'):'';
         r.edicoes=E.EDICOES.filter(e=>E.diasAte(e.data)>=0 || (on&&e.id===en.edicao)).map(e=>({id:e.id, rotulo:e.id+' · '+e.numero+' ENAM · '+fmtData(e.data), sel:on&&e.id===en.edicao})); }
@@ -16932,6 +17034,7 @@ class Component extends DCLogic {
         domStr: (!t.hasData&&t.samples===0)?'—':(t.dom+'%'),
         level: !t.hasData?(t.samples>0?'Poucos dados':'Sem dados'):(t.emRisco?'Em risco':(t.dom>=70?'Dominado':t.dom>=50?'Em curso':'Frágil')),
         levelColor: !t.hasData?'var(--text3)':(t.emRisco?'#b08433':(t.dom>=70?'var(--ok)':t.dom>=50?'var(--warn)':'var(--danger)')),
+        levelTx: _txSit(!t.hasData?'var(--text3)':(t.emRisco?'#b08433':(t.dom>=70?'var(--ok)':t.dom>=50?'var(--warn)':'var(--danger)'))),
         barW: t.hasData?t.dom:(t.samples>0?t.dom:0)}))
       .sort((a,b)=>{ const ra=a.hasData?0:1, rb=b.hasData?0:1; if(ra!==rb) return ra-rb; return a.dom-b.dom; });
 
@@ -17012,7 +17115,7 @@ class Component extends DCLogic {
 
     // ===== multiformato + bem-estar =====
     const _mf=this.state.multiFmt;
-    const fmtBtn=(k)=>{ const on=_mf===k; return `display:flex;align-items:center;gap:7px;padding:9px 14px;border-radius:var(--r-md);cursor:pointer;font-family:inherit;font-size:var(--fs-base);font-weight:600;transition:all .15s;border:1px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accent)':'var(--surface)'};color:${on?'var(--onAccent)':'var(--text2)'};`; };
+    const fmtBtn=(k)=>{ const on=_mf===k; return `display:flex;align-items:center;gap:7px;padding:9px 14px;border-radius:var(--r-md);cursor:pointer;font-family:inherit;font-size:var(--fs-base);font-weight:600;transition:all .15s;border:1px solid ${on?'var(--accentSolid)':'var(--border)'};background:${on?'var(--accentSolid)':'var(--surface)'};color:${on?'var(--onAccent)':'var(--text2)'};`; };
     const _breathOn=this.state.breathOn;
     const _moodDefs=[{k:'otimo',emoji:'😄',label:'Ótimo'},{k:'bem',emoji:'🙂',label:'Bem'},{k:'neutro',emoji:'😐',label:'Neutro'},{k:'cansado',emoji:'😮‍💨',label:'Cansado'},{k:'ansioso',emoji:'😰',label:'Ansioso'}];
     const _moodTips={'':'Selecione como se sente para receber um ajuste de ritmo.',otimo:'Aproveite o pique: encare agora um tópico difícil da sua disciplina mais fraca.',bem:'Bom momento para um bloco de estudo focado de 50 minutos.',neutro:'Comece leve com revisões curtas para ganhar embalo.',cansado:'Reduza a meta de hoje e priorize revisão passiva e flashcards.',ansioso:'Faça a respiração 4-7-8 antes de começar e diminua a cobrança.'};
@@ -17096,15 +17199,15 @@ class Component extends DCLogic {
       temDados:!p.semDados
     }));
     // O QUE MUDOU ESTA SEMANA (item 7): marcados primeiro, com selo por tipo
-    const _SEMSELO={superacao:{t:'entendimento superado', c:'var(--danger)'},
-      divergencia:{t:'divergência STF × STJ', c:'var(--warn)'},
-      vinculante:{t:'tese vinculante', c:'var(--accent)'}};
+    const _SEMSELO={superacao:{t:'entendimento superado', c:'var(--danger)', tx:'var(--onDanger)'},
+      divergencia:{t:'divergência STF × STJ', c:'var(--warn)', tx:'var(--onWarn)'},
+      vinculante:{t:'tese vinculante', c:'var(--accentSolid)', tx:'var(--onAccent)'}};
     const _semanaTodos=this._semanaItens();
     const semanaLista=_semanaTodos.slice(0, this.state.semanaTudo?18:this.SEMANA_N).map(x=>{
       const sel=_SEMSELO[x.marcador];
       return { id:x.id, titulo:x.titulo, tese:x.tese, quando:x.quando,
         ondeQuem:[x.tribunal, x.ramo].filter(Boolean).join(' · '),
-        temSelo:!!sel, selo:(sel?sel.t:''), seloStyle:(sel?('background:'+sel.c+';color:#fff;'):'') };
+        temSelo:!!sel, selo:(sel?sel.t:''), seloStyle:(sel?('background:'+sel.c+';color:'+(sel.tx||'#fff')+';'):'') };
     });
     const redHist=this.state.redHistory.map(h=>({...h, notaStr:(+h.nota).toFixed(1),
       when:(()=>{ try{ return new Date(h.ts).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}); }catch(_){ return ''; } })(),
@@ -17253,7 +17356,7 @@ class Component extends DCLogic {
     const sessSubtitulo=(()=>{ const p=[]; if(_selCats.length) p.push(_selCats.join(' + ')); if(_fxTop) p.push(_fxTop.length>48?_fxTop.slice(0,48)+'…':_fxTop); if(_fxMin) p.push(_fxMin+' min');
       return p.length?p.join(' · '):'alimenta suas horas, seu desempenho e suas revisões'; })();
     const sessMarcarLabel=_sd0.edSub ? ('Marcar “'+_sd0.edSub+'” como estudado no edital') : (_sd0.edTop? ('Marcar “'+_sd0.edTop+'” (e seus subtópicos) como estudado no edital') : '');
-    const sessMarcarStyle=`width:19px;height:19px;border-radius:var(--r-sm);flex:none;display:flex;align-items:center;justify-content:center;border:2px solid ${sessMarcarEdital?'var(--accent)':'var(--border)'};background:${sessMarcarEdital?'var(--accent)':'transparent'};color:var(--onAccent);cursor:pointer;padding:0;`;
+    const sessMarcarStyle=`width:19px;height:19px;border-radius:var(--r-sm);flex:none;display:flex;align-items:center;justify-content:center;border:2px solid ${sessMarcarEdital?'var(--accentSolid)':'var(--border)'};background:${sessMarcarEdital?'var(--accentSolid)':'transparent'};color:var(--onAccent);cursor:pointer;padding:0;`;
     const _he0=this.state.histEdit||{};
     const heDiscCustom=!!_he0.discCustom;
     const heDiscOpts=[...new Set([...discListReg, ...((!heDiscCustom && _he0.disc && !discListReg.includes(_he0.disc))?[_he0.disc]:[])])].map(v=>({v, sel:!heDiscCustom && v===_he0.disc}));
@@ -17390,7 +17493,7 @@ class Component extends DCLogic {
       return {disc:String(d.disc||'').replace('Direito ',''), liqN:liq, liqPct:liq+'%', color:liq>=70?'var(--ok)':liq>=55?'var(--warn)':'var(--danger)'}; })
       .sort((a,b)=>a.liqN-b.liqN).slice(0,3);
     const relAtencao=[]; if(revOverdue.length) relAtencao.push('Há '+revOverdue.length+' revisão(ões) vencida(s) — zere antes de avançar para conteúdo novo.'); if(_relWeak[0]) relAtencao.push('Disciplina mais frágil: '+_relWeak[0].disc+' ('+_relWeak[0].liqPct+' líquido) — priorize questões comentadas e revisão.'); if(_relBruto && _relBruto<70) relAtencao.push('Acerto bruto no período em '+_relBruto+'% (abaixo de 70%) — reforce teoria e questões.'); if(!relAtencao.length) relAtencao.push('Sem pontos críticos no período. Mantenha a constância e o volume de questões.');
-    const relPeriodOpts=[{v:7,label:'7 dias'},{v:30,label:'30 dias'},{v:90,label:'90 dias'}].map(o=>({v:o.v, label:o.label, sel:o.v===_relDays, style:`padding:7px 14px;border-radius:var(--r-md);border:1px solid ${o.v===_relDays?'var(--accent)':'var(--border)'};cursor:pointer;font-family:inherit;font-size:var(--fs-sm);font-weight:600;background:${o.v===_relDays?'var(--accent)':'var(--surface)'};color:${o.v===_relDays?'var(--onAccent)':'var(--text2)'};`}));
+    const relPeriodOpts=[{v:7,label:'7 dias'},{v:30,label:'30 dias'},{v:90,label:'90 dias'}].map(o=>({v:o.v, label:o.label, sel:o.v===_relDays, style:`padding:7px 14px;border-radius:var(--r-md);border:1px solid ${o.v===_relDays?'var(--accentSolid)':'var(--border)'};cursor:pointer;font-family:inherit;font-size:var(--fs-sm);font-weight:600;background:${o.v===_relDays?'var(--accentSolid)':'var(--surface)'};color:${o.v===_relDays?'var(--onAccent)':'var(--text2)'};`}));
 
     // ── faixa de aviso global (todas as contas, não só a administração) ──
     const _avG=this.state.avisoGlobal||{};
@@ -17750,7 +17853,7 @@ class Component extends DCLogic {
     // passos numerados: bolinha em gradiente do accent, não um círculo pálido
     const bancaStepNum='width:26px;height:26px;border-radius:50%;flex:none;display:flex;align-items:center;'
       +'justify-content:center;font-size:var(--fs-xs);font-weight:800;color:var(--onAccent);'
-      +'background:linear-gradient(135deg,var(--accent),var(--accentD));box-shadow:0 6px 14px -7px var(--accentD);';
+      +'background:linear-gradient(135deg,var(--accentSolid),var(--accentSolidD));box-shadow:0 6px 14px -7px var(--accentD);';
 
     // painel: faixa de cabeçalho na cor da banca + 3 cartões com lombada colorida
     // painel: sem faixa colorida (ela virou o hero) — fica a lavagem de cor e a borda
@@ -18057,7 +18160,7 @@ class Component extends DCLogic {
         +(this.state.timerRunning?'color-mix(in srgb,var(--accent) 9%,var(--surface2))':'var(--surface2)')
         +';border-radius:99px;padding:0 14px 0 5px;height:38px;cursor:pointer;font-family:inherit;flex:none;'
         +(this.state.timerRunning?'animation:ctPulsoFoco 2.6s ease-in-out infinite;':''),
-      focoChipIconStyle:'width:28px;height:28px;border-radius:99px;display:flex;align-items:center;justify-content:center;flex:none;background:var(--accent);color:var(--onAccent);',
+      focoChipIconStyle:'width:28px;height:28px;border-radius:99px;display:flex;align-items:center;justify-content:center;flex:none;background:var(--accentSolid);color:var(--onAccent);',
       // ===== D13: a sala de foco =====
       // O fundo nasce da COR DELA — o mesmo accent do app, escurecido, para a sala ser
       // reconhecidamente do Cátedra e não uma tela preta genérica.
@@ -18069,7 +18172,7 @@ class Component extends DCLogic {
       // O anel: 2πr com r=92. No cronômetro livre ele fica cheio (não há alvo a preencher).
       salaAnelTotal:'578.05',
       salaAnelResto:String((578.05*(1-(isPomo?Math.max(0,Math.min(100,phasePct))/100:1))).toFixed(1)),
-      salaBtnPrim:'display:flex;align-items:center;gap:8px;background:var(--accent);color:var(--onAccent);border:none;border-radius:99px;padding:12px 24px;font-size:var(--fs-base);font-weight:700;cursor:pointer;font-family:inherit;',
+      salaBtnPrim:'display:flex;align-items:center;gap:8px;background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:99px;padding:12px 24px;font-size:var(--fs-base);font-weight:700;cursor:pointer;font-family:inherit;',
       salaBtnSec:'display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.07);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.16);border-radius:99px;padding:12px 20px;font-size:var(--fs-base);font-weight:500;cursor:pointer;font-family:inherit;',
       focoBtnPlay:(this.state.timerRunning?'❚❚ Pausar':((this.state.timerSeconds||this.state.studiedSeconds)?'▶ Retomar':'▶ Iniciar')),
       focoItemStyle:'display:flex;align-items:center;gap:10px;width:100%;text-align:left;cursor:pointer;background:transparent;border:none;border-radius:var(--r-md);padding:9px 10px;font-family:inherit;font-size:var(--fs-sm);color:var(--ink);',
@@ -18544,7 +18647,7 @@ class Component extends DCLogic {
       ].map(m=>{ const on=this.state.cycleMode===m.mode; const aviso=this._cycleFalta(m.mode); return {...m, aviso, temAviso:!!aviso, onStr:on?'true':'false', recomendado:!!m.recomendado,
         isInteligente:m.mode==='inteligente', isSugestao:m.mode==='sugestao', isEdital:m.mode==='edital', isPesos:m.mode==='pesos', isManual:m.mode==='manual',
         cardStyle:`text-align:left;cursor:pointer;font-family:inherit;border-radius:var(--radius);padding:16px;border:2px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accentSoft)':'var(--surface)'};transition:all .15s;`,
-        iconStyle:`width:32px;height:32px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;font-size:var(--fs-lg);flex:none;background:${on?'var(--accent)':'var(--surface2)'};color:${on?'var(--onAccent)':'var(--text2)'};`,
+        iconStyle:`width:32px;height:32px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;font-size:var(--fs-lg);flex:none;background:${on?'var(--accentSolid)':'var(--surface2)'};color:${on?'var(--onAccent)':'var(--text2)'};`,
         titleColor: on?'var(--accentD)':'var(--ink)' }; }),
       cicloRestam, nextAction, hasNext:!!nextAction, allDone:(!nextAction && cicloTotal>0), cicloVazio:cicloTotal===0, cicloTemBlocos:cicloTotal>0, greeting, dateLabel, weekdayLabel,
       sidebarStreak:String(B.streak), tempoHoje,
@@ -18630,10 +18733,10 @@ class Component extends DCLogic {
       modeloOpen:this.state.modeloOpen, modeloDiscs, modeloResumo, modeloSelLabel, modeloTodasLabel, modeloAplicarLabel,
       modeloChips, modeloMulti, modeloTemOutras, modeloOutrasLabel, toggleModeloOutras:this.toggleModeloOutras,
       modeloSemArea, modeloAvisoArea, modeloTemModelo:!modeloVazio, modeloNomeAtual, modeloSubAtual, setModelo:this.setModelo,
-      modeloBtnLabel:(this.state.modeloOpen?'Fechar':'Ver modelo'), modeloBtnBg:(this.state.modeloOpen?'var(--surface2)':'var(--accent)'), modeloBtnFg:(this.state.modeloOpen?'var(--text2)':'var(--onAccent)'),
+      modeloBtnLabel:(this.state.modeloOpen?'Fechar':'Ver modelo'), modeloBtnBg:(this.state.modeloOpen?'var(--surface2)':'var(--accentSolid)'), modeloBtnFg:(this.state.modeloOpen?'var(--text2)':'var(--onAccent)'),
       toggleModelo:this.toggleModelo, toggleModeloDisc:this.toggleModeloDisc, modeloTodas:this.modeloTodas, aplicarModelo:this.aplicarModelo,
-      cadModeNovaStyle:`flex:1;padding:9px;border:none;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);font-weight:600;border-radius:var(--r-md);background:${this.state.cad.mode==='nova'?'var(--accent)':'transparent'};color:${this.state.cad.mode==='nova'?'var(--onAccent)':'var(--text2)'};`,
-      cadModeExistStyle:`flex:1;padding:9px;border:none;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);font-weight:600;border-radius:var(--r-md);background:${this.state.cad.mode==='existente'?'var(--accent)':'transparent'};color:${this.state.cad.mode==='existente'?'var(--onAccent)':'var(--text2)'};`,
+      cadModeNovaStyle:`flex:1;padding:9px;border:none;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);font-weight:600;border-radius:var(--r-md);background:${this.state.cad.mode==='nova'?'var(--accentSolid)':'transparent'};color:${this.state.cad.mode==='nova'?'var(--onAccent)':'var(--text2)'};`,
+      cadModeExistStyle:`flex:1;padding:9px;border:none;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);font-weight:600;border-radius:var(--r-md);background:${this.state.cad.mode==='existente'?'var(--accentSolid)':'transparent'};color:${this.state.cad.mode==='existente'?'var(--onAccent)':'var(--text2)'};`,
       cadColors:['#2563eb','#a855f7','#06b6d4','#6366f1','#dc2626','#84cc16','#0d9488','var(--warn)'].map(c=>({c, sel:c===this.state.cad.cor, ring:c===this.state.cad.cor?'0 0 0 2px var(--surface),0 0 0 4px '+c:'none'})),
       cadDiscOpts: this.state.edital.map(d=>d.disc),
       cadDiscSelVal: (()=>{ const names=this.state.edital.map(d=>d.disc); const s=this.state.cad.discSel;
@@ -18871,7 +18974,7 @@ class Component extends DCLogic {
       narrarMf:this.narrarMf, mfTtsBusy:this.state.mfTtsBusy,
       mfTtsLabel:(this.state.mfTtsBusy?'Gerando a voz…':'Ouvir a narração'),
       mfTtsHint:(this.state.mfTtsBusy?'a primeira vez leva alguns segundos':'voz do Google · gerada na hora'),
-      mfTtsBtnStyle:'display:inline-flex;align-items:center;gap:7px;background:'+(this.state.mfTtsBusy?'var(--surface2)':'var(--accent)')+';color:'+(this.state.mfTtsBusy?'var(--text3)':'var(--onAccent)')+';border:none;border-radius:var(--r-md);padding:9px 15px;font-size:var(--fs-base);font-weight:600;cursor:'+(this.state.mfTtsBusy?'default':'pointer')+';font-family:inherit;',
+      mfTtsBtnStyle:'display:inline-flex;align-items:center;gap:7px;background:'+(this.state.mfTtsBusy?'var(--surface2)':'var(--accentSolid)')+';color:'+(this.state.mfTtsBusy?'var(--text3)':'var(--onAccent)')+';border:none;border-radius:var(--r-md);padding:9px 15px;font-size:var(--fs-base);font-weight:600;cursor:'+(this.state.mfTtsBusy?'default':'pointer')+';font-family:inherit;',
       isFmtTexto:_mf==='texto', isFmtAudio:_mf==='audio', isFmtVideo:_mf==='video', isFmtMapa:_mf==='mapa', isFmtCards:_mf==='cards',
       fmtTextoShow, fmtAudioShow, fmtVideoShow, fmtMapaShow, fmtCardsShow,
       mfHasGen, mfNoGen, mfBusyNow, mfHasMaterial, mfGenLabel, mfFmtLabel, multiFmtKey, mfGenBtnStyle, genMulti:this.genMulti,

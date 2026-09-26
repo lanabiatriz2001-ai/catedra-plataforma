@@ -26,9 +26,15 @@
   // "densidade compacta" paravam na borda do iframe.
   var V = ['--bg', '--surface', '--surface2', '--border', '--ink', '--text', '--text2', '--text3',
            '--accent', '--accentD', '--accentSoft', '--accentRing', '--onAccent',
+           // o fundo que carrega texto --onAccent (≥ 4,5:1 no pior ponto, calculado no host);
+           // o --accent segue como identidade (texto, anel, borda, barra)
+           '--accentSolid', '--accentSolidD',
            // o par da pílula de voltar (LEGIS/JURIS): fundo e texto calculados no host por contraste
            '--accentFill', '--onAccentFill',
-           '--ok', '--warn', '--danger', '--radius', '--r-sm', '--r-md',
+           '--ok', '--warn', '--danger',
+           // o texto sobre as cores de situação, calculado no host (branco ou a cor escurecida)
+           '--onOk', '--onWarn', '--onDanger',
+           '--radius', '--r-sm', '--r-md',
            '--display', '--body', '--mono', '--heroGrad',
            '--fs-3xs', '--fs-2xs', '--fs-xs', '--fs-sm', '--fs-base', '--fs-md',
            '--fs-lg', '--fs-xl', '--fs-2xl', '--control-h',
