@@ -5,7 +5,12 @@
    ok=false e status=0 (file:// não tem código HTTP), e o runtime descartava a resposta — todos
    os menus com <sc-for> ficavam com uma linha em branco e "Outra…" no iPad.
    Aqui o fetch da própria página é devolvido como o WKWebView devolve (status 0, corpo
-   inteiro) e o menu de disciplina tem de listar o edital. */
+   inteiro) e o menu de disciplina tem de listar o edital.
+   Por que simulado em http e não em file:// de verdade (25/09/2026): o WebKit do Playwright
+   RECUSA o fetch de file:// ("Load failed … due to access control checks"), e o Chromium não
+   aceita o esquema file no fetch. Só o app nativo liga allowFileAccessFromFileURLs
+   (ios/Sources/main.swift), que é o que faz a resposta chegar com status 0. A régua estática
+   do trecho no support.js fica em tests/support-correcoes-locais.mjs (SUP1). */
 export async function testarTemplateFileUrl(browser, base, ok, opcoes = {}) {
   const R = '[' + (opcoes.motor || '?') + '] ';
   const ctx = await browser.newContext();

@@ -58,6 +58,7 @@ import { testarPdfjsLocal } from './pdfjs-local.mjs';
 import { testarVarreduraRedeExterna, testarSupportSemRede, testarHarnessSemRede, testarRedeExternaExecucao, resumoRedeSuite } from './rede-externa.mjs';
 import { testarAssinaturaLimpa } from './assinatura-limpa.mjs';
 import { testarXcodeCloud } from './xcode-cloud.mjs';
+import { testarSupportCorrecoesLocais } from './support-correcoes-locais.mjs';
 import { testarDesignNativo } from './design-nativo.mjs';
 import { montar as montarEnam, parseProva as parseProvaEnam, parseGabarito as parseGabaritoEnam, carregarAreas as areasEnam, EDICOES as EDICOES_ENAM } from '../scripts/build-questoes-enam.mjs';
 
@@ -4666,6 +4667,16 @@ catch (e) {
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
+/* ============= CORREÇÕES LOCAIS DO support.js =============
+   O dc-runtime que gerava o support.js não está no repositório: o arquivo é mantido à mão, e
+   regerá-lo apagaria em silêncio a releitura em file:// (#123, menus vazios no iPad), os
+   eventos de arraste e o destino do __dc_booted (#136). Roteiro em
+   tests/support-correcoes-locais.mjs (estático; roda também na CI). */
+try { await testarSupportCorrecoesLocais(ok); }
+catch (e) {
+  ok(false, 'SUP o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
 /* ============= BASE VISUAL NATIVA (LEGIS/JURIS) =============
    Catraca de hex/tamanho fixo/emoji fora de ios/vendor/design e, no Mac, os testes Swift
    da base. Roteiro em tests/design-nativo.mjs (a catraca roda também na CI). */
