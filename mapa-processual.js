@@ -10,10 +10,13 @@
    Não conhece rito nenhum: tudo o que sabe de direito chega pelo grafo e pelo
    acervo de peças. Cadastrar um rito novo é mexer só em fluxos.js.
 
-   Expõe: window.CTMapa.montar(elemento, opcoes) → { abrir, ir, destruir }
+   Expõe: window.CTMapa.montar(elemento, opcoes) → { ir, abrirPeca, abrirPainel, aberto, destruir }
      opcoes.grafo        grafo do CTMapaGrafo
      opcoes.pecas        window.CT_PECAS
-     opcoes.aoAcervo     (alvo, termo, de) → leva ao LEGIS/JURIS
+     opcoes.aoAcervo     (alvo, termo, de) → leva ao LEGIS/JURIS. Das referências do
+                         PAINEL, `de` leva mapa:{tipo:'no'|'peca', id} (o painel aberto) e
+                         nunca `peca` solto — a volta reabre este painel, não o roteiro
+                         lateral. Do chip do CARTÃO vai só {rito}: volta ao mapa sem painel.
      opcoes.aoRoteiro    (nome) → abre o roteiro completo da peça
    ========================================================================== */
 (function () {
@@ -249,11 +252,29 @@ function montar(raiz, op){
   var G = op.grafo, PECAS = op.pecas || {}, CARTAO = window.CTMapaGrafo.CARTAO;
   if (!G || !G.nos.length) return null;
 
+  /* K3: id que chega de fora (localStorage, ?mapa=, mensagem do host) só vale se for chave
+     PRÓPRIA do grafo/acervo. `G.porId['constructor']` é a função herdada de Object — truthy —,
+     e um {"ativo":"constructor"} gravado quebrava o mapa na abertura. */
+  function proprio(o, id){
+    id = String(id == null ? '' : id);
+    return !!o && id !== '' && !(id in Object.prototype) && Object.prototype.hasOwnProperty.call(o, id);
+  }
+  function noDe(id){ return proprio(G.porId, id) ? G.porId[String(id)] : null; }
+  function pecaDe(nome){ return proprio(PECAS, nome) ? PECAS[String(nome)] : null; }
+  /* as escolhas de rota guardadas passam pela mesma régua: valor que não é etapa deste rito cai */
+  function escolhasValidas(e){
+    var r = {};
+    if (!e || typeof e !== 'object') return r;
+    Object.keys(e).forEach(function (k){ if (noDe(k) && noDe(e[k])) r[k] = e[k]; });
+    return r;
+  }
+
   /* -------- estado, com o que ficou guardado do rito -------- */
-  var tudo = lerTudo(), guardado = tudo[G.rito] || {};
+  var tudo = lerTudo(), guardado = proprio(tudo, G.rito) ? tudo[G.rito] : null;
+  if (!guardado || typeof guardado !== 'object') guardado = {};
   var st = {
-    ativo:     G.porId[guardado.ativo] ? guardado.ativo : G.tronco[0],
-    escolhas:  guardado.escolhas || {},
+    ativo:     noDe(guardado.ativo) ? String(guardado.ativo) : G.tronco[0],
+    escolhas:  escolhasValidas(guardado.escolhas),
     recolhidas:guardado.recolhidas || {},
     favoritos: guardado.favoritos || {},
     notas:     guardado.notas || {},
@@ -556,8 +577,8 @@ function montar(raiz, op){
     avisar('Rito inteiro enquadrado: ' + vis.length + ' etapas visíveis.');
   }
   function centrar(id, z){
-    var n = G.porId[id || st.ativo]; if (!n) return;
-    if (recolhido(n) && n.origem) n = G.porId[n.origem];
+    var n = noDe(id || st.ativo); if (!n) return;
+    if (recolhido(n) && n.origem) n = noDe(n.origem) || n;
     if (!pronto()) { espera = { id: n.id, z: z }; return; }
     st.z = Math.min(1.25, Math.max(.4, z || Math.max(st.z, .78)));
     st.x = elPalco.clientWidth / 2 - (n.x + CARTAO.l / 2) * st.z;
@@ -565,7 +586,7 @@ function montar(raiz, op){
     aplicar(); guardar();
   }
   function ativar(id, centralizar){
-    if (!G.porId[id]) return;
+    if (!noDe(id)) return;
     st.ativo = id; repintar();
     if (centralizar !== false) centrar(id);
     avisar(G.porId[id].titulo + ' — ' + estadoDe(G.porId[id]) + '.');
@@ -650,7 +671,7 @@ function montar(raiz, op){
 
   /* painel da ETAPA */
   function abrirNo(id){
-    var n = G.porId[id]; if (!n) return;
+    var n = noDe(id); if (!n) return;
     st.aberto = { tipo: 'no', id: id };
     var corpo = '';
     corpo += sec('Situação', '<p><b>' + esc(ROTULO[n.tipo] || 'Ato') + ' ' + (n.ordem + 1)
@@ -698,9 +719,9 @@ function montar(raiz, op){
 
   /* painel da PEÇA */
   function abrirPeca(nome, deNo){
-    var p = PECAS[nome];
+    var p = pecaDe(nome);
     st.aberto = { tipo: 'peca', id: nome };
-    var no = deNo && G.porId[deNo];
+    var no = deNo && noDe(deNo);
     var corpo = '';
     if (!p) {
       corpo = sec('Roteiro', '<p class="mp-vazio">O roteiro desta peça ainda não foi escrito. '
@@ -752,12 +773,19 @@ function montar(raiz, op){
     return t + '\n' + '='.repeat(t.length) + '\n\n' + painel.querySelector('.mp-pcorpo').innerText;
   }
 
+  /* a ida ao acervo a partir do PAINEL: o ponto de volta é o próprio painel (etapa ou peça
+     aberta), por id estável — 'p3', 'p3s1' saem da posição no rito (mapa-grafo.js) e a peça
+     pelo nome. Sem `peca` solto: com ele a volta abriria o roteiro lateral por cima. */
+  function pontoDoPainel(n, nomePeca){
+    var a = nomePeca ? { tipo: 'peca', id: String(nomePeca) } : (n ? { tipo: 'no', id: String(n.id) } : null);
+    return a ? { rito: G.rito, mapa: a } : { rito: G.rito };
+  }
   function ligarPainel(n, nomePeca){
     if (!painel) return;
     painel.querySelectorAll('[data-legis]').forEach(function (b){
-      b.onclick = function (){ if (op.aoAcervo) op.aoAcervo('legis', b.dataset.legis, { rito: G.rito, peca: nomePeca || null }); }; });
+      b.onclick = function (){ if (op.aoAcervo) op.aoAcervo('legis', b.dataset.legis, pontoDoPainel(n, nomePeca)); }; });
     painel.querySelectorAll('[data-juris]').forEach(function (b){
-      b.onclick = function (){ if (op.aoAcervo) op.aoAcervo('juris', b.dataset.juris, { rito: G.rito, peca: nomePeca || null }); }; });
+      b.onclick = function (){ if (op.aoAcervo) op.aoAcervo('juris', b.dataset.juris, pontoDoPainel(n, nomePeca)); }; });
     painel.querySelectorAll('[data-peca]').forEach(function (b){
       b.onclick = function (){ abrirPeca(b.dataset.peca, n && n.id); }; });
     painel.querySelectorAll('[data-escolhe]').forEach(function (b){
@@ -946,11 +974,34 @@ function montar(raiz, op){
   if (st.vista && isFinite(st.vista.x)) { st.x = st.vista.x; st.y = st.vista.y; st.z = st.vista.z || .72; aplicar(); }
   else ajustar();
 
+  /* reabre um painel pelo ponto que a ida levou (a volta do acervo). A peça sem a etapa de
+     origem pega a primeira etapa do rito que a pede — de preferência na rota escolhida —
+     para o prazo e o "etapa N" do cabeçalho continuarem certos. Não mexe no enquadramento
+     nem nas ramificações recolhidas: a vista é a que ela deixou. Devolve false se o ponto
+     não existe mais neste rito (fluxos.js mudou), e aí o mapa fica como está. */
+  function abrirPainel(tipo, id){
+    id = String(id == null ? '' : id);
+    if (tipo === 'no') {
+      if (!noDe(id)) return false;
+      st.ativo = id; repintar(); abrirNo(id); return true;
+    }
+    if (tipo === 'peca') {
+      var comPeca = G.nos.filter(function (n){ return n.peca === id; });
+      if (!comPeca.length && !pecaDe(id)) return false;
+      var no = comPeca.filter(function (n){ return naRota[n.id]; })[0] || comPeca[0] || null;
+      if (no) { st.ativo = no.id; repintar(); }
+      abrirPeca(id, no && no.id); return true;
+    }
+    return false;
+  }
+
   return {
     ir: function (id){ ativar(id); },
     ativo: function (){ return st.ativo; },
     ajustar: ajustar,
     abrirPeca: abrirPeca,
+    abrirPainel: abrirPainel,
+    aberto: function (){ return st.aberto ? { tipo: st.aberto.tipo, id: st.aberto.id } : null; },
     destruir: function (){ fechar();
       window.removeEventListener('resize', aoRedimensionar);
       document.removeEventListener('keydown', aoEscape);

@@ -35,6 +35,7 @@ import { testarSelectHost } from './select-host.mjs';
 import { testarJurisQuadro } from './juris-quadro.mjs';
 import { testarPrioridadeErrosResolvidos } from './prioridade-erros-resolvidos.mjs';
 import { testarRevisaoFonte } from './revisao-fonte.mjs';
+import { testarVoltaOrigem } from './volta-origem.mjs';
 import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
 import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
@@ -147,6 +148,17 @@ for (const [base, origem, arquivo] of ORIGENS) {
     try { await testarPostMessageSeguranca(page, base, ok, { motor, origem, arquivo }); }
     catch (e) {
       ok(false, 'PONTE [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
+        + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+    }
+  }
+  // Volta à origem: a pílula do LEGIS/JURIS e o botão nativo (shim extraído do Swift) levam ao
+  // ponto exato. Em http, todas as origens; em file:// (o caminho dos apps), a ida-e-volta do
+  // rito e o shim nativo, falando com os satélites pelo Frame (origem opaca). O bundle fica de
+  // fora: é uma cópia gerada que pode estar velha em relação ao código sob teste.
+  if (origem !== 'bundle') {
+    try { await testarVoltaOrigem(page, base, ok, { motor, origem, arquivo }); }
+    catch (e) {
+      ok(false, 'VOLTA [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
         + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
     }
   }
