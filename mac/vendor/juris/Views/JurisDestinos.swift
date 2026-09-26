@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// A que destino cada página do JURIS pertence (entrega 4) — a linha do destino acende nas
-/// páginas-filhas. nil = "Meu material" (anotações, mapas mentais, DOD: o que é seu ou de apoio).
+/// páginas-filhas. nil = "Meu material" (anotações e precedentes: o que é seu ou de apoio).
 enum JurisDestinos {
     static func pai(_ s: Selecao) -> Destino? {
         if ehMeuMaterial(s) { return nil }
@@ -15,7 +15,7 @@ enum JurisDestinos {
     }
     static func ehMeuMaterial(_ s: Selecao) -> Bool {
         switch s {
-        case .meuMaterial, .anotacoes, .mapas: return true
+        case .meuMaterial, .anotacoes: return true
         case .central(let c): return c == .outros
         default: return false
         }
@@ -89,8 +89,7 @@ struct JurisDestinoHub: View {
             DestinoHub(titulo: "Meu material", subtitulo: "O que é seu ou de apoio — fora do texto dos tribunais", secoes: [
                 SecaoHub(titulo: "", itens: [
                     item("anotacoes", "Minhas anotações", nil, "square.and.pencil", .anotacoes),
-                    item("mapas", "Mapas mentais", nil, "brain.head.profile", .mapas),
-                    item("dod", "DOD & Precedentes", "Comentários de terceiros", "text.book.closed", .central(.outros), cor: CorTribunal.dod),
+                    item("dod", "Precedentes", "Precedentes obrigatórios e demais fontes", "text.book.closed", .central(.outros), cor: CorTribunal.dod),
                 ]),
             ])
         }

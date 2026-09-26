@@ -105,6 +105,7 @@ async function roteiro(page, base, ok, R) {
       .find(b => /^Começar/.test((b.textContent || '').trim()) && !b.disabled);
     if (iniciar) iniciar.click();
     await w(700);
+    const antes = app.state.revSession ? JSON.parse(JSON.stringify(app.state.revSession)) : null;
     const dlg = document.querySelector('[role="dialog"][aria-label="Sessão de revisão"]');
     const botao = dlg && [...dlg.querySelectorAll('button')]
       .find(b => (b.textContent || '').trim() === 'Abrir no JURIS');
@@ -113,9 +114,16 @@ async function roteiro(page, base, ok, R) {
     if (botao) botao.click();
     await w(900);
     const msg = (window.__ctMensagensRevisao || []).find(m => m.alvo === 'juris');
+    const de = app.state.acervoDe;
     return { iniciou: !!iniciar && !!dlg, apareceu, altura, msgAlvo: msg && msg.alvo,
       msgTermo: msg && msg.termo, view: app.state.view, busca: app.state.acervoBusca,
-      sessaoFechou: app.state.revSession === null };
+      sessaoFechou: app.state.revSession === null
+        && !document.querySelector('[role="dialog"][aria-label="Sessão de revisão"]'),
+      // desde a volta à origem (24/09/2026) o modal fecha, mas a sessão não se perde: o
+      // retrato dela (fila, item, revelado) viaja na origem que a pílula devolve
+      retrato: !!antes && !!de && de.view === 'revisoes' && !!de.rev && de.rev.idx === antes.idx
+        && JSON.stringify(de.rev.queue) === JSON.stringify(antes.queue),
+      antes };
   });
   ok(guiada.iniciou, R + 'sessão guiada abre com a revisão jurisprudencial pendente');
   ok(guiada.apareceu, R + 'sessão guiada oferece “Abrir no JURIS” para revisão com tema');
@@ -124,7 +132,23 @@ async function roteiro(page, base, ok, R) {
     R + 'clique da sessão emite ctAbrirAcervo para JURIS com a referência exata');
   ok(guiada.view === 'juris' && guiada.busca === 'Tema 698',
     R + 'ponte leva à view JURIS e preenche acervoBusca com a referência exata');
-  ok(guiada.sessaoFechou, R + 'abrir o material fecha a sessão guiada que cobriria o acervo');
+  ok(guiada.sessaoFechou && guiada.retrato,
+    R + 'abrir o material fecha o modal da sessão guiada (que cobriria o acervo) e guarda o retrato dela na origem da volta');
+
+  // …e a pílula do JURIS devolve à sessão, no mesmo item (toque de verdade, dentro do iframe)
+  let tocou = false;
+  try { await page.frameLocator('iframe[data-ct-view="juris"]').locator('#ct-volta').click({ timeout: 20000 }); tocou = true; } catch (_) {}
+  const volta = await page.evaluate(async () => {
+    const w = ms => new Promise(resolve => setTimeout(resolve, ms)), app = window.__catedraApp;
+    for (let i = 0; i < 100 && !(app.state.view === 'revisoes' && app.state.revSession); i++) await w(50);
+    return { view: app.state.view, sessao: app.state.revSession,
+      modal: !!document.querySelector('[role="dialog"][aria-label="Sessão de revisão"]') };
+  });
+  const s = volta.sessao || {}, a = guiada.antes || {};
+  ok(tocou && volta.view === 'revisoes' && volta.modal && s.idx === a.idx
+    && JSON.stringify(s.queue) === JSON.stringify(a.queue) && (s.queue || [])[s.idx] === criado.jurisId,
+    R + 'a pílula do JURIS volta a Revisões com a sessão guiada reaberta no mesmo item');
+  await page.evaluate(() => window.__catedraApp.closeRevSession());
 
   const controles = await page.evaluate(async () => {
     const w = ms => new Promise(resolve => setTimeout(resolve, ms)), app = window.__catedraApp;

@@ -87,8 +87,8 @@ final class LibraryStore {
     var alinhamentos: [String: String] = [:] { didSet { persist() } }     // alinhamento do enunciado por verbete
     var textosEditados: [String: String] = [:] { didSet { persist() } }   // enunciado editado pelo usuário
     var srs: [String: JurisSRSCard] = [:] { didSet { persist() } }             // baralho de revisão espaçada (id do verbete)
-    var mapasFeitos: [String] = [] { didSet { persist() } }               // verbetes com mapa mental feito (galeria)
-    private var mapasSeeded = false                                       // seed único da galeria (recuperação)
+    /// Campos da galeria de mapas (saiu em 25/09/2026): lidos do disco só para voltarem a ele.
+    private var legadoGaleria = JurisEstadoPersistido.LegadoGaleria()
     var tribunaisCustom: [TribunalCustom] = [] { didSet { persist() } }   // centrais de tribunal cadastradas
     var readingChecklist: [ReadingChecklistItem] = [] { didSet { persist() } }  // checklist de leitura PRÓPRIA do JURIS (não compartilhada com o LEGIS)
     private(set) var recents: [String] = []
@@ -243,7 +243,7 @@ final class LibraryStore {
         self.isLoading = false
     }
 
-    /// Notas de estudo ORIGINAIS (não oficiais) — esquema/mapa mental a partir do texto público.
+    /// Notas de estudo ORIGINAIS (não oficiais) — esquema a partir do texto público.
     private(set) var notasApp: [String: NotaEstudo] = [:]
     func notaApp(for id: String) -> NotaEstudo? { notasApp[id] }
     /// Lê notas.json (2,5 MB) — chamado fora da main, dentro do `load`.
@@ -457,8 +457,6 @@ final class LibraryStore {
         case .colecao(let id):
             guard let c = colecoes.first(where: { $0.id == id }) else { return [] }
             return c.ids.compactMap { byId[$0] }
-        case .mapas:
-            return mapasFeitos.compactMap { byId[$0] }
         case .central(let c):
             return entries.filter { $0.fonteKind.central == c }
         case .tribunal, .ramosHub, .ramoDetalhe, .destino, .meuMaterial:
@@ -930,7 +928,10 @@ final class LibraryStore {
         f.dateFormat = "yyyy-MM-dd"
         return f.string(from: d)
     }
-    var totalLidos: Int { lidos.count }
+    /// Contagens só do que está no acervo: a chave antiga de um verbete fundido (cópia de segurança)
+    /// e o id retirado (órfão) ficam no disco, mas não contam duas vezes nem contam o que não existe.
+    var totalLidos: Int { lidos.reduce(0) { $0 + (byId[$1] != nil ? 1 : 0) } }
+    var totalFavoritos: Int { favorites.reduce(0) { $0 + (byId[$1] != nil ? 1 : 0) } }
     var lidosHoje: Int { leiturasPorDia[Self.chaveDia(Date())] ?? 0 }
     /// Dias consecutivos com pelo menos uma leitura, terminando hoje (ou ontem, se hoje ainda vazio).
     var streak: Int {
@@ -1094,17 +1095,6 @@ final class LibraryStore {
 
     var recentEntries: [JurisEntry] { recents.compactMap { byId[$0] } }
 
-    /// Registra um mapa mental feito (abre a galeria "Mapas mentais").
-    func registrarMapa(_ id: String) {
-        mapasFeitos.removeAll { $0 == id }
-        mapasFeitos.insert(id, at: 0)
-        if mapasFeitos.count > 500 { mapasFeitos = Array(mapasFeitos.prefix(500)) }
-    }
-
-    func removerMapa(_ id: String) { mapasFeitos.removeAll { $0 == id } }
-
-    var mapasEntries: [JurisEntry] { mapasFeitos.compactMap { byId[$0] } }
-
     /// Maior número conhecido de informativo por tribunal (para a atualização online).
     /// Usa um teto plausível por tribunal para ignorar números contaminados
     /// (ex.: verbete marcado STJ mas com nº de Informativo do STF).
@@ -1125,78 +1115,18 @@ final class LibraryStore {
 
     // MARK: - Persistência
 
-    private struct Persisted: Codable {
-        var favorites: [String]
-        var recents: [String]
-        var importantes: [String]?
-        var annotations: [String: String]?     // legado (texto simples)
-        var richNotes: [String: Data]?
-        var marks: [String: [TextMark]]?
-        var colecoes: [Colecao]?
-        var lidos: [String]?
-        var dominados: [String]?
-        var afirmacoesFalsas: [String: String]?
-        var metaDiaria: Int?
-        var leiturasPorDia: [String: Int]?
-        var coresFavoritas: [String]?
-        var alinhamentos: [String: String]?
-        var textosEditados: [String: String]?
-        var srs: [String: JurisSRSCard]?
-        var mapasFeitos: [String]?
-        var mapasSeeded: Bool?
-        var tribunaisCustom: [TribunalCustom]?
-        var readingChecklist: [ReadingChecklistItem]?
-    }
+    /// O formato do disco vive em JurisEstadoPersistido.swift (compilável sozinho no teste).
+    private typealias Persisted = JurisEstadoPersistido
 
-    /// Mantém acessível o estudo feito em registros editoriais retirados da base.
-    /// A chave antiga permanece no estado como cópia de segurança; o destino só
-    /// recebe um valor quando ainda não tinha conteúdo próprio.
-    private static func migrarIDsRetirados(_ s: inout Persisted) {
-        let destinos = [
-            "repgeral-repetitivo-STJ-x640": "repgeral-repetitivo-STJ-518",
-            "SELTJGO-0438": "SELTJGO-0433",
-            "repgeral-repercussao_geral-STF-x1198": "repgeral-repetitivo-STJ-931",
-            "repgeral-repetitivo-STF-x1319": "repgeral-repetitivo-STJ-1196",
-            "repgeral-repercussao_geral-STJ-x257": "repgeral-repercussao_geral-STF-476",
-            "repgeral-repercussao_geral-STF-x1586": "repgeral-repercussao_geral-STF-825",
-            "repgeral-repercussao_geral-STF-x1590": "repgeral-repercussao_geral-STF-21",
-            "INF2022-0470": "INF2021-0815",
-        ]
-
-        func soma(_ valores: inout [String], de antigo: String, para novo: String) {
-            if valores.contains(antigo), !valores.contains(novo) { valores.append(novo) }
-        }
-        func copia<T>(_ valores: inout [String: T]?, de antigo: String, para novo: String) {
-            guard let valor = valores?[antigo], valores?[novo] == nil else { return }
-            valores?[novo] = valor
-        }
-
-        for (antigo, novo) in destinos {
-            soma(&s.favorites, de: antigo, para: novo)
-            soma(&s.recents, de: antigo, para: novo)
-            if s.importantes != nil { soma(&s.importantes!, de: antigo, para: novo) }
-            if s.lidos != nil { soma(&s.lidos!, de: antigo, para: novo) }
-            if s.dominados != nil { soma(&s.dominados!, de: antigo, para: novo) }
-            if s.mapasFeitos != nil { soma(&s.mapasFeitos!, de: antigo, para: novo) }
-            copia(&s.annotations, de: antigo, para: novo)
-            copia(&s.richNotes, de: antigo, para: novo)
-            copia(&s.marks, de: antigo, para: novo)
-            copia(&s.afirmacoesFalsas, de: antigo, para: novo)
-            copia(&s.alinhamentos, de: antigo, para: novo)
-            copia(&s.textosEditados, de: antigo, para: novo)
-            copia(&s.srs, de: antigo, para: novo)
-            if s.colecoes != nil {
-                for i in s.colecoes!.indices where s.colecoes![i].ids.contains(antigo) {
-                    if !s.colecoes![i].ids.contains(novo) { s.colecoes![i].ids.append(novo) }
-                }
-            }
-        }
-    }
+    /// Ids antigos cujo estado já foi unido ao canônico (JurisMigracaoIDs, em JurisEstadoPersistido.swift):
+    /// vai e volta do disco com o resto do estado.
+    private var idsMigrados: [String]?
 
     private func loadState() {
         guard let data = try? Data(contentsOf: stateURL),
               var s = try? JSONDecoder().decode(Persisted.self, from: data) else { return }
-        Self.migrarIDsRetirados(&s)
+        JurisMigracaoIDs.migrar(&s)   // fusões e renomeações do acervo: une o estado no id que ficou
+        idsMigrados = s.idsMigrados
         favorites = Set(s.favorites)
         recents = s.recents
         marcadosImportantes = Set(s.importantes ?? [])
@@ -1212,35 +1142,24 @@ final class LibraryStore {
         alinhamentos = s.alinhamentos ?? [:]
         textosEditados = s.textosEditados ?? [:]
         srs = s.srs ?? [:]
-        mapasFeitos = s.mapasFeitos ?? []
-        mapasSeeded = s.mapasSeeded ?? false
+        legadoGaleria = Persisted.LegadoGaleria(de: s)
         tribunaisCustom = s.tribunaisCustom ?? []
         readingChecklist = s.readingChecklist ?? []
-        // RECUPERAÇÃO (uma vez): os mapas mentais nunca foram registrados como
-        // objetos — mas são derivados do verbete, então regeneram idênticos.
-        // Semeia a galeria com a atividade (recentes + lidos), de onde os mapas
-        // feitos vieram; daí em diante todo mapa aberto é registrado.
-        if !mapasSeeded && mapasFeitos.isEmpty {
-            var vistos = Set<String>()
-            mapasFeitos = (s.recents + (s.lidos ?? [])).filter { vistos.insert($0).inserted }
-            mapasSeeded = true
-        }
         // migra notas antigas em texto simples -> RTF
-        if let legado = s.annotations {
-            for (id, texto) in legado where richNotes[id] == nil {
-                let t = texto.trimmingCharacters(in: .whitespacesAndNewlines)
-                if t.isEmpty { continue }
-                let attr = NSAttributedString(string: texto,
-                    attributes: [.font: NSFont.systemFont(ofSize: 14),
-                                 .foregroundColor: NSColor.label])   // textColor é do AppKit
-                let opcRTF: [NSAttributedString.DocumentAttributeKey: Any] =
-                    [.documentType: NSAttributedString.DocumentType.rtf]
-                if let rtf = try? attr.data(from: NSRange(location: 0, length: attr.length),
-                                            documentAttributes: opcRTF) {
-                    richNotes[id] = rtf
-                }
-            }
+        for (id, texto) in (s.annotations ?? [:]) where richNotes[id] == nil {
+            if let rtf = Self.rtfDeNotaLegada(texto) { richNotes[id] = rtf }
         }
+    }
+
+    /// Nota legada em texto simples (`annotations`) como nota rica (RTF); nil se vazia.
+    private static func rtfDeNotaLegada(_ texto: String) -> Data? {
+        guard !texto.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+        let attr = NSAttributedString(string: texto,
+            attributes: [.font: NSFont.systemFont(ofSize: 14),
+                         .foregroundColor: NSColor.label])   // textColor é do AppKit
+        let opcRTF: [NSAttributedString.DocumentAttributeKey: Any] =
+            [.documentType: NSAttributedString.DocumentType.rtf]
+        return try? attr.data(from: NSRange(location: 0, length: attr.length), documentAttributes: opcRTF)
     }
 
     // DEBOUNCE da gravação: cada `didSet` chamava persist() na hora — marcar 20 lidos
@@ -1284,19 +1203,25 @@ final class LibraryStore {
         }
     }
 
-    private func persistAgora() {
-        persistPendente = false
-        let s = Persisted(favorites: Array(favorites), recents: recents,
-                          importantes: Array(marcadosImportantes),
-                          annotations: nil,
+    /// O estado da memória no formato do disco (state.json, iCloud e backup), com o legado da galeria.
+    private func retratoPersistido() -> Persisted {
+        var s = Persisted(favorites: Array(favorites), recents: recents,
+                          importantes: Array(marcadosImportantes), annotations: nil,
                           richNotes: richNotes, marks: marks,
                           colecoes: colecoes, lidos: Array(lidos), dominados: Array(dominados),
                           afirmacoesFalsas: afirmacoesFalsas,
                           metaDiaria: metaDiaria, leiturasPorDia: leiturasPorDia,
                           coresFavoritas: coresFavoritas, alinhamentos: alinhamentos,
                           textosEditados: textosEditados, srs: srs,
-                          mapasFeitos: mapasFeitos, mapasSeeded: mapasSeeded,
-                          tribunaisCustom: tribunaisCustom, readingChecklist: readingChecklist)
+                          tribunaisCustom: tribunaisCustom, readingChecklist: readingChecklist,
+                          idsMigrados: idsMigrados)
+        legadoGaleria.aplicar(em: &s)
+        return s
+    }
+
+    private func persistAgora() {
+        persistPendente = false
+        let s = retratoPersistido()
         guard let data = try? JSONEncoder().encode(s) else { return }
         try? data.write(to: stateURL, options: .atomic)
         syncKVS(s)
@@ -1318,41 +1243,42 @@ final class LibraryStore {
     /// Exporta todos os dados pessoais para um arquivo (backup).
     func exportarBackup() -> Data? {
         flushPersist()
-        let s = Persisted(favorites: Array(favorites), recents: recents,
-                          importantes: Array(marcadosImportantes), annotations: nil,
-                          richNotes: richNotes, marks: marks,
-                          colecoes: colecoes, lidos: Array(lidos), dominados: Array(dominados),
-                          afirmacoesFalsas: afirmacoesFalsas,
-                          metaDiaria: metaDiaria, leiturasPorDia: leiturasPorDia,
-                          coresFavoritas: coresFavoritas, alinhamentos: alinhamentos,
-                          textosEditados: textosEditados, srs: srs,
-                          mapasFeitos: mapasFeitos, mapasSeeded: mapasSeeded,
-                          tribunaisCustom: tribunaisCustom, readingChecklist: readingChecklist)
-        return try? JSONEncoder().encode(s)
+        return try? JSONEncoder().encode(retratoPersistido())
     }
 
-    /// Restaura dados pessoais de um backup (mescla).
+    /// Restaura dados pessoais de um backup (mescla) — regra em JurisEstadoPersistido.mesclarBackup: soma o
+    /// que é conjunto, entra o que falta aqui, e o que o backup traz num id fundido passa ao canônico pela
+    /// regra da união (JurisMigracaoIDs.migrarRestaurado). Backup antigo com id fundido deixava esse estudo
+    /// órfão: a migração da abertura pula o id que este aparelho já marcou em `idsMigrados`.
     func importarBackup(_ data: Data) -> Bool {
-        guard let s = try? JSONDecoder().decode(Persisted.self, from: data) else { return false }
-        favorites.formUnion(s.favorites)
-        marcadosImportantes.formUnion(s.importantes ?? [])
-        lidos.formUnion(s.lidos ?? [])
-        dominados.formUnion(s.dominados ?? [])
-        for (k, v) in (s.richNotes ?? [:]) where richNotes[k] == nil { richNotes[k] = v }
-        for (k, v) in (s.marks ?? [:]) where marks[k] == nil { marks[k] = v }
-        for (k, v) in (s.afirmacoesFalsas ?? [:]) where afirmacoesFalsas[k] == nil { afirmacoesFalsas[k] = v }
-        for (k, v) in (s.leiturasPorDia ?? [:]) { leiturasPorDia[k] = max(leiturasPorDia[k] ?? 0, v) }
-        for (k, v) in (s.alinhamentos ?? [:]) where alinhamentos[k] == nil { alinhamentos[k] = v }
-        for (k, v) in (s.textosEditados ?? [:]) where textosEditados[k] == nil { textosEditados[k] = v }
-        for (k, v) in (s.srs ?? [:]) where srs[k] == nil { srs[k] = v }
-        for hex in (s.coresFavoritas ?? []) { adicionarCorFavorita(hex) }
+        guard var b = try? JSONDecoder().decode(Persisted.self, from: data) else { return false }
+        // backup antigo com nota em texto simples (`annotations`): vira nota rica, como no loadState
+        var ricas = b.richNotes ?? [:]
+        for (id, texto) in (b.annotations ?? [:]) where ricas[id] == nil {
+            if let rtf = Self.rtfDeNotaLegada(texto) { ricas[id] = rtf }
+        }
+        if !ricas.isEmpty { b.richNotes = ricas }
+        var s = retratoPersistido()
+        s.mesclarBackup(b)
+        favorites = Set(s.favorites)
+        recents = s.recents
+        marcadosImportantes = Set(s.importantes ?? [])
+        lidos = Set(s.lidos ?? [])
+        dominados = Set(s.dominados ?? [])
+        richNotes = s.richNotes ?? [:]
+        marks = s.marks ?? [:]
+        afirmacoesFalsas = s.afirmacoesFalsas ?? [:]
+        leiturasPorDia = s.leiturasPorDia ?? [:]
+        alinhamentos = s.alinhamentos ?? [:]
+        textosEditados = s.textosEditados ?? [:]
+        srs = s.srs ?? [:]
         if let m = s.metaDiaria { metaDiaria = m }
-        let existentes = Set(colecoes.map(\.id))
-        colecoes.append(contentsOf: (s.colecoes ?? []).filter { !existentes.contains($0.id) })
-        let tribExistentes = Set(tribunaisCustom.map(\.id))
-        tribunaisCustom.append(contentsOf: (s.tribunaisCustom ?? []).filter { !tribExistentes.contains($0.id) })
-        let checklistExistentes = Set(readingChecklist.map(\.id))
-        readingChecklist.append(contentsOf: (s.readingChecklist ?? []).filter { !checklistExistentes.contains($0.id) })
+        colecoes = s.colecoes ?? []
+        tribunaisCustom = s.tribunaisCustom ?? []
+        readingChecklist = s.readingChecklist ?? []
+        idsMigrados = s.idsMigrados
+        for hex in (b.coresFavoritas ?? []) { adicionarCorFavorita(hex) }
+        persist()   // `recents` não tem didSet: grava também quando só ela mudou
         return true
     }
 }

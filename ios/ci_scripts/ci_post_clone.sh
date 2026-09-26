@@ -10,9 +10,12 @@
 # .xcodeproj (não na raiz do repositório), e só o executa direito com o bit de execução
 # (chmod +x); sem ele, roda com zsh.
 #
-# A rede aqui é do build (Homebrew e o vendor das bibliotecas feito pelo gerador): o app
-# continua sem rede em tempo de execução. Qualquer falha sai com código ≠ 0 e derruba o build
-# com o motivo, em vez de deixar o xcodebuild tropeçar na pasta que falta.
+# A única rede aqui é a do Homebrew, e só se o Node faltar na imagem. React, ReactDOM e
+# supabase-js NÃO são baixados: vêm de vendor/ (versionados no repositório, versões congeladas)
+# e o build-macos.mjs confere o sha256 de cada um contra vendor/manifesto.json — o app do
+# TestFlight leva os mesmos bytes da web publicada. O app continua sem rede em tempo de
+# execução. Qualquer falha sai com código ≠ 0 e derruba o build com o motivo, em vez de deixar
+# o xcodebuild tropeçar na pasta que falta.
 set -eu
 
 RAIZ="${CI_PRIMARY_REPOSITORY_PATH:-$(cd "$(dirname "$0")/../.." && pwd)}"
@@ -24,9 +27,16 @@ if ! command -v node >/dev/null 2>&1; then
 fi
 echo "→ node $(node --version)"
 
-# Mesmo passo e mesmo alvo do ios/build-ipad.sh.
-echo "→ Gerando o bundle web (Catedra.dc.html → mac/build/web)…"
+# As bibliotecas congeladas têm de ter vindo no clone (o build-macos.mjs também confere o
+# hash de cada uma; aqui é só para o motivo aparecer logo, e não no meio do gerador).
 cd "$RAIZ"
+if [ ! -f vendor/manifesto.json ]; then
+  echo "✗ vendor/manifesto.json não veio no clone: as bibliotecas (React, supabase-js) são versionadas lá"
+  exit 1
+fi
+
+# Mesmo passo e mesmo alvo do ios/build-ipad.sh.
+echo "→ Gerando o bundle web (Catedra.dc.html → mac/build/web), bibliotecas de vendor/…"
 CATEDRA_ALVO=iPadOS node scripts/build-macos.mjs
 
 if [ ! -f mac/build/web/index.html ]; then

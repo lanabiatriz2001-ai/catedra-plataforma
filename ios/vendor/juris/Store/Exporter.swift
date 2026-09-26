@@ -428,33 +428,8 @@ enum Exporter {
         return pngData(img)
     }
 
-    // MARK: Mapa mental / fluxograma
-
-    static func mapaNSImage(_ entry: JurisEntry, _ nota: NotaEstudo) -> NSImage? {
-        let r = ImageRenderer(content: MapaMentalView(entry: entry, nota: nota).environment(\.colorScheme, .light))
-        r.scale = 2
-        return r.uiImage
-    }
-    static func mapaPNG(_ entry: JurisEntry, _ nota: NotaEstudo) -> Data? {
-        guard let img = mapaNSImage(entry, nota) else { return nil }
-        return pngData(img)
-    }
-    static func mapaPDF(_ entry: JurisEntry, _ nota: NotaEstudo) -> Data? {
-        guard let img = mapaNSImage(entry, nota) else { return nil }
-        return pdfData(img)
-    }
-
     // UIImage já entrega PNG direto — não há tiffRepresentation/NSBitmapImageRep aqui.
     static func pngData(_ img: NSImage) -> Data? { img.pngData() }
-    static func pdfData(_ img: NSImage) -> Data? {
-        guard let cg = img.cgImage else { return nil }
-        let data = NSMutableData()
-        guard let consumer = CGDataConsumer(data: data as CFMutableData) else { return nil }
-        var box = CGRect(x: 0, y: 0, width: CGFloat(cg.width) / 2, height: CGFloat(cg.height) / 2)
-        guard let ctx = CGContext(consumer: consumer, mediaBox: &box, nil) else { return nil }
-        ctx.beginPDFPage(nil); ctx.draw(cg, in: box); ctx.endPDFPage(); ctx.closePDF()
-        return data as Data
-    }
 
     static func pdf(_ entry: JurisEntry) -> Data? {
         guard let img = nsImage(entry),
