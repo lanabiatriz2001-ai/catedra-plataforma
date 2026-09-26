@@ -8990,7 +8990,8 @@ catch (e) {
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
-// Ícone é SVG Lucide, não emoji, no Início, na barra lateral e no painel de avisos; os alvos do
+// Ícone é SVG Lucide, não emoji, no Início, na barra lateral, no painel de avisos, nas outras telas
+// do host (d), nos satélites e no portão de login (e); os alvos do
 // cronômetro do banner com 44 px no toque e intactos com mouse; a nota da Prova oral com fundo que
 // pinta (era var(--ok)+'1f', que não é cor) — tests/icones-alvos.mjs
 try { await testarIconesAlvos(page, URL0, ok, { motor }); }

@@ -146,7 +146,7 @@ for (const [base, origem, arquivo] of ORIGENS) {
     // cópia no LEGIS são o que o iPad e o Mac pintam
     try { await testarContrasteDestaque(page, base, ok, { motor }); }
     catch (e) { ok(false, 'CONTRASTE/DESTAQUE [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
-    // os ícones do Início (SVG Lucide, não emoji) e os alvos do cronômetro no toque, no motor que o
+    // os ícones do app, dos satélites e do portão (SVG Lucide, não emoji) e os alvos do cronômetro no toque, no motor que o
     // iPad pinta — e a nota da Prova oral, cujo fundo inválido o WebKit também descartava
     try { await testarIconesAlvos(page, base, ok, { motor }); }
     catch (e) { ok(false, 'ÍCONES/ALVOS [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
