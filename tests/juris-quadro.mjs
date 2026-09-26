@@ -126,19 +126,30 @@ function acervoInteiro() {
   return _acervo;
 }
 
-/* A duplicata REAL do acervo: o mesmo tema em dois registros (…-1112 e …-1112-2), com o mesmo
-   assunto, o mesmo ramo e o mesmo tribunal. Sem a trava, o registro gêmeo divide TODOS os
-   termos com o original e seria o primeiro candidato da lista — então a ausência dele prova a
-   trava, não o acaso do ranking. */
+/* A duplicata REAL do acervo: o mesmo tema em dois registros (…-1190 e …-1190-2), com a mesma
+   chave citável (tribunal, fonte e número do tema), o mesmo ramo e o assunto quase todo em comum.
+   Sem a trava, o registro gêmeo divide os termos com o original e seria o primeiro candidato da
+   lista — então a ausência dele prova a trava, não o acaso do ranking.
+   Desde a troca das Teses de RG e Repetitivos pela fonte oficial (lotes L2/L3, 25/09/2026) o
+   original traz o título OFICIAL e a cópia (que aguarda a fusão do L4) ainda o antigo: o texto do
+   assunto deixou de ser idêntico. Por isso o par é escolhido pela chave citável e pela maior fração
+   de palavras em comum (>= 80% e >= 8 palavras), o que mantém a cópia no topo sem a trava. */
 function duplicataReal() {
   const X = acervoInteiro(), por = {};
   for (const x of X) por[x[0]] = x;
+  const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9 ]+/g, ' ');
+  const pal = (s) => new Set(norm(s).split(/\s+/).filter(w => w.length > 3));
+  let melhor = null;
   for (const x of X) {
     if (!/-2$/.test(x[0])) continue;
     const o = por[x[0].slice(0, -2)];
-    if (o && o[6] && o[6] === x[6] && o[5] === x[5] && o[1] === x[1]) return { original: o[0], copia: x[0] };
+    if (!o || o[3] == null || o[3] !== x[3] || o[1] !== x[1] || o[2] !== x[2] || o[5] !== x[5]) continue;
+    const a = pal(o[4] + ' ' + o[6]), b = pal(x[4] + ' ' + x[6]);
+    let c = 0; for (const w of a) if (b.has(w)) c++;
+    const f = c / Math.max(1, Math.min(a.size, b.size));
+    if (c >= 8 && f >= 0.8 && (!melhor || f > melhor.f || (f === melhor.f && c > melhor.c))) melhor = { original: o[0], copia: x[0], f, c };
   }
-  return null;
+  return melhor && { original: melhor.original, copia: melhor.copia };
 }
 
 function republicacoes(quantos) {

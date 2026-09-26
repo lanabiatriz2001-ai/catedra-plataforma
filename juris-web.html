@@ -302,10 +302,12 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
 .rdr .venun{background:var(--rcard);border:1px solid var(--rline);border-radius:16px;padding:20px 22px;box-shadow:0 8px 26px -20px color-mix(in srgb,var(--rc) 60%,transparent)}
 .rdr .venun .lbl{margin-bottom:9px;display:flex;align-items:center;gap:8px}
 .rdr .venun .lbl::before{content:"";width:14px;height:2px;background:var(--rc);border-radius:2px}
-.rdr .venun .bd{font-family:var(--rbody);font-size:calc(var(--rfs,15px) + 1px);line-height:1.68;color:var(--rctext)}
+/* o texto oficial das teses traz parágrafos e itens em linhas próprias ("i) …\nii) …"): a quebra
+   de linha do dado tem de pintar, como no .enun da lista (pre-wrap) */
+.rdr .venun .bd{font-family:var(--rbody);font-size:calc(var(--rfs,15px) + 1px);line-height:1.68;color:var(--rctext);white-space:pre-wrap}
 .rdr .vblk{margin-top:13px;background:color-mix(in srgb,var(--rc) 5%,var(--rcard));border:1px solid var(--rline);border-radius:14px;padding:15px 18px}
 .rdr .vblk .lbl{margin-bottom:6px}
-.rdr .vblk .bd{font-family:var(--rbody);font-size:13.5px;line-height:1.6;color:var(--rpar)}
+.rdr .vblk .bd{font-family:var(--rbody);font-size:13.5px;line-height:1.6;color:var(--rpar);white-space:pre-wrap}
 .rdr .vfoot{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:16px}
 .rdr .vfoot .fp{font:600 11.5px var(--rbody);color:var(--rdim2)}
 .rdr .vfoot a{font:700 12px var(--rbody);color:var(--rc);text-decoration:none;border:1px solid color-mix(in srgb,var(--rc) 32%,transparent);border-radius:9px;padding:7px 12px}
