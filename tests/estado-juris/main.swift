@@ -202,5 +202,89 @@ var vazio = try! JSONDecoder().decode(JurisEstadoPersistido.self, from: json("""
 JurisMigracaoIDs.migrar(&vazio)
 confere(vazio.idsMigrados == nil && vazio.favorites == ["STJ-SUM-7"], "estado sem nenhum id migrado: nada muda e nenhuma marca é criada")
 
+// ── 7. o ⚡ (importante que a pessoa marca: `importantes`) segue o OU na fusão ─────────────────
+var raio = try! JSONDecoder().decode(JurisEstadoPersistido.self, from: json("""
+{"favorites":[],"recents":[],"importantes":["\(idAntigo)","STJ-SUM-7"]}
+"""))
+JurisMigracaoIDs.migrar(&raio)
+confere(raio.importantes == [idAntigo, "STJ-SUM-7", idCanon] && raio.idsMigrados == [idAntigo],
+        "⚡ na abertura: o importante do id fundido vale no canônico, e o do id antigo fica como cópia")
+
+// ── 8. restaurar BACKUP antigo com id fundido (JurisEstadoPersistido.mesclarBackup, o que o
+//       LibraryStore.importarBackup faz). O aparelho já rodou a migração (idsMigrados tem o id): a
+//       abertura seguinte pularia o id — a união tem de rodar sobre o conteúdo restaurado.
+func estadoVazio() -> JurisEstadoPersistido {
+    JurisEstadoPersistido(favorites: [], recents: [], importantes: [], annotations: nil, richNotes: [:], marks: [:],
+        colecoes: [], lidos: [], dominados: [], afirmacoesFalsas: [:], metaDiaria: 20, leiturasPorDia: [:],
+        coresFavoritas: nil, alinhamentos: [:], textosEditados: [:], srs: [:], tribunaisCustom: [],
+        readingChecklist: [], idsMigrados: nil)
+}
+var aparelho = estadoVazio()      // o que o LibraryStore tem na memória (retratoPersistido)
+aparelho.favorites = ["STJ-SUM-7"]
+aparelho.richNotes = [idCanon: rtf("rica do canônico")]
+aparelho.srs = [idCanon: JurisSRSCard(intervalDays: 2, reps: 1, lastReviewed: hoje)]
+aparelho.colecoes = [Colecao(id: "c1", nome: "Meu edital", ids: ["STJ-SUM-7"], criadaEm: 1)]
+aparelho.idsMigrados = [idAntigo]  // este aparelho já uniu o que ELE tinha no id antigo
+let backupAntigo = try! JSONDecoder().decode(JurisEstadoPersistido.self, from: JSONEncoder().encode(
+    JurisEstadoPersistido(favorites: [idAntigo], recents: [idAntigo], importantes: [idAntigo], annotations: nil,
+        richNotes: [idAntigo: rtf("rica do backup")],
+        marks: [idAntigo: [TextMark(start: 5, length: 6, kind: .grifar, colorHex: "#FCE7A1", note: "margem do backup")]],
+        colecoes: [Colecao(id: "c1", nome: "Meu edital", ids: [idAntigo], criadaEm: 1),
+                   Colecao(id: "c9", nome: "Revisão final", ids: [idAntigo], criadaEm: 2)],
+        lidos: [idAntigo], dominados: [idAntigo], afirmacoesFalsas: [idAntigo: "falsa do backup"], metaDiaria: nil,
+        leiturasPorDia: nil, coresFavoritas: nil, alinhamentos: nil, textosEditados: nil,
+        srs: [idAntigo: JurisSRSCard(intervalDays: 30, reps: 6, lastReviewed: hoje)],
+        tribunaisCustom: nil, readingChecklist: nil)))   // backup de antes do L4: sem idsMigrados
+confere(backupAntigo.idsMigrados == nil, "o backup antigo não traz idsMigrados")
+var restaurado = aparelho
+restaurado.mesclarBackup(backupAntigo)
+confere(restaurado.favorites.contains(idCanon) && restaurado.lidos?.contains(idCanon) == true
+        && restaurado.dominados?.contains(idCanon) == true && restaurado.recents.contains(idCanon),
+        "backup antigo restaurado: favorito, lido, dominado e recente do id fundido aparecem no canônico")
+confere(restaurado.importantes?.contains(idCanon) == true,
+        "backup antigo restaurado: o ⚡ (importante) do id fundido aparece no canônico — OU")
+let ricaRest = texto(restaurado.richNotes?[idCanon])
+confere(ricaRest.contains("rica do canônico") && ricaRest.contains("rica do backup")
+        && ricaRest.range(of: "rica do canônico")!.lowerBound < ricaRest.range(of: "rica do backup")!.lowerBound,
+        "backup antigo restaurado: a nota rica do backup se junta à do canônico deste aparelho (canônico primeiro)")
+confere(restaurado.marks?[idCanon]?.contains { $0.note == "margem do backup" } == true
+        && restaurado.afirmacoesFalsas?[idCanon] == "falsa do backup",
+        "backup antigo restaurado: grifo com comentário e afirmação falsa chegam ao canônico")
+confere(restaurado.srs?[idCanon]?.reps == 6 && restaurado.srs?[idCanon]?.intervalDays == 30,
+        "backup antigo restaurado: fica o cartão de revisão mais avançado (o do backup, 6 repetições)")
+confere(restaurado.colecoes?.first { $0.id == "c1" }?.ids == ["STJ-SUM-7", idCanon]
+        && restaurado.colecoes?.first { $0.id == "c9" }?.ids == [idAntigo, idCanon],
+        "backup antigo restaurado: o canônico entra nas coleções em que o id antigo estava no backup")
+confere(restaurado.favorites.contains(idAntigo) && texto(restaurado.richNotes?[idAntigo]) == "rica do backup",
+        "backup antigo restaurado: a chave antiga fica como cópia (nada apagado)")
+confere(restaurado.idsMigrados == [idAntigo], "backup antigo restaurado: o id segue marcado uma vez só")
+// a abertura seguinte não junta de novo nem duplica
+let antesAbrir = try! ordenado.encode(restaurado)
+JurisMigracaoIDs.migrar(&restaurado)
+confere(try! ordenado.encode(restaurado) == antesAbrir, "abertura depois da restauração: nada muda (não concatena de novo)")
+// restaurar o MESMO backup de novo não duplica a nota nem o grifo
+var duas = restaurado
+duas.mesclarBackup(backupAntigo)
+confere(texto(duas.richNotes?[idCanon]) == ricaRest && duas.marks?[idCanon]?.count == restaurado.marks?[idCanon]?.count,
+        "restaurar o mesmo backup outra vez: nota e grifo não se repetem")
+
+// backup NOVO (exportado depois da fusão, com idsMigrados): o canônico dele já traz a união, e o que a
+// pessoa desfez ali (desfavoritou o canônico) não volta pela cópia antiga
+let backupNovo = try! JSONDecoder().decode(JurisEstadoPersistido.self, from: json("""
+{"favorites":["\(idAntigo)"],"recents":[],"importantes":["\(idAntigo)"],"idsMigrados":["\(idAntigo)"]}
+"""))
+var outro = estadoVazio()
+outro.mesclarBackup(backupNovo)
+confere(!outro.favorites.contains(idCanon) && outro.importantes?.contains(idCanon) != true
+        && outro.favorites.contains(idAntigo) && outro.idsMigrados == [idAntigo],
+        "backup novo (com idsMigrados): não reúne o id que o backup já uniu — o desfeito não volta; a marca vem junto")
+// retirado no backup: vem como cópia órfã, sem destino e sem marca
+var comRetirado = estadoVazio()
+comRetirado.mesclarBackup(try! JSONDecoder().decode(JurisEstadoPersistido.self, from: json("""
+{"favorites":["\(ret)"],"recents":[],"importantes":["\(ret)"]}
+""")))
+confere(comRetirado.favorites == [ret] && comRetirado.importantes == [ret] && comRetirado.idsMigrados == nil,
+        "backup com id retirado (\(ret)): o estado volta ao disco, órfão, sem destino e sem marca")
+
 print(falhas == 0 ? "\nestado do JURIS: tudo certo" : "\nestado do JURIS: \(falhas) falha(s)")
 exit(falhas == 0 ? 0 : 1)

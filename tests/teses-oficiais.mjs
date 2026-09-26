@@ -31,7 +31,12 @@
    · (f) navegador: favorito, status e grifo de um id FUNDIDO aparecem no canônico (união, uma vez só —
          o que a pessoa desfaz depois não volta); estado de id RETIRADO fica no localStorage, órfão,
          sem erro de página e fora das contagens. O lado Swift da migração é provado pelo harness
-         tests/estado-juris (scripts/testar-estado-juris.sh), que tests/sem-mapas-mentais.mjs roda. */
+         tests/estado-juris (scripts/testar-estado-juris.sh), que tests/sem-mapas-mentais.mjs roda.
+   · (g) restaurar backup passa pela união: importarBackup do Mac/iPad (mesclarBackup → migrarRestaurado)
+         e do app independente; na web nenhuma restauração de backup traz estado de verbete, e o
+         destaque (★/⚡) da web é do acervo (coluna im) — o estudo pessoal é favorito/status/marca;
+   · (h) navegador: estudo antigo que volta inteiro (sem est.mig) é unido na abertura seguinte; o que
+         já traz est.mig não é reunido. */
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -193,6 +198,49 @@ export function testarTesesOficiaisEstatico(ok, opcoes = {}) {
     ok(paresDe(blocoDe(src, 'migracoes')) === esperado && idsDe(blocoDe(src, 'retirados')) === retEsp,
       R + '(e) ' + rot + ': a tabela de migração tem as 105 fusões e os 46 retirados da referência');
   }
+
+  // (g) restauração de backup passa pela migração. O backup antigo traz estado em id fundido e não
+  //     traz idsMigrados; a migração da abertura pula o id que o aparelho já marcou — sem a união na
+  //     restauração, esse estudo ficava órfão. O comportamento é provado no harness Swift
+  //     (tests/estado-juris, seção 8); aqui se confere que cada importarBackup usa essa regra.
+  const corpoDe = (src, nome) => {
+    const i = src.indexOf(nome); if (i < 0) return null;
+    const a = src.indexOf('{', i); let n = 0;
+    for (let k = a; k < src.length; k++) { if (src[k] === '{') n++; else if (src[k] === '}' && --n === 0) return src.slice(a, k + 1); }
+    return null;
+  };
+  for (const plat of ['mac', 'ios']) {
+    const loja = fs.readFileSync(path.join(RAIZ, plat, 'vendor/juris/Store/LibraryStore.swift'), 'utf8');
+    const est = fs.readFileSync(path.join(RAIZ, plat, 'vendor/juris/Store/JurisEstadoPersistido.swift'), 'utf8');
+    const imp = corpoDe(loja, 'func importarBackup(') || '', mes = corpoDe(est, 'func mesclarBackup(') || '';
+    ok(/\.mesclarBackup\(/.test(imp) && /idsMigrados = s\.idsMigrados/.test(imp) && /JurisMigracaoIDs\.migrarRestaurado\(/.test(mes),
+      R + '(g) ' + plat + ': importarBackup restaura pela mescla com a união das fusões (mesclarBackup → migrarRestaurado) e guarda idsMigrados');
+  }
+  {
+    const f = casas[3][1];
+    if (!fs.existsSync(f)) console.log('  · ' + R + 'VadeMecumJuris LibraryStore.swift não existe nesta máquina — (g) do app independente fica de fora');
+    else {
+      const imp = corpoDe(fs.readFileSync(f, 'utf8'), 'func importarBackup(') || '';
+      ok(/Self\.migrarRestaurado\(/.test(imp) && /idsMigrados = s\.idsMigrados/.test(imp),
+        R + '(g) VadeMecumJuris: importarBackup une o que o backup traz em id fundido no canônico (migrarRestaurado) e guarda idsMigrados');
+    }
+  }
+  // web: o JURIS não importa backup, e o backup do Cátedra (host) não leva o estudo do JURIS — a única
+  // volta de estado antigo por id é a própria chave (nuvem), provada no navegador em (h)
+  const web = fs.readFileSync(path.join(RAIZ, 'juris-web.html'), 'utf8');
+  const host = fs.readFileSync(path.join(RAIZ, 'Catedra.dc.html'), 'utf8');
+  const bkp = (corpoDe(host, '_backupObjeto(){') || '') + (corpoDe(host, '_restaurarBackup(d){') || '') + (corpoDe(host, '_cadernosDeTodasAsAreas(){') || '');
+  ok(bkp.length > 2000 && !/jurisEstudo|grifosJuris|JurisRoteiros/.test(bkp) && !/FileReader|importar backup|importBackup/i.test(web),
+    R + '(g) web: nenhuma restauração de backup traz estado de verbete do JURIS (o backup do host não leva jurisEstudo/grifos; o JURIS web não importa arquivo)');
+  // ⚡ na web: o "Destaque" é do ACERVO (coluna im do índice), não estado da pessoa; o estudo pessoal
+  // (est) só tem favorito, status e a marca da migração — e a migração trata cada um deles
+  const chavesEst = [...new Set([...web.matchAll(/\best\.([a-zA-Z_]\w*)/g)].map(m => m[1]))].sort();
+  const mig = corpoDe(web, 'function migraEstadoJuris(') || '';
+  const pinturas = [...web.matchAll(/title="Destaque"|class="diaTag">Destaque/g)].length;
+  const pelaColuna = [...web.matchAll(/r\[I\.im\]\?'<span class="(star" title="Destaque"|diaTag">Destaque)/g)].length;
+  ok(chavesEst.join(',') === 'fav,mig,stat' && /est\.fav\[antigo\]/.test(mig) && /est\.stat\[antigo\]/.test(mig)
+      && pinturas >= 3 && pelaColuna === pinturas,
+    R + '(g) web: o destaque (★) vem só do acervo (' + pelaColuna + ' pinturas pela coluna im); o estudo pessoal é ' + chavesEst.join('/') + ' e a migração une favorito e status');
 
   // (b) fatias: o texto que o app baixa sob demanda é o mesmo
   const dirF = path.join(RAIZ, 'dados', 'juris-text');
@@ -358,6 +406,20 @@ export async function testarMigracaoL4Navegador(page, base, ok, opcoes = {}) {
     const b = await lido();
     ok(!b.est.fav[canonico] && b.est.fav[fundido] === 1 && b.grifosCanon.filter(g => g.t === 'grifo do fundido').length === 1,
       R + '(f) a união roda uma vez só: o favorito desfeito no canônico não volta e o grifo não duplica');
+    // (h) estudo ANTIGO restaurado por cima (a chave inteira volta como estava antes do L4 — é o que a
+    //     nuvem ou uma cópia fazem na web): este aparelho já marcou o id, mas a marca viaja DENTRO do
+    //     estudo — o restaurado não a tem, e a união roda sobre ele na abertura seguinte
+    await p.evaluate((f) => localStorage.setItem('catedra:jurisEstudo', JSON.stringify({ fav: { [f]: 1 }, stat: { [f]: 'dom' } })), fundido);
+    await abre();
+    const h = await lido();
+    ok(h.est.fav[canonico] === 1 && h.est.stat[canonico] === 'dom' && h.est.mig && h.est.mig[fundido] === 1 && h.est.fav[fundido] === 1,
+      R + '(h) estudo antigo restaurado (sem est.mig): favorito e status do id fundido aparecem no canônico, e o id volta a ficar marcado');
+    // e o restaurado que JÁ traz a marca (exportado depois da fusão) não é reunido: o desfeito não volta
+    await p.evaluate(({ f, c }) => localStorage.setItem('catedra:jurisEstudo', JSON.stringify({ fav: { [f]: 1 }, stat: { [c]: 'rev' }, mig: { [f]: 1 } })), { f: fundido, c: canonico });
+    await abre();
+    const h2 = await lido();
+    ok(!h2.est.fav[canonico] && h2.est.stat[canonico] === 'rev' && h2.est.fav[fundido] === 1,
+      R + '(h) estudo restaurado que já traz est.mig: o id não é reunido (o favorito desfeito no canônico não volta)');
     // abrir o retirado por id não quebra nada (não existe; não abre)
     const abriu = await p.evaluate((i) => { try { window.jurisAbrirPorId(i); return 'ok'; } catch (e) { return String(e); } }, retirado);
     ok(abriu === 'ok', R + '(f) abrir por id um verbete retirado não dá erro (' + abriu + ')');
