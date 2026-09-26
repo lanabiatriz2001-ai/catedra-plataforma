@@ -3,7 +3,7 @@
    · SYNC: o mergeAll do auth.js (carimbo por chave, vazio nunca apaga cheio,
      união por id, lápides, histórico × lixeira) via tests/sync-fixture.html;
    · ACERVO ida-e-volta: rito/peça/bloco na URL, mensagens ctAbrirAcervo com origem,
-     pílula de voltar no LEGIS/JURIS e o ciclo completo via tests/harness-acervo.html;
+     pílula de voltar no LEGIS/JURIS e a volta à origem no host real (tests/volta-origem.mjs);
    · ORAL LEI SECA: a aba Lei seca da Prova oral lista as leis (tests/oral-lei-seca.mjs).
    Servidor e navegador vêm de tests/_infra.mjs. O motor padrão é o Chromium — executável
    de CT_CHROME ou dos caminhos usuais (CI: google-chrome); CT_BROWSER=webkit troca pelo
@@ -21,6 +21,7 @@ import { iniciarServidor, lancarNavegador } from './_infra.mjs';
 import { testarOralLeiSeca } from './oral-lei-seca.mjs';
 import { testarPastaSincronizada } from './pasta-sincronizada.mjs';
 import { testarLegisGuiado } from './legis-guiado.mjs';
+import { testarLeitorWeb } from './leitor-web.mjs';
 import { testarCicloInteligente } from './ciclo-inteligente.mjs';
 import { testarRegistroSessao } from './registro-sessao.mjs';
 import { testarIntegracaoModulos } from './integracao-modulos.mjs';
@@ -32,6 +33,10 @@ import { testarIphoneHost390 } from './iphone-host-390.mjs';
 import { testarReguaUnica } from './regua-unica.mjs';
 import { testarPrioridadeErrosResolvidos } from './prioridade-erros-resolvidos.mjs';
 import { testarRevisaoFonte } from './revisao-fonte.mjs';
+import { testarVoltaOrigem } from './volta-origem.mjs';
+import { testarContrasteDestaque } from './contraste-destaque.mjs';
+import { testarIconesAlvos } from './icones-alvos.mjs';
+import { testarFaixaMapaAlvos } from './faixa-mapa-alvos.mjs';
 import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
 import { testarOnboardingImportar } from './onboarding-importar.mjs';
 import { testarCotaIA } from './cota-ia.mjs';
@@ -40,6 +45,8 @@ import { testarIpadToqueSatelites } from './ipad-toque-satelites.mjs';
 import { testarIpadToque } from './ipad-toque.mjs';
 import { testarAuthIpad } from './auth-ipad.mjs';
 import { testarAuthAbertura } from './auth-abertura.mjs';
+import { testarAuthHidratacao } from './auth-hidratacao.mjs';
+import { testarAuthFechamento } from './auth-fechamento.mjs';
 import { testarCarregamentoInicial, testarAberturaEmbutida } from './carregamento-inicial.mjs';
 import { testarSelectHost } from './select-host.mjs';
 import { testarEditalSubtopicos } from './edital-subtopicos.mjs';
@@ -49,6 +56,7 @@ import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 import { testarMenuLateral } from './menu-lateral.mjs';
 import { testarAssinaturaLimpa } from './assinatura-limpa.mjs';
 import { testarXcodeCloud } from './xcode-cloud.mjs';
+import { testarDesignNativo } from './design-nativo.mjs';
 import { montar as montarEnam, parseProva as parseProvaEnam, parseGabarito as parseGabaritoEnam, carregarAreas as areasEnam, EDICOES as EDICOES_ENAM } from '../scripts/build-questoes-enam.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -845,13 +853,19 @@ const a3 = await page.evaluate(async () => {
 });
 ok(a3.de && a3.de.peca && a3.de.bloco != null, 'ACERVO chip do painel manda de.peca+bloco');
 
-// pílula de voltar nos dois acervos, e só com ?volta=1
-for (const pg of ['legis-web.html?volta=1', 'juris-web.html?volta=1']) {
+// pílula de voltar nos dois acervos, e só com ?volta=1. O TEXTO vem do host (&vr=, depois
+// ctVoltaDisponivel {rotulo}); sem ele a pílula diz só "Voltar". A seta é um SVG aria-hidden
+// fora do texto (o nome acessível é só o rótulo). A volta de ponta a ponta,
+// no host real e com a pílula medida, está em tests/volta-origem.mjs.
+for (const [pg, texto] of [['legis-web.html?volta=1&vr=' + encodeURIComponent('Voltar à peça · bloco 3'), 'Voltar à peça · bloco 3'],
+                           ['juris-web.html?volta=1', 'Voltar']]) {
   await page.goto(URL0 + '/' + pg);
   await page.waitForTimeout(400);
-  const a4 = await page.evaluate(async () => {
-    const b = [...document.querySelectorAll('button')].find(x => /Voltar ao ponto/.test(x.textContent || ''));
-    if (!b) return { pill: false };
+  const a4 = await page.evaluate(async (texto) => {
+    const b = document.getElementById('ct-volta');
+    const svg = b && b.querySelector('svg');
+    if (!b || getComputedStyle(b).display === 'none' || (b.textContent || '').trim() !== texto
+      || !svg || svg.getAttribute('aria-hidden') !== 'true') return { pill: false, achou: b && b.textContent };
     const got = new Promise(resolve => {
       const original = window.ctEnviarAoHost;
       let resolveu = false;
@@ -866,61 +880,17 @@ for (const pg of ['legis-web.html?volta=1', 'juris-web.html?volta=1']) {
     });
     b.click();
     return { pill: true, msg: await got };
-  });
-  ok(a4.pill && a4.msg && a4.msg.type === 'ctVoltarAcervo', 'ACERVO pílula funciona em ' + pg);
+  }, texto);
+  ok(a4.pill && a4.msg && a4.msg.type === 'ctVoltarAcervo', 'ACERVO pílula "' + texto + '" funciona em ' + pg.split('?')[0]);
 }
 await page.goto(URL0 + '/legis-web.html');
 await page.waitForTimeout(300);
-const a4b = await page.evaluate(() => ![...document.querySelectorAll('button')].some(x => /Voltar ao ponto/.test(x.textContent || '')));
+const a4b = await page.evaluate(() => { const b = document.getElementById('ct-volta'); return !b || getComputedStyle(b).display === 'none'; });
 ok(a4b, 'ACERVO sem volta=1 não há pílula');
 
-// ciclo completo no harness que simula o host. SEM TEMPO FIXO (11/09/2026): sob carga o
-// iframe ainda não tinha trocado de página quando o teste lia o painel, e a volta falhava sem
-// defeito no app. Cada passo espera a sua condição (a cada 50 ms, até 8 s); elemento ausente
-// vira falha nomeada, não exceção que derruba a suíte.
-await page.goto(URL0 + '/tests/harness-acervo.html');
-const a5 = await page.evaluate(async (PECA) => {
-  const w = ms => new Promise(r => setTimeout(r, ms));
-  const fr = document.getElementById('fr');
-  for (let i = 0; i < 160 && !(fr.contentWindow && fr.contentWindow.CTRoteiro); i++) await w(50);
-  if (!fr.contentWindow.CTRoteiro) return { erro: 'o mapa não carregou no iframe' };
-  fr.contentWindow.CTRoteiro.abrir(PECA);
-  const acha = () => [...fr.contentDocument.querySelectorAll('.ctr .rf button')].find(b => +b.dataset.b > 0);
-  for (let i = 0; i < 160 && !acha(); i++) await w(50);
-  const chip = acha(); if (!chip) return { erro: 'sem chip de bloco no painel' };
-  const n = window.__log.length;
-  chip.click();
-  for (let i = 0; i < 160 && window.__log.length === n; i++) await w(50);
-  return window.__log[window.__log.length - 1];
-}, PECA);
-ok(!a5.erro && /legis-web/.test(a5.src) && /volta=1/.test(a5.src) && /q=/.test(a5.src), 'ACERVO ida: LEGIS com q= e volta=1' + (a5.erro ? ' (' + a5.erro + ')' : ''));
-const a6 = await page.evaluate(async () => {
-  const w = ms => new Promise(r => setTimeout(r, ms));
-  const fr = document.getElementById('fr');
-  // o LEGIS entra no lugar do mapa: espera a pílula DELE, não 1,5 s fixos
-  const pilula = () => { const d = fr.contentDocument; return d && /legis-web/.test(d.location.pathname) && [...d.querySelectorAll('button')].find(x => /Voltar ao ponto/.test(x.textContent || '')); };
-  for (let i = 0; i < 160 && !pilula(); i++) await w(50);
-  const b = pilula();
-  if (!b) return { erro: 'sem pílula no iframe' };
-  const n = window.__log.length;
-  b.click();
-  for (let i = 0; i < 160 && window.__log.length === n; i++) await w(50);
-  return window.__log[window.__log.length - 1];
-});
-ok(!a6.erro && a6.view === 'areamod' && /peca=/.test(a6.src) && /bloco=/.test(a6.src), 'ACERVO volta: mapa com peca+bloco' + (a6.erro ? ' (' + a6.erro + ')' : ''));
-const a7 = await page.evaluate(async () => {
-  const w = ms => new Promise(r => setTimeout(r, ms));
-  // espera o iframe TROCAR de página (sai o LEGIS, entra o mapa com ?bloco=) e o painel reabrir
-  // no bloco — espera e leitura no mesmo passo, sem 1,2 s fixos no meio
-  const doc = () => document.getElementById('fr').contentDocument;
-  const pronto = () => { const d = doc(); return !!d && /bloco=/.test(d.location.search) && !!d.querySelector('.ctr.on') && [...d.querySelectorAll('.ctr .blk')].some(b => b.classList.contains('volta')); };
-  for (let i = 0; i < 160 && !pronto(); i++) await w(50);
-  const d = doc(), rot = d && d.querySelector('.ctr');
-  return { aberto: !!rot && rot.classList.contains('on'),
-           destacou: !!d && [...d.querySelectorAll('.ctr .blk')].some(b => b.classList.contains('volta')),
-           onde: d ? d.location.pathname + d.location.search : 'sem documento no iframe' };
-});
-ok(a7.aberto && a7.destacou, 'ACERVO volta reabre o painel no bloco destacado' + (a7.aberto && a7.destacou ? '' : ' (' + a7.onde + ')'));
+// O ciclo completo (ida → pílula → volta ao bloco) rodava em tests/harness-acervo.html, uma
+// cópia ANTIGA do host sem os ramos de prioridade, ciclo e 2ª fase e sem os iframes vivos.
+// Saiu em 24/09/2026: tests/volta-origem.mjs faz o mesmo e mais no Catedra.dc.html real.
 
 /* ===== JURIS — INFORMATIVOS DO STF: EDIÇÃO, TRIBUNAL E DATA (auditoria 15/09/2026) =====
 
@@ -2294,6 +2264,7 @@ for (const [k, v] of Object.entries(la5m)) ok(v, 'LEITURA/CLOZE ' + k);
   const pg = await ctx.newPage();
   try { await testarLegisGuiado(pg, URL0, ok, { motor, origem: 'http' }); }
   catch (e) { ok(false, 'LEGIS GUIADO o roteiro correu sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
+  try { await testarLeitorWeb(pg, URL0, ok); } catch (e) { ok(false, 'LEITOR WEB: exceção — ' + (e && e.message)); }
   await ctx.close();
   // filtros "só incidência alta" e "só o que ainda não li"
   await page.goto(URL0 + '/legis-web.html?area=juridica');
@@ -3123,8 +3094,8 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
   r.tokensSemHexFixoNoTexto = /var\(--ink,/.test(termos) && /var\(--bg,/.test(termos) && /min-height: 44px/.test(termos);
   await import('../juridico.js');
   const J = globalThis.CT_JURIDICO;
-  r.versaoVigente = J.versao === '1.0/1.0' && J.termos.arquivo === 'termos.html' && J.privacidade.data === '2026-09-02';
-  r.aceiteVigentePuro = J.aceiteVigente({ versao: '1.0/1.0', ts: 1 }) === true && J.aceiteVigente('{"versao":"1.0/1.0","ts":5}') === true && J.aceiteVigente({ versao: '0.9/1.0', ts: 1 }) === false && J.aceiteVigente(null) === false && J.aceiteVigente('lixo') === false && J.aceiteVigente({ versao: '1.0/1.0' }) === false;
+  r.versaoVigente = J.versao === '1.0/1.1' && J.termos.arquivo === 'termos.html' && J.privacidade.data === '2026-09-25';
+  r.aceiteVigentePuro = J.aceiteVigente({ versao: '1.0/1.1', ts: 1 }) === true && J.aceiteVigente('{"versao":"1.0/1.1","ts":5}') === true && J.aceiteVigente({ versao: '0.9/1.0', ts: 1 }) === false && J.aceiteVigente(null) === false && J.aceiteVigente('lixo') === false && J.aceiteVigente({ versao: '1.0/1.1' }) === false;
   const auth = fs.readFileSync(path.join(RAIZ, 'auth.js'), 'utf8');
   r.portaoDeLoginPedeAceite = /aceiteVigente\(aceiteLocal, row && row\.data && row\.data\['catedra:aceite'\]\)/.test(auth) && /showAceite\(function \(\) \{ try \{ _si\('catedra:aceite'/.test(auth) && /data-doc="termos\.html"/.test(auth) && /data-doc="privacidade\.html"/.test(auth);
   r.exclusaoPelaRpc = /sb\.rpc\('excluir_minha_conta'\)/.test(auth) && /excluirConta: excluirConta/.test(auth) && fs.existsSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-excluir-minha-conta.sql'));
@@ -3181,10 +3152,10 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     window.__catedraGoView('ajustes'); await w(600);
     const abaDados = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => b.dataset.s === 'dados'); if (abaDados) { abaDados.click(); await w(600); }
     const card = document.querySelector('main [data-card="juridico"]');
-    r.cardEmAjustes = !!card && /Termos de uso/.test(card.textContent) && /Política de privacidade/.test(card.textContent) && /versão 1\.0\/1\.0 · 02\/09\/2026/.test(card.textContent);
+    r.cardEmAjustes = !!card && /Termos de uso/.test(card.textContent) && /Política de privacidade/.test(card.textContent) && /versão 1\.0\/1\.1 · 02\/09\/2026/.test(card.textContent);
     r.aceiteAindaNao = /ainda não foi aceita nesta conta/.test(card.querySelector('[data-aceite-txt]').textContent);
-    app.setState({ aceite: { versao: '1.0/1.0', ts: Date.now() } }); await w(300);
-    r.aceiteMostrado = /Você aceitou a versão 1\.0\/1\.0 em/.test(document.querySelector('main [data-aceite-txt]').textContent);
+    app.setState({ aceite: { versao: '1.0/1.1', ts: Date.now() } }); await w(300);
+    r.aceiteMostrado = /Você aceitou a versão 1\.0\/1\.1 em/.test(document.querySelector('main [data-aceite-txt]').textContent);
     r.iaAutorizadaNoTexto = /Autorizado em/.test(document.querySelector('main [data-ia-txt]').textContent);
     [...document.querySelectorAll('main [data-card="juridico"] button')].find(b => /Revogar o consentimento/.test(b.textContent)).click(); await w(900);
     r.revogarApaga = guardado() === null && /Nenhum recurso de IA é chamado/.test(document.querySelector('main [data-ia-txt]').textContent);
@@ -4406,6 +4377,15 @@ catch (e) {
 try { await testarXcodeCloud(ok); }
 catch (e) {
   ok(false, 'XCODE CLOUD o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+/* ============= BASE VISUAL NATIVA (LEGIS/JURIS) =============
+   Catraca de hex/tamanho fixo/emoji fora de ios/vendor/design e, no Mac, os testes Swift
+   da base. Roteiro em tests/design-nativo.mjs (a catraca roda também na CI). */
+try { await testarDesignNativo(ok); }
+catch (e) {
+  ok(false, 'DESIGN NATIVO o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
@@ -9216,6 +9196,39 @@ catch (e) {
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
+// Volta à origem: a pílula do LEGIS/JURIS e o botão nativo levam ao ponto exato (tests/volta-origem.mjs)
+try { await testarVoltaOrigem(page, URL0, ok, { motor, origem: 'http' }); }
+catch (e) {
+  ok(false, 'VOLTA [' + motor + '] [http] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+// Texto sobre o destaque: --onAccent por contraste WCAG no pior ponto e --accentSolid onde o
+// destaque cru não dá 4,5:1, com o --accent de identidade intacto (tests/contraste-destaque.mjs)
+try { await testarContrasteDestaque(page, URL0, ok, { motor }); }
+catch (e) {
+  ok(false, 'CONTRASTE/DESTAQUE [' + motor + '] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+// Ícone é SVG Lucide, não emoji, no Início, na barra lateral, no painel de avisos, nas outras telas
+// do host (d), nos satélites e no portão de login (e); os alvos do
+// cronômetro do banner com 44 px no toque e intactos com mouse; a nota da Prova oral com fundo que
+// pinta (era var(--ok)+'1f', que não é cor) — tests/icones-alvos.mjs
+try { await testarIconesAlvos(page, URL0, ok, { motor }); }
+catch (e) {
+  ok(false, 'ÍCONES/ALVOS [' + motor + '] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+// JURIS sem faixa lateral colorida no cartão (a cor do ramo tinge a borda e lava o fundo) e os
+// alvos do mapa processual com 44 px no toque, intactos com mouse (tests/faixa-mapa-alvos.mjs)
+try { await testarFaixaMapaAlvos(page, URL0, ok, { motor }); }
+catch (e) {
+  ok(false, 'FAIXA/ALVOS [' + motor + '] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
 // Integração entre os módulos: edital → ciclo → sessão → acervo → progresso (tests/integracao-modulos.mjs)
 try { await testarIntegracaoModulos(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
@@ -9279,6 +9292,18 @@ await testarAberturaEmbutida(ok);
 try { await testarAuthIpad(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'AUTH IPAD [' + motor + '] [http] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+// Hidratação que não finge que enviou (tests/auth-hidratacao.mjs): o pushNow pós-reload sobe o que o aparelho trouxe
+try { await testarAuthHidratacao(page, URL0, ok, { motor }); }
+catch (e) {
+  ok(false, 'AUTH HIDRATAÇÃO [' + motor + '] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+// Fechamento e Sair sem sobrescrever a nuvem (tests/auth-fechamento.mjs): PATCH condicional no pagehide, Sair espera o pushNow
+try { await testarAuthFechamento(page, URL0, ok, { motor }); }
+catch (e) {
+  ok(false, 'AUTH FECHAMENTO [' + motor + '] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 

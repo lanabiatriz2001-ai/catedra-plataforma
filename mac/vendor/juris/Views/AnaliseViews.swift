@@ -30,7 +30,7 @@ struct ComparadorView: View {
             if situacoesDivergem {
                 Label("Atenção: a situação (vigente/superada) difere entre STF e STJ — leia com cuidado.",
                       systemImage: "exclamationmark.triangle.fill")
-                    .font(.system(size: 11.5, weight: .semibold)).foregroundStyle(Palette.warn)
+                    .font(DS.interface(11.5, .semibold)).foregroundStyle(Palette.warn)
                     .padding(.horizontal, 20).padding(.bottom, 8)
             }
             iaPainel
@@ -59,7 +59,7 @@ struct ComparadorView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
                 Image(systemName: "sparkles").foregroundStyle(Palette.accent)
-                Text("ANÁLISE POR IA").font(.system(size: 10, weight: .bold)).tracking(1).foregroundStyle(Palette.accent)
+                Text("ANÁLISE POR IA").font(DS.interface(10, .bold)).tracking(1).foregroundStyle(Palette.accent)
                 Spacer()
                 if iaCarregando {
                     ProgressView().controlSize(.small)
@@ -75,17 +75,17 @@ struct ComparadorView: View {
             }
             if let iaErro {
                 Label(iaErro, systemImage: "exclamationmark.triangle.fill")
-                    .font(.system(size: 11)).foregroundStyle(Palette.warn).fixedSize(horizontal: false, vertical: true)
+                    .font(DS.interface(11)).foregroundStyle(Palette.warn).fixedSize(horizontal: false, vertical: true)
             }
             if !iaTexto.isEmpty {
                 Text(.init(iaTexto))
-                    .font(.system(size: 12.5)).foregroundStyle(Palette.bodyInk)
+                    .font(DS.interface(12.5)).foregroundStyle(Palette.bodyInk)
                     .textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                 Text("Gerado por IA a partir dos enunciados oficiais — confira sempre a fonte antes de usar em prova.")
-                    .font(.system(size: 9.5)).foregroundStyle(Palette.secondaryInk)
+                    .font(DS.interface(9.5)).foregroundStyle(Palette.secondaryInk)
             } else if iaErro == nil && !iaCarregando {
                 Text("A IA compara os entendimentos usando SOMENTE os enunciados oficiais abaixo, para não inventar teses.")
-                    .font(.system(size: 10.5)).foregroundStyle(Palette.secondaryInk)
+                    .font(DS.interface(10.5)).foregroundStyle(Palette.secondaryInk)
             }
         }
         .padding(14)
@@ -137,12 +137,12 @@ struct ComparadorView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Label("Comparar STF × STJ", systemImage: "arrow.left.arrow.right.square")
-                    .font(.system(size: 16, weight: .bold)).foregroundStyle(Palette.titleInk)
+                    .font(DS.interface(16, .bold)).foregroundStyle(Palette.titleInk)
                 Spacer()
                 Button("Fechar") { dismiss() }
             }
             Text("Mesmo assunto de: \(entry.titulo). A comparação é para você julgar — não afirmo divergência automaticamente.")
-                .font(.system(size: 11.5)).foregroundStyle(Palette.secondaryInk)
+                .font(DS.interface(11.5)).foregroundStyle(Palette.secondaryInk)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(20)
@@ -155,13 +155,13 @@ struct ComparadorView: View {
             HStack(spacing: 7) {
                 Image(systemName: "building.columns.fill").foregroundStyle(cor)
                 Text(titulo).font(Typo.serifTitle(16, .bold)).foregroundStyle(Palette.titleInk)
-                Text("\(itens.count)").font(.system(size: 11, weight: .bold))
+                Text("\(itens.count)").font(DS.interface(11, .bold))
                     .padding(.horizontal, 7).padding(.vertical, 1)
                     .background(cor.opacity(0.16), in: Capsule()).foregroundStyle(cor)
             }
             if itens.isEmpty {
                 Text("Nada encontrado deste tribunal para o assunto.")
-                    .font(.system(size: 12)).foregroundStyle(Palette.secondaryInk).padding(.top, 4)
+                    .font(DS.interface(12)).foregroundStyle(Palette.secondaryInk).padding(.top, 4)
             }
             ScrollView {
                 VStack(spacing: 9) { ForEach(itens) { cartao($0, cor) } }
@@ -174,11 +174,11 @@ struct ComparadorView: View {
         Button { dismiss(); store.lerCheio(e.id) } label: {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 6) {
-                    Text(e.fonteKind.nomeCurto).font(.system(size: 9, weight: .bold)).tracking(0.4)
+                    Text(e.fonteKind.nomeCurto).font(DS.interface(9, .bold)).tracking(0.4)
                         .foregroundStyle(cor)
                     if let s = e.situacao { SituacaoPill(texto: s) }
                     Spacer()
-                    if let d = e.data { Text(d).font(.system(size: 9)).foregroundStyle(Palette.secondaryInk) }
+                    if let d = e.data { Text(d).font(DS.interface(9)).foregroundStyle(Palette.secondaryInk) }
                 }
                 Text(e.titulo).font(Typo.serifTitle(13.5, .semibold)).foregroundStyle(Palette.titleInk).lineLimit(1)
                 Text(e.enunciado).font(Typo.serifBody(11.5)).foregroundStyle(Palette.bodyInk.opacity(0.85))
@@ -195,9 +195,9 @@ struct ComparadorView: View {
 
     private var vazio: some View {
         VStack(spacing: 8) {
-            Image(systemName: "text.magnifyingglass").font(.system(size: 30)).foregroundStyle(Palette.secondaryInk)
+            Image(systemName: "text.magnifyingglass").font(DS.interface(30)).foregroundStyle(Palette.secondaryInk)
             Text("Não encontrei julgados de STF e STJ sobre este assunto no acervo.")
-                .font(.system(size: 13)).foregroundStyle(Palette.secondaryInk)
+                .font(DS.interface(13)).foregroundStyle(Palette.secondaryInk)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -217,7 +217,7 @@ struct LinhaTempoView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Label("Linha do tempo do tema", systemImage: "clock.arrow.circlepath")
-                    .font(.system(size: 16, weight: .bold)).foregroundStyle(Palette.titleInk)
+                    .font(DS.interface(16, .bold)).foregroundStyle(Palette.titleInk)
                 Spacer()
                 Button("Fechar") { dismiss() }
             }
@@ -226,7 +226,7 @@ struct LinhaTempoView: View {
             .overlay(alignment: .bottom) { Rectangle().fill(Palette.hairline).frame(height: 1) }
 
             Text("Assunto de “\(entry.titulo)” — do mais antigo ao mais recente. Sem data aparecem ao fim.")
-                .font(.system(size: 11.5)).foregroundStyle(Palette.secondaryInk)
+                .font(DS.interface(11.5)).foregroundStyle(Palette.secondaryInk)
                 .padding(.horizontal, 20).padding(.vertical, 10)
 
             ScrollView {
@@ -254,8 +254,8 @@ struct LinhaTempoView: View {
             Button { dismiss(); store.lerCheio(e.id) } label: {
                 VStack(alignment: .leading, spacing: 5) {
                     HStack(spacing: 7) {
-                        Text(e.data ?? "sem data").font(.system(size: 11, weight: .bold)).foregroundStyle(cor)
-                        Text(e.fonteKind.nomeCurto).font(.system(size: 9.5, weight: .semibold)).foregroundStyle(Palette.secondaryInk)
+                        Text(e.data ?? "sem data").font(DS.interface(11, .bold)).foregroundStyle(cor)
+                        Text(e.fonteKind.nomeCurto).font(DS.interface(9.5, .semibold)).foregroundStyle(Palette.secondaryInk)
                         if let s = e.situacao { SituacaoPill(texto: s) }
                         Spacer()
                     }

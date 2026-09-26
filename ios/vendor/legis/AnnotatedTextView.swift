@@ -152,6 +152,15 @@ struct AnnotatedTextView: UIViewRepresentable {
     @Binding var focusedAnnotationID: UUID?
     var onCommand: (ReaderCommand) -> Void
     var textAlignment: NSTextAlignment = .natural
+    /// Número do artigo → julgados que o citam (sinal na margem + toque que abre a gaveta).
+    var contagens: [String: Int] = [:]
+    /// Entrelinha da preferência de leitura (readerLineSpacing) — antes era 7 fixo aqui.
+    var entrelinha: Double = 7
+    var onToqueArtigo: (CabecalhoArtigo) -> Void = { _ in }
+
+    private var chaveFonte: String {
+        "\(fontFamily)|\(fontSize)|\(textAlignment.rawValue)|\(entrelinha)|\(contagens.count)|\(contagens.values.reduce(0, +))"
+    }
 
     /// Mesma fonte com um trait somado. No macOS isto era NSFontManager.convert.
     static func comTrait(_ f: NSFont, _ t: UIFontDescriptor.SymbolicTraits) -> NSFont {
@@ -186,6 +195,7 @@ struct AnnotatedTextView: UIViewRepresentable {
         textView.backgroundColor = NSColor(AppTheme.surface)   // folha do tema, não branco do sistema
         textView.alwaysBounceVertical = true
         textView.delegate = context.coordinator
+        textView.linkTextAttributes = [.foregroundColor: UIColor(AppTheme.ink)]
         textView.onCommand = { [weak coordinator = context.coordinator] command in
             coordinator?.parent.onCommand(command)
         }
@@ -205,7 +215,7 @@ struct AnnotatedTextView: UIViewRepresentable {
         coordinator.parent = self
         controller.textView = textView
 
-        let fontKey = "\(fontFamily)|\(fontSize)|\(textAlignment.rawValue)"
+        let fontKey = chaveFonte
         if coordinator.lastText != text || coordinator.lastFontKey != fontKey {
             applyFullText(to: textView, coordinator: coordinator)
             coordinator.lastAnnotationsKey = -1 // força reaplicar marcações
@@ -258,8 +268,8 @@ struct AnnotatedTextView: UIViewRepresentable {
         let bold = baseFont(ofSize: size, bold: true)
 
         let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.lineSpacing = 7       // leitura confortável (foco na leitura)
-        paragraphStyle.paragraphSpacing = 16
+        paragraphStyle.lineSpacing = CGFloat(entrelinha)
+        paragraphStyle.paragraphSpacing = max(12, CGFloat(entrelinha) + 9)
         paragraphStyle.alignment = textAlignment
 
         let attributed = NSMutableAttributedString(string: text, attributes: [
@@ -272,10 +282,20 @@ struct AnnotatedTextView: UIViewRepresentable {
         // da lei fica limpo na leitura corrida; os grifos do usuário é que dão o destaque.
         _ = bold  // (mantido pra assinatura de baseFont; sem uso automático)
 
+        // Cabeçalhos de artigo com julgados: atributo de contagem (desenhado na margem) e
+        // link que abre a gaveta. Só ATRIBUTOS — o texto não ganha nem perde caracteres.
+        let cabs = LeitorLogica.cabecalhos(em: text)
+        coordinator.cabecalhos = cabs
+        for c in cabs {
+            guard let n = contagens[c.numero], n > 0, let url = URL(string: "catedra-art:\(c.numero)") else { continue }
+            attributed.addAttribute(.catedraContagem, value: n, range: c.intervalo)
+            attributed.addAttribute(.link, value: url, range: c.intervalo)
+        }
+
         textView.textStorage.setAttributedString(attributed)
         scheduleDocumentLayout(for: textView, coordinator: coordinator)
         coordinator.lastText = text
-        coordinator.lastFontKey = "\(fontFamily)|\(fontSize)|\(textAlignment.rawValue)"
+        coordinator.lastFontKey = chaveFonte
     }
 
     // Layout EM PEDAÇOS: um ensureLayout do documento inteiro numa tacada só
@@ -293,9 +313,9 @@ struct AnnotatedTextView: UIViewRepresentable {
                   let container = textView.textContainer as NSTextContainer? else { return }
             let width = max(1, textView.bounds.width)   // era o contentSize do NSScrollView
             guard width > 1 else { return }
-            // Centraliza uma coluna de leitura de ~760pt (em vez do texto de ponta a
+            // Centraliza uma coluna de leitura de ~680pt; a margem mínima de 56pt abriga o número de julgados (em vez do texto de ponta a
             // ponta num monitor largo); o resto vira margem lateral.
-            let hInset = max(40, (width - 760) / 2)
+            let hInset = max(56, (width - 680) / 2)
             // No iPadOS o inset tem LADOS (UIEdgeInsets), e minSize/maxSize/
             // isVerticallyResizable/autoresizingMask eram do par NSTextView+NSScrollView,
             // que aqui não existe — a UITextView se dimensiona sozinha.
@@ -374,6 +394,7 @@ struct AnnotatedTextView: UIViewRepresentable {
         var lastLayoutWidth: CGFloat = 0
         var pendingLayout: DispatchWorkItem?
         var layoutGeneration = 0
+        var cabecalhos: [CabecalhoArtigo] = []
 
         init(_ parent: AnnotatedTextView) { self.parent = parent }
 
@@ -431,6 +452,13 @@ struct AnnotatedTextView: UIViewRepresentable {
         // Assinatura do UIKit: recebe a própria UITextView. A do AppKit (Notification) nunca
         // era chamada no iPad — o menu "Marcar" ficava sempre desabilitado e o toque numa
         // marcação não focava a anotação no painel.
+        func textView(_ textView: UITextView, primaryActionFor textItem: UITextItem, defaultAction: UIAction) -> UIAction? {
+            guard case .link(let url) = textItem.content, url.scheme == "catedra-art",
+                  let c = cabecalhos.first(where: { NSLocationInRange(textItem.range.location, $0.intervalo) })
+            else { return defaultAction }
+            return UIAction { [weak self] _ in self?.parent.onToqueArtigo(c) }
+        }
+
         func textViewDidChangeSelection(_ textView: UITextView) {
             guard let tv = (textView as? ReaderTextView) ?? self.textView else { return }
             let range = tv.selectedRange

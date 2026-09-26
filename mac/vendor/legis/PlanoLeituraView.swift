@@ -82,7 +82,7 @@ struct PlanoLeituraView: View {
 
     private var cronoBar: some View {
         HStack(spacing: 16) {
-            Label("Início", systemImage: "flag.checkered").font(.system(size: 12, weight: .semibold))
+            Label("Início", systemImage: "flag.checkered").font(DS.interface(12, .semibold))
                 .foregroundStyle(AppTheme.secondaryInk)
             DatePicker("", selection: Binding(
                 get: { startTS > 0 ? Date(timeIntervalSince1970: startTS) : Date() },
@@ -91,14 +91,14 @@ struct PlanoLeituraView: View {
             Divider().frame(height: 18)
             Stepper(value: $pace, in: 1...7) {
                 Text("\(pace) leitura\(pace == 1 ? "" : "s") por semana")
-                    .font(.system(size: 12, weight: .semibold)).foregroundStyle(AppTheme.secondaryInk)
+                    .font(DS.interface(12, .semibold)).foregroundStyle(AppTheme.secondaryInk)
             }
             Spacer()
             if startTS > 0 {
                 Button("Limpar cronograma") { startTS = 0 }.buttonStyle(.legisGhost)
             } else {
                 Text("Defina o início para calcular a data de cada leitura")
-                    .font(.system(size: 11.5)).foregroundStyle(AppTheme.secondaryInk.opacity(0.8))
+                    .font(DS.interface(11.5)).foregroundStyle(AppTheme.secondaryInk.opacity(0.8))
             }
         }
         .padding(.horizontal, 20).padding(.vertical, 10)
@@ -118,19 +118,19 @@ struct PlanoLeituraView: View {
                     .font(AppTheme.displayFont(16, .heavy)).foregroundStyle(AppTheme.ink)
                 if let nx = nextPending() {
                     HStack(spacing: 7) {
-                        Image(systemName: "arrow.right.circle.fill").font(.system(size: 12))
+                        Image(systemName: "arrow.right.circle.fill").font(DS.interface(12))
                             .foregroundStyle(ThemeState.t.accent)
-                        Text("Próxima leitura: \(nx)").font(.system(size: 12.5))
+                        Text("Próxima leitura: \(nx)").font(DS.interface(12.5))
                             .foregroundStyle(AppTheme.secondaryInk).lineLimit(1)
                     }
                 } else if doneN > 0 {
-                    Text(ThemeState.t.baixaEstimulacao ? "Plano concluído — parabéns!" : "Plano concluído — parabéns! 🎉").font(.system(size: 12.5))
+                    Text("Plano concluído — parabéns!").font(DS.interface(12.5))
                         .foregroundStyle(AppTheme.secondaryInk)
                 }
                 if showCrono, startTS > 0 {
                     let atr = overdueCount()
-                    Text(atr > 0 ? "⏰ \(atr) leitura\(atr == 1 ? "" : "s") atrasada\(atr == 1 ? "" : "s")" : "Em dia com o cronograma ✓")
-                        .font(.system(size: 12, weight: .semibold))
+                    Text(atr > 0 ? "\(atr) leitura\(atr == 1 ? "" : "s") atrasada\(atr == 1 ? "" : "s")" : "Em dia com o cronograma ✓")
+                        .font(DS.interface(12, .semibold))
                         .foregroundStyle(atr > 0 ? AppTheme.danger : ThemeState.t.accent)
                 }
             }
@@ -140,7 +140,7 @@ struct PlanoLeituraView: View {
                     let c = Color(css: disc.color) ?? ThemeState.t.accent
                     let nD = disc.laws.reduce(0) { $0 + $1.days.count }
                     HStack(spacing: 8) {
-                        Text(abbr(disc.name)).font(.system(size: 8.5, weight: .heavy))
+                        Text(abbr(disc.name)).font(DS.interface(8.5, .heavy))
                             .foregroundStyle(c).frame(width: 28, alignment: .leading)
                         RoundedRectangle(cornerRadius: 99).fill(AppTheme.softStroke).frame(width: 92, height: 5)
                             .overlay(alignment: .leading) {
@@ -192,15 +192,15 @@ struct PlanoLeituraView: View {
                 HStack(spacing: 13) {
                     RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous).fill(c)
                         .frame(width: 42, height: 34)
-                        .overlay(Text(abbr(disc.name)).font(.system(size: 12.5, weight: .heavy)).foregroundStyle(.white))
+                        .overlay(Text(abbr(disc.name)).font(DS.interface(12.5, .heavy)).foregroundStyle(.white))
                     VStack(alignment: .leading, spacing: 2) {
                         Text(disc.name).font(AppTheme.displayFont(15.5, .bold)).foregroundStyle(AppTheme.ink)
                         Text("\(disc.laws.count) leis · \(nDays) leituras")
-                            .font(.system(size: 11)).foregroundStyle(AppTheme.secondaryInk)
+                            .font(DS.interface(11)).foregroundStyle(AppTheme.secondaryInk)
                     }
                     Spacer(minLength: 8)
                     ProgressPill(done: d, total: nDays, color: c)
-                    Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold))
+                    Image(systemName: "chevron.right").font(DS.interface(12, .semibold))
                         .foregroundStyle(AppTheme.secondaryInk.opacity(0.6))
                         .rotationEffect(.degrees(isOpen ? 90 : 0))
                 }
@@ -229,13 +229,13 @@ struct PlanoLeituraView: View {
         VStack(spacing: 0) {
             Button { toggle(&openLaw, key) } label: {
                 HStack(spacing: 9) {
-                    Text(law.name).font(.system(size: 13, weight: .bold)).foregroundStyle(c).lineLimit(1)
+                    Text(law.name).font(DS.interface(13, .bold)).foregroundStyle(c).lineLimit(1)
                     if law0 != nil {
-                        Image(systemName: "book").font(.system(size: 10)).foregroundStyle(AppTheme.secondaryInk.opacity(0.7))
+                        Image(systemName: "book").font(DS.interface(10)).foregroundStyle(AppTheme.secondaryInk.opacity(0.7))
                     }
                     Spacer(minLength: 6)
                     LegisChip("\(lawDone(di, li, law))/\(law.days.count)", tint: AppTheme.secondaryInk, variant: .soft)
-                    Image(systemName: "chevron.right").font(.system(size: 10, weight: .semibold))
+                    Image(systemName: "chevron.right").font(DS.interface(10, .semibold))
                         .foregroundStyle(AppTheme.secondaryInk.opacity(0.5))
                         .rotationEffect(.degrees(isOpen ? 90 : 0))
                 }
@@ -265,21 +265,21 @@ struct PlanoLeituraView: View {
                     .fill(isDone ? c : Color.clear)
                     .frame(width: 17, height: 17)
                     .overlay(RoundedRectangle(cornerRadius: 5, style: .continuous).strokeBorder(isDone ? c : AppTheme.secondaryInk.opacity(0.45), lineWidth: 2))
-                    .overlay(Image(systemName: "checkmark").font(.system(size: 9, weight: .black)).foregroundStyle(.white).opacity(isDone ? 1 : 0))
+                    .overlay(Image(systemName: "checkmark").font(DS.interface(9, .black)).foregroundStyle(.white).opacity(isDone ? 1 : 0))
             }
             .buttonStyle(.plain)
             Text(day.d).font(Typo.num(12, .heavy))
                 .foregroundStyle(AppTheme.ink).frame(width: 54, alignment: .leading)
                 .strikethrough(isDone, color: AppTheme.secondaryInk).opacity(isDone ? 0.5 : 1)
-            Text(day.a).font(.system(size: 12.5)).foregroundStyle(AppTheme.secondaryInk)
+            Text(day.a).font(DS.interface(12.5)).foregroundStyle(AppTheme.secondaryInk)
                 .frame(minWidth: 92, alignment: .leading)
                 .strikethrough(isDone, color: AppTheme.secondaryInk).opacity(isDone ? 0.5 : 1)
             Rectangle().fill(AppTheme.hairline.opacity(0.7)).frame(height: 1)
             if let t = day.t, let first = t.first {
                 HStack(spacing: 6) {
                     Text(first.num + (t.count > 1 ? " +\(t.count - 1)" : ""))
-                        .font(.system(size: 11.5, weight: .bold)).foregroundStyle(AppTheme.secondaryInk)
-                    Text(first.name).font(.system(size: 11.5)).foregroundStyle(AppTheme.secondaryInk.opacity(0.8))
+                        .font(DS.interface(11.5, .bold)).foregroundStyle(AppTheme.secondaryInk)
+                    Text(first.name).font(DS.interface(11.5)).foregroundStyle(AppTheme.secondaryInk.opacity(0.8))
                         .lineLimit(1)
                 }
                 .layoutPriority(1)
@@ -290,7 +290,7 @@ struct PlanoLeituraView: View {
             }
             if law0 != nil {
                 Button { openArticle(law0!, firstArt(day.a)) } label: {
-                    Image(systemName: "arrow.up.right.square").font(.system(size: 13))
+                    Image(systemName: "arrow.up.right.square").font(DS.interface(13))
                         .foregroundStyle(ThemeState.t.accent)
                 }
                 .buttonStyle(.plain).help("Abrir no leitor, no artigo")

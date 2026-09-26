@@ -141,7 +141,7 @@ struct SRSReviewView: View {
                         subtitle: "Você está em dia! Marque artigos com “Revisão espaçada” no modo Estudo para vê-los aqui quando vencerem.")
             }
         } else if index >= queue.count {
-            allDone(title: ThemeState.t.baixaEstimulacao ? "Revisão concluída" : "Revisão concluída 🎉",
+            allDone(title: "Revisão concluída",
                     subtitle: "\(gradedKeys.count) artigo(s) revisado(s) hoje. Volte amanhã para as próximas revisões.")
         } else {
             card(queue[index])
@@ -181,11 +181,11 @@ struct SRSReviewView: View {
                         Text(promptLabel(kind))
                             .font(.caption.weight(.semibold)).foregroundStyle(item.accent)
                         Text(prompt)
-                            .font(.system(size: 20, design: .default)).lineSpacing(5)
+                            .font(DS.interface(20)).lineSpacing(5)
                             .fixedSize(horizontal: false, vertical: true)
                             .textSelection(.enabled)
                     } else {
-                        Text(item.unit.label).font(.system(size: 30, weight: .bold, design: .default))
+                        Text(item.unit.label).font(DS.interface(30, .bold))
                         if let context = item.unit.context {
                             Text(context).font(.subheadline).foregroundStyle(.secondary)
                         }

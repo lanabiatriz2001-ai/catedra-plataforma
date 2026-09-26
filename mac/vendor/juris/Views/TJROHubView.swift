@@ -50,7 +50,7 @@ struct TJROHubView: View {
         Button { Task { await fetchLiame() } } label: {
             HStack(spacing: 6) {
                 Image(systemName: "arrow.triangle.2.circlepath")
-                Text("Buscar novidades").font(.system(size: 12.5, weight: .semibold))
+                Text("Buscar novidades").font(DS.interface(12.5, .semibold))
             }
             .foregroundStyle(.white).padding(.horizontal, 14).padding(.vertical, 9)
             .background(Palette.fonteTJRO, in: Capsule())
@@ -61,20 +61,20 @@ struct TJROHubView: View {
     private var checando: some View {
         HStack(spacing: 8) {
             ProgressView().controlSize(.small)
-            Text("Consultando o LIAME (tjro.jus.br)…").font(.system(size: 12)).foregroundStyle(Palette.secondaryInk)
+            Text("Consultando o LIAME (tjro.jus.br)…").font(DS.interface(12)).foregroundStyle(Palette.secondaryInk)
         }
     }
 
     private func resultadoCard(_ texto: String) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Label(texto, systemImage: novos.isEmpty ? "checkmark.seal.fill" : "sparkles")
-                .font(.system(size: 12.5, weight: .semibold))
+                .font(DS.interface(12.5, .semibold))
                 .foregroundStyle(novos.isEmpty ? Palette.fonteSTJ : Palette.accent)
                 .fixedSize(horizontal: false, vertical: true)
             ForEach(novos) { n in
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("\(n.tipo) nº \(n.num)").font(.system(size: 12.5, weight: .bold)).foregroundStyle(Palette.titleInk)
-                    Text(n.texto).font(.system(size: 11.5)).foregroundStyle(Palette.bodyInk)
+                    Text("\(n.tipo) nº \(n.num)").font(DS.interface(12.5, .bold)).foregroundStyle(Palette.titleInk)
+                    Text(n.texto).font(DS.interface(11.5)).foregroundStyle(Palette.bodyInk)
                         .lineLimit(3).fixedSize(horizontal: false, vertical: true)
                 }
                 .padding(10)
@@ -83,7 +83,7 @@ struct TJROHubView: View {
             }
             if !novos.isEmpty {
                 Text("Esses ainda não estão no acervo do app — entram numa próxima atualização do acervo (com tese, ramo e link oficial).")
-                    .font(.system(size: 11)).foregroundStyle(Palette.secondaryInk)
+                    .font(DS.interface(11)).foregroundStyle(Palette.secondaryInk)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
