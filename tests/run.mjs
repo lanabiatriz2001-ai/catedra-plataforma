@@ -3,7 +3,7 @@
    · SYNC: o mergeAll do auth.js (carimbo por chave, vazio nunca apaga cheio,
      união por id, lápides, histórico × lixeira) via tests/sync-fixture.html;
    · ACERVO ida-e-volta: rito/peça/bloco na URL, mensagens ctAbrirAcervo com origem,
-     pílula de voltar no LEGIS/JURIS e o ciclo completo via tests/harness-acervo.html;
+     pílula de voltar no LEGIS/JURIS e a volta à origem no host real (tests/volta-origem.mjs);
    · ORAL LEI SECA: a aba Lei seca da Prova oral lista as leis (tests/oral-lei-seca.mjs).
    Servidor e navegador vêm de tests/_infra.mjs. O motor padrão é o Chromium — executável
    de CT_CHROME ou dos caminhos usuais (CI: google-chrome); CT_BROWSER=webkit troca pelo
@@ -33,6 +33,7 @@ import { testarIphoneHost390 } from './iphone-host-390.mjs';
 import { testarReguaUnica } from './regua-unica.mjs';
 import { testarPrioridadeErrosResolvidos } from './prioridade-erros-resolvidos.mjs';
 import { testarRevisaoFonte } from './revisao-fonte.mjs';
+import { testarVoltaOrigem } from './volta-origem.mjs';
 import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
 import { testarOnboardingImportar } from './onboarding-importar.mjs';
 import { testarCotaIA } from './cota-ia.mjs';
@@ -629,13 +630,19 @@ const a3 = await page.evaluate(async () => {
 });
 ok(a3.de && a3.de.peca && a3.de.bloco != null, 'ACERVO chip do painel manda de.peca+bloco');
 
-// pílula de voltar nos dois acervos, e só com ?volta=1
-for (const pg of ['legis-web.html?volta=1', 'juris-web.html?volta=1']) {
+// pílula de voltar nos dois acervos, e só com ?volta=1. O TEXTO vem do host (&vr=, depois
+// ctVoltaDisponivel {rotulo}); sem ele a pílula diz só "Voltar". A seta é um SVG aria-hidden
+// fora do texto (o nome acessível é só o rótulo). A volta de ponta a ponta,
+// no host real e com a pílula medida, está em tests/volta-origem.mjs.
+for (const [pg, texto] of [['legis-web.html?volta=1&vr=' + encodeURIComponent('Voltar à peça · bloco 3'), 'Voltar à peça · bloco 3'],
+                           ['juris-web.html?volta=1', 'Voltar']]) {
   await page.goto(URL0 + '/' + pg);
   await page.waitForTimeout(400);
-  const a4 = await page.evaluate(async () => {
-    const b = [...document.querySelectorAll('button')].find(x => /Voltar ao ponto/.test(x.textContent || ''));
-    if (!b) return { pill: false };
+  const a4 = await page.evaluate(async (texto) => {
+    const b = document.getElementById('ct-volta');
+    const svg = b && b.querySelector('svg');
+    if (!b || getComputedStyle(b).display === 'none' || (b.textContent || '').trim() !== texto
+      || !svg || svg.getAttribute('aria-hidden') !== 'true') return { pill: false, achou: b && b.textContent };
     const got = new Promise(resolve => {
       const original = window.ctEnviarAoHost;
       let resolveu = false;
@@ -650,61 +657,17 @@ for (const pg of ['legis-web.html?volta=1', 'juris-web.html?volta=1']) {
     });
     b.click();
     return { pill: true, msg: await got };
-  });
-  ok(a4.pill && a4.msg && a4.msg.type === 'ctVoltarAcervo', 'ACERVO pílula funciona em ' + pg);
+  }, texto);
+  ok(a4.pill && a4.msg && a4.msg.type === 'ctVoltarAcervo', 'ACERVO pílula "' + texto + '" funciona em ' + pg.split('?')[0]);
 }
 await page.goto(URL0 + '/legis-web.html');
 await page.waitForTimeout(300);
-const a4b = await page.evaluate(() => ![...document.querySelectorAll('button')].some(x => /Voltar ao ponto/.test(x.textContent || '')));
+const a4b = await page.evaluate(() => { const b = document.getElementById('ct-volta'); return !b || getComputedStyle(b).display === 'none'; });
 ok(a4b, 'ACERVO sem volta=1 não há pílula');
 
-// ciclo completo no harness que simula o host. SEM TEMPO FIXO (11/09/2026): sob carga o
-// iframe ainda não tinha trocado de página quando o teste lia o painel, e a volta falhava sem
-// defeito no app. Cada passo espera a sua condição (a cada 50 ms, até 8 s); elemento ausente
-// vira falha nomeada, não exceção que derruba a suíte.
-await page.goto(URL0 + '/tests/harness-acervo.html');
-const a5 = await page.evaluate(async (PECA) => {
-  const w = ms => new Promise(r => setTimeout(r, ms));
-  const fr = document.getElementById('fr');
-  for (let i = 0; i < 160 && !(fr.contentWindow && fr.contentWindow.CTRoteiro); i++) await w(50);
-  if (!fr.contentWindow.CTRoteiro) return { erro: 'o mapa não carregou no iframe' };
-  fr.contentWindow.CTRoteiro.abrir(PECA);
-  const acha = () => [...fr.contentDocument.querySelectorAll('.ctr .rf button')].find(b => +b.dataset.b > 0);
-  for (let i = 0; i < 160 && !acha(); i++) await w(50);
-  const chip = acha(); if (!chip) return { erro: 'sem chip de bloco no painel' };
-  const n = window.__log.length;
-  chip.click();
-  for (let i = 0; i < 160 && window.__log.length === n; i++) await w(50);
-  return window.__log[window.__log.length - 1];
-}, PECA);
-ok(!a5.erro && /legis-web/.test(a5.src) && /volta=1/.test(a5.src) && /q=/.test(a5.src), 'ACERVO ida: LEGIS com q= e volta=1' + (a5.erro ? ' (' + a5.erro + ')' : ''));
-const a6 = await page.evaluate(async () => {
-  const w = ms => new Promise(r => setTimeout(r, ms));
-  const fr = document.getElementById('fr');
-  // o LEGIS entra no lugar do mapa: espera a pílula DELE, não 1,5 s fixos
-  const pilula = () => { const d = fr.contentDocument; return d && /legis-web/.test(d.location.pathname) && [...d.querySelectorAll('button')].find(x => /Voltar ao ponto/.test(x.textContent || '')); };
-  for (let i = 0; i < 160 && !pilula(); i++) await w(50);
-  const b = pilula();
-  if (!b) return { erro: 'sem pílula no iframe' };
-  const n = window.__log.length;
-  b.click();
-  for (let i = 0; i < 160 && window.__log.length === n; i++) await w(50);
-  return window.__log[window.__log.length - 1];
-});
-ok(!a6.erro && a6.view === 'areamod' && /peca=/.test(a6.src) && /bloco=/.test(a6.src), 'ACERVO volta: mapa com peca+bloco' + (a6.erro ? ' (' + a6.erro + ')' : ''));
-const a7 = await page.evaluate(async () => {
-  const w = ms => new Promise(r => setTimeout(r, ms));
-  // espera o iframe TROCAR de página (sai o LEGIS, entra o mapa com ?bloco=) e o painel reabrir
-  // no bloco — espera e leitura no mesmo passo, sem 1,2 s fixos no meio
-  const doc = () => document.getElementById('fr').contentDocument;
-  const pronto = () => { const d = doc(); return !!d && /bloco=/.test(d.location.search) && !!d.querySelector('.ctr.on') && [...d.querySelectorAll('.ctr .blk')].some(b => b.classList.contains('volta')); };
-  for (let i = 0; i < 160 && !pronto(); i++) await w(50);
-  const d = doc(), rot = d && d.querySelector('.ctr');
-  return { aberto: !!rot && rot.classList.contains('on'),
-           destacou: !!d && [...d.querySelectorAll('.ctr .blk')].some(b => b.classList.contains('volta')),
-           onde: d ? d.location.pathname + d.location.search : 'sem documento no iframe' };
-});
-ok(a7.aberto && a7.destacou, 'ACERVO volta reabre o painel no bloco destacado' + (a7.aberto && a7.destacou ? '' : ' (' + a7.onde + ')'));
+// O ciclo completo (ida → pílula → volta ao bloco) rodava em tests/harness-acervo.html, uma
+// cópia ANTIGA do host sem os ramos de prioridade, ciclo e 2ª fase e sem os iframes vivos.
+// Saiu em 24/09/2026: tests/volta-origem.mjs faz o mesmo e mais no Catedra.dc.html real.
 
 /* ===== JURIS — INFORMATIVOS DO STF: EDIÇÃO, TRIBUNAL E DATA (auditoria 15/09/2026) =====
 
@@ -9007,6 +8970,13 @@ try { await testarPrioridadeDiscursiva(page, URL0, ok); } catch(e) { ok(false, '
 try { await testarRevisaoFonte(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'REVISÃO/FONTE [' + motor + '] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+// Volta à origem: a pílula do LEGIS/JURIS e o botão nativo levam ao ponto exato (tests/volta-origem.mjs)
+try { await testarVoltaOrigem(page, URL0, ok, { motor, origem: 'http' }); }
+catch (e) {
+  ok(false, 'VOLTA [' + motor + '] [http] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 

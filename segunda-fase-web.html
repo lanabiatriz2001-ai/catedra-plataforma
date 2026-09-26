@@ -449,10 +449,12 @@ function telaCorrecao(){
       art.style.setProperty('--vc', b.dataset.v==='atendeu'?'var(--ok)':b.dataset.v==='parcial'?'var(--meio)':'var(--nao)');
       pinta(); };
   });
-  /* o dispositivo do espelho abre na lei seca, com caminho de volta */
+  /* o dispositivo do espelho abre na lei seca, com caminho de volta. A correção em
+     curso fica neste iframe (que nunca sai do DOM) e no localStorage: a volta só precisa
+     trazer a tela de volta. O rótulo segue a régua do host e serve ao botão nativo. */
   $('qs').querySelectorAll('[data-legis]').forEach(el=>{
     el.onclick=()=>{ try{ window.ctEnviarAoHost({type:'ctAbrirAcervo', alvo:'legis',
-      termo:el.dataset.legis, origem:{view:'segundafase', rotulo:'Correção · '+rotulo(p)}}); }catch(e){} };
+      termo:el.dataset.legis, origem:{view:'segundafase', rotulo:'Voltar à correção'}}); }catch(e){} };
   });
   $('bVoltarFolha').onclick=()=>{ S.sessao.entregue=false; grava(S); telaProva(); };
   $('bImprimir').onclick=()=>window.print();
