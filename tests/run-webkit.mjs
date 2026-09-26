@@ -29,6 +29,7 @@ import { testarIpadToqueSatelites } from './ipad-toque-satelites.mjs';
 import { testarAuthIpad } from './auth-ipad.mjs';
 import { testarAuthAbertura } from './auth-abertura.mjs';
 import { testarAuthHidratacao } from './auth-hidratacao.mjs';
+import { testarAuthFechamento } from './auth-fechamento.mjs';
 import { testarCarregamentoInicial, testarAberturaEmbutida } from './carregamento-inicial.mjs';
 import { testarTemplateFileUrl } from './template-file-url.mjs';
 import { testarAuthModoLocal } from './auth-modo-local.mjs';
@@ -107,6 +108,12 @@ for (const [base, origem, arquivo] of ORIGENS) {
     try { await testarAuthHidratacao(page, base, ok, { motor }); }
     catch (e) {
       ok(false, 'AUTH HIDRATAÇÃO [' + motor + '] o roteiro correu sem exceção ('
+        + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+    }
+    // fechamento e Sair sem sobrescrever a nuvem: PATCH condicional no pagehide, Sair espera o pushNow
+    try { await testarAuthFechamento(page, base, ok, { motor }); }
+    catch (e) {
+      ok(false, 'AUTH FECHAMENTO [' + motor + '] o roteiro correu sem exceção ('
         + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
     }
     await testarCarregamentoInicial(page, base, ok);
