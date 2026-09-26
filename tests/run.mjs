@@ -49,7 +49,7 @@ import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 import { testarMenuLateral } from './menu-lateral.mjs';
 import { testarSemDodEstatico, testarSemDodNavegador } from './sem-dod.mjs';
-import { testarTesesOficiaisEstatico, testarTesesOficiaisNavegador } from './teses-oficiais.mjs';
+import { testarTesesOficiaisEstatico, testarTesesOficiaisNavegador, lerReferencia as lerTesesOficiais } from './teses-oficiais.mjs';
 import { testarSemMapasMentaisEstatico, testarSemMapasMentaisNavegador } from './sem-mapas-mentais.mjs';
 import { testarAssinaturaLimpa } from './assinatura-limpa.mjs';
 import { testarXcodeCloud } from './xcode-cloud.mjs';
@@ -1038,7 +1038,8 @@ ok(a7.aberto && a7.destacou, 'ACERVO volta reabre o painel no bloco destacado' +
     'STJ-2 INF2024-0788: data e órgão são os da nota oficial (Primeira Seção, 14/08/2024)');
   ok(t('COORD-REP-1088').og === '1ª Seção' && (t('COORD-REP-1088').co || '').startsWith(PREFIXO) && /Sobrestado/.test(t('COORD-REP-1088').co),
     'STJ-2 COORD-REP-1088: ganha o órgão da ficha e a nota de que o tema está sobrestado');
-  ok(t('repgeral-repetitivo-STF-581').fp === 'REsp 1110520/SP',
+  // desde o lote L3 das teses oficiais a citação traz também o relator ("REsp 1110520/SP · Rel. Min. …")
+  ok(/^REsp 1110520\/SP( · Rel\. |$)/.test(t('repgeral-repetitivo-STF-581').fp || '') && !/Info/.test(t('repgeral-repetitivo-STF-581').fp || ''),
     'STJ-2 Tema 581: a citação de origem é o processo da ficha, não "Info 835"');
 
   // 6. guarda: no STJ, título e número nunca divergem — o #115 trocou títulos de edição e deixou o
@@ -1065,10 +1066,18 @@ ok(a7.aberto && a7.destacou, 'ACERVO volta reabre o painel no bloco destacado' +
   const TXT = carrega('juris-text.js', '__JURIS_TXT__');
   const IDX = Object.fromEntries(linhas.map(r => [r[0], r]));
   const ids = ["INF2020-0260","INF2020-0351","INF2021-0224","INF2021-0285","INF2021-0533","INF2021-0664","INF2022-0393","INF2022-0604","INF2023-0498","INF2024-0496","INF2025-0518","SELTJGO-0163","SELTJGO-0265","SELTJGO-0313","SELTJGO-0417","SELTJGO-0433","SELTJGO-0438","SELTJGO-0520","SELTJPR-0190","SELTJPR-0285","SELTJRJ-0451","SELTJRJ-0545","SELTJRJ-0562","repgeral-repetitivo-STJ-1093-2","repgeral-repetitivo-STJ-1149-2","repgeral-repetitivo-STJ-1195","repgeral-repetitivo-STJ-1295","repgeral-repetitivo-STJ-905","repgeral-repetitivo-STJ-905-2","repgeral-repetitivo-STJ-x1060","repgeral-repetitivo-STJ-x1139","repgeral-repetitivo-STJ-x640","repgeral-repetitivo-STJ-x641"];
-  const retrato = Object.fromEntries(ids.map(id => [id, IDX[id] ? { indice: IDX[id], texto: TXT[id] || null } : null]));
+  // Desde os lotes L2/L3 das teses oficiais (25/09/2026), 4 destes ids (Temas 1195, 1295, 905 e 1139 do
+  // STJ) têm o texto OFICIAL do STJ, que a auditoria conferiu antes da troca: esses provam igualdade
+  // exata com a referência versionada; os outros 29 seguem com o retrato validado (o digest dos 29 era
+  // o mesmo antes da troca — 7cc4c4e8… — e o dos 33 era ae9e557f…).
+  const OFI = lerTesesOficiais();
+  const noLote = ids.filter(id => id in OFI), fora = ids.filter(id => !(id in OFI));
+  const retrato = Object.fromEntries(fora.map(id => [id, IDX[id] ? { indice: IDX[id], texto: TXT[id] || null } : null]));
   const digest = createHash('sha256').update(JSON.stringify(retrato)).digest('hex');
-  ok(digest === 'ae9e557f3edb64dfa8e7c1ab1f53becd07946a9df107316bc64da277ae91e1dc',
-    'STJ-SALDO os 33 registros mantêm exatamente as 49 correções e 2 exclusões validadas (' + digest.slice(0, 12) + ')');
+  ok(fora.length === 29 && digest === '7cc4c4e89e798ce745dad402aa15de598168294399dbab63face798929ca5b8d',
+    'STJ-SALDO os ' + fora.length + ' registros fora da troca oficial mantêm exatamente as correções e exclusões validadas (' + digest.slice(0, 12) + ')');
+  ok(noLote.length === 4 && noLote.every(id => TXT[id] && TXT[id].en === OFI[id].enunciado && TXT[id].ur === OFI[id].url && IDX[id][3] === OFI[id].numero),
+    'STJ-SALDO os 4 trocados pela fonte oficial têm o texto, o link e o número oficiais da referência (' + noLote.join(', ') + ')');
 
   ok(!IDX['repgeral-repetitivo-STJ-x640'] && !TXT['repgeral-repetitivo-STJ-x640']
     && !IDX['SELTJGO-0438'] && !TXT['SELTJGO-0438'],
@@ -1107,10 +1116,17 @@ ok(a7.aberto && a7.destacou, 'ACERVO volta reabre o painel no bloco destacado' +
   const TXT = carrega('juris-text.js', '__JURIS_TXT__');
   const IDX = Object.fromEntries(linhas.map(r => [r[0], r]));
   const ids = ["CTRLCONST-0292","INF2020-0381","INF2020-0484","INF2020-0522","INF2020-0551","INF2023-0082","INF2023-0088","INF2023-0092","INF2023-0111","INF2023-0113","INF2023-0143","INF2023-0159","INF2023-0212","INF2023-0250","INF2023-0451","INF2023-0552","INF2023-0643","INF2023-0677","INF2023-0692","INF2023-0735","INF2023-0770","INF2023-0774","INF2024-0188","INF2024-0563","INF2024-0583","INF2024-0680","INF2025-0174","INF2025-0427","INF2025-0565","INF2025-0585","INF2025-0897","SELTJGO-0461","SELTJGO-0627","SELTJGO-0640","SELTJGO-0642","SELTJGO-0643","SELTJPR-0186","SELTJRJ-0570","SELTJRJ-0596","repgeral-repercussao_geral-STF-1015","repgeral-repercussao_geral-STF-1090","repgeral-repercussao_geral-STF-1277","repgeral-repercussao_geral-STF-21","repgeral-repercussao_geral-STF-324","repgeral-repercussao_geral-STF-370","repgeral-repercussao_geral-STF-432","repgeral-repercussao_geral-STF-476","repgeral-repercussao_geral-STF-554","repgeral-repercussao_geral-STF-580","repgeral-repercussao_geral-STF-703","repgeral-repercussao_geral-STF-820","repgeral-repercussao_geral-STF-825","repgeral-repercussao_geral-STF-881","repgeral-repercussao_geral-STF-967","repgeral-repercussao_geral-STF-x1198","repgeral-repercussao_geral-STF-x1586","repgeral-repercussao_geral-STF-x1590","repgeral-repercussao_geral-STJ-x257","repgeral-repetitivo-STF-x1319","repgeral-repetitivo-STJ-1196","repgeral-repetitivo-STJ-1197","repgeral-repetitivo-STJ-1235","repgeral-repetitivo-STJ-931"];
-  const retrato = Object.fromEntries(ids.map(id => [id, IDX[id] ? { indice: IDX[id], texto: TXT[id] || null } : null]));
+  // Desde os lotes L2/L3 das teses oficiais (25/09/2026), 19 destes ids têm o texto OFICIAL do STF/STJ
+  // (igualdade exata com a referência versionada); os outros 44 seguem com o retrato validado (o
+  // digest dos 44 era o mesmo antes da troca — 06e4bffa… — e o dos 63 era 42175d7f…).
+  const OFI = lerTesesOficiais();
+  const noLote = ids.filter(id => id in OFI), fora = ids.filter(id => !(id in OFI));
+  const retrato = Object.fromEntries(fora.map(id => [id, IDX[id] ? { indice: IDX[id], texto: TXT[id] || null } : null]));
   const digest = createHash('sha256').update(JSON.stringify(retrato)).digest('hex');
-  ok(digest === '42175d7f3884d6e10b28e1c5c8f4f31628c352980926c0a3599e2b9ef7fd6c9b',
-    'JURIS-CORTES os 58 fragmentos e seus cinco destinos mantêm a redação oficial validada (' + digest.slice(0, 12) + ')');
+  ok(fora.length === 44 && digest === '06e4bffa6e17fb4d8a5148dd5ceff8305ac0b092af128f5498777d322765e51f',
+    'JURIS-CORTES os ' + fora.length + ' fragmentos e destinos fora da troca oficial mantêm a redação validada (' + digest.slice(0, 12) + ')');
+  ok(noLote.length === 19 && noLote.every(id => TXT[id] && TXT[id].en === OFI[id].enunciado && TXT[id].ur === OFI[id].url && IDX[id][3] === OFI[id].numero),
+    'JURIS-CORTES os 19 destinos trocados pela fonte oficial têm o texto, o link e o número oficiais da referência');
 
   const antigos = ['repgeral-repercussao_geral-STF-x1198', 'repgeral-repetitivo-STF-x1319',
     'repgeral-repercussao_geral-STJ-x257', 'repgeral-repercussao_geral-STF-x1586',
@@ -9083,14 +9099,15 @@ catch (e) { ok(false, 'SEM DOD [' + motor + '] estático sem exceção (' + Stri
 try { await testarSemDodNavegador(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) { ok(false, 'SEM DOD [' + motor + '] [http] o roteiro correu sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
 
-// Teses de RG e Repetitivos pela fonte oficial, lote L1 (tests/teses-oficiais.mjs): decisão da dona
-// de 25/09/2026. Cada registro trocado tem o texto oficial idêntico ao da referência versionada,
-// link oficial e nada do Dizer o Direito, na web e no nativo (web == nativo); o verbete pinta o
-// título oficial inteiro e a lista, o cortado.
+// Teses de RG e Repetitivos pela fonte oficial, lotes L1, L2 e L3 (tests/teses-oficiais.mjs): decisão
+// da dona de 25/09/2026. Cada registro trocado tem o texto oficial idêntico ao da referência versionada,
+// link oficial e nada do Dizer o Direito, na web e no nativo (web == nativo); relator do STF é o do
+// julgamento; o verbete pinta o título oficial inteiro e a lista, o cortado; a quebra de linha da tese
+// oficial pinta como linha nova.
 try { testarTesesOficiaisEstatico(ok, { motor }); }
-catch (e) { ok(false, 'TESES OFICIAIS L1 [' + motor + '] estático sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
+catch (e) { ok(false, 'TESES OFICIAIS [' + motor + '] estático sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
 try { await testarTesesOficiaisNavegador(page, URL0, ok, { motor, origem: 'http' }); }
-catch (e) { ok(false, 'TESES OFICIAIS L1 [' + motor + '] [http] o roteiro correu sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
+catch (e) { ok(false, 'TESES OFICIAIS [' + motor + '] [http] o roteiro correu sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
 
 // Sem mapas mentais (tests/sem-mapas-mentais.mjs): decisão da dona de 25/09/2026. Nenhum Swift do
 // Mac/iPad com a ferramenta, a folha, a galeria ou a seção; o state.json antigo do JURIS abre e
