@@ -98,7 +98,7 @@ struct RamoDetalheView: View {
                             }
                             if assuntos.count > limiteAssuntos {
                                 Text("Mostrando os \(limiteAssuntos) assuntos mais frequentes de \(assuntos.count) — use a busca em \"Todos os verbetes\" para o restante.")
-                                    .font(.system(size: 10.5)).foregroundStyle(Palette.secondaryInk)
+                                    .font(DS.interface(10.5)).foregroundStyle(Palette.secondaryInk)
                             }
                         }
                         Color.clear.frame(height: 20)
@@ -148,20 +148,20 @@ struct TribunalCentralView: View {
                     VStack(alignment: .leading, spacing: 6) {
                         HStack(spacing: 10) {
                             Text(t.sigla)
-                                .font(.system(size: 13, weight: .bold))
+                                .font(DS.interface(13, .bold))
                                 .foregroundStyle(.white)
                                 .padding(.horizontal, 10).padding(.vertical, 5)
                                 .background(Color.white.opacity(0.16), in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
-                            Text(t.nome).font(.system(size: 26, weight: .bold)).foregroundStyle(.white)
+                            Text(t.nome).font(DS.interface(26, .bold)).foregroundStyle(.white)
                             Spacer()
                             Text("\(verbetes.count) verbetes")
-                                .font(.system(size: 11.5, weight: .semibold)).monospacedDigit()
+                                .font(DS.interface(11.5, .semibold)).monospacedDigit()
                                 .padding(.horizontal, 10).padding(.vertical, 4)
                                 .background(Color.white.opacity(0.16), in: Capsule())
                                 .foregroundStyle(.white)
                         }
                         Text(t.detalhe)
-                            .font(.system(size: 12.5)).foregroundStyle(.white.opacity(0.85))
+                            .font(DS.interface(12.5)).foregroundStyle(.white.opacity(0.85))
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     .padding(22)
@@ -225,7 +225,7 @@ struct TribunalCentralView: View {
                     if t.custom {
                         Button(role: .destructive) { confirmarExclusao = true } label: {
                             Label("Excluir esta central", systemImage: "trash")
-                                .font(.system(size: 11.5, weight: .medium))
+                                .font(DS.interface(11.5, .medium))
                         }
                         .buttonStyle(.borderless)
                     }

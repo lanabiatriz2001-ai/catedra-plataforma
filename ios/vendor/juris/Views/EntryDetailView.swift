@@ -39,7 +39,17 @@ struct EntryDetailView: View {
     /// main, e a seção "Do mesmo assunto" nunca discorda do quadro na mesma rolagem — nem
     /// quando o roteiro vem do cache.
     @State private var vizinhos: QuadroRelacionados?
+    // Entrega 3 — casca do leitor (estado só de tela; nada persistido).
+    @State private var modoVerbete: ModoLeitor = .ler
+    @State private var gaveta: AlturaGaveta = .fechada
+    @State private var abaGaveta = 0
+    @State private var mostrarSecundario = false
+    // Entrega 6: a barra de marcação (15 controles) fica recolhida atrás de um botão "Marcar".
+    @State private var mostrarMarcacao = false
+    @State private var artigosDoVerbete: [ArtigoCitado] = []
+    @State private var relacionadosCache: [JurisEntry]?
 
+    private var ehCompactoOuFalso: Bool { ehCompacto }
     private var baseSize: CGFloat { 16.5 * readingScale }
     private var markColor: MarkColor { MarkColor(rawValue: markColorHex) ?? .amarelo }
 
@@ -51,36 +61,26 @@ struct EntryDetailView: View {
                 header
                 alertaSituacao
                 enunciadoCard
-                // INFORMATIVO: o roteiro-widget (Em uma frase / Fundamento / Como era / O que
-                // decidiu / Pegadinha / quiz) é a interface do informativo — vem logo depois do
-                // enunciado, antes das anotações; estava enterrado no fim da página. Agora é
-                // local e instantâneo (RoteiroLocal), então nasce aberto em todo verbete.
-                // O roteiro é local e instantâneo (RoteiroLocal), então nasce aberto em TODO
-                // verbete — informativo ou não. Antes havia dois ramos (ehInformativo e o
-                // contrário) chamando a mesma coisa com comentários que diziam o oposto.
-                // vizinhosAbaixo: a lista "Do mesmo assunto" é a seção que fecha a página
-                // (relacionadosSection), então o quadro não a repete aqui em cima.
-                RoteiroEstudoView(entry: entry, autoGerar: true, vizinhosAbaixo: true,
-                                  aoMudarQuadro: { vizinhos = $0 })
-                // "Minhas anotações" LOGO ABAIXO do dispositivo (pedido da Lana) —
-                // antes vinha depois da nota de estudo do app.
-                anotacaoCard
-                notaAppCard
-                metadata
-                if let p = entry.precedentes, !p.isEmpty {
-                    disclosure("Precedentes / Julgados", "text.quote", p)
+                // Ler: só a fonte primária (texto do tribunal, ficha, precedentes, referências
+                // oficiais). Estudar: o roteiro, as suas anotações e a nota de estudo do app.
+                // Comentário e observação (apoio) ficam no ⋯ → "Comentário e observação".
+                if modoVerbete == .ler {
+                    ligacoesVerbete
+                    metadata
+                    if let p = entry.precedentes, !p.isEmpty {
+                        disclosure("Precedentes / Julgados", "text.quote", p)
+                    }
+                    if let r = entry.referencias, !r.isEmpty {
+                        disclosure("Referências legislativas", "book.closed", r)
+                    }
+                    footer
+                } else {
+                    RoteiroEstudoView(entry: entry, autoGerar: true, vizinhosAbaixo: true,
+                                      aoMudarQuadro: { vizinhos = $0 })
+                    anotacaoCard
+                    notaAppCard
+                    relacionadosSection
                 }
-                if let c = entry.comentario, !c.isEmpty {
-                    disclosure("Comentário", "text.bubble", c)
-                }
-                if let o = entry.observacao, !o.isEmpty {
-                    disclosure("Observação", "exclamationmark.bubble", o)
-                }
-                if let r = entry.referencias, !r.isEmpty {
-                    disclosure("Referências legislativas", "book.closed", r)
-                }
-                relacionadosSection
-                footer
             }
             .padding(.horizontal, ehCompacto ? 16 : 34)   // 390 pt de tela: 34 de cada lado comia 68
             .padding(.vertical, ehCompacto ? 16 : 30)
@@ -88,6 +88,40 @@ struct EntryDetailView: View {
             .frame(maxWidth: .infinity, alignment: .center)
         }
         .background(detailCanvas)
+        .overlay(alignment: .bottom) {
+            if gaveta != .fechada {
+                GavetaContexto(altura: $gaveta, titulo: entry.titulo, subtitulo: entry.tribunal,
+                               abas: ["Artigos citados", "Relacionados"], aba: $abaGaveta,
+                               compacto: ehCompactoOuFalso) { conteudoGavetaVerbete }
+            }
+        }
+        // Artigos citados: uma vez por verbete (não a cada redesenho). Relacionados: só quando
+        // a aba abre, fora da main (varre o acervo inteiro).
+        .task(id: entry.id) { artigosDoVerbete = JurisPorArtigo.artigosCitados(verbeteID: entry.id); relacionadosCache = nil }
+        .task(id: "\(entry.id)|\(abaGaveta)|\(gaveta != .fechada)") {
+            guard abaGaveta == 1, gaveta != .fechada, relacionadosCache == nil,
+                  let acervo = store.acervoParaQuadro() else { return }
+            let e = entry
+            let r = await Task.detached(priority: .userInitiated) { acervo.relacionados(e, limite: 12) }.value
+            relacionadosCache = r
+        }
+        .sheet(isPresented: $mostrarSecundario) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: DSEspaco.e4) {
+                    Text("Comentário e observação").font(DS.display(19, .bold)).foregroundStyle(ThemeState.t.ink)
+                    Text("Material de apoio — não é o texto do tribunal.")
+                        .font(DS.interface(13)).foregroundStyle(ThemeState.t.text3)
+                    if let c = entry.comentario, !c.isEmpty {
+                        Text(c).font(DS.display(16, .regular)).foregroundStyle(ThemeState.t.ink).textSelection(.enabled)
+                    }
+                    if let o = entry.observacao, !o.isEmpty {
+                        Text(o).font(DS.display(16, .regular)).foregroundStyle(ThemeState.t.ink).textSelection(.enabled)
+                    }
+                }
+                .padding(DSEspaco.e5)
+            }
+            .frame(minWidth: ehCompactoOuFalso ? nil : 420, minHeight: 320)
+        }
         .navigationTitle(entry.titulo)
         // iPad: a nav bar do NavigationStack repetia o título em letras grandes entre a barra
         // "Voltar" do leitor e a barra do verbete — três barras empilhadas antes do texto,
@@ -112,7 +146,16 @@ struct EntryDetailView: View {
         // do verbete viram uma barra própria acima do conteúdo (estilo Books).
         // iPhone: a mesma barra vai para baixo, rolável de lado — todas as ações à mão,
         // nenhuma escondida, e só a nav bar acima do texto.
-        .safeAreaInset(edge: .top, spacing: 0) { if !ehCompacto { entryToolbar } }
+        // iPhone também tem a barra (Ler/Estudar + ⋯): sem ela o compacto ficava preso em Ler
+        // e o roteiro, as anotações e o comentário não tinham caminho (revisão final).
+        .safeAreaInset(edge: .top, spacing: 0) {
+            Group {
+                BarraLeitor(ramo: [entry.tribunal, entry.ramoDireito ?? ""].filter { !$0.isEmpty }.joined(separator: " · "),
+                        corRamo: CorTribunal.identidade(entry.tribunal) ?? Ramo.deNome(entry.ramoDireito)?.identidade,
+                        titulo: entry.titulo, modo: $modoVerbete, aoVoltar: nil,
+                        aa: { tamanhoMenu }, mais: { maisVerbete })
+            }
+        }
         .safeAreaInset(edge: .bottom, spacing: 0) { if ehCompacto { entryToolbarCompacta } }
         .onAppear {
             store.markRecent(entry.id)
@@ -459,8 +502,19 @@ struct EntryDetailView: View {
 
     private var enunciadoCard: some View {
         VStack(alignment: .leading, spacing: 0) {
-            marcacaoToolbar
-            Divider().overlay(Palette.hairline)
+            if mostrarMarcacao && !editandoEnunciado {
+                marcacaoToolbar
+                Divider().overlay(Palette.hairline)
+            }
+            if !editandoEnunciado { HStack {
+                Spacer()
+                Button { withAnimation(.easeInOut(duration: 0.15)) { mostrarMarcacao.toggle() } } label: {
+                    Label(mostrarMarcacao ? "Fechar marcação" : "Marcar", systemImage: "highlighter")
+                        .font(DS.interface(13, .semibold)).frame(minHeight: 32)
+                }
+                .buttonStyle(.plain).foregroundStyle(ThemeState.t.accent)
+                .padding(.top, 8)
+            } }
             HStack(alignment: .top, spacing: 12) {
                 MarkableText(text: editandoEnunciado ? rascunhoEnunciado : store.textoEnunciado(for: entry),
                              marks: store.marks(for: entry.id),
@@ -1329,6 +1383,152 @@ struct EntryDetailView: View {
             } label: { capsIcon("textformat.size", chevron: true) }
             .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
             .help("Tamanho do texto de leitura")
+    }
+
+    // MARK: - Casca do leitor (entrega 3)
+
+    private var tamanhoMenu: some View {
+        Menu {
+            Button { readingScale = min(readingScale + 0.1, 1.8) } label: { Label("Aumentar texto", systemImage: "textformat.size.larger") }
+            Button { readingScale = max(readingScale - 0.1, 0.8) } label: { Label("Diminuir texto", systemImage: "textformat.size.smaller") }
+            Button { readingScale = 1.0 } label: { Label("Tamanho padrão", systemImage: "arrow.counterclockwise") }
+        } label: {
+            Image(systemName: "textformat.size").font(DS.interface(17))
+                .frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
+                .accessibilityLabel("Tamanho do texto")
+        }
+        .menuIndicator(.hidden).fixedSize()
+    }
+
+    /// Tudo o que a barra antiga (9 controles) oferecia, agrupado — sem mudar o que cada ação faz.
+    private var maisVerbete: some View {
+        Menu {
+            Section("Marcar") {
+                Button { store.toggleFavorite(entry.id) } label: {
+                    Label(store.isFavorite(entry.id) ? "Remover dos favoritos" : "Favoritar",
+                          systemImage: store.isFavorite(entry.id) ? "star.fill" : "star")
+                }
+                Button { store.toggleImportante(entry) } label: {
+                    Label(entry.importante ? "Importante (pelo material)" : (store.isImportante(entry) ? "Desmarcar importante" : "Marcar como importante"),
+                          systemImage: (store.isImportante(entry) || entry.importante) ? "flag.fill" : "flag")
+                }
+                .disabled(entry.importante)
+                Button { store.toggleLido(entry.id) } label: {
+                    Label(store.isLido(entry.id) ? "Desmarcar lido" : "Marcar como lido",
+                          systemImage: store.isLido(entry.id) ? "checkmark.circle.fill" : "checkmark.circle")
+                }
+            }
+            Section("Estudar") {
+                Menu {
+                    ForEach(store.colecoes) { c in
+                        Button { store.toggleNaColecao(entry.id, c.id) } label: {
+                            Label(c.nome, systemImage: store.estaNaColecao(entry.id, c.id) ? "checkmark" : "")
+                        }
+                    }
+                    Button { mostrarNovaColecao = true } label: { Label("Nova coleção…", systemImage: "folder.badge.plus") }
+                } label: { Label("Coleções (Meu edital)", systemImage: "folder") }
+                Menu {
+                    if store.srsHasCard(entry.id) {
+                        Button { mostrarRevisao = true } label: { Label("Revisar agora", systemImage: "brain.head.profile") }
+                        Button(role: .destructive) { store.srsRemove(entry.id) } label: { Label("Remover do baralho", systemImage: "trash") }
+                    } else {
+                        Button { store.srsAddCard(entry) } label: { Label("Automático (melhor lacuna)", systemImage: "wand.and.stars") }
+                        ForEach(FlashStyle.allCases) { st in
+                            Button { store.srsAddCard(entry, style: st) } label: { Label(st.label, systemImage: st.simbolo) }
+                        }
+                    }
+                } label: { Label(store.srsHasCard(entry.id) ? "Flashcard (no baralho)" : "Criar flashcard", systemImage: "menucard") }
+                Button { showAnnotationsPanel.toggle() } label: { Label("Minhas anotações", systemImage: "note.text") }
+                if (entry.comentario?.isEmpty == false) || (entry.observacao?.isEmpty == false) {
+                    Button { mostrarSecundario = true } label: { Label("Comentário e observação", systemImage: "text.bubble") }
+                }
+            }
+            Section("Ferramentas") {
+                Button { mostrarComparador = true } label: { Label("Comparar STF × STJ (com IA)", systemImage: "sparkles") }
+                Button { mostrarMapa = true } label: { Label("Mapa mental / fluxograma…", systemImage: "brain.head.profile") }
+                Button { mostrarLinhaTempo = true } label: { Label("Linha do tempo do tema", systemImage: "clock.arrow.circlepath") }
+            }
+            Section("Compartilhar") {
+                Button { copiar(entry.enunciado) } label: { Label("Copiar enunciado", systemImage: "doc.on.doc") }
+                Button { copiar(entry.citacao) } label: { Label("Copiar citação", systemImage: "quote.opening") }
+                Button { exportar(.pdf) } label: { Label("Exportar como PDF", systemImage: "doc.richtext") }
+                Button { exportar(.png) } label: { Label("Exportar como imagem", systemImage: "photo") }
+                Button { mostrarAnki = true } label: { Label("Exportar para o Anki…", systemImage: "rectangle.on.rectangle") }
+            }
+        } label: {
+            Image(systemName: copiado ? "checkmark.circle" : "ellipsis.circle").font(DS.interface(17))
+                .frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
+                .accessibilityLabel("Mais")
+        }
+        .menuIndicator(.hidden).fixedSize()
+    }
+
+    /// "2" → "Art. 2º" (ordinal até o 9º, como a lei escreve); "10" → "Art. 10"; "5-A" → "Art. 5º-A".
+    private func rotuloArtigo(_ a: String) -> String {
+        let partes = a.split(separator: "-", maxSplits: 1).map(String.init)
+        guard let n = Int(partes.first ?? "") else { return "Art. \(a)" }
+        let base = n <= 9 ? "\(n)º" : "\(n)"
+        return "Art. " + base + (partes.count > 1 ? "-\(partes[1])" : "")
+    }
+
+    private var ligacoesVerbete: some View {
+        let n = artigosDoVerbete.count
+        return HStack(spacing: DSEspaco.e3) {
+            Button { abaGaveta = 0; gaveta = .meia } label: {
+                Label(n == 0 ? "Artigos citados" : "Artigos citados · \(n)", systemImage: "book.closed")
+                    .frame(minHeight: 32)
+            }
+            Button { abaGaveta = 1; gaveta = .meia } label: {
+                Label("Relacionados", systemImage: "square.stack").frame(minHeight: 32)
+            }
+        }
+        .buttonStyle(.bordered)
+        .font(DS.interface(14, .semibold))
+    }
+
+    @ViewBuilder
+    private var conteudoGavetaVerbete: some View {
+        if abaGaveta == 0 {
+            let arts = artigosDoVerbete
+            VStack(alignment: .leading, spacing: DSEspaco.e2) {
+                if arts.isEmpty {
+                    Text("Nenhum artigo de lei do catálogo é citado por este verbete.")
+                        .font(DS.interface(15)).foregroundStyle(ThemeState.t.text2)
+                }
+                ForEach(arts, id: \.self) { a in
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(rotuloArtigo(a.artigo)).font(DS.display(17, .bold)).foregroundStyle(ThemeState.t.ink)
+                            Text(a.diploma).font(DS.interface(13)).foregroundStyle(ThemeState.t.text2)
+                        }
+                        Spacer()
+                        Button("Abrir no LEGIS") { gaveta = .fechada; JurisPorArtigo.abrirNoLegis(a) }
+                            .font(DS.interface(13, .semibold)).frame(minHeight: 44)
+                    }
+                    .padding(DSEspaco.e3)
+                    .background(RoundedRectangle(cornerRadius: DSRaio.card, style: .continuous).strokeBorder(ThemeState.t.border))
+                }
+            }
+        } else {
+            let rel = relacionadosCache ?? []
+            if relacionadosCache == nil { ProgressView().frame(maxWidth: .infinity) }
+            VStack(alignment: .leading, spacing: DSEspaco.e2) {
+                if relacionadosCache != nil && rel.isEmpty {
+                    Text("Nenhum julgado relacionado no acervo.").font(DS.interface(15)).foregroundStyle(ThemeState.t.text2)
+                }
+                ForEach(rel) { r in
+                    Button { gaveta = .fechada; store.lerCheio(r.id) } label: {
+                        VStack(alignment: .leading, spacing: DSEspaco.e1) {
+                            Text("\(r.tribunal) · \(r.titulo)").font(DS.interface(14, .semibold)).foregroundStyle(ThemeState.t.ink)
+                            Text(r.enunciado).font(DS.display(15, .regular)).foregroundStyle(ThemeState.t.text2).lineLimit(3)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading).padding(DSEspaco.e3)
+                        .background(RoundedRectangle(cornerRadius: DSRaio.card, style: .continuous).strokeBorder(ThemeState.t.border))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
     }
 
     private func copiar(_ s: String) {
