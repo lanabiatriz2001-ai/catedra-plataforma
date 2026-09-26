@@ -143,7 +143,7 @@ struct ContentView: View {
         GeometryReader { geo in
             let compacto = geo.size.width < Self.larguraCompacta
             // Barra lateral: 210 pt como no Mac, mas nunca mais que ~27% da janela.
-            let larguraSidebar = min(210, max(176, geo.size.width * 0.27))
+            let larguraSidebar = min(236, max(190, geo.size.width * 0.27))
             HStack(spacing: 0) {
                 if !compacto {
                     LegisSidebar(path: $path, showNewCategory: $showNewCategory, largura: larguraSidebar,
@@ -500,18 +500,8 @@ private struct LegisSidebar: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 10) {
-                RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous)
-                    .fill(ThemeState.t.accent).frame(width: 34, height: 34)
-                    .overlay(Image(systemName: "books.vertical.fill")
-                        .font(AppTheme.ui(15, .bold)).foregroundStyle(.white))
-                VStack(alignment: .leading, spacing: 0) {
-                    Text("CátedraLEGIS").font(AppTheme.ui(14.5, .bold)).foregroundStyle(.white)
-                    Text("Vade Mecum de leis").font(AppTheme.ui(10))
-                        .foregroundStyle(ThemeState.t.sidebarText.opacity(0.85))
-                }
-            }
-            .padding(.horizontal, 14).padding(.top, 16).padding(.bottom, 10)
+            SeloLateral(nome: "CátedraLEGIS", subtitulo: "Lei seca")
+            .padding(.horizontal, 14).padding(.top, 18).padding(.bottom, 14)
 
             Button(action: openPalette) {
                 HStack(spacing: 8) {
@@ -534,19 +524,30 @@ private struct LegisSidebar: View {
                     // Entrega 4: os MESMOS 4 destinos do JURIS. Tudo o que era linha solta (normas,
                     // índice, assuntos, matérias, plano, checklist, simulado, oral, DOU…) está na vitrine
                     // do destino — nenhuma função sem caminho (tabela de rastreio no PR).
-                    row(.destino(.hoje), Destino.hoje.titulo, Destino.hoje.simbolo, badge: pendingChecklist)
-                    row(.destino(.acervo), Destino.acervo.titulo, Destino.acervo.simbolo)
-                    row(.destino(.treinar), Destino.treinar.titulo, Destino.treinar.simbolo)
-                    row(.destino(.novidades), Destino.novidades.titulo, Destino.novidades.simbolo, badge: store.unreadCount)
+                    linha(.hoje, contagem: pendingChecklist)
+                    linha(.acervo, contagem: lawCount)
+                    // Vitrine na lateral: com o Acervo aberto, as matérias aparecem logo abaixo,
+                    // cada uma com o ponto na cor do ramo — um toque leva à lista dela.
+                    if isActive(.destino(.acervo)) {
+                        ForEach(LawCategory.allCases.filter { categoryCount($0) > 0 }) { c in
+                            SubLinhaLateral(titulo: c.rawValue, cor: c.ramo?.identidade) { go(.category(c)) }
+                        }
+                    }
+                    linha(.treinar)
+                    linha(.novidades, contagem: store.unreadCount)
                 }
-                .padding(.horizontal, 8).padding(.bottom, 14)
+                .padding(.horizontal, 10).padding(.bottom, 14)
             }
 
             // (O cronômetro vive só no topo, como no Cátedra — o da sidebar duplicava o
             // mesmo StudyClock com outra semântica de rótulo.)
         }
         .frame(width: largura)
-        .background(ThemeState.t.sidebarBg)
+        .fundoLateral()
+    }
+
+    private func linha(_ d: Destino, contagem: Int? = nil) -> some View {
+        LinhaLateral(titulo: d.titulo, simbolo: d.simbolo, ativa: isActive(.destino(d)), contagem: contagem) { go(.destino(d)) }
     }
 
     /// Cor do ícone na sidebar: matérias exibem a identidade de cor da área
