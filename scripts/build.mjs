@@ -24,7 +24,7 @@ import './verificar-cores-leitura.mjs';   // trava: grade de leitura ativa legí
 import './verificar-cores-texto.mjs';   // trava: cor de ramo como texto ≥ 4,5:1 (P16)
 import './build-juridico.mjs';   // Termos e Política: docs/juridico/*.md → termos.html, privacidade.html, juridico.js
 import { prepararAbertura } from './build-abertura.mjs';   // primeira pintura usa as paletas reais do host
-import { lerVendor } from './vendor-libs.mjs';   // React, ReactDOM e supabase-js congelados em vendor/ (sha256)
+import { lerVendor, PDFJS } from './vendor-libs.mjs';   // React, ReactDOM, supabase-js e PDF.js congelados em vendor/ (sha256)
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (f) => readFileSync(join(ROOT, f), 'utf8');
@@ -68,6 +68,9 @@ const COPIAR = ['support.js', 'icon.svg', 'auth.js', 'icon-180.png', 'legis-web.
    ausente ou adulterado aborta aqui nomeando o arquivo, e public/ do build anterior fica
    como estava em vez de virar um deploy pela metade. */
 const LIBS_VENDOR = lerVendor(ROOT);
+// O PDF.js entra pela mesma conferência, mas não vira <script>: o host o pede sob demanda de
+// ./vendor/pdfjs/ (window.ctPdfLib) ao importar PDF — antes vinha do cdnjs em tempo de execução.
+const PDFJS_VENDOR = lerVendor(ROOT, PDFJS);
 
 /* LIMPA public/ INTEIRA ANTES DE ESCREVER. Antes só public/fonts era apagada: vendor/ era
    criada por cima e dados/ ia por cpSync sem limpar. Como os blocos dos acervos têm hash
@@ -146,6 +149,12 @@ const fontsHref = await vendorarFontes();
 
 // React antes de ReactDOM (que usa o global React), ambos antes do support.js.
 const [reactTag, reactDomTag, supabaseTag] = vendorLocal();
+// PDF.js: só a cópia (sem <script>, sem casca). Fica no "Baixar tudo" do worker, logo abaixo.
+mkdirSync(join(pub, 'vendor', 'pdfjs'), { recursive: true });
+for (const { arquivo, pacote, versao, conteudo } of PDFJS_VENDOR) {
+  writeFileSync(join(pub, 'vendor', arquivo), conteudo);
+  console.log('  · ' + arquivo + ' do repositório (' + pacote + '@' + versao + ', ' + conteudo.length + ' bytes, sha256 conferido, sob demanda)');
+}
 
 // Carimbo do build. Sem ele, um relato de bug de testador chega sem dizer QUAL versão
 // quebrou — e aí não dá para saber se já foi corrigido. Na Vercel o sha vem do ambiente.
@@ -403,6 +412,9 @@ const acervoSobPedido = [
   './oral-conteudo.js',     // as 999 perguntas de banca da arguição oral
   './leis-seca-areas.js',   // as 35 leis das áreas não jurídicas
   './discursivas-textos.js',// enunciados completos e padrões de resposta — a Redação abre prova offline
+  // PDF.js (1,4 MB): só serve para importar PDF (gabarito da Redação). Fora da casca e do
+  // aquecimento automático por ser grande; o network-first já o guarda no primeiro uso online.
+  ...PDFJS.map((f) => './vendor/' + f),
 ];
 const medir = (lista) => lista.map((p) => [p, bytesDe(p)]).filter(([p, b]) => {
   if (!b) console.log('  ⚠ acervo offline ausente do deploy, fora do precache: ' + p);

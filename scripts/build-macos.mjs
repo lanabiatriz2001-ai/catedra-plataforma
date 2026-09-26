@@ -6,8 +6,9 @@
 //   2. NÃO injeta o shim window.claude → /api/complete. No app nativo a IA é
 //      feita pela PONTE NATIVA (o Swift define window.claude e faz o POST via
 //      URLSession — sem esbarrar em CORS de file://). Ver mac/Sources/main.swift.
-//   3. COPIA React, ReactDOM e supabase-js de vendor/ (versionados no repositório) para
-//      web/vendor/, conferindo o sha256 de vendor/manifesto.json. Arquivo ausente ou
+//   3. COPIA React, ReactDOM e supabase-js (e o PDF.js, que o app pede sob demanda de
+//      ./vendor/pdfjs/) de vendor/ (versionados no repositório) para web/vendor/,
+//      conferindo o sha256 de vendor/manifesto.json. Arquivo ausente ou
 //      adulterado ABORTA o build com código ≠ 0 e nomeia o arquivo. O build não baixa
 //      nada: sem rede ele passa, e o app nativo nunca depende de CDN para abrir (D9).
 //
@@ -29,7 +30,7 @@ import './verificar-cores-texto.mjs';   // trava: cor de ramo como texto ≥ 4,5
 import { verificar as verificarDesignNativo } from './verificar-design-nativo.mjs';   // trava: dívida visual do nativo só desce
 import './build-juridico.mjs';   // Termos e Política: docs/juridico/*.md → termos.html, privacidade.html, juridico.js
 import { prepararAbertura } from './build-abertura.mjs';
-import { lerVendor } from './vendor-libs.mjs';   // React, ReactDOM e supabase-js congelados em vendor/ (sha256)
+import { lerVendor, PDFJS } from './vendor-libs.mjs';   // React, ReactDOM, supabase-js e PDF.js congelados em vendor/ (sha256)
 { const r = verificarDesignNativo(); if (r.falhas.length) throw new Error('\n✗ BUILD ABORTADO — contagem da dívida visual do LEGIS/JURIS nativos não bate com a base:\n  ' + r.falhas.join('\n  ')); }
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -47,6 +48,10 @@ const SUPABASE_KEY = 'sb_publishable_nCm4a-RzzY8e8jVC9O6Gfg_4V6EOrI2';
 // As libs são conferidas ANTES de apagar a saída: vendor/ adulterado aborta o build e deixa o
 // bundle anterior (que o build-app.sh e a suíte WebKit usam) de pé, em vez de um meio-bundle.
 const LIBS_VENDOR = lerVendor(ROOT);
+// PDF.js: mesma conferência, sem <script> — o host o pede de ./vendor/pdfjs/ ao importar PDF.
+// Em file:// (Mac e iPad) o Web Worker pode não subir; o PDF.js cai então no worker falso na
+// thread principal, que carrega o pdf.worker.min.js por <script> — por isso os DOIS viajam.
+const PDFJS_VENDOR = lerVendor(ROOT, PDFJS);
 
 // limpa e recria a saída
 rmSync(OUT, { recursive: true, force: true });
@@ -64,6 +69,11 @@ const [reactTag, reactDomTag, supabaseTag] = LIBS_VENDOR.map(({ arquivo, pacote,
   console.log('  · ' + arquivo + ' do repositório (' + pacote + '@' + versao + ', ' + conteudo.length + ' bytes, sha256 conferido)');
   return `<script src="./vendor/${arquivo}"></script>`;
 });
+mkdirSync(join(OUT, 'vendor', 'pdfjs'), { recursive: true });
+for (const { arquivo, pacote, versao, conteudo } of PDFJS_VENDOR) {
+  writeFileSync(join(OUT, 'vendor', arquivo), conteudo);
+  console.log('  · ' + arquivo + ' do repositório (' + pacote + '@' + versao + ', ' + conteudo.length + ' bytes, sha256 conferido, sob demanda)');
+}
 
 // Mesmo carimbo do build web: relato de bug precisa dizer QUAL versão quebrou.
 let _sha = 'local';

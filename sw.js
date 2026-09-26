@@ -92,6 +92,9 @@ if (!IS_PROD) {
       · oral-conteudo.js (4,9 MB) — as 999 perguntas de banca da arguição oral.
       · leis-seca-areas.js (3,3 MB) — as 35 leis das áreas não jurídicas; o worker
         não tem como saber qual área ela escolheu.
+      · vendor/pdfjs/ (1,4 MB, lib + worker do PDF.js) — só serve para importar PDF.
+        Antes vinha de um CDN e o worker não guarda outra origem: offline não havia
+        importação. Online, o network-first abaixo já o guarda no primeiro uso.
      O host chama window.__catedraOffline.baixar() e o worker traz estes junto. */
   var ACERVOS_SOB_PEDIDO = [];
   /*__ACERVOS_SOB_PEDIDO__*/

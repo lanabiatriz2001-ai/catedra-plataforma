@@ -45,6 +45,7 @@ import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
 import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 import { testarMenuLateral } from './menu-lateral.mjs';
+import { testarPdfjsLocal } from './pdfjs-local.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 // porta própria por padrão: run.mjs usa a 8123, e as duas suítes podem rodar lado a lado
@@ -203,6 +204,12 @@ for (const [base, origem, arquivo] of ORIGENS) {
   }
   await ctx.close();
 }
+
+// PDF.js local (tests/pdfjs-local.mjs): extrair texto de PDF com toda origem externa bloqueada,
+// nas mesmas origens — http, file:// e o bundle nativo quando existir. É no motor do WKWebView
+// que o Worker em file:// pode não subir e o PDF.js cai no worker falso.
+try { await testarPdfjsLocal(browser, ok, { motor, origens: ORIGENS }); }
+catch (e) { ok(false, 'PDFJS LOCAL [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
 
 await browser.close();
 srv.close();
