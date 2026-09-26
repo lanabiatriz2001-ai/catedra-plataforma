@@ -17,6 +17,21 @@ enum SidebarItem: Hashable {
     case dou
     case category(LawCategory)
     case customCategory(String)
+    /// Os 4 destinos de primeiro nível (entrega 4). Hoje = Início (`.home`).
+    case destino(Destino)
+}
+
+/// A que destino cada seção antiga pertence — a linha do destino acende nas páginas-filhas.
+enum LegisDestinos {
+    static func pai(_ item: SidebarItem) -> Destino {
+        switch item {
+        case .home: return .hoje
+        case .destino(let d): return d
+        case .all, .favorites, .indiceEstrutural, .subjects, .globalSearch, .category, .customCategory: return .acervo
+        case .planoLeitura, .checklist, .incidencia, .simuladoLegis, .provaOral: return .treinar
+        case .novidades, .dou, .updates: return .novidades
+        }
+    }
 }
 
 /// Rotas da navegação por telas (NavigationStack) — substituem as 3 colunas
@@ -222,7 +237,9 @@ struct ContentView: View {
             SectionScreen(item: item,
                           openLaw: { path.append(.reader($0)) },
                           openUpdate: { path.append(.updateDetail($0)) },
-                          showAddLaw: $showAddLaw)
+                          showAddLaw: $showAddLaw,
+                          openSection: { path.append(.section($0)) },
+                          novaMateria: { showNewCategory = true })
         case .reader(let id):
             ReaderScreen(lawID: id, openLaw: { path.append(.reader($0)) })
         case .updateDetail(let id):
@@ -338,6 +355,24 @@ struct ContentView: View {
     Art. 6º Esta lei entra em vigor na data de sua publicação.
     """
 
+    /// Abre a norma no artigo pedido pelo JURIS (modo Estudar, que já posiciona um artigo).
+    private func consumirPedidoLegis() {
+        guard let p = JurisPorArtigo.pedidoLegis else { return }
+        if Date().timeIntervalSince(JurisPorArtigo.pedidoEm ?? .distantPast) > 30 {
+            JurisPorArtigo.pedidoLegis = nil; return            // velho demais: descarta
+        }
+        guard let law = JurisPorArtigo.lei(doDiploma: p.diploma, em: store.laws) else {
+            // Catálogo ainda carregando: tenta de novo quando as leis chegarem (onChange).
+            // Carregado e a norma não está nele: descarta, sem prender o pedido.
+            if !store.laws.isEmpty { JurisPorArtigo.pedidoLegis = nil }
+            return
+        }
+        JurisPorArtigo.pedidoLegis = nil
+        if let idx = store.articleUnitID(lawID: law.id, number: p.artigo) { store.setLastUnit(law.id, idx) }
+        JurisPorArtigo.modoUmaVez = "estudo"
+        if path.last != .reader(law.id) { path.append(.reader(law.id)) }
+    }
+
     var body: some View {
         Group {
             if ehCompacto { corpoCompacto } else { corpoRegular }
@@ -350,6 +385,11 @@ struct ContentView: View {
         .preferredColorScheme(appearance == "light" ? .light : appearance == "dark" ? .dark : nil)
         // Item 5: o chip ⚖️ do mapa de Processo e peças manda o TERMO junto. Sem isto a aba
         // abria no acervo inteiro e a busca era refeita à mão.
+        // Entrega 3: o JURIS pede para abrir um artigo citado (JurisPorArtigo.abrirNoLegis). O
+        // pedido fica pendente até o LEGIS montar — por isso também no onAppear.
+        .onReceive(NotificationCenter.default.publisher(for: JurisPorArtigo.notificacaoAbrirLegis)) { _ in consumirPedidoLegis() }
+        .onAppear { consumirPedidoLegis() }
+        .onChange(of: store.laws.count) { _, _ in consumirPedidoLegis() }
         .onReceive(NotificationCenter.default.publisher(for: AcervoEntrada.notificacaoBuscar)) { n in
             guard let t = n.userInfo?["termo"] as? String, !t.isEmpty else { return }
             path = [.section(.globalSearch)]
@@ -444,12 +484,17 @@ private struct LegisSidebar: View {
     }
     private var pendingChecklist: Int { store.readingChecklist.filter { !$0.done }.count }
     private func isActive(_ item: SidebarItem) -> Bool {
+        if case .destino(let d) = item {
+            if d == .hoje { return path.isEmpty }
+            guard case .section(let raiz)? = path.first else { return false }
+            return LegisDestinos.pai(raiz) == d
+        }
         if item == .home { return path.isEmpty }
         if case .section(let s)? = path.last { return s == item }
         return false
     }
     private func go(_ item: SidebarItem) {
-        if item == .home { path = [] } else { path = [.section(item)] }
+        if item == .home || item == .destino(.hoje) { path = [] } else { path = [.section(item)] }
         aoNavegar()
     }
 
@@ -486,44 +531,13 @@ private struct LegisSidebar: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 2) {
-                    row(.home, "Início", "house")
-                    row(.all, "Todas as normas", "books.vertical", badge: lawCount)
-                    row(.favorites, "Favoritos", "star", badge: store.favoriteCount)
-                    row(.indiceEstrutural, "Índice das normas", "list.bullet.indent")
-                    row(.subjects, "Assuntos", "tag")
-                    row(.globalSearch, "Buscar em tudo", "magnifyingglass")
-                    row(.novidades, "Novidades", "sparkles", badge: novidadesCount)
-                    row(.dou, "Diário Oficial", "newspaper")
-                    row(.updates, "Atualizações", "bell.badge", badge: store.unreadCount)
-
-                    // TREINO — Checklist, Simulado e Prova oral existiam como telas mas
-                    // nenhuma linha da sidebar/⌘K/Início as alcançava (pente fino 21/08).
-                    groupTitle("TREINO")
-                    row(.planoLeitura, "Plano de leitura", "calendar")
-                    row(.checklist, "Checklist", "checklist", badge: pendingChecklist)
-                    row(.incidencia, "Incidência", "target")
-                    row(.simuladoLegis, "Simulado de lei seca", "checkmark.seal")
-                    row(.provaOral, "Prova oral", "mic")
-
-                    groupTitle("MATÉRIAS")
-
-                    ForEach(LawCategory.allCases.filter { categoryCount($0) > 0 }) { cat in
-                        row(.category(cat), cat.rawValue, cat.symbol, badge: categoryCount(cat))
-                    }
-                    ForEach(store.customCategories, id: \.self) { name in
-                        row(.customCategory(name), name, "tag.fill", badge: customCategoryCount(name))
-                    }
-                    Button { showNewCategory = true; aoNavegar() } label: {
-                        HStack(spacing: 11) {
-                            Image(systemName: "plus").font(AppTheme.ui(12, .semibold)).frame(width: 20)
-                            Text("Nova matéria").font(AppTheme.ui(13, .medium))
-                            Spacer(minLength: 0)
-                        }
-                        .padding(.horizontal, 11).padding(.vertical, 8)
-                        .foregroundStyle(ThemeState.t.sidebarText.opacity(0.8))
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
+                    // Entrega 4: os MESMOS 4 destinos do JURIS. Tudo o que era linha solta (normas,
+                    // índice, assuntos, matérias, plano, checklist, simulado, oral, DOU…) está na vitrine
+                    // do destino — nenhuma função sem caminho (tabela de rastreio no PR).
+                    row(.destino(.hoje), Destino.hoje.titulo, Destino.hoje.simbolo, badge: pendingChecklist)
+                    row(.destino(.acervo), Destino.acervo.titulo, Destino.acervo.simbolo)
+                    row(.destino(.treinar), Destino.treinar.titulo, Destino.treinar.simbolo)
+                    row(.destino(.novidades), Destino.novidades.titulo, Destino.novidades.simbolo, badge: store.unreadCount)
                 }
                 .padding(.horizontal, 8).padding(.bottom, 14)
             }
@@ -562,6 +576,7 @@ private struct LegisSidebar: View {
                 Spacer(minLength: 4)
             }
             .padding(.horizontal, 11).padding(.vertical, 8)
+            .frame(minHeight: 44)   // alvo de 44 pt: agora é a navegação principal
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous)
                 .fill(active ? ThemeState.t.sidebarActiveBg : Color.clear))
@@ -580,6 +595,8 @@ private struct SectionScreen: View {
     let openLaw: (UUID) -> Void
     let openUpdate: (UUID) -> Void
     @Binding var showAddLaw: Bool
+    var openSection: (SidebarItem) -> Void = { _ in }
+    var novaMateria: () -> Void = {}
     @State private var sel: UUID?
     @State private var updateSel: UUID?
     @AppStorage("readerMode") private var readerMode = "estudo"
@@ -628,6 +645,60 @@ private struct SectionScreen: View {
             UpdatesListView(selection: $updateSel)
         case .home:
             EmptyView()
+        case .destino(let d):
+            destinoHub(d)
+        }
+    }
+
+    // MARK: - Vitrine de um destino (entrega 4)
+
+    private var normas: [LawEntry] { store.laws.filter(\.isRegularLaw) }
+    private func qtd(_ c: LawCategory) -> Int { normas.filter { $0.customCategory == nil && $0.category == c }.count }
+
+    @ViewBuilder
+    private func destinoHub(_ d: Destino) -> some View {
+        switch d {
+        case .hoje:
+            EmptyView()
+        case .acervo:
+            DestinoHub(titulo: "Acervo", subtitulo: "\(normas.count) normas", secoes: [
+                SecaoHub(titulo: "", itens: [
+                    ItemHub(id: "all", titulo: "Todas as normas", detalhe: nil, simbolo: "books.vertical", cor: nil, contagem: normas.count, acao: { openSection(.all) }),
+                    ItemHub(id: "fav", titulo: "Favoritos", detalhe: nil, simbolo: "star", cor: nil, contagem: store.favoriteCount, acao: { openSection(.favorites) }),
+                    ItemHub(id: "indice", titulo: "Índice das normas", detalhe: "Livros, títulos, capítulos", simbolo: "list.bullet.indent", cor: nil, contagem: nil, acao: { openSection(.indiceEstrutural) }),
+                    ItemHub(id: "assuntos", titulo: "Assuntos", detalhe: "Indexados pelo Senado", simbolo: "tag", cor: nil, contagem: nil, acao: { openSection(.subjects) }),
+                    ItemHub(id: "busca", titulo: "Buscar em tudo", detalhe: "Texto de todas as normas", simbolo: "magnifyingglass", cor: nil, contagem: nil, acao: { openSection(.globalSearch) }),
+                ]),
+                SecaoHub(titulo: "Matérias",
+                         itens: LawCategory.allCases.filter { qtd($0) > 0 }.map { c in
+                             ItemHub(id: "cat-\(c.rawValue)", titulo: c.rawValue, detalhe: nil, simbolo: c.symbol,
+                                     cor: c.ramo?.identidade, contagem: qtd(c), acao: { openSection(.category(c)) })
+                         } + store.customCategories.map { n in
+                             ItemHub(id: "custom-\(n)", titulo: n, detalhe: nil, simbolo: "tag.fill", cor: nil,
+                                     contagem: normas.filter { $0.customCategory == n }.count,
+                                     acao: { openSection(.customCategory(n)) })
+                         } + [ItemHub(id: "nova", titulo: "Nova matéria", detalhe: nil, simbolo: "plus", cor: nil, contagem: nil, acao: novaMateria)]),
+            ])
+        case .treinar:
+            DestinoHub(titulo: "Treinar", subtitulo: "", secoes: [
+                SecaoHub(titulo: "", itens: [
+                    ItemHub(id: "simulado", titulo: "Simulado de lei seca", detalhe: "C/E do texto oficial", simbolo: "checkmark.seal", cor: nil, contagem: nil, acao: { openSection(.simuladoLegis) }),
+                    ItemHub(id: "oral", titulo: "Prova oral", detalhe: "Arguição sobre o artigo", simbolo: "mic", cor: nil, contagem: nil, acao: { openSection(.provaOral) }),
+                    ItemHub(id: "incidencia", titulo: "Incidência", detalhe: "Artigos mais cobrados", simbolo: "target", cor: nil, contagem: nil, acao: { openSection(.incidencia) }),
+                    ItemHub(id: "plano", titulo: "Plano de leitura", detalhe: nil, simbolo: "calendar", cor: nil, contagem: nil, acao: { openSection(.planoLeitura) }),
+                    ItemHub(id: "checklist", titulo: "Checklist", detalhe: nil, simbolo: "checklist", cor: nil,
+                            contagem: store.readingChecklist.filter { !$0.done }.count, acao: { openSection(.checklist) }),
+                ]),
+            ])
+        case .novidades:
+            DestinoHub(titulo: "Novidades", subtitulo: "", secoes: [
+                SecaoHub(titulo: "", itens: [
+                    ItemHub(id: "atualizacoes", titulo: "Alterações nas normas", detalhe: "Com comparação de redações", simbolo: "bell.badge", cor: nil, contagem: store.unreadCount, acao: { openSection(.updates) }),
+                    ItemHub(id: "novidades", titulo: "Novidades legislativas", detalhe: nil, simbolo: "sparkles", cor: nil,
+                            contagem: store.laws.filter(\.isNovidades).count, acao: { openSection(.novidades) }),
+                    ItemHub(id: "dou", titulo: "Diário Oficial", detalhe: nil, simbolo: "newspaper", cor: nil, contagem: nil, acao: { openSection(.dou) }),
+                ]),
+            ])
         }
     }
 
@@ -651,10 +722,12 @@ private struct ReaderScreen: View {
         // .id garante que trocar de norma zera texto, rolagem e estado do leitor.
         LawReaderView(lawID: lawID, onOpenLaw: openLaw)
             .id(lawID)
-            .navigationTitle(store.laws.first { $0.id == lawID }?.title ?? "Norma")
+            // Entrega 6: no iPad regular a BarraLeitor já diz onde estou — o título da barra do
+            // sistema (grande, ao entrar pelo Continuar) duplicava. No compacto ela é o voltar.
+            .navigationTitle(ehCompacto ? (store.laws.first { $0.id == lawID }?.title ?? "Norma") : "")
+            .navigationBarTitleDisplayMode(.inline)
             // Compacto: título em linha (44 pt) — o título grande comeria ~96 pt dos 844
             // antes da primeira linha da lei. Em regular fica como sempre.
-            .navigationBarTitleDisplayMode(ehCompacto ? .inline : .automatic)
             .onReceive(store.$laws) { laws in
                 // Excluída enquanto lida → volta para a tela anterior.
                 if !laws.contains(where: { $0.id == lawID }) { dismiss() }

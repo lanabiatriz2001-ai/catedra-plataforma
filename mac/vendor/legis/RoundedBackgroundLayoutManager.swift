@@ -1,3 +1,4 @@
+import SwiftUI
 import AppKit
 
 /// NSLayoutManager que desenha fundos de texto (grifos do marca-texto e o
@@ -10,7 +11,29 @@ import AppKit
 /// Pressupõe view "flipped" (padrão do NSTextView, nunca sobrescrito por
 /// ReaderTextView): a 1ª linha de um trecho que quebra em várias fica em
 /// rectArray[0], com o menor Y.
+extension NSAttributedString.Key {
+    /// Quantidade de julgados ligados ao artigo cujo cabeçalho carrega este atributo. O
+    /// número é DESENHADO na margem esquerda — nunca inserido no texto, que é a base dos grifos.
+    static let catedraContagem = NSAttributedString.Key("catedraContagem")
+}
+
 final class RoundedBackgroundLayoutManager: NSLayoutManager {
+    override func drawGlyphs(forGlyphRange glyphsToShow: NSRange, at origin: NSPoint) {
+        super.drawGlyphs(forGlyphRange: glyphsToShow, at: origin)
+        guard let storage = textStorage else { return }
+        let chars = characterRange(forGlyphRange: glyphsToShow, actualGlyphRange: nil)
+        storage.enumerateAttribute(.catedraContagem, in: chars) { valor, faixa, _ in
+            guard let n = valor as? Int, n > 0 else { return }
+            let linha = lineFragmentRect(forGlyphAt: glyphIndexForCharacter(at: faixa.location), effectiveRange: nil)
+            let fonte = NSFont(name: "JetBrains Mono", size: 11) ?? .monospacedDigitSystemFont(ofSize: 11, weight: .medium)
+            let cor = NSColor(DS.corSinalMargem)
+            let rotulo = NSAttributedString(string: "\(n)", attributes: [.font: fonte, .foregroundColor: cor])
+            let tam = rotulo.size()
+            rotulo.draw(at: NSPoint(x: max(4, origin.x - tam.width - 14),
+                                   y: origin.y + linha.minY + (linha.height - tam.height) / 2))
+        }
+    }
+
     override func fillBackgroundRectArray(_ rectArray: UnsafePointer<CGRect>, count rectCount: Int,
                                            forCharacterRange charRange: NSRange, color: NSColor) {
         color.setFill()

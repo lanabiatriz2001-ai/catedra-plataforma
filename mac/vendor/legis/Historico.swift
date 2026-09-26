@@ -129,7 +129,7 @@ struct HistoricoView: View {
                 HStack(alignment: .top, spacing: 12) {
                     VStack(spacing: 1) {
                         Text(entry.year).font(.callout.weight(.bold).monospacedDigit()).foregroundStyle(accent)
-                        if !entry.date.isEmpty { Text(entry.date).font(.system(size: 9)).foregroundStyle(.tertiary) }
+                        if !entry.date.isEmpty { Text(entry.date).font(DS.interface(9)).foregroundStyle(.tertiary) }
                     }
                     .frame(width: 46)
                     Rectangle().fill(accent.opacity(0.25)).frame(width: 2)

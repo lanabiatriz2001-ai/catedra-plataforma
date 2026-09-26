@@ -70,7 +70,7 @@ struct ColecaoView: View {
         HStack(spacing: 8) {
             Button { revisar = true } label: {
                 Label("Revisar", systemImage: "rectangle.on.rectangle.angled")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(DS.interface(12, .semibold))
             }
             .buttonStyle(.borderedProminent).tint(Palette.accent)
             .disabled(total == 0)
@@ -120,9 +120,9 @@ struct RevisaoView: View {
             Button { dismiss() } label: { Image(systemName: "xmark") }.buttonStyle(.plain)
             Spacer()
             Text("Revisão · \(total - fila.count + (fila.isEmpty ? 0 : 1))/\(max(total,1))")
-                .font(.system(size: 12, weight: .semibold)).foregroundStyle(Palette.secondaryInk)
+                .font(DS.interface(12, .semibold)).foregroundStyle(Palette.secondaryInk)
             Spacer()
-            Text("\(acertos) ✓").font(.system(size: 12, weight: .semibold)).foregroundStyle(Palette.fonteSTJ)
+            Text("\(acertos) ✓").font(DS.interface(12, .semibold)).foregroundStyle(Palette.fonteSTJ)
         }
         .padding(.horizontal, 16).padding(.vertical, 12)
     }
@@ -155,7 +155,7 @@ struct RevisaoView: View {
             } else {
                 Spacer()
                 Text("Tente lembrar o enunciado…")
-                    .font(.system(size: 12)).foregroundStyle(Palette.secondaryInk)
+                    .font(DS.interface(12)).foregroundStyle(Palette.secondaryInk)
             }
             Spacer(minLength: 8)
             if revelado {
@@ -192,11 +192,11 @@ struct RevisaoView: View {
 
     private var fim: some View {
         VStack(spacing: 14) {
-            Image(systemName: "checkmark.seal.fill").font(.system(size: 44))
+            Image(systemName: "checkmark.seal.fill").font(DS.interface(44))
                 .foregroundStyle(Palette.fonteSTJ)
             Text("Revisão concluída!").font(Typo.serifTitle(20, .semibold)).foregroundStyle(Palette.titleInk)
             Text("\(acertos) de \(total) marcados como \"já sei\".")
-                .font(.system(size: 13)).foregroundStyle(Palette.secondaryInk)
+                .font(DS.interface(13)).foregroundStyle(Palette.secondaryInk)
             Button("Fechar") { dismiss() }.buttonStyle(.borderedProminent).tint(Palette.accent)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

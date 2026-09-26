@@ -185,9 +185,9 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
 .statbar .s1{display:flex;flex-direction:column}
 .statbar .s1 b{font-family:var(--display,'Spectral',Georgia,serif);font-size:21px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
 .statbar .s1 span{margin-top:3px}
-.vcard{background:var(--surface,#fffdf8);border:1px solid var(--border,#e6e1d4);border-radius:14px;margin-bottom:10px;overflow:hidden;position:relative}
-.vcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--rc,#0f7a57)}
-.vhead{display:flex;align-items:flex-start;gap:12px;padding:14px 16px 14px 20px;cursor:pointer}
+/* Entrega 7: sem faixa lateral (DESIGN.md) — a cor do ramo tinge a borda e lava o cartão. */
+.vcard{background:linear-gradient(90deg,color-mix(in srgb,var(--rc,#0f7a57) 12%,var(--surface,#fffdf8)),var(--surface,#fffdf8) 46%);border:1px solid color-mix(in srgb,var(--rc,#0f7a57) 38%,var(--border,#e6e1d4));border-radius:14px;margin-bottom:10px;overflow:hidden;position:relative}
+.vhead{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;cursor:pointer}
 .vhead:hover{background:color-mix(in srgb,var(--rc) 5%,transparent)}
 .vmeta{flex:1;min-width:0}
 .vtop{display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap}
@@ -245,7 +245,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
 .reg::after{content:"";flex:1;height:1px;background:var(--border,#e6e1d4)}
 .tcgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:10px}
 .tccard{background:var(--surface,#fffdf8);border:1px solid var(--border,#e6e1d4);border-radius:14px;padding:13px 15px 12px;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:7px}
-.tccard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--rc,#0f7a57)}
+.tccard{background:linear-gradient(90deg,color-mix(in srgb,var(--rc,#0f7a57) 12%,var(--surface,#fffdf8)),var(--surface,#fffdf8) 46%);border-color:color-mix(in srgb,var(--rc,#0f7a57) 38%,var(--border,#e6e1d4))}
 .tccard .tct{display:flex;align-items:center;gap:8px}
 .tccard .sg{font-family:var(--display,'Spectral',Georgia,serif);font-size:16px;font-weight:800;color:var(--ink);letter-spacing:-.01em}
 .tccard .uf{font:800 10px inherit;letter-spacing:.05em;background:color-mix(in srgb,var(--rc) 15%,transparent);color:var(--rc);border-radius:6px;padding:3px 7px}
@@ -535,6 +535,25 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   // viram mais chips ao lado de STF, STJ, TSE e TJRO. Cada registro guarda no campo
   // 10 de qual acervo veio, porque os textos moram em arquivos diferentes.
   var IDX=(MODOS.juris.idx||[]).slice();   // [id,tr,fo,nu,ti,ra,te,da,si,im,src]
+  // Entrega 7: "Todos" pela ORDEM DE AUTORIDADE — a mesma do nativo (ios/vendor/design/Hoje.swift):
+  // vinculante → controle concentrado → RG/repetitivo → súmulas → teses/informativos →
+  // estaduais → contas → apoio. Súmulas em ordem crescente; o resto do mais novo ao mais antigo.
+  var ORDEM_AUT=['sumula_vinculante','stf_adi','stf_adc','stf_ado','stf_adpf','controle_const',
+    'repercussao_geral','repetitivo','precedentes_obrig','sumula_stf','sumula_stj','sumula_tse',
+    'juris_em_teses','informativo_stf','informativo_stj','informativo_tse',
+    'tjro','tjro_prec','sel_tjgo','sel_tjrj','sel_tjpr',
+    'sumula_tcu','sumula_tce','boletim_juris_tcu','boletim_pessoal_tcu','info_lic_tcu','vademecum_dod'];
+  var POS_AUT={}; ORDEM_AUT.forEach(function(f,i){ POS_AUT[f]=i; });
+  function ordenarAutoridade(lista){
+    return lista.sort(function(a,b){
+      var fa=(a[2] in POS_AUT)?POS_AUT[a[2]]:99, fb=(b[2] in POS_AUT)?POS_AUT[b[2]]:99;
+      if(fa!==fb) return fa-fb;
+      var na=(a[3]==null?-1:a[3]), nb=(b[3]==null?-1:b[3]);
+      if(na!==nb) return /^sumula_/.test(a[2]) ? na-nb : nb-na;
+      return a[0]<b[0]?-1:(a[0]>b[0]?1:0);
+    });
+  }
+  ordenarAutoridade(IDX);
   function fonteDe(r){ return (r&&r[I.src]==='c') ? MODOS.contas : MODOS.juris; }
   function txtDe(r){ return fonteDe(r).txt; }
   // faceta "ramo": os dois acervos usam vocabulários distintos (ramo do direito x
@@ -1304,6 +1323,11 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
     try {
       q = String(q == null ? '' : q);
       var tenta = function (n) {
+        // Id exato de verbete (vem do "Abrir no JURIS" do LEGIS): abre ELE, não busca.
+        // O índice monta depois desta função: até lá (nulo), espera em vez de cair na busca.
+        var tem = (q && window.jurisTemId) ? window.jurisTemId(q) : (q ? null : false);
+        if (tem === null && n > 0) { setTimeout(function () { tenta(n - 1); }, 120); return; }
+        if (tem) { window.jurisAbrirPorId(q); return; }
         var el = document.getElementById('q');
         if (!el) { if (n > 0) setTimeout(function () { tenta(n - 1); }, 120); return; }
         el.value = q;
@@ -1423,7 +1447,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
       var lista=window[MODOS.contas.idxGlobal]||[];
       MODOS.contas.idx=lista;
       lista.forEach(function(r){ r[I.src]='c'; });
-      IDX=IDX.concat(lista);
+      IDX=ordenarAutoridade(IDX.concat(lista));   // contas entram na ordem de autoridade
       var meta=window.__CONTAS_META__||{};
       var el=document.getElementById('tcFonte');
       if(el)el.innerHTML='33 tribunais de contas — TCU, 26 estaduais, o TCDF e 5 tribunais de contas dos municípios. '
@@ -2213,6 +2237,10 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
     }
     if(i>=0)openVerbete(i);
   }
+  // Abrir por id, não por posição: a lista exibida segue a ORDEM DE AUTORIDADE, não a do índice.
+  window.jurisAbrirPorId=qdAbrir;
+  window.jurisTemId=function(id){ for(var k in byId) return !!byId[id]; return null; };   // null = índice ainda vazio
+  window.jurisVerbeteAberto=function(){ return _jr.classList.contains('on') ? curId : null; };
 
   /* Só objeto vira coluna: um registro gravado com "colunas": "abc" (ou com null no meio)
      pintava uma coluna por LETRA, e c.id de null derrubava o roteiro inteiro. */
