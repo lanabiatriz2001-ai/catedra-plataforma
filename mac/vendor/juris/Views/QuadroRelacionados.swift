@@ -19,7 +19,7 @@ import SwiftUI
 //  ESTE É O ESPELHO DO MAC. mac/vendor/juris não é gerado de ios/vendor/juris: as duas
 //  árvores são portadas à mão. O que muda aqui é só o que não existe do lado do Mac — o
 //  alvo de toque de 44 pt e o Typo.ui do iPad (a tipografia de interface sai em
-//  .system(size:), como no resto do módulo daqui). A montagem, o pareamento, as regras
+//  DS.interface(), como no resto do módulo daqui). A montagem, o pareamento, as regras
 //  do quadro e a grade (QuadroGrade, pela largura) são IDÊNTICOS aos do iOS, de
 //  propósito: se divergirem, o mesmo verbete passa a ensinar coisas diferentes em cada
 //  aparelho.
@@ -1080,7 +1080,7 @@ private struct QuadroCabecalho: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 6) {
-                Image(systemName: "tablecells").font(.system(size: 11)).foregroundStyle(Palette.accent)
+                Image(systemName: "tablecells").font(DS.interface(11)).foregroundStyle(Palette.accent)
                     .accessibilityHidden(true)
                 RotuloEstudo(texto: "Não confunda com")
             }
@@ -1098,8 +1098,8 @@ private struct QuadroContexto: View {
     let rotulo: String
     let valor: String
     var body: some View {
-        (Text(rotulo + ": ").font(.system(size: 12, weight: .semibold)).foregroundStyle(Palette.secondaryInk)
-         + Text(valor).font(.system(size: 12)).foregroundStyle(Palette.bodyInk))
+        (Text(rotulo + ": ").font(DS.interface(12, .semibold)).foregroundStyle(Palette.secondaryInk)
+         + Text(valor).font(DS.interface(12)).foregroundStyle(Palette.bodyInk))
             .fixedSize(horizontal: false, vertical: true)
     }
 }
@@ -1188,7 +1188,7 @@ private struct QuadroColuna: View {
                 HStack(alignment: .top, spacing: 6) {
                     identificacao
                     Spacer(minLength: 0)
-                    Image(systemName: "chevron.right").font(.system(size: 9, weight: .semibold))
+                    Image(systemName: "chevron.right").font(DS.interface(9, .semibold))
                         .foregroundStyle(.tertiary)
                 }
                 .contentShape(Rectangle())
@@ -1200,7 +1200,7 @@ private struct QuadroColuna: View {
 
     private var identificacao: some View {
         VStack(alignment: .leading, spacing: 3) {
-            Text(coluna.rotulo).font(.system(size: 13, weight: .bold))
+            Text(coluna.rotulo).font(DS.interface(13, .bold))
                 .foregroundStyle(Palette.titleInk)
                 .fixedSize(horizontal: false, vertical: true)
             Flow(espacamento: 5) {
@@ -1236,9 +1236,9 @@ private struct QuadroCelula: View {
     let valor: String
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(rotulo.uppercased()).font(.system(size: 9.5, weight: .bold)).tracking(0.8)
+            Text(rotulo.uppercased()).font(DS.interface(9.5, .bold)).tracking(0.8)
                 .foregroundStyle(Palette.secondaryInk)
-            Text(valor).font(.system(size: 12.5)).lineSpacing(2)
+            Text(valor).font(DS.interface(12.5)).lineSpacing(2)
                 .foregroundStyle(Palette.bodyInk)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -1267,10 +1267,10 @@ private struct QuadroRodape: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 3) {
             Text(texto)
-                .font(.system(size: 11)).italic().foregroundStyle(Palette.secondaryInk)
+                .font(DS.interface(11)).italic().foregroundStyle(Palette.secondaryInk)
                 .fixedSize(horizontal: false, vertical: true)
             ForEach(semCerteza.indices, id: \.self) { i in
-                Text(semCerteza[i]).font(.system(size: 11)).foregroundStyle(Palette.secondaryInk)
+                Text(semCerteza[i]).font(DS.interface(11)).foregroundStyle(Palette.secondaryInk)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -1291,7 +1291,7 @@ struct JurisVizinhoLinha: View {
                 VStack(alignment: .leading, spacing: 3) {
                     HStack(spacing: 6) {
                         FonteBadge(fonte: entry.fonteKind, compact: true)
-                        Text(entry.titulo).font(.system(size: 12.5, weight: .semibold))
+                        Text(entry.titulo).font(DS.interface(12.5, .semibold))
                             .foregroundStyle(Palette.titleInk).lineLimit(1)
                     }
                     Text(entry.enunciado).font(Typo.serifBody(11.5))
@@ -1299,7 +1299,7 @@ struct JurisVizinhoLinha: View {
                         .lineLimit(2).fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 0)
-                Image(systemName: "chevron.right").font(.system(size: 9, weight: .semibold))
+                Image(systemName: "chevron.right").font(DS.interface(9, .semibold))
                     .foregroundStyle(.tertiary)
             }
             .contentShape(Rectangle())

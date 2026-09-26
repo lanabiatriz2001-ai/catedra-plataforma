@@ -21,7 +21,7 @@ struct ChecklistRing: View {
                 .animation(.spring(response: 0.6, dampingFraction: 0.8), value: frac)
             if !center.isEmpty {
                 Text(center)
-                    .font(.system(size: size * 0.26, weight: .bold).monospacedDigit())
+                    .font(DS.interface(size * 0.26, .bold).monospacedDigit())
                     .foregroundStyle(AppTheme.ink)
             }
         }
@@ -176,7 +176,7 @@ struct ChecklistMiniCard: View {
                 Text(store.readingChecklist.isEmpty
                      ? "Adicione metas de leitura livres — como \"revisar CDC até sexta\"."
                      : (ThemeState.t.baixaEstimulacao ? "Tudo em dia por aqui — nenhuma meta pendente."
-                                                       : "Tudo em dia por aqui — nenhuma meta pendente. 🎉"))
+                                                       : "Tudo em dia por aqui — nenhuma meta pendente."))
                     .font(.caption).foregroundStyle(AppTheme.secondaryInk)
                     .padding(.vertical, 2)
             } else {

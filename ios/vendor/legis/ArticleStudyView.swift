@@ -62,8 +62,8 @@ struct ArticleStudyView: View {
     @AppStorage("srsEnabled") private var srsEnabled = false // revisão espaçada ligada?
     @AppStorage("leituraAtiva") private var leituraAtiva = false  // Modo Leitura Ativa (toggle na barra)
     @AppStorage("cleanReading") private var cleanReading = false  // modo imersão (esconde chrome)
-    @AppStorage("readerFontSize") private var fontSize = 16.0
-    @AppStorage("readerFontFamily") private var fontFamily = "Sistema (Serifa)"
+    @AppStorage("readerFontSize") private var fontSize = 18.0
+    @AppStorage("readerFontFamily") private var fontFamily = "Spectral"
     @AppStorage("readerLineSpacing") private var lineSpacing = 7.0
     @State private var showTypography = false                // popover de leitura (Aa)
     @AppStorage("showIndexRail") private var showIndexRail = false  // trilho lateral do índice
@@ -327,6 +327,7 @@ struct ArticleStudyView: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text("Fonte").font(.caption).foregroundStyle(.secondary)
                 Picker("", selection: $fontFamily) {
+                    Text("Spectral (padrão)").tag("Spectral")
                     Text("Serifa (leitura)").tag("Sistema (Serifa)")
                     Text("Sistema").tag("Sistema")
                     Text("Georgia").tag("Georgia")
@@ -631,8 +632,8 @@ private struct UnitFocusView: View {
     @StateObject private var markController = ReaderController()
     @State private var showRedactions = false
     @State private var pendingRemovalRange: NSRange?
-    @AppStorage("readerFontSize") private var fontSize = 16.0
-    @AppStorage("readerFontFamily") private var fontFamily = "Sistema (Serifa)"
+    @AppStorage("readerFontSize") private var fontSize = 18.0
+    @AppStorage("readerFontFamily") private var fontFamily = "Spectral"
     @AppStorage("readerLineSpacing") private var lineSpacing = 7.0
     @AppStorage("markerColorHex") private var markerColorHex = "#FFD60AFF"
     @AppStorage("srsEnabled") private var srsEnabled = false
@@ -2302,7 +2303,7 @@ struct UnitLine: View {
         case .inciso(let numeral, let text):
             HStack(alignment: .firstTextBaseline, spacing: 10) {
                 Text(numeral)
-                    .font(.system(size: fontSize - 1, weight: .bold, design: .default))
+                    .font(DS.interface(fontSize - 1, .bold))
                     .foregroundStyle(accent)
                     .frame(minWidth: 28, alignment: .trailing)
                 body(text)
@@ -2313,14 +2314,14 @@ struct UnitLine: View {
         case .paragrafo(let label, let text):
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(label)
-                    .font(.system(size: fontSize - 1, weight: .bold))
+                    .font(DS.interface(fontSize - 1, .bold))
                     .foregroundStyle(AppTheme.srs)
                 body(text)
             }
         case .alinea(let letter, let text):
             HStack(alignment: .firstTextBaseline, spacing: 10) {
                 Text("\(letter))")
-                    .font(.system(size: fontSize - 1, weight: .semibold))
+                    .font(DS.interface(fontSize - 1, .semibold))
                     .foregroundStyle(.secondary)
                     .frame(minWidth: 28, alignment: .trailing)
                 body(text)
@@ -2333,7 +2334,7 @@ struct UnitLine: View {
 
     private func body(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: fontSize, design: .default))
+            .font(DS.interface(fontSize))
             .lineSpacing(6)
             .textSelection(.enabled)
             .fixedSize(horizontal: false, vertical: true)
@@ -2379,8 +2380,8 @@ private struct UnitCard: View {
     @State private var note = ""
     @State private var noteLoaded = false
     @State private var showNote = false
-    @AppStorage("readerFontSize") private var fontSize = 16.0
-    @AppStorage("readerFontFamily") private var fontFamily = "Sistema (Serifa)"
+    @AppStorage("readerFontSize") private var fontSize = 18.0
+    @AppStorage("readerFontFamily") private var fontFamily = "Spectral"
     @AppStorage("readerLineSpacing") private var lineSpacing = 7.0
     @StateObject private var markController = ReaderController()
     @State private var articleHeight: CGFloat = 60
