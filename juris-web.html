@@ -310,10 +310,12 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
 .rdr .venun{background:var(--rcard);border:1px solid var(--rline);border-radius:16px;padding:20px 22px;box-shadow:0 8px 26px -20px color-mix(in srgb,var(--rc) 60%,transparent)}
 .rdr .venun .lbl{margin-bottom:9px;display:flex;align-items:center;gap:8px}
 .rdr .venun .lbl::before{content:"";width:14px;height:2px;background:var(--rc);border-radius:2px}
-.rdr .venun .bd{font-family:var(--rbody);font-size:calc(var(--rfs,15px) + 1px);line-height:1.68;color:var(--rctext)}
+/* o texto oficial das teses traz parágrafos e itens em linhas próprias ("i) …\nii) …"): a quebra
+   de linha do dado tem de pintar, como no .enun da lista (pre-wrap) */
+.rdr .venun .bd{font-family:var(--rbody);font-size:calc(var(--rfs,15px) + 1px);line-height:1.68;color:var(--rctext);white-space:pre-wrap}
 .rdr .vblk{margin-top:13px;background:color-mix(in srgb,var(--rc) 5%,var(--rcard));border:1px solid var(--rline);border-radius:14px;padding:15px 18px}
 .rdr .vblk .lbl{margin-bottom:6px}
-.rdr .vblk .bd{font-family:var(--rbody);font-size:13.5px;line-height:1.6;color:var(--rpar)}
+.rdr .vblk .bd{font-family:var(--rbody);font-size:13.5px;line-height:1.6;color:var(--rpar);white-space:pre-wrap}
 .rdr .vfoot{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:16px}
 .rdr .vfoot .fp{font:600 11.5px var(--rbody);color:var(--rdim2)}
 .rdr .vfoot a{font:700 12px var(--rbody);color:var(--rc);text-decoration:none;border:1px solid color-mix(in srgb,var(--rc) 32%,transparent);border-radius:9px;padding:7px 12px}
@@ -566,7 +568,15 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   /* Registros editoriais foram retirados ou receberam identificador canônico na
      auditoria sem retirar o conteúdo jurídico correspondente. Leva o estado pessoal
      ao verbete sobrevivente, mas conserva a chave antiga como cópia de segurança:
-     nunca se perde anotação por causa de uma limpeza do acervo. */
+     nunca se perde anotação por causa de uma limpeza do acervo.
+     Lote L4 das teses oficiais (26/09/2026): as 105 fusões "um verbete por tema" entram
+     aqui, geradas por scripts/aplicar-teses-oficiais.py a partir de
+     docs/teses-oficiais/l4-referencia.json — não edite o bloco gerado à mão.
+     REGRA DE UNIÃO (os dois ids com estado): favorito = OU; status = o mais avançado
+     (dominado > em revisão > nada); grifos = união sem repetir; roteiro de IA = o do
+     canônico, e o do antigo só se o canônico não tiver. Roda UMA vez por id antigo que
+     tinha estado (marca em est.mig, que viaja com o estudo): o que a pessoa desfizer
+     depois no canônico não volta. */
   var JURIS_ID_MIGRACOES={
     'repgeral-repetitivo-STJ-x640':'repgeral-repetitivo-STJ-518',
     'SELTJGO-0438':'SELTJGO-0433',
@@ -575,35 +585,201 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
     'repgeral-repercussao_geral-STJ-x257':'repgeral-repercussao_geral-STF-476',
     'repgeral-repercussao_geral-STF-x1586':'repgeral-repercussao_geral-STF-825',
     'repgeral-repercussao_geral-STF-x1590':'repgeral-repercussao_geral-STF-21',
-    'INF2022-0470':'INF2021-0815'
+    'INF2022-0470':'INF2021-0815',
+    /* <gerado:teses-oficiais-l4:migracoes> */
+    'repgeral-repercussao_geral-STF-100-2':'repgeral-repercussao_geral-STF-100',
+    'repgeral-repercussao_geral-STF-1002-2':'repgeral-repercussao_geral-STF-1002',
+    'repgeral-repercussao_geral-STF-1019-2':'repgeral-repercussao_geral-STF-1019',
+    'repgeral-repercussao_geral-STF-1031-2':'repgeral-repercussao_geral-STF-1031',
+    'repgeral-repercussao_geral-STF-1041-2':'repgeral-repercussao_geral-STF-1041',
+    'repgeral-repercussao_geral-STF-1075-2':'repgeral-repercussao_geral-STF-1075',
+    'repgeral-repercussao_geral-STF-1120-2':'repgeral-repercussao_geral-STF-1120',
+    'repgeral-repercussao_geral-STF-116-2':'repgeral-repercussao_geral-STF-116',
+    'repgeral-repercussao_geral-STF-1169-2':'repgeral-repercussao_geral-STF-1169',
+    'repgeral-repercussao_geral-STF-1170-2':'repgeral-repercussao_geral-STF-1170',
+    'repgeral-repercussao_geral-STF-1170-3':'repgeral-repercussao_geral-STF-1170',
+    'repgeral-repercussao_geral-STF-1234-2':'repgeral-repercussao_geral-STF-1234',
+    'repgeral-repercussao_geral-STF-1262-2':'repgeral-repercussao_geral-STF-1262',
+    'repgeral-repercussao_geral-STF-1282-2':'repgeral-repercussao_geral-STF-1282',
+    'repgeral-repercussao_geral-STF-1370-2':'repgeral-repercussao_geral-STF-1370',
+    'repgeral-repercussao_geral-STF-210-2':'repgeral-repercussao_geral-STF-210',
+    'repgeral-repercussao_geral-STF-210-3':'repgeral-repercussao_geral-STF-210',
+    'repgeral-repercussao_geral-STF-27-2':'repgeral-repercussao_geral-STF-27',
+    'repgeral-repercussao_geral-STF-312':'repgeral-repercussao_geral-STF-27',
+    'repgeral-repercussao_geral-STF-323-2':'repgeral-repercussao_geral-STF-323',
+    'repgeral-repercussao_geral-STF-323-3':'repgeral-repercussao_geral-STF-323',
+    'repgeral-repercussao_geral-STF-393-2':'repgeral-repercussao_geral-STF-393',
+    'repgeral-repercussao_geral-STF-477-2':'repgeral-repercussao_geral-STF-477',
+    'repgeral-repercussao_geral-STF-478-2':'repgeral-repercussao_geral-STF-478',
+    'repgeral-repercussao_geral-STF-492-2':'repgeral-repercussao_geral-STF-492',
+    'repgeral-repercussao_geral-STF-545-2':'repgeral-repercussao_geral-STF-545',
+    'repgeral-repercussao_geral-STF-627-2':'repgeral-repercussao_geral-STF-627',
+    'repgeral-repercussao_geral-STF-733-2':'repgeral-repercussao_geral-STF-733',
+    'repgeral-repercussao_geral-STF-761-2':'repgeral-repercussao_geral-STF-761',
+    'repgeral-repercussao_geral-STF-771-2':'repgeral-repercussao_geral-STF-771',
+    'repgeral-repercussao_geral-STF-771-3':'repgeral-repercussao_geral-STF-771',
+    'repgeral-repercussao_geral-STF-857-2':'repgeral-repercussao_geral-STF-857',
+    'repgeral-repercussao_geral-STF-881-2':'repgeral-repercussao_geral-STF-881',
+    'repgeral-repercussao_geral-STF-881-3':'repgeral-repercussao_geral-STF-881',
+    'repgeral-repercussao_geral-STF-967-2':'repgeral-repercussao_geral-STF-967',
+    'repgeral-repercussao_geral-STF-x110':'repgeral-repercussao_geral-STF-642',
+    'repgeral-repercussao_geral-STF-x117':'repgeral-repercussao_geral-STF-642',
+    'repgeral-repercussao_geral-STF-x1371':'repgeral-repercussao_geral-STF-32',
+    'repgeral-repercussao_geral-STF-x1713':'repgeral-repercussao_geral-STF-669',
+    'repgeral-repercussao_geral-STJ-x1120':'repgeral-repercussao_geral-STF-82',
+    'repgeral-repercussao_geral-STJ-x1298':'repgeral-repercussao_geral-STF-1068',
+    'repgeral-repercussao_geral-STJ-x1702':'repgeral-repercussao_geral-STF-495',
+    'repgeral-repetitivo-STF-185-2':'repgeral-repetitivo-STF-185',
+    'repgeral-repetitivo-STF-x1175':'repgeral-repetitivo-STJ-157',
+    'repgeral-repetitivo-STF-x1201':'repgeral-repetitivo-STJ-1155',
+    'repgeral-repetitivo-STJ-1000-2':'repgeral-repetitivo-STJ-1000',
+    'repgeral-repetitivo-STJ-1059-2':'repgeral-repetitivo-STJ-1059',
+    'repgeral-repetitivo-STJ-1074-2':'repgeral-repetitivo-STJ-1074',
+    'repgeral-repetitivo-STJ-108-2':'repgeral-repetitivo-STJ-108',
+    'repgeral-repetitivo-STJ-1092-2':'repgeral-repetitivo-STJ-1092',
+    'repgeral-repetitivo-STJ-1093-2':'repgeral-repetitivo-STJ-1093',
+    'repgeral-repetitivo-STJ-1112-2':'repgeral-repetitivo-STJ-1112',
+    'repgeral-repetitivo-STJ-1134-2':'repgeral-repetitivo-STJ-1134',
+    'repgeral-repetitivo-STJ-1149-2':'repgeral-repetitivo-STJ-1149',
+    'repgeral-repetitivo-STJ-117-2':'repgeral-repetitivo-STJ-117',
+    'repgeral-repetitivo-STJ-1190-2':'repgeral-repetitivo-STJ-1190',
+    'repgeral-repetitivo-STJ-1194-2':'repgeral-repetitivo-STJ-1194',
+    'repgeral-repetitivo-STJ-1215-2':'repgeral-repetitivo-STJ-1215',
+    'repgeral-repetitivo-STJ-1218-2':'repgeral-repetitivo-STJ-1218',
+    'repgeral-repetitivo-STJ-1218-3':'repgeral-repetitivo-STJ-1218',
+    'repgeral-repetitivo-STJ-1245-2':'repgeral-repetitivo-STJ-1245',
+    'repgeral-repetitivo-STJ-1265-2':'repgeral-repetitivo-STJ-1265',
+    'repgeral-repetitivo-STJ-1347-2':'repgeral-repetitivo-STJ-1347',
+    'repgeral-repetitivo-STJ-1408-2':'repgeral-repetitivo-STJ-1408',
+    'repgeral-repetitivo-STJ-1410-2':'repgeral-repetitivo-STJ-1410',
+    'repgeral-repetitivo-STJ-16-2':'repgeral-repetitivo-STJ-16',
+    'repgeral-repetitivo-STJ-17-2':'repgeral-repetitivo-STJ-17',
+    'repgeral-repetitivo-STJ-230-2':'repgeral-repetitivo-STJ-230',
+    'repgeral-repetitivo-STJ-260-2':'repgeral-repetitivo-STJ-260',
+    'repgeral-repetitivo-STJ-293-2':'repgeral-repetitivo-STJ-293',
+    'repgeral-repetitivo-STJ-368-2':'repgeral-repetitivo-STJ-368',
+    'repgeral-repetitivo-STJ-371-2':'repgeral-repetitivo-STJ-371',
+    'repgeral-repetitivo-STJ-380-2':'repgeral-repetitivo-STJ-380',
+    'repgeral-repetitivo-STJ-588-2':'repgeral-repetitivo-STJ-588',
+    'repgeral-repetitivo-STJ-589-2':'repgeral-repetitivo-STJ-589',
+    'repgeral-repetitivo-STJ-614-2':'repgeral-repetitivo-STJ-614',
+    'repgeral-repetitivo-STJ-660-2':'repgeral-repetitivo-STJ-660',
+    'repgeral-repetitivo-STJ-660-4':'repgeral-repetitivo-STJ-660',
+    'repgeral-repetitivo-STJ-671-2':'repgeral-repetitivo-STJ-871',
+    'repgeral-repetitivo-STJ-677-2':'repgeral-repetitivo-STJ-677',
+    'repgeral-repetitivo-STJ-689-2':'repgeral-repetitivo-STJ-689',
+    'repgeral-repetitivo-STJ-692-2':'repgeral-repetitivo-STJ-692',
+    'repgeral-repetitivo-STJ-717-2':'repgeral-repetitivo-STJ-717',
+    'repgeral-repetitivo-STJ-766-2':'repgeral-repetitivo-STJ-766',
+    'repgeral-repetitivo-STJ-86-2':'repgeral-repetitivo-STJ-86',
+    'repgeral-repetitivo-STJ-905-2':'repgeral-repetitivo-STJ-905',
+    'repgeral-repetitivo-STJ-919-2':'repgeral-repetitivo-STJ-919',
+    'repgeral-repetitivo-STJ-938-2':'repgeral-repetitivo-STJ-938',
+    'repgeral-repetitivo-STJ-958-2':'repgeral-repetitivo-STJ-958',
+    'repgeral-repetitivo-STJ-958-3':'repgeral-repetitivo-STJ-958',
+    'repgeral-repetitivo-STJ-970-2':'repgeral-repetitivo-STJ-970',
+    'repgeral-repetitivo-STJ-972-2':'repgeral-repetitivo-STJ-972',
+    'repgeral-repetitivo-STJ-972-3':'repgeral-repetitivo-STJ-972',
+    'repgeral-repetitivo-STJ-980-2':'repgeral-repetitivo-STJ-980',
+    'repgeral-repetitivo-STJ-996-2':'repgeral-repetitivo-STJ-996',
+    'repgeral-repetitivo-STJ-996-3':'repgeral-repetitivo-STJ-996',
+    'repgeral-repetitivo-STJ-996-4':'repgeral-repetitivo-STJ-996',
+    'repgeral-repetitivo-STJ-x1153':'repgeral-repetitivo-STJ-x1139',
+    'repgeral-repetitivo-STJ-x1253':'repgeral-repetitivo-STJ-x1251',
+    'repgeral-repetitivo-STJ-x1255':'repgeral-repetitivo-STJ-x1251',
+    'repgeral-repetitivo-STJ-x1825':'repgeral-repetitivo-STJ-478',
+    'repgeral-repetitivo-STJ-x360':'repgeral-repercussao_geral-STF-942',
+    'repgeral-repetitivo-STJ-x663':'repgeral-repetitivo-STJ-970',
+    'repgeral-repetitivo-STJ-x666':'repgeral-repetitivo-STJ-938',
+    'repgeral-repetitivo-STJ-x838':'repgeral-repetitivo-STJ-x837',
+    /* </gerado:teses-oficiais-l4:migracoes> */
   };
+  /* Retirados sem destino (lote L4: sem tema oficial). O estado da pessoa por esses ids
+     fica no localStorage, órfão: nenhuma tela o lê (o verbete não existe) e as contagens
+     de favoritos e dominados os ignoram, como ignoram as chaves antigas das migrações. */
+  var JURIS_IDS_RETIRADOS=[
+    /* <gerado:teses-oficiais-l4:retirados> */
+    'repgeral-repercussao_geral-STF-569',
+    'repgeral-repercussao_geral-STF-x100',
+    'repgeral-repercussao_geral-STF-x1436',
+    'repgeral-repercussao_geral-STF-x150',
+    'repgeral-repercussao_geral-STF-x151',
+    'repgeral-repercussao_geral-STF-x1647',
+    'repgeral-repercussao_geral-STF-x1648',
+    'repgeral-repercussao_geral-STF-x1859',
+    'repgeral-repercussao_geral-STF-x1960',
+    'repgeral-repercussao_geral-STF-x258',
+    'repgeral-repercussao_geral-STF-x263',
+    'repgeral-repercussao_geral-STF-x287',
+    'repgeral-repercussao_geral-STF-x288',
+    'repgeral-repercussao_geral-STF-x412',
+    'repgeral-repercussao_geral-STF-x477',
+    'repgeral-repercussao_geral-STF-x604',
+    'repgeral-repercussao_geral-STF-x814',
+    'repgeral-repercussao_geral-STF-x970',
+    'repgeral-repercussao_geral-STJ-x116',
+    'repgeral-repercussao_geral-STJ-x1381',
+    'repgeral-repercussao_geral-STJ-x1625',
+    'repgeral-repercussao_geral-STJ-x1669',
+    'repgeral-repercussao_geral-STJ-x2014',
+    'repgeral-repercussao_geral-STJ-x229',
+    'repgeral-repercussao_geral-STJ-x350',
+    'repgeral-repercussao_geral-STJ-x616',
+    'repgeral-repercussao_geral-STJ-x618',
+    'repgeral-repercussao_geral-STJ-x631',
+    'repgeral-repetitivo-STF-x1197',
+    'repgeral-repetitivo-STF-x1207',
+    'repgeral-repetitivo-STJ-x1060',
+    'repgeral-repetitivo-STJ-x1199',
+    'repgeral-repetitivo-STJ-x1248',
+    'repgeral-repetitivo-STJ-x1265',
+    'repgeral-repetitivo-STJ-x1286',
+    'repgeral-repetitivo-STJ-x1320',
+    'repgeral-repetitivo-STJ-x1410',
+    'repgeral-repetitivo-STJ-x1462',
+    'repgeral-repetitivo-STJ-x1752',
+    'repgeral-repetitivo-STJ-x235',
+    'repgeral-repetitivo-STJ-x267',
+    'repgeral-repetitivo-STJ-x55',
+    'repgeral-repetitivo-STJ-x641',
+    'repgeral-repetitivo-STJ-x657',
+    'repgeral-repetitivo-STJ-x676',
+    'repgeral-repetitivo-STJ-x938',
+    /* </gerado:teses-oficiais-l4:retirados> */
+  ];
+  var JURIS_FORA={};
+  Object.keys(JURIS_ID_MIGRACOES).forEach(function(k){ JURIS_FORA[k]=1; });
+  JURIS_IDS_RETIRADOS.forEach(function(k){ JURIS_FORA[k]=1; });
+  function contaNoAcervo(obj,filtro){
+    var n=0; Object.keys(obj||{}).forEach(function(k){ if(!JURIS_FORA[k]&&(!filtro||filtro(obj[k])))n++; }); return n;
+  }
   function migraEstadoJuris(){
-    var mudou=false, peso={'':0,rev:1,dom:2};
+    var peso={'':0,rev:1,dom:2};
+    var mig=(est.mig&&typeof est.mig==='object')?est.mig:{}, mudou=false;
+    var kr='catedraJurisRoteiros', rots={}, mr=false;
+    try{ rots=JSON.parse(localStorage.getItem(kr)||'{}')||{}; }catch(e){ rots={}; }
     Object.keys(JURIS_ID_MIGRACOES).forEach(function(antigo){
-      var novo=JURIS_ID_MIGRACOES[antigo];
-      if(est.fav[antigo]&&!est.fav[novo]){est.fav[novo]=est.fav[antigo];mudou=true;}
+      if(mig[antigo])return;                    // já unido uma vez
+      var novo=JURIS_ID_MIGRACOES[antigo], teve=false;
+      if(est.fav[antigo]){ teve=true; if(!est.fav[novo])est.fav[novo]=est.fav[antigo]; }
       var sa=est.stat[antigo]||'', sn=est.stat[novo]||'';
-      if((peso[sa]||0)>(peso[sn]||0)){est.stat[novo]=sa;mudou=true;}
+      if(sa){ teve=true; if((peso[sa]||0)>(peso[sn]||0))est.stat[novo]=sa; }
       try{
         var ka='catedra:grifosJuris:'+antigo, kn='catedra:grifosJuris:'+novo;
         var aa=JSON.parse(localStorage.getItem(ka)||'[]');
-        var an=JSON.parse(localStorage.getItem(kn)||'[]');
         if(Array.isArray(aa)&&aa.length){
+          teve=true;
+          var an=JSON.parse(localStorage.getItem(kn)||'[]'); if(!Array.isArray(an))an=[];
           var vistos={}; an.forEach(function(v){vistos[JSON.stringify(v)]=1;});
           aa.forEach(function(v){var k=JSON.stringify(v);if(!vistos[k]){an.push(v);vistos[k]=1;}});
           localStorage.setItem(kn,JSON.stringify(an));
         }
       }catch(e){}
+      if(rots[antigo]){ teve=true; if(!rots[novo]){rots[novo]=rots[antigo];mr=true;} }
+      if(teve){ mig[antigo]=1; mudou=true; }   // sem estado nenhum não marca: se chegar depois (outro aparelho), une
     });
-    if(mudou){try{localStorage.setItem(LK,JSON.stringify(est))}catch(e){}}
-    try{
-      var kr='catedraJurisRoteiros', rots=JSON.parse(localStorage.getItem(kr)||'{}'), mr=false;
-      Object.keys(JURIS_ID_MIGRACOES).forEach(function(antigo){
-        var novo=JURIS_ID_MIGRACOES[antigo];
-        if(rots[antigo]&&!rots[novo]){rots[novo]=rots[antigo];mr=true;}
-      });
-      if(mr)localStorage.setItem(kr,JSON.stringify(rots));
-    }catch(e){}
+    if(mudou){ est.mig=mig; try{localStorage.setItem(LK,JSON.stringify(est))}catch(e){} }
+    if(mr){ try{localStorage.setItem(kr,JSON.stringify(rots))}catch(e){} }
   }
   migraEstadoJuris();
   function saveEst(){try{localStorage.setItem(LK,JSON.stringify(est))}catch(e){}}
@@ -791,9 +967,9 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
     }
     document.getElementById('sTot').textContent=IDX.length.toLocaleString('pt-BR');
     document.getElementById('sFilt').textContent=filtered.length.toLocaleString('pt-BR');
-    metrica('s1Dom',Object.values(est.stat).filter(function(v){return v==='dom'}).length,
+    metrica('s1Dom',contaNoAcervo(est.stat,function(v){return v==='dom'}),
             'Dominados','marque ✓ quando dominar um verbete');
-    metrica('s1Fav',Object.keys(est.fav).length,
+    metrica('s1Fav',contaNoAcervo(est.fav),
             'Favoritos','marque ★ no que cai no seu edital');
   }
 
@@ -2519,7 +2695,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   }
 
   function renderVerbete(r){
-    var _tm=txtDe(r), t=(_tm&&_tm[r[I.id]])||{};
+    var _tm=txtDe(r), t=(_tm&&_tm[r[I.id]])||{}, _te=t.tm||r[I.te];
     var h='<div class="vhero"><div class="htop"><span class="tb">'+esc(r[I.tr]||'—')+'</span>'
       +(r[I.fo]&&norm(r[I.fo])!==norm(r[I.tr])?'<span class="meta">'+esc(nomeColecao(r[I.fo]))+'</span>':'')
       +(r[I.nu]?'<span class="meta">nº '+esc(r[I.nu])+'</span>':'')
@@ -2528,8 +2704,9 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
       +'</div><h2>'+esc(r[I.ti]||'Verbete')+'</h2><div class="tags">'
       +(r[I.ra]?'<span class="rtag">'+esc(r[I.ra])+'</span>':'')
       // no acervo de contas o "tema" do card é o início da própria tese: repetir
-      // logo acima do enunciado inteiro seria eco
-      +(r[I.te]&&!(t.en&&norm(t.en).indexOf(norm(String(r[I.te]).replace(/…$/,'')))===0)?'<span class="tema">'+esc(r[I.te])+'</span>':'')+'</div></div>';
+      // logo acima do enunciado inteiro seria eco. Título oficial longo (teses de RG e
+      // repetitivos) vem cortado no índice, para a lista; o inteiro está em t.tm.
+      +(_te&&!(t.en&&norm(t.en).indexOf(norm(String(_te).replace(/…$/,'')))===0)?'<span class="tema">'+esc(_te)+'</span>':'')+'</div></div>';
     h+='<div class="venun"><div class="lbl">Enunciado</div><div class="bd">'+(t.en?jGr(t.en):'<span style="color:var(--rdim)">Sem enunciado.</span>')+'</div></div>';
     if(t.co)h+='<div class="vblk"><div class="lbl">Comentário</div><div class="bd">'+jGr(t.co)+'</div></div>';
     if(t.ob)h+='<div class="vblk"><div class="lbl">Observação</div><div class="bd">'+jGr(t.ob)+'</div></div>';

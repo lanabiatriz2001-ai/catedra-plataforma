@@ -55,7 +55,7 @@ struct ArticleStudyView: View {
 
     // Um único .sheet(item:) — empilhar vários .sheet(isPresented:) no mesmo view
     // confunde o SwiftUI (macOS) sobre qual apresentar (armadilha corrigida na v36).
-    private enum StudySheet: Int, Identifiable { case index, map; var id: Int { rawValue } }
+    private enum StudySheet: Int, Identifiable { case index; var id: Int { rawValue } }
     @State private var filter = ""
     @State private var onlyReview = false
     @AppStorage("studyLayout") private var layout = "foco"   // "foco" | "cartoes"
@@ -166,12 +166,11 @@ struct ArticleStudyView: View {
         .sheet(isPresented: tipografiaEmFolha) {
             typographyPopover.legisDetentesSeCompacto([.medium, .large])
         }
-        // Gancho de VERIFICAÇÃO (ver ContentView): `-legisAbrirFolha indice|mapa|tipografia`.
+        // Gancho de VERIFICAÇÃO (ver ContentView): `-legisAbrirFolha indice|tipografia`.
         .task {
             try? await Task.sleep(nanoseconds: 1_200_000_000)
             switch UserDefaults.standard.string(forKey: "legisAbrirFolha") {
             case "indice":     activeSheet = .index
-            case "mapa":       activeSheet = .map
             case "tipografia": showTypography = true
             default: break
             }
@@ -182,12 +181,6 @@ struct ArticleStudyView: View {
                 IndexSheet(lawID: lawID, units: units, accent: accent, currentID: focusID) { id in
                     layout = "foco"; activeSheet = nil
                     goTo(id) // salva a posição, como Anterior/Próximo
-                }
-            case .map:
-                if let unit = focusUnit {
-                    ArticleMapSheet(unit: unit,
-                                    lawTitle: store.laws.first { $0.id == lawID }?.title ?? "",
-                                    accent: accent)
                 }
             }
         }
@@ -213,13 +206,6 @@ struct ArticleStudyView: View {
             .tint(accent)
 
             if layout == "foco" {
-                Button { activeSheet = .map } label: {
-                    Label("Mapa", systemImage: "point.3.connected.trianglepath.dotted")
-                        .font(.caption.weight(.semibold))
-                }
-                .buttonStyle(.bordered)
-                .help("Gera um mapa/esquema visual deste artigo — copiar ou exportar PNG")
-
                 Button { withAnimation(.easeInOut(duration: 0.15)) { leituraAtiva.toggle() } } label: {
                     Label("Leitura ativa", systemImage: leituraAtiva ? "book.and.wrench.fill" : "book.and.wrench")
                         .font(.caption.weight(.semibold))
@@ -293,7 +279,7 @@ struct ArticleStudyView: View {
         .accessibilityLabel("Índice, \(units.count) artigos")
     }
 
-    /// Exibição (Foco/Cartões), Mapa, Leitura ativa, Aa, Imersão e Revisão espaçada — o que
+    /// Exibição (Foco/Cartões), Leitura ativa, Aa, Imersão e Revisão espaçada — o que
     /// a barra superior do Estudo mostra no iPad, num menu de 44 pt.
     private var estudoMenuCompacto: some View {
         Menu {
@@ -303,9 +289,6 @@ struct ArticleStudyView: View {
             }
             .pickerStyle(.inline)
             if layout == "foco" {
-                Button { activeSheet = .map } label: {
-                    Label("Mapa do artigo", systemImage: "point.3.connected.trianglepath.dotted")
-                }
                 Button { showTypography = true } label: {
                     Label("Leitura (fonte e espaçamento)", systemImage: "textformat.size")
                 }

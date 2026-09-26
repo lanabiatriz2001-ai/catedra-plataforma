@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-/// Nota de estudo ORIGINAL (não oficial): esquema/mapa mental de um julgado.
+/// Nota de estudo ORIGINAL (não oficial): esquema de um julgado, mostrado no próprio verbete.
 /// `tese` = síntese; `fluxo` = passos de uma decisão (fluxograma); `ramos` = ramos temáticos.
 struct NotaEstudo: Codable, Hashable {
     var tese: String?
@@ -41,9 +41,9 @@ struct RamoNota: Codable, Hashable {
         }
     }
     var cor: Color {
-        // Cores SEMÂNTICAS fixas (o mapa é exportado em fundo branco forçado): os
-        // tokens Palette.fonte* hoje resolvem todos para o acento, então o código de
-        // cores do mapa mental se perdia. Aqui cada tipo tem sua cor própria.
+        // Cores SEMÂNTICAS fixas: os tokens Palette.fonte* resolvem todos para o
+        // acento, então o código de cores dos ramos do esquema se perdia. Aqui cada
+        // tipo tem sua cor própria.
         switch tipo {
         case "regra": return Color(hex: "#16A34A")       // verde
         case "fundamento": return Color(hex: "#2563EB")  // azul

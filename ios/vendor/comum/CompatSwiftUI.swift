@@ -37,7 +37,7 @@ extension View {
 
     /// Folha (.sheet) que se adapta ao aparelho: o conteúdo preenche o tamanho que o
     /// sistema der (no iPhone, a tela inteira; no iPad, a folha). `larga` pede o formato
-    /// .page do iOS 18 (Mapa mental, Análise, Comparação de redações, Histórico — folhas
+    /// .page do iOS 18 (Análise, Comparação de redações, Histórico — folhas
     /// que precisam de largura); as demais ficam no .form. No iOS 17 o sizing não existe:
     /// a folha fica com o tamanho padrão do sistema. `temRascunho` impede o fechar por
     /// gesto enquanto há texto não salvo, para o arrastão não apagar o que a pessoa escreveu.
