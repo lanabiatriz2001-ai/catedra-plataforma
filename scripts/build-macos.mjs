@@ -6,9 +6,10 @@
 //   2. NÃO injeta o shim window.claude → /api/complete. No app nativo a IA é
 //      feita pela PONTE NATIVA (o Swift define window.claude e faz o POST via
 //      URLSession — sem esbarrar em CORS de file://). Ver mac/Sources/main.swift.
-//   3. VENDORA React, ReactDOM e supabase-js em web/vendor/. Se não conseguir (sem
-//      rede no build, CDN fora), o build ABORTA com código ≠ 0 — nunca cai para o
-//      <script> do CDN, que deixaria o app nativo dependendo de rede para abrir (D9).
+//   3. COPIA React, ReactDOM e supabase-js de vendor/ (versionados no repositório) para
+//      web/vendor/, conferindo o sha256 de vendor/manifesto.json. Arquivo ausente ou
+//      adulterado ABORTA o build com código ≠ 0 e nomeia o arquivo. O build não baixa
+//      nada: sem rede ele passa, e o app nativo nunca depende de CDN para abrir (D9).
 //
 // O Catedra.dc.html permanece intocado — este script só o lê.
 
@@ -28,6 +29,7 @@ import './verificar-cores-texto.mjs';   // trava: cor de ramo como texto ≥ 4,5
 import { verificar as verificarDesignNativo } from './verificar-design-nativo.mjs';   // trava: dívida visual do nativo só desce
 import './build-juridico.mjs';   // Termos e Política: docs/juridico/*.md → termos.html, privacidade.html, juridico.js
 import { prepararAbertura } from './build-abertura.mjs';
+import { lerVendor } from './vendor-libs.mjs';   // React, ReactDOM e supabase-js congelados em vendor/ (sha256)
 { const r = verificarDesignNativo(); if (r.falhas.length) throw new Error('\n✗ BUILD ABORTADO — contagem da dívida visual do LEGIS/JURIS nativos não bate com a base:\n  ' + r.falhas.join('\n  ')); }
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -37,12 +39,14 @@ const read = (f) => readFileSync(join(ROOT, f), 'utf8');
 // Config pública do Supabase (mesma do build web — publishable key é pública por design).
 const SUPABASE_URL = 'https://frcnfqxniwzdyykvgqqu.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_nCm4a-RzzY8e8jVC9O6Gfg_4V6EOrI2';
-const SUPABASE_CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
-// React/ReactDOM UMD: o support.js baixaria do unpkg em runtime; vendorando aqui e
-// carregando ANTES do support.js, o loadReactUmd() detecta window.React e NÃO busca
-// na rede (app abre offline e imune a rate-limit do CDN). Versões casam com o support.js.
-const REACT_CDN = 'https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js';
-const REACTDOM_CDN = 'https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js';
+// React/ReactDOM UMD: o support.js baixaria do unpkg em runtime; carregando a cópia de
+// vendor/ ANTES do support.js, o loadReactUmd() detecta window.React e NÃO busca na rede
+// (app abre offline e imune a rate-limit do CDN). Versões casam com o support.js; o
+// supabase-js fica congelado na mesma versão da web (ver vendor/manifesto.json).
+
+// As libs são conferidas ANTES de apagar a saída: vendor/ adulterado aborta o build e deixa o
+// bundle anterior (que o build-app.sh e a suíte WebKit usam) de pé, em vez de um meio-bundle.
+const LIBS_VENDOR = lerVendor(ROOT);
 
 // limpa e recria a saída
 rmSync(OUT, { recursive: true, force: true });
@@ -50,48 +54,16 @@ mkdirSync(OUT, { recursive: true });
 
 mkdirSync(join(OUT, 'vendor'), { recursive: true });
 
-/* Baixa uma lib para web/vendor/<file> e devolve a <script> LOCAL. Falhar ABORTA o build.
-   Antes, sem rede no build, caía para a <script> do CDN sem avisar além de uma linha no
-   log: o bundle empacotado no .app passava a precisar de internet para abrir, o oposto do
-   D9 que o build web (scripts/build.mjs) já cumpre. Aqui não há saída de emergência — o
-   app nativo roda em file:// e é instalado; bundle que depende de CDN não deve existir.
-   Três tentativas, como no build web: rede treme, e abortar por soluço seria pior. */
-async function baixar(url, minLen) {
-  let ultimo;
-  for (let tentativa = 1; tentativa <= 3; tentativa++) {
-    try {
-      const r = await fetch(url, { redirect: 'follow' });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      const js = await r.text();
-      if (!js || js.length < minLen) throw new Error('corpo suspeito (' + (js ? js.length : 0) + ' bytes)');
-      return js;
-    } catch (e) {
-      ultimo = e;
-      if (tentativa < 3) await new Promise((r) => setTimeout(r, 400 * tentativa));
-    }
-  }
-  throw ultimo;
-}
-async function vendor(url, file, minLen = 1000) {
-  let js;
-  try { js = await baixar(url, minLen); }
-  catch (e) {
-    console.error('\n✗ BUILD ABORTADO: não consegui vendorar ' + file + ' para o bundle nativo.');
-    console.error('  fonte: ' + url);
-    console.error('  erro:  ' + (e && e.message ? e.message : e));
-    console.error('\n  Seguir daria um app que precisa de CDN para abrir (e em modo avião não abre).');
-    console.error('  Conserte a rede do build e rode de novo.\n');
-    process.exit(1);
-  }
-  writeFileSync(join(OUT, 'vendor', file), js);
-  console.log('  · ' + file + ' vendorado localmente (' + js.length + ' bytes)');
-  return `<script src="./vendor/${file}"></script>`;
-}
-
+/* As três libs saem de vendor/ conferidas pelo sha256 (scripts/vendor-libs.mjs). Antes eram
+   baixadas do jsdelivr a cada build, sem checksum, e o supabase-js flutuava em `@2`: o .app
+   instalado chegou a levar uma versão diferente da web publicada. Agora o bundle nativo, o
+   do Xcode Cloud e o site levam os MESMOS bytes, e o build não pede nada à rede. */
 // React deve vir ANTES de ReactDOM (que usa o global React) e ambos ANTES do support.js.
-const reactTag    = await vendor(REACT_CDN, 'react.js');
-const reactDomTag = await vendor(REACTDOM_CDN, 'react-dom.js');
-const supabaseTag = await vendor(SUPABASE_CDN, 'supabase.js');
+const [reactTag, reactDomTag, supabaseTag] = LIBS_VENDOR.map(({ arquivo, pacote, versao, conteudo }) => {
+  writeFileSync(join(OUT, 'vendor', arquivo), conteudo);
+  console.log('  · ' + arquivo + ' do repositório (' + pacote + '@' + versao + ', ' + conteudo.length + ' bytes, sha256 conferido)');
+  return `<script src="./vendor/${arquivo}"></script>`;
+});
 
 // Mesmo carimbo do build web: relato de bug precisa dizer QUAL versão quebrou.
 let _sha = 'local';

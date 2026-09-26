@@ -24,6 +24,7 @@ import './verificar-cores-leitura.mjs';   // trava: grade de leitura ativa legí
 import './verificar-cores-texto.mjs';   // trava: cor de ramo como texto ≥ 4,5:1 (P16)
 import './build-juridico.mjs';   // Termos e Política: docs/juridico/*.md → termos.html, privacidade.html, juridico.js
 import { prepararAbertura } from './build-abertura.mjs';   // primeira pintura usa as paletas reais do host
+import { lerVendor } from './vendor-libs.mjs';   // React, ReactDOM e supabase-js congelados em vendor/ (sha256)
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (f) => readFileSync(join(ROOT, f), 'utf8');
@@ -36,14 +37,13 @@ const src = read('Catedra.dc.html');
 const SUPABASE_URL = 'https://frcnfqxniwzdyykvgqqu.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_nCm4a-RzzY8e8jVC9O6Gfg_4V6EOrI2';
 
-// ── libs de terceiros: baixadas AGORA, servidas do nosso domínio ─────────────
+// ── libs de terceiros: do REPOSITÓRIO, servidas do nosso domínio ──────────────
 // Antes, React/ReactDOM (o support.js os buscava no unpkg em runtime) e o
 // supabase-js vinham de CDN a cada carregamento: CDN fora do ar ou bloqueado =
-// tela branca, e nada disso sobrevivia offline no PWA. Vendorando em public/vendor/
-// o app depende só do próprio deploy. Versões casam com as do support.js.
-const REACT_CDN = 'https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js';
-const REACTDOM_CDN = 'https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js';
-const SUPABASE_CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+// tela branca, e nada disso sobrevivia offline no PWA. Depois passaram a ser baixadas
+// do jsdelivr a CADA BUILD, sem checksum e com o supabase-js flutuando em `@2`. Agora
+// moram em vendor/ (versões congeladas, sha256 em vendor/manifesto.json) e o build só
+// copia e confere — ver scripts/vendor-libs.mjs. Versões casam com as do support.js.
 
 const pub = join(ROOT, 'public');
 
@@ -64,62 +64,33 @@ const COPIAR = ['support.js', 'icon.svg', 'auth.js', 'icon-180.png', 'legis-web.
   }
 }
 
+/* AS BIBLIOTECAS SÃO CONFERIDAS ANTES DE QUALQUER ESCRITA, junto com a lista de cópia: vendor/
+   ausente ou adulterado aborta aqui nomeando o arquivo, e public/ do build anterior fica
+   como estava em vez de virar um deploy pela metade. */
+const LIBS_VENDOR = lerVendor(ROOT);
+
 /* LIMPA public/ INTEIRA ANTES DE ESCREVER. Antes só public/fonts era apagada: vendor/ era
    criada por cima e dados/ ia por cpSync sem limpar. Como os blocos dos acervos têm hash
    no nome, cada atualização deixava os blocos velhos lá — medido: 248 arquivos em
    public/dados/juris-text contra 62 no repositório, e 104 MB de public/. Tudo isso ia para
-   a Vercel. Limpar aqui, antes das fontes, mantém a ordem do D9: sem rede, as faces ainda
-   chegam a public/fonts e o build aborta depois, pelas bibliotecas. */
+   a Vercel. Limpar aqui, antes de escrever qualquer coisa, garante que o que sai é só o
+   build da vez. */
 rmSync(pub, { recursive: true, force: true });
 mkdirSync(join(pub, 'vendor'), { recursive: true });
 
-// D9: vendoring que falha FAZ O BUILD FALHAR. Antes caía para o CDN, e aí o site
-// publicado dependia de cdn.jsdelivr.net/unpkg em runtime — numa rede que bloqueia CDN
+// D9: o site publicado nunca depende de CDN em runtime — numa rede que bloqueia CDN
 // (faculdade, tribunal, sandbox) o app simplesmente não abria. Foi exatamente o que
-// aconteceu no ambiente de teste. Degradar em silêncio é pior que não publicar.
-//
-// Escape hatch consciente: CT_PERMITE_CDN=1 volta ao comportamento antigo, para depurar.
-// Não use em deploy — o aviso abaixo diz isso em voz alta.
-const PERMITE_CDN = process.env.CT_PERMITE_CDN === '1';
+// aconteceu no ambiente de teste. As bibliotecas saem de vendor/ conferidas pelo sha256;
+// arquivo ausente ou adulterado ABORTA o build nomeando o arquivo (lerVendor). Não há mais
+// rede nem saída de emergência para CDN aqui: o CT_PERMITE_CDN deixou de existir.
 const vendorados = [];
-async function baixar(url, minLen) {
-  // uma tentativa e mais duas: rede treme, e falhar o build por soluço seria pior
-  let ultimo;
-  for (let tentativa = 1; tentativa <= 3; tentativa++) {
-    try {
-      const r = await fetch(url, { redirect: 'follow' });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      const txt = await r.text();
-      if (!txt || txt.length < minLen) throw new Error('corpo suspeito (' + (txt ? txt.length : 0) + ' bytes)');
-      return txt;
-    } catch (e) {
-      ultimo = e;
-      if (tentativa < 3) await new Promise((r) => setTimeout(r, 400 * tentativa));
-    }
-  }
-  throw ultimo;
-}
-function abortar(oque, url, e) {
-  console.error('\n✗ BUILD ABORTADO: não consegui vendorar ' + oque + '.');
-  console.error('  fonte: ' + url);
-  console.error('  erro:  ' + (e && e.message ? e.message : e));
-  console.error('\n  Publicar assim deixaria o site dependendo de um CDN em runtime — e em');
-  console.error('  rede que bloqueia CDN o app não abre. Conserte a rede do build, ou rode');
-  console.error('  com CT_PERMITE_CDN=1 se for DEBUG (nunca para deploy).\n');
-  process.exit(1);
-}
-async function vendor(url, file, minLen = 1000) {
-  try {
-    const js = await baixar(url, minLen);
-    writeFileSync(join(pub, 'vendor', file), js);
-    console.log('  · ' + file + ' vendorado (' + js.length + ' bytes)');
-    vendorados.push('./vendor/' + file);
-    return `<script src="./vendor/${file}"></script>`;
-  } catch (e) {
-    if (!PERMITE_CDN) abortar(file, url, e);
-    console.log('  ⚠ ' + file + ' via CDN (CT_PERMITE_CDN=1 — deploy NÃO deve sair assim): ' + e.message);
-    return `<script src="${url}"></script>`;
-  }
+function vendorLocal() {
+  return LIBS_VENDOR.map(({ arquivo, pacote, versao, conteudo }) => {
+    writeFileSync(join(pub, 'vendor', arquivo), conteudo);
+    console.log('  · ' + arquivo + ' do repositório (' + pacote + '@' + versao + ', ' + conteudo.length + ' bytes, sha256 conferido)');
+    vendorados.push('./vendor/' + arquivo);
+    return `<script src="./vendor/${arquivo}"></script>`;
+  });
 }
 
 // ── fontes: mesmo tratamento (resolve o offline junto) ──────────────────────
@@ -169,18 +140,12 @@ async function vendorarFontes() {
   return './fonts.css';
 }
 
-/* AS FONTES VÊM ANTES DAS BIBLIOTECAS, e a ordem é o ponto. As faces são copiadas do
-   repositório e não pedem nada à rede; as libs ainda são baixadas do jsdelivr e ABORTAM o
-   build quando a rede falta. Com o vendorarFontes() no fim, um build sem rede morria no
-   react e public/fonts nunca era escrita — quem não tivesse sobra de um build anterior
-   ficava sem as 20 faces. Copiando primeiro, o passo que não depende de rede sempre
-   acontece, e o aborto das libs continua igual. */
+/* Fontes e bibliotecas vêm, as duas, do repositório: o build não pede nada à rede e,
+   sem internet, publica igual. (As libs já foram conferidas lá em cima, antes da limpeza.) */
 const fontsHref = await vendorarFontes();
 
 // React antes de ReactDOM (que usa o global React), ambos antes do support.js.
-const reactTag = await vendor(REACT_CDN, 'react.js');
-const reactDomTag = await vendor(REACTDOM_CDN, 'react-dom.js');
-const supabaseTag = await vendor(SUPABASE_CDN, 'supabase.js');
+const [reactTag, reactDomTag, supabaseTag] = vendorLocal();
 
 // Carimbo do build. Sem ele, um relato de bug de testador chega sem dizer QUAL versão
 // quebrou — e aí não dá para saber se já foi corrigido. Na Vercel o sha vem do ambiente.
