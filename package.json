@@ -6,6 +6,8 @@
   "description": "Deploy da plataforma Cátedra na Vercel com IA (Claude) via função serverless.",
   "scripts": {
     "build": "node scripts/build.mjs",
+    "sentinela": "node scripts/sentinela.mjs",
+    "sentinela:dry": "node scripts/sentinela.mjs --dry-run",
     "test": "node tests/run.mjs",
     "test:webkit": "node tests/run-webkit.mjs",
     "verificar:segredos": "node scripts/verificar-segredos.mjs"

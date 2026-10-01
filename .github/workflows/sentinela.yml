@@ -1,0 +1,83 @@
+# Vigia das fontes oficiais: lê Planalto, STF e STJ e abre um PR com o que mudou.
+#
+# É esta rotina que faz a atualização acontecer com o APP FECHADO — ela roda no servidor
+# do GitHub, não no aparelho da pessoa. O botão "Buscar atualizações agora" (api/sentinela.js)
+# só CONSULTA; quem incorpora ao acervo é este PR, que passa pela revisão de sempre.
+#
+# Frequência: diária às 9h de Brasília (12h UTC). Para mudar, altere o cron abaixo — é o
+# único lugar em que a periodicidade vive.
+name: Sentinela das fontes oficiais
+
+on:
+  schedule:
+    - cron: '0 12 * * *'
+  workflow_dispatch:
+    inputs:
+      fontes:
+        description: 'Fontes a consultar (planalto,stf,stj)'
+        required: false
+        default: 'planalto,stf,stj'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  # Duas varreduras ao mesmo tempo bateriam em dobro nas fontes oficiais e abririam dois
+  # PRs com o mesmo conteúdo. Uma de cada vez, e a que está correndo termina.
+  group: sentinela
+  cancel-in-progress: false
+
+jobs:
+  vigiar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Consultar as fontes oficiais
+        id: consulta
+        run: |
+          node scripts/sentinela.mjs --fonte "${{ inputs.fontes || 'planalto,stf,stj' }}" | tee /tmp/sentinela.log
+          echo 'resumo<<EOF' >> "$GITHUB_OUTPUT"
+          cat /tmp/sentinela.log >> "$GITHUB_OUTPUT"
+          echo 'EOF' >> "$GITHUB_OUTPUT"
+
+      # Informativo novo detectado ainda não é informativo INCORPORADO: quem parseia as
+      # edições e as anexa ao acervo é o script que já existe há tempo e é dono desse
+      # formato. O sentinela detecta; este passo incorpora.
+      - name: Incorporar os informativos novos ao acervo
+        run: python3 scripts/atualizar-informativos.py || echo 'informativos: nada a incorporar (ou fonte fora do ar)'
+
+      - name: Regerar o que depende do acervo
+        run: |
+          node scripts/build-semana-juris.mjs || true
+          node scripts/verificar-segredos.mjs
+
+      - name: Abrir o PR com o que mudou
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: sentinela/atualizacoes
+          # Rascunho de propósito: a dona decide o que entra no acervo. Atualização
+          # jurídica não se publica sozinha.
+          draft: true
+          title: 'Atualizações das fontes oficiais'
+          commit-message: 'Registra o que mudou no Planalto, no STF e no STJ desde a última consulta'
+          body: |
+            Varredura automática das fontes oficiais.
+
+            ```
+            ${{ steps.consulta.outputs.resumo }}
+            ```
+
+            Antes de aprovar: confira na fonte oficial os itens marcados para revisão —
+            vigência não informada, comparação parcial e informativo recém-detectado
+            entram assim de propósito.
+          add-paths: |
+            novidades.js
+            dados/sentinela/estado.json
+            juris-index.js
+            juris-text.js
+            semana-juris.js

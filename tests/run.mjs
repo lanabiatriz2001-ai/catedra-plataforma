@@ -61,6 +61,7 @@ import { testarPdfjsLocal } from './pdfjs-local.mjs';
 import { testarVarreduraRedeExterna, testarSupportSemRede, testarHarnessSemRede, testarRedeExternaExecucao, resumoRedeSuite } from './rede-externa.mjs';
 import { testarAssinaturaLimpa } from './assinatura-limpa.mjs';
 import { testarXcodeCloud } from './xcode-cloud.mjs';
+import { testarSentinela } from './sentinela.mjs';
 import { testarSupportCorrecoesLocais } from './support-correcoes-locais.mjs';
 import { testarDesignNativo } from './design-nativo.mjs';
 import { montar as montarEnam, parseProva as parseProvaEnam, parseGabarito as parseGabaritoEnam, carregarAreas as areasEnam, EDICOES as EDICOES_ENAM } from '../scripts/build-questoes-enam.mjs';
@@ -3886,6 +3887,15 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
   r.hostMostraEmToast = /chamadas de IA de hoje\/\.test\(m\)\) this\._toast\(m\)/.test(src) && /data-adm="cota"/.test(src) && /admin_ia_cota_set/.test(src);
   r.migracaoVersionada = fs.existsSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-ia-cota.sql'));
   for (const [k, v] of Object.entries(r)) ok(v, 'IA/P18 cota ' + k);
+}
+
+/* ============= SENTINELA DAS FONTES OFICIAIS =============
+   Planalto, STF e STJ: o que vira novidade, o que é só aparência, e a regra de que
+   falha nunca se disfarça de "sem novidade". Roteiro em tests/sentinela.mjs (sem rede). */
+try { await testarSentinela(ok); }
+catch (e) {
+  ok(false, 'SENTINELA o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
 /* ============= ÁREAS — P19: foco de escopo para o beta público ============= */
