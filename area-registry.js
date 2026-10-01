@@ -180,7 +180,9 @@
     simulados: 'bancoDeQuestoes',
     casos: 'casosProprios',
     edital: 'editalPorPesos',
-    bancas: 'catalogoDeBancas'
+    bancas: 'catalogoDeBancas',
+    // a Central de novidades acompanha a lei seca do acervo jurídico e os informativos do STF/STJ
+    novidades: 'jurisprudencia'
   };
 
   function definicao(id) {

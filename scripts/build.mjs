@@ -356,6 +356,9 @@ const pastasDeDados = () => {
    da primeira navegação — quem instalasse e entrasse no avião em seguida abria o
    app sem eles. */
 const casca = [...vendorados, './prioridade-calc.js', './busca-unica.js', './semana-juris.js',
+  // o pacote das fontes oficiais (Central de novidades) também é <script> do <head>: fora da
+  // casca, o app instalado abriria offline sem CT_NOVIDADES e a Central diria 'nunca consultada'.
+  './novidades.js',
   // C2 e C3 tambem sao <script> do <head>: fora da casca, o app instalado abriria sem
   // o mapa das plataformas e sem o miolo do espelho sugerido.
   './plataformas-questoes.js', './espelho-sugerido.js', './area-registry.js', './casos.js',

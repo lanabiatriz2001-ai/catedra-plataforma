@@ -45,6 +45,7 @@ import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
 import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 import { testarMenuLateral } from './menu-lateral.mjs';
+import { testarNovidadesCentral } from './novidades-central.mjs';
 import { testarSemDodEstatico, testarSemDodNavegador } from './sem-dod.mjs';
 import { testarMigracaoL4Navegador } from './teses-oficiais.mjs';
 import { testarSemMapasMentaisEstatico, testarSemMapasMentaisNavegador } from './sem-mapas-mentais.mjs';
@@ -190,6 +191,10 @@ for (const [base, origem, arquivo] of ORIGENS) {
     // o motor do WKWebView é o que o iPad pinta
     try { await testarMenuLateral(page, base, ok, { motor, origem }); }
     catch (e) { ok(false, 'MENU/BARALHO [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
+    // a Central de novidades no motor da Apple: contraste com o gradiente do hero e color-mix nos
+    // selos, 44 px no toque, nada de lado a 390 e a busca ao vivo (falha nunca vira "nada de novo")
+    try { await testarNovidadesCentral(page, base, ok, { motor, origem }); }
+    catch (e) { ok(false, 'NOVIDADES [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
     // o texto sobre o destaque medido no motor da Apple: gradiente, color-mix e os tokens por
     // cópia no LEGIS são o que o iPad e o Mac pintam
     try { await testarContrasteDestaque(page, base, ok, { motor }); }

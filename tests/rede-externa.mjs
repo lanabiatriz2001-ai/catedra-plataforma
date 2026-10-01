@@ -71,7 +71,7 @@ export const EXCECOES = [
   { id: 'api-base-nativo',
     url: /^https:\/\/catedra-plataforma-fawn\.vercel\.app(?:[/?#]|$)/,
     arquivos: /./,
-    motivo: 'API_BASE absoluto do bundle nativo (build-macos.mjs): IA e leitor de lei (/api/…) — em file:// não há mesma origem para o /api relativo da web.' },
+    motivo: 'API_BASE absoluto do bundle nativo (build-macos.mjs): IA, leitor de lei e a busca ao vivo da Central de novidades (/api/…, esta só por clique) — em file:// não há mesma origem para o /api relativo da web.' },
 ];
 
 /* Hosts de CDN: qualquer URL deles acusa, em qualquer lugar do arquivo (código ou comentário). */
@@ -352,6 +352,18 @@ async function execucaoPorOrigem(browser, ok, { base, origem, arquivo, motor }) 
     }
     const juris = await acervo('juris', () => (window.__JURIS_IDX__ || []).length || false);
     ok(juris.montou && juris.n > 1000, R + 'o JURIS monta com o índice de verbetes sem rede (' + JSON.stringify(juris) + ')');
+
+    // Central de novidades: abrir a tela NÃO consulta nada — a busca ao vivo (/api/sentinela,
+    // pelo servidor) é só por clique. Conta também pedido da mesma origem, que a rota acima não vê.
+    const apiSentinela = [];
+    const vigia = (req) => { if (/\/api\/sentinela(?:[?#]|$)/.test(req.url())) apiSentinela.push(req.url()); };
+    page.on('request', vigia);
+    await page.evaluate(() => window.__catedraGoView('novidades'));
+    await page.waitForTimeout(1500);
+    page.off('request', vigia);
+    const central = await page.evaluate(() => ({ view: window.__catedraApp.state.view, fontes: document.querySelectorAll('[data-novid-fonte]').length }));
+    ok(central.view === 'novidades' && central.fontes === 3 && apiSentinela.length === 0,
+      R + 'a Central de novidades abre e mostra as três fontes sem pedido nenhum à rede (' + JSON.stringify(central) + ', /api/sentinela: ' + apiSentinela.length + ')');
 
     // PDF: a importação pelo caminho da tela (PDF.js de ./vendor/pdfjs/).
     const b64 = fs.readFileSync(path.join(RAIZ, 'tests', 'enam-amostra.pdf')).toString('base64');
