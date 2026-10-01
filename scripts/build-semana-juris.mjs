@@ -88,12 +88,24 @@ function marcar(t, r) {
   return null;   // sem marcador é resultado legítimo, não falha
 }
 
-// ---- recorte: informativos com data, do mais novo para o mais velho
-const inf = IDX
-  .filter((v) => /^informativo_/.test(v[I.fo] || '') && data(v[I.da]))
-  .sort((a, b) => data(b[I.da]) - data(a[I.da]));
+// ---- recorte: informativos com data, por semana da EDIÇÃO e, dentro dela, do julgado mais novo
+// A data de um verbete é a do julgamento, não a da publicação: o STJ 903 (fim de setembro) traz
+// julgados de junho. Ordenar só pelo julgado, com os marcados à frente do recorte inteiro, deixava
+// selos de junho acima do STF 1230 e a edição nova fora dos 6 itens do Início. Então a edição ganha
+// a data do seu julgado mais novo, e a semana dela (contada a partir da edição mais nova do acervo)
+// vem antes de tudo.
+const edChave = (v) => (v[I.nu] == null ? v[I.id]
+  : v[I.tr] + '|' + v[I.fo] + '|' + (/-EE\d+-/.test(v[I.id]) ? 'EE' : '') + v[I.nu]);
+const inf = IDX.filter((v) => /^informativo_/.test(v[I.fo] || '') && data(v[I.da]));
 
 if (!inf.length) { console.error('nenhum informativo com data no acervo'); process.exit(1); }
+
+const edData = new Map();
+for (const v of inf) { const k = edChave(v); edData.set(k, Math.max(edData.get(k) || 0, +data(v[I.da]))); }
+const novaEd = Math.max(...edData.values());
+const SEMANA_MS = 7 * 864e5;
+const semana = new Map(inf.map((v) => [v[I.id], Math.floor((novaEd - edData.get(edChave(v))) / SEMANA_MS)]));
+inf.sort((a, b) => semana.get(a[I.id]) - semana.get(b[I.id]) || data(b[I.da]) - data(a[I.da]));
 
 const itens = inf.slice(0, QTD * 4).map((v) => {
   const t = TXT[v[I.id]] || {};
@@ -120,10 +132,11 @@ const unicos = itens.filter((x) => {
   vistos.add(k); return true;
 });
 
-// os marcados primeiro (é o que muda o estudo), depois os demais por data
-const marcados = unicos.filter((x) => x.marcador);
-const resto = unicos.filter((x) => !x.marcador);
-const saida = marcados.concat(resto).slice(0, QTD);
+// dentro de cada semana, os marcados primeiro (é o que muda o estudo), depois os demais por data;
+// o sort é estável, então a ordem por data do recorte se mantém dentro de cada grupo
+const saida = unicos
+  .sort((a, b) => semana.get(a.id) - semana.get(b.id) || !!b.marcador - !!a.marcador)
+  .slice(0, QTD);
 
 const cont = saida.reduce((a, x) => { a[x.marcador || 'sem marcador'] = (a[x.marcador || 'sem marcador'] || 0) + 1; return a; }, {});
 
@@ -133,7 +146,7 @@ writeFileSync(join(ROOT, 'semana-juris.js'),
   + '// Marcadores: entendimento superado, divergência entre tribunais, tese vinculante nova.\n'
   + '// Nulo é resultado legítimo: melhor sem marcador que com marcador errado.\n'
   + 'window.CT_SEMANA = ' + JSON.stringify({
-      gerado: saida[0] ? saida[0].quando : '', total: saida.length, itens: saida,
+      gerado: new Date(novaEd).toLocaleDateString('pt-BR'), total: saida.length, itens: saida,   // a edição mais nova
     }) + ';\n');
 
 console.log(`semana-juris.js: ${saida.length} itens (de ${inf.length} informativos, ${itens.length - unicos.length} repetidos descartados) · ${JSON.stringify(cont)}`);
