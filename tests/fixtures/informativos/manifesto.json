@@ -1,0 +1,115 @@
+{
+  "sobre": "Títulos (<title>, lidos em latin1) e status HTTP das páginas OFICIAIS do Informativo do STF e do STJ, baixadas em 2026-10-01. Só o título e o status: as páginas inteiras têm ~300 KB e o conteúdo oscila entre leituras. Usado por tests/sentinela.mjs (S17), sem rede.",
+  "baixadoEm": "2026-10-01T19:51:45.543Z",
+  "acervoNaData": {
+    "stf": 1224,
+    "stj": 900,
+    "stjExtra": 33
+  },
+  "paginas": [
+    {
+      "pagina": "stj-0900",
+      "url": "https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=%270900%27.cod.",
+      "status": 200,
+      "bytes": 299200,
+      "titulo": "STJ - Informativo de Jurisprudência n. 900 - 8 de setembro de 2026.",
+      "nota": "âncora: última ordinária no acervo"
+    },
+    {
+      "pagina": "stj-0901",
+      "url": "https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=%270901%27.cod.",
+      "status": 200,
+      "bytes": 290138,
+      "titulo": "STJ - Informativo de Jurisprudência n. 901 - 15 de setembro de 2026.",
+      "nota": "real, não reconhecida pela régua antiga"
+    },
+    {
+      "pagina": "stj-0902",
+      "url": "https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=%270902%27.cod.",
+      "status": 200,
+      "bytes": 302764,
+      "titulo": "STJ - Informativo de Jurisprudência n. 902 - 22 de setembro de 2026.",
+      "nota": "real, reconhecida por acaso"
+    },
+    {
+      "pagina": "stj-0903",
+      "url": "https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=%270903%27.cod.",
+      "status": 200,
+      "bytes": 256091,
+      "titulo": "STJ - Informativo de Jurisprudência n. 903 - 29 de setembro de 2026.",
+      "nota": "real, não reconhecida pela régua antiga"
+    },
+    {
+      "pagina": "stj-0904",
+      "url": "https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=%270904%27.cod.",
+      "status": 200,
+      "bytes": 257742,
+      "titulo": "STJ -\n\t\tInformativo de Jurisprudência\n\t",
+      "nota": "inexistente: 200 com título genérico"
+    },
+    {
+      "pagina": "stj-7777",
+      "url": "https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=%277777%27.cod.",
+      "status": 200,
+      "bytes": 257739,
+      "titulo": "STJ -\n\t\tInformativo de Jurisprudência\n\t",
+      "nota": "inexistente: 200 com título genérico"
+    },
+    {
+      "pagina": "stj-EE33",
+      "url": "https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=%270033E%27.cod.",
+      "status": 200,
+      "bytes": 352959,
+      "titulo": "STJ - Informativo de Jurisprudência Edição Extraordinária n. 33 - 28 de julho de 2026",
+      "nota": "âncora: última extraordinária no acervo"
+    },
+    {
+      "pagina": "stj-EE34",
+      "url": "https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=%270034E%27.cod.",
+      "status": 200,
+      "bytes": 257743,
+      "titulo": "STJ -\n\t\tInformativo de Jurisprudência\n\t",
+      "nota": "extraordinária seguinte"
+    },
+    {
+      "pagina": "stj-EE29",
+      "url": "https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=%270029E%27.cod.",
+      "status": 200,
+      "bytes": 438323,
+      "titulo": "STJ - Informativo de Jurisprudência Edição Extraordinária n. 29 - 20 de janeiro de 2026",
+      "nota": "extraordinária real (já no acervo)"
+    },
+    {
+      "pagina": "stf-1224",
+      "url": "https://www.stf.jus.br/arquivo/informativo/documento/informativo1224.htm",
+      "status": 200,
+      "bytes": 214838,
+      "titulo": "Brasília, 17 de agosto de 2026 Nº 1224",
+      "nota": "âncora: última do STF no acervo"
+    },
+    {
+      "pagina": "stf-1225",
+      "url": "https://www.stf.jus.br/arquivo/informativo/documento/informativo1225.htm",
+      "status": 200,
+      "bytes": 285834,
+      "titulo": "Brasília, 24 de agosto de 2026 Nº 1225",
+      "nota": "real, nova"
+    },
+    {
+      "pagina": "stf-1230",
+      "url": "https://www.stf.jus.br/arquivo/informativo/documento/informativo1230.htm",
+      "status": 200,
+      "bytes": 227102,
+      "titulo": "Brasília, 28 de setembro de 2026 Nº 1230",
+      "nota": "real, nova"
+    },
+    {
+      "pagina": "stf-1231",
+      "url": "https://www.stf.jus.br/arquivo/informativo/documento/informativo1231.htm",
+      "status": 404,
+      "bytes": 0,
+      "titulo": null,
+      "nota": "inexistente: 404"
+    }
+  ]
+}

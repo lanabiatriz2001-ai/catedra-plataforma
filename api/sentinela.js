@@ -5,7 +5,7 @@
 // motor da rotina diária (scripts/sentinela.mjs), só que sob demanda e SEM gravar nada.
 //
 // A divisão de trabalho, de propósito:
-//   • rotina diária (GitHub Actions) → CONSULTA e INCORPORA (abre PR com novidades.js)
+//   • rotina diária (GitHub Actions) → CONSULTA e PREPARA (abre PR de rascunho com novidades.js)
 //   • este endpoint                  → CONSULTA e RESPONDE (não escreve no repositório)
 // Assim o registro definitivo tem sempre revisão humana, e o botão nunca inventa acervo.
 //
@@ -13,19 +13,45 @@
 // falha, com `ultimaTentativa` e `ultimoSucesso` separados. "Nada novo" e "não consegui
 // consultar" NUNCA saem com a mesma cara.
 //
-// Exige sessão do Supabase, igual a /api/complete e /api/tts: sem isso o endpoint vira um
-// robô aberto batendo no Planalto e no STF em nome de qualquer um.
-import { rodar, COBERTURA } from '../scripts/sentinela.mjs';
+// Portões, na mesma ordem e com as mesmas mensagens de /api/complete e /api/tts: sessão do
+// Supabase (sem ela o endpoint vira um robô aberto batendo no Planalto e no STF em nome de
+// qualquer um), beta (BETA_EMAILS + meu_email_liberado) e conta bloqueada
+// (meu_acesso_bloqueado — que também carrega o interruptor global do painel). NÃO registra
+// em ai_uso: a cota diária da IA conta toda linha dali, e buscar atualização não é IA.
+//
+// CORS: o app do Mac abre em file:// (origem "null") e, ao contrário do iPad, não liga o
+// acesso universal — o fetch com Authorization dispara um preflight OPTIONS e, sem estes
+// cabeçalhos, o botão morreria no navegador antes de chegar aqui. `*` é seguro porque a
+// credencial é o Bearer explícito (nada de cookie): página de fora não tem o token, e sem
+// ele recebe 401. Os cabeçalhos vão em TODA resposta, inclusive 401/403/400/405 — sem eles
+// o app leria "falha de rede" em vez da frase pronta do erro.
+import { rodar, COBERTURA, coberturaDe, estadoAnterior } from '../scripts/sentinela.mjs';
+
+function cors(res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'authorization');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Max-Age', '600');
+}
 
 const SB_URL = (process.env.SUPABASE_URL || 'https://frcnfqxniwzdyykvgqqu.supabase.co').replace(/\/+$/, '');
 const SB_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_nCm4a-RzzY8e8jVC9O6Gfg_4V6EOrI2';
 
 // Respeito à fonte: uma varredura do Planalto são ~28 leituras. Dentro da janela, apertar
 // o botão de novo devolve o resultado guardado, marcado como tal — em vez de martelar os
-// servidores oficiais. É também o que impede a rotina automática e o botão manual, rodando
-// juntos, de dobrarem a carga (os ids são determinísticos, então nada duplica no acervo).
+// servidores oficiais. `emCurso` junta pedidos simultâneos numa consulta só (dois cliques,
+// duas pessoas ao mesmo tempo). O cache é da instância: ajuda, não garante.
 const JANELA_MS = 10 * 60 * 1000;
-const cache = new Map();   // fonte → { em, dado }
+const cache = new Map();    // fonte → { em, dado }
+const emCurso = new Map();  // chave das fontes → Promise do rodar()
+
+// Teto de tempo. A função morre aos 60 s (vercel.json) e a Vercel devolve 504 SEM corpo e sem
+// os cabeçalhos de CORS: a tela leria "falha de rede" e perderia o erro por norma. O motor
+// recebe um prazo ABSOLUTO com folga para responder (leitura em curso é cortada no prazo,
+// leitura nova não começa sem folga) e o que não coube volta como parcial/falha, por extenso.
+// A rede de segurança (PRAZO_MS + 8 s) responde mesmo se algo escapar do prazo do motor.
+const PRAZO_MS = 45 * 1000;
+const REDE_MS = PRAZO_MS + 8 * 1000;
 
 async function usuarioDoToken(req) {
   const h = req.headers['authorization'] || req.headers['Authorization'] || '';
@@ -35,16 +61,53 @@ async function usuarioDoToken(req) {
     const r = await fetch(SB_URL + '/auth/v1/user', { headers: { apikey: SB_KEY, authorization: 'Bearer ' + m[1] } });
     if (!r.ok) return null;
     const u = await r.json();
-    return u && u.id ? u : null;
+    if (u && u.id) { u.__token = m[1]; return u; }
+    return null;
   } catch (_) { return null; }
 }
 
+function liberado(user) {
+  const lista = (process.env.BETA_EMAILS || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+  if (!lista.length) return true;
+  return lista.includes(String(user.email || '').toLowerCase());
+}
+
+// As duas RPCs abaixo seguem o fail-open de api/complete.js: o portão que importa (sessão)
+// já passou, e o Supabase piscar não pode derrubar o botão de todo mundo.
+async function rpc(user, nome, seErro) {
+  try {
+    const r = await fetch(SB_URL + '/rest/v1/rpc/' + nome, {
+      method: 'POST',
+      headers: { apikey: SB_KEY, authorization: 'Bearer ' + user.__token, 'content-type': 'application/json' },
+      body: '{}',
+    });
+    if (!r.ok) return seErro;
+    return await r.json();
+  } catch (_) { return seErro; }
+}
+
 export default async function handler(req, res) {
+  const inicio = Date.now();   // antes dos portões: o tempo do Supabase também conta
+  cors(res);
+  if (req.method === 'OPTIONS') { res.status(204).end(); return; }
+  if (req.method !== 'GET') {
+    res.setHeader('allow', 'GET, OPTIONS');
+    res.status(405).json({ ok: false, error: 'Método não permitido — use GET.' });
+    return;
+  }
   const user = await usuarioDoToken(req);
   if (!user) { res.status(401).json({ ok: false, error: 'Entre na sua conta do Cátedra para buscar atualizações.' }); return; }
+  if (!liberado(user) || (await rpc(user, 'meu_email_liberado', true)) === false) {
+    res.status(403).json({ ok: false, error: 'Esta conta ainda não está liberada para o beta.' });
+    return;
+  }
+  if ((await rpc(user, 'meu_acesso_bloqueado', false)) === true) {
+    res.status(403).json({ ok: false, error: 'A busca de atualizações desta conta está pausada. Fale com quem te convidou.' });
+    return;
+  }
 
   const pedido = String((req.query && req.query.fonte) || 'planalto,stf,stj');
-  const fontes = pedido.split(',').map((s) => s.trim()).filter((f) => COBERTURA[f]);
+  const fontes = [...new Set(pedido.split(',').map((s) => s.trim()).filter((f) => COBERTURA[f]))];
   if (!fontes.length) { res.status(400).json({ ok: false, error: 'Fonte desconhecida. Use planalto, stf ou stj.' }); return; }
 
   const agora = Date.now();
@@ -53,30 +116,64 @@ export default async function handler(req, res) {
 
   const estado = {};
   const itens = [];
+  let novos = 0;
   for (const f of doCache) {
     const c = cache.get(f);
     estado[f] = { ...c.dado.estado, doCache: true, consultadoHa: Math.round((agora - c.em) / 1000) };
     itens.push(...c.dado.itens);
+    novos += c.dado.novos;
   }
 
   if (aConsultar.length) {
+    // O diário anterior de cada fonte: o do pacote implantado (novidades.js) e, se ESTA
+    // instância já consultou com sucesso depois dele, o carimbo do cache — vale o mais recente.
+    // Sem isto, uma falha passada a janela de 10 min devolvia ultimoSucesso nulo e a tela, que
+    // grava o estado que recebe, apagava o "último sucesso" que já mostrava.
+    let base = {};
+    try { base = (estadoAnterior() || {}).fontes || {}; } catch (_) { base = {}; }
+    const anterior = { fontes: { ...base } };
+    for (const f of aConsultar) {
+      const doCacheF = cache.get(f) && cache.get(f).dado.estado.ultimoSucesso;
+      const doPacote = base[f] && base[f].ultimoSucesso;
+      if (doCacheF && (!doPacote || doCacheF > doPacote)) anterior.fontes[f] = { ...(base[f] || {}), ultimoSucesso: doCacheF };
+    }
+    const chave = aConsultar.join(',');
+    let p = emCurso.get(chave);
+    if (!p) {
+      p = rodar({ fontes: aConsultar, anterior, prazo: inicio + PRAZO_MS }).finally(() => emCurso.delete(chave));
+      emCurso.set(chave, p);
+    }
+    let rede = null;
     try {
-      const r = await rodar({ fontes: aConsultar });
+      const esgotou = new Promise((_, rejeita) => {
+        rede = setTimeout(() => rejeita(new Error(`tempo esgotado: a consulta passou de ${Math.round(REDE_MS / 1000)} s e foi interrompida`)), Math.max(0, inicio + REDE_MS - Date.now()));
+      });
+      const r = await Promise.race([p, esgotou]);
       for (const f of aConsultar) {
-        const meus = r.itens.filter((i) => i.fonte === f);
-        cache.set(f, { em: agora, dado: { estado: r.estado.fontes[f], itens: meus } });
+        // Só o que ESTA consulta viu — não o acumulado do novidades.js do bundle, que o app
+        // já tem. `novos` conta o que nem o bundle conhecia: é ele que vira o aviso na tela.
+        const meus = r.achados.filter((i) => i.fonte === f);
+        const meusNovos = r.novosItens.filter((i) => i.fonte === f).length;
+        // Falha não entra no cache: apertar de novo tem de tentar de novo, não repetir o tombo.
+        if (r.estado.fontes[f].resultado !== 'falha') cache.set(f, { em: agora, dado: { estado: r.estado.fontes[f], itens: meus, novos: meusNovos } });
         estado[f] = { ...r.estado.fontes[f], doCache: false };
         itens.push(...meus);
+        novos += meusNovos;
       }
     } catch (e) {
       // Um tombo aqui é "não foi possível consultar", com o erro por extenso — nunca
-      // "nenhuma novidade encontrada", e nunca 200 mudo.
+      // "nenhuma novidade encontrada", e nunca 200 mudo. O último sucesso conhecido fica.
       for (const f of aConsultar) {
+        const antes = anterior.fontes[f] || {};
         estado[f] = {
-          rotulo: COBERTURA[f].rotulo, resultado: 'falha', erro: String(e && e.message || e),
-          ultimaTentativa: new Date().toISOString(), ultimoSucesso: null, detalhe: '', novidadesNaConsulta: 0,
+          ...coberturaDe(f),   // rótulo, o que monitora, limites e (Planalto) as normas
+          resultado: 'falha', erro: String((e && e.message) || e),
+          ultimaTentativa: new Date().toISOString(), ultimoSucesso: antes.ultimoSucesso || null,
+          detalhe: '', novidadesNaConsulta: 0, doCache: false,
         };
       }
+    } finally {
+      if (rede) clearTimeout(rede);
     }
   }
 
@@ -91,7 +188,8 @@ export default async function handler(req, res) {
     // Resumo que a tela mostra sem ter de recontar nada — e que separa as quatro coisas
     // que o pedido exige que nunca se confundam.
     resumo: {
-      novidades: itens.length,
+      novidades: novos,
+      encontradas: itens.length,
       exigemRevisao: itens.filter((i) => i.revisar).length,
       fontesOk: Object.entries(estado).filter(([, e]) => e.resultado !== 'falha').map(([f]) => f),
       fontesComFalha: Object.entries(estado).filter(([, e]) => e.resultado === 'falha').map(([f]) => f),

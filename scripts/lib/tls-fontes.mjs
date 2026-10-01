@@ -74,12 +74,19 @@ export const hostPermitido = (h) => HOSTS.some((re) => re.test(h));
 /** GET numa fonte oficial, com a cadeia completada e a verificação LIGADA.
  *  Se o certificado não fechar cadeia, isto lança — e lançar é o comportamento certo:
  *  vira "não foi possível consultar a fonte", nunca "nenhuma novidade encontrada".
- *  Redirecionamentos são seguidos à mão, revalidando o host a cada salto. */
-export function buscarFonte(url, { timeoutMs = 40000, saltos = 4 } = {}) {
+ *  Redirecionamentos são seguidos à mão, revalidando o host a cada salto.
+ *  `timeoutMs` mede só o SILÊNCIO do socket: página grande chegando devagar passa dele.
+ *  `prazo` (epoch ms, opcional) é o teto ABSOLUTO da leitura, saltos incluídos — é o que a
+ *  função serverless usa para responder antes do maxDuration da Vercel. Sem prazo (rotina
+ *  diária), nada muda. */
+export function buscarFonte(url, { timeoutMs = 40000, saltos = 4, prazo = 0 } = {}) {
   return new Promise((resolve, reject) => {
     let u;
     try { u = new URL(url); } catch (_) { return reject(new Error('URL inválida')); }
     if (u.protocol !== 'https:' || !hostPermitido(u.hostname)) return reject(new Error('host fora da lista de fontes oficiais: ' + u.hostname));
+    if (prazo && Date.now() >= prazo) return reject(new Error('tempo da consulta esgotado'));
+    let teto = null;
+    const fim = () => { if (teto) { clearTimeout(teto); teto = null; } };
     const req = https.request(u, {
       method: 'GET',
       headers: { 'user-agent': UA, accept: 'text/html,*/*' },
@@ -90,17 +97,25 @@ export function buscarFonte(url, { timeoutMs = 40000, saltos = 4 } = {}) {
       timeout: timeoutMs,
     }, (res) => {
       if ([301, 302, 303, 307, 308].includes(res.statusCode) && res.headers.location && saltos > 0) {
+        fim();
         res.resume();
         const prox = new URL(res.headers.location, u).toString();
-        return resolve(buscarFonte(prox, { timeoutMs, saltos: saltos - 1 }));
+        return resolve(buscarFonte(prox, { timeoutMs, saltos: saltos - 1, prazo }));
       }
       const pedacos = [];
       res.on('data', (c) => pedacos.push(c));
-      res.on('end', () => resolve({ status: res.statusCode, buffer: Buffer.concat(pedacos) }));
-      res.on('error', reject);
+      res.on('end', () => { fim(); resolve({ status: res.statusCode, buffer: Buffer.concat(pedacos) }); });
+      res.on('error', (e) => { fim(); reject(e); });
     });
+    if (prazo) {
+      teto = setTimeout(() => {
+        const e = new Error('tempo da consulta esgotado');
+        req.destroy(e);
+        reject(e);
+      }, Math.max(0, prazo - Date.now()));
+    }
     req.on('timeout', () => { req.destroy(new Error('tempo esgotado ao ler a fonte')); });
-    req.on('error', reject);
+    req.on('error', (e) => { fim(); reject(e); });
     req.end();
   });
 }
