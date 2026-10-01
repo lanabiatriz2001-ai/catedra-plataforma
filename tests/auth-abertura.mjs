@@ -26,19 +26,22 @@ export async function testarAuthAbertura(page, base, ok) {
       const antes = await p.evaluate(() => ({
         aberto: document.getElementById('catedra-auth-gate').style.display === 'none',
         aviso: document.querySelector('#cterr')?.textContent || '',
-        local: !!document.getElementById('ctlocal'),
+        local: !!document.getElementById('ctlocal') || [...document.querySelectorAll('button')].some(b => /sem conta/i.test(b.textContent)),
+        marca: localStorage.getItem('catedra:_modoLocal'),
         recuperacao: !!document.getElementById('ctnf'),
         dados: localStorage.getItem('catedra:edital'),
         chamadas: window.__ctChamadas().map(c => c.nome),
         status: window.__ctStatus
       }));
-      ok(caso === 'novo' ? /não respondeu/.test(antes.aviso) && antes.local && !antes.aberto : caso === 'revogada' ? /sessão expirou/.test(antes.aviso) && !antes.aberto && !antes.local : caso === 'recuperacao' ? antes.recuperacao && !antes.aberto : antes.aberto,
+      // O modo "Usar sem conta" saiu (01/10/2026): o 'novo' não o oferece mais, e o aparelho que
+      // sobrou com a marca ('local') pede o login como qualquer aparelho sem dono — sem descartar.
+      ok(caso === 'novo' ? /não respondeu/.test(antes.aviso) && !antes.local && !antes.aberto : caso === 'revogada' ? /sessão expirou/.test(antes.aviso) && !antes.aberto && !antes.local : caso === 'recuperacao' ? antes.recuperacao && !antes.aberto : caso === 'local' ? /não respondeu/.test(antes.aviso) && !antes.aberto && !antes.local : antes.aberto,
         'ABERTURA ' + caso + ': consulta pendente não deixa espera infinita');
       ok(!antes.chamadas.some(n => /upsert|select|signOut/.test(n)), 'ABERTURA ' + caso + ': não envia, baixa ou encerra sessão');
       if (caso !== 'novo') ok(antes.dados?.includes('preservar'), 'ABERTURA ' + caso + ': conserva o edital local');
       if (caso === 'dono') ok(antes.status.includes('offline'), 'ABERTURA dono: sinaliza offline, nunca salvo');
-      if (caso === 'local') ok(antes.status.includes('local'), 'ABERTURA local: sinaliza modo local');
-      if (caso === 'local') ok(!antes.chamadas.includes('getSession'), 'ABERTURA modo local não depende da consulta de sessão');
+      if (caso === 'local') ok(antes.marca === null, 'ABERTURA local: a marca do modo removido some na abertura');
+      if (caso === 'local') ok(antes.chamadas.includes('getSession'), 'ABERTURA local: consulta a sessão como qualquer aparelho');
       // A resposta atrasada de outra conta não pode limpar o edital nem abrir a conta.
       await p.evaluate(() => {
         if (window.__ctResolverSessao) window.__ctResolverSessao({ data: { session: { user: { id: 'outra' } } }, error: null });
