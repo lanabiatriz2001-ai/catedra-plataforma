@@ -658,3 +658,30 @@ O que continua valendo:
    `main` sem proteção de branch. As duas coisas contrariam a configuração de 10/09/2026 (privado,
    `main` com PR e as duas checagens obrigatórias). Em repositório público, os runners padrão não
    cobram minutos.
+
+## Revisão oficial nos três produtos (01/10/2026)
+
+O pacote `novidades.js` é lido por um módulo só, `revisao-oficial.js` (`window.CT_REVISAO_OFICIAL`),
+carregado pelo host, pelo `legis-web.html` e pelo `juris-web.html`. Ele dá o vocabulário único:
+
+| Status | Quando |
+|---|---|
+| Detectado | mudança achada na fonte, sem pendência própria |
+| Conferir | `revisar:true` (vigência sem data, informativo, comparação no teto) |
+| Conferido | a pessoa marcou (estado `catedra:novidLidas`, `st:'conferido'`) |
+| Parcial | comparação parcial (artigo no teto) ou fonte que respondeu em parte |
+| Falhou | a consulta à fonte não deu certo (só fonte, nunca item) |
+
+- **Cátedra**: diálogo "Revisão oficial" (`#ct-revisao-oficial`), aberto por `oficialPainelAbrir` — o
+  botão "Ver revisão oficial" do resumo do Início (PR #175). Filtros Todos / Precisa revisar / LEGIS /
+  JURIS / Falhas e parciais; "Cobertura e limites" sempre visível.
+- **LEGIS**: aba "Mudanças oficiais" — agrupada por norma, texto anterior × atual com só o trecho
+  mudado destacado, vigência futura, "Detectado no Planalto em …".
+- **JURIS**: aba "Informativos oficiais" — fila editorial por tribunal (e ramo, quando o item traz),
+  com "Ver no acervo", "Registro oficial" e "Marcar como conferido".
+- Abrir de um item no host leva `?oficial=<id>` (1ª carga) ou `ctOficialAbrir` (iframe vivo); o
+  satélite marca pedindo ao host `ctOficialMarcar` (o host é o dono de `catedra:novidLidas`).
+
+Pendências: o LEGIS e o JURIS **nativos** (SwiftUI, Mac/iPad) ainda não têm as abas; lá o painel
+do host abre a busca do item. Os subtipos "possível novo verbete"/"possível atualização de verbete"
+já têm lugar na fila (`subtipo`), mas o sentinela ainda não cruza edição × verbete.

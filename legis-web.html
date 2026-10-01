@@ -415,13 +415,14 @@ mark{background:var(--accentSoft,#ffe9a8);color:var(--accent);border-radius:3px;
 .jrod{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
 .jrod small{font-family:var(--mono,'JetBrains Mono',monospace);color:var(--text3,#6f695f)}
 .jabrir{min-height:44px;border:0;background:none;color:var(--accentD,#0b5e43);font-weight:600;cursor:pointer}
-</style><script src="./tema-satelite.js"></script><script src="./leitura-ativa.js"></script></head>
+</style><script src="./tema-satelite.js"></script><script src="./leitura-ativa.js"></script><script src="./novidades.js"></script><script src="./revisao-oficial.js"></script></head>
 <body><div class="wrap">
 <div class="head"><div class="ic"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="book-open"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></div><div><h1>CátedraLEGIS</h1><p>Vade mecum de leis · catálogo, plano de leitura e estrutura das normas</p></div></div>
-<div class="tabs ct-chips ct-rolo" id="tabsTopo"><button class="on" data-t="catalog"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg> Catálogo</button><button data-t="plano"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg> Plano de leitura</button><button data-t="indice"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg> Índice das normas</button><button data-t="incid"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> Incidência</button></div>
+<div class="tabs ct-chips ct-rolo" id="tabsTopo"><button class="on" data-t="catalog"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg> Catálogo</button><button data-t="plano"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg> Plano de leitura</button><button data-t="indice"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg> Índice das normas</button><button data-t="incid"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> Incidência</button><button data-t="oficial" id="tabOficial"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg> Mudanças oficiais <small id="nOficial"></small></button></div>
 <div id="pane-catalog" class="pane on"><div class="search"><span class="mag"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="search"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg></span><input id="cq" aria-label="Buscar lei por nome ou número" placeholder="Buscar lei por nome ou número…" autocomplete="off"></div><div class="statbar"><div class="st1" id="st-dom"><b id="sd">0</b><span class="ml-fraca">Dominadas</span><em class="convite">✓ marque quando dominar uma lei</em></div><div class="st1" id="st-len"><b id="sl">0</b><span class="ml-fraca">Lendo</span><em class="convite">◐ marque a lei que está lendo agora</em></div><div class="st1" id="st-fav"><b id="sf">0</b><span class="ml-fraca">Favoritas</span><em class="convite">★ marque as leis do seu edital</em></div><div class="st1" style="margin-left:auto"><b id="stot">250</b><span class="ml-fraca">Leis no catálogo</span></div></div><div id="catalog"></div></div>
 <div id="pane-plano" class="pane"><p style="font-size:12px;color:var(--text2,#5c564a);margin:0 2px 12px"><b id="pdone">0</b> de <span id="ptot">720</span> leituras · marque o que já leu; o título da estrutura aparece em cada dia</p><div id="plano"></div></div>
 <div id="pane-indice" class="pane"><div id="indice"></div></div>
+<div id="pane-oficial" class="pane" aria-labelledby="tabOficial"><div id="oficialLegis"></div></div>
 <div id="pane-incid" class="pane">
   <!-- Mapa de incidência por artigo. A contagem sai do ACERVO DE JURISPRUDÊNCIA do app
        (25 mil verbetes), não de banco de questões — e a tela diz isso, porque é sinal
@@ -521,7 +522,77 @@ document.querySelectorAll('#tabsTopo button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==='pane-'+b.dataset.t));
   pilulaAVista(b);
   if(b.dataset.t==='incid'){ carregarIncidencia(renderIncid); renderIncid(); }
+  if(b.dataset.t==='oficial') renderOficial();
 });
+/* ===== MUDANÇAS OFICIAIS (sentinela do Planalto) ===========================
+   Mesa de comparação: as mudanças que o sentinela detectou no texto compilado do Planalto,
+   agrupadas por norma, com "texto anterior × texto atual" e o mesmo vocabulário de status do
+   Cátedra (revisao-oficial.js). Detectar não é publicar: o texto do leitor só muda quando o
+   acervo é regerado e conferido. "Conferido" é marca deste aparelho (catedra:oficialRevisao). */
+let oficialFoco=null;
+const OF_ROT={alteracao:'Alterado', inclusao:'Incluído', revogacao:'Revogado'};
+function renderOficial(){
+  const box=document.getElementById('oficialLegis'), R=window.CT_REVISAO_OFICIAL;
+  if(!box||!R) return;
+  const todos=R.itens().filter(i=>i.produto==='legis');
+  const fonte=R.fontes().find(f=>f.k==='planalto');
+  const nTab=document.getElementById('nOficial'); if(nTab) nTab.textContent=todos.filter(R.precisaRevisar).length||'';
+  const cab='<div class="ct-of-linha" style="margin:2px 2px 10px"><span class="ct-of-st '+fonte.statusCls+'">Planalto: '+R.esc(fonte.statusRotulo)+'</span>'
+    +'<span class="ct-of-meta">tentativa '+R.esc(fonte.tentativa)+' · último sucesso '+R.esc(fonte.sucesso)+'</span></div>'
+    +'<p class="ct-of-frase" style="margin:0 2px 12px">'+R.esc(R.FRASE)+' O texto do leitor só muda depois da conferência. Limite: '+R.esc(fonte.limite)+'</p>';
+  if(!todos.length){
+    const lac=R.lacunas([fonte]);
+    const txt=!R.pacote().geradoEm
+      ? 'Ainda não há varredura publicada: nenhuma consulta ao Planalto chegou a este aparelho.'
+      : (lac.length
+        ? 'A última consulta ao Planalto não se completou ('+String(fonte.statusRotulo).toLowerCase()+(fonte.erro?': '+fonte.erro:'')+'; último sucesso '+fonte.sucesso+'). A falta de itens aqui não quer dizer que nenhuma norma mudou.'
+        : 'Nenhuma mudança do Planalto detectada para as normas que o sentinela acompanha.');
+    box.innerHTML=cab+'<div class="ct-of-vazio" id="oficialVazio">'+R.esc(txt)+' Isso não significa que todas as normas estejam atualizadas: o sentinela só olha o catálogo do LEGIS.</div>';
+    return;
+  }
+  const grupos={}; todos.forEach(i=>{ (grupos[i.norma||i.normaNome]=grupos[i.norma||i.normaNome]||[]).push(i); });
+  let h=cab;
+  Object.keys(grupos).sort().forEach(k=>{
+    const L=grupos[k];
+    h+='<h3 class="ct-of-grupo">'+R.esc(L[0].normaNome||k)+' · '+L.length+(L.length===1?' dispositivo':' dispositivos')+'</h3><div class="ct-of-lista">';
+    L.forEach(i=>{
+      const sel=[];
+      sel.push('<span class="ct-of-st '+i.statusCls+'">'+R.esc(i.statusRotulo)+'</span>');
+      sel.push('<span class="ct-of-tipo">'+R.esc(OF_ROT[i.tipo]||i.tipoRotulo)+'</span>');
+      if(i.vigenciaFutura) sel.push('<span class="ct-of-st ct-of-st-conferir">Vigência futura'+(i.vigenciaEm?' · '+R.esc(i.vigenciaEm):'')+'</span>');
+      let cmp='';
+      if(i.tipo==='alteracao'&&i.antes&&i.depois){ const d=R.diffHtml(i.antes,i.depois);
+        cmp='<div class="ct-of-cmp"><div class="ct-of-lado"><h4>Texto anterior</h4>'+d.antes+'</div><div class="ct-of-lado"><h4>Texto atual</h4>'+d.depois+'</div></div>'; }
+      else if(i.tipo==='inclusao'&&i.depois) cmp='<div class="ct-of-cmp"><div class="ct-of-lado"><h4>Texto incluído</h4><ins class="ct-of-ins">'+R.esc(i.depois.slice(0,600))+(i.depois.length>600?'…':'')+'</ins></div></div>';
+      else if(i.tipo==='revogacao'&&i.antes) cmp='<div class="ct-of-cmp"><div class="ct-of-lado"><h4>Texto revogado</h4><del class="ct-of-del">'+R.esc(i.antes.slice(0,600))+(i.antes.length>600?'…':'')+'</del></div></div>';
+      const conf=i.status==='conferido';
+      h+='<article class="ct-of-item" data-id="'+R.esc(i.id)+'"'+(oficialFoco===i.id?' id="oficialFoco" tabindex="-1"':'')+'>'
+        +'<div class="ct-of-linha">'+sel.join('')+'</div>'
+        +'<div class="ct-of-titulo" style="margin-top:6px">'+R.esc(i.disp||i.titulo)+'</div>'
+        +'<div class="ct-of-meta">Detectado no Planalto em '+R.esc(i.quando)+(i.parcial?' · comparação parcial (artigo no teto de tamanho)':'')+'</div>'
+        +'<div class="ct-of-resumo">'+R.esc(i.resumo)+'</div>'+cmp
+        +'<div class="ct-of-acoes"><button type="button" class="ct-of-btn" data-of-abrir="'+R.esc(i.id)+'">Abrir no leitor</button>'
+        +(i.podeMarcar?'<button type="button" class="ct-of-btn" data-of-marcar="'+R.esc(i.id)+'" data-st="'+(conf?'conferir':'conferido')+'" aria-pressed="'+(conf?'true':'false')+'">'+(conf?'Manter em revisão':'Marcar como conferido')+'</button>':'')
+        +(i.urlOficial?'<a class="ct-of-btn" href="'+R.esc(i.urlOficial)+'" target="_blank" rel="noopener">Ver no Planalto<span class="ct-sr"> (abre fora do app)</span></a>':'')+'</div></article>';
+    });
+    h+='</div>';
+  });
+  box.innerHTML=h;
+  box.querySelectorAll('[data-of-marcar]').forEach(b=>b.onclick=()=>{ R.marcar(b.dataset.ofMarcar, b.dataset.st); oficialFoco=b.dataset.ofMarcar; renderOficial();
+    // O botão é recriado pelo innerHTML: o foco volta a ele ou, se a lista mudou e ele não
+    // voltou, ao cartão — nunca cai no body.
+    const n=box.querySelector('[data-of-marcar="'+CSS.escape(oficialFoco)+'"]')||document.getElementById('oficialFoco'); n&&n.focus(); });
+  box.querySelectorAll('[data-of-abrir]').forEach(b=>b.onclick=()=>{ const i=todos.find(x=>x.id===b.dataset.ofAbrir); if(!i) return;
+    const semProto=u=>String(u||'').replace(/^https?:\/\//,'').replace(/^www\./,'');
+    const lei=CAT.laws.find(l=>i.urlOficial&&semProto(l.u)===semProto(i.urlOficial))||CAT.laws.find(l=>l.t===i.normaNome);
+    if(lei&&window.openReader){ window.openReader(lei); return; }
+    const t=document.querySelector('#tabsTopo button[data-t="catalog"]'); t&&t.click();
+    const q=document.getElementById('cq'); if(q){ q.value=i.normaNome||i.norma; q.dispatchEvent(new Event('input',{bubbles:true})); } });
+  const f=document.getElementById('oficialFoco'); if(f){ try{ f.scrollIntoView({block:'center'}); }catch(e){} }
+}
+window.ctOficialAbrir=function(id){ oficialFoco=id||null; const t=document.querySelector('#tabsTopo button[data-t="oficial"]'); t&&t.click(); };
+(function(){ try{ const id=new URLSearchParams(location.search).get('oficial'); if(id) setTimeout(()=>window.ctOficialAbrir(id),0); else renderOficial(); }catch(e){} })();
+window.addEventListener('message', function(e){ if(window.ctMensagemDoHost&&window.ctMensagemDoHost(e)&&e.data&&e.data.type==='ctOficialAbrir') window.ctOficialAbrir(e.data.id); });
 pilulaAVista(document.querySelector('#tabsTopo button.on'));
 
 // ---- Onde o leitor embutido existe --------------------------------------------

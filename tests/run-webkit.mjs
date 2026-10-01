@@ -44,6 +44,7 @@ import { testarFaixaMapaAlvos } from './faixa-mapa-alvos.mjs';
 import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
 import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
+import { testarRevisaoOficial } from './revisao-oficial.mjs';
 import { testarMenuLateral } from './menu-lateral.mjs';
 import { testarNovidadesCentral } from './novidades-central.mjs';
 import { testarSemDodEstatico, testarSemDodNavegador } from './sem-dod.mjs';
@@ -187,6 +188,9 @@ for (const [base, origem, arquivo] of ORIGENS) {
   if (origem === 'http') {
     try { await testarPadronizacaoVisual(page, base, ok, { motor, origem }); }
     catch (e) { ok(false, 'PADRONIZAÇÃO VISUAL [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
+    // revisão oficial (sentinela) no motor da Apple: color-mix dos selos, diff e 390/820 px
+    try { await testarRevisaoOficial(browser, base, ok, { motor }); }
+    catch (e) { ok(false, 'OFICIAL [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
     // o Baralho do menu com o estilo dos irmãos, e 44 px no toque em retrato e em paisagem —
     // o motor do WKWebView é o que o iPad pinta
     try { await testarMenuLateral(page, base, ok, { motor, origem }); }

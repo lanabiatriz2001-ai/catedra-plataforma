@@ -27,6 +27,8 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;mostr
 <!-- Fontes oficiais (Central de novidades): pacote gerado no servidor por scripts/sentinela.mjs.
      O app só LÊ este arquivo; a consulta ao vivo é o botão da Central (/api/sentinela), por clique. -->
 <script src="./novidades.js"></script>
+<!-- Vocabulário único da revisão oficial: o mesmo módulo que o LEGIS e o JURIS carregam. -->
+<script src="./revisao-oficial.js"></script>
 <!-- Leitura ativa (grade de 7 perguntas): módulo puro, o mesmo que o CátedraLEGIS carrega.
      O host é a fonte da verdade de catedra:leituras; o iframe é tela. -->
 <script src="./leitura-ativa.js"></script>
@@ -1100,6 +1102,60 @@ window.ctPdfLib = (function(){
               <button onclick="{{ closeSession }}" class="ct-btn-2">Cancelar</button>
               <button onclick="{{ saveSession }}" class="ct-btn">Registrar sessão</button>
             </div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- REVISÃO OFICIAL — a fila de tudo que o sentinela detectou, com o mesmo vocabulário de
+         status do LEGIS e do JURIS. Item marcado para revisão nunca se parece com publicado. -->
+    <sc-if value="{{ oficialPainelOpen }}" hint-placeholder-val="{{ false }}">
+      <div onclick="{{ oficialPainelFechar }}" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px;">
+        <div onclick="{{ stop }}" role="dialog" aria-modal="true" aria-labelledby="ct-of-painel-h" id="ct-revisao-oficial" class="ct-modal-panel" tabindex="-1" style="background:var(--bg);border-radius:18px;width:100%;max-width:760px;max-height:92vh;overflow:auto;box-shadow:0 24px 60px rgba(0,0,0,.35);padding:18px;box-sizing:border-box;min-width:0;">
+          <div style="display:flex;align-items:flex-start;gap:12px;">
+            <div style="flex:1;min-width:0;">
+              <h2 id="ct-of-painel-h" style="margin:0;font-size:var(--fs-xl);font-weight:800;color:var(--ink);">Revisão oficial</h2>
+              <div class="ct-of-frase" style="margin-top:2px;">Atualização assistida: o sentinela detecta e propõe; item marcado para revisão só entra no acervo depois de conferido na fonte oficial. · {{ oficialAtualizado }}</div>
+            </div>
+            <button type="button" class="ct-of-btn" onclick="{{ oficialPainelFechar }}" aria-label="Fechar revisão oficial" style="min-width:44px;min-height:44px;justify-content:center;padding:0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+          </div>
+          <div class="ct-of-num" style="margin:12px 0 10px;"><span><b>{{ oficialNumOk }}</b> fontes ok</span><span><b>{{ oficialNumFalha }}</b> com falha ou parcial</span><span><b>{{ oficialNumRevisar }}</b> para revisar</span><span><b>{{ oficialNumConferidos }}</b> conferidos</span></div>
+          <div class="ct-of-filtros" role="group" aria-label="Filtrar a revisão oficial">
+            <sc-for list="{{ oficialFiltros }}" as="b" hint-placeholder-count="5"><button type="button" class="ct-of-btn" data-f="{{ b.k }}" aria-pressed="{{ b.on }}" onclick="{{ oficialFiltrar }}">{{ b.rotulo }} · {{ b.n }}</button></sc-for>
+          </div>
+          <sc-if value="{{ oficialFiltroFalhas }}" hint-placeholder-val="{{ false }}">
+            <div class="ct-of-lista" style="margin-top:12px;">
+              <sc-for list="{{ oficialFontesProblema }}" as="f" hint-placeholder-count="1">
+                <div class="ct-of-item"><div class="ct-of-linha"><span class="{{ f.cls }}">{{ f.statusRotulo }}</span><span class="ct-of-titulo">{{ f.nome }}</span><span class="ct-of-meta">tentativa {{ f.tentativa }} · último sucesso {{ f.sucesso }}</span></div>
+                  <div class="ct-of-resumo">{{ f.erroTxt }}</div></div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ oficialListaTem }}" hint-placeholder-val="{{ true }}">
+            <div class="ct-of-lista" style="margin-top:12px;" id="ct-of-lista">
+              <sc-for list="{{ oficialLista }}" as="n" hint-placeholder-count="3">
+                <article class="ct-of-item" data-id="{{ n.id }}">
+                  <div class="ct-of-linha"><span class="{{ n.cls }}">{{ n.statusRotulo }}</span><span class="ct-of-tipo">{{ n.tipoRotulo }}</span><span class="ct-of-meta">{{ n.fonteNome }} · detectado em {{ n.quando }}</span></div>
+                  <div class="ct-of-titulo" style="margin-top:6px;">{{ n.titulo }}</div>
+                  <div class="ct-of-resumo">{{ n.resumo }}</div>
+                  <div class="ct-of-acoes">
+                    <button type="button" class="ct-of-btn" data-id="{{ n.id }}" data-alvo="{{ n.produto }}" data-q="{{ n.busca }}" onclick="{{ oficialAbrir }}">Abrir no {{ n.produtoNome }}</button>
+                    <sc-if value="{{ n.podeMarcar }}" hint-placeholder-val="{{ true }}"><button type="button" class="ct-of-btn" data-id="{{ n.id }}" data-st="{{ n.proxSt }}" onclick="{{ oficialMarcar }}">{{ n.marcarRotulo }}</button></sc-if>
+                  </div>
+                </article>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ oficialListaVazia }}" hint-placeholder-val="{{ false }}">
+            <div class="ct-of-vazio" style="margin-top:12px;" id="ct-of-vazio">{{ oficialVazioTxt }}</div>
+          </sc-if>
+          <h3 class="ct-of-grupo">Cobertura e limites</h3>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;" id="ct-of-cobertura">
+            <sc-for list="{{ oficialFontes }}" as="f" hint-placeholder-count="3">
+              <div class="ct-of-item" style="padding:10px 12px;"><div class="ct-of-linha"><span class="ct-of-titulo">{{ f.nome }}</span><span class="{{ f.cls }}">{{ f.statusRotulo }}</span></div>
+                <div class="ct-of-meta" style="margin-top:4px;">tentativa {{ f.tentativa }} · sucesso {{ f.sucesso }}</div>
+                <div class="ct-of-resumo">{{ f.limite }}</div></div>
+            </sc-for>
           </div>
         </div>
       </div>
@@ -7178,7 +7234,7 @@ class Component extends DCLogic {
       errSearch:'', errStatus:'todos', errSort:'recentes', errTagInput:'', errMaisCampos:false, errBulk:'', errBulkBusy:false, errBulkDrafts:null, errPlano:'', errPlanoBusy:false, errShowStats:true,
       meusGrupos:this._load('meusGrupos', []), gruposBusy:false, comErro:'',
       comGrupoAtivo:null, comRankRows:[], comMyUid:'',
-      isAdmin:false, adminData:null, adminFeedback:[], adminBusy:false, adminErro:'', authEmail:'', acervoBusca:'',
+      isAdmin:false, adminData:null, adminFeedback:[], adminBusy:false, adminErro:'', authEmail:'', acervoBusca:'', oficialPainelOpen:false, oficialFiltro:'todos',
       acervoDe:null, origemAbrir:'', origemAbrirView:'',
       adminGrupos:[], adminAllow:[], adminAllowInput:'', adminDetalhe:null, adminDetalheBusy:false,
       // console de administração: aba aberta, recorte da lista de contas e a gaveta
@@ -7351,7 +7407,7 @@ class Component extends DCLogic {
           if(k==='Escape'){ e.preventDefault(); this.enamDescartar(); return; }
         }
       }
-      if(e.key==='Escape'){ if(this.state.menuOpen) this.setState({menuOpen:false}); else if(this.state.atalhosOpen) this.setState({atalhosOpen:false}); else if(this.state.paletteOpen) this.setState({paletteOpen:false, paletteQuery:''}); else if(this.state.treino) this.setState({treino:null}); else if(this.state.revSession) this.setState({revSession:null}); else if(this.state.focusMode) this.exitFocus(); else if(this.state.provaMode) this.exitProva(); else if(this.state.sessionModalOpen) this.closeSession(); else if(this.state.histEdit) this.setState({histEdit:null}); }
+      if(e.key==='Escape'){ if(this.state.oficialPainelOpen) this.oficialPainelFechar(); else if(this.state.menuOpen) this.setState({menuOpen:false}); else if(this.state.atalhosOpen) this.setState({atalhosOpen:false}); else if(this.state.paletteOpen) this.setState({paletteOpen:false, paletteQuery:''}); else if(this.state.treino) this.setState({treino:null}); else if(this.state.revSession) this.setState({revSession:null}); else if(this.state.focusMode) this.exitFocus(); else if(this.state.provaMode) this.exitProva(); else if(this.state.sessionModalOpen) this.closeSession(); else if(this.state.histEdit) this.setState({histEdit:null}); }
       // D13: dentro da sala, espaço pausa/retoma e F sai. Fora dela, F entra. Nada disso
       // vale enquanto ela digita — senão um espaço no meio da redação pararia o cronômetro.
       const _dig=(()=>{ try{ const el=document.activeElement; if(!el) return false;
@@ -7388,7 +7444,7 @@ class Component extends DCLogic {
         // o app crescer e o iframe dentro dele continuar miúdo.
         const V=['--bg','--surface','--surface2','--border','--ink','--text','--text2','--text3',
                  '--accent','--accentD','--accentSoft','--accentRing','--onAccent','--accentSolid','--accentSolidD','--accentFill','--onAccentFill',
-                 '--ok','--warn','--danger','--onOk','--onWarn','--onDanger','--radius','--r-sm','--r-md',
+                 '--ok','--warn','--danger','--info','--onOk','--onWarn','--onDanger','--radius','--r-sm','--r-md',
                  '--display','--body','--mono','--heroGrad',
                  '--fs-3xs','--fs-2xs','--fs-xs','--fs-sm','--fs-base','--fs-md',
                  '--fs-lg','--fs-xl','--fs-2xl','--control-h',
@@ -7488,7 +7544,8 @@ class Component extends DCLogic {
         ctVoltarAcervo:['legis','juris'],
         ctFlashcards:['juris'], ctErrosSegundaFase:['segundafase'], ctRedacaoResultado:['segundafase'],
         ctLeiturasPedir:['legis'], ctLeituraAtiva:['legis'], ctRegistrarLeitura:['legis'],
-        ctLeiturasResumo:['legis'], ctLeituraConferida:['legis'], ctIA:['juris']
+        ctLeiturasResumo:['legis'], ctLeituraConferida:['legis'], ctIA:['juris'],
+        ctOficialMarcar:['legis','juris']
       };
       // A revisão (item 4 do laço) abre o acervo mandando ctAbrirAcervo para a PRÓPRIA
       // janela, para que o shim nativo intercepte e troque a aba. e.source===window só
@@ -7508,6 +7565,7 @@ class Component extends DCLogic {
         if(d) this._abrirPratica({disciplina:d, assunto:''});
         return;
       }
+      if(e.data.type==='ctOficialMarcar'){ this._novidMarcar(e.data.id, e.data.st); return; }   // LEGIS/JURIS: "Marcar como conferido"
       if(e.data.type==='ctFecharDoc'){ this.setState({docAberto:''}); return; }   // P14: "Voltar ao app" dentro de termos/privacidade
       if(e.data.type==='ctAbrirAcervo'){
         const alvo=e.data.alvo==='juris'?'juris':'legis';
@@ -8350,7 +8408,7 @@ class Component extends DCLogic {
   /** Chave do que precisa chegar ao iframe — muda quando busca/ponto mudam. */
   _frameChave(dono){
     // o rótulo entra na chave: trocar de origem com o LEGIS aberto troca o texto da pílula
-    if(dono==='legis'||dono==='juris') return 'q:'+(this.state.acervoBusca||'')+'|v:'+(this.state.acervoDe?('1:'+this._rotuloVolta(this.state.acervoDe)):'0');
+    if(dono==='legis'||dono==='juris') return 'q:'+(this.state.acervoBusca||'')+'|v:'+(this.state.acervoDe?('1:'+this._rotuloVolta(this.state.acervoDe)):'0')+'|o:'+((this._oficialAbrir&&this._oficialAbrir.alvo===dono)?this._oficialAbrir.id:'');
     // 2ª fase não recebe nada do host depois de montada: chave fixa para não mandar
     // ctAbrirBloco (que é do mapa de ritos) a cada volta do acervo. A correção em curso
     // mora no próprio iframe, que nunca sai do DOM.
@@ -8381,9 +8439,11 @@ class Component extends DCLogic {
     const _area=_a?('area='+encodeURIComponent(_a)):'';
     if(dono==='legis'||dono==='juris'){
       const la=(dono==='legis'&&this._laAbrir)?this._laAbrir:null; if(la) this._laAbrir=null;
+      const oid=(this._oficialAbrir&&this._oficialAbrir.alvo===dono)?this._oficialAbrir.id:null; if(oid) this._oficialAbrir=null;
       const q=[(this.state.acervoBusca||'').trim()?('q='+encodeURIComponent(this.state.acervoBusca.trim())):'',
                this.state.acervoDe?('volta=1&vr='+encodeURIComponent(this._rotuloVolta(this.state.acervoDe))):'',
                la?('la='+encodeURIComponent(la.leiId)+'&rot='+encodeURIComponent(la.rot)+(la.conferir?'&conferir=1':'')):'',
+               oid?('oficial='+encodeURIComponent(oid)):'',
                (base.indexOf('area=')<0?_area:'')].filter(Boolean).join('&');
       return q?(sep+q):'';
     }
@@ -8400,6 +8460,7 @@ class Component extends DCLogic {
         w.postMessage({type:'ctVoltaDisponivel', on:!!this.state.acervoDe,
           rotulo:(this.state.acervoDe?this._rotuloVolta(this.state.acervoDe):'')}, this._msgDestino());
         // LA6: "Ler ativamente" / "Conferir de novo" vindos do oral e do simulado
+        if(this._oficialAbrir&&this._oficialAbrir.alvo===dono){ const oid=this._oficialAbrir.id; this._oficialAbrir=null; w.postMessage({type:'ctOficialAbrir', id:oid}, this._msgDestino()); }
         if(dono==='legis' && this._laAbrir){ const a=this._laAbrir; this._laAbrir=null; w.postMessage({type:'ctLeituraAbrir', leiId:a.leiId, rot:a.rot, conferir:!!a.conferir}, this._msgDestino()); }
         return;
       }
@@ -13347,6 +13408,21 @@ class Component extends DCLogic {
       ()=>{ try{ localStorage.setItem(this._chave('semanaLidos'), JSON.stringify(this.state.semanaLidos)); }catch(_){} this.flashSync(); });
   };
   semanaMais = ()=> this.setState({semanaTudo:!this.state.semanaTudo});
+  /* Revisão oficial: Planalto abre o LEGIS, STF/STJ abrem o JURIS — e o item vai junto
+     (?oficial=ID na 1ª carga, ctOficialAbrir com o iframe vivo), para o satélite abrir a aba
+     de mudanças já no item. No app nativo o LEGIS/JURIS é SwiftUI: lá vale só a busca. */
+  oficialAbrir = (e)=>{ const ds=(e.currentTarget&&e.currentTarget.dataset)||{};
+    const q=ds.q||''; const alvo=ds.alvo==='legis'?'legis':'juris';
+    this._oficialAbrir=ds.id?{id:ds.id, alvo}:null;
+    this._irPara(alvo, {acervoBusca:q, acervoDe:(this._origemIda?this._origemIda():null), origemAbrir:'', oficialPainelOpen:false});
+  };
+  /* Foco de entrada e de volta: _syncModalFocus (o painel é .ct-modal-panel), como em todo modal. */
+  oficialPainelAbrir = ()=> this.setState({oficialPainelOpen:true});
+  oficialPainelFechar = ()=> this.setState({oficialPainelOpen:false});
+  oficialFiltrar = (e)=>{ const f=(e.currentTarget&&e.currentTarget.dataset&&e.currentTarget.dataset.f)||'todos'; this.setState({oficialFiltro:f}); };
+  oficialMarcar = (e)=>{ const ds=(e.currentTarget&&e.currentTarget.dataset)||{};
+    if(ds.id) this._novidMarcar(ds.id, ds.st==='conferido'?'conferido':'lida'); };
+
   semanaVerTudo = ()=> this._irPara('juris', {acervoBusca:'', acervoDe:this._origemIda(), origemAbrir:''});
 
   // ===== CENTRAL DE NOVIDADES — fontes oficiais (Planalto, STF e STJ) ======================
@@ -13698,9 +13774,8 @@ class Component extends DCLogic {
     const id=String(((e && e.currentTarget && e.currentTarget.dataset) || {}).id || ''); if(!id) return;
     this._novidMarcar(id, 'lida');
   };
-  /** O botão do resumo do Início (#ct-of-abrir, acordo com a sessão "Interface de atualização
-   *  oficial"): neste PR leva à Central; a pilha do painel "Revisão oficial" troca o destino. */
-  oficialPainelAbrir = ()=> this._irPara('novidades');
+  /** O botão do resumo do Início (#ct-of-abrir) abre o diálogo "Revisão oficial" (definido junto
+   *  dos outros handlers do painel); a Central continua em "Mais opções". */
   /** Abre a lei no LEGIS (ou a edição incorporada no JURIS) pelo MESMO canal das revisões
    *  (ctAbrirAcervo): iframe na web, ABA nativa no Mac e no iPad, com a origem para a pílula
    *  de volta. O termo do LEGIS é o NOME da norma — o catálogo filtra por pedaço do título. */
@@ -18108,6 +18183,48 @@ class Component extends DCLogic {
         ondeQuem:[x.tribunal, x.ramo].filter(Boolean).join(' · '),
         temSelo:!!sel, selo:(sel?sel.t:''), seloStyle:(sel?('background:'+sel.c+';color:'+(sel.tx||'#fff')+';'):'') };
     });
+    // FONTES OFICIAIS — o sentinela gera `novidades.js` no servidor; o app só mostra o
+    // estado empacotado, lido por revisao-oficial.js (o mesmo módulo do LEGIS e do JURIS, para
+    // que Detectado/Conferir/Conferido/Falhou/Parcial queiram dizer a mesma coisa nos três).
+    // Só o painel consome estas variáveis: fechado, nada é mapeado (o resumo do Início é do #175).
+    const _RO=window.CT_REVISAO_OFICIAL;
+    const _roVivo=this.state.oficialPainelOpen ? _RO : null;
+    const _nov=_roVivo?_roVivo.pacote():{geradoEm:null,fontes:{},itens:[]};
+    const _roMarcas=_roVivo?_roVivo.marcasDe(this.state.novidLidas):{};
+    const _roItens=_roVivo?_roVivo.itens(_nov,_roMarcas):[];
+    const _roFontes=_roVivo?_roVivo.fontes(_nov):[];
+    const _roN=_roVivo?(_roVivo.contarDe?_roVivo.contarDe(_roItens,_roFontes):_roVivo.contagem(_nov,_roMarcas)):{total:0,revisar:0,conferidos:0,legis:0,juris:0,fontesOk:0,fontesProblema:0,fontesPendentes:0};
+    const oficialFontes=_roFontes.map(f=>({...f, cls:'ct-of-st '+f.statusCls,
+      erroTxt:f.erro?('Erro da última tentativa: '+f.erro+'. O último conteúdo válido continua no acervo.'):(f.status==='parcial'?'A consulta respondeu só em parte; o que não foi lido continua como estava.':'')}));
+    const oficialFontesProblema=oficialFontes.filter(f=>f.status==='falhou'||f.status==='parcial');
+    const _ofFiltro=this.state.oficialFiltro||'todos';
+    const _ofPassa={
+      todos:()=>true,
+      revisar:i=>_RO.precisaRevisar(i),
+      legis:i=>i.produto==='legis',
+      juris:i=>i.produto==='juris',
+      falhas:i=>i.status==='parcial'
+    };
+    const oficialLista=_roItens.filter(_ofPassa[_ofFiltro]||_ofPassa.todos).map(i=>({...i, cls:'ct-of-st '+i.statusCls,
+      proxSt:i.status==='conferido'?'conferir':'conferido',
+      marcarRotulo:i.status==='conferido'?'Manter em revisão':'Marcar como conferido'}));
+    const oficialFiltros=[
+      {k:'todos', rotulo:'Todos', n:_roItens.length},
+      {k:'revisar', rotulo:'Precisa revisar', n:_roN.revisar},
+      {k:'legis', rotulo:'LEGIS', n:_roN.legis},
+      {k:'juris', rotulo:'JURIS', n:_roN.juris},
+      {k:'falhas', rotulo:'Falhas/parciais', n:oficialFontesProblema.length+_roItens.filter(i=>i.status==='parcial').length}
+    ].map(b=>({...b, on:b.k===_ofFiltro?'true':'false'}));
+    const oficialAtualizado=_nov.geradoEm?('pacote gerado em '+_RO.data(_nov.geradoEm,true)):'aguardando a primeira varredura publicada';
+    const _ofLacunas=_roVivo?_roVivo.lacunas(_roFontes):[];
+    const _ofLacunaTxt=_ofLacunas.length
+      ? ('A última varredura não se completou: '+_roVivo.lacunasTxt(_ofLacunas)+'. A falta de itens dessas fontes não quer dizer que nada mudou; o último conteúdo válido continua no acervo até a próxima consulta. Detalhes em "Cobertura e limites", abaixo.')
+      : '';
+    const oficialVazioTxt=_roItens.length
+      ? ('Nenhum item nesta seleção.'+((_ofLacunaTxt && _ofFiltro!=='falhas')?(' '+_ofLacunaTxt):''))
+      : (!_nov.geradoEm
+        ? 'Ainda não há varredura publicada. Quando o sentinela rodar, as mudanças que ele detectar no Planalto, no STF e no STJ aparecem aqui para conferência, nunca publicadas sozinhas.'
+        : (_ofLacunaTxt || 'Nenhuma mudança detectada na última varredura, dentro do que o sentinela cobre. Isso não garante que o acervo esteja integralmente atualizado: veja os limites de cada fonte abaixo.'));
     const redHist=this.state.redHistory.map(h=>({...h, notaStr:(+h.nota).toFixed(1),
       when:(()=>{ try{ return new Date(h.ts).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}); }catch(_){ return ''; } })(),
       temaShort:(h.tema||'').replace(/^(Discursiva|Peça)\s—\s/,''), tipo:(h.tema||'').startsWith('Peça')?'Peça':'Discursiva',
@@ -19468,6 +19585,12 @@ class Component extends DCLogic {
       // O bloco "o que mudou esta semana" é de JURISPRUDÊNCIA — informativos de STF, STJ
       // e TSE. Ele ficava no Início de TODA área: quem estuda Enfermagem via
       // "STJ · Direito Processual Civil" no painel dela. Agora só onde há acervo.
+      oficialFontes, oficialFontesProblema, oficialAtualizado, oficialAbrir:this.oficialAbrir,
+      oficialNumOk:_roN.fontesOk, oficialNumFalha:_roN.fontesProblema, oficialNumRevisar:_roN.revisar, oficialNumConferidos:_roN.conferidos,
+      oficialPainelOpen:!!this.state.oficialPainelOpen, oficialPainelAbrir:this.oficialPainelAbrir, oficialPainelFechar:this.oficialPainelFechar,
+      oficialFiltros, oficialFiltrar:this.oficialFiltrar, oficialFiltroFalhas:(_ofFiltro==='falhas' && oficialFontesProblema.length>0),
+      oficialLista, oficialListaTem:oficialLista.length>0, oficialListaVazia:oficialLista.length===0, oficialVazioTxt,
+      oficialMarcar:this.oficialMarcar,
       semanaLista, semanaTem:(semanaLista.length>0 && _podeView('juris')),
       semanaVazio:(semanaLista.length===0 && _podeView('juris')),
       semanaAbrir:this.semanaAbrir, semanaLido:this.semanaLido, semanaMais:this.semanaMais,
@@ -19476,7 +19599,6 @@ class Component extends DCLogic {
       // Fontes oficiais: o resumo do Início, o meta do bloco da semana (E16) e os dois atos que o
       // Início divide com a Central. O resto da Central só nasce com ela na tela (_novidVM).
       ofMostrar, ofFontes, ofItens, ofTemItens:ofItens.length>0, ofContOk, ofContFalha, ofContConferir, ofMeta,
-      oficialPainelAbrir:this.oficialPainelAbrir,
       semanaRecorteTxt:(_semRecorte ? (' · recorte de '+_semRecorte) : ''),
       semanaAguardaAcervo:_nvAguarda>0,
       semanaAguardaLabel:(_nvAguarda===1 ? '1 edição nova aguardando o acervo →' : (_nvAguarda+' edições novas aguardando o acervo →')),
