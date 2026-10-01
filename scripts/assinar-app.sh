@@ -108,10 +108,91 @@ ct_motivo_codesign() {
   echo "       (log completo: $log)"
 }
 
+# ct_veredito_gatekeeper <app> <devid|adhoc>
+# O que o Gatekeeper diz do bundle (spctl --assess --type execute), separado da assinatura.
+#
+# POR QUE EXISTE (01/10/2026): o app instalado passava no `codesign --verify --strict --deep`
+# e o `spctl --assess` respondia "rejected". Não era assinatura quebrada: era
+# `source=Unnotarized Developer ID`, isto é, assinado com Developer ID, hardened runtime e
+# carimbo de tempo, mas SEM tíquete de notarização grampeado. Neste Mac o app abre, porque o
+# que se instala daqui não tem o atributo com.apple.quarantine. Baixado em outra máquina, o
+# Gatekeeper bloqueia. O build dizia "assinado para DISTRIBUIÇÃO", e não estava.
+#
+# Vereditos (a classificação lê as linhas source=, override= e origin=, não só a primeira):
+#   · override= presente → 0, SEM ✓. Com o Gatekeeper desligado ("Qualquer lugar", MDM) ou com
+#     exceção, o spctl troca toda recusa por "accepted" e diz por quê em override=: aí ele não
+#     prova nem notarização nem assinatura. No modo devid sem origem notarizada, repete o aviso.
+#   · accepted (sem override)            → 0, aceito, com a origem (Notarized Developer ID).
+#   · source=Unnotarized Developer ID    → 0, com o aviso e o comando que notariza
+#     (bash mac/empacotar.sh). É o estado normal de um build local, não erro de assinatura.
+#   · origin= que não é "Developer ID Application" (Apple Development, Apple Distribution) →
+#     0, com o aviso de que a identidade não serve para distribuir. A assinatura está íntegra.
+#   · devid recusado por outro motivo (selo inválido, certificado revogado: o spctl escreve
+#     "<app>: <motivo>" e sai com 1, sem source=) → 1: é erro de assinatura, e quem chama para
+#     o build em vez de mostrar "Pronto".
+#   · adhoc → 0. O Gatekeeper recusa ad-hoc por definição, e o ritual já foi avisado.
+#
+# Pasta sincronizada (CT_REMARCADO=1): o FinderInfo da raiz faz o spctl reprovar o selo à toa.
+# Por isso, se o --strict não passa no lugar, a avaliação roda numa cópia sem os atributos, a
+# mesma que o ditto --noextattr leva a /Applications. A cópia é apagada antes de classificar.
+ct_veredito_gatekeeper() {
+  local app="${1%/}" modo="${2:-devid}" alvo="${1%/}" tmp="" saida fonte override origem linha
+  local notarizar="       Para distribuir: bash mac/empacotar.sh  (envia à Apple, grampeia e refaz o zip; depois instale o app grampeado)"
+  if ! codesign --verify --strict "$app" 2>/dev/null; then
+    if tmp="$(_ct_tmp_assinatura)" && ditto --norsrc --noextattr --noacl "$app" "$tmp/$(basename "$app")" 2>/dev/null; then
+      alvo="$tmp/$(basename "$app")"
+    fi
+  fi
+  # O spctl escreve no stderr e sai com 3 (recusa) ou 1 (erro). O `2>&1` guarda a resposta e
+  # o `|| true` impede o `set -e` de derrubar o build aqui.
+  saida="$(spctl --assess --type execute -vv "$alvo" 2>&1 || true)"
+  if [ -n "$tmp" ]; then rm -rf "$tmp"; fi
+  fonte="$(printf '%s\n' "$saida" | sed -n 's/^source=//p' | head -1)"
+  override="$(printf '%s\n' "$saida" | sed -n 's/^override=//p' | head -1)"
+  origem="$(printf '%s\n' "$saida" | sed -n 's/^origin=//p' | head -1)"
+  linha="$(printf '%s\n' "$saida" | head -1)"
+  linha="${linha#"$alvo": }"   # sem o caminho (às vezes o da cópia temporária, já apagada)
+
+  if [ -n "$override" ]; then
+    echo "     ⚠ Gatekeeper SEM veredito neste Mac: o spctl respondeu com override=$override"
+    echo "       (avaliação desligada ou exceção). Isso não prova notarização${fonte:+ (source=$fonte)}."
+    if [ "$modo" = devid ] && [ "$fonte" != "Notarized Developer ID" ]; then echo "$notarizar"; fi
+    return 0
+  fi
+  case "$linha" in
+    accepted|*": accepted") echo "     ✓ Gatekeeper: aceito (${fonte:-sem origem informada})"; return 0;;
+  esac
+  if [ "$modo" = adhoc ]; then
+    echo "     Gatekeeper: rejeitado${fonte:+ (source=$fonte)} — esperado em assinatura ad-hoc."
+    return 0
+  fi
+  if [ "$fonte" = "Unnotarized Developer ID" ]; then
+    echo "     ⚠ Gatekeeper: REJEITADO — source=Unnotarized Developer ID."
+    echo "       A assinatura está íntegra. O que falta é a notarização (tíquete da Apple grampeado no .app)."
+    echo "       Neste Mac o app abre, porque o que se instala daqui não leva quarentena. Baixado em outra máquina, é bloqueado."
+    echo "$notarizar"
+    return 0
+  fi
+  case "$origem" in
+    ""|"Developer ID Application:"*) ;;
+    *)
+      echo "     ⚠ Gatekeeper: REJEITADO — a identidade não é Developer ID (origin=$origem)."
+      echo "       A assinatura está íntegra e o app serve neste Mac, mas outro Mac não abre e a Apple não notariza essa identidade."
+      echo "       Para distribuir: assine com \"Developer ID Application: …\" (CATEDRA_SIGN_ID) e rode bash mac/empacotar.sh."
+      return 0;;
+  esac
+  echo "     ✗ Gatekeeper: REJEITADO por motivo de assinatura — ${fonte:-${linha:-sem resposta do spctl}}"
+  if [ -n "$linha" ]; then echo "       spctl: $linha"; fi
+  if [ -n "$origem" ]; then echo "       origin: $origem"; fi
+  echo "       Não é falta de notarização: confira o selo e o certificado (revogado? vencido?) com codesign -dvv \"$app\"."
+  return 1
+}
+
 # ct_assinar_mac <app> <pasta dos logs> <identidade Developer ID ou vazio>
 # Política do Mac: Developer ID com hardened runtime e carimbo de tempo; se falhar, ad-hoc.
-# 0 = o app saiu assinado (um dos dois). 1 = NEM o ad-hoc assinou — quem chama sai com erro,
-# para nunca entregar um app sem assinatura com cara de pronto.
+# 0 = o app saiu assinado (um dos dois). 1 = NEM o ad-hoc assinou, ou o Developer ID assinou
+# mas o Gatekeeper o recusa por motivo de assinatura (ver ct_veredito_gatekeeper). Quem chama
+# sai com erro, para nunca entregar com cara de pronto um app que não abre.
 #
 # DUAS assinaturas possíveis, e a diferença decide se o testador consegue abrir:
 #   · "Developer ID Application" (conta paga da Apple) + notarização → o app abre com duplo
@@ -142,7 +223,10 @@ ct_assinar_mac() {
       cs="$(codesign -dvv "$app" 2>&1)"
       case "$cs" in *runtime*) echo "     ✓ hardened runtime";; *) echo "     ⚠ SEM hardened runtime — a notarização vai reprovar";; esac
       case "$cs" in *Timestamp=*) echo "     ✓ carimbo de tempo";; *) echo "     ⚠ SEM carimbo de tempo — a notarização vai reprovar";; esac
-      echo "     ✓ assinado para DISTRIBUIÇÃO (--verify --strict conferido)"
+      echo "     ✓ assinado com Developer ID (--verify --strict conferido)"
+      # Assinado não é distribuível: antes daqui saía "assinado para DISTRIBUIÇÃO", e o spctl
+      # do mesmo app dizia "rejected". O veredito do Gatekeeper vai à parte, por extenso.
+      ct_veredito_gatekeeper "$app" devid || return 1
       return 0
     fi
     echo "     ⚠ falhou assinar com Developer ID."
@@ -155,6 +239,7 @@ ct_assinar_mac() {
   if ct_assinar_limpo "$app" "$logs/codesign-adhoc.log" --force --sign -; then
     echo "     assinado (ad-hoc — serve para usar aqui, não para distribuir; --verify --strict conferido)"
     echo "       O testador vai precisar do ritual \"Abrir Mesmo Assim\"."
+    ct_veredito_gatekeeper "$app" adhoc
     return 0
   fi
   echo "     ✗ nem a assinatura ad-hoc passou — o app NÃO está assinado."
