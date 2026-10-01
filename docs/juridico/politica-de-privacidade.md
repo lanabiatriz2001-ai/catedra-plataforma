@@ -1,7 +1,7 @@
 # Política de privacidade — Cátedra
 
-**Versão 1.1**
-**Data: 25/09/2026**
+**Versão 1.2**
+**Data: 01/10/2026**
 
 Esta política explica quais dados pessoais a **Cátedra** (incluindo as submarcas CátedraLEGIS e CátedraJURIS) trata, para quê, com que fundamento, por quanto tempo e como você exerce seus direitos. Vale para o site e para os aplicativos de Mac e iPad e complementa os Termos de uso (LGPD, arts. 6º, VI, e 9º; Marco Civil da Internet, art. 7º, VIII).
 
@@ -21,6 +21,8 @@ Todos os dados abaixo são fornecidos por você ou gerados pelo seu uso (LGPD, a
 - **Preferências**: tema, tamanho de texto e demais ajustes de interface.
 - **Grupos de estudo (opcional)**: código do grupo, apelido, tempo de estudo para o ranking semanal e mensagens no mural.
 - **Notificações (opcional)**: permissão do navegador e preferências de aviso.
+- **Relatos enviados pelo app (opcional)**: a mensagem que você escreve em "Enviar problema ou sugestão" (Ajustes, Versão e suporte), o e-mail da conta e dados técnicos anexados automaticamente (versão do app, tela aberta, estado da sincronização, identificação do navegador e tamanho da janela). O botão "Copiar relatório" não envia nada: só copia o texto no seu aparelho.
+- **Lista de espera (página pública, sem conta)**: e-mail, área que você está estudando e data do cadastro, informados no formulário da página "Conhecer a Cátedra". Esse cadastro não tem vínculo com a conta.
 - **Registros técnicos**: última falha gravada no aparelho; registros de acesso à aplicação (data, hora e endereço IP); contagem de chamadas de IA por conta; trilha de auditoria das ações administrativas.
 - **Telemetria de primeira parte (quando ligada pela administração)**: falhas do aplicativo (mensagem técnica saneada, versão, aparelho e tela em que ocorreram) e a contagem diária de aberturas de cada tela, associadas à sua conta. Não inclui o conteúdo do seu material de estudo e não é compartilhada com terceiros.
 
@@ -32,6 +34,8 @@ Todos os dados abaixo são fornecidos por você ou gerados pelo seu uso (LGPD, a
 | Corrigir redações e discursivas, gerar flashcards e perguntas orais, ler em voz (IA) | Texto ou trecho que você envia | Consentimento específico ao acionar o recurso (inciso I; art. 8º) | Resposta fica com seu material; texto enviado não é retido por nós além da chamada (seção 7) |
 | Grupos de estudo e ranking semanal (opcional) | Código do grupo, apelido, tempo de estudo e mensagens, visíveis aos demais membros | Consentimento (inciso I); você entra e sai quando quiser | Enquanto for membro; mensagens até você apagá-las ou excluir a conta |
 | Notificações no navegador (lembretes e avisos) | Permissão e preferências | Consentimento (inciso I) | Até a revogação |
+| Receber, responder e resolver relatos de problema e sugestões que você envia pelo app | Mensagem, e-mail da conta e dados técnicos anexados (versão, tela, estado da sincronização, navegador, tamanho da janela) | Legítimo interesse (inciso IX; art. 10, II) | Enquanto a conta existir (a administração pode apagar o relato antes); apagado na exclusão pela própria pessoa (seção 9.2); se a conta for removida pela administração, até [RETENÇÃO IA: 12] meses depois da remoção (seção 9.4) |
+| Avisar por e-mail quando abrir vaga no beta (lista de espera da página pública) | E-mail, área de estudo e data do cadastro | Consentimento (inciso I), dado ao enviar o formulário | Até você pedir a remoção ou a lista de espera ser encerrada; não é apagada com a exclusão da conta (seção 9.5) |
 | Segurança, prevenção a fraude e abuso, controle de custo da IA, diagnóstico de erro | Contagem de chamadas de IA, trilha de auditoria, IP, última falha no aparelho | Legítimo interesse (inciso IX; art. 10) | Contagem de IA e trilha: [RETENÇÃO IA: 12] meses; última falha: no aparelho, sobrescrita pela seguinte |
 | Diagnóstico de erro e melhoria das telas (telemetria de primeira parte, quando ligada) | Falhas saneadas do aplicativo e contagem diária de aberturas por tela, associadas à conta | Legítimo interesse (inciso IX; art. 10) | Enquanto a conta existir; apagadas junto com a exclusão da conta |
 | Guarda de registros de acesso; atendimento a pedidos de titulares e ordens legais | Data, hora e IP de acesso; dados do pedido e da resposta | Obrigação legal (inciso II; Marco Civil, art. 15) | Registros de acesso: 6 meses, sob sigilo; demais: prazo legal |
@@ -52,7 +56,7 @@ Não usamos seus dados para publicidade, perfilamento comercial, venda ou treina
 
 5.3. **Backups seus**: você pode enviar cópias ao seu iCloud Drive ou Google Drive. Essas contas são suas; a Cátedra não as acessa sem uma ação sua nem controla o tratamento feito nelas.
 
-5.4. **Administração**: a administração vê métricas de conta (acessos, volume de uso, chamadas de IA), pode pausar a IA, remover a conta ou zerar dados a seu pedido e gerir a lista de acesso; cada ação fica na trilha de auditoria. Seu material de estudo só é acessado pontualmente para atender pedido seu, apurar violação dos Termos de uso ou cumprir obrigação legal.
+5.4. **Administração**: a administração vê métricas de conta (acessos, volume de uso, chamadas de IA), lê os relatos enviados pelo app e a lista de espera, pode pausar a IA, remover a conta ou zerar dados a seu pedido e gerir a lista de acesso; cada ação fica na trilha de auditoria. Seu material de estudo só é acessado pontualmente para atender pedido seu, apurar violação dos Termos de uso ou cumprir obrigação legal.
 
 ## 6. Com quem compartilhamos
 
@@ -80,11 +84,13 @@ Podemos fornecer dados quando exigido por lei ou ordem judicial (Marco Civil, ar
 
 9.1. Guardamos os dados pelos prazos da tabela da seção 3. Ao término do tratamento, eles são eliminados, salvo conservação autorizada por lei (LGPD, arts. 15 e 16).
 
-9.2. **Exclusão pela própria pessoa**: em Ajustes, você pode excluir a conta. A exclusão remove os dados da nuvem em até [EXCLUSÃO: 30] dias e apaga a cópia local naquele aparelho; em outros aparelhos, a cópia local some no próximo acesso ou ao limpar os dados do aplicativo.
+9.2. **Exclusão pela própria pessoa**: em Ajustes, você pode excluir a conta. A exclusão remove os dados da nuvem em até [EXCLUSÃO: 30] dias, inclusive os relatos que você enviou pelo app e a contagem das suas chamadas de IA, e apaga a cópia local naquele aparelho; em outros aparelhos, a cópia local some no próximo acesso ou ao limpar os dados do aplicativo.
 
-9.3. **Exclusão pela administração**: a seu pedido pelo canal do encarregado, ou nos casos previstos nos Termos de uso, a administração pode remover a conta ou zerar os dados, com registro na trilha de auditoria.
+9.3. **Exclusão pela administração**: a seu pedido pelo canal do encarregado, ou nos casos previstos nos Termos de uso, a administração pode remover a conta ou zerar os dados, com registro na trilha de auditoria. Zerar apaga o material de estudo e mantém a conta. Remover apaga a conta e os dados ligados a ela, mas **mantém os relatos que você enviou pelo app**, com o e-mail e a mensagem, pelo prazo da seção 9.4; se quiser que eles também sejam apagados, peça pelo canal do encarregado (seção 11).
 
-9.4. **O que permanece**: a trilha de auditoria das ações administrativas, pelo prazo da seção 3; registros de acesso à aplicação por 6 meses, sob sigilo, por obrigação legal (Marco Civil, art. 15; LGPD, arts. 7º, II, e 16, I); registro mínimo do pedido de exclusão, para comprovar o atendimento (LGPD, art. 16, I); seus backups no iCloud Drive ou Google Drive; cópias de segurança técnicas do banco, que expiram no ciclo do provedor.
+9.4. **O que permanece**: em qualquer exclusão, a trilha de auditoria das ações administrativas, pelo prazo da seção 3; registros de acesso à aplicação por 6 meses, sob sigilo, por obrigação legal (Marco Civil, art. 15; LGPD, arts. 7º, II, e 16, I); registro mínimo do pedido de exclusão, para comprovar o atendimento (LGPD, art. 16, I); seus backups no iCloud Drive ou Google Drive; cópias de segurança técnicas do banco, que expiram no ciclo do provedor. Na remoção pela administração (9.3), permanecem também os relatos enviados pelo app, com o e-mail e a mensagem, por até [RETENÇÃO IA: 12] meses depois da remoção, e a contagem de chamadas de IA, desvinculada da conta (sem e-mail nem identificador), pelo prazo da seção 3.
+
+9.5. **Lista de espera**: o cadastro na lista de espera é feito na página pública, sem conta, e não tem vínculo com ela; por isso não é apagado quando a conta é excluída, nem por você nem pela administração. Para sair da lista, peça a remoção pelo canal do encarregado, [E-MAIL DO ENCARREGADO], de preferência a partir do e-mail cadastrado (seção 11.2).
 
 ## 10. Segurança e incidentes
 
