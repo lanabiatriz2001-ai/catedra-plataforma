@@ -72,3 +72,9 @@ _to_delete/
 
 # saída do xcodebuild archive (286 MB, regerável)
 ios/DerivedData/
+
+# Outras ferramentas de agente na mesma pasta: AGENTS.md é cópia local do CLAUDE.md (quem manda
+# é o CLAUDE.md, versionado) e as duas pastas são estado da máquina, não do projeto.
+AGENTS.md
+.agents/
+.codex/
