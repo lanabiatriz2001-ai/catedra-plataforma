@@ -3443,7 +3443,7 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
       && !/lista_espera/.test(excl) && !/lista_espera/.test(admApagar) && /não é apagado quando a conta é excluída, nem por você nem pela administração/.test(s95) && /canal do encarregado/.test(s95);
     // exclusão pela pessoa: a RPC apaga relatos e contagem de IA; a Política diz isso na 9.2
     r.politicaExclusaoPelaPessoaApagaRelatos = /delete from public\.feedback where user_id = uid/.test(excl) && /delete from public\.ai_uso where user_id = uid/.test(excl)
-      && /inclusive os relatos que você enviou pelo app e a contagem das suas chamadas de IA/.test(s92);
+      && /inclusive os relatos que você enviou pelo app, a contagem das suas chamadas de IA/.test(s92);
     // remoção pela administração: nada apaga feedback nem ai_uso; a FK só solta o user_id (feedback guarda o e-mail na
     // própria linha). A Política diz isso na 9.3 e na 9.4, com a contagem de IA desvinculada da conta.
     r.politicaRemocaoAdmMantemRelatos = admApagar.length > 0 && !/public\.feedback/.test(admApagar) && !/public\.ai_uso where user_id = p_uid;/.test(admApagar) && !/delete from public\.ai_uso/.test(admApagar)
@@ -3451,6 +3451,20 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
       && /create table if not exists public\.ai_uso \(\s*id[^;]*user_id\s+uuid references auth\.users\(id\) on delete set null/.test(adm)
       && /mantém os relatos que você enviou pelo app/.test(s93) && /relatos enviados pelo app, com o e-mail e a mensagem, por até \d+ meses depois da remoção/.test(s94)
       && /contagem de chamadas de IA, desvinculada da conta \(sem e-mail nem identificador\)/.test(s94);
+    // login com Google (só no site): o app não lê nome nem foto do Google (nenhum user_metadata), e a exclusão leva
+    // auth.identities junto com auth.users. A §6 traz a frase de Uso Limitado que o Google exige de quem usa as APIs dele.
+    const s53 = sec('5.3. Backups seus', '5.4. Administração'), s6 = sec('6. Com quem compartilhamos', '7. Inteligência'), s112 = sec('11.2. Como exercer', '12. Menores');
+    const loginGoogleSoNoSite = /var OAUTH = \(WEB && Array\.isArray\(window\.CATEDRA_OAUTH\)\)/.test(auth) && /data-oauth="google"/.test(auth) && ![auth, host].some(x => /user_metadata|raw_user_meta_data|identity_data/.test(x));
+    r.politicaLoginComGoogle = loginGoogleSoNoSite && /Login com Google \(opcional, no site\)/.test(s2) && /o aplicativo usa só o e-mail e o identificador/.test(s2)
+      && /Não recebemos sua senha do Google nem acesso a Gmail, contatos, agenda/.test(s2) && /Conta \(inclusive os dados do login com Google\)/.test(s3)
+      && /trata os dados também como controlador/.test(s6) && /Política de Dados do Usuário dos Serviços de API do Google, incluindo os requisitos de Uso Limitado/.test(s6)
+      && /os dados recebidos do Google no login/.test(s92) && /Apps de terceiros com acesso à conta/.test(s112);
+    // backup no Google Drive: um escopo só (drive.file), token que vive na promessa e nunca vai ao localStorage
+    const iTok = host.indexOf('_gdriveToken(){'), corpoTok = iTok < 0 ? '' : host.slice(iTok, host.indexOf('async _gdriveAcha', iTok));
+    const driveSoArquivoProprio = (host.match(/googleapis\.com\/auth\//g) || []).length === 1 && /scope:'https:\/\/www\.googleapis\.com\/auth\/drive\.file'/.test(corpoTok) && !/localStorage|fetch\(/.test(corpoTok);
+    const prefsPadrao = (host.match(/const AJ_PREFS_PADRAO = \{[\s\S]*?\n\};/) || [''])[0];   // o semanal nasce desligado
+    r.politicaBackupNoGoogleDrive = driveSoArquivoProprio && prefsPadrao.length > 0 && !/backupAuto/.test(prefsPadrao) && /escopo drive\.file/.test(s53) && /não vê os demais arquivos do seu Drive/.test(s53)
+      && /não é gravada nem enviada aos nossos servidores/.test(s53) && /backup automático semanal, se você ligá-lo/.test(s53);
   }
   const build = fs.readFileSync(path.join(RAIZ, 'scripts/build.mjs'), 'utf8'), buildMac = fs.readFileSync(path.join(RAIZ, 'scripts/build-macos.mjs'), 'utf8');
   r.builds = [build, buildMac].every(x => /build-juridico\.mjs/.test(x) && /'termos\.html', 'privacidade\.html'/.test(x)) && /'\.\/juridico\.js'/.test(build);
