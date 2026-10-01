@@ -12,7 +12,8 @@ Descobre o último número já presente em juris-index.js, baixa as edições
 seguintes até esgotar (2 falhas seguidas), parseia e ANEXA em juris-index.js e
 juris-text.js (dedupe por id). Não faz commit — quem grava é a Lana (ou o PR).
 
-Uso:  python3 scripts/atualizar-informativos.py [--dry-run] [--max-edicoes N]
+Uso:  python3 scripts/atualizar-informativos.py [--dry-run] [--max-edicoes N] [--corpus]
+      --corpus só imprime, em JSON, o último número de cada série no acervo (sem rede).
 """
 import html as H
 import json
@@ -263,12 +264,24 @@ def load_index():
     return s, arr
 
 
+def ultimos(idx):
+    """Último número de cada série já no acervo. As edições extraordinárias do STJ têm numeração
+    própria (id INF….-STJ-EE{n}-) e ficam fora da série ordinária. Não há teto: o antigo `< 900`
+    fazia o STJ 900 valer 899 e, com MAXED edições por rodada, travaria a busca depois do STJ 940."""
+    ee = lambda r: re.match(r"INF\d{4}-STJ-EE(\d+)-", r[0])
+    stf = max(r[3] for r in idx if r[2] == "informativo_stf" and isinstance(r[3], int))
+    stj = max(r[3] for r in idx if r[2] == "informativo_stj" and isinstance(r[3], int) and not ee(r))
+    eem = max([int(m.group(1)) for r in idx for m in [ee(r)] if m] or [27])
+    return stf, stj, eem
+
+
 def main():
     s_idx, idx = load_index()
     have = {r[0] for r in idx}
-    stf_max = max(r[3] for r in idx if r[2] == "informativo_stf" and isinstance(r[3], int))
-    stj_max = max(r[3] for r in idx if r[2] == "informativo_stj" and isinstance(r[3], int) and r[3] < 900)
-    ee_max = max([int(m.group(1)) for r in idx for m in [re.match(r"INF\d{4}-STJ-EE(\d+)-", r[0])] if m] or [27])
+    stf_max, stj_max, ee_max = ultimos(idx)
+    if "--corpus" in sys.argv:
+        print(json.dumps({"stf": stf_max, "stj": stj_max, "ee": ee_max}))
+        return
     print(f"corpus: STF até {stf_max}, STJ até {stj_max}, Ed. Extr. até {ee_max}")
 
     novos = []
