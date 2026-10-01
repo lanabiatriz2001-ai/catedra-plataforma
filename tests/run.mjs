@@ -4271,10 +4271,7 @@ const sem = await page.evaluate(() => {
   r.dataValida = it.every(x => /^\d{2}\/\d{2}\/\d{4}$/.test(x.quando));
   // marcador é opcional, mas quando existe tem de ser um dos três
   r.marcadorValido = it.every(x => x.marcador == null || ['superacao', 'divergencia', 'vinculante'].includes(x.marcador));
-  // os marcados vêm primeiro (é o que muda o estudo)
-  const iPrimeiroSem = it.findIndex(x => !x.marcador);
-  const iUltimoCom = it.map((x, i) => x.marcador ? i : -1).filter(i => i >= 0).pop();
-  r.marcadosPrimeiro = (iUltimoCom == null) || (iPrimeiroSem === -1) || (iUltimoCom < iPrimeiroSem);
+  // a ordem (semana da edição, marcados primeiro dentro dela) é medida contra o acervo, mais abaixo
   // a tese é recorte curto: o arquivo não pode virar um segundo acervo
   r.teseCurta = it.every(x => x.tese.length <= 340);
   r.arquivoLeve = JSON.stringify(S).length < 120000;
@@ -4283,11 +4280,6 @@ const sem = await page.evaluate(() => {
   r.semRepetida = new Set(teses).size === teses.length;
   // marcador vem calibrado: alguma coisa TEM de estar marcada, senão o bloco perde a graça
   r.temAlgumMarcado = it.some(x => x.marcador);
-
-  // ordenado do mais novo para o mais velho dentro de cada grupo
-  const ms = s => { const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(s); return new Date(+m[3], +m[2] - 1, +m[1]).getTime(); };
-  const semMarc = it.filter(x => !x.marcador).map(x => ms(x.quando));
-  r.ordenado = semMarc.every((v, i) => i === 0 || semMarc[i - 1] >= v);
   return r;
 });
 for (const [k, v] of Object.entries(sem)) ok(v, 'SEMANA ' + k);
@@ -4306,11 +4298,57 @@ for (const [k, v] of Object.entries(sem)) ok(v, 'SEMANA ' + k);
   ok(maisNovoCard === maisNovoAcervo,
     'SEMANA o card traz o informativo mais novo do acervo (card ' + new Date(maisNovoCard).toLocaleDateString('pt-BR') +
     ' × acervo ' + new Date(maisNovoAcervo).toLocaleDateString('pt-BR') + ')');
+
+  // "Marcados primeiro" valia para o recorte inteiro, que cobre meses: julgados de junho com selo
+  // ficavam acima do STF 1230 (18/09) e a edição nova nem chegava aos 6 itens do Início — o card
+  // parecia parado mesmo com o acervo em dia. Agora a semana da EDIÇÃO manda (a data de uma edição
+  // é a do julgado mais novo dela) e os marcados vêm primeiro dentro de cada semana.
+  const edChave = (r) => (r[3] == null ? r[0] : r[1] + '|' + r[2] + '|' + (/-EE\d+-/.test(r[0]) ? 'EE' : '') + r[3]);
+  const edData = {};
+  for (const r of w.__JURIS_IDX__) {
+    if (!/^informativo_/.test(r[2]) || !ms(r[7])) continue;
+    edData[edChave(r)] = Math.max(edData[edChave(r)] || 0, ms(r[7]));
+  }
+  const porId = new Map(w.__JURIS_IDX__.map((r) => [r[0], r]));
+  const SEM = 7 * 864e5;
+  const novaEd = Math.max(...Object.values(edData));
+  const semanaDe = (x) => Math.floor((novaEd - edData[edChave(porId.get(x.id))]) / SEM);
+  const itS = w.CT_SEMANA.itens.map((x) => ({ ...x, s: semanaDe(x), t: ms(x.quando) }));
+  ok(itS.length && itS[0].s === 0,
+    'SEMANA o card começa pela semana da edição mais nova (1º item: ' + (itS[0] && itS[0].titulo + ', semana ' + itS[0].s) + ')');
+  ok(itS.every((x, i) => i === 0 || itS[i - 1].s <= x.s),
+    'SEMANA nenhuma edição mais velha passa à frente de uma mais nova');
+  ok(itS.every((x, i) => i === 0 || itS[i - 1].s !== x.s || !!itS[i - 1].marcador || !x.marcador),
+    'SEMANA os marcados vêm primeiro dentro de cada semana');
+  ok(itS.every((x, i) => i === 0 || itS[i - 1].s !== x.s || !!itS[i - 1].marcador !== !!x.marcador || itS[i - 1].t >= x.t),
+    'SEMANA dentro da semana e do grupo, do julgado mais novo para o mais velho');
+  const maisNovos = w.__JURIS_IDX__.filter((r) => /^informativo_/.test(r[2]) && ms(r[7]) === maisNovoAcervo).map((r) => r[0]);
+  ok(w.CT_SEMANA.itens.slice(0, 6).some((x) => maisNovos.includes(x.id)) || itS.slice(0, 6).every((x) => x.s === 0),
+    'SEMANA os 6 itens do Início mostram a edição mais nova (topo: ' +
+    w.CT_SEMANA.itens.slice(0, 6).map((x) => x.titulo.replace('Info ', '') + ' ' + x.quando.slice(0, 5)).join(', ') + ')');
   const man = JSON.parse(fs.readFileSync(path.join(RAIZ, 'dados', 'juris-text', 'manifesto.json'), 'utf8'));
   ok(man.chaves === Object.keys(w.__JURIS_TXT__).length,
     'FATIAS dados/juris-text tem todos os textos do juris-text.js (' + man.chaves + ' × ' + Object.keys(w.__JURIS_TXT__).length + ')');
   ok(man.arquivos.every((a) => fs.existsSync(path.join(RAIZ, 'dados', 'juris-text', a))),
     'FATIAS todo bloco listado no manifesto existe em dados/juris-text');
+
+  // O script descobria o último STJ filtrando número < 900: com o STJ 900 no acervo ele lia 899,
+  // rebaixava o 900 a cada rodada e, com o teto de 40 edições por vez, deixaria de achar as novas
+  // depois do STJ 940. O ponto de partida tem de ser o maior número que o acervo já tem.
+  const { execFileSync } = await import('child_process');
+  let corpus = null;
+  try {
+    corpus = JSON.parse(execFileSync('python3', [path.join(RAIZ, 'scripts', 'atualizar-informativos.py'), '--corpus'],
+      { cwd: RAIZ, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }));
+  } catch (e) { corpus = { erro: String(e.message || e).slice(0, 200) }; }
+  const maior = (fonte, ee) => Math.max(...w.__JURIS_IDX__
+    .filter((r) => r[2] === fonte && typeof r[3] === 'number' && /-EE\d+-/.test(r[0]) === ee).map((r) => r[3]));
+  ok(corpus && corpus.stj === maior('informativo_stj', false),
+    'INFORMATIVOS o script parte do último STJ do acervo (script ' + (corpus && (corpus.stj ?? corpus.erro)) +
+    ' × acervo ' + maior('informativo_stj', false) + ')');
+  ok(corpus && corpus.stf === maior('informativo_stf', false),
+    'INFORMATIVOS o script parte do último STF do acervo (script ' + (corpus && (corpus.stf ?? corpus.erro)) +
+    ' × acervo ' + maior('informativo_stf', false) + ')');
 }
 
 // a home mostra o bloco, e "Já vi" tira o item e persiste
