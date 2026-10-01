@@ -3412,11 +3412,46 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
   r.tokensSemHexFixoNoTexto = /var\(--ink,/.test(termos) && /var\(--bg,/.test(termos) && /min-height: 44px/.test(termos);
   await import('../juridico.js');
   const J = globalThis.CT_JURIDICO;
-  r.versaoVigente = J.versao === '1.0/1.1' && J.termos.arquivo === 'termos.html' && J.privacidade.data === '2026-09-25';
-  r.aceiteVigentePuro = J.aceiteVigente({ versao: '1.0/1.1', ts: 1 }) === true && J.aceiteVigente('{"versao":"1.0/1.1","ts":5}') === true && J.aceiteVigente({ versao: '0.9/1.0', ts: 1 }) === false && J.aceiteVigente(null) === false && J.aceiteVigente('lixo') === false && J.aceiteVigente({ versao: '1.0/1.1' }) === false;
+  r.versaoVigente = J.versao === '1.0/1.2' && J.termos.arquivo === 'termos.html' && J.privacidade.data === '2026-10-01';
+  r.aceiteVigentePuro = J.aceiteVigente({ versao: '1.0/1.2', ts: 1 }) === true && J.aceiteVigente('{"versao":"1.0/1.2","ts":5}') === true && J.aceiteVigente({ versao: '0.9/1.0', ts: 1 }) === false && J.aceiteVigente(null) === false && J.aceiteVigente('lixo') === false && J.aceiteVigente({ versao: '1.0/1.2' }) === false;
   const auth = fs.readFileSync(path.join(RAIZ, 'auth.js'), 'utf8');
   r.portaoDeLoginPedeAceite = /aceiteVigente\(aceiteLocal, row && row\.data && row\.data\['catedra:aceite'\]\)/.test(auth) && /showAceite\(function \(\) \{ try \{ _si\('catedra:aceite'/.test(auth) && /data-doc="termos\.html"/.test(auth) && /data-doc="privacidade\.html"/.test(auth);
   r.exclusaoPelaRpc = /sb\.rpc\('excluir_minha_conta'\)/.test(auth) && /excluirConta: excluirConta/.test(auth) && fs.existsSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-excluir-minha-conta.sql'));
+  // A Política acompanha o código (versão 1.2, 01/10/2026): o que o app manda para `feedback` e o que a página pública
+  // grava em `lista_espera` estão nas §2 e §3, e a §9 diz o que cada caminho de exclusão apaga. Se o código mudar (a
+  // remoção pela administração passar a apagar o relato, a lista de espera ganhar vínculo com a conta), o caso cai e
+  // obriga a reescrever o texto e a subir a versão.
+  {
+    const txt = priv.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+    const sec = (de, ate) => { const i = txt.indexOf(de), j = txt.indexOf(ate, i + 1); return i < 0 || j < 0 ? '' : txt.slice(i, j); };
+    const s2 = sec('2. Quais dados tratamos', '3. Finalidades'), s3 = sec('3. Finalidades', '4. Dados sensíveis'), s54 = sec('5.4. Administração', '6. Com quem');
+    const s92 = sec('9.2. Exclusão pela própria pessoa', '9.3. '), s93 = sec('9.3. Exclusão pela administração', '9.4. '), s94 = sec('9.4. O que permanece', '9.5. '), s95 = sec('9.5. Lista de espera', '10. Segurança');
+    const host = fs.readFileSync(path.join(RAIZ, 'Catedra.dc.html'), 'utf8'), sobre = fs.readFileSync(path.join(RAIZ, 'sobre.html'), 'utf8');
+    const adm = fs.readFileSync(path.join(RAIZ, 'supabase-admin.sql'), 'utf8'), excl = fs.readFileSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-excluir-minha-conta.sql'), 'utf8');
+    const iAdm = adm.indexOf('function public.admin_apagar_usuario('), admApagar = iAdm < 0 ? '' : adm.slice(iAdm, adm.indexOf('end $$;', iAdm));
+    // o app manda a mensagem e o contexto técnico; o servidor junta o e-mail da conta
+    const appMandaFeedback = /sb\.rpc\('enviar_feedback', \{p_mensagem:String\(msg\), p_contexto:contexto\}\)/.test(host)
+      && /const contexto=\{ build:[^}]*tela:[^}]*sync:[^}]*navegador:[^}]*janela:/.test(host) && /insert into public\.feedback\(user_id, email, mensagem, contexto\)/.test(adm);
+    r.politicaFeedbackNaColetaENaTabela = appMandaFeedback && /Relatos enviados pelo app/.test(s2) && /e-mail da conta/.test(s2)
+      && ['versão do app', 'tela aberta', 'estado da sincronização', 'navegador', 'tamanho da janela'].every(x => s2.includes(x))
+      && /Receber, responder e resolver relatos de problema e sugestões/.test(s3) && /Legítimo interesse \(inciso IX; art\. 10, II\)/.test(s3) && /\d+ meses depois da remoção/.test(s3)
+      && /lê os relatos enviados pelo app e a lista de espera/.test(s54);
+    // a página pública grava e-mail, área e data, sem conta; a administração lê pela RPC admin_lista_espera
+    const sobreGrava = /fetch\(CFG\.url \+ '\/rest\/v1\/lista_espera'/.test(sobre) && /body: JSON\.stringify\(\{ email: email, area: [^}]*origem: 'sobre' \}\)/.test(sobre) && /Guardamos só o e-mail, a área e a data/.test(sobre);
+    r.politicaListaDeEspera = sobreGrava && /Lista de espera \(página pública, sem conta\)/.test(s2) && /Esse cadastro não tem vínculo com a conta/.test(s2)
+      && /lista de espera da página pública/.test(s3) && /Consentimento \(inciso I\), dado ao enviar o formulário/.test(s3) && /não é apagada com a exclusão da conta/.test(s3)
+      && !/lista_espera/.test(excl) && !/lista_espera/.test(admApagar) && /não é apagado quando a conta é excluída, nem por você nem pela administração/.test(s95) && /canal do encarregado/.test(s95);
+    // exclusão pela pessoa: a RPC apaga relatos e contagem de IA; a Política diz isso na 9.2
+    r.politicaExclusaoPelaPessoaApagaRelatos = /delete from public\.feedback where user_id = uid/.test(excl) && /delete from public\.ai_uso where user_id = uid/.test(excl)
+      && /inclusive os relatos que você enviou pelo app e a contagem das suas chamadas de IA/.test(s92);
+    // remoção pela administração: nada apaga feedback nem ai_uso; a FK só solta o user_id (feedback guarda o e-mail na
+    // própria linha). A Política diz isso na 9.3 e na 9.4, com a contagem de IA desvinculada da conta.
+    r.politicaRemocaoAdmMantemRelatos = admApagar.length > 0 && !/public\.feedback/.test(admApagar) && !/public\.ai_uso where user_id = p_uid;/.test(admApagar) && !/delete from public\.ai_uso/.test(admApagar)
+      && /create table if not exists public\.feedback \(\s*id[^;]*user_id\s+uuid references auth\.users\(id\) on delete set null,\s*email\s+text/.test(adm)
+      && /create table if not exists public\.ai_uso \(\s*id[^;]*user_id\s+uuid references auth\.users\(id\) on delete set null/.test(adm)
+      && /mantém os relatos que você enviou pelo app/.test(s93) && /relatos enviados pelo app, com o e-mail e a mensagem, por até \d+ meses depois da remoção/.test(s94)
+      && /contagem de chamadas de IA, desvinculada da conta \(sem e-mail nem identificador\)/.test(s94);
+  }
   const build = fs.readFileSync(path.join(RAIZ, 'scripts/build.mjs'), 'utf8'), buildMac = fs.readFileSync(path.join(RAIZ, 'scripts/build-macos.mjs'), 'utf8');
   r.builds = [build, buildMac].every(x => /build-juridico\.mjs/.test(x) && /'termos\.html', 'privacidade\.html'/.test(x)) && /'\.\/juridico\.js'/.test(build);
   for (const [k, v] of Object.entries(r)) ok(v, 'JURÍDICO/P14 build ' + k);
@@ -3470,10 +3505,10 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     window.__catedraGoView('ajustes'); await w(600);
     const abaDados = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => b.dataset.s === 'dados'); if (abaDados) { abaDados.click(); await w(600); }
     const card = document.querySelector('main [data-card="juridico"]');
-    r.cardEmAjustes = !!card && /Termos de uso/.test(card.textContent) && /Política de privacidade/.test(card.textContent) && /versão 1\.0\/1\.1 · 02\/09\/2026/.test(card.textContent);
+    r.cardEmAjustes = !!card && /Termos de uso/.test(card.textContent) && /Política de privacidade/.test(card.textContent) && /versão 1\.0\/1\.2 · 02\/09\/2026/.test(card.textContent);
     r.aceiteAindaNao = /ainda não foi aceita nesta conta/.test(card.querySelector('[data-aceite-txt]').textContent);
-    app.setState({ aceite: { versao: '1.0/1.1', ts: Date.now() } }); await w(300);
-    r.aceiteMostrado = /Você aceitou a versão 1\.0\/1\.1 em/.test(document.querySelector('main [data-aceite-txt]').textContent);
+    app.setState({ aceite: { versao: '1.0/1.2', ts: Date.now() } }); await w(300);
+    r.aceiteMostrado = /Você aceitou a versão 1\.0\/1\.2 em/.test(document.querySelector('main [data-aceite-txt]').textContent);
     r.iaAutorizadaNoTexto = /Autorizado em/.test(document.querySelector('main [data-ia-txt]').textContent);
     [...document.querySelectorAll('main [data-card="juridico"] button')].find(b => /Revogar o consentimento/.test(b.textContent)).click(); await w(900);
     r.revogarApaga = guardado() === null && /Nenhum recurso de IA é chamado/.test(document.querySelector('main [data-ia-txt]').textContent);
