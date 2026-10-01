@@ -21,7 +21,7 @@ enum JurisHostBridge {
 ///   HOJE       — o que fazer agora (Início, Revisar hoje, Novidades)
 ///   TREINAR    — o que gera nota (Simulado, Prova oral, Oral das bancas, Plano, Mapas)
 ///   ACERVO     — por força vinculante (Todos, Ramos, Informativos, STF/STJ/TSE,
-///                Tribunais, Contas, DOD)
+///                Tribunais, Contas, Precedentes)
 ///   MEU ESTUDO — biblioteca pessoal (Favoritos, Anotações, Checklist, Coleções, Índice)
 struct JurisSidebar: View {
     @Environment(LibraryStore.self) private var store
@@ -48,24 +48,19 @@ struct JurisSidebar: View {
         }
     }
 
-    private func ativa(_ s: Selecao) -> Bool { store.leituraID == nil && selecaoAtual == s }
+    private func ativa(_ s: Selecao) -> Bool {
+        guard store.leituraID == nil else { return false }
+        switch s {
+        case .destino(let d): return JurisDestinos.pai(selecaoAtual) == d
+        case .meuMaterial: return JurisDestinos.ehMeuMaterial(selecaoAtual)
+        default: return selecaoAtual == s
+        }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Logo — mesmo bloco do CátedraLEGIS
-            HStack(spacing: 10) {
-                RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous)
-                    .fill(ThemeState.t.accent).frame(width: 34, height: 34)
-                    .overlay(Image(systemName: "building.columns.fill")
-                        .font(Typo.ui(15, .bold)).foregroundStyle(.white))
-                VStack(alignment: .leading, spacing: 0) {
-                    Text("CátedraJURIS").font(Typo.ui(14.5, .bold)).foregroundStyle(.white)
-                    Text("Vade Mecum de jurisprudência").font(Typo.ui(10))
-                        .foregroundStyle(ThemeState.t.sidebarText.opacity(0.85))
-                        .lineLimit(1).minimumScaleFactor(0.8)
-                }
-            }
-            .padding(.horizontal, 14).padding(.top, 16).padding(.bottom, 10)
+            SeloLateral(nome: "CátedraJURIS", subtitulo: "Jurisprudência")
+            .padding(.horizontal, 14).padding(.top, 18).padding(.bottom, 14)
 
             // Busca em destaque logo abaixo do logo — igual ao CátedraLEGIS.
             buscaRow
@@ -73,33 +68,28 @@ struct JurisSidebar: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 2) {
-                    // Os grupos e as linhas vêm de JurisMenu (JurisCompacto.swift): a MESMA
-                    // definição desenha esta sidebar no iPad e a lista "Seções" no iPhone.
-                    ForEach(JurisMenu.grupos) { g in
-                        secao(g.titulo)
-                        ForEach(g.itens) { it in
-                            row(it.selecao, it.rotulo, it.simbolo, chevron: it.chevron,
-                                ponto: it.ponto(store), badge: it.badge(store))
+                    // Entrega 4: os MESMOS 4 destinos do LEGIS; o resto está na vitrine de cada destino
+                    // (JurisDestinoHub). O JurisMenu segue servindo a lista "Seções" do iPhone.
+                    linha(.inicio, .hoje, contagem: store.srsDueCount + store.checklistPendingCount)
+                    linha(.destino(.acervo), .acervo, contagem: store.entries.count)
+                    // Vitrine na lateral: com o Acervo aberto, os tribunais aparecem logo abaixo,
+                    // cada um com o ponto na sua cor — um toque abre a central dele.
+                    if ativa(.destino(.acervo)) {
+                        ForEach(JurisSidebar.tribunais, id: \.0) { t in
+                            SubLinhaLateral(titulo: t.0, cor: CorTribunal.identidade(t.1)) { store.ir(.central(t.2)) }
                         }
                     }
-                    ForEach(store.colecoes) { c in
-                        row(.colecao(c.id), c.nome, "folder")
-                    }
-                    Button { nomeColecao = ""; novaColecao = true } label: {
-                        HStack(spacing: 11) {
-                            Image(systemName: "plus").font(Typo.ui(12, .semibold)).frame(width: 20)
-                            Text("Nova coleção").font(Typo.ui(13, .medium))
-                            Spacer(minLength: 0)
-                        }
-                        .padding(.horizontal, 11).padding(.vertical, 6)
-                        .frame(minHeight: 44)   // alvo de 44 pt (regra da casa)
-                        .foregroundStyle(ThemeState.t.sidebarText.opacity(0.8))
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
+                    linha(.destino(.treinar), .treinar)
+                    linha(.novidades, .novidades, contagem: store.novidadesNaoVistas)
+                    secao("MEU MATERIAL")
+                    LinhaLateral(titulo: "Anotações e apoio", simbolo: "folder", ativa: ativa(.meuMaterial)) { store.ir(.meuMaterial) }
                 }
-                .padding(.horizontal, 8).padding(.bottom, 14)
+                .padding(.horizontal, 10).padding(.bottom, 14)
             }
+
+            // Meta do dia (a mesma de Ajustes → Meta diária), no rodapé da lateral.
+            MetaLateral(feito: store.lidosHoje, meta: max(store.metaDiaria, 1), unidade: "verbetes")
+                .padding(.horizontal, 12).padding(.bottom, 8)
 
             // Rodapé: progresso da atualização automática (quando rodando)
             if case .executando(let msg) = updater.fase {
@@ -157,9 +147,9 @@ struct JurisSidebar: View {
             }
             .padding(.horizontal, 14).padding(.vertical, 11)
         }
-        .frame(width: 210)
+        .frame(width: 236)
         .frame(maxHeight: .infinity)
-        .background(ThemeState.t.sidebarBg)
+        .fundoLateral()
         .alert("Nova coleção", isPresented: $novaColecao) {
             TextField("Nome (ex.: Meu edital)", text: $nomeColecao)
             Button("Criar") {
@@ -209,6 +199,15 @@ struct JurisSidebar: View {
     private var ehEscopoTodos: Bool {
         if case .todos = store.selecao { return store.leituraID == nil }
         return false
+    }
+
+    static let tribunais: [(String, String, JurisCentral)] = [
+        ("STF", "STF", .stf), ("STJ", "STJ", .stj), ("TSE", "TSE", .tse),
+        ("Tribunais estaduais", "TJRO", .especificos), ("Cortes de contas", "TCU", .contas),
+    ]
+
+    private func linha(_ sel: Selecao, _ d: Destino, contagem: Int? = nil) -> some View {
+        LinhaLateral(titulo: d.titulo, simbolo: d.simbolo, ativa: ativa(sel), contagem: contagem) { store.ir(sel) }
     }
 
     private func secao(_ t: String) -> some View {

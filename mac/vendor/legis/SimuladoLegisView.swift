@@ -230,8 +230,8 @@ struct SimuladoLegisView: View {
     @State private var confirmarEntrega = false
     @State private var confirmarAbandono = false
     @State private var mostrarDiscursivas = false
-    @AppStorage("readerFontSize") private var fontSize = 16.0
-    @AppStorage("readerFontFamily") private var fontFamily = "Sistema (Serifa)"
+    @AppStorage("readerFontSize") private var fontSize = 18.0
+    @AppStorage("readerFontFamily") private var fontFamily = "Spectral"
     private let relogio = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     private var leis: [LawEntry] { store.laws.filter { $0.isRegularLaw && (categoria == nil || $0.category == categoria!) } }
@@ -260,7 +260,7 @@ struct SimuladoLegisView: View {
                 Text(hms(restante)).font(Typo.num(24, .heavy))
                     .foregroundStyle(restante < 300 ? AppTheme.danger : AppTheme.ink)
                 Text("restante · \(sessao.respondidas)/\(itens.count) respondidas")
-                    .font(.system(size: 11)).foregroundStyle(AppTheme.secondaryInk)
+                    .font(DS.interface(11)).foregroundStyle(AppTheme.secondaryInk)
             }
         )
     }
@@ -300,7 +300,7 @@ struct SimuladoLegisView: View {
     private var gerandoView: some View {
         HStack(spacing: 10) {
             ProgressView().controlSize(.small)
-            Text("Montando a prova a partir do texto oficial…").font(.system(size: 13)).foregroundStyle(AppTheme.secondaryInk)
+            Text("Montando a prova a partir do texto oficial…").font(DS.interface(13)).foregroundStyle(AppTheme.secondaryInk)
         }
         .padding(.vertical, 30)
     }
@@ -323,14 +323,14 @@ struct SimuladoLegisView: View {
             }
             if !escolhidas.isEmpty {
                 Text("Selecionadas: " + store.laws.filter { escolhidas.contains($0.id) }.map { RemissiveIndex.shortName($0) }.joined(separator: " · "))
-                    .font(.system(size: 12.5, weight: .semibold)).foregroundStyle(AppTheme.ink)
+                    .font(DS.interface(12.5, .semibold)).foregroundStyle(AppTheme.ink)
             }
             LegisSectionHeader(title: "Prova", icon: "slider.horizontal.3")
             LegisFlow(espacamento: 18) {
                 Stepper("Itens: \(n)", value: $n, in: 10...120, step: 10)
                 Stepper("Discursivas: \(m)", value: $m, in: 0...10)
                 Stepper("Tempo: \(minutos) min", value: $minutos, in: 10...300, step: 10)
-            }.font(.system(size: 13))
+            }.font(DS.interface(13))
             Button {
                 let sel = store.laws.filter { escolhidas.contains($0.id) }
                 mostrarDiscursivas = false
@@ -342,8 +342,8 @@ struct SimuladoLegisView: View {
                 LegisSectionHeader(title: "Provas anteriores", icon: "clock.arrow.circlepath", count: hist.count).padding(.top, 10)
                 ForEach(hist.prefix(8)) { h in
                     HStack {
-                        Text(h.data.formatted(date: .abbreviated, time: .shortened)).font(.system(size: 12)).foregroundStyle(AppTheme.secondaryInk)
-                        Text(h.normas.joined(separator: ", ")).font(.system(size: 12.5, weight: .semibold)).foregroundStyle(AppTheme.ink).lineLimit(1)
+                        Text(h.data.formatted(date: .abbreviated, time: .shortened)).font(DS.interface(12)).foregroundStyle(AppTheme.secondaryInk)
+                        Text(h.normas.joined(separator: ", ")).font(DS.interface(12.5, .semibold)).foregroundStyle(AppTheme.ink).lineLimit(1)
                         Spacer()
                         Text("\(h.acertos)/\(h.n) · \(hms(h.segundos))").font(Typo.num(12)).foregroundStyle(AppTheme.ink)
                     }
@@ -376,7 +376,7 @@ struct SimuladoLegisView: View {
                 let it = itens[sessao.atual]
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
-                        Text(String(format: "Questão %02d", sessao.atual + 1)).font(.system(size: 13, weight: .heavy)).foregroundStyle(AppTheme.secondaryInk)
+                        Text(String(format: "Questão %02d", sessao.atual + 1)).font(DS.interface(13, .heavy)).foregroundStyle(AppTheme.secondaryInk)
                         LegisChip("\(it.lei) · \(it.artigo)", tint: AppTheme.secondaryInk, variant: .soft, size: 11.5)
                         Spacer()
                         Button {
@@ -386,13 +386,13 @@ struct SimuladoLegisView: View {
                                   systemImage: sessao.marcadas.contains(it.id) ? "flag.fill" : "flag")
                         }.buttonStyle(.legisGhost(AppTheme.warn))
                     }
-                    Text("Julgue o item a seguir, conforme a literalidade da norma:").font(.system(size: 12.5)).foregroundStyle(AppTheme.secondaryInk)
+                    Text("Julgue o item a seguir, conforme a literalidade da norma:").font(DS.interface(12.5)).foregroundStyle(AppTheme.secondaryInk)
                     Text(it.enunciado).font(leitura(fontSize)).lineSpacing(4).foregroundStyle(AppTheme.ink).textSelection(.enabled)
                     HStack(spacing: 10) {
                         ForEach([true, false], id: \.self) { v in
                             let sel = sessao.respostas[it.id] == v
                             Button(v ? "CERTO" : "ERRADO") { sessao.respostas[it.id] = v }
-                                .font(.system(size: 13, weight: .heavy))
+                                .font(DS.interface(13, .heavy))
                                 .buttonStyle(.bordered).tint(sel ? ThemeState.t.accent : .gray)
                                 .controlSize(.large)
                         }
@@ -443,7 +443,7 @@ struct SimuladoLegisView: View {
                 LegisSectionHeader(title: "Por norma", icon: "books.vertical")
                 ForEach(porLei, id: \.0) { k, a, t in
                     HStack {
-                        Text(k).font(.system(size: 13, weight: .semibold)).foregroundStyle(AppTheme.ink).frame(width: 160, alignment: .leading)
+                        Text(k).font(DS.interface(13, .semibold)).foregroundStyle(AppTheme.ink).frame(width: 160, alignment: .leading)
                         GeometryReader { g in ZStack(alignment: .leading) { Capsule().fill(AppTheme.hairline); Capsule().fill(ThemeState.t.accent).frame(width: g.size.width * CGFloat(a) / CGFloat(max(1, t))) } }.frame(height: 8)
                         Text("\(a)/\(t)").font(Typo.num(12)).foregroundStyle(AppTheme.ink).frame(width: 60, alignment: .trailing)
                     }
@@ -456,7 +456,7 @@ struct SimuladoLegisView: View {
                 let ok = r == it.certo
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        Text(String(format: "Questão %02d", i + 1)).font(.system(size: 12, weight: .heavy)).foregroundStyle(AppTheme.secondaryInk)
+                        Text(String(format: "Questão %02d", i + 1)).font(DS.interface(12, .heavy)).foregroundStyle(AppTheme.secondaryInk)
                         LegisChip("\(it.lei) · \(it.artigo)", tint: AppTheme.secondaryInk, variant: .soft)
                         Spacer()
                         LegisChip(r == nil ? "EM BRANCO" : (ok ? "ACERTOU" : "ERROU"),
@@ -465,15 +465,15 @@ struct SimuladoLegisView: View {
                     }
                     Text(it.enunciado).font(leitura(fontSize - 2)).lineSpacing(3).foregroundStyle(AppTheme.ink)
                     HStack(spacing: 12) {
-                        Text("Gabarito: \(it.certo ? "CERTO" : "ERRADO")").font(.system(size: 12.5, weight: .heavy)).foregroundStyle(it.certo ? AppTheme.ok : AppTheme.danger)
-                        if let r { Text("Você: \(r ? "Certo" : "Errado")").font(.system(size: 12)).foregroundStyle(AppTheme.secondaryInk) }
+                        Text("Gabarito: \(it.certo ? "CERTO" : "ERRADO")").font(DS.interface(12.5, .heavy)).foregroundStyle(it.certo ? AppTheme.ok : AppTheme.danger)
+                        if let r { Text("Você: \(r ? "Certo" : "Errado")").font(DS.interface(12)).foregroundStyle(AppTheme.secondaryInk) }
                     }
                     if !it.certo, let de = it.trocaDe, let para = it.trocaPara {
-                        (Text("O item trocou ").font(.system(size: 12.5)) + Text("“\(de)”").font(.system(size: 12.5, weight: .bold)).foregroundStyle(AppTheme.ok)
-                         + Text(" por ").font(.system(size: 12.5)) + Text("“\(para)”").font(.system(size: 12.5, weight: .bold)).foregroundStyle(AppTheme.danger) + Text(".").font(.system(size: 12.5)))
+                        (Text("O item trocou ").font(DS.interface(12.5)) + Text("“\(de)”").font(DS.interface(12.5, .bold)).foregroundStyle(AppTheme.ok)
+                         + Text(" por ").font(DS.interface(12.5)) + Text("“\(para)”").font(DS.interface(12.5, .bold)).foregroundStyle(AppTheme.danger) + Text(".").font(DS.interface(12.5)))
                     }
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("Texto oficial — \(it.lei), \(it.artigo)").font(.system(size: 11, weight: .heavy)).foregroundStyle(AppTheme.secondaryInk)
+                        Text("Texto oficial — \(it.lei), \(it.artigo)").font(DS.interface(11, .heavy)).foregroundStyle(AppTheme.secondaryInk)
                         Text(it.original).font(leitura(fontSize - 3.5)).lineSpacing(2).foregroundStyle(AppTheme.ink).textSelection(.enabled)
                     }
                     .padding(10).background(RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous).fill(AppTheme.hairline.opacity(0.18)))
@@ -504,19 +504,19 @@ struct SimuladoLegisView: View {
         ForEach(Array(sessao.discursivas.enumerated()), id: \.element.id) { i, d in
             VStack(alignment: .leading, spacing: 8) {
                 Text(String(format: "Discursiva %02d — ", i + 1) + d.tema).font(AppTheme.displayFont(14, .heavy)).foregroundStyle(AppTheme.ink)
-                Text("\(d.orgao) · \(d.ano.map(String.init) ?? "") · \(d.banca)").font(.system(size: 11.5)).foregroundStyle(AppTheme.secondaryInk)
+                Text("\(d.orgao) · \(d.ano.map(String.init) ?? "") · \(d.banca)").font(DS.interface(11.5)).foregroundStyle(AppTheme.secondaryInk)
                 Text(d.enunciado).font(leitura(fontSize - 2.5)).lineSpacing(2).foregroundStyle(AppTheme.ink).textSelection(.enabled)
                 if gabarito {
-                    Text("Padrão de resposta (espelho oficial)").font(.system(size: 12, weight: .heavy)).foregroundStyle(AppTheme.ink).padding(.top, 4)
-                    if d.espelho.isEmpty { Text("A banca não publicou o espelho desta questão.").font(.system(size: 12)).foregroundStyle(AppTheme.secondaryInk) }
+                    Text("Padrão de resposta (espelho oficial)").font(DS.interface(12, .heavy)).foregroundStyle(AppTheme.ink).padding(.top, 4)
+                    if d.espelho.isEmpty { Text("A banca não publicou o espelho desta questão.").font(DS.interface(12)).foregroundStyle(AppTheme.secondaryInk) }
                     ForEach(Array(d.espelho.enumerated()), id: \.offset) { j, q in
                         HStack(alignment: .top, spacing: 6) {
-                            Text("\(j + 1).").font(.system(size: 12, weight: .bold)).foregroundStyle(AppTheme.ink)
-                            Text(q.quesito + (q.pontos.map { "  (\($0) pt)" } ?? "")).font(.system(size: 12.5)).foregroundStyle(AppTheme.secondaryInk)
+                            Text("\(j + 1).").font(DS.interface(12, .bold)).foregroundStyle(AppTheme.ink)
+                            Text(q.quesito + (q.pontos.map { "  (\($0) pt)" } ?? "")).font(DS.interface(12.5)).foregroundStyle(AppTheme.secondaryInk)
                         }
                     }
                 } else {
-                    Text("Responda no papel ou na Redação; o espelho aparece no relatório.").font(.system(size: 12)).foregroundStyle(AppTheme.secondaryInk)
+                    Text("Responda no papel ou na Redação; o espelho aparece no relatório.").font(DS.interface(12)).foregroundStyle(AppTheme.secondaryInk)
                 }
             }
             .padding(14).legisCard()
@@ -525,7 +525,7 @@ struct SimuladoLegisView: View {
 
     private func kpi(_ t: String, _ v: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(t.uppercased()).font(.system(size: 10, weight: .bold)).tracking(0.8).foregroundStyle(AppTheme.secondaryInk)
+            Text(t.uppercased()).font(DS.interface(10, .bold)).tracking(0.8).foregroundStyle(AppTheme.secondaryInk)
             Text(v).font(Typo.num(22, .heavy)).foregroundStyle(AppTheme.ink)
         }
     }

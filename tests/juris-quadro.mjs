@@ -126,19 +126,30 @@ function acervoInteiro() {
   return _acervo;
 }
 
-/* A duplicata REAL do acervo: o mesmo tema em dois registros (…-1112 e …-1112-2), com o mesmo
-   assunto, o mesmo ramo e o mesmo tribunal. Sem a trava, o registro gêmeo divide TODOS os
-   termos com o original e seria o primeiro candidato da lista — então a ausência dele prova a
-   trava, não o acaso do ranking. */
+/* A duplicata REAL do acervo: o mesmo tema em dois registros (…-1190 e …-1190-2), com a mesma
+   chave citável (tribunal, fonte e número do tema), o mesmo ramo e o assunto quase todo em comum.
+   Sem a trava, o registro gêmeo divide os termos com o original e seria o primeiro candidato da
+   lista — então a ausência dele prova a trava, não o acaso do ranking.
+   Desde a troca das Teses de RG e Repetitivos pela fonte oficial (lotes L2/L3, 25/09/2026) o
+   original traz o título OFICIAL e a cópia (que aguarda a fusão do L4) ainda o antigo: o texto do
+   assunto deixou de ser idêntico. Por isso o par é escolhido pela chave citável e pela maior fração
+   de palavras em comum (>= 80% e >= 8 palavras), o que mantém a cópia no topo sem a trava. */
 function duplicataReal() {
   const X = acervoInteiro(), por = {};
   for (const x of X) por[x[0]] = x;
+  const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9 ]+/g, ' ');
+  const pal = (s) => new Set(norm(s).split(/\s+/).filter(w => w.length > 3));
+  let melhor = null;
   for (const x of X) {
     if (!/-2$/.test(x[0])) continue;
     const o = por[x[0].slice(0, -2)];
-    if (o && o[6] && o[6] === x[6] && o[5] === x[5] && o[1] === x[1]) return { original: o[0], copia: x[0] };
+    if (!o || o[3] == null || o[3] !== x[3] || o[1] !== x[1] || o[2] !== x[2] || o[5] !== x[5]) continue;
+    const a = pal(o[4] + ' ' + o[6]), b = pal(x[4] + ' ' + x[6]);
+    let c = 0; for (const w of a) if (b.has(w)) c++;
+    const f = c / Math.max(1, Math.min(a.size, b.size));
+    if (c >= 8 && f >= 0.8 && (!melhor || f > melhor.f || (f === melhor.f && c > melhor.c))) melhor = { original: o[0], copia: x[0], f, c };
   }
-  return null;
+  return melhor && { original: melhor.original, copia: melhor.copia };
 }
 
 function republicacoes(quantos) {
@@ -336,7 +347,9 @@ async function abrirPagina(ctx, base, sem) {
    com o quadro do verbete anterior, que ainda está na tela. */
 async function abrirVerbete(page, i) {
   await page.evaluate(() => { window.__ctHostAnterior = document.getElementById('jrEstudo') || null; });
-  await page.evaluate((k) => window.openVerbete(k), i);
+  // i é a posição no ÍNDICE (ordem do arquivo); a lista exibida segue a ordem de autoridade,
+  // então abre-se pelo id.
+  await page.evaluate((k) => window.jurisAbrirPorId(window.__JURIS_IDX__[k][0]), i);
   // 12 s, e não os 1600 ms fixos do bloco JURIS da suíte: openVerbete cai no caminho
   // assíncrono quando o texto do verbete ainda não está em memória (pinta .rdr-spin e busca
   // a fatia), e sob carga o tempo fixo vira flake.
@@ -1083,12 +1096,17 @@ async function comIA(ctx, base, ok, R) {
   const familia = tt[0] || '', familia2 = tt[1] || '';
   const infoStf = primeiro(INFORMATIVO_STF)[0] || '';
   const par = duplicataReal();
+  // Desde o lote L4 das teses oficiais (26/09/2026) o acervo tem UM verbete por tema: a duplicata real
+  // (…-N e …-N-2) foi fundida e não existe mais. Sem ela, os estados (12) de falha e de recusa da IA
+  // rodam no verbete canônico de uma dessas fusões, que tem vizinhos de verdade.
+  const CANONICOS_L4 = ['repgeral-repercussao_geral-STF-1234', 'repgeral-repetitivo-STJ-1093', 'repgeral-repetitivo-STJ-905'];
+  const alvoEstados = par ? par.original : (primeiro(CANONICOS_L4)[0] || '');
   const semVizinho = primeiro(SEM_VIZINHO);
   const repubs = repub.filter(p => existe.has(p.a) && existe.has(p.b));
 
   // Um roteiro v1 (sem quadro) para cada um: é o que faz o botão "Montar o quadro" aparecer.
   // A frase carrega o id — é por ela que se sabe que o roteiro na tela é o do verbete certo.
-  const alvos = [familia, familia2, infoStf, par && par.original, ...semVizinho, ...repubs.map(p => p.a)].filter(Boolean);
+  const alvos = [familia, familia2, infoStf, alvoEstados, ...semVizinho, ...repubs.map(p => p.a)].filter(Boolean);
   const sem = {};
   for (const id of alvos) sem[id] = { ts: 1, frase: 'SEMENTE ' + id, chave: ['um ponto', 'outro ponto'], jurisprudencia: ['STF · Tema 1'] };
   await page.goto(base + '/__semente');
@@ -1110,7 +1128,7 @@ async function comIA(ctx, base, ok, R) {
   const abrir = async (id) => {
     const i = await fr.evaluate((k) => (window.__JURIS_IDX__ || []).findIndex(x => x[0] === k), id);
     if (i < 0) return false;
-    await fr.evaluate((k) => window.openVerbete(k), i);
+    await fr.evaluate((k) => window.jurisAbrirPorId(k), id);
     return esperar(fr, (k) => { const p = document.querySelector('#jrEstudo .estFrase p');
       return !!p && p.textContent === 'SEMENTE ' + k; }, id, 12000);
   };
@@ -1225,13 +1243,14 @@ async function comIA(ctx, base, ok, R) {
 
   /* ---------- (10) a duplicata REAL fica fora + (12) estados (c) e (b) ---------- */
   const vistos = {};
-  ok(!!par, R + '(10) o acervo tem o par de duplicata real para o caso (' + (par ? par.original + ' = ' + par.copia : 'nenhum') + ')');
-  if (par && await abrir(par.original)) {
+  if (par) ok(true, R + '(10) o acervo tem o par de duplicata real para o caso (' + par.original + ' = ' + par.copia + ')');
+  else ok(!!alvoEstados, R + '(10) o acervo não tem mais duplicata real (lote L4: um verbete por tema) e os estados (12) rodam no canônico ' + (alvoEstados || '— nenhum de ' + CANONICOS_L4.join(', ')));
+  if (alvoEstados && await abrir(alvoEstados)) {
     const p = await pedirQuadro();
     const { cands } = lerPrompt(p ? p.prompt : '');
     ok(!!p && cands.length >= 1,
-      R + '(10) ' + par.original + ' tem candidatos — a busca rodou (' + cands.length + ')');
-    ok(!!p && cands.every(c => c.id !== par.copia),
+      R + '(10) ' + alvoEstados + ' tem candidatos — a busca rodou (' + cands.length + ')');
+    if (par) ok(!!p && cands.every(c => c.id !== par.copia),
       R + '(10) a duplicata REAL (' + par.copia + ', o mesmo tema em outro registro) NÃO é candidata do original');
     if (p) {
       // (c) a IA falhou
@@ -1242,12 +1261,12 @@ async function comIA(ctx, base, ok, R) {
       const p2 = await pedirQuadro();
       ok(!!p2, R + '(12) "Tentar de novo" pede o quadro outra vez');
       if (p2) {
-        ok(lerPrompt(p2.prompt).cands.every(c => c.id !== par.copia),
+        if (par) ok(lerPrompt(p2.prompt).cands.every(c => c.id !== par.copia),
           R + '(10) no segundo pedido a duplicata real continua fora');
         await responder(p2.i, JSON.stringify({ colunas: [] }));
         ok(await esperarEstado(['recusado']), R + '(12) a recusa da IA chega à tela como estado próprio ("recusado")');
         vistos.recusado = await desfecho();
-        ok(vistos.recusado.mais.length >= 1 && vistos.recusado.mais.indexOf(par.copia) < 0,
+        ok(vistos.recusado.mais.length >= 1 && (!par || vistos.recusado.mais.indexOf(par.copia) < 0),
           R + '(10) e "Do mesmo assunto" mostra os vizinhos reais sem a duplicata (' + vistos.recusado.mais.length + ' itens)');
       }
     }

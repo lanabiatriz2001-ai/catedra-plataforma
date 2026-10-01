@@ -7,6 +7,7 @@ import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import { chromium, webkit } from 'playwright-core';
+import { instalarRedeLocal } from './rede-externa.mjs';
 
 // '.css' faltava aqui, e o custo foi alto: o servidor entregava satellite-base.css como
 // application/octet-stream, o Chrome recusava a folha em modo padrão (cssRules.length = 0)
@@ -46,7 +47,7 @@ const CHROMES = [process.env.CT_CHROME,
  *               chega do aparelho onde a Prova oral abria sem lista de leis. */
 export async function lancarNavegador(motor = process.env.CT_BROWSER || 'chromium') {
   if (motor === 'webkit') {
-    try { return { browser: await webkit.launch(), motor }; }
+    try { return { browser: semRede(await webkit.launch()), motor }; }
     catch (e) {
       // A mensagem do Playwright vem em várias linhas (a caixa com as bibliotecas que faltam,
       // ou o executável ausente) — a primeira, sozinha, é só "browserType.launch:".
@@ -62,5 +63,22 @@ export async function lancarNavegador(motor = process.env.CT_BROWSER || 'chromiu
   }
   const exe = CHROMES.find(p => { try { return fs.existsSync(p); } catch (_) { return false; } });
   if (!exe) { console.error('Nenhum Chrome/Chromium encontrado. Defina CT_CHROME=/caminho/do/chrome'); process.exit(2); }
-  return { browser: await chromium.launch({ executablePath: exe }), motor };
+  return { browser: semRede(await chromium.launch({ executablePath: exe })), motor };
+}
+
+/* A SUÍTE NÃO USA REDE. Todo contexto que um teste abre (browser.newContext, e o contexto
+   implícito de browser.newPage) nasce com a rota de tests/rede-externa.mjs: o React/ReactDOM que
+   o support.js pede ao unpkg quando o Catedra.dc.html cru abre (origens http e file) é servido
+   dos bytes de vendor/ — o SRI do support.js confere —, e todo o resto que sai para fora é
+   abortado e contado (o runner imprime o resumo no fim). Antes, cada carga do host cru baixava o
+   React do unpkg: sem internet, a suíte inteira caía. CT_REDE=livre deixa o resto passar (só
+   para depurar). Rota registrada pelo próprio teste depois desta tem precedência. */
+function semRede(browser) {
+  const comRota = new WeakSet();
+  const garantir = async (ctx) => { if (!comRota.has(ctx)) { comRota.add(ctx); await instalarRedeLocal(ctx); } return ctx; };
+  const novoContexto = browser.newContext.bind(browser);
+  browser.newContext = async (...a) => garantir(await novoContexto(...a));
+  const novaPagina = browser.newPage.bind(browser);
+  browser.newPage = async (...a) => { const p = await novaPagina(...a); await garantir(p.context()); return p; };
+  return browser;
 }

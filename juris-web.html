@@ -8,7 +8,7 @@
 body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--body,'Inter',system-ui,sans-serif);font-size:13px;-webkit-font-smoothing:antialiased}
 .wrap{max-width:1200px;margin:0 auto;padding:20px 26px 90px}
 .head{display:flex;align-items:center;gap:14px;margin-bottom:14px}
-.head .ic{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,var(--accent,#0f7a57),var(--accentD,#0b5e43));display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;flex:none;box-shadow:0 6px 16px -4px rgba(20,15,10,.30)}
+.head .ic{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,var(--accentSolid,var(--accent,#0f7a57)),var(--accentSolidD,var(--accentD,#0b5e43)));display:flex;align-items:center;justify-content:center;color:var(--onAccent,#fff);font-size:20px;flex:none;box-shadow:0 6px 16px -4px rgba(20,15,10,.30)}
 .head h1{font-family:var(--display,'Spectral',Georgia,serif);font-size:25px;font-weight:800;letter-spacing:-.02em;line-height:1}
 .head p{font-size:12px;color:var(--text2,#5c564a);margin-top:3px}
 .search{position:relative;margin-bottom:12px}
@@ -21,6 +21,8 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 .chip small{color:var(--text2,#5c564a);font-weight:600;font-variant-numeric:tabular-nums}
 .chip.on{color:#fff;border-color:transparent}
 .chip.on small{color:rgba(255,255,255,.8)}
+.chip.on.destaque{color:var(--onAccent,#fff)}
+.chip.on.destaque small{color:inherit}
 .gedic{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:7px;margin:6px 0 4px}
 .edic{aspect-ratio:1;border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);border-radius:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font:800 14px inherit;color:var(--text2,#5c564a);font-variant-numeric:tabular-nums}
 .edic i{font-style:normal;font-size:9px;font-weight:700;color:var(--text2,#5c564a)}
@@ -43,7 +45,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 .diaTag{font:800 10px inherit;letter-spacing:.04em;text-transform:uppercase;border-radius:6px;padding:3px 8px;background:color-mix(in srgb,var(--accent,#0f7a57) 15%,transparent);color:var(--accentD,#0b5e43)}
 .diaAcoes{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
 .diaAcoes button{border:1.5px solid var(--accent,#0f7a57);background:none;color:var(--accent,#0f7a57);border-radius:10px;padding:9px 15px;font:700 12.5px inherit;cursor:pointer}
-.diaAcoes button.prim{background:var(--accent,#0f7a57);color:#fff}
+.diaAcoes button.prim{background:var(--accentSolid,var(--accent,#0f7a57));color:var(--onAccent,#fff)}
 .oral{margin-top:16px;border-top:1px dashed var(--border,#e6e1d4);padding-top:14px}
 .oral h4{margin-bottom:8px}
 .oral .perg{font-size:15px;line-height:1.6;font-weight:600;margin-bottom:10px}
@@ -177,15 +179,19 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
    então o anel dele seria só ruído. */
 #estQdSlot:focus{outline:none}
 .avEd{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:color-mix(in srgb,var(--accent,#0f7a57) 9%,transparent);border:1.5px solid var(--accent,#0f7a57);border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:12.5px;font-weight:600;color:var(--text2,#5c564a)}
-.avEd button{border:0;background:var(--accent,#0f7a57);color:#fff;border-radius:8px;padding:6px 12px;font:700 12px inherit;cursor:pointer}
+.avEd button{border:0;background:var(--accentSolid,var(--accent,#0f7a57));color:var(--onAccent,#fff);border-radius:8px;padding:6px 12px;font:700 12px inherit;cursor:pointer}
 .gmais{border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);border-radius:10px;padding:7px 14px;font:700 12px inherit;color:var(--text2,#5c564a);cursor:pointer;margin-top:8px}
 .statbar{display:flex;gap:20px;flex-wrap:wrap;background:var(--surface,#fffdf8);border:1px solid var(--border,#e6e1d4);border-radius:12px;padding:12px 18px;margin:6px 0 16px}
 .statbar .s1{display:flex;flex-direction:column}
 .statbar .s1 b{font-family:var(--display,'Spectral',Georgia,serif);font-size:21px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
 .statbar .s1 span{margin-top:3px}
-.vcard{background:var(--surface,#fffdf8);border:1px solid var(--border,#e6e1d4);border-radius:14px;margin-bottom:10px;overflow:hidden;position:relative}
-.vcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--rc,#0f7a57)}
-.vhead{display:flex;align-items:flex-start;gap:12px;padding:14px 16px 14px 20px;cursor:pointer}
+/* A cor do ramo (--rc) é a identidade do cartão. Ela NÃO fica numa faixa de 4 px encostada na
+   borda esquerda (DESIGN.md, "Não faça": o carimbo de interface gerada por máquina): tinge a
+   borda inteira e lava o fundo da esquerda para a direita — o item colorido da casa (.ct-item),
+   mesma leitura de relance. A borda vem depois da lista do satellite-base.css (que recua a de
+   todo cartão para 72% da neutra) e por isso a vence com a mesma especificidade. */
+.vcard{background:linear-gradient(90deg,color-mix(in srgb,var(--rc,#0f7a57) 18%,transparent),transparent 46%) var(--surface,#fffdf8);border:1px solid color-mix(in srgb,var(--rc,#0f7a57) 38%,var(--border,#e6e1d4));border-radius:14px;margin-bottom:10px;overflow:hidden;position:relative}
+.vhead{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;cursor:pointer}
 .vhead:hover{background:color-mix(in srgb,var(--rc) 5%,transparent)}
 .vmeta{flex:1;min-width:0}
 .vtop{display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap}
@@ -195,7 +201,9 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
 .star{color:#e0a400;font-size:12px}
 .vtit{font-family:var(--display,'Spectral',Georgia,serif);font-size:15px;font-weight:700;line-height:1.25;color:var(--ink)}
 .vsub{display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap}
-.rtag{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:99px;background:color-mix(in srgb,var(--rc) 14%,transparent);color:var(--rc)}
+/* cor-texto ≠ cor-identidade: o selo é TINGIDO pela cor do ramo, e o texto é ela escurecida (no
+   claro) ou clareada (no escuro) pela tinta — a cor crua dava 3,1:1 e ficava abaixo de 4,5 */
+.rtag{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:99px;background:color-mix(in srgb,var(--rc) 14%,transparent);color:color-mix(in srgb,var(--rc,#0f7a57) 55%,var(--ink,#1f1c17))}
 .tema{font-size:11.5px;color:var(--text2,#5c564a);font-style:italic}
 .vact{display:flex;flex-direction:column;gap:6px;align-items:center;flex:none}
 .st{width:22px;height:22px;border-radius:99px;border:2px solid var(--border,#e6e1d4);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;background:none;color:var(--text3,#94a3b8)}
@@ -218,7 +226,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
 .foot a:hover{background:var(--accentSoft,#e6f0ea)}
 .loading{font-size:12px;color:var(--text2,#5c564a);padding:8px 0}
 .empty{text-align:center;padding:60px 20px;color:var(--text2,#5c564a)}
-.empty .ei{font-size:40px;opacity:.5;margin-bottom:10px}
+.empty .ei{margin:0 auto 10px}
 .more{text-align:center;padding:14px;color:var(--text2,#5c564a);font-size:12px}
 .skel{height:80px;border-radius:14px;background:linear-gradient(90deg,var(--surface2,#efeadd) 25%,var(--surface,#fffdf8) 50%,var(--surface2,#efeadd) 75%);background-size:200% 100%;animation:sh 1.3s infinite;margin-bottom:10px}
 @keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
@@ -230,9 +238,9 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
 .mode b{font-family:var(--display,'Spectral',Georgia,serif);font-size:15px;font-weight:800;color:var(--ink);line-height:1.1}
 .mode small{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3,#7a7368)}
 .mode:hover{border-color:var(--accent,#0f7a57)}
-.mode.on{border-color:transparent;background:linear-gradient(135deg,var(--accent,#0f7a57),var(--accentD,#0b5e43));box-shadow:0 12px 26px -14px rgba(20,15,10,.34)}
-.mode.on b{color:#fff}
-.mode.on small{color:rgba(255,255,255,.82)}
+.mode.on{border-color:transparent;background:linear-gradient(135deg,var(--accentSolid,var(--accent,#0f7a57)),var(--accentSolidD,var(--accentD,#0b5e43)));box-shadow:0 12px 26px -14px rgba(20,15,10,.34)}
+.mode.on b{color:var(--onAccent,#fff)}
+.mode.on small{color:var(--onAccent,#fff)}
 .tabs{display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap}
 .tab{border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);color:var(--text2,#5c564a);border-radius:10px;padding:7px 14px;font:800 12px inherit;cursor:pointer}
 .tab.on{background:var(--ink,#1f1c17);color:var(--bg,#f4f1ea);border-color:transparent}
@@ -242,16 +250,16 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
 .reg{margin:16px 0 8px;display:flex;align-items:center;gap:9px}
 .reg::after{content:"";flex:1;height:1px;background:var(--border,#e6e1d4)}
 .tcgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:10px}
-.tccard{background:var(--surface,#fffdf8);border:1px solid var(--border,#e6e1d4);border-radius:14px;padding:13px 15px 12px;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:7px}
-.tccard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--rc,#0f7a57)}
+/* a cor da região, como no .vcard: borda tingida e lavagem, nunca faixa lateral */
+.tccard{background:linear-gradient(90deg,color-mix(in srgb,var(--rc,#0f7a57) 18%,transparent),transparent 46%) var(--surface,#fffdf8);border:1px solid color-mix(in srgb,var(--rc,#0f7a57) 38%,var(--border,#e6e1d4));border-radius:14px;padding:13px 15px 12px;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:7px}
 .tccard .tct{display:flex;align-items:center;gap:8px}
 .tccard .sg{font-family:var(--display,'Spectral',Georgia,serif);font-size:16px;font-weight:800;color:var(--ink);letter-spacing:-.01em}
-.tccard .uf{font:800 10px inherit;letter-spacing:.05em;background:color-mix(in srgb,var(--rc) 15%,transparent);color:var(--rc);border-radius:6px;padding:3px 7px}
+.tccard .uf{font:800 10px inherit;letter-spacing:.05em;background:color-mix(in srgb,var(--rc) 15%,transparent);color:color-mix(in srgb,var(--rc,#0f7a57) 55%,var(--ink,#1f1c17));border-radius:6px;padding:3px 7px}
 .tccard .nm{font-size:11.5px;line-height:1.45;color:var(--text2,#5c564a)}
 .tccard .lks{display:flex;gap:6px;flex-wrap:wrap;margin-top:1px}
-.tccard .lks a{font:700 11px inherit;text-decoration:none;color:var(--rc,#0f7a57);border:1px solid color-mix(in srgb,var(--rc) 30%,transparent);border-radius:8px;padding:5px 9px}
+.tccard .lks a{font:700 11px inherit;text-decoration:none;color:color-mix(in srgb,var(--rc,#0f7a57) 55%,var(--ink,#1f1c17));border:1px solid color-mix(in srgb,var(--rc) 30%,transparent);border-radius:8px;padding:5px 9px}
 .tccard .lks a:hover{background:color-mix(in srgb,var(--rc) 10%,transparent)}
-.tccard .acv{margin-top:2px;border:none;background:color-mix(in srgb,var(--rc) 12%,transparent);color:var(--rc);border-radius:9px;padding:7px 10px;font:800 11.5px inherit;cursor:pointer;text-align:left}
+.tccard .acv{margin-top:2px;border:none;background:color-mix(in srgb,var(--rc) 12%,transparent);color:color-mix(in srgb,var(--rc,#0f7a57) 55%,var(--ink,#1f1c17));border-radius:9px;padding:7px 10px;font:800 11.5px inherit;cursor:pointer;text-align:left}
 .tccard .acv:hover{background:color-mix(in srgb,var(--rc) 20%,transparent)}
 .tccard .semacv{font-size:10.5px;color:var(--text2,#5c564a);font-style:italic;margin-top:2px}
 
@@ -302,10 +310,12 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
 .rdr .venun{background:var(--rcard);border:1px solid var(--rline);border-radius:16px;padding:20px 22px;box-shadow:0 8px 26px -20px color-mix(in srgb,var(--rc) 60%,transparent)}
 .rdr .venun .lbl{margin-bottom:9px;display:flex;align-items:center;gap:8px}
 .rdr .venun .lbl::before{content:"";width:14px;height:2px;background:var(--rc);border-radius:2px}
-.rdr .venun .bd{font-family:var(--rbody);font-size:calc(var(--rfs,15px) + 1px);line-height:1.68;color:var(--rctext)}
+/* o texto oficial das teses traz parágrafos e itens em linhas próprias ("i) …\nii) …"): a quebra
+   de linha do dado tem de pintar, como no .enun da lista (pre-wrap) */
+.rdr .venun .bd{font-family:var(--rbody);font-size:calc(var(--rfs,15px) + 1px);line-height:1.68;color:var(--rctext);white-space:pre-wrap}
 .rdr .vblk{margin-top:13px;background:color-mix(in srgb,var(--rc) 5%,var(--rcard));border:1px solid var(--rline);border-radius:14px;padding:15px 18px}
 .rdr .vblk .lbl{margin-bottom:6px}
-.rdr .vblk .bd{font-family:var(--rbody);font-size:13.5px;line-height:1.6;color:var(--rpar)}
+.rdr .vblk .bd{font-family:var(--rbody);font-size:13.5px;line-height:1.6;color:var(--rpar);white-space:pre-wrap}
 .rdr .vfoot{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:16px}
 .rdr .vfoot .fp{font:600 11.5px var(--rbody);color:var(--rdim2)}
 .rdr .vfoot a{font:700 12px var(--rbody);color:var(--rc);text-decoration:none;border:1px solid color-mix(in srgb,var(--rc) 32%,transparent);border-radius:9px;padding:7px 12px}
@@ -403,7 +413,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   .vact{gap:4px}
   .st{width:44px;height:44px;font-size:16px}
   .fav{min-width:44px;min-height:44px;font-size:20px;display:flex;align-items:center;justify-content:center}
-  .vhead{padding:14px 12px 14px 18px}
+  .vhead{padding:14px 12px}
   .rdr .map{display:none}
   .rdr .doc{padding:18px 15px 120px}
   .rdr .top{position:relative;flex-wrap:nowrap;padding:10px 12px}
@@ -438,12 +448,11 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
 <script src="juris-index.js"></script>
 </head>
 <body><div class="wrap">
-<div class="head"><div class="ic" id="hIc">⚖️</div><div><h1 id="hTit">CátedraJURIS</h1><p id="hSub">Vade mecum de jurisprudência · STF, STJ, TSE, TJRO e os tribunais de contas</p></div></div>
+<div class="head"><div class="ic" id="hIc"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="scale"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path></svg></div><div><h1 id="hTit">CátedraJURIS</h1><p id="hSub">Vade mecum de jurisprudência · STF, STJ, TSE, TJRO e os tribunais de contas</p></div></div>
 <div class="tabs ct-chips ct-rolo" id="tabs">
   <button class="tab on" data-pane="acervo" aria-pressed="true">Acervo</button>
   <button class="tab" data-pane="dia" aria-pressed="false">Julgado do dia</button>
   <button class="tab" data-pane="infos" aria-pressed="false">Informativos <small id="nInfos"></small></button>
-  <button class="tab" data-pane="mapas" aria-pressed="false">Mapas mentais</button>
   <button class="tab" data-pane="tribunais" aria-pressed="false">Tribunais de contas <small id="nTcs"></small></button>
 </div>
 <div id="paneDia" hidden>
@@ -458,15 +467,8 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   <div class="statbar" id="infosResumo"></div>
   <div id="infosLista"></div>
 </div>
-<div id="paneMapas" hidden>
-  <!-- Mapas mentais das Súmulas Vinculantes (1 a 63). Documento próprio, carregado em
-       iframe e só na PRIMEIRA vez que a aba abre — com src no HTML o navegador baixaria
-       218 KB em toda abertura do JURIS, inclusive de quem nunca clica aqui. -->
-  <iframe id="mapasFrame" data-src="juris-mapas-sv.html" title="Mapas mentais das Súmulas Vinculantes do STF"
-          style="width:100%;height:78vh;border:1px solid var(--bd,#2a3947);border-radius:12px;background:var(--surface,#fff);"></iframe>
-</div>
 <div id="paneAcervo">
-<div class="search"><span class="mag">🔎</span><input id="q" aria-label="Buscar verbete por número, título ou tema" placeholder="Buscar por número, título, tema… (e enunciado após carregar)" autocomplete="off"></div>
+<div class="search"><span class="mag"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="search"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg></span><input id="q" aria-label="Buscar verbete por número, título ou tema" placeholder="Buscar por número, título, tema… (e enunciado após carregar)" autocomplete="off"></div>
 <div class="chips ct-chips ct-rolo" id="trib" role="group" aria-label="Filtrar por tribunal"></div>
 <!-- D3: tribunal é o corte usado toda hora e fica à vista; coleção e ramo empurravam o
      acervo para fora da primeira dobra e agora vivem dentro do botão. O que estiver
@@ -493,7 +495,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
 </div>
 <div id="paneTribunais" hidden>
   <div class="fonte" id="tcFonte"></div>
-  <div class="search"><span class="mag">🔎</span><input id="qtc" aria-label="Buscar tribunal de contas por sigla, estado ou nome" placeholder="Buscar tribunal por sigla, estado ou nome…" autocomplete="off"></div>
+  <div class="search"><span class="mag"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="search"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg></span><input id="qtc" aria-label="Buscar tribunal de contas por sigla, estado ou nome" placeholder="Buscar tribunal por sigla, estado ou nome…" autocomplete="off"></div>
   <div class="chips ct-chips" id="regs"></div>
   <div id="tcList"></div>
 </div>
@@ -507,19 +509,24 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   // Dois acervos moram nesta mesma tela e compartilham cards, leitor, grifos e
   // status de estudo. O que muda entre eles é só a origem dos dados e a paleta
   // de cores da faceta "ramo" — daí o descritor abaixo em vez de duplicar a view.
+  /* Ícone Lucide por NOME (cópia pequena do padrão do host — não há módulo compartilhado entre
+     os satélites): SVG 16 px, traço currentColor, aria-hidden e data-ico com o nome. Emoji não é
+     ícone (DESIGN.md). Só os desenhos que esta página usa; nome desconhecido sai vazio, sem glifo. */
+  var CT_ICO={'scale':'<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path>'};
+  function ctIco(nome){ return '<svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="'+nome+'">'+(CT_ICO[nome]||'')+'</svg>'; }
   var MODOS={
     juris:{ idx:window.__JURIS_IDX__||[], txt:null,
             idxSrc:null,               idxGlobal:'__JURIS_IDX__',
             txtSrc:'juris-text.js',    txtGlobal:'__JURIS_TXT__', fatia:'juris-text',
             cor:function(n){return ramoColor(n)}, comBase:false,
-            ic:'⚖️', tit:'CátedraJURIS',
+            ic:'scale', tit:'CátedraJURIS',
             sub:'Vade mecum de jurisprudência · súmulas e julgados do STF, STJ e TSE',
             vazio:'Base de jurisprudência não carregou.' },
     contas:{ idx:null, txt:null,
             idxSrc:'contas-index.js',  idxGlobal:'__CONTAS_IDX__',
             txtSrc:'contas-text.js',   txtGlobal:'__CONTAS_TXT__', fatia:'contas-text',
             cor:function(n){return areaColor(n)}, comBase:true,
-            ic:'🏛️', tit:'Central de Contas',
+            ic:'landmark', tit:'Central de Contas',
             sub:'Controle externo · súmulas, boletins e informativos do TCU e dos tribunais de contas',
             vazio:'Acervo da Central de Contas não carregou.' }
   };
@@ -528,6 +535,25 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   // viram mais chips ao lado de STF, STJ, TSE e TJRO. Cada registro guarda no campo
   // 10 de qual acervo veio, porque os textos moram em arquivos diferentes.
   var IDX=(MODOS.juris.idx||[]).slice();   // [id,tr,fo,nu,ti,ra,te,da,si,im,src]
+  // Entrega 7: "Todos" pela ORDEM DE AUTORIDADE — a mesma do nativo (ios/vendor/design/Hoje.swift):
+  // vinculante → controle concentrado → RG/repetitivo → súmulas → teses/informativos →
+  // estaduais → contas → apoio. Súmulas em ordem crescente; o resto do mais novo ao mais antigo.
+  var ORDEM_AUT=['sumula_vinculante','stf_adi','stf_adc','stf_ado','stf_adpf','controle_const',
+    'repercussao_geral','repetitivo','precedentes_obrig','sumula_stf','sumula_stj','sumula_tse',
+    'juris_em_teses','informativo_stf','informativo_stj','informativo_tse',
+    'tjro','tjro_prec','sel_tjgo','sel_tjrj','sel_tjpr',
+    'sumula_tcu','sumula_tce','boletim_juris_tcu','boletim_pessoal_tcu','info_lic_tcu'];
+  var POS_AUT={}; ORDEM_AUT.forEach(function(f,i){ POS_AUT[f]=i; });
+  function ordenarAutoridade(lista){
+    return lista.sort(function(a,b){
+      var fa=(a[2] in POS_AUT)?POS_AUT[a[2]]:99, fb=(b[2] in POS_AUT)?POS_AUT[b[2]]:99;
+      if(fa!==fb) return fa-fb;
+      var na=(a[3]==null?-1:a[3]), nb=(b[3]==null?-1:b[3]);
+      if(na!==nb) return /^sumula_/.test(a[2]) ? na-nb : nb-na;
+      return a[0]<b[0]?-1:(a[0]>b[0]?1:0);
+    });
+  }
+  ordenarAutoridade(IDX);
   function fonteDe(r){ return (r&&r[I.src]==='c') ? MODOS.contas : MODOS.juris; }
   function txtDe(r){ return fonteDe(r).txt; }
   // faceta "ramo": os dois acervos usam vocabulários distintos (ramo do direito x
@@ -542,7 +568,15 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   /* Registros editoriais foram retirados ou receberam identificador canônico na
      auditoria sem retirar o conteúdo jurídico correspondente. Leva o estado pessoal
      ao verbete sobrevivente, mas conserva a chave antiga como cópia de segurança:
-     nunca se perde anotação por causa de uma limpeza do acervo. */
+     nunca se perde anotação por causa de uma limpeza do acervo.
+     Lote L4 das teses oficiais (26/09/2026): as 105 fusões "um verbete por tema" entram
+     aqui, geradas por scripts/aplicar-teses-oficiais.py a partir de
+     docs/teses-oficiais/l4-referencia.json — não edite o bloco gerado à mão.
+     REGRA DE UNIÃO (os dois ids com estado): favorito = OU; status = o mais avançado
+     (dominado > em revisão > nada); grifos = união sem repetir; roteiro de IA = o do
+     canônico, e o do antigo só se o canônico não tiver. Roda UMA vez por id antigo que
+     tinha estado (marca em est.mig, que viaja com o estudo): o que a pessoa desfizer
+     depois no canônico não volta. */
   var JURIS_ID_MIGRACOES={
     'repgeral-repetitivo-STJ-x640':'repgeral-repetitivo-STJ-518',
     'SELTJGO-0438':'SELTJGO-0433',
@@ -551,35 +585,201 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
     'repgeral-repercussao_geral-STJ-x257':'repgeral-repercussao_geral-STF-476',
     'repgeral-repercussao_geral-STF-x1586':'repgeral-repercussao_geral-STF-825',
     'repgeral-repercussao_geral-STF-x1590':'repgeral-repercussao_geral-STF-21',
-    'INF2022-0470':'INF2021-0815'
+    'INF2022-0470':'INF2021-0815',
+    /* <gerado:teses-oficiais-l4:migracoes> */
+    'repgeral-repercussao_geral-STF-100-2':'repgeral-repercussao_geral-STF-100',
+    'repgeral-repercussao_geral-STF-1002-2':'repgeral-repercussao_geral-STF-1002',
+    'repgeral-repercussao_geral-STF-1019-2':'repgeral-repercussao_geral-STF-1019',
+    'repgeral-repercussao_geral-STF-1031-2':'repgeral-repercussao_geral-STF-1031',
+    'repgeral-repercussao_geral-STF-1041-2':'repgeral-repercussao_geral-STF-1041',
+    'repgeral-repercussao_geral-STF-1075-2':'repgeral-repercussao_geral-STF-1075',
+    'repgeral-repercussao_geral-STF-1120-2':'repgeral-repercussao_geral-STF-1120',
+    'repgeral-repercussao_geral-STF-116-2':'repgeral-repercussao_geral-STF-116',
+    'repgeral-repercussao_geral-STF-1169-2':'repgeral-repercussao_geral-STF-1169',
+    'repgeral-repercussao_geral-STF-1170-2':'repgeral-repercussao_geral-STF-1170',
+    'repgeral-repercussao_geral-STF-1170-3':'repgeral-repercussao_geral-STF-1170',
+    'repgeral-repercussao_geral-STF-1234-2':'repgeral-repercussao_geral-STF-1234',
+    'repgeral-repercussao_geral-STF-1262-2':'repgeral-repercussao_geral-STF-1262',
+    'repgeral-repercussao_geral-STF-1282-2':'repgeral-repercussao_geral-STF-1282',
+    'repgeral-repercussao_geral-STF-1370-2':'repgeral-repercussao_geral-STF-1370',
+    'repgeral-repercussao_geral-STF-210-2':'repgeral-repercussao_geral-STF-210',
+    'repgeral-repercussao_geral-STF-210-3':'repgeral-repercussao_geral-STF-210',
+    'repgeral-repercussao_geral-STF-27-2':'repgeral-repercussao_geral-STF-27',
+    'repgeral-repercussao_geral-STF-312':'repgeral-repercussao_geral-STF-27',
+    'repgeral-repercussao_geral-STF-323-2':'repgeral-repercussao_geral-STF-323',
+    'repgeral-repercussao_geral-STF-323-3':'repgeral-repercussao_geral-STF-323',
+    'repgeral-repercussao_geral-STF-393-2':'repgeral-repercussao_geral-STF-393',
+    'repgeral-repercussao_geral-STF-477-2':'repgeral-repercussao_geral-STF-477',
+    'repgeral-repercussao_geral-STF-478-2':'repgeral-repercussao_geral-STF-478',
+    'repgeral-repercussao_geral-STF-492-2':'repgeral-repercussao_geral-STF-492',
+    'repgeral-repercussao_geral-STF-545-2':'repgeral-repercussao_geral-STF-545',
+    'repgeral-repercussao_geral-STF-627-2':'repgeral-repercussao_geral-STF-627',
+    'repgeral-repercussao_geral-STF-733-2':'repgeral-repercussao_geral-STF-733',
+    'repgeral-repercussao_geral-STF-761-2':'repgeral-repercussao_geral-STF-761',
+    'repgeral-repercussao_geral-STF-771-2':'repgeral-repercussao_geral-STF-771',
+    'repgeral-repercussao_geral-STF-771-3':'repgeral-repercussao_geral-STF-771',
+    'repgeral-repercussao_geral-STF-857-2':'repgeral-repercussao_geral-STF-857',
+    'repgeral-repercussao_geral-STF-881-2':'repgeral-repercussao_geral-STF-881',
+    'repgeral-repercussao_geral-STF-881-3':'repgeral-repercussao_geral-STF-881',
+    'repgeral-repercussao_geral-STF-967-2':'repgeral-repercussao_geral-STF-967',
+    'repgeral-repercussao_geral-STF-x110':'repgeral-repercussao_geral-STF-642',
+    'repgeral-repercussao_geral-STF-x117':'repgeral-repercussao_geral-STF-642',
+    'repgeral-repercussao_geral-STF-x1371':'repgeral-repercussao_geral-STF-32',
+    'repgeral-repercussao_geral-STF-x1713':'repgeral-repercussao_geral-STF-669',
+    'repgeral-repercussao_geral-STJ-x1120':'repgeral-repercussao_geral-STF-82',
+    'repgeral-repercussao_geral-STJ-x1298':'repgeral-repercussao_geral-STF-1068',
+    'repgeral-repercussao_geral-STJ-x1702':'repgeral-repercussao_geral-STF-495',
+    'repgeral-repetitivo-STF-185-2':'repgeral-repetitivo-STF-185',
+    'repgeral-repetitivo-STF-x1175':'repgeral-repetitivo-STJ-157',
+    'repgeral-repetitivo-STF-x1201':'repgeral-repetitivo-STJ-1155',
+    'repgeral-repetitivo-STJ-1000-2':'repgeral-repetitivo-STJ-1000',
+    'repgeral-repetitivo-STJ-1059-2':'repgeral-repetitivo-STJ-1059',
+    'repgeral-repetitivo-STJ-1074-2':'repgeral-repetitivo-STJ-1074',
+    'repgeral-repetitivo-STJ-108-2':'repgeral-repetitivo-STJ-108',
+    'repgeral-repetitivo-STJ-1092-2':'repgeral-repetitivo-STJ-1092',
+    'repgeral-repetitivo-STJ-1093-2':'repgeral-repetitivo-STJ-1093',
+    'repgeral-repetitivo-STJ-1112-2':'repgeral-repetitivo-STJ-1112',
+    'repgeral-repetitivo-STJ-1134-2':'repgeral-repetitivo-STJ-1134',
+    'repgeral-repetitivo-STJ-1149-2':'repgeral-repetitivo-STJ-1149',
+    'repgeral-repetitivo-STJ-117-2':'repgeral-repetitivo-STJ-117',
+    'repgeral-repetitivo-STJ-1190-2':'repgeral-repetitivo-STJ-1190',
+    'repgeral-repetitivo-STJ-1194-2':'repgeral-repetitivo-STJ-1194',
+    'repgeral-repetitivo-STJ-1215-2':'repgeral-repetitivo-STJ-1215',
+    'repgeral-repetitivo-STJ-1218-2':'repgeral-repetitivo-STJ-1218',
+    'repgeral-repetitivo-STJ-1218-3':'repgeral-repetitivo-STJ-1218',
+    'repgeral-repetitivo-STJ-1245-2':'repgeral-repetitivo-STJ-1245',
+    'repgeral-repetitivo-STJ-1265-2':'repgeral-repetitivo-STJ-1265',
+    'repgeral-repetitivo-STJ-1347-2':'repgeral-repetitivo-STJ-1347',
+    'repgeral-repetitivo-STJ-1408-2':'repgeral-repetitivo-STJ-1408',
+    'repgeral-repetitivo-STJ-1410-2':'repgeral-repetitivo-STJ-1410',
+    'repgeral-repetitivo-STJ-16-2':'repgeral-repetitivo-STJ-16',
+    'repgeral-repetitivo-STJ-17-2':'repgeral-repetitivo-STJ-17',
+    'repgeral-repetitivo-STJ-230-2':'repgeral-repetitivo-STJ-230',
+    'repgeral-repetitivo-STJ-260-2':'repgeral-repetitivo-STJ-260',
+    'repgeral-repetitivo-STJ-293-2':'repgeral-repetitivo-STJ-293',
+    'repgeral-repetitivo-STJ-368-2':'repgeral-repetitivo-STJ-368',
+    'repgeral-repetitivo-STJ-371-2':'repgeral-repetitivo-STJ-371',
+    'repgeral-repetitivo-STJ-380-2':'repgeral-repetitivo-STJ-380',
+    'repgeral-repetitivo-STJ-588-2':'repgeral-repetitivo-STJ-588',
+    'repgeral-repetitivo-STJ-589-2':'repgeral-repetitivo-STJ-589',
+    'repgeral-repetitivo-STJ-614-2':'repgeral-repetitivo-STJ-614',
+    'repgeral-repetitivo-STJ-660-2':'repgeral-repetitivo-STJ-660',
+    'repgeral-repetitivo-STJ-660-4':'repgeral-repetitivo-STJ-660',
+    'repgeral-repetitivo-STJ-671-2':'repgeral-repetitivo-STJ-871',
+    'repgeral-repetitivo-STJ-677-2':'repgeral-repetitivo-STJ-677',
+    'repgeral-repetitivo-STJ-689-2':'repgeral-repetitivo-STJ-689',
+    'repgeral-repetitivo-STJ-692-2':'repgeral-repetitivo-STJ-692',
+    'repgeral-repetitivo-STJ-717-2':'repgeral-repetitivo-STJ-717',
+    'repgeral-repetitivo-STJ-766-2':'repgeral-repetitivo-STJ-766',
+    'repgeral-repetitivo-STJ-86-2':'repgeral-repetitivo-STJ-86',
+    'repgeral-repetitivo-STJ-905-2':'repgeral-repetitivo-STJ-905',
+    'repgeral-repetitivo-STJ-919-2':'repgeral-repetitivo-STJ-919',
+    'repgeral-repetitivo-STJ-938-2':'repgeral-repetitivo-STJ-938',
+    'repgeral-repetitivo-STJ-958-2':'repgeral-repetitivo-STJ-958',
+    'repgeral-repetitivo-STJ-958-3':'repgeral-repetitivo-STJ-958',
+    'repgeral-repetitivo-STJ-970-2':'repgeral-repetitivo-STJ-970',
+    'repgeral-repetitivo-STJ-972-2':'repgeral-repetitivo-STJ-972',
+    'repgeral-repetitivo-STJ-972-3':'repgeral-repetitivo-STJ-972',
+    'repgeral-repetitivo-STJ-980-2':'repgeral-repetitivo-STJ-980',
+    'repgeral-repetitivo-STJ-996-2':'repgeral-repetitivo-STJ-996',
+    'repgeral-repetitivo-STJ-996-3':'repgeral-repetitivo-STJ-996',
+    'repgeral-repetitivo-STJ-996-4':'repgeral-repetitivo-STJ-996',
+    'repgeral-repetitivo-STJ-x1153':'repgeral-repetitivo-STJ-x1139',
+    'repgeral-repetitivo-STJ-x1253':'repgeral-repetitivo-STJ-x1251',
+    'repgeral-repetitivo-STJ-x1255':'repgeral-repetitivo-STJ-x1251',
+    'repgeral-repetitivo-STJ-x1825':'repgeral-repetitivo-STJ-478',
+    'repgeral-repetitivo-STJ-x360':'repgeral-repercussao_geral-STF-942',
+    'repgeral-repetitivo-STJ-x663':'repgeral-repetitivo-STJ-970',
+    'repgeral-repetitivo-STJ-x666':'repgeral-repetitivo-STJ-938',
+    'repgeral-repetitivo-STJ-x838':'repgeral-repetitivo-STJ-x837',
+    /* </gerado:teses-oficiais-l4:migracoes> */
   };
+  /* Retirados sem destino (lote L4: sem tema oficial). O estado da pessoa por esses ids
+     fica no localStorage, órfão: nenhuma tela o lê (o verbete não existe) e as contagens
+     de favoritos e dominados os ignoram, como ignoram as chaves antigas das migrações. */
+  var JURIS_IDS_RETIRADOS=[
+    /* <gerado:teses-oficiais-l4:retirados> */
+    'repgeral-repercussao_geral-STF-569',
+    'repgeral-repercussao_geral-STF-x100',
+    'repgeral-repercussao_geral-STF-x1436',
+    'repgeral-repercussao_geral-STF-x150',
+    'repgeral-repercussao_geral-STF-x151',
+    'repgeral-repercussao_geral-STF-x1647',
+    'repgeral-repercussao_geral-STF-x1648',
+    'repgeral-repercussao_geral-STF-x1859',
+    'repgeral-repercussao_geral-STF-x1960',
+    'repgeral-repercussao_geral-STF-x258',
+    'repgeral-repercussao_geral-STF-x263',
+    'repgeral-repercussao_geral-STF-x287',
+    'repgeral-repercussao_geral-STF-x288',
+    'repgeral-repercussao_geral-STF-x412',
+    'repgeral-repercussao_geral-STF-x477',
+    'repgeral-repercussao_geral-STF-x604',
+    'repgeral-repercussao_geral-STF-x814',
+    'repgeral-repercussao_geral-STF-x970',
+    'repgeral-repercussao_geral-STJ-x116',
+    'repgeral-repercussao_geral-STJ-x1381',
+    'repgeral-repercussao_geral-STJ-x1625',
+    'repgeral-repercussao_geral-STJ-x1669',
+    'repgeral-repercussao_geral-STJ-x2014',
+    'repgeral-repercussao_geral-STJ-x229',
+    'repgeral-repercussao_geral-STJ-x350',
+    'repgeral-repercussao_geral-STJ-x616',
+    'repgeral-repercussao_geral-STJ-x618',
+    'repgeral-repercussao_geral-STJ-x631',
+    'repgeral-repetitivo-STF-x1197',
+    'repgeral-repetitivo-STF-x1207',
+    'repgeral-repetitivo-STJ-x1060',
+    'repgeral-repetitivo-STJ-x1199',
+    'repgeral-repetitivo-STJ-x1248',
+    'repgeral-repetitivo-STJ-x1265',
+    'repgeral-repetitivo-STJ-x1286',
+    'repgeral-repetitivo-STJ-x1320',
+    'repgeral-repetitivo-STJ-x1410',
+    'repgeral-repetitivo-STJ-x1462',
+    'repgeral-repetitivo-STJ-x1752',
+    'repgeral-repetitivo-STJ-x235',
+    'repgeral-repetitivo-STJ-x267',
+    'repgeral-repetitivo-STJ-x55',
+    'repgeral-repetitivo-STJ-x641',
+    'repgeral-repetitivo-STJ-x657',
+    'repgeral-repetitivo-STJ-x676',
+    'repgeral-repetitivo-STJ-x938',
+    /* </gerado:teses-oficiais-l4:retirados> */
+  ];
+  var JURIS_FORA={};
+  Object.keys(JURIS_ID_MIGRACOES).forEach(function(k){ JURIS_FORA[k]=1; });
+  JURIS_IDS_RETIRADOS.forEach(function(k){ JURIS_FORA[k]=1; });
+  function contaNoAcervo(obj,filtro){
+    var n=0; Object.keys(obj||{}).forEach(function(k){ if(!JURIS_FORA[k]&&(!filtro||filtro(obj[k])))n++; }); return n;
+  }
   function migraEstadoJuris(){
-    var mudou=false, peso={'':0,rev:1,dom:2};
+    var peso={'':0,rev:1,dom:2};
+    var mig=(est.mig&&typeof est.mig==='object')?est.mig:{}, mudou=false;
+    var kr='catedraJurisRoteiros', rots={}, mr=false;
+    try{ rots=JSON.parse(localStorage.getItem(kr)||'{}')||{}; }catch(e){ rots={}; }
     Object.keys(JURIS_ID_MIGRACOES).forEach(function(antigo){
-      var novo=JURIS_ID_MIGRACOES[antigo];
-      if(est.fav[antigo]&&!est.fav[novo]){est.fav[novo]=est.fav[antigo];mudou=true;}
+      if(mig[antigo])return;                    // já unido uma vez
+      var novo=JURIS_ID_MIGRACOES[antigo], teve=false;
+      if(est.fav[antigo]){ teve=true; if(!est.fav[novo])est.fav[novo]=est.fav[antigo]; }
       var sa=est.stat[antigo]||'', sn=est.stat[novo]||'';
-      if((peso[sa]||0)>(peso[sn]||0)){est.stat[novo]=sa;mudou=true;}
+      if(sa){ teve=true; if((peso[sa]||0)>(peso[sn]||0))est.stat[novo]=sa; }
       try{
         var ka='catedra:grifosJuris:'+antigo, kn='catedra:grifosJuris:'+novo;
         var aa=JSON.parse(localStorage.getItem(ka)||'[]');
-        var an=JSON.parse(localStorage.getItem(kn)||'[]');
         if(Array.isArray(aa)&&aa.length){
+          teve=true;
+          var an=JSON.parse(localStorage.getItem(kn)||'[]'); if(!Array.isArray(an))an=[];
           var vistos={}; an.forEach(function(v){vistos[JSON.stringify(v)]=1;});
           aa.forEach(function(v){var k=JSON.stringify(v);if(!vistos[k]){an.push(v);vistos[k]=1;}});
           localStorage.setItem(kn,JSON.stringify(an));
         }
       }catch(e){}
+      if(rots[antigo]){ teve=true; if(!rots[novo]){rots[novo]=rots[antigo];mr=true;} }
+      if(teve){ mig[antigo]=1; mudou=true; }   // sem estado nenhum não marca: se chegar depois (outro aparelho), une
     });
-    if(mudou){try{localStorage.setItem(LK,JSON.stringify(est))}catch(e){}}
-    try{
-      var kr='catedraJurisRoteiros', rots=JSON.parse(localStorage.getItem(kr)||'{}'), mr=false;
-      Object.keys(JURIS_ID_MIGRACOES).forEach(function(antigo){
-        var novo=JURIS_ID_MIGRACOES[antigo];
-        if(rots[antigo]&&!rots[novo]){rots[novo]=rots[antigo];mr=true;}
-      });
-      if(mr)localStorage.setItem(kr,JSON.stringify(rots));
-    }catch(e){}
+    if(mudou){ est.mig=mig; try{localStorage.setItem(LK,JSON.stringify(est))}catch(e){} }
+    if(mr){ try{localStorage.setItem(kr,JSON.stringify(rots))}catch(e){} }
   }
   migraEstadoJuris();
   function saveEst(){try{localStorage.setItem(LK,JSON.stringify(est))}catch(e){}}
@@ -644,7 +844,8 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   }
   function chipBtn(active,label,cnt,col,onclick){
     var b=document.createElement('button'); b.className='chip'+(active?' on':'');
-    if(active)b.style.background=col||'var(--accent,#0f7a57)';
+    // sem cor própria, o chip ativo pinta o par do destaque (fundo e texto medidos no host)
+    if(active){ b.style.background=col||'var(--accentSolid,var(--accent,#0f7a57))'; if(!col) b.classList.add('destaque'); }
     b.setAttribute('aria-pressed',active?'true':'false');
     b.innerHTML=(col?'<span class="dot" aria-hidden="true" style="background:'+col+'"></span>':'')+esc(label)+' <small>'+cnt+'</small>';
     b.onclick=onclick; return b;
@@ -714,7 +915,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
     host.innerHTML='';
     at.forEach(function(x){
       var c=document.createElement('button');
-      c.className='chip on ativo'; c.style.background='var(--accent,#0f7a57)';
+      c.className='chip on ativo destaque'; c.style.background='var(--accentSolid,var(--accent,#0f7a57))';
       c.setAttribute('aria-label','Remover filtro '+x.rot);
       c.innerHTML=esc(x.rot)+' <span class="x" aria-hidden="true">✕</span>';
       c.onclick=function(){ if(x.k==='base')f.base=''; else f.ramo=''; build(); };
@@ -766,9 +967,9 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
     }
     document.getElementById('sTot').textContent=IDX.length.toLocaleString('pt-BR');
     document.getElementById('sFilt').textContent=filtered.length.toLocaleString('pt-BR');
-    metrica('s1Dom',Object.values(est.stat).filter(function(v){return v==='dom'}).length,
+    metrica('s1Dom',contaNoAcervo(est.stat,function(v){return v==='dom'}),
             'Dominados','marque ✓ quando dominar um verbete');
-    metrica('s1Fav',Object.keys(est.fav).length,
+    metrica('s1Fav',contaNoAcervo(est.fav),
             'Favoritos','marque ★ no que cai no seu edital');
   }
 
@@ -954,7 +1155,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
     listEl.appendChild(frag);
     page++;
     var shown=Math.min(page*PAGE,filtered.length);
-    if(filtered.length===0){ listEl.innerHTML='<div class="empty"><div class="ei">⚖️</div>Nenhum verbete encontrado.<br>Ajuste a busca ou os filtros.</div>'; moreEl.textContent=''; }
+    if(filtered.length===0){ listEl.innerHTML='<div class="empty"><div class="ei ct-ladrilho ct-ladrilho-xg">'+ctIco('scale')+'</div>Nenhum verbete encontrado.<br>Ajuste a busca ou os filtros.</div>'; moreEl.textContent=''; }
     else moreEl.textContent=shown>=filtered.length?(filtered.length.toLocaleString('pt-BR')+' verbetes'):('Mostrando '+shown.toLocaleString('pt-BR')+' de '+filtered.length.toLocaleString('pt-BR')+' — role para ver mais');
   }
   var io=new IntersectionObserver(function(e){ if(e[0].isIntersecting && page*PAGE<filtered.length) renderPage(); },{rootMargin:'600px'});
@@ -1082,7 +1283,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
     repercussao_geral:'Repercussão Geral', repetitivo:'Recurso Repetitivo', juris_em_teses:'Jurisprudência em Teses',
     informativo_stf:'Informativo do STF', informativo_stj:'Informativo do STJ', informativo_tse:'Informativo do TSE',
     precedentes_obrig:'Precedente Obrigatório', controle_const:'Controle de Constitucionalidade',
-    sel_tjgo:'Seleção TJGO', sel_tjrj:'Seleção TJRJ', sel_tjpr:'Seleção TJPR', vademecum_dod:'Vade Mecum DOD',
+    sel_tjgo:'Seleção TJGO', sel_tjrj:'Seleção TJRJ', sel_tjpr:'Seleção TJPR',
     stf_adi:'ADI', stf_adc:'ADC', stf_ado:'ADO', stf_adpf:'ADPF'};
   function nomeColecao(fo){
     for(var i=0;i<COLECOES.length;i++)if(COLECOES[i].fo===fo)return COLECOES[i].nome;
@@ -1271,9 +1472,6 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
     if(nome==='infos')renderInfos();
     document.getElementById('paneDia').hidden=(nome!=='dia');
     if(nome==='dia')renderDia();
-    document.getElementById('paneMapas').hidden=(nome!=='mapas');
-    if(nome==='mapas'){ var fr=document.getElementById('mapasFrame');
-      if(fr&&!fr.src){ fr.src=fr.dataset.src; } }
     document.querySelectorAll('#tabs .tab').forEach(function(b){
       var on=b.dataset.pane===nome; b.classList.toggle('on',on); b.setAttribute('aria-pressed',on?'true':'false'); });
     // D8 — no celular a fileira de pílulas rola em vez de quebrar; a ativa precisa
@@ -1296,6 +1494,11 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
     try {
       q = String(q == null ? '' : q);
       var tenta = function (n) {
+        // Id exato de verbete (vem do "Abrir no JURIS" do LEGIS): abre ELE, não busca.
+        // O índice monta depois desta função: até lá (nulo), espera em vez de cair na busca.
+        var tem = (q && window.jurisTemId) ? window.jurisTemId(q) : (q ? null : false);
+        if (tem === null && n > 0) { setTimeout(function () { tenta(n - 1); }, 120); return; }
+        if (tem) { window.jurisAbrirPorId(q); return; }
         var el = document.getElementById('q');
         if (!el) { if (n > 0) setTimeout(function () { tenta(n - 1); }, 120); return; }
         el.value = q;
@@ -1311,32 +1514,93 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   window.addEventListener('message', function (e) {
     if (window.ctMensagemDoHost(e) && e.data && e.data.type === 'ctBusca') window.ctAplicarBusca(e.data.termo);
   });
-  // ?volta=1: ela veio do mapa do processo — a pílula devolve ao ponto exato (o host
-  // guarda rito/peça/bloco e responde ao ctVoltarAcervo). Só o host web manda este
-  // parâmetro; no app nativo as abas são nativas e esta página nem abre.
+  // ?volta=1: ela veio de um ponto do app (rito, peça, correção, revisão…) — a pílula
+  // devolve a ele. O host guarda a origem e responde ao ctVoltarAcervo; o texto do botão
+  // vem do host (&vr= na 1ª carga, `rotulo` no ctVoltaDisponivel). No app nativo o JURIS
+  // é a aba nativa e a volta é o botão dela; esta pílula só aparece no juris-web.
   (function ctVolta(){ try{
-    /* U1: o host acende/apaga a pílula por mensagem com o iframe vivo; ?volta=1 continua
-       valendo na primeira carga. */
-    var pedidoURL=new URLSearchParams(location.search).get('volta')==='1';
+    /* U1: o host acende/apaga a pílula por mensagem (ctVoltaDisponivel) com o iframe vivo;
+       o ?volta=1 continua valendo na primeira carga. */
+    var P=new URLSearchParams(location.search);
+    var pedidoURL=P.get('volta')==='1', rotURL=P.get('vr')||'';
+    var LEITOR=document.getElementById('jrdr');
+    var voltar=function(){ try{ window.ctEnviarAoHost({type:'ctVoltarAcervo'}); }catch(e){} };
+    var visivel=function(b){ return !!b && b.style.display!=='none' && !b.classList.contains('gaveta'); };
+    /* D1: o leitor (#jrdr, z 300) cobria a pílula (z 95) — ela chegava ao acervo pela revisão,
+       pela prova oral ou pelo simulado já com o leitor aberto e ficava sem caminho de volta.
+       Com o leitor aberto a pílula MUDA-SE para dentro dele (1º filho, z 9 no contexto do
+       leitor): fica acima da barra .top (3) e do palco (2) e abaixo da barra de grifo (310).
+       Subir o z no body não bastava: no LEGIS a barra de grifo mora DENTRO do .rdr, e qualquer
+       z acima de 300 no body passa por cima dela. E vai para a direita: à esquerda mora o
+       esquema do leitor (coluna no desktop), e embaixo não há controle — o texto tem folga
+       de 120–140px no fim. A barra .top fica em cima, longe. Fechou o leitor, volta ao body. */
+    /* K1: a pílula pinta com o par PRÓPRIO do host (--accentFill/--onAccentFill, calculado por
+       contraste WCAG: texto ≥ 4,5:1 sobre o fundo, fundo ≥ 3:1 contra --surface). O --accent e o
+       --onAccent do resto do app ficam como estão; host antigo sem o par cai neles. */
+    var estilo=function(){
+      if(document.getElementById('ct-volta-css')) return;
+      var s=document.createElement('style'); s.id='ct-volta-css';
+      s.textContent='#ct-volta{position:fixed;left:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:95;'
+        +'border:none;cursor:pointer;background:var(--accentFill,var(--accent,#0f7a57));color:var(--onAccentFill,var(--onAccent,#fff));border-radius:99px;'
+        // D8: 44px de altura mínima — a pílula de voltar é alvo de polegar, não de mouse
+        +'min-height:44px;align-items:center;gap:8px;max-width:calc(100vw - 28px);'
+        +'padding:10px 18px 10px 14px;font:700 12.5px var(--body,sans-serif);box-shadow:0 6px 20px rgba(20,15,10,.28)}'
+        +'#ct-volta svg{flex:none}'
+        +'#ct-volta span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'
+        +'#ct-volta:hover,#ct-volta:focus-visible{background:var(--accentFill,var(--accent,#0f7a57));color:var(--onAccentFill,var(--onAccent,#fff))}'
+      +'#ct-volta:hover{box-shadow:0 8px 24px rgba(20,15,10,.34)}'
+      +'#ct-volta:focus-visible{outline:2px solid var(--text,#1c1a17);outline-offset:3px}'
+        +'#ct-volta.sobre-leitor{z-index:9;left:auto;right:14px}'
+        /* os painéis da leitura ativa terminam em botões: com a pílula ali, ganham folga */
+        +'body.ct-volta-leitor .rdr .la-conf,body.ct-volta-leitor .rdr .la-gd{padding-bottom:88px}';
+      document.head.appendChild(s);
+    };
+    var sincronizar=function(){
+      var b=document.getElementById('ct-volta'); if(!b) return;
+      var aberto=!!LEITOR && LEITOR.classList.contains('on');
+      var casa=aberto ? LEITOR : document.body;
+      if(b.parentNode!==casa){ var tinhaFoco=document.activeElement===b;
+        casa.insertBefore(b, casa.firstChild); if(tinhaFoco) try{ b.focus(); }catch(e){} }
+      b.classList.toggle('sobre-leitor', aberto);
+      b.classList.toggle('gaveta', aberto && LEITOR.classList.contains('mapaAberto'));
+      document.body.classList.toggle('ct-volta-leitor', aberto && b.style.display!=='none');
+    };
     var montar=function(){
-    var b=document.createElement('button');
-    b.textContent='← Voltar ao ponto do processo';
-    b.style.cssText='position:fixed;left:14px;bottom:14px;z-index:95;border:none;cursor:pointer;'
-      +'background:var(--accent,#0f7a57);color:var(--onAccent,#fff);border-radius:99px;'
-      +'padding:10px 16px;font:700 12.5px var(--body,sans-serif);box-shadow:0 6px 20px rgba(20,15,10,.28)';
-    b.onclick=function(){ try{ window.ctEnviarAoHost({type:'ctVoltarAcervo'}); }catch(e){} };
-    b.id='ct-volta';
-    document.body.appendChild(b);
-    return b;
+      estilo();
+      var b=document.createElement('button');
+      b.type='button'; b.id='ct-volta';
+      /* a seta é desenho (Lucide arrow-left, aria-hidden): o nome acessível é só o rótulo */
+      b.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" '
+        +'stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" '
+        +'focusable="false"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg><span></span>';
+      b.onclick=voltar;
+      /* no começo do body: é a primeira parada do Tab (a posição na tela segue fixa) */
+      document.body.insertBefore(b, document.body.firstChild);
+      if(LEITOR && window.MutationObserver) new MutationObserver(sincronizar).observe(LEITOR, {attributes:true, attributeFilter:['class']});
+      return b;
     };
-    var mostrar=function(on){
+    var mostrar=function(on, rotulo){
       var b=document.getElementById('ct-volta');
-      if(on){ if(!b) b=montar(); b.style.display='block'; }
+      if(on){ if(!b) b=montar();
+        /* texto, nunca HTML: o rótulo vem do host */
+        b.querySelector('span').textContent=String(rotulo||'').replace(/\s+/g,' ').trim()||'Voltar';
+        b.style.display='inline-flex'; }
       else if(b) b.style.display='none';
+      sincronizar();
     };
-    if(pedidoURL) mostrar(true);
+    if(pedidoURL) mostrar(true, rotURL);
     window.addEventListener('message', function(e){
-      if(window.ctMensagemDoHost(e) && e.data && e.data.type==='ctVoltaDisponivel') mostrar(!!e.data.on);
+      if(window.ctMensagemDoHost(e) && e.data && e.data.type==='ctVoltaDisponivel') mostrar(!!e.data.on, e.data.rotulo);
+    });
+    /* Alt+← (o atalho da barra antiga) faz a mesma volta — só com a pílula à vista, e nunca
+       dentro de um campo de texto, onde Option+← é "palavra anterior" no Mac. O Esc
+       continua sendo dos leitores. */
+    document.addEventListener('keydown', function(e){
+      if(!e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || e.key!=='ArrowLeft') return;
+      if(!visivel(document.getElementById('ct-volta'))) return;
+      var t=e.target;
+      if(t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName||''))) return;
+      e.preventDefault(); voltar();
     });
   }catch(e){} })();
   document.querySelectorAll('#tabs .tab').forEach(function(b){ b.onclick=function(){ setPane(b.dataset.pane); }; });
@@ -1354,7 +1618,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
       var lista=window[MODOS.contas.idxGlobal]||[];
       MODOS.contas.idx=lista;
       lista.forEach(function(r){ r[I.src]='c'; });
-      IDX=IDX.concat(lista);
+      IDX=ordenarAutoridade(IDX.concat(lista));   // contas entram na ordem de autoridade
       var meta=window.__CONTAS_META__||{};
       var el=document.getElementById('tcFonte');
       if(el)el.innerHTML='33 tribunais de contas — TCU, 26 estaduais, o TCDF e 5 tribunais de contas dos municípios. '
@@ -1370,7 +1634,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   // ---- boot
   recount();
   renderTribChips(); renderBaseChips(); renderRamoChips(); renderFiltroBar();
-  if(!IDX.length){ listEl.innerHTML='<div class="empty"><div class="ei">⚖️</div>Base de jurisprudência não carregou.</div>'; }
+  if(!IDX.length){ listEl.innerHTML='<div class="empty"><div class="ei ct-ladrilho ct-ladrilho-xg">'+ctIco('scale')+'</div>Base de jurisprudência não carregou.</div>'; }
   else { applyFilter(); stats(); renderPage(); }
   setTimeout(carregaContas,60);          // funde o acervo de contas assim que a tela existe
 
@@ -2144,6 +2408,10 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
     }
     if(i>=0)openVerbete(i);
   }
+  // Abrir por id, não por posição: a lista exibida segue a ORDEM DE AUTORIDADE, não a do índice.
+  window.jurisAbrirPorId=qdAbrir;
+  window.jurisTemId=function(id){ for(var k in byId) return !!byId[id]; return null; };   // null = índice ainda vazio
+  window.jurisVerbeteAberto=function(){ return _jr.classList.contains('on') ? curId : null; };
 
   /* Só objeto vira coluna: um registro gravado com "colunas": "abc" (ou com null no meio)
      pintava uma coluna por LETRA, e c.id de null derrubava o roteiro inteiro. */
@@ -2427,7 +2695,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   }
 
   function renderVerbete(r){
-    var _tm=txtDe(r), t=(_tm&&_tm[r[I.id]])||{};
+    var _tm=txtDe(r), t=(_tm&&_tm[r[I.id]])||{}, _te=t.tm||r[I.te];
     var h='<div class="vhero"><div class="htop"><span class="tb">'+esc(r[I.tr]||'—')+'</span>'
       +(r[I.fo]&&norm(r[I.fo])!==norm(r[I.tr])?'<span class="meta">'+esc(nomeColecao(r[I.fo]))+'</span>':'')
       +(r[I.nu]?'<span class="meta">nº '+esc(r[I.nu])+'</span>':'')
@@ -2436,8 +2704,9 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
       +'</div><h2>'+esc(r[I.ti]||'Verbete')+'</h2><div class="tags">'
       +(r[I.ra]?'<span class="rtag">'+esc(r[I.ra])+'</span>':'')
       // no acervo de contas o "tema" do card é o início da própria tese: repetir
-      // logo acima do enunciado inteiro seria eco
-      +(r[I.te]&&!(t.en&&norm(t.en).indexOf(norm(String(r[I.te]).replace(/…$/,'')))===0)?'<span class="tema">'+esc(r[I.te])+'</span>':'')+'</div></div>';
+      // logo acima do enunciado inteiro seria eco. Título oficial longo (teses de RG e
+      // repetitivos) vem cortado no índice, para a lista; o inteiro está em t.tm.
+      +(_te&&!(t.en&&norm(t.en).indexOf(norm(String(_te).replace(/…$/,'')))===0)?'<span class="tema">'+esc(_te)+'</span>':'')+'</div></div>';
     h+='<div class="venun"><div class="lbl">Enunciado</div><div class="bd">'+(t.en?jGr(t.en):'<span style="color:var(--rdim)">Sem enunciado.</span>')+'</div></div>';
     if(t.co)h+='<div class="vblk"><div class="lbl">Comentário</div><div class="bd">'+jGr(t.co)+'</div></div>';
     if(t.ob)h+='<div class="vblk"><div class="lbl">Observação</div><div class="bd">'+jGr(t.ob)+'</div></div>';
@@ -2507,54 +2776,12 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
     _jtools.classList.toggle('aberto',on); _jmais.setAttribute('aria-expanded',on?'true':'false'); };
   _jtools.addEventListener('click',function(){
     _jtools.classList.remove('aberto'); _jmais.setAttribute('aria-expanded','false'); });
-  document.addEventListener('keydown',function(e){ if(!_jr.classList.contains('on'))return; if(e.key==='Escape')jClose(); else if(e.key==='ArrowLeft'&&curIdx>0)openVerbete(curIdx-1); else if(e.key==='ArrowRight'&&curIdx<filtered.length-1)openVerbete(curIdx+1); });
+  /* ←/→ trocam o verbete só SEM modificador: Alt+← é a volta da pílula (e Option/⌘/Ctrl+seta
+     são atalhos do sistema) — antes o mesmo Alt+← voltava ao app E trocava o verbete. */
+  document.addEventListener('keydown',function(e){ if(!_jr.classList.contains('on'))return; if(e.key==='Escape'){ jClose(); return; }
+    if(e.altKey||e.metaKey||e.ctrlKey) return;
+    if(e.key==='ArrowLeft'&&curIdx>0)openVerbete(curIdx-1); else if(e.key==='ArrowRight'&&curIdx<filtered.length-1)openVerbete(curIdx+1); });
 
-})();
-</script>
-<script>
-/* ==========================================================================
-   Barra de volta ao ponto de origem.
-   Quando o acervo é aberto por um clique num artigo do roteiro de peça ou do
-   fluxograma de um rito, o app manda ?de= com o rótulo daquele ponto e ?deTipo=
-   com a tela de onde veio. A barra devolve a pessoa exatamente para lá — antes
-   o caminho era de mão única e ela se perdia na lei seca.
-   Contraparte: ctAbrirAcervo / ctVoltarOrigem no Catedra.dc.html.
-   ========================================================================== */
-(function ctBarraVolta(){
-  try{
-    var P=new URLSearchParams(location.search);
-    var rot=P.get('de'), tipo=P.get('deTipo')||'';
-    window.CT_ORIGEM = rot ? {rotulo:rot, view:tipo} : null;   // repassado adiante nos saltos legis→juris
-    if(!rot) return;
-    var volta=function(){ try{ window.ctEnviarAoHost({type:'ctVoltarOrigem'}); }catch(e){} };
-    var barra=document.createElement('div');
-    barra.setAttribute('role','navigation');
-    barra.setAttribute('aria-label','Voltar ao ponto de origem');
-    barra.style.cssText='position:sticky;top:0;z-index:9999;display:flex;align-items:center;gap:10px;'
-      +'flex-wrap:wrap;padding:9px 15px;background:var(--accentSoft,#f3ecef);'
-      +'border-bottom:1px solid var(--border,#e4dcd6);'
-      +'font:600 12.5px/1.4 var(--body,"Inter",system-ui,sans-serif);color:var(--text2,#4b4a52)';
-    var bt=document.createElement('button');
-    bt.type='button';
-    bt.style.cssText='cursor:pointer;font:inherit;font-weight:800;flex:none;'
-      +'border:1px solid var(--border,#e4dcd6);background:var(--surface,#fff);'
-      +'color:var(--accentD,#8e0f3c);border-radius:99px;padding:6px 14px';
-    bt.textContent = tipo==='areamod' ? '← Voltar ao fluxograma'
-                   : tipo==='prioridade' ? '← Voltar ao painel'
-                   : tipo==='segundafase' ? '← Voltar à correção'
-                   : '← Voltar ao roteiro';
-    bt.onclick=volta;
-    var txt=document.createElement('span');
-    txt.style.cssText='min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
-    txt.textContent='você veio de ' + rot;
-    barra.appendChild(bt); barra.appendChild(txt);
-    var por=function(){ document.body.insertBefore(barra, document.body.firstChild); };
-    if(document.body) por(); else document.addEventListener('DOMContentLoaded', por);
-    document.addEventListener('keydown', function(e){
-      if(e.key==='Escape' && !document.querySelector('.on[role=dialog]')) { /* Esc já é usado pelos leitores */ }
-      if(e.altKey && e.key==='ArrowLeft'){ e.preventDefault(); volta(); }
-    });
-  }catch(e){}
 })();
 </script>
 </body></html>

@@ -37,9 +37,49 @@ struct HomeView: View {
                 JurisCampoBusca(prompt: "Buscar em toda a jurisprudência…", texto: $busca, aoSubmeter: submeterBusca)
                     .padding(.horizontal, 26)
 
-                bloco("Hoje", "sun.max.fill")
-                JurisDashboardView(partes: [.hero])
-                JurisHojeResumo()
+                // Início no padrão do Cátedra (host web, .cth-*): próxima ação, hero com saudação,
+                // chips e painel de vidro, números sobrepostos ao pé do hero e o estudo semanal.
+                Group {
+                    if let ultimo = store.recentEntries.first {
+                        FaixaProximaAcao(titulo: "Continuar: \(ultimo.titulo)", motivo: ultimo.tema ?? ultimo.ramoDireito ?? "Volte ao verbete em que parou.",
+                                         meta: ultimo.tribunal, botao: "Abrir o verbete", acao: { store.lerCheio(ultimo.id) })
+                    } else {
+                        FaixaProximaAcao(titulo: "Comece pelo Acervo", motivo: "STF, STJ, TSE, tribunais estaduais e cortes de contas.",
+                                         botao: "Abrir o Acervo", acao: { store.ir(.destino(.acervo)) })
+                    }
+                }
+                .padding(.horizontal, 26)
+                VStack(spacing: 0) {
+                    let meta = max(store.metaDiaria, 1), feito = store.lidosHoje
+                    HeroInicio(saudacao: HeroInicio<EmptyView>.saudacao() + ".",
+                               subtitulo: HeroInicio<EmptyView>.dataLonga() + " · \(store.entries.count) verbetes no acervo",
+                               chips: ThemeState.t.baixaEstimulacao
+                                   ? [ChipHero(simbolo: "star.fill", valor: "\(store.favorites.count)", rotulo: "favoritos")]
+                                   : [ChipHero(simbolo: "flame.fill", valor: "\(store.streak)", rotulo: store.streak == 1 ? "dia seguido" : "dias seguidos"),
+                                      ChipHero(simbolo: "star.fill", valor: "\(store.favorites.count)", rotulo: "favoritos")]) {
+                        VStack(alignment: .leading, spacing: 14) {
+                            PainelVidroNumero(rotulo: "Meta de hoje", valor: "\(feito)/\(meta)",
+                                              detalhe: feito >= meta ? "Meta cumprida — bom trabalho." : "faltam \(meta - feito) verbetes para a meta")
+                            HStack {
+                                BotaoVidro(titulo: "Revisar hoje", forte: false) { store.ir(.hoje) }
+                                Spacer(minLength: 8)
+                                BotaoVidro(titulo: "Julgado do dia") { if let j = store.verbeteDoDia { store.lerCheio(j.id) } else { store.ir(.julgadoDoDia) } }
+                            }
+                        }
+                    }
+                    HStack(alignment: .top, spacing: 16) {
+                        CartaoNumeroInicio(rotulo: "Meta de hoje", valor: "\(min(100, feito * 100 / meta))", unidade: "%",
+                                           apoio: "\(feito)/\(meta) verbetes", fracao: Double(feito) / Double(meta))
+                        CartaoNumeroInicio(rotulo: "Revisões", valor: "\(store.srsDueCount)", apoio: "cartões vencidos hoje")
+                        CartaoNumeroInicio(rotulo: "Favoritos", valor: "\(store.favorites.count)", apoio: "verbetes marcados com estrela")
+                    }
+                    .padding(.horizontal, 2).offset(y: -42).padding(.bottom, -42)
+                }
+                .padding(.horizontal, 26)
+                SecaoInicio(titulo: "Estudo semanal",
+                            meta: "\(BarrasSemana.dias(store.leiturasPorDia).map(\.valor).reduce(0, +)) verbetes na semana")
+                    .padding(.horizontal, 26)
+                BarrasSemana(atividade: store.leiturasPorDia)
                     .padding(.horizontal, 26)
                 DestaquesEstudoView(parte: .julgado)
 
@@ -79,13 +119,9 @@ struct HomeView: View {
     }
 
     /// Divisor de bloco: caixa-alta + filete — a "voz de seção grande" da Home.
+    /// Título de bloco no padrão do Início do Cátedra (serifa + fio).
     private func bloco(_ t: String, _ simbolo: String) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: simbolo).font(.system(size: 13, weight: .bold)).foregroundStyle(Palette.accent)
-            Text(t.uppercased()).font(.system(size: 12, weight: .heavy)).tracking(1.2).foregroundStyle(Palette.secondaryInk)
-            Rectangle().fill(Palette.hairline).frame(height: 1)
-        }
-        .padding(.horizontal, 28).padding(.top, 6)
+        SecaoInicio(titulo: t).padding(.horizontal, 26)
     }
 
     /// As ações de treino em azulejos grandes — todas alcançáveis também pela sidebar.
@@ -96,7 +132,6 @@ struct HomeView: View {
             ("Prova oral · bancas", "Pontos, perguntas e padrão de resposta publicados", "person.wave.2.fill", .oralBancas),
             ("Plano de leitura", "Súmulas STF, STJ e TSE no seu roteiro", "calendar", .plano),
             ("Grade de informativos", "Edições do STF, STJ e TSE por semana", "square.grid.3x3.fill", .gradeInformativos),
-            ("Mapas mentais", "Galeria dos mapas que você já abriu", "brain.head.profile", .mapas),
         ]
         return LazyVGrid(columns: [GridItem(.adaptive(minimum: 210), spacing: 12)], spacing: 12) {
             ForEach(itens, id: \.0) { it in
@@ -135,13 +170,13 @@ private struct RamoTile: View {
     var body: some View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 6) {
-                Image(systemName: "books.vertical.fill").font(.system(size: 16))
-                    .foregroundStyle(.white)
+                Image(systemName: "books.vertical.fill").font(DS.interface(16))
+                    .foregroundStyle(DS.sobreCor)
                 Spacer(minLength: 0)
-                Text(nome).font(.system(size: 12.5, weight: .bold))
-                    .foregroundStyle(.white).lineLimit(2)
-                Text("\(count) verbetes").font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.85))
+                Text(nome).font(DS.interface(12.5, .bold))
+                    .foregroundStyle(DS.sobreCor).lineLimit(2)
+                Text("\(count) verbetes").font(DS.interface(10, .medium))
+                    .foregroundStyle(DS.sobreCor.opacity(0.85))
             }
             .padding(13).frame(width: 168, height: 104, alignment: .topLeading)
             .background(RamoStyle.gradient(nome), in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
@@ -166,23 +201,23 @@ struct JurisHojeResumo: View {
         let metas = store.checklistPendingCount
         Button { store.ir(.hoje) } label: {
             HStack(spacing: 14) {
-                Image(systemName: "sun.horizon.fill").font(.system(size: 18, weight: .bold)).foregroundStyle(Palette.accent)
+                Image(systemName: "sun.horizon.fill").font(DS.interface(18, .bold)).foregroundStyle(Palette.accent)
                     .frame(width: 38, height: 38)
                     .background(Palette.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Revisar hoje").font(.system(size: 15, weight: .heavy)).foregroundStyle(Palette.titleInk)
+                    Text("Revisar hoje").font(DS.interface(15, .heavy)).foregroundStyle(Palette.titleInk)
                     Text(srs == 0 && metas == 0
                          ? "Nada vencido — abra para ver o julgado do dia e o checklist."
                          : "\(srs) cartão\(srs == 1 ? "" : "ões") de revisão vencido\(srs == 1 ? "" : "s") · \(metas) meta\(metas == 1 ? "" : "s") pendente\(metas == 1 ? "" : "s")")
-                        .font(.system(size: 12)).foregroundStyle(Palette.secondaryInk).lineLimit(2)
+                        .font(DS.interface(12)).foregroundStyle(Palette.secondaryInk).lineLimit(2)
                 }
                 Spacer(minLength: 0)
                 if srs + metas > 0 {
-                    Text("\(srs + metas)").font(Typo.num(12)).foregroundStyle(.white)
+                    Text("\(srs + metas)").font(Typo.num(12)).foregroundStyle(DS.sobreCor)
                         .padding(.horizontal, 8).padding(.vertical, 3)
                         .background(Palette.accent, in: Capsule())
                 }
-                Image(systemName: "chevron.right").font(.system(size: 11, weight: .semibold)).foregroundStyle(Palette.secondaryInk)
+                Image(systemName: "chevron.right").font(DS.interface(11, .semibold)).foregroundStyle(Palette.secondaryInk)
             }
             .padding(14)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -230,15 +265,15 @@ struct JurisHojeView: View {
         return HStack(spacing: 14) {
             VStack(alignment: .leading, spacing: 3) {
                 Text(due == 0 ? "Nenhum cartão vencido" : "\(due) cartão\(due == 1 ? "" : "ões") para revisar")
-                    .font(.system(size: 15, weight: .bold)).foregroundStyle(Palette.titleInk)
+                    .font(DS.interface(15, .bold)).foregroundStyle(Palette.titleInk)
                 Text(deck == 0 ? "Gere flashcards pelo roteiro de um verbete ou pelo quiz do julgado do dia."
                                : "\(deck) no baralho · SM-2, estilo Anki")
-                    .font(.system(size: 12)).foregroundStyle(Palette.secondaryInk)
+                    .font(DS.interface(12)).foregroundStyle(Palette.secondaryInk)
             }
             Spacer(minLength: 0)
             Button { mostrarSRS = true } label: {
                 Label(due == 0 ? "Abrir baralho" : "Revisar agora", systemImage: "play.fill")
-                    .font(.system(size: 12.5, weight: .semibold))
+                    .font(DS.interface(12.5, .semibold))
             }
             .buttonStyle(.borderedProminent).tint(Palette.accent).disabled(deck == 0)
         }
