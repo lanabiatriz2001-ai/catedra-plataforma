@@ -64,6 +64,7 @@ import { testarXcodeCloud } from './xcode-cloud.mjs';
 import { testarSupportCorrecoesLocais } from './support-correcoes-locais.mjs';
 import { testarDesignNativo } from './design-nativo.mjs';
 import { testarExclusaoContaCobertura } from './exclusao-conta-cobertura.mjs';
+import { testarProvaEncerrarUmaVez } from './prova-encerrar-uma-vez.mjs';
 import { montar as montarEnam, parseProva as parseProvaEnam, parseGabarito as parseGabaritoEnam, carregarAreas as areasEnam, EDICOES as EDICOES_ENAM } from '../scripts/build-questoes-enam.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -3259,6 +3260,12 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
   if (h.__excecao) ok(false, 'ENAM/E4 host o roteiro correu sem exceção (' + h.__excecao + ')');
   else for (const [k, v] of Object.entries(h)) ok(v, 'ENAM/E4 host ' + k);
 }
+
+/* ============= PROVA — encerrar uma vez só ============= */
+// um tique do relógio da prova na fila no instante do "Encerrar" corrigia o ENAM de novo, e o clique passava
+// o evento como `auto` (tests/prova-encerrar-uma-vez.mjs, que o WebKit também roda)
+try { await testarProvaEncerrarUmaVez(page, URL0, ok, { motor: 'chromium' }); }
+catch (e) { ok(false, 'PROVA ENCERRAR UMA VEZ [chromium] o roteiro correu sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
 
 /* ============= ENAM — E5: a Trilha ENAM no Início ============= */
 // Sem enam.ativo o bloco não existe. Ativo e sem tentativa: estado vazio com o formato da prova (nunca zeros), a
