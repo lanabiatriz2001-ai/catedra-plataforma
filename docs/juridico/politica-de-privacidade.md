@@ -13,9 +13,10 @@ Esta política explica quais dados pessoais a **Cátedra** (incluindo as submarc
 
 ## 2. Quais dados tratamos
 
-Todos os dados abaixo são fornecidos por você ou gerados pelo seu uso (LGPD, art. 5º, I). Não pedimos CPF, documentos, dados financeiros ou localização.
+Todos os dados abaixo são fornecidos por você, diretamente ou pelo login com Google que você escolher, ou gerados pelo seu uso (LGPD, art. 5º, I). Não pedimos CPF, documentos, dados financeiros ou localização.
 
 - **Conta**: nome ou apelido de exibição, e-mail, credenciais (senha em forma protegida, código do link mágico, identificador do login social) e confirmação do e-mail.
+- **Login com Google (opcional, no site)**: se você escolhe "Continuar com Google", o Google nos informa seu nome, seu e-mail (e se ele foi confirmado), o endereço da foto do perfil e um identificador da sua conta Google. Esses dados ficam no registro de autenticação; o aplicativo usa só o e-mail e o identificador para reconhecer sua conta. Não recebemos sua senha do Google nem acesso a Gmail, contatos, agenda ou outros dados da conta Google.
 - **Perfil de estudo**: objetivo e área (ex.: magistratura), edital cadastrado, metas e conquistas.
 - **Atividade de estudo**: sessões (disciplina, tópico, minutos, acertos e erros), revisões espaçadas e flashcards, respostas em simulados e discursivas, textos de redação e sentença que você escreve para treinar, casos e anotações.
 - **Preferências**: tema, tamanho de texto e demais ajustes de interface.
@@ -30,7 +31,7 @@ Todos os dados abaixo são fornecidos por você ou gerados pelo seu uso (LGPD, a
 
 | Finalidade | Dados | Base legal (LGPD, art. 7º) | Retenção |
 |---|---|---|---|
-| Manter a conta, autenticar, sincronizar, funcionar offline, exibir histórico, análise, revisões e conquistas, enviar e-mails essenciais (confirmação, senha, avisos) | Conta, perfil, atividade, preferências | Execução de contrato (inciso V) | Enquanto a conta existir; exclusão em até [EXCLUSÃO: 30] dias após o encerramento |
+| Manter a conta, autenticar, sincronizar, funcionar offline, exibir histórico, análise, revisões e conquistas, enviar e-mails essenciais (confirmação, senha, avisos) | Conta (inclusive os dados do login com Google), perfil, atividade, preferências | Execução de contrato (inciso V) | Enquanto a conta existir; exclusão em até [EXCLUSÃO: 30] dias após o encerramento |
 | Corrigir redações e discursivas, gerar flashcards e perguntas orais, ler em voz (IA) | Texto ou trecho que você envia | Consentimento específico ao acionar o recurso (inciso I; art. 8º) | Resposta fica com seu material; texto enviado não é retido por nós além da chamada (seção 7) |
 | Grupos de estudo e ranking semanal (opcional) | Código do grupo, apelido, tempo de estudo e mensagens, visíveis aos demais membros | Consentimento (inciso I); você entra e sai quando quiser | Enquanto for membro; mensagens até você apagá-las ou excluir a conta |
 | Notificações no navegador (lembretes e avisos) | Permissão e preferências | Consentimento (inciso I) | Até a revogação |
@@ -54,13 +55,13 @@ Não usamos seus dados para publicidade, perfilamento comercial, venda ou treina
 
 5.2. **Na nuvem**: quando há conexão, os dados são sincronizados com o Supabase, em projeto hospedado na região de São Paulo (Brasil), com controle de acesso por conta. O site e as funções serverless são servidos pela Vercel.
 
-5.3. **Backups seus**: você pode enviar cópias ao seu iCloud Drive ou Google Drive. Essas contas são suas; a Cátedra não as acessa sem uma ação sua nem controla o tratamento feito nelas.
+5.3. **Backups seus**: você pode enviar cópias ao seu iCloud Drive (apps de Mac e iPad) ou ao seu Google Drive (site), à mão ou pelo backup automático semanal, se você ligá-lo em Ajustes. No Google Drive, a Cátedra pede só a permissão de acessar os arquivos que ela mesma cria (escopo drive.file), na prática o arquivo catedra-backup.json, e não vê os demais arquivos do seu Drive. O arquivo vai do seu navegador direto para o Google; a autorização é pedida a cada backup, fica só na memória do navegador durante a operação e não é gravada nem enviada aos nossos servidores. Essas contas são suas; a Cátedra não as acessa sem uma ação sua nem controla o tratamento feito nelas.
 
 5.4. **Administração**: a administração vê métricas de conta (acessos, volume de uso, chamadas de IA), lê os relatos enviados pelo app e a lista de espera, pode pausar a IA, remover a conta ou zerar dados a seu pedido e gerir a lista de acesso; cada ação fica na trilha de auditoria. Seu material de estudo só é acessado pontualmente para atender pedido seu, apurar violação dos Termos de uso ou cumprir obrigação legal.
 
 ## 6. Com quem compartilhamos
 
-Não vendemos nem cedemos seus dados. Compartilhamos apenas com operadores que tratam dados em nosso nome e sob nossas instruções (LGPD, arts. 5º, VII, e 39): **Supabase** (autenticação, banco de dados e sincronização, em São Paulo); **Vercel** (hospedagem do site e das funções serverless); **Anthropic, Google (Gemini e Gemini TTS) e OpenAI** (texto e voz dos recursos de IA, só quando você os aciona); e o **provedor de login social** que você escolher, que nos informa e-mail e identificador.
+Não vendemos nem cedemos seus dados. Compartilhamos apenas com operadores que tratam dados em nosso nome e sob nossas instruções (LGPD, arts. 5º, VII, e 39): **Supabase** (autenticação, banco de dados e sincronização, em São Paulo); **Vercel** (hospedagem do site e das funções serverless); **Anthropic, Google (Gemini e Gemini TTS) e OpenAI** (texto e voz dos recursos de IA, só quando você os aciona). Quando você escolhe entrar com a conta Google ou fazer backup no Google Drive, há também troca de dados com o **Google**: no login, ele nos informa os dados descritos na seção 2; no backup, recebe o arquivo na sua própria conta. Nesses casos o Google trata os dados também como controlador, conforme a política de privacidade dele. O uso e a transferência, para qualquer outro aplicativo, de informações recebidas das APIs do Google seguem a Política de Dados do Usuário dos Serviços de API do Google, incluindo os requisitos de Uso Limitado.
 
 Podemos fornecer dados quando exigido por lei ou ordem judicial (Marco Civil, art. 10, § 1º; LGPD, art. 7º, II e VI), avisando você quando permitido. Não há analytics de terceiros hoje; se vier a haver, esta política será atualizada antes (Marco Civil, art. 7º, VII).
 
@@ -84,7 +85,7 @@ Podemos fornecer dados quando exigido por lei ou ordem judicial (Marco Civil, ar
 
 9.1. Guardamos os dados pelos prazos da tabela da seção 3. Ao término do tratamento, eles são eliminados, salvo conservação autorizada por lei (LGPD, arts. 15 e 16).
 
-9.2. **Exclusão pela própria pessoa**: em Ajustes, você pode excluir a conta. A exclusão remove os dados da nuvem em até [EXCLUSÃO: 30] dias, inclusive os relatos que você enviou pelo app e a contagem das suas chamadas de IA, e apaga a cópia local naquele aparelho; em outros aparelhos, a cópia local some no próximo acesso ou ao limpar os dados do aplicativo.
+9.2. **Exclusão pela própria pessoa**: em Ajustes, você pode excluir a conta. A exclusão remove os dados da nuvem em até [EXCLUSÃO: 30] dias, inclusive os relatos que você enviou pelo app, a contagem das suas chamadas de IA e os dados recebidos do Google no login, e apaga a cópia local naquele aparelho; em outros aparelhos, a cópia local some no próximo acesso ou ao limpar os dados do aplicativo.
 
 9.3. **Exclusão pela administração**: a seu pedido pelo canal do encarregado, ou nos casos previstos nos Termos de uso, a administração pode remover a conta ou zerar os dados, com registro na trilha de auditoria. Zerar apaga o material de estudo e mantém a conta. Remover apaga a conta e os dados ligados a ela, mas **mantém os relatos que você enviou pelo app**, com o e-mail e a mensagem, pelo prazo da seção 9.4; se quiser que eles também sejam apagados, peça pelo canal do encarregado (seção 11).
 
@@ -102,7 +103,7 @@ Podemos fornecer dados quando exigido por lei ou ordem judicial (Marco Civil, ar
 
 11.1. Você pode, a qualquer momento e gratuitamente (LGPD, art. 18): confirmar a existência de tratamento e acessar seus dados (I e II); corrigir dados incompletos, inexatos ou desatualizados (III); pedir anonimização, bloqueio ou eliminação de dados desnecessários, excessivos ou tratados em desconformidade (IV); obter portabilidade (V), inclusive pela exportação em JSON no aplicativo; eliminar dados tratados com consentimento (VI); saber com quem compartilhamos seus dados (VII); ser informado sobre a possibilidade de não consentir (VIII); revogar consentimentos (IX; art. 8º, § 5º), desativando IA, grupos e notificações nos ajustes sem perder o restante do serviço; opor-se a tratamento irregular (art. 18, § 2º); e peticionar à ANPD (art. 18, § 1º).
 
-11.2. **Como exercer**: pelo próprio aplicativo (editar perfil, exportar JSON, sair de grupos, desativar notificações e IA, excluir conta) ou escrevendo para [E-MAIL DO ENCARREGADO]; podemos pedir confirmação de identidade pelo e-mail cadastrado. Confirmação de tratamento e acesso são respondidos de imediato, em formato simplificado, ou em declaração completa em até 15 dias (LGPD, art. 19). Os demais pedidos são atendidos no prazo legal, com resposta motivada em caso de recusa.
+11.2. **Como exercer**: pelo próprio aplicativo (editar perfil, exportar JSON, sair de grupos, desativar notificações e IA, excluir conta) ou escrevendo para [E-MAIL DO ENCARREGADO]; podemos pedir confirmação de identidade pelo e-mail cadastrado. Confirmação de tratamento e acesso são respondidos de imediato, em formato simplificado, ou em declaração completa em até 15 dias (LGPD, art. 19). Os demais pedidos são atendidos no prazo legal, com resposta motivada em caso de recusa. O acesso dado ao login com Google e ao Google Drive pode ser revogado a qualquer momento na sua conta Google (Segurança, Apps de terceiros com acesso à conta); isso não apaga sua conta na Cátedra.
 
 ## 12. Menores de 18 anos
 
