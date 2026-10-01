@@ -1,6 +1,6 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>Fixture — modo local do gate</title>
+<title>Fixture — portão sem o modo local</title>
 <!--
   Carrega o auth.js DE VERDADE com um Supabase falso, e põe um app atrás do gate.
 
@@ -44,11 +44,20 @@
           getUser: function () { return Promise.resolve({ data: { user: null }, error: null }); }
         },
         // preguiçoso como o postgrest-js: nada "sai" antes do then() (ver auth-ipad-fixture.html)
+        // '__fixNuvem' (sessionStorage): a linha de user_data que a leitura devolve — a conta
+        // já tem dados na nuvem. Sem ela, a conta não tem linha. Escritas só se registram.
         from: function () {
-          var q = { select: enc0, eq: enc0, maybeSingle: enc0, single: enc0, upsert: enc0, insert: enc0, update: enc0, delete: enc0,
-            then: function (ok, er) { return Promise.resolve({ data: null, error: null }).then(ok, er); },
+          var op = 'select';
+          var q = { select: enc0, eq: enc0, maybeSingle: enc0, single: enc0,
+            upsert: escreve('upsert'), insert: escreve('insert'), update: escreve('update'), delete: escreve('delete'),
+            then: function (ok, er) {
+              var nuvem = sessionStorage.getItem('__fixNuvem');
+              var res = (op === 'select' && nuvem) ? { data: JSON.parse(nuvem), error: null } : { data: null, error: null };
+              return Promise.resolve(res).then(ok, er);
+            },
             catch: function (er) { return q.then(null, er); } };
           function enc0() { return q; }
+          function escreve(nome) { return function (a) { op = nome; window.__ctAuthEventos.push([nome, a]); return q; }; }
           return q;
         },
         rpc: function () { return Promise.resolve({ data: null, error: null }); },

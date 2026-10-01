@@ -27,6 +27,8 @@
   var _si = localStorage.setItem.bind(localStorage);
   var _ri = localStorage.removeItem.bind(localStorage);
   // _dirty/_lastSrv/notifSent são meta-estado LOCAL do aparelho — nunca sobem no blob
+  // _modoLocal: marca do antigo modo "Usar sem conta" (removido em 01/10/2026). Só sobrevive até
+  // a próxima abertura, que a apaga; fica aqui para nunca subir se sobrar num aparelho.
   var EXCLUDE = { 'catedra:auth': 1, 'catedra:_dirty': 1, 'catedra:_lastSrv': 1, 'catedra:notifSent': 1, 'catedra:_tomb': 1, 'catedra:_bkpFase2': 1, 'catedra:_owner': 1, 'catedra:_modoLocal': 1, 'catedra:_errFila': 1, 'catedra:_usoTelas': 1,
     // notifRevDia marca que o lembrete de revisão do dia JÁ TOCOU NESTE APARELHO (U12) e
     // _bkpAutoTs, quando o backup semanal rodou aqui (D11). São meta-estado local: subir
@@ -1106,42 +1108,22 @@
       btn.disabled = true; btn.textContent = login ? 'Entrando…' : 'Criando conta…';
       var done = function (msg, ok) { btn.disabled = false; btn.textContent = login ? 'Entrar' : 'Criar conta'; if (msg) aviso(msg, ok); };
       var onRes = function (res) {
-        if (res.error) { if (erroDeRede(res.error)) { done(MSG_SEM_SERVIDOR); oferecerModoLocal(); return; } done(translateErr(res.error.message)); return; }
+        if (res.error) { if (erroDeRede(res.error)) { done(MSG_SEM_SERVIDOR); return; } done(translateErr(res.error.message)); return; }
         if (res.data && res.data.session) { btn.textContent = 'Abrindo seus estudos…'; onLogin(res.data.session.user); }
         else if (!login) { mode = 'login'; showForm(); var er = el.querySelector('#cterr'); if (er) { er.style.color = DARK ? '#7fd4b5' : '#0f7a57'; er.textContent = 'Conta criada! Confirme pelo e-mail que acabamos de enviar e depois entre aqui.' + (WEB ? '' : ' O link abre o site da Cátedra ' + NAVEG + '; depois de confirmar, volte aqui e entre normalmente.'); } }
         else { done('Não foi possível entrar.'); }
       };
       var p = login ? sb.auth.signInWithPassword({ email: email, password: pass }) : sb.auth.signUp({ email: email, password: pass, options: { emailRedirectTo: WEB ? location.origin + location.pathname : undefined } });
-      p.then(onRes).catch(function () { done(MSG_SEM_SERVIDOR); oferecerModoLocal(); });
+      p.then(onRes).catch(function () { done(MSG_SEM_SERVIDOR); });
     };
   }
-  /* MODO LOCAL (22/09/2026): o servidor de contas saiu do ar (projeto pausado por cobrança) e
-     quem tinha saído da conta ficou trancada fora do app. Quando entrar falha por REDE, o
-     formulário oferece usar o Cátedra sem conta neste aparelho, com um backup importado.
-     Trava: no próximo login de verdade, TUDO o que estiver no aparelho em modo local é
-     descartado antes de baixar a conta (onLogin) — nada é mesclado com a nuvem. Sem sessão,
-     nada sobe. 'catedra:_modoLocal' é meta-estado do aparelho (EXCLUDE): nunca vai à nuvem. */
+  /* O MODO "USAR SEM CONTA" FOI REMOVIDO (01/10/2026). Ele nasceu em 22/09, com o servidor de
+     contas pausado por cobrança, e descartava o aparelho no login seguinte. Com o servidor de
+     volta, ele só servia para esconder estudo da nuvem: o iPad da dona ficou com uma sessão
+     de 09/09 que nenhum outro aparelho tinha. O aparelho que ainda tiver a marca perde a marca
+     na abertura (ver o fim deste arquivo) e entra como aparelho sem dono com dados: o onLogin
+     junta o que ele tem com a conta (trocouDeDono assume que é dela) e o pushNow sobe. */
   var MSG_SEM_SERVIDOR = 'O servidor de contas não respondeu (sem conexão ou fora do ar).';
-  function modoLocalAtivo() { try { return localStorage.getItem('catedra:_modoLocal') === '1'; } catch (_) { return false; } }
-  function oferecerModoLocal() {
-    if (el.querySelector('#ctlocal')) return;
-    var alvo = el.querySelector('#cterr'); if (!alvo) return;
-    var b = document.createElement('button');
-    b.type = 'button'; b.id = 'ctlocal';
-    b.setAttribute('style', GHOST + 'margin:0 0 12px;min-height:44px;');
-    b.textContent = 'Usar sem conta por enquanto';
-    var nota = document.createElement('p');
-    nota.id = 'ctlocalnota';
-    nota.setAttribute('style', 'font-size:12px;color:' + MUT + ';margin:0 0 12px;line-height:1.5;');
-    nota.textContent = 'Abre o Cátedra só neste aparelho, sem sincronizar. Importe o backup do outro aparelho em Ajustes › Dados. Quando você entrar na conta de novo, o que estiver aqui é descartado e a conta volta inteira da nuvem.';
-    b.onclick = function () {
-      if (!window.confirm('Usar o Cátedra sem conta neste aparelho?\n\nNada daqui vai para a nuvem. Quando você entrar na conta de novo, o que estiver neste aparelho será descartado e a conta volta inteira da nuvem. Registre suas sessões no aparelho que continua conectado.')) return;
-      try { _si('catedra:_modoLocal', '1'); _si('catedra:auth', '1'); _si('catedra:onboarded', '1'); } catch (_) {}
-      location.reload();
-    };
-    alvo.parentNode.insertBefore(nota, alvo.nextSibling);
-    alvo.parentNode.insertBefore(b, alvo.nextSibling);
-  }
   function translateErr(m) {
     m = String(m || '');
     if (/Invalid login/i.test(m)) return 'E-mail ou senha incorretos.';
@@ -1194,8 +1176,6 @@
       if (window.CatedraAuth) window.CatedraAuth.user = ident;
       window.dispatchEvent(new CustomEvent('catedra:authuser', { detail: ident }));
     } catch (_) {}
-    // saindo do modo local: o que está no aparelho não é da nuvem — descarta, a conta vem inteira
-    if (modoLocalAtivo()) { clearLocal(); try { sessionStorage.removeItem('catedra:hydrated'); } catch (_) {} }
     if (trocouDeDono(u)) { clearLocal(); try { sessionStorage.removeItem('catedra:hydrated'); } catch (_) {} }
     try { _si('catedra:_owner', u.id); } catch (_) {}
     if (sessionStorage.getItem('catedra:hydrated') === '1') { viaPendente = false; _si('catedra:auth', '1'); hydrating = false; hide(); setStatus(isDirty() ? 'enviando' : 'salvo'); if (isDirty()) pushNow(); else pullAndMerge(); return; }
@@ -1589,7 +1569,6 @@
   // do login. Com rede e dono carimbado, a sessão expirou ou foi derrubada (o Sair apaga o
   // dono junto com o resto): o login diz isso e o dado local espera a mesma conta voltar.
   function semSessao(err) {
-    if (modoLocalAtivo()) { user = null; hydrating = false; try { _si('catedra:auth', '1'); } catch (_) {} hide(); setStatus('local'); return; }
     var dono = null; try { dono = localStorage.getItem('catedra:_owner'); } catch (_) {}
     if (dono && temDadoLocal() && erroDeRede(err)) { entrarPendente(dono); return; }
     if (dono) avisoSessao = AVISO_SESSAO;
@@ -1616,8 +1595,9 @@
       catch (err) { concluir(null, err); }
     });
   }
-  // A pessoa já escolheu estudar sem conta: a rede não participa da abertura.
-  if (modoLocalAtivo() && !ehRecuperacao) { semSessao(); return; }
+  // Marca que sobrou do modo sem conta (removido): o aparelho segue como qualquer outro, e o
+  // que ele tem é juntado com a conta no próximo login, nunca descartado.
+  try { if (localStorage.getItem('catedra:_modoLocal') !== null) _ri('catedra:_modoLocal'); } catch (_) {}
   consultarSessaoNaAbertura().then(function (res) {
     if (res && res.sessaoEncerrada) { avisoSessao = AVISO_SESSAO; showLoginState(); return; }
     var s = res && res.data && res.data.session;
@@ -1625,10 +1605,9 @@
     if (s && s.user) onLogin(s.user); else semSessao(res && res.error);
   }).catch(function (err) {
     semSessao(err);
-    if (!pendente && !modoLocalAtivo() && erroDeRede(err)) {
+    if (!pendente && erroDeRede(err)) {
       var aviso = el.querySelector('#cterr');
       if (aviso) aviso.textContent = MSG_SEM_SERVIDOR + ' Seus dados neste aparelho foram preservados.';
-      oferecerModoLocal();
     }
   });
 })();
