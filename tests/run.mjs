@@ -65,6 +65,7 @@ import { testarXcodeCloud } from './xcode-cloud.mjs';
 import { testarSentinela } from './sentinela.mjs';
 import { testarSupportCorrecoesLocais } from './support-correcoes-locais.mjs';
 import { testarDesignNativo } from './design-nativo.mjs';
+import { testarExclusaoContaCobertura } from './exclusao-conta-cobertura.mjs';
 import { montar as montarEnam, parseProva as parseProvaEnam, parseGabarito as parseGabaritoEnam, carregarAreas as areasEnam, EDICOES as EDICOES_ENAM } from '../scripts/build-questoes-enam.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -4713,6 +4714,15 @@ catch (e) {
 try { await testarDesignNativo(ok); }
 catch (e) {
   ok(false, 'DESIGN NATIVO o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+/* ============= EXCLUIR MINHA CONTA APAGA TUDO O QUE É DA PESSOA =============
+   A RPC public.excluir_minha_conta cobre toda tabela por conta (ou a deixa nas RETIDAS com motivo),
+   com guarda to_regclass, FKs em cascata e a ordem certa. Roteiro em tests/exclusao-conta-cobertura.mjs
+   (estático; roda também na CI). Não prova o banco vivo: isso é docs/aplicar-exclusao-conta-2026-09-25.md. */
+try { await testarExclusaoContaCobertura(ok); }
+catch (e) {
+  ok(false, 'EXCLUSÃO o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
