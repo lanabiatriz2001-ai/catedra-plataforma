@@ -10,7 +10,8 @@ window.supabase = { createClient: function () { return {
   auth: { onAuthStateChange: function () {}, getSession: function () { return new Promise(function () {}); } },
   from: function () { return {
     select: function () { return { eq: function () { return { maybeSingle: function () { return new Promise(function () {}); } }; } }; },
-    upsert: function () { return Promise.resolve({}); }
+    // preguiçoso como o postgrest-js: o upsert só "sai" no then() (ver auth-ipad-fixture.html)
+    upsert: function () { return { then: function (ok, er) { return Promise.resolve({}).then(ok, er); } }; }
   }; }
 }; } };
 </script>

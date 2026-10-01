@@ -1,7 +1,7 @@
 # Política de privacidade — Cátedra
 
-**Versão 1.0**
-**Data: 02/09/2026**
+**Versão 1.1**
+**Data: 25/09/2026**
 
 Esta política explica quais dados pessoais a **Cátedra** (incluindo as submarcas CátedraLEGIS e CátedraJURIS) trata, para quê, com que fundamento, por quanto tempo e como você exerce seus direitos. Vale para o site e para os aplicativos de Mac e iPad e complementa os Termos de uso (LGPD, arts. 6º, VI, e 9º; Marco Civil da Internet, art. 7º, VIII).
 
@@ -22,6 +22,7 @@ Todos os dados abaixo são fornecidos por você ou gerados pelo seu uso (LGPD, a
 - **Grupos de estudo (opcional)**: código do grupo, apelido, tempo de estudo para o ranking semanal e mensagens no mural.
 - **Notificações (opcional)**: permissão do navegador e preferências de aviso.
 - **Registros técnicos**: última falha gravada no aparelho; registros de acesso à aplicação (data, hora e endereço IP); contagem de chamadas de IA por conta; trilha de auditoria das ações administrativas.
+- **Telemetria de primeira parte (quando ligada pela administração)**: falhas do aplicativo (mensagem técnica saneada, versão, aparelho e tela em que ocorreram) e a contagem diária de aberturas de cada tela, associadas à sua conta. Não inclui o conteúdo do seu material de estudo e não é compartilhada com terceiros.
 
 ## 3. Finalidades, bases legais e retenção
 
@@ -31,7 +32,8 @@ Todos os dados abaixo são fornecidos por você ou gerados pelo seu uso (LGPD, a
 | Corrigir redações e discursivas, gerar flashcards e perguntas orais, ler em voz (IA) | Texto ou trecho que você envia | Consentimento específico ao acionar o recurso (inciso I; art. 8º) | Resposta fica com seu material; texto enviado não é retido por nós além da chamada (seção 7) |
 | Grupos de estudo e ranking semanal (opcional) | Código do grupo, apelido, tempo de estudo e mensagens, visíveis aos demais membros | Consentimento (inciso I); você entra e sai quando quiser | Enquanto for membro; mensagens até você apagá-las ou excluir a conta |
 | Notificações no navegador (lembretes e avisos) | Permissão e preferências | Consentimento (inciso I) | Até a revogação |
-| Segurança, prevenção a fraude e abuso, controle de custo da IA, diagnóstico de erro | Contagem de chamadas de IA, trilha de auditoria, IP, última falha no aparelho | Legítimo interesse (inciso IX; art. 10) | Contagem de IA e trilha: [RETENÇÃO IA: 12] meses; última falha: só no aparelho, sobrescrita pela seguinte |
+| Segurança, prevenção a fraude e abuso, controle de custo da IA, diagnóstico de erro | Contagem de chamadas de IA, trilha de auditoria, IP, última falha no aparelho | Legítimo interesse (inciso IX; art. 10) | Contagem de IA e trilha: [RETENÇÃO IA: 12] meses; última falha: no aparelho, sobrescrita pela seguinte |
+| Diagnóstico de erro e melhoria das telas (telemetria de primeira parte, quando ligada) | Falhas saneadas do aplicativo e contagem diária de aberturas por tela, associadas à conta | Legítimo interesse (inciso IX; art. 10) | Enquanto a conta existir; apagadas junto com a exclusão da conta |
 | Guarda de registros de acesso; atendimento a pedidos de titulares e ordens legais | Data, hora e IP de acesso; dados do pedido e da resposta | Obrigação legal (inciso II; Marco Civil, art. 15) | Registros de acesso: 6 meses, sob sigilo; demais: prazo legal |
 
 Não usamos seus dados para publicidade, perfilamento comercial, venda ou treinamento de modelos de IA. Finalidade nova será avisada antes, com pedido de consentimento quando for o caso (LGPD, arts. 6º, I, e 8º, § 6º).
@@ -82,7 +84,7 @@ Podemos fornecer dados quando exigido por lei ou ordem judicial (Marco Civil, ar
 
 9.3. **Exclusão pela administração**: a seu pedido pelo canal do encarregado, ou nos casos previstos nos Termos de uso, a administração pode remover a conta ou zerar os dados, com registro na trilha de auditoria.
 
-9.4. **O que permanece**: registros de acesso à aplicação por 6 meses, sob sigilo, por obrigação legal (Marco Civil, art. 15; LGPD, arts. 7º, II, e 16, I); registro mínimo do pedido de exclusão, para comprovar o atendimento (LGPD, art. 16, I); seus backups no iCloud Drive ou Google Drive; cópias de segurança técnicas do banco, que expiram no ciclo do provedor.
+9.4. **O que permanece**: a trilha de auditoria das ações administrativas, pelo prazo da seção 3; registros de acesso à aplicação por 6 meses, sob sigilo, por obrigação legal (Marco Civil, art. 15; LGPD, arts. 7º, II, e 16, I); registro mínimo do pedido de exclusão, para comprovar o atendimento (LGPD, art. 16, I); seus backups no iCloud Drive ou Google Drive; cópias de segurança técnicas do banco, que expiram no ciclo do provedor.
 
 ## 10. Segurança e incidentes
 

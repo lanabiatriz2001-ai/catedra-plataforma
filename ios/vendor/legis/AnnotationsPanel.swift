@@ -82,8 +82,8 @@ private struct AnnotationCard: View {
     private var noteFont: Font {
         let size = annotation.noteFontSize ?? 13
         switch annotation.noteFontFamily {
-        case nil, "Sistema": return .system(size: size)
-        case "Sistema (Serifa)": return .system(size: size, design: .serif)
+        case nil, "Sistema": return DS.interface(size)
+        case "Sistema (Serifa)": return DS.display(size, .regular)
         case let family?: return .custom(family, size: size)
         }
     }
@@ -225,7 +225,7 @@ struct FontPickerView: View {
     @Environment(\.dismiss) private var dismiss
 
     private static let families: [String] = {
-        ["Sistema", "Sistema (Serifa)"] + UIFont.familyNames.sorted()
+        ["Spectral", "Sistema", "Sistema (Serifa)"] + UIFont.familyNames.sorted()
     }()
 
     private var filtered: [String] {

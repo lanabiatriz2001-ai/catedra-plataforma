@@ -13,9 +13,11 @@ jobs:
         with:
           node-version: 24
       - name: Dependências
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
       - name: Nenhuma chave de API no repositório
         run: node scripts/verificar-segredos.mjs
+      - name: Dívida visual do LEGIS/JURIS nativos só desce
+        run: node scripts/verificar-design-nativo.mjs
       - name: Build da plataforma
         run: node scripts/build.mjs
       - name: Testes de navegador (sync + acervo ida-e-volta)
@@ -35,7 +37,7 @@ jobs:
         with:
           node-version: 24
       - name: Dependências
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
       - name: Build da plataforma
         run: node scripts/build.mjs
       - name: WebKit do Playwright (com as bibliotecas de sistema)

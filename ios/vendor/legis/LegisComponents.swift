@@ -19,8 +19,8 @@ extension AppTheme {
     /// para o Simulado e a Prova oral não ignorarem a escolha da usuária.
     static func readerFont(size: Double, family: String, weight: Font.Weight = .regular) -> Font {
         switch family {
-        case "Sistema":          return .system(size: size, weight: weight, design: .default)
-        case "Sistema (Serifa)": return .system(size: size, weight: weight, design: .serif)
+        case "Sistema":          return DS.interface(size, weight)
+        case "Sistema (Serifa)": return DS.display(size, weight)
         default:                 return Font.custom(family, size: size).weight(weight)
         }
     }

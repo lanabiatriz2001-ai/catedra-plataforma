@@ -18,7 +18,6 @@ struct EntryDetailView: View {
     @State private var mostrarAnki = false
     @State private var mostrarComparador = false
     @State private var mostrarLinhaTempo = false
-    @State private var mostrarMapa = false
     @State private var mostrarRevisao = false
     @State private var notaEmTexto = false   // alterna a nota entre esquema e prosa
     @State private var editandoEnunciado = false
@@ -38,7 +37,17 @@ struct EntryDetailView: View {
     /// main, e a seção "Do mesmo assunto" nunca discorda do quadro na mesma rolagem — nem
     /// quando o roteiro vem do cache.
     @State private var vizinhos: QuadroRelacionados?
+    // Entrega 3 — casca do leitor (estado só de tela; nada persistido).
+    @State private var modoVerbete: ModoLeitor = .ler
+    @State private var gaveta: AlturaGaveta = .fechada
+    @State private var abaGaveta = 0
+    @State private var mostrarSecundario = false
+    // Entrega 6: a barra de marcação (15 controles) fica recolhida atrás de um botão "Marcar".
+    @State private var mostrarMarcacao = false
+    @State private var artigosDoVerbete: [ArtigoCitado] = []
+    @State private var relacionadosCache: [JurisEntry]?
 
+    private var ehCompactoOuFalso: Bool { false }
     private var baseSize: CGFloat { 16.5 * readingScale }
     private var markColor: MarkColor { MarkColor(rawValue: markColorHex) ?? .amarelo }
 
@@ -50,36 +59,26 @@ struct EntryDetailView: View {
                 header
                 alertaSituacao
                 enunciadoCard
-                // INFORMATIVO: o roteiro-widget (Em uma frase / Fundamento / Como era / O que
-                // decidiu / Pegadinha / quiz) é a interface do informativo — vem logo depois do
-                // enunciado, antes das anotações; estava enterrado no fim da página. Agora é
-                // local e instantâneo (RoteiroLocal), então nasce aberto em todo verbete.
-                // O roteiro é local e instantâneo (RoteiroLocal), então nasce aberto em TODO
-                // verbete — informativo ou não. Antes havia dois ramos (ehInformativo e o
-                // contrário) chamando a mesma coisa com comentários que diziam o oposto.
-                // vizinhosAbaixo: a lista "Do mesmo assunto" é a seção que fecha a página
-                // (relacionadosSection), então o quadro não a repete aqui em cima.
-                RoteiroEstudoView(entry: entry, autoGerar: true, vizinhosAbaixo: true,
-                                  aoMudarQuadro: { vizinhos = $0 })
-                // "Minhas anotações" LOGO ABAIXO do dispositivo (pedido da Lana) —
-                // antes vinha depois da nota de estudo do app.
-                anotacaoCard
-                notaAppCard
-                metadata
-                if let p = entry.precedentes, !p.isEmpty {
-                    disclosure("Precedentes / Julgados", "text.quote", p)
+                // Ler: só a fonte primária (texto do tribunal, ficha, precedentes, referências
+                // oficiais). Estudar: o roteiro, as suas anotações e a nota de estudo do app.
+                // Comentário e observação (apoio) ficam no ⋯ → "Comentário e observação".
+                if modoVerbete == .ler {
+                    ligacoesVerbete
+                    metadata
+                    if let p = entry.precedentes, !p.isEmpty {
+                        disclosure("Precedentes / Julgados", "text.quote", p)
+                    }
+                    if let r = entry.referencias, !r.isEmpty {
+                        disclosure("Referências legislativas", "book.closed", r)
+                    }
+                    footer
+                } else {
+                    RoteiroEstudoView(entry: entry, autoGerar: true, vizinhosAbaixo: true,
+                                      aoMudarQuadro: { vizinhos = $0 })
+                    anotacaoCard
+                    notaAppCard
+                    relacionadosSection
                 }
-                if let c = entry.comentario, !c.isEmpty {
-                    disclosure("Comentário", "text.bubble", c)
-                }
-                if let o = entry.observacao, !o.isEmpty {
-                    disclosure("Observação", "exclamationmark.bubble", o)
-                }
-                if let r = entry.referencias, !r.isEmpty {
-                    disclosure("Referências legislativas", "book.closed", r)
-                }
-                relacionadosSection
-                footer
             }
             .padding(.horizontal, 34)
             .padding(.vertical, 30)
@@ -87,10 +86,49 @@ struct EntryDetailView: View {
             .frame(maxWidth: .infinity, alignment: .center)
         }
         .background(detailCanvas)
+        .overlay(alignment: .bottom) {
+            if gaveta != .fechada {
+                GavetaContexto(altura: $gaveta, titulo: entry.titulo, subtitulo: entry.tribunal,
+                               abas: ["Artigos citados", "Relacionados"], aba: $abaGaveta,
+                               compacto: ehCompactoOuFalso) { conteudoGavetaVerbete }
+            }
+        }
+        // Artigos citados: uma vez por verbete (não a cada redesenho). Relacionados: só quando
+        // a aba abre, fora da main (varre o acervo inteiro).
+        .task(id: entry.id) { artigosDoVerbete = JurisPorArtigo.artigosCitados(verbeteID: entry.id); relacionadosCache = nil }
+        .task(id: "\(entry.id)|\(abaGaveta)|\(gaveta != .fechada)") {
+            guard abaGaveta == 1, gaveta != .fechada, relacionadosCache == nil,
+                  let acervo = store.acervoParaQuadro() else { return }
+            let e = entry
+            let r = await Task.detached(priority: .userInitiated) { acervo.relacionados(e, limite: 12) }.value
+            relacionadosCache = r
+        }
+        .sheet(isPresented: $mostrarSecundario) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: DSEspaco.e4) {
+                    Text("Comentário e observação").font(DS.display(19, .bold)).foregroundStyle(ThemeState.t.ink)
+                    Text("Material de apoio — não é o texto do tribunal.")
+                        .font(DS.interface(13)).foregroundStyle(ThemeState.t.text3)
+                    if let c = entry.comentario, !c.isEmpty {
+                        Text(c).font(DS.display(16, .regular)).foregroundStyle(ThemeState.t.ink).textSelection(.enabled)
+                    }
+                    if let o = entry.observacao, !o.isEmpty {
+                        Text(o).font(DS.display(16, .regular)).foregroundStyle(ThemeState.t.ink).textSelection(.enabled)
+                    }
+                }
+                .padding(DSEspaco.e5)
+            }
+            .frame(minWidth: ehCompactoOuFalso ? nil : 420, minHeight: 320)
+        }
         .navigationTitle(entry.titulo)
         // No embed a toolbar da JANELA pertence ao host (seletor de abas) — os botões
         // do verbete viram uma barra própria acima do conteúdo (estilo Books).
-        .safeAreaInset(edge: .top, spacing: 0) { entryToolbar }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            BarraLeitor(ramo: [entry.tribunal, entry.ramoDireito ?? ""].filter { !$0.isEmpty }.joined(separator: " · "),
+                        corRamo: CorTribunal.identidade(entry.tribunal) ?? Ramo.deNome(entry.ramoDireito)?.identidade,
+                        titulo: entry.titulo, modo: $modoVerbete, aoVoltar: nil,
+                        aa: { tamanhoMenu }, mais: { maisVerbete })
+        }
         .onAppear {
             store.markRecent(entry.id)
             // Rateio do relógio: o tempo passa a contar para a matéria deste verbete.
@@ -113,7 +151,6 @@ struct EntryDetailView: View {
         }
         .sheet(isPresented: $mostrarComparador) { ComparadorView(entry: entry) }
         .sheet(isPresented: $mostrarLinhaTempo) { LinhaTempoView(entry: entry) }
-        .sheet(isPresented: $mostrarMapa) { MapaMentalSheet(entry: entry) }
         .sheet(isPresented: $mostrarRevisao) { RevisaoEspacadaView(escopo: [entry.id]) }
         .sheet(item: $editingMarkComment) { ec in
             MarkCommentEditorSheet(initial: ec.text, isEditing: ec.markID != nil,
@@ -171,7 +208,7 @@ struct EntryDetailView: View {
             }
             if let r = entry.ramoDireito {
                 Text(r.uppercased())
-                    .font(.system(size: 10, weight: .bold)).tracking(1.1)
+                    .font(DS.interface(10, .bold)).tracking(1.1)
                     .foregroundStyle(.white.opacity(0.85))
                     .padding(.horizontal, 9).padding(.vertical, 3)
                     .background(Color.white.opacity(0.16), in: Capsule())
@@ -190,17 +227,17 @@ struct EntryDetailView: View {
         .shadow(color: RamoStyle.color(entry.ramoDireito).opacity(0.3), radius: 16, y: 8)
     }
 
-    /// Nota de estudo ORIGINAL (não oficial) — esquema/mapa mental do que a corte quis dizer.
+    /// Nota de estudo ORIGINAL (não oficial) — esquema do que a corte quis dizer.
     @ViewBuilder private var notaAppCard: some View {
         if let nota = store.notaApp(for: entry.id) {
             // mostra prosa se a usuária alternou E há texto; senão, o esquema (se houver)
             let mostraTexto = (notaEmTexto && nota.texto != nil) || !nota.temEsquema
             VStack(alignment: .leading, spacing: 13) {
                 HStack(spacing: 7) {
-                    Image(systemName: "brain.head.profile").font(.system(size: 12)).foregroundStyle(Palette.importante)
-                    Text("NOTA DE ESTUDO").font(.system(size: 10.5, weight: .bold)).tracking(1)
+                    Image(systemName: "brain.head.profile").font(DS.interface(12)).foregroundStyle(Palette.importante)
+                    Text("NOTA DE ESTUDO").font(DS.interface(10.5, .bold)).tracking(1)
                         .foregroundStyle(Palette.importante)
-                    Text("não oficial").font(.system(size: 9.5)).foregroundStyle(Palette.secondaryInk)
+                    Text("não oficial").font(DS.interface(9.5)).foregroundStyle(Palette.secondaryInk)
                         .padding(.horizontal, 6).padding(.vertical, 1)
                         .background(Palette.secondaryInk.opacity(0.12), in: Capsule())
                     Spacer()
@@ -241,7 +278,7 @@ struct EntryDetailView: View {
 
     private func modoNotaBtn(_ titulo: String, ativo: Bool, _ acao: @escaping () -> Void) -> some View {
         Button(action: acao) {
-            Text(titulo).font(.system(size: 10, weight: .semibold))
+            Text(titulo).font(DS.interface(10, .semibold))
                 .foregroundStyle(ativo ? .white : Palette.secondaryInk)
                 .padding(.horizontal, 9).padding(.vertical, 3)
                 .background(ativo ? Palette.importante : Color.clear, in: Capsule())
@@ -253,7 +290,7 @@ struct EntryDetailView: View {
         VStack(spacing: 4) {
             ForEach(Array(passos.enumerated()), id: \.offset) { i, passo in
                 Text(passo)
-                    .font(.system(size: 12.5, weight: i == 0 ? .semibold : .regular))
+                    .font(DS.interface(12.5, i == 0 ? .semibold : .regular))
                     .foregroundStyle(Palette.bodyInk)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
@@ -262,7 +299,7 @@ struct EntryDetailView: View {
                     .background(Palette.accent.opacity(i == 0 ? 0.14 : 0.07), in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
                     .overlay(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).strokeBorder(Palette.accent.opacity(0.25), lineWidth: 1))
                 if i < passos.count - 1 {
-                    Image(systemName: "arrow.down").font(.system(size: 11, weight: .bold)).foregroundStyle(Palette.accent)
+                    Image(systemName: "arrow.down").font(DS.interface(11, .bold)).foregroundStyle(Palette.accent)
                 }
             }
         }
@@ -276,13 +313,13 @@ struct EntryDetailView: View {
     private func ramoView(_ r: RamoNota) -> some View {
         let cor = corRamo(r.tipo)
         return HStack(alignment: .top, spacing: 10) {
-            Image(systemName: r.simbolo).font(.system(size: 12)).foregroundStyle(cor).frame(width: 18)
+            Image(systemName: r.simbolo).font(DS.interface(12)).foregroundStyle(cor).frame(width: 18)
             VStack(alignment: .leading, spacing: 4) {
-                Text(r.titulo.uppercased()).font(.system(size: 10, weight: .bold)).tracking(0.6).foregroundStyle(cor)
+                Text(r.titulo.uppercased()).font(DS.interface(10, .bold)).tracking(0.6).foregroundStyle(cor)
                 ForEach(Array(r.itens.enumerated()), id: \.offset) { _, item in
                     HStack(alignment: .top, spacing: 6) {
-                        Text("•").font(.system(size: 12)).foregroundStyle(cor.opacity(0.7))
-                        Text(item).font(.system(size: 12.5)).foregroundStyle(Palette.bodyInk)
+                        Text("•").font(DS.interface(12)).foregroundStyle(cor.opacity(0.7))
+                        Text(item).font(DS.interface(12.5)).foregroundStyle(Palette.bodyInk)
                             .textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                     }
                 }
@@ -303,14 +340,14 @@ struct EntryDetailView: View {
             let cor: Color = cancelada ? Palette.bad : Palette.warn
             HStack(alignment: .top, spacing: 11) {
                 Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.system(size: 18)).foregroundStyle(cor)
+                    .font(DS.interface(18)).foregroundStyle(cor)
                 VStack(alignment: .leading, spacing: 3) {
                     Text(cancelada ? "SÚMULA / TESE CANCELADA" : "ENTENDIMENTO SUPERADO")
-                        .font(.system(size: 12.5, weight: .bold)).tracking(0.5).foregroundStyle(cor)
+                        .font(DS.interface(12.5, .bold)).tracking(0.5).foregroundStyle(cor)
                     Text(entry.situacao ?? (cancelada
                             ? "Não utilize como fundamento — este enunciado foi cancelado."
                             : "Verifique o entendimento atual — esta tese foi superada."))
-                        .font(.system(size: 12)).foregroundStyle(Palette.bodyInk)
+                        .font(DS.interface(12)).foregroundStyle(Palette.bodyInk)
                         .fixedSize(horizontal: false, vertical: true)
                     // Aponta para o que DE FATO vai pintar: a seção do fim da página lista só o
                     // que ficou fora do quadro, e pode estar vazia quando todos os vizinhos
@@ -319,10 +356,10 @@ struct EntryDetailView: View {
                     if let v = vizinhos {
                         if !v.mesmoAssuntoItens.isEmpty {
                             Text("Os julgados do mesmo assunto estão no fim da página — confira neles, e no tribunal, qual é o entendimento atual.")
-                                .font(.system(size: 11)).foregroundStyle(Palette.secondaryInk)
+                                .font(DS.interface(11)).foregroundStyle(Palette.secondaryInk)
                         } else if v.temQuadro {
                             Text("Compare com os verbetes do quadro “Não confunda com”, no roteiro logo abaixo.")
-                                .font(.system(size: 11)).foregroundStyle(Palette.secondaryInk)
+                                .font(DS.interface(11)).foregroundStyle(Palette.secondaryInk)
                         }
                     }
                 }
@@ -338,8 +375,8 @@ struct EntryDetailView: View {
     /// Data do julgado/súmula, visível no topo (calendário + data).
     private func dataPill(_ d: String) -> some View {
         HStack(spacing: 4) {
-            Image(systemName: "calendar").font(.system(size: 10, weight: .semibold))
-            Text(d).font(.system(size: 11, weight: .semibold))
+            Image(systemName: "calendar").font(DS.interface(10, .semibold))
+            Text(d).font(DS.interface(11, .semibold))
         }
         .foregroundStyle(Palette.secondaryInk)
         .padding(.horizontal, 9).padding(.vertical, 4)
@@ -354,9 +391,9 @@ struct EntryDetailView: View {
         return Button { store.toggleLido(entry.id) } label: {
             HStack(spacing: 5) {
                 Image(systemName: lido ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(DS.interface(12, .semibold))
                 Text(lido ? "Lido" : "Marcar como lido")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(DS.interface(12, .semibold))
             }
             .foregroundStyle(lido ? .white : Palette.bodyInk)
             .padding(.horizontal, 12).padding(.vertical, 6)
@@ -389,8 +426,19 @@ struct EntryDetailView: View {
 
     private var enunciadoCard: some View {
         VStack(alignment: .leading, spacing: 0) {
-            marcacaoToolbar
-            Divider().overlay(Palette.hairline)
+            if mostrarMarcacao && !editandoEnunciado {
+                marcacaoToolbar
+                Divider().overlay(Palette.hairline)
+            }
+            if !editandoEnunciado { HStack {
+                Spacer()
+                Button { withAnimation(.easeInOut(duration: 0.15)) { mostrarMarcacao.toggle() } } label: {
+                    Label(mostrarMarcacao ? "Fechar marcação" : "Marcar", systemImage: "highlighter")
+                        .font(DS.interface(13, .semibold)).frame(minHeight: 32)
+                }
+                .buttonStyle(.plain).foregroundStyle(ThemeState.t.accent)
+                .padding(.top, 8)
+            } }
             HStack(alignment: .top, spacing: 12) {
                 MarkableText(text: editandoEnunciado ? rascunhoEnunciado : store.textoEnunciado(for: entry),
                              marks: store.marks(for: entry.id),
@@ -462,7 +510,7 @@ struct EntryDetailView: View {
     private var marcacaoToolbar: some View {
         HStack(spacing: 4) {
             Text("MARCAR")
-                .font(.system(size: 9, weight: .bold)).tracking(1)
+                .font(DS.interface(9, .bold)).tracking(1)
                 .foregroundStyle(Palette.secondaryInk)
 
             toolBtn("arrow.uturn.backward") { store.undoMarks(entry.id) }
@@ -500,8 +548,8 @@ struct EntryDetailView: View {
             toolBtn("textformat.size.smaller") { readingScale = max(readingScale - 0.1, 0.8) }
                 .help("Diminuir a fonte")
             Text("\(Int(readingScale * 100))%")
-                .font(.system(size: 9.5, weight: .medium).monospacedDigit())
-                .foregroundStyle(Palette.secondaryInk).frame(width: 30)
+                .font(DS.interface(9.5, .medium).monospacedDigit())
+                .foregroundStyle(Palette.secondaryInk).frame(width: 36)
             toolBtn("textformat.size.larger") { readingScale = min(readingScale + 0.1, 1.8) }
                 .help("Aumentar a fonte")
 
@@ -509,7 +557,7 @@ struct EntryDetailView: View {
             toolBtn("eraser") { limparMarca() }.help("Remover marcação do trecho selecionado")
         }
         .buttonStyle(.plain)
-        .font(.system(size: 13))
+        .font(DS.interface(13))
         .disabled(editandoEnunciado)
         .opacity(editandoEnunciado ? 0.4 : 1)
     }
@@ -648,8 +696,8 @@ struct EntryDetailView: View {
         VStack(alignment: .leading, spacing: 8) {
             // Ferramentas que só fazem sentido em texto editável (inserção/estrutura).
             HStack(spacing: 5) {
-                Image(systemName: "pencil.and.outline").font(.system(size: 11))
-                Text("EDITANDO O TEXTO").font(.system(size: 9, weight: .bold)).tracking(1)
+                Image(systemName: "pencil.and.outline").font(DS.interface(11))
+                Text("EDITANDO O TEXTO").font(DS.interface(9, .bold)).tracking(1)
                 divisor
                 edicaoBtn("list.bullet") { bulletNoVerbete() }.help("Lista com marcador")
                 // Emoji / ícones de estudo
@@ -678,24 +726,24 @@ struct EntryDetailView: View {
                 .menuIndicator(.hidden).frame(width: 22).help("Fonte de leitura do app")
                 Spacer()
             }
-            .buttonStyle(.plain).font(.system(size: 12)).foregroundStyle(Palette.accent)
+            .buttonStyle(.plain).font(DS.interface(12)).foregroundStyle(Palette.accent)
 
             HStack(spacing: 8) {
                 Text("O texto oficial nunca é perdido — “Restaurar original” volta a qualquer momento.")
-                    .font(.system(size: 10)).foregroundStyle(Palette.secondaryInk)
+                    .font(DS.interface(10)).foregroundStyle(Palette.secondaryInk)
                 Spacer()
                 if store.enunciadoFoiEditado(entry.id) {
                     Button("Restaurar original") {
                         store.restaurarEnunciadoOriginal(entry.id)
                         editandoEnunciado = false
-                    }.font(.system(size: 11))
+                    }.font(DS.interface(11))
                 }
-                Button("Cancelar") { editandoEnunciado = false }.font(.system(size: 11))
+                Button("Cancelar") { editandoEnunciado = false }.font(DS.interface(11))
                 Button("Salvar") {
                     store.setTextoEditado(rascunhoEnunciado, entry: entry)
                     editandoEnunciado = false
                 }
-                .font(.system(size: 11, weight: .semibold))
+                .font(DS.interface(11, .semibold))
                 .buttonStyle(.borderedProminent).tint(Palette.accent)
             }
         }
@@ -838,8 +886,8 @@ struct EntryDetailView: View {
     private var anotacaoCard: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
-                Image(systemName: "square.and.pencil").font(.system(size: 11, weight: .semibold))
-                Text("MINHAS ANOTAÇÕES").font(.system(size: 10.5, weight: .bold)).tracking(1)
+                Image(systemName: "square.and.pencil").font(DS.interface(11, .semibold))
+                Text("MINHAS ANOTAÇÕES").font(DS.interface(10.5, .bold)).tracking(1)
                 Spacer()
                 formatToolbar
             }
@@ -993,7 +1041,7 @@ struct EntryDetailView: View {
             }
         }
         .buttonStyle(.plain)
-        .font(.system(size: 12))
+        .font(DS.interface(12))
         .foregroundStyle(Palette.accent)
     }
 
@@ -1045,7 +1093,7 @@ struct EntryDetailView: View {
                 .padding(.top, 10)
         } label: {
             Label(titulo, systemImage: icone)
-                .font(.system(size: 13, weight: .semibold))
+                .font(DS.interface(13, .semibold))
                 .foregroundStyle(Palette.accent)
         }
         .tint(Palette.accent)
@@ -1087,7 +1135,7 @@ struct EntryDetailView: View {
         if let url = entry.fonteOficialURL {
             Link(destination: url) {
                 Label(entry.fonteOficialLabel, systemImage: "arrow.up.forward.square")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(DS.interface(12, .semibold))
             }
             .buttonStyle(.plain)
             .foregroundStyle(Palette.accent)
@@ -1097,115 +1145,149 @@ struct EntryDetailView: View {
 
     // MARK: - Barra de ferramentas do verbete (estilo Books: cápsulas de ícone)
 
-    // Cápsula de ícone da barra (com chevron opcional para os menus).
-    private func capsIcon(_ icone: String, tint: Color = Palette.secondaryInk, chevron: Bool = false) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: icone).font(.system(size: 12.5, weight: .medium))
-            if chevron { Image(systemName: "chevron.down").font(.system(size: 7, weight: .bold)) }
+    // MARK: - Casca do leitor (entrega 3)
+
+    private var tamanhoMenu: some View {
+        Menu {
+            Button { readingScale = min(readingScale + 0.1, 1.8) } label: { Label("Aumentar texto", systemImage: "textformat.size.larger") }
+            Button { readingScale = max(readingScale - 0.1, 0.8) } label: { Label("Diminuir texto", systemImage: "textformat.size.smaller") }
+            Button { readingScale = 1.0 } label: { Label("Tamanho padrão", systemImage: "arrow.counterclockwise") }
+        } label: {
+            Image(systemName: "textformat.size").font(DS.interface(17))
+                .frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
+                .accessibilityLabel("Tamanho do texto")
         }
-        .foregroundStyle(tint)
-        .padding(.horizontal, 11).padding(.vertical, 7)
-        .background(Palette.elevated, in: Capsule())
-        .overlay(Capsule().strokeBorder(Palette.hairline, lineWidth: 1))
+        .menuIndicator(.hidden).fixedSize()
     }
 
-    private var entryToolbar: some View {
-        HStack(spacing: 6) {
-            Spacer(minLength: 0)
-
-            // ── Marcar: favoritar / importante / lido ──
-            Button { store.toggleFavorite(entry.id) } label: {
-                capsIcon(store.isFavorite(entry.id) ? "star.fill" : "star",
-                         tint: store.isFavorite(entry.id) ? .yellow : Palette.secondaryInk)
+    /// Tudo o que a barra antiga (9 controles) oferecia, agrupado — sem mudar o que cada ação faz.
+    private var maisVerbete: some View {
+        Menu {
+            Section("Marcar") {
+                Button { store.toggleFavorite(entry.id) } label: {
+                    Label(store.isFavorite(entry.id) ? "Remover dos favoritos" : "Favoritar",
+                          systemImage: store.isFavorite(entry.id) ? "star.fill" : "star")
+                }
+                Button { store.toggleImportante(entry) } label: {
+                    Label(entry.importante ? "Importante (pelo material)" : (store.isImportante(entry) ? "Desmarcar importante" : "Marcar como importante"),
+                          systemImage: (store.isImportante(entry) || entry.importante) ? "flag.fill" : "flag")
+                }
+                .disabled(entry.importante)
+                Button { store.toggleLido(entry.id) } label: {
+                    Label(store.isLido(entry.id) ? "Desmarcar lido" : "Marcar como lido",
+                          systemImage: store.isLido(entry.id) ? "checkmark.circle.fill" : "checkmark.circle")
+                }
             }
-            .buttonStyle(.plain)
-            .help(store.isFavorite(entry.id) ? "Nos favoritos" : "Favoritar")
-
-            Button { store.toggleImportante(entry) } label: {
-                capsIcon((store.isImportante(entry) || entry.importante) ? "flag.fill" : "flag",
-                         tint: (store.isImportante(entry) || entry.importante) ? Palette.warn : Palette.secondaryInk)
-            }
-            .buttonStyle(.plain)
-            .disabled(entry.importante)
-            .help(entry.importante ? "Marcado como importante pelo material" : "Marcar como importante")
-
-            Button { store.toggleLido(entry.id) } label: {
-                capsIcon(store.isLido(entry.id) ? "checkmark.circle.fill" : "checkmark.circle",
-                         tint: store.isLido(entry.id) ? Palette.accent : Palette.secondaryInk)
-            }
-            .buttonStyle(.plain)
-            .help(store.isLido(entry.id) ? "Lido — clique para desmarcar" : "Marcar como lido")
-
-            // ── Estudar: coleções / flashcard ──
-            Menu {
-                Section("Coleções (Meu edital)") {
+            Section("Estudar") {
+                Menu {
                     ForEach(store.colecoes) { c in
                         Button { store.toggleNaColecao(entry.id, c.id) } label: {
                             Label(c.nome, systemImage: store.estaNaColecao(entry.id, c.id) ? "checkmark" : "")
                         }
                     }
-                }
-                Button { mostrarNovaColecao = true } label: { Label("Nova coleção…", systemImage: "folder.badge.plus") }
-            } label: {
-                capsIcon(store.colecoesDe(entry.id).isEmpty ? "folder.badge.plus" : "folder.fill",
-                         tint: store.colecoesDe(entry.id).isEmpty ? Palette.secondaryInk : Palette.accent,
-                         chevron: true)
-            }
-            .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
-            .help("Adicionar a uma coleção (Meu edital)")
-
-            Menu {
-                if store.srsHasCard(entry.id) {
-                    Label("No baralho de revisão", systemImage: "checkmark.seal.fill")
-                    Button { mostrarRevisao = true } label: { Label("Revisar agora", systemImage: "brain.head.profile") }
-                    Button(role: .destructive) { store.srsRemove(entry.id) } label: { Label("Remover do baralho", systemImage: "trash") }
-                } else {
-                    Button { store.srsAddCard(entry) } label: { Label("Automático (melhor lacuna)", systemImage: "wand.and.stars") }
-                    Divider()
-                    ForEach(FlashStyle.allCases) { s in
-                        Button { store.srsAddCard(entry, style: s) } label: { Label(s.label, systemImage: s.simbolo) }
+                    Button { mostrarNovaColecao = true } label: { Label("Nova coleção…", systemImage: "folder.badge.plus") }
+                } label: { Label("Coleções (Meu edital)", systemImage: "folder") }
+                Menu {
+                    if store.srsHasCard(entry.id) {
+                        Button { mostrarRevisao = true } label: { Label("Revisar agora", systemImage: "brain.head.profile") }
+                        Button(role: .destructive) { store.srsRemove(entry.id) } label: { Label("Remover do baralho", systemImage: "trash") }
+                    } else {
+                        Button { store.srsAddCard(entry) } label: { Label("Automático (melhor lacuna)", systemImage: "wand.and.stars") }
+                        ForEach(FlashStyle.allCases) { st in
+                            Button { store.srsAddCard(entry, style: st) } label: { Label(st.label, systemImage: st.simbolo) }
+                        }
                     }
+                } label: { Label(store.srsHasCard(entry.id) ? "Flashcard (no baralho)" : "Criar flashcard", systemImage: "menucard") }
+                Button { showAnnotationsPanel.toggle() } label: { Label("Minhas anotações", systemImage: "note.text") }
+                if (entry.comentario?.isEmpty == false) || (entry.observacao?.isEmpty == false) {
+                    Button { mostrarSecundario = true } label: { Label("Comentário e observação", systemImage: "text.bubble") }
                 }
-            } label: {
-                capsIcon(store.srsHasCard(entry.id) ? "menucard.fill" : "menucard",
-                         tint: store.srsHasCard(entry.id) ? Palette.accent : Palette.secondaryInk,
-                         chevron: true)
             }
-            .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
-            .help(store.srsHasCard(entry.id) ? "Já está no baralho de revisão" : "Criar flashcard deste verbete")
-
-            // ── Ferramentas: analisar com IA / compartilhar ──
-            Menu {
+            Section("Ferramentas") {
                 Button { mostrarComparador = true } label: { Label("Comparar STF × STJ (com IA)", systemImage: "sparkles") }
-                Button { mostrarMapa = true } label: { Label("Mapa mental / fluxograma…", systemImage: "brain.head.profile") }
                 Button { mostrarLinhaTempo = true } label: { Label("Linha do tempo do tema", systemImage: "clock.arrow.circlepath") }
-            } label: { capsIcon("rectangle.split.2x1", chevron: true) }
-            .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
-            .help("Comparar STF × STJ (com IA), mapa mental e linha do tempo")
-
-            Menu {
+            }
+            Section("Compartilhar") {
                 Button { copiar(entry.enunciado) } label: { Label("Copiar enunciado", systemImage: "doc.on.doc") }
                 Button { copiar(entry.citacao) } label: { Label("Copiar citação", systemImage: "quote.opening") }
-                Divider()
                 Button { exportar(.pdf) } label: { Label("Exportar como PDF", systemImage: "doc.richtext") }
                 Button { exportar(.png) } label: { Label("Exportar como imagem", systemImage: "photo") }
                 Button { mostrarAnki = true } label: { Label("Exportar para o Anki…", systemImage: "rectangle.on.rectangle") }
-            } label: { capsIcon(copiado ? "checkmark" : "square.and.arrow.up", chevron: true) }
-            .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
-            .help("Copiar, exportar em PDF/imagem ou para o Anki")
-
-            // ── Leitura: tamanho do texto ──
-            Menu {
-                Button { readingScale = min(readingScale + 0.1, 1.8) } label: { Label("Aumentar texto", systemImage: "textformat.size.larger") }
-                Button { readingScale = max(readingScale - 0.1, 0.8) } label: { Label("Diminuir texto", systemImage: "textformat.size.smaller") }
-                Button { readingScale = 1.0 } label: { Label("Tamanho padrão", systemImage: "arrow.counterclockwise") }
-            } label: { capsIcon("textformat.size", chevron: true) }
-            .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
-            .help("Tamanho do texto de leitura")
+            }
+        } label: {
+            Image(systemName: copiado ? "checkmark.circle" : "ellipsis.circle").font(DS.interface(17))
+                .frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
+                .accessibilityLabel("Mais")
         }
-        .padding(.horizontal, 14).padding(.vertical, 7)
-        .background(Palette.sidebarBackground)
-        .overlay(alignment: .bottom) { Rectangle().fill(Palette.hairline).frame(height: 1) }
+        .menuIndicator(.hidden).fixedSize()
+    }
+
+    /// "2" → "Art. 2º" (ordinal até o 9º, como a lei escreve); "10" → "Art. 10"; "5-A" → "Art. 5º-A".
+    private func rotuloArtigo(_ a: String) -> String {
+        let partes = a.split(separator: "-", maxSplits: 1).map(String.init)
+        guard let n = Int(partes.first ?? "") else { return "Art. \(a)" }
+        let base = n <= 9 ? "\(n)º" : "\(n)"
+        return "Art. " + base + (partes.count > 1 ? "-\(partes[1])" : "")
+    }
+
+    private var ligacoesVerbete: some View {
+        let n = artigosDoVerbete.count
+        return HStack(spacing: DSEspaco.e3) {
+            Button { abaGaveta = 0; gaveta = .meia } label: {
+                Label(n == 0 ? "Artigos citados" : "Artigos citados · \(n)", systemImage: "book.closed")
+                    .frame(minHeight: 32)
+            }
+            Button { abaGaveta = 1; gaveta = .meia } label: {
+                Label("Relacionados", systemImage: "square.stack").frame(minHeight: 32)
+            }
+        }
+        .buttonStyle(.bordered)
+        .font(DS.interface(14, .semibold))
+    }
+
+    @ViewBuilder
+    private var conteudoGavetaVerbete: some View {
+        if abaGaveta == 0 {
+            let arts = artigosDoVerbete
+            VStack(alignment: .leading, spacing: DSEspaco.e2) {
+                if arts.isEmpty {
+                    Text("Nenhum artigo de lei do catálogo é citado por este verbete.")
+                        .font(DS.interface(15)).foregroundStyle(ThemeState.t.text2)
+                }
+                ForEach(arts, id: \.self) { a in
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(rotuloArtigo(a.artigo)).font(DS.display(17, .bold)).foregroundStyle(ThemeState.t.ink)
+                            Text(a.diploma).font(DS.interface(13)).foregroundStyle(ThemeState.t.text2)
+                        }
+                        Spacer()
+                        Button("Abrir no LEGIS") { gaveta = .fechada; JurisPorArtigo.abrirNoLegis(a) }
+                            .font(DS.interface(13, .semibold)).frame(minHeight: 44)
+                    }
+                    .padding(DSEspaco.e3)
+                    .background(RoundedRectangle(cornerRadius: DSRaio.card, style: .continuous).strokeBorder(ThemeState.t.border))
+                }
+            }
+        } else {
+            let rel = relacionadosCache ?? []
+            if relacionadosCache == nil { ProgressView().frame(maxWidth: .infinity) }
+            VStack(alignment: .leading, spacing: DSEspaco.e2) {
+                if relacionadosCache != nil && rel.isEmpty {
+                    Text("Nenhum julgado relacionado no acervo.").font(DS.interface(15)).foregroundStyle(ThemeState.t.text2)
+                }
+                ForEach(rel) { r in
+                    Button { gaveta = .fechada; store.lerCheio(r.id) } label: {
+                        VStack(alignment: .leading, spacing: DSEspaco.e1) {
+                            Text("\(r.tribunal) · \(r.titulo)").font(DS.interface(14, .semibold)).foregroundStyle(ThemeState.t.ink)
+                            Text(r.enunciado).font(DS.display(15, .regular)).foregroundStyle(ThemeState.t.text2).lineLimit(3)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading).padding(DSEspaco.e3)
+                        .background(RoundedRectangle(cornerRadius: DSRaio.card, style: .continuous).strokeBorder(ThemeState.t.border))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
     }
 
     private func copiar(_ s: String) {
@@ -1233,14 +1315,14 @@ struct DetailPlaceholder: View {
     var body: some View {
         VStack(spacing: 16) {
             Image(systemName: "books.vertical")
-                .font(.system(size: 42, weight: .thin))
+                .font(DS.interface(42, .thin))
                 .foregroundStyle(Palette.accent.opacity(0.7))
             VStack(spacing: 5) {
                 Text("CátedraJURIS")
                     .font(Typo.serifTitle(19, .semibold))
                     .foregroundStyle(Palette.titleInk)
                 Text("Escolha uma súmula, tese, informativo ou repercussão geral\npara ler o inteiro teor.")
-                    .font(.system(size: 12.5))
+                    .font(DS.interface(12.5))
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Palette.secondaryInk)
             }

@@ -51,11 +51,11 @@ struct DashboardView: View {
             HStack(spacing: 10) {
                 IconBubble(symbol: symbol, color: emCurso ? AppTheme.warn : ThemeState.t.accent, size: 34)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(title).font(.system(size: 13, weight: .semibold)).foregroundStyle(AppTheme.ink).lineLimit(1)
-                    Text(subtitle).font(.system(size: 11)).foregroundStyle(emCurso ? AppTheme.warn : AppTheme.secondaryInk).lineLimit(1)
+                    Text(title).font(DS.interface(13, .semibold)).foregroundStyle(AppTheme.ink).lineLimit(1)
+                    Text(subtitle).font(DS.interface(11)).foregroundStyle(emCurso ? AppTheme.warn : AppTheme.secondaryInk).lineLimit(1)
                 }
                 Spacer(minLength: 0)
-                Image(systemName: "chevron.right").font(.system(size: 10, weight: .semibold))
+                Image(systemName: "chevron.right").font(DS.interface(10, .semibold))
                     .foregroundStyle(AppTheme.secondaryInk.opacity(0.5))
             }
             .padding(12)
@@ -83,7 +83,7 @@ struct DashboardView: View {
                         }
                         Spacer()
                         if due > 0 {
-                            Text("Revisar").font(.system(size: 13, weight: .bold)).foregroundStyle(.white)
+                            Text("Revisar").font(DS.interface(13, .bold)).foregroundStyle(DS.sobreCor)
                                 .padding(.horizontal, 14).padding(.vertical, 7)
                                 .background(Capsule().fill(AppTheme.srs))
                         } else {
@@ -164,7 +164,7 @@ struct DashboardView: View {
     private func normaTimeRow(_ law: LawEntry, _ secs: Double, _ maxSecs: Double) -> some View {
         VStack(alignment: .leading, spacing: 5) {
             HStack(spacing: 8) {
-                Text(law.title).font(.system(size: 12.5, weight: .medium))
+                Text(law.title).font(DS.interface(12.5, .medium))
                     .foregroundStyle(AppTheme.ink).lineLimit(1)
                 Spacer(minLength: 8)
                 Text(Self.fmtDur(secs)).font(Typo.num(12, .semibold))
@@ -190,87 +190,77 @@ struct DashboardView: View {
     // Célula de número-chave dentro do hero (fundo translúcido sobre o gradiente).
     private func heroStat(_ value: String, _ label: String) -> some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text(value).font(Typo.num(20)).foregroundStyle(.white)
-            Text(label).font(.system(size: 11)).foregroundStyle(.white.opacity(0.85))
+            Text(value).font(Typo.num(20)).foregroundStyle(DS.sobreCor)
+            Text(label).font(DS.interface(11)).foregroundStyle(DS.sobreCor.opacity(0.85))
         }
         .padding(.horizontal, 14).padding(.vertical, 11)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous).fill(Color.white.opacity(0.13)))
-        .overlay(RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous).strokeBorder(Color.white.opacity(0.16), lineWidth: 1))
+        .background(RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous).fill(DS.sobreCor.opacity(0.13)))
+        .overlay(RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous).strokeBorder(DS.sobreCor.opacity(0.16), lineWidth: 1))
     }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                // HERO "vitrine" — tipografia grande, CTA gradiente da matéria e números-chave.
-                VStack(alignment: .leading, spacing: 18) {
-                    VStack(alignment: .leading, spacing: 7) {
-                        let dateText = Date().formatted(date: .complete, time: .omitted)
-                        Text((dateText.prefix(1).localizedUppercase + dateText.dropFirst()).uppercased())
-                            .font(.system(size: 11, weight: .semibold)).tracking(1.4)
-                            .foregroundStyle(.white.opacity(0.8))
-                            .lineLimit(1).minimumScaleFactor(0.7)
-                        Text("CátedraLEGIS")
-                            .font(AppTheme.displayFont(40, .heavy)).tracking(-0.6)
-                            .foregroundStyle(.white)
-                            .lineLimit(1).minimumScaleFactor(0.6)
-                        Text("\(lawCount) normas · \(store.annotations.count) marcações na sua biblioteca")
-                            .font(.system(size: 14))
-                            .foregroundStyle(.white.opacity(0.88))
-                            .lineLimit(1).minimumScaleFactor(0.8)
-                    }
-                    // CTA: retomar de onde parou, no gradiente da MATÉRIA da lei
-                    // (matéria personalizada usa a cor dela, como no leitor).
-                    if let law = lastStudied {
-                        let ctaStops: [Color] = law.customCategory.map {
-                            let c = CustomCategoryStyle.color(for: $0); return [c, c.opacity(0.72)]
-                        } ?? law.category.gradStops
-                        Button { openLaw(law.id) } label: {
-                            HStack(spacing: 8) {
-                                Image(systemName: "play.fill").font(.system(size: 11, weight: .bold))
-                                Text("Continuar · \(law.title)").lineLimit(1)
+                // Início no padrão do Cátedra (host web, .cth-*): próxima ação, hero com saudação,
+                // chips e painel de vidro, números sobrepostos ao pé do hero e o estudo semanal.
+                if let law = lastStudied {
+                    FaixaProximaAcao(titulo: "Continuar: \(law.title)",
+                                     motivo: UserDefaults.standard.string(forKey: "lastStudiedUnitLabel").map { "Você parou em \($0)." } ?? "Volte exatamente ao ponto em que parou.",
+                                     meta: law.category.rawValue, botao: "Abrir a lei", acao: { openLaw(law.id) })
+                } else {
+                    FaixaProximaAcao(titulo: "Comece pelo Acervo", motivo: "Escolha uma norma para ler — o Cátedra guarda onde você parou.",
+                                     botao: "Abrir o Acervo", acao: { openSection(.destino(.acervo)) })
+                }
+                VStack(spacing: 0) {
+                    let due = store.srsDueCount()
+                    HeroInicio(saudacao: HeroInicio<EmptyView>.saudacao() + ".",
+                               subtitulo: HeroInicio<EmptyView>.dataLonga() + " · \(lawCount) normas na sua biblioteca",
+                               chips: ThemeState.t.baixaEstimulacao
+                                   ? [ChipHero(simbolo: "calendar", valor: "\(store.activeDaysLastYear)", rotulo: "dias ativos")]
+                                   : [ChipHero(simbolo: "flame.fill", valor: "\(store.currentStreak)", rotulo: store.currentStreak == 1 ? "dia seguido" : "dias seguidos"),
+                                      ChipHero(simbolo: "calendar", valor: "\(store.activeDaysLastYear)", rotulo: "dias ativos")]) {
+                        VStack(alignment: .leading, spacing: 14) {
+                            PainelVidroNumero(rotulo: "Revisão de hoje", valor: "\(due)",
+                                              detalhe: due == 0 ? "Você está em dia com a repetição espaçada." : (due == 1 ? "artigo para revisar hoje" : "artigos para revisar hoje"))
+                            HStack {
+                                BotaoVidro(titulo: "Plano de leitura", forte: false) { openSection(.planoLeitura) }
+                                Spacer(minLength: 8)
+                                BotaoVidro(titulo: due > 0 ? "Revisar agora" : "Treinar") {
+                                    if due > 0 { activeSheet = .review } else { openSection(.destino(.treinar)) }
+                                }
                             }
                         }
-                        .buttonStyle(.legisPrimary(ctaStops))
                     }
-                    HStack(spacing: 10) {
-                        heroStat("\(store.totalReadUnits)", "artigos lidos")
-                        heroStat("\(store.totalReviewUnits)", "p/ revisão")
-                        // Baixa estimulação: a sequência (gamificação) sai do hero; o dado fica no store.
-                        if !ThemeState.t.baixaEstimulacao { heroStat("🔥 \(store.currentStreak)d", "sequência") }
-                        heroStat("\(store.activeDaysLastYear)", "dias ativos")
+                    HStack(alignment: .top, spacing: 16) {
+                        CartaoNumeroInicio(rotulo: "Artigos lidos", valor: "\(store.totalReadUnits)", apoio: "\(store.study.count) normas com leitura")
+                        CartaoNumeroInicio(rotulo: "Para revisão", valor: "\(store.totalReviewUnits)", apoio: "artigos marcados para rever")
+                        CartaoNumeroInicio(rotulo: "Marcações", valor: "\(store.annotations.count)", apoio: "grifos e notas nas normas")
                     }
+                    .padding(.horizontal, 2).offset(y: -42).padding(.bottom, -42)
                 }
-                .padding(26)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(
-                    ZStack(alignment: .topTrailing) {
-                        LinearGradient(colors: ThemeState.t.heroStops, startPoint: .topLeading, endPoint: .bottomTrailing)
-                        Circle().fill(Color.white.opacity(0.08)).frame(width: 240, height: 240).offset(x: 70, y: -96)
-                        Circle().fill(Color.white.opacity(0.06)).frame(width: 170, height: 170).offset(x: -20, y: 118)
-                    }
-                )
-                .clipShape(RoundedRectangle(cornerRadius: AppTheme.rHero, style: .continuous))
-                .shadow(color: ThemeState.t.accent.opacity(0.22), radius: 18, y: 8)
+                SecaoInicio(titulo: "Estudo semanal",
+                            meta: "\(BarrasSemana.dias(store.activity).map(\.valor).reduce(0, +)) na semana")
+                BarrasSemana(atividade: store.activity)
 
                 // Três blocos, na ordem de uso (pente fino 21/08): HOJE (o que fazer agora),
                 // TREINAR (as ferramentas de estudo) e BIBLIOTECA (o acervo e sua saúde).
                 // Os StatCards e o "Painel de revisão" repetiam números do hero/SRS — saíram.
 
                 // ── HOJE ──────────────────────────────────────────────────────────
-                LegisSectionHeader(title: "Hoje", icon: "sun.max", tint: ThemeState.t.accent).padding(.top, 6)
+                SecaoInicio(titulo: "Hoje")
                 srsCard
                 DailyGoalsCard()
                 ChecklistMiniCard(openChecklist: { openSection(.checklist) })
 
                 // ── TREINAR ───────────────────────────────────────────────────────
-                LegisSectionHeader(title: "Treinar", icon: "figure.run", tint: ThemeState.t.accent).padding(.top, 6)
+                SecaoInicio(titulo: "Treinar")
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 200), spacing: 10)], spacing: 10) {
                     ForEach(treinoTiles, id: \.0) { t in treinoTile(t.0, t.1, t.2, t.3) }
                 }
 
                 // ── BIBLIOTECA ────────────────────────────────────────────────────
-                LegisSectionHeader(title: "Biblioteca", icon: "books.vertical", tint: ThemeState.t.accent).padding(.top, 6)
+                SecaoInicio(titulo: "Biblioteca")
 
                 // MATÉRIAS — tiles coloridos com a identidade de cada área (linguagem vitrine).
                 let cats = LawCategory.allCases.filter { categoryCount($0) > 0 && $0 != .personalizada }
@@ -613,16 +603,16 @@ private struct MateriaTile: View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 6) {
                 Image(systemName: cat.symbol)
-                    .font(.system(size: 19, weight: .semibold))
-                    .foregroundStyle(.white)
+                    .font(DS.interface(19, .semibold))
+                    .foregroundStyle(DS.sobreCor)
                 Spacer(minLength: 4)
                 Text(cat.shortName)
-                    .font(.system(size: 13.5, weight: .bold))
-                    .foregroundStyle(.white)
+                    .font(DS.interface(13.5, .bold))
+                    .foregroundStyle(DS.sobreCor)
                     .lineLimit(1).minimumScaleFactor(0.75)
                 Text("\(count) norma\(count == 1 ? "" : "s")")
-                    .font(.system(size: 10.5, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.85))
+                    .font(DS.interface(10.5, .medium))
+                    .foregroundStyle(DS.sobreCor.opacity(0.85))
             }
             .padding(14)
             .frame(maxWidth: .infinity, minHeight: 92, alignment: .leading)
@@ -708,12 +698,12 @@ struct DailyGoalsCard: View {
                 ForEach(Array(forecast.enumerated()), id: \.element.date) { i, d in
                     VStack(spacing: 3) {
                         Text(d.count > 0 ? "\(d.count)" : " ")
-                            .font(.system(size: 9).monospacedDigit()).foregroundStyle(.secondary)
+                            .font(DS.interface(9).monospacedDigit()).foregroundStyle(.secondary)
                         RoundedRectangle(cornerRadius: 3)
                             .fill(i == 0 ? ThemeState.t.accent : ThemeState.t.accent.opacity(0.45))
                             .frame(height: max(3, CGFloat(d.count) / CGFloat(maxC) * 40))
                         Text(Self.weekdayLabel(d.date))
-                            .font(.system(size: 9))
+                            .font(DS.interface(9))
                             .foregroundStyle(i == 0 ? Color.primary : Color.secondary)
                     }
                     .frame(maxWidth: .infinity)

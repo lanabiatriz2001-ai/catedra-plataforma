@@ -17,6 +17,21 @@ enum SidebarItem: Hashable {
     case dou
     case category(LawCategory)
     case customCategory(String)
+    /// Os 4 destinos de primeiro nível (entrega 4). Hoje = Início (`.home`).
+    case destino(Destino)
+}
+
+/// A que destino cada seção antiga pertence — a linha do destino acende nas páginas-filhas.
+enum LegisDestinos {
+    static func pai(_ item: SidebarItem) -> Destino {
+        switch item {
+        case .home: return .hoje
+        case .destino(let d): return d
+        case .all, .favorites, .indiceEstrutural, .subjects, .globalSearch, .category, .customCategory: return .acervo
+        case .planoLeitura, .checklist, .incidencia, .simuladoLegis, .provaOral: return .treinar
+        case .novidades, .dou, .updates: return .novidades
+        }
+    }
 }
 
 /// Rotas da navegação por telas (NavigationStack) — substituem as 3 colunas
@@ -44,15 +59,15 @@ struct ContentView: View {
     private var legisTopBar: some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 1) {
-                Text("CátedraLEGIS").font(.system(size: 15, weight: .bold)).foregroundStyle(AppTheme.ink)
-                Text("Vade Mecum de leis").font(.system(size: 10.5)).foregroundStyle(AppTheme.secondaryInk)
+                Text("CátedraLEGIS").font(DS.interface(15, .bold)).foregroundStyle(AppTheme.ink)
+                Text("Vade Mecum de leis").font(DS.interface(10.5)).foregroundStyle(AppTheme.secondaryInk)
             }
             Spacer(minLength: 12)
             Button { showPalette = true } label: {
                 HStack(spacing: 7) {
-                    Image(systemName: "magnifyingglass").font(.system(size: 11))
-                    Text("Buscar").font(.system(size: 12.5))
-                    Text("⌘K").font(.system(size: 10.5, weight: .semibold)).foregroundStyle(AppTheme.secondaryInk)
+                    Image(systemName: "magnifyingglass").font(DS.interface(11))
+                    Text("Buscar").font(DS.interface(12.5))
+                    Text("⌘K").font(DS.interface(10.5, .semibold)).foregroundStyle(AppTheme.secondaryInk)
                 }
                 .foregroundStyle(AppTheme.secondaryInk)
                 .padding(.horizontal, 13).padding(.vertical, 7)
@@ -62,7 +77,7 @@ struct ContentView: View {
             .buttonStyle(.plain)
             Button { path = [.section(.updates)] } label: {
                 Image(systemName: store.unreadCount > 0 ? "bell.badge.fill" : "bell")
-                    .font(.system(size: 13, weight: .medium)).foregroundStyle(AppTheme.secondaryInk)
+                    .font(DS.interface(13, .medium)).foregroundStyle(AppTheme.secondaryInk)
                     .frame(width: 34, height: 34)
                     .background(Circle().fill(AppTheme.cardBackground))
                     .overlay(Circle().strokeBorder(AppTheme.hairline, lineWidth: 1))
@@ -71,14 +86,14 @@ struct ContentView: View {
             // Cronômetro EM CURSO (destaque, como o Cátedra)
             HStack(spacing: 10) {
                 VStack(alignment: .leading, spacing: 0) {
-                    Text(clock.running ? "EM CURSO" : "ESTUDO").font(.system(size: 8, weight: .heavy)).tracking(0.8)
+                    Text(clock.running ? "EM CURSO" : "ESTUDO").font(DS.interface(8, .heavy)).tracking(0.8)
                         .foregroundStyle(clock.running ? ThemeState.t.accent : AppTheme.secondaryInk)
                     Text(clock.formatted).font(Typo.num(16))
                         .foregroundStyle(AppTheme.ink)
                 }
                 Button { clock.togglePlay() } label: {
                     Image(systemName: clock.manualPlaying ? "pause.fill" : "play.fill")
-                        .font(.system(size: 11, weight: .bold)).foregroundStyle(.white)
+                        .font(DS.interface(11, .bold)).foregroundStyle(.white)
                         .frame(width: 28, height: 28)
                         .background(Circle().fill(clock.manualPlaying ? AppTheme.secondaryInk : ThemeState.t.accent))
                 }
@@ -91,6 +106,24 @@ struct ContentView: View {
         .padding(.horizontal, 20).padding(.vertical, 11)
         .background(AppTheme.pageBackground)
         .overlay(alignment: .bottom) { Rectangle().fill(AppTheme.hairline).frame(height: 1) }
+    }
+
+    /// Abre a norma no artigo pedido pelo JURIS (modo Estudar, que já posiciona um artigo).
+    private func consumirPedidoLegis() {
+        guard let p = JurisPorArtigo.pedidoLegis else { return }
+        if Date().timeIntervalSince(JurisPorArtigo.pedidoEm ?? .distantPast) > 30 {
+            JurisPorArtigo.pedidoLegis = nil; return            // velho demais: descarta
+        }
+        guard let law = JurisPorArtigo.lei(doDiploma: p.diploma, em: store.laws) else {
+            // Catálogo ainda carregando: tenta de novo quando as leis chegarem (onChange).
+            // Carregado e a norma não está nele: descarta, sem prender o pedido.
+            if !store.laws.isEmpty { JurisPorArtigo.pedidoLegis = nil }
+            return
+        }
+        JurisPorArtigo.pedidoLegis = nil
+        if let idx = store.articleUnitID(lawID: law.id, number: p.artigo) { store.setLastUnit(law.id, idx) }
+        JurisPorArtigo.modoUmaVez = "estudo"
+        if path.last != .reader(law.id) { path.append(.reader(law.id)) }
     }
 
     var body: some View {
@@ -116,7 +149,9 @@ struct ContentView: View {
                         SectionScreen(item: item,
                                       openLaw: { path.append(.reader($0)) },
                                       openUpdate: { path.append(.updateDetail($0)) },
-                                      showAddLaw: $showAddLaw)
+                                      showAddLaw: $showAddLaw,
+                                      openSection: { path.append(.section($0)) },
+                                      novaMateria: { showNewCategory = true })
                     case .reader(let id):
                         ReaderScreen(lawID: id, openLaw: { path.append(.reader($0)) })
                     case .updateDetail(let id):
@@ -129,6 +164,11 @@ struct ContentView: View {
         .preferredColorScheme(appearance == "light" ? .light : appearance == "dark" ? .dark : nil)
         // Item 5: o chip ⚖️ do mapa de Processo e peças manda o TERMO junto. Sem isto a aba
         // abria no acervo inteiro e a busca era refeita à mão.
+        // Entrega 3: o JURIS pede para abrir um artigo citado (JurisPorArtigo.abrirNoLegis). O
+        // pedido fica pendente até o LEGIS montar — por isso também no onAppear.
+        .onReceive(NotificationCenter.default.publisher(for: JurisPorArtigo.notificacaoAbrirLegis)) { _ in consumirPedidoLegis() }
+        .onAppear { consumirPedidoLegis() }
+        .onChange(of: store.laws.count) { _, _ in consumirPedidoLegis() }
         .onReceive(NotificationCenter.default.publisher(for: AcervoEntrada.notificacaoBuscar)) { n in
             guard let t = n.userInfo?["termo"] as? String, !t.isEmpty else { return }
             path = [.section(.globalSearch)]
@@ -211,35 +251,30 @@ private struct LegisSidebar: View {
     }
     private var pendingChecklist: Int { store.readingChecklist.filter { !$0.done }.count }
     private func isActive(_ item: SidebarItem) -> Bool {
+        if case .destino(let d) = item {
+            if d == .hoje { return path.isEmpty }
+            guard case .section(let raiz)? = path.first else { return false }
+            return LegisDestinos.pai(raiz) == d
+        }
         if item == .home { return path.isEmpty }
         if case .section(let s)? = path.last { return s == item }
         return false
     }
     private func go(_ item: SidebarItem) {
-        if item == .home { path = [] } else { path = [.section(item)] }
+        if item == .home || item == .destino(.hoje) { path = [] } else { path = [.section(item)] }
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 10) {
-                RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous)
-                    .fill(ThemeState.t.accent).frame(width: 34, height: 34)
-                    .overlay(Image(systemName: "books.vertical.fill")
-                        .font(.system(size: 15, weight: .bold)).foregroundStyle(.white))
-                VStack(alignment: .leading, spacing: 0) {
-                    Text("CátedraLEGIS").font(.system(size: 14.5, weight: .bold)).foregroundStyle(.white)
-                    Text("Vade Mecum de leis").font(.system(size: 10))
-                        .foregroundStyle(ThemeState.t.sidebarText.opacity(0.85))
-                }
-            }
-            .padding(.horizontal, 14).padding(.top, 16).padding(.bottom, 10)
+            SeloLateral(nome: "CátedraLEGIS", subtitulo: "Lei seca")
+            .padding(.horizontal, 14).padding(.top, 18).padding(.bottom, 14)
 
             Button(action: openPalette) {
                 HStack(spacing: 8) {
-                    Image(systemName: "magnifyingglass").font(.system(size: 12))
-                    Text("Buscar…").font(.system(size: 12.5))
+                    Image(systemName: "magnifyingglass").font(DS.interface(12))
+                    Text("Buscar…").font(DS.interface(12.5))
                     Spacer()
-                    Text("⌘K").font(.system(size: 11, weight: .semibold))
+                    Text("⌘K").font(DS.interface(11, .semibold))
                         .foregroundStyle(ThemeState.t.sidebarText.opacity(0.7))
                 }
                 .foregroundStyle(ThemeState.t.sidebarText.opacity(0.85))
@@ -252,53 +287,33 @@ private struct LegisSidebar: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 2) {
-                    row(.home, "Início", "house")
-                    row(.all, "Todas as normas", "books.vertical", badge: lawCount)
-                    row(.favorites, "Favoritos", "star", badge: store.favoriteCount)
-                    row(.indiceEstrutural, "Índice das normas", "list.bullet.indent")
-                    row(.subjects, "Assuntos", "tag")
-                    row(.globalSearch, "Buscar em tudo", "magnifyingglass")
-                    row(.novidades, "Novidades", "sparkles", badge: novidadesCount)
-                    row(.dou, "Diário Oficial", "newspaper")
-                    row(.updates, "Atualizações", "bell.badge", badge: store.unreadCount)
-
-                    // TREINO — Checklist, Simulado e Prova oral existiam como telas mas
-                    // nenhuma linha da sidebar/⌘K/Início as alcançava (pente fino 21/08).
-                    groupTitle("TREINO")
-                    row(.planoLeitura, "Plano de leitura", "calendar")
-                    row(.checklist, "Checklist", "checklist", badge: pendingChecklist)
-                    row(.incidencia, "Incidência", "target")
-                    row(.simuladoLegis, "Simulado de lei seca", "checkmark.seal")
-                    row(.provaOral, "Prova oral", "mic")
-
-                    groupTitle("MATÉRIAS")
-
-                    ForEach(LawCategory.allCases.filter { categoryCount($0) > 0 }) { cat in
-                        row(.category(cat), cat.rawValue, cat.symbol, badge: categoryCount(cat))
-                    }
-                    ForEach(store.customCategories, id: \.self) { name in
-                        row(.customCategory(name), name, "tag.fill", badge: customCategoryCount(name))
-                    }
-                    Button { showNewCategory = true } label: {
-                        HStack(spacing: 11) {
-                            Image(systemName: "plus").font(.system(size: 12, weight: .semibold)).frame(width: 20)
-                            Text("Nova matéria").font(.system(size: 13, weight: .medium))
-                            Spacer(minLength: 0)
+                    // Entrega 4: os MESMOS 4 destinos do JURIS. Tudo o que era linha solta (normas,
+                    // índice, assuntos, matérias, plano, checklist, simulado, oral, DOU…) está na vitrine
+                    // do destino — nenhuma função sem caminho (tabela de rastreio no PR).
+                    linha(.hoje, contagem: pendingChecklist)
+                    linha(.acervo, contagem: lawCount)
+                    // Vitrine na lateral: com o Acervo aberto, as matérias aparecem logo abaixo,
+                    // cada uma com o ponto na cor do ramo — um toque leva à lista dela.
+                    if isActive(.destino(.acervo)) {
+                        ForEach(LawCategory.allCases.filter { categoryCount($0) > 0 }) { c in
+                            SubLinhaLateral(titulo: c.rawValue, cor: c.ramo?.identidade) { go(.category(c)) }
                         }
-                        .padding(.horizontal, 11).padding(.vertical, 8)
-                        .foregroundStyle(ThemeState.t.sidebarText.opacity(0.8))
-                        .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    linha(.treinar)
+                    linha(.novidades, contagem: store.unreadCount)
                 }
-                .padding(.horizontal, 8).padding(.bottom, 14)
+                .padding(.horizontal, 10).padding(.bottom, 14)
             }
 
             // (O cronômetro vive só no topo, como no Cátedra — o da sidebar duplicava o
             // mesmo StudyClock com outra semântica de rótulo.)
         }
-        .frame(width: 210)
-        .background(ThemeState.t.sidebarBg)
+        .frame(width: 236)
+        .fundoLateral()
+    }
+
+    private func linha(_ d: Destino, contagem: Int? = nil) -> some View {
+        LinhaLateral(titulo: d.titulo, simbolo: d.simbolo, ativa: isActive(.destino(d)), contagem: contagem) { go(.destino(d)) }
     }
 
     /// Cor do ícone na sidebar: matérias exibem a identidade de cor da área
@@ -306,7 +321,7 @@ private struct LegisSidebar: View {
     /// acompanha o texto ativo (contraste sobre o fundo de seleção).
     private func groupTitle(_ t: String) -> some View {
         Text(t)
-            .font(.system(size: 9.5, weight: .bold)).tracking(0.9)
+            .font(DS.interface(9.5, .bold)).tracking(0.9)
             .foregroundStyle(ThemeState.t.sidebarText.opacity(0.55))
             .padding(.horizontal, 12).padding(.top, 16).padding(.bottom, 5)
     }
@@ -321,13 +336,14 @@ private struct LegisSidebar: View {
         let active = isActive(item)
         Button { go(item) } label: {
             HStack(spacing: 11) {
-                Image(systemName: icon).font(.system(size: 13, weight: .medium)).frame(width: 20)
+                Image(systemName: icon).font(DS.interface(13, .medium)).frame(width: 20)
                     .foregroundStyle(rowIconColor(item, active: active) ??
                                      (active ? ThemeState.t.sidebarActiveText : ThemeState.t.sidebarText))
-                Text(label).font(.system(size: 13, weight: active ? .semibold : .medium)).lineLimit(1)
+                Text(label).font(DS.interface(13, active ? .semibold : .medium)).lineLimit(1)
                 Spacer(minLength: 4)
             }
             .padding(.horizontal, 11).padding(.vertical, 8)
+            .frame(minHeight: 44)   // alvo de 44 pt: agora é a navegação principal
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(RoundedRectangle(cornerRadius: AppTheme.rInner, style: .continuous)
                 .fill(active ? ThemeState.t.sidebarActiveBg : Color.clear))
@@ -346,6 +362,8 @@ private struct SectionScreen: View {
     let openLaw: (UUID) -> Void
     let openUpdate: (UUID) -> Void
     @Binding var showAddLaw: Bool
+    var openSection: (SidebarItem) -> Void = { _ in }
+    var novaMateria: () -> Void = {}
     @State private var sel: UUID?
     @State private var updateSel: UUID?
     @AppStorage("readerMode") private var readerMode = "estudo"
@@ -394,6 +412,65 @@ private struct SectionScreen: View {
             UpdatesListView(selection: $updateSel)
         case .home:
             EmptyView()
+        case .destino(let d):
+            destinoHub(d)
+        }
+    }
+
+    // MARK: - Vitrine de um destino (entrega 4)
+
+    private var normas: [LawEntry] { store.laws.filter(\.isRegularLaw) }
+    private func qtd(_ c: LawCategory) -> Int { normas.filter { $0.customCategory == nil && $0.category == c }.count }
+
+    @ViewBuilder
+    private func destinoHub(_ d: Destino) -> some View {
+        switch d {
+        case .hoje:
+            EmptyView()
+        case .acervo:
+            DestinoHub(titulo: "Acervo", subtitulo: "Lei seca oficial, organizada por matéria",
+                       destaques: [ChipHero(simbolo: "books.vertical.fill", valor: "\(normas.count)", rotulo: "normas"),
+                                   ChipHero(simbolo: "star.fill", valor: "\(store.favoriteCount)", rotulo: "favoritos")],
+                       secoes: [
+                SecaoHub(titulo: "", itens: [
+                    ItemHub(id: "all", titulo: "Todas as normas", detalhe: nil, simbolo: "books.vertical", cor: nil, contagem: normas.count, acao: { openSection(.all) }),
+                    ItemHub(id: "fav", titulo: "Favoritos", detalhe: nil, simbolo: "star", cor: nil, contagem: store.favoriteCount, acao: { openSection(.favorites) }),
+                    ItemHub(id: "indice", titulo: "Índice das normas", detalhe: "Livros, títulos, capítulos", simbolo: "list.bullet.indent", cor: nil, contagem: nil, acao: { openSection(.indiceEstrutural) }),
+                    ItemHub(id: "assuntos", titulo: "Assuntos", detalhe: "Indexados pelo Senado", simbolo: "tag", cor: nil, contagem: nil, acao: { openSection(.subjects) }),
+                    ItemHub(id: "busca", titulo: "Buscar em tudo", detalhe: "Texto de todas as normas", simbolo: "magnifyingglass", cor: nil, contagem: nil, acao: { openSection(.globalSearch) }),
+                ]),
+                SecaoHub(titulo: "Matérias",
+                         itens: LawCategory.allCases.filter { qtd($0) > 0 }.map { c in
+                             ItemHub(id: "cat-\(c.rawValue)", titulo: c.rawValue, detalhe: nil, simbolo: c.symbol,
+                                     cor: c.ramo?.identidade, contagem: qtd(c), acao: { openSection(.category(c)) })
+                         } + store.customCategories.map { n in
+                             ItemHub(id: "custom-\(n)", titulo: n, detalhe: nil, simbolo: "tag.fill", cor: nil,
+                                     contagem: normas.filter { $0.customCategory == n }.count,
+                                     acao: { openSection(.customCategory(n)) })
+                         } + [ItemHub(id: "nova", titulo: "Nova matéria", detalhe: nil, simbolo: "plus", cor: nil, contagem: nil, acao: novaMateria)]),
+            ])
+        case .treinar:
+            DestinoHub(titulo: "Treinar", subtitulo: "Simulado, prova oral, incidência e o seu plano de leitura",
+                       destaques: [ChipHero(simbolo: "brain.head.profile", valor: "\(store.srsDueCount())", rotulo: "para revisar hoje")],
+                       secoes: [
+                SecaoHub(titulo: "", itens: [
+                    ItemHub(id: "simulado", titulo: "Simulado de lei seca", detalhe: "C/E do texto oficial", simbolo: "checkmark.seal", cor: nil, contagem: nil, acao: { openSection(.simuladoLegis) }),
+                    ItemHub(id: "oral", titulo: "Prova oral", detalhe: "Arguição sobre o artigo", simbolo: "mic", cor: nil, contagem: nil, acao: { openSection(.provaOral) }),
+                    ItemHub(id: "incidencia", titulo: "Incidência", detalhe: "Artigos mais cobrados", simbolo: "target", cor: nil, contagem: nil, acao: { openSection(.incidencia) }),
+                    ItemHub(id: "plano", titulo: "Plano de leitura", detalhe: nil, simbolo: "calendar", cor: nil, contagem: nil, acao: { openSection(.planoLeitura) }),
+                    ItemHub(id: "checklist", titulo: "Checklist", detalhe: nil, simbolo: "checklist", cor: nil,
+                            contagem: store.readingChecklist.filter { !$0.done }.count, acao: { openSection(.checklist) }),
+                ]),
+            ])
+        case .novidades:
+            DestinoHub(titulo: "Novidades", subtitulo: "", secoes: [
+                SecaoHub(titulo: "", itens: [
+                    ItemHub(id: "atualizacoes", titulo: "Alterações nas normas", detalhe: "Com comparação de redações", simbolo: "bell.badge", cor: nil, contagem: store.unreadCount, acao: { openSection(.updates) }),
+                    ItemHub(id: "novidades", titulo: "Novidades legislativas", detalhe: nil, simbolo: "sparkles", cor: nil,
+                            contagem: store.laws.filter(\.isNovidades).count, acao: { openSection(.novidades) }),
+                    ItemHub(id: "dou", titulo: "Diário Oficial", detalhe: nil, simbolo: "newspaper", cor: nil, contagem: nil, acao: { openSection(.dou) }),
+                ]),
+            ])
         }
     }
 
@@ -524,7 +601,7 @@ struct LawListView: View {
         guard let add = onAddLaw else { return nil }
         return AnyView(
             Button { add() } label: {
-                Image(systemName: "plus.circle.fill").font(.system(size: 19)).foregroundStyle(ThemeState.t.accent)
+                Image(systemName: "plus.circle.fill").font(DS.interface(19)).foregroundStyle(ThemeState.t.accent)
             }
             .buttonStyle(.plain).help("Cadastrar uma norma sua (link, PDF ou texto colado)")
         )
@@ -707,7 +784,7 @@ struct SubjectsView: View {
     private func subjectRows(filtered: [(subject: String, lawIDs: [UUID])], q: String) -> some View {
         if filtered.isEmpty {
             Text("Nenhum assunto corresponde a “\(q)”.")
-                .font(.system(size: 12.5)).foregroundStyle(AppTheme.secondaryInk)
+                .font(DS.interface(12.5)).foregroundStyle(AppTheme.secondaryInk)
                 .frame(maxWidth: .infinity).padding(.vertical, 40)
         } else {
             ForEach(filtered, id: \.subject) { entry in
@@ -724,7 +801,7 @@ struct SubjectsView: View {
     private var indexBanner: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("\(store.sigenIndexedCount) de \(total) normas com assuntos · \(store.sigenPendingCount) a indexar")
-                .font(.system(size: 12.5, weight: .medium)).foregroundStyle(AppTheme.ink)
+                .font(DS.interface(12.5, .medium)).foregroundStyle(AppTheme.ink)
             if store.sigenIndexing {
                 HStack(spacing: 8) {
                     ProgressView().controlSize(.small)
@@ -783,12 +860,12 @@ struct SubjectsView: View {
             HStack(spacing: 8) {
                 ProgressView().controlSize(.small)
                 Text("Procurando artigos que mencionam “\(subject)”…")
-                    .font(.system(size: 12)).foregroundStyle(AppTheme.secondaryInk)
+                    .font(DS.interface(12)).foregroundStyle(AppTheme.secondaryInk)
             }
             .frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 14)
         } else if contentHits.isEmpty {
             Text("Nenhum artigo das normas baixadas menciona “\(subject)”.")
-                .font(.system(size: 12)).foregroundStyle(AppTheme.secondaryInk)
+                .font(DS.interface(12)).foregroundStyle(AppTheme.secondaryInk)
                 .padding(.vertical, 14)
         } else {
             ForEach(contentHits) { hit in
@@ -809,14 +886,14 @@ struct SubjectsView: View {
             IconBubble(symbol: "doc.text.magnifyingglass", color: ThemeState.t.accent, size: 30)
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
-                    Text(hit.unitLabel).font(.system(size: 12.5, weight: .semibold)).foregroundStyle(ThemeState.t.accent)
-                    Text("· \(hit.lawTitle)").font(.system(size: 11)).foregroundStyle(AppTheme.secondaryInk).lineLimit(1)
+                    Text(hit.unitLabel).font(DS.interface(12.5, .semibold)).foregroundStyle(ThemeState.t.accent)
+                    Text("· \(hit.lawTitle)").font(DS.interface(11)).foregroundStyle(AppTheme.secondaryInk).lineLimit(1)
                 }
-                Text(hit.snippet).font(.system(size: 12)).foregroundStyle(AppTheme.secondaryInk)
+                Text(hit.snippet).font(DS.interface(12)).foregroundStyle(AppTheme.secondaryInk)
                     .lineLimit(2).fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 6)
-            Image(systemName: "chevron.right").font(.system(size: 11, weight: .semibold))
+            Image(systemName: "chevron.right").font(DS.interface(11, .semibold))
                 .foregroundStyle(AppTheme.secondaryInk.opacity(0.6))
         }
         .padding(.horizontal, 13).padding(.vertical, 11)
@@ -917,7 +994,7 @@ struct DOUView: View {
             HStack(alignment: .top, spacing: 10) {
                 VStack(spacing: 1) {
                     Image(systemName: "newspaper").foregroundStyle(ThemeState.t.accent)
-                    Text(item.date).font(.system(size: 9).monospacedDigit()).foregroundStyle(.tertiary)
+                    Text(item.date).font(DS.interface(9).monospacedDigit()).lineLimit(1).minimumScaleFactor(0.8).foregroundStyle(.tertiary)
                 }
                 .frame(width: 54)
                 VStack(alignment: .leading, spacing: 3) {
@@ -1145,9 +1222,9 @@ struct CommandPalette: View {
                 HStack(spacing: 10) {
                     Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
                     TextField("Ir para norma, matéria ou ação…", text: $query)
-                        .textFieldStyle(.plain).font(.system(size: 17)).focused($focused)
+                        .textFieldStyle(.plain).font(DS.interface(17)).focused($focused)
                         .onSubmit { if let first = laws.first { choose { openLaw(first.id) } } else if let a = actions.first { choose(a.run) } }
-                    Text("esc").font(.system(size: 10, weight: .medium)).foregroundStyle(.secondary)
+                    Text("esc").font(DS.interface(10, .medium)).foregroundStyle(.secondary)
                         .padding(.horizontal, 6).padding(.vertical, 2)
                         .background(Capsule().fill(AppTheme.hairline.opacity(0.5)))
                 }
@@ -1170,7 +1247,7 @@ struct CommandPalette: View {
                             }
                         }
                         if laws.isEmpty && actions.isEmpty {
-                            Text("Nada encontrado.").font(.system(size: 13)).foregroundStyle(.secondary)
+                            Text("Nada encontrado.").font(DS.interface(13)).foregroundStyle(.secondary)
                                 .padding(.horizontal, 12).padding(.vertical, 16)
                         }
                     }
@@ -1197,10 +1274,10 @@ struct CommandPalette: View {
     private func paletteRow(_ color: Color, _ icon: String, _ title: String, _ sub: String?, _ act: @escaping () -> Void) -> some View {
         Button(action: act) {
             HStack(spacing: 11) {
-                Image(systemName: icon).font(.system(size: 13, weight: .semibold)).foregroundStyle(color).frame(width: 22)
+                Image(systemName: icon).font(DS.interface(13, .semibold)).foregroundStyle(color).frame(width: 22)
                 VStack(alignment: .leading, spacing: 1) {
-                    Text(title).font(.system(size: 13.5, weight: .medium)).foregroundStyle(AppTheme.ink).lineLimit(1)
-                    if let sub { Text(sub).font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1) }
+                    Text(title).font(DS.interface(13.5, .medium)).foregroundStyle(AppTheme.ink).lineLimit(1)
+                    if let sub { Text(sub).font(DS.interface(11)).foregroundStyle(.secondary).lineLimit(1) }
                 }
                 Spacer()
             }

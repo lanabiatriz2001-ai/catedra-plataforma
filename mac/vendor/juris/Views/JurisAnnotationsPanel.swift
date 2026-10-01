@@ -16,7 +16,7 @@ struct JurisAnnotationsPanel: View {
                 Section("Comentários (\(items.count))") {
                     if items.isEmpty {
                         Text("Selecione um trecho e toque em “Comentar” para anotar a margem.")
-                            .font(.system(size: 12)).foregroundStyle(Palette.secondaryInk)
+                            .font(DS.interface(12)).foregroundStyle(Palette.secondaryInk)
                             .padding(.vertical, 6)
                     }
                     ForEach(items) { mark in
@@ -40,6 +40,10 @@ struct JurisAnnotationsPanel: View {
 
     private func jump(to range: NSRange) {
         guard let tv = markController.textView else { return }
+        // marcação vinda de um verbete fundido (JurisMigracaoIDs) pode apontar além do texto do canônico:
+        // pular para fora do texto derruba o NSTextView/UITextView — aí não pula.
+        let total = tv.textStorage?.length ?? 0
+        guard range.location >= 0, range.length >= 0, range.location + range.length <= total else { return }
         tv.scrollRangeToVisible(range)
         tv.showFindIndicator(for: range)
     }
@@ -58,7 +62,7 @@ private struct JurisAnnotationCard: View {
                 HStack(alignment: .top, spacing: 8) {
                     RoundedRectangle(cornerRadius: 2).fill(mark.colorHex.map { Color(hex: $0) } ?? Palette.accent).frame(width: 3)
                     Label(mark.kind.nome, systemImage: mark.kind.simbolo)
-                        .font(.system(size: 11, weight: .semibold))
+                        .font(DS.interface(11, .semibold))
                         .foregroundStyle(Palette.secondaryInk)
                     Spacer(minLength: 0)
                 }
@@ -66,7 +70,7 @@ private struct JurisAnnotationCard: View {
             .buttonStyle(.plain)
 
             TextField("Escrever anotação…", text: $note, axis: .vertical)
-                .font(.system(size: 12.5))
+                .font(DS.interface(12.5))
                 .textFieldStyle(.plain)
                 .lineLimit(1...6)
                 .onChange(of: note) { _, newValue in

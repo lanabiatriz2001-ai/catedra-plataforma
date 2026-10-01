@@ -317,7 +317,7 @@ struct SimuladoView: View {
                 prova = p; visao = .enunciados
                 SimuladoCache.salvar(p)
             } label: {
-                Label("Gerar simulado", systemImage: "play.fill").font(.system(size: 14, weight: .bold))
+                Label("Gerar simulado", systemImage: "play.fill").font(DS.interface(14, .bold))
                     .padding(.horizontal, 16).padding(.vertical, 9)
             }
             .buttonStyle(.borderedProminent).tint(Palette.accent)
@@ -325,7 +325,7 @@ struct SimuladoView: View {
             let banco = SimuladoLocal.bancoDiscursivas()
             Text(banco.isEmpty ? "Banco de discursivas não encontrado no bundle (discursivas.json) — a prova sai só com objetivas."
                                : "Banco: \(store.entries.count) verbetes · \(banco.count) discursivas de provas reais.")
-                .font(.system(size: 11.5)).foregroundStyle(Palette.secondaryInk)
+                .font(DS.interface(11.5)).foregroundStyle(Palette.secondaryInk)
         }
         .padding(18)
         .background(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).fill(Palette.cardBackground))
@@ -351,9 +351,9 @@ struct SimuladoView: View {
                     HStack(spacing: 12) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(h.criadoEm.formatted(date: .abbreviated, time: .shortened))
-                                .font(.system(size: 13, weight: .semibold)).foregroundStyle(Palette.titleInk)
+                                .font(DS.interface(13, .semibold)).foregroundStyle(Palette.titleInk)
                             Text("\(h.disciplina ?? "Todas") · \(h.itens.count) itens · \(h.discursivas.count) discursivas")
-                                .font(.system(size: 11.5)).foregroundStyle(Palette.secondaryInk)
+                                .font(DS.interface(11.5)).foregroundStyle(Palette.secondaryInk)
                         }
                         Spacer()
                         Text("\(h.acertos)/\(h.itens.count)").font(Typo.num(15, .heavy))
@@ -399,7 +399,7 @@ struct SimuladoView: View {
             Flow(espacamento: 10) {
                 EtiquetaEstudo(texto: p.disciplina ?? "Todas as disciplinas")
                 EtiquetaEstudo(texto: "\(p.respondidos)/\(p.itens.count) respondidos", cor: Palette.secondaryInk)
-                EtiquetaEstudo(texto: "⏱ \(SimuladoLocal.tempo(p.segundos))", cor: p.encerrado ? Palette.secondaryInk : Palette.importante)
+                EtiquetaEstudo(texto: "Tempo \(SimuladoLocal.tempo(p.segundos))", cor: p.encerrado ? Palette.secondaryInk : Palette.importante)
                 Spacer(minLength: 0)
                 if !p.encerrado {
                     Button("Encerrar e corrigir") { encerrar() }.buttonStyle(.borderedProminent).tint(Palette.accent)
@@ -411,7 +411,7 @@ struct SimuladoView: View {
             }
             if avisoExport {
                 Text("Arquivo .md salvo (Documentos do app). Abra e imprima pelo app de sua preferência.")
-                    .font(.system(size: 11.5)).foregroundStyle(Palette.secondaryInk)
+                    .font(DS.interface(11.5)).foregroundStyle(Palette.secondaryInk)
             }
         }
         .padding(14)
@@ -435,7 +435,7 @@ struct SimuladoView: View {
                     let its = porDisc[d] ?? []
                     let ok = its.filter { p.respostas[$0.id] == $0.gabarito }.count
                     HStack {
-                        Text(d).font(.system(size: 13)).foregroundStyle(Palette.titleInk)
+                        Text(d).font(DS.interface(13)).foregroundStyle(Palette.titleInk)
                         Spacer()
                         Text("\(ok)/\(its.count)").font(Typo.num(13)).foregroundStyle(Palette.secondaryInk)
                     }
@@ -453,7 +453,7 @@ struct SimuladoView: View {
         return VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline, spacing: 10) {
                 Text("\(n)").font(Typo.num(13, .heavy)).foregroundStyle(Palette.secondaryInk)
-                Text(it.afirmacao).font(.system(size: 14.5)).lineSpacing(3).foregroundStyle(Palette.titleInk)
+                Text(it.afirmacao).font(DS.interface(14.5)).lineSpacing(3).foregroundStyle(Palette.titleInk)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
             HStack(spacing: 8) {
@@ -472,12 +472,12 @@ struct SimuladoView: View {
             if mostraGab {
                 BlocoEstudo(rotulo: "Comentário", cor: cor) {
                     VStack(alignment: .leading, spacing: 6) {
-                        if !it.gabarito { Text("A afirmação inverte a tese. O texto oficial é:").font(.system(size: 12.5, weight: .semibold)).foregroundStyle(Palette.secondaryInk) }
+                        if !it.gabarito { Text("A afirmação inverte a tese. O texto oficial é:").font(DS.interface(12.5, .semibold)).foregroundStyle(Palette.secondaryInk) }
                         Text(it.comentario)
                         HStack {
-                            Text(it.referencia).font(.system(size: 12, weight: .bold)).foregroundStyle(cor)
+                            Text(it.referencia).font(DS.interface(12, .bold)).foregroundStyle(cor)
                             Spacer()
-                            Button("Abrir no leitor") { store.lerCheio(it.entryID) }.buttonStyle(.plain).font(.system(size: 12)).foregroundStyle(Palette.accent)
+                            Button("Abrir no leitor") { store.lerCheio(it.entryID) }.buttonStyle(.plain).font(DS.interface(12)).foregroundStyle(Palette.accent)
                         }
                     }
                 }
@@ -495,7 +495,7 @@ struct SimuladoView: View {
             q.respostas[it.id] = valor
             prova = q; SimuladoCache.salvar(q)
         } label: {
-            Text(t).font(.system(size: 12.5, weight: .bold))
+            Text(t).font(DS.interface(12.5, .bold))
                 .padding(.horizontal, 14).padding(.vertical, 6)
                 .background(Capsule().fill(ativo ? Palette.accent : Palette.cardBackground))
                 .overlay(Capsule().strokeBorder(ativo ? Palette.accent : Palette.hairline))
@@ -514,8 +514,8 @@ struct SimuladoView: View {
                 if !d.peca.isEmpty { EtiquetaEstudo(texto: d.peca, cor: Palette.importante) }
                 EtiquetaEstudo(texto: d.disciplina, cor: Palette.accent)
             }
-            if !d.tema.isEmpty { Text(d.tema).font(.system(size: 12.5, weight: .semibold)).foregroundStyle(Palette.secondaryInk) }
-            Text(d.enunciado).font(.system(size: 14.5)).lineSpacing(3).foregroundStyle(Palette.titleInk).textSelection(.enabled)
+            if !d.tema.isEmpty { Text(d.tema).font(DS.interface(12.5, .semibold)).foregroundStyle(Palette.secondaryInk) }
+            Text(d.enunciado).font(DS.interface(14.5)).lineSpacing(3).foregroundStyle(Palette.titleInk).textSelection(.enabled)
             if visao != .enunciados {
                 if d.espelho.isEmpty, let et = d.espelhoTexto, !et.isEmpty {
                     // 414 questões têm o padrão em prosa dentro do próprio app — dizer
@@ -538,12 +538,12 @@ struct SimuladoView: View {
                                     if let pt = q.pontos { Text("\(SimuladoLocal.fmt(pt)) pt").font(Typo.num(12)).foregroundStyle(Palette.secondaryInk) }
                                 }
                             }
-                            if let t = d.total { Text("Total: \(SimuladoLocal.fmt(t)) pt").font(.system(size: 12, weight: .bold)).foregroundStyle(Palette.secondaryInk) }
+                            if let t = d.total { Text("Total: \(SimuladoLocal.fmt(t)) pt").font(DS.interface(12, .bold)).foregroundStyle(Palette.secondaryInk) }
                         }
                     }
                 }
                 if !d.fonte.isEmpty, let u = URL(string: d.fonte) {
-                    Link(destination: u) { Label("Fonte oficial", systemImage: "link").font(.system(size: 12)) }.foregroundStyle(Palette.accent)
+                    Link(destination: u) { Label("Fonte oficial", systemImage: "link").font(DS.interface(12)) }.foregroundStyle(Palette.accent)
                 }
             }
         }

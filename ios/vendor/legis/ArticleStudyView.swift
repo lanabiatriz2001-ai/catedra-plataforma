@@ -55,15 +55,15 @@ struct ArticleStudyView: View {
 
     // Um único .sheet(item:) — empilhar vários .sheet(isPresented:) no mesmo view
     // confunde o SwiftUI (macOS) sobre qual apresentar (armadilha corrigida na v36).
-    private enum StudySheet: Int, Identifiable { case index, map; var id: Int { rawValue } }
+    private enum StudySheet: Int, Identifiable { case index; var id: Int { rawValue } }
     @State private var filter = ""
     @State private var onlyReview = false
     @AppStorage("studyLayout") private var layout = "foco"   // "foco" | "cartoes"
     @AppStorage("srsEnabled") private var srsEnabled = false // revisão espaçada ligada?
     @AppStorage("leituraAtiva") private var leituraAtiva = false  // Modo Leitura Ativa (toggle na barra)
     @AppStorage("cleanReading") private var cleanReading = false  // modo imersão (esconde chrome)
-    @AppStorage("readerFontSize") private var fontSize = 16.0
-    @AppStorage("readerFontFamily") private var fontFamily = "Sistema (Serifa)"
+    @AppStorage("readerFontSize") private var fontSize = 18.0
+    @AppStorage("readerFontFamily") private var fontFamily = "Spectral"
     @AppStorage("readerLineSpacing") private var lineSpacing = 7.0
     @State private var showTypography = false                // popover de leitura (Aa)
     @AppStorage("showIndexRail") private var showIndexRail = false  // trilho lateral do índice
@@ -166,12 +166,11 @@ struct ArticleStudyView: View {
         .sheet(isPresented: tipografiaEmFolha) {
             typographyPopover.legisDetentesSeCompacto([.medium, .large])
         }
-        // Gancho de VERIFICAÇÃO (ver ContentView): `-legisAbrirFolha indice|mapa|tipografia`.
+        // Gancho de VERIFICAÇÃO (ver ContentView): `-legisAbrirFolha indice|tipografia`.
         .task {
             try? await Task.sleep(nanoseconds: 1_200_000_000)
             switch UserDefaults.standard.string(forKey: "legisAbrirFolha") {
             case "indice":     activeSheet = .index
-            case "mapa":       activeSheet = .map
             case "tipografia": showTypography = true
             default: break
             }
@@ -182,12 +181,6 @@ struct ArticleStudyView: View {
                 IndexSheet(lawID: lawID, units: units, accent: accent, currentID: focusID) { id in
                     layout = "foco"; activeSheet = nil
                     goTo(id) // salva a posição, como Anterior/Próximo
-                }
-            case .map:
-                if let unit = focusUnit {
-                    ArticleMapSheet(unit: unit,
-                                    lawTitle: store.laws.first { $0.id == lawID }?.title ?? "",
-                                    accent: accent)
                 }
             }
         }
@@ -213,13 +206,6 @@ struct ArticleStudyView: View {
             .tint(accent)
 
             if layout == "foco" {
-                Button { activeSheet = .map } label: {
-                    Label("Mapa", systemImage: "point.3.connected.trianglepath.dotted")
-                        .font(.caption.weight(.semibold))
-                }
-                .buttonStyle(.bordered)
-                .help("Gera um mapa/esquema visual deste artigo — copiar ou exportar PNG")
-
                 Button { withAnimation(.easeInOut(duration: 0.15)) { leituraAtiva.toggle() } } label: {
                     Label("Leitura ativa", systemImage: leituraAtiva ? "book.and.wrench.fill" : "book.and.wrench")
                         .font(.caption.weight(.semibold))
@@ -293,7 +279,7 @@ struct ArticleStudyView: View {
         .accessibilityLabel("Índice, \(units.count) artigos")
     }
 
-    /// Exibição (Foco/Cartões), Mapa, Leitura ativa, Aa, Imersão e Revisão espaçada — o que
+    /// Exibição (Foco/Cartões), Leitura ativa, Aa, Imersão e Revisão espaçada — o que
     /// a barra superior do Estudo mostra no iPad, num menu de 44 pt.
     private var estudoMenuCompacto: some View {
         Menu {
@@ -303,9 +289,6 @@ struct ArticleStudyView: View {
             }
             .pickerStyle(.inline)
             if layout == "foco" {
-                Button { activeSheet = .map } label: {
-                    Label("Mapa do artigo", systemImage: "point.3.connected.trianglepath.dotted")
-                }
                 Button { showTypography = true } label: {
                     Label("Leitura (fonte e espaçamento)", systemImage: "textformat.size")
                 }
@@ -327,6 +310,7 @@ struct ArticleStudyView: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text("Fonte").font(.caption).foregroundStyle(.secondary)
                 Picker("", selection: $fontFamily) {
+                    Text("Spectral (padrão)").tag("Spectral")
                     Text("Serifa (leitura)").tag("Sistema (Serifa)")
                     Text("Sistema").tag("Sistema")
                     Text("Georgia").tag("Georgia")
@@ -631,8 +615,8 @@ private struct UnitFocusView: View {
     @StateObject private var markController = ReaderController()
     @State private var showRedactions = false
     @State private var pendingRemovalRange: NSRange?
-    @AppStorage("readerFontSize") private var fontSize = 16.0
-    @AppStorage("readerFontFamily") private var fontFamily = "Sistema (Serifa)"
+    @AppStorage("readerFontSize") private var fontSize = 18.0
+    @AppStorage("readerFontFamily") private var fontFamily = "Spectral"
     @AppStorage("readerLineSpacing") private var lineSpacing = 7.0
     @AppStorage("markerColorHex") private var markerColorHex = "#FFD60AFF"
     @AppStorage("srsEnabled") private var srsEnabled = false
@@ -2302,7 +2286,7 @@ struct UnitLine: View {
         case .inciso(let numeral, let text):
             HStack(alignment: .firstTextBaseline, spacing: 10) {
                 Text(numeral)
-                    .font(.system(size: fontSize - 1, weight: .bold, design: .default))
+                    .font(DS.interface(fontSize - 1, .bold))
                     .foregroundStyle(accent)
                     .frame(minWidth: 28, alignment: .trailing)
                 body(text)
@@ -2313,14 +2297,14 @@ struct UnitLine: View {
         case .paragrafo(let label, let text):
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(label)
-                    .font(.system(size: fontSize - 1, weight: .bold))
+                    .font(DS.interface(fontSize - 1, .bold))
                     .foregroundStyle(AppTheme.srs)
                 body(text)
             }
         case .alinea(let letter, let text):
             HStack(alignment: .firstTextBaseline, spacing: 10) {
                 Text("\(letter))")
-                    .font(.system(size: fontSize - 1, weight: .semibold))
+                    .font(DS.interface(fontSize - 1, .semibold))
                     .foregroundStyle(.secondary)
                     .frame(minWidth: 28, alignment: .trailing)
                 body(text)
@@ -2333,7 +2317,7 @@ struct UnitLine: View {
 
     private func body(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: fontSize, design: .default))
+            .font(DS.interface(fontSize))
             .lineSpacing(6)
             .textSelection(.enabled)
             .fixedSize(horizontal: false, vertical: true)
@@ -2379,8 +2363,8 @@ private struct UnitCard: View {
     @State private var note = ""
     @State private var noteLoaded = false
     @State private var showNote = false
-    @AppStorage("readerFontSize") private var fontSize = 16.0
-    @AppStorage("readerFontFamily") private var fontFamily = "Sistema (Serifa)"
+    @AppStorage("readerFontSize") private var fontSize = 18.0
+    @AppStorage("readerFontFamily") private var fontFamily = "Spectral"
     @AppStorage("readerLineSpacing") private var lineSpacing = 7.0
     @StateObject private var markController = ReaderController()
     @State private var articleHeight: CGFloat = 60

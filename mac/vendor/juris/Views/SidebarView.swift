@@ -28,7 +28,7 @@ struct ChecklistDonePayload {
 ///   HOJE       — o que fazer agora (Início, Revisar hoje, Novidades)
 ///   TREINAR    — o que gera nota (Simulado, Prova oral, Oral das bancas, Plano, Mapas)
 ///   ACERVO     — por força vinculante (Todos, Ramos, Informativos, STF/STJ/TSE,
-///                Tribunais, Contas, DOD)
+///                Tribunais, Contas, Precedentes)
 ///   MEU ESTUDO — biblioteca pessoal (Favoritos, Anotações, Checklist, Coleções, Índice)
 struct JurisSidebar: View {
     @Environment(LibraryStore.self) private var store
@@ -55,24 +55,19 @@ struct JurisSidebar: View {
         }
     }
 
-    private func ativa(_ s: Selecao) -> Bool { store.leituraID == nil && selecaoAtual == s }
+    private func ativa(_ s: Selecao) -> Bool {
+        guard store.leituraID == nil else { return false }
+        switch s {
+        case .destino(let d): return JurisDestinos.pai(selecaoAtual) == d
+        case .meuMaterial: return JurisDestinos.ehMeuMaterial(selecaoAtual)
+        default: return selecaoAtual == s
+        }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Logo — mesmo bloco do CátedraLEGIS
-            HStack(spacing: 10) {
-                RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous)
-                    .fill(ThemeState.t.accent).frame(width: 34, height: 34)
-                    .overlay(Image(systemName: "building.columns.fill")
-                        .font(.system(size: 15, weight: .bold)).foregroundStyle(.white))
-                VStack(alignment: .leading, spacing: 0) {
-                    Text("CátedraJURIS").font(.system(size: 14.5, weight: .bold)).foregroundStyle(.white)
-                    Text("Vade Mecum de jurisprudência").font(.system(size: 10))
-                        .foregroundStyle(ThemeState.t.sidebarText.opacity(0.85))
-                        .lineLimit(1).minimumScaleFactor(0.8)
-                }
-            }
-            .padding(.horizontal, 14).padding(.top, 16).padding(.bottom, 10)
+            SeloLateral(nome: "CátedraJURIS", subtitulo: "Jurisprudência")
+            .padding(.horizontal, 14).padding(.top, 18).padding(.bottom, 14)
 
             // Busca em destaque logo abaixo do logo — igual ao CátedraLEGIS.
             buscaRow
@@ -80,58 +75,34 @@ struct JurisSidebar: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 2) {
-                    secao("HOJE")
-                    row(.inicio, "Início", "house")
-                    row(.hoje, "Revisar hoje", "sun.horizon", badge: store.srsDueCount + store.checklistPendingCount)
-                    row(.novidades, "Novidades", "sparkles", ponto: store.novidadesNaoVistas > 0)
-
-                    secao("TREINAR")
-                    row(.simulado, "Simulado", "list.bullet.clipboard")
-                    row(.provaOral, "Prova oral", "mic")
-                    row(.oralBancas, "Prova oral · bancas", "person.wave.2")
-                    row(.julgadoDoDia, "Julgado do dia", "sun.max")
-                    row(.plano, "Plano de leitura", "calendar")
-                    row(.mapas, "Mapas mentais", "brain.head.profile")
-
-                    secao("ACERVO")
-                    row(.todos, "Todos os verbetes", "square.stack.3d.up")
-                    row(.ramosHub, "Ramos do Direito", "books.vertical", chevron: true)
-                    row(.gradeInformativos, "Informativos", "square.grid.3x3")
-                    row(.central(.stf), "STF", "building.columns")
-                    row(.central(.stj), "STJ", "building.columns")
-                    row(.central(.tse), "TSE", "building.columns")
-                    row(.central(.especificos), "Tribunais (TJRO, TJGO…)", "building.2", chevron: true)
-                    row(.central(.contas), "Cortes de contas", "banknote")
-                    row(.central(.outros), "DOD & Precedentes", "text.book.closed")
-
-                    secao("MEU ESTUDO")
-                    row(.favoritos, "Favoritos", "star")
-                    row(.anotacoes, "Minhas anotações", "square.and.pencil")
-                    row(.checklist, "Checklist de leitura", "checklist", badge: store.checklistPendingCount)
-                    row(.indice, "Índice alfabético", "textformat.abc")
-                    ForEach(store.colecoes) { c in
-                        row(.colecao(c.id), c.nome, "folder")
-                    }
-                    Button { nomeColecao = ""; novaColecao = true } label: {
-                        HStack(spacing: 11) {
-                            Image(systemName: "plus").font(.system(size: 12, weight: .semibold)).frame(width: 20)
-                            Text("Nova coleção").font(.system(size: 13, weight: .medium))
-                            Spacer(minLength: 0)
+                    // Entrega 4: os MESMOS 4 destinos do LEGIS. Tudo o que era linha solta está na
+                    // vitrine do destino (JurisDestinoHub) — tabela de rastreio no PR.
+                    linha(.inicio, .hoje, contagem: store.srsDueCount + store.checklistPendingCount)
+                    linha(.destino(.acervo), .acervo, contagem: store.entries.count)
+                    // Vitrine na lateral: com o Acervo aberto, os tribunais aparecem logo abaixo,
+                    // cada um com o ponto na sua cor — um toque abre a central dele.
+                    if ativa(.destino(.acervo)) {
+                        ForEach(JurisSidebar.tribunais, id: \.0) { t in
+                            SubLinhaLateral(titulo: t.0, cor: CorTribunal.identidade(t.1)) { store.ir(.central(t.2)) }
                         }
-                        .padding(.horizontal, 11).padding(.vertical, 8)
-                        .foregroundStyle(ThemeState.t.sidebarText.opacity(0.8))
-                        .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    linha(.destino(.treinar), .treinar)
+                    linha(.novidades, .novidades, contagem: store.novidadesNaoVistas)
+                    secao("MEU MATERIAL")
+                    LinhaLateral(titulo: "Anotações e apoio", simbolo: "folder", ativa: ativa(.meuMaterial)) { store.ir(.meuMaterial) }
                 }
-                .padding(.horizontal, 8).padding(.bottom, 14)
+                .padding(.horizontal, 10).padding(.bottom, 14)
             }
+
+            // Meta do dia (a mesma de Ajustes → Meta diária), no rodapé da lateral.
+            MetaLateral(feito: store.lidosHoje, meta: max(store.metaDiaria, 1), unidade: "verbetes")
+                .padding(.horizontal, 12).padding(.bottom, 8)
 
             // Rodapé: progresso da atualização automática (quando rodando)
             if case .executando(let msg) = updater.fase {
                 HStack(spacing: 8) {
                     ProgressView().controlSize(.small)
-                    Text(msg).font(.system(size: 10))
+                    Text(msg).font(DS.interface(10))
                         .foregroundStyle(ThemeState.t.sidebarText.opacity(0.75)).lineLimit(2)
                     Spacer(minLength: 0)
                 }
@@ -142,21 +113,21 @@ struct JurisSidebar: View {
             // como no CátedraLEGIS; o strip do topo saiu).
             HStack(spacing: 10) {
                 Image(systemName: clock.running ? "clock.fill" : "clock")
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(DS.interface(15, .semibold))
                     .foregroundStyle(clock.running ? ThemeState.t.accent : ThemeState.t.sidebarText.opacity(0.7))
                 VStack(alignment: .leading, spacing: 1) {
                     Text(clock.formatted)
-                        .font(.system(size: 17, weight: .semibold).monospacedDigit())
+                        .font(DS.interface(17, .semibold).monospacedDigit())
                         .foregroundStyle(.white)
                     Text(clock.running ? "revisando · vai pro Cátedra" : "tempo de estudo · play manual")
-                        .font(.system(size: 8.5, weight: .medium))
+                        .font(DS.interface(8.5, .medium))
                         .foregroundStyle(ThemeState.t.sidebarText.opacity(0.62))
                         .lineLimit(1).minimumScaleFactor(0.75)
                 }
                 Spacer(minLength: 0)
                 Button { clock.togglePlay() } label: {
                     Image(systemName: clock.manualPlaying ? "pause.fill" : "play.fill")
-                        .font(.system(size: 13, weight: .bold))
+                        .font(DS.interface(13, .bold))
                         .foregroundStyle(.white)
                         .frame(width: 26, height: 26)
                         .background(Circle().fill(clock.manualPlaying ? Color.white.opacity(0.16) : ThemeState.t.accent))
@@ -167,7 +138,7 @@ struct JurisSidebar: View {
                     NotificationCenter.default.post(name: JurisHostBridge.openSettings, object: nil)
                 } label: {
                     Image(systemName: "gearshape")
-                        .font(.system(size: 13, weight: .medium))
+                        .font(DS.interface(13, .medium))
                         .foregroundStyle(ThemeState.t.sidebarText.opacity(0.8))
                         .frame(width: 26, height: 26)
                         .contentShape(Rectangle())
@@ -177,9 +148,9 @@ struct JurisSidebar: View {
             }
             .padding(.horizontal, 14).padding(.vertical, 11)
         }
-        .frame(width: 210)
+        .frame(width: 236)
         .frame(maxHeight: .infinity)
-        .background(ThemeState.t.sidebarBg)
+        .fundoLateral()
         .alert("Nova coleção", isPresented: $novaColecao) {
             TextField("Nome (ex.: Meu edital)", text: $nomeColecao)
             Button("Criar") {
@@ -206,14 +177,14 @@ struct JurisSidebar: View {
                 }
             })
         return HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass").font(.system(size: 12, weight: .medium))
+            Image(systemName: "magnifyingglass").font(DS.interface(12, .medium))
                 .foregroundStyle(ThemeState.t.sidebarText.opacity(0.8))
             TextField("Buscar em tudo…", text: bind)
-                .textFieldStyle(.plain).font(.system(size: 12.5))
+                .textFieldStyle(.plain).font(DS.interface(12.5))
                 .foregroundStyle(.white)
             if !store.searchText.isEmpty {
                 Button { store.searchText = "" } label: {
-                    Image(systemName: "xmark.circle.fill").font(.system(size: 11))
+                    Image(systemName: "xmark.circle.fill").font(DS.interface(11))
                         .foregroundStyle(ThemeState.t.sidebarText.opacity(0.7))
                 }
                 .buttonStyle(.plain)
@@ -230,9 +201,18 @@ struct JurisSidebar: View {
         return false
     }
 
+    static let tribunais: [(String, String, JurisCentral)] = [
+        ("STF", "STF", .stf), ("STJ", "STJ", .stj), ("TSE", "TSE", .tse),
+        ("Tribunais estaduais", "TJRO", .especificos), ("Cortes de contas", "TCU", .contas),
+    ]
+
+    private func linha(_ sel: Selecao, _ d: Destino, contagem: Int? = nil) -> some View {
+        LinhaLateral(titulo: d.titulo, simbolo: d.simbolo, ativa: ativa(sel), contagem: contagem) { store.ir(sel) }
+    }
+
     private func secao(_ t: String) -> some View {
         Text(t)
-            .font(.system(size: 9.5, weight: .bold)).tracking(0.9)
+            .font(DS.interface(9.5, .bold)).tracking(0.9)
             .foregroundStyle(ThemeState.t.sidebarText.opacity(0.55))
             .padding(.horizontal, 12).padding(.top, 16).padding(.bottom, 5)
     }
@@ -255,13 +235,13 @@ struct JurisSidebar: View {
         let active = ativa(sel)
         Button { store.ir(sel) } label: {
             HStack(spacing: 11) {
-                Image(systemName: icon).font(.system(size: 13, weight: .medium)).frame(width: 20)
+                Image(systemName: icon).font(DS.interface(13, .medium)).frame(width: 20)
                     .foregroundStyle(iconColor(sel, active: active) ??
                                      (active ? ThemeState.t.sidebarActiveText : ThemeState.t.sidebarText))
-                Text(label).font(.system(size: 13, weight: active ? .semibold : .medium)).lineLimit(1)
+                Text(label).font(DS.interface(13, active ? .semibold : .medium)).lineLimit(1)
                 Spacer(minLength: 4)
                 if badge > 0 {   // contagem só onde é fila de trabalho (revisar hoje / checklist)
-                    Text("\(badge)").font(.system(size: 10, weight: .bold).monospacedDigit())
+                    Text("\(badge)").font(DS.interface(10, .bold).monospacedDigit())
                         .foregroundStyle(.white)
                         .padding(.horizontal, 6).padding(.vertical, 1)
                         .background(Capsule().fill(ThemeState.t.accent.opacity(active ? 0.6 : 0.9)))
@@ -270,7 +250,7 @@ struct JurisSidebar: View {
                     Circle().fill(ThemeState.t.accent).frame(width: 7, height: 7)
                 }
                 if chevron {
-                    Image(systemName: "chevron.right").font(.system(size: 9, weight: .bold))
+                    Image(systemName: "chevron.right").font(DS.interface(9, .bold))
                         .foregroundStyle(ThemeState.t.sidebarText.opacity(0.55))
                 }
             }
