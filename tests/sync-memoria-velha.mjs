@@ -104,4 +104,47 @@ export async function testarSyncMemoriaVelha(browser, base, ok, motor = '') {
     ok(r.sau === 'sau1', R + '(b) o caderno da área que chegou fica intacto (edital@saude=' + r.sau + ')');
     await ctx.close();
   }
+
+  // (c) o GATILHO do incidente: "juridica" e "" são a mesma área, "ed-principal" e "" o mesmo
+  //     concurso (é o que o _chave faz). Valor equivalente não é troca: nada de fechar o caderno
+  //     (_salvarAgora), zerar a busca da área ou fechar o caso aberto. A forma que chegou é
+  //     adotada. E a troca de verdade continua fazendo tudo isso.
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    const pg = await ctx.newPage();
+    await pg.addInitScript(() => {
+      if (sessionStorage.getItem('__semeado')) return;
+      sessionStorage.setItem('__semeado', '1');
+      try {
+        localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
+        localStorage.setItem('catedra:areaEstudo', JSON.stringify('juridica'));
+        localStorage.setItem('catedra:editalAtivo', JSON.stringify('ed-principal'));
+      } catch (_) {}
+    });
+    await pg.goto(base + '/Catedra.dc.html');
+    await pg.waitForFunction(() => !!window.__catedraApp, null, { timeout: 30000 });
+    await pg.waitForTimeout(1200);
+    const r = await pg.evaluate(async () => {
+      const w = ms => new Promise(res => setTimeout(res, ms));
+      const app = window.__catedraApp;
+      let flush = 0; const orig = app._salvarAgora.bind(app); app._salvarAgora = () => { flush++; return orig(); };
+      const marca = { marcador: true }; app._palIndice = marca;
+      localStorage.setItem('catedra:areaEstudo', JSON.stringify(''));
+      localStorage.setItem('catedra:editalAtivo', JSON.stringify(''));
+      window.dispatchEvent(new CustomEvent('catedra:synced'));
+      await w(1500);
+      const equivalente = { flush, busca: app._palIndice === marca, area: app.state.areaEstudo, ed: app.state.editalAtivo };
+      // agora a troca de verdade
+      flush = 0; app._palIndice = marca;
+      localStorage.setItem('catedra:areaEstudo', JSON.stringify('saude'));
+      window.dispatchEvent(new CustomEvent('catedra:synced'));
+      await w(1500);
+      return { equivalente, real: { flush, busca: app._palIndice === marca, area: app.state.areaEstudo } };
+    });
+    ok(r.equivalente.flush === 0, R + '(c) "juridica"→"" e "ed-principal"→"" não chamam o _salvarAgora (' + r.equivalente.flush + ' chamadas)');
+    ok(r.equivalente.busca, R + '(c) …nem zeram a busca da área');
+    ok(r.equivalente.area === '' && r.equivalente.ed === '', R + '(c) a forma que chegou é adotada (área=' + JSON.stringify(r.equivalente.area) + ', concurso=' + JSON.stringify(r.equivalente.ed) + ')');
+    ok(r.real.flush >= 1 && !r.real.busca && r.real.area === 'saude', R + '(c) a troca de verdade ("" → "saude") continua fechando o caderno e zerando a busca (' + r.real.flush + ' chamadas, área=' + r.real.area + ')');
+    await ctx.close();
+  }
 }

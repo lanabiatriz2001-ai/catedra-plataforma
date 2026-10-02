@@ -7686,7 +7686,11 @@ class Component extends DCLogic {
     try{
       const r=localStorage.getItem('catedra:areaEstudo');
       const v=(r!=null) ? (JSON.parse(r)||'') : '';
-      if(v!==(this.state.areaEstudo||'')) _areaNova=v;
+      // "juridica" e "" são a MESMA área (o _chave usa as chaves de sempre para as duas): trocar
+      // de forma não é trocar de área. Tratar como troca fechava o caso aberto, zerava a busca e
+      // chamava o _salvarAgora — foi o gatilho do incidente do iPad em 01/10/2026. A forma que
+      // chegou entra pelo laço do _autosaveKeys lá embaixo, como qualquer chave.
+      if(this._areaCanon(v)!==this._areaCanon(this.state.areaEstudo)) _areaNova=v;
     }catch(_){}
     if(_areaNova!==null){
       // o caderno ABERTO ainda é o da área anterior: fecha-o no namespace dele antes de virar
@@ -7709,7 +7713,7 @@ class Component extends DCLogic {
     try{
       const r=localStorage.getItem(this._chave('editalAtivo'));
       const v=(r!=null) ? (JSON.parse(r)||'') : '';
-      if(v!==(this.state.editalAtivo||'')){
+      if(this._concursoCanon(v)!==this._concursoCanon(this.state.editalAtivo)){   // "ed-principal" e "" são o mesmo concurso
         this._salvarAgora();
         this.state.editalAtivo=v;
         try{ localStorage.setItem(this._chave('editalAtivo'), JSON.stringify(v)); }catch(_){}
@@ -8187,6 +8191,9 @@ class Component extends DCLogic {
     // os concursos projetam o `edital`, que é da área: ficam na mesma área que ele
     'editais','editalAtivo']);
   /** A área ativa, legível ANTES de this.state existir (o construtor usa _load). */
+  /** Forma canônica da área e do concurso: o que o _chave trata como o mesmo caderno. */
+  _areaCanon(a){ a=a||''; return a==='juridica' ? '' : a; }
+  _concursoCanon(id){ id=id||''; return id===this.ED_PRINCIPAL ? '' : id; }
   _areaAtiva(){
     try{
       if(this.state && this.state.areaEstudo!=null) return this.state.areaEstudo||'';
