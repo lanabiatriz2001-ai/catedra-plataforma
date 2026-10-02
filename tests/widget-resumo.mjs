@@ -12,6 +12,7 @@ export async function testarWidgetResumo(pageDaSuite, base, ok, opcoes = {}) {
   await resumoDoApp(browser, base, ok, R);
   await avisoAoHost(browser, base, ok, R);
   await publicacao(browser, base, ok, R);
+  await linhaDosAjustes(browser, base, ok, R);
 }
 
 async function avisoAoHost(browser, base, ok, R) {
@@ -221,4 +222,43 @@ async function publicacao(browser, base, ok, R) {
     const resto = await page.evaluate(() => localStorage.getItem('catedra:_widgetPasse'));
     ok(resto === null, R + 'depois de sair, o passe some deste aparelho');
   });
+}
+
+async function linhaDosAjustes(browser, base, ok, R) {
+  const stub = () => {
+    window.__rpcs = []; window.__ativos = 2;
+    window.CatedraAuth = { user: { id: 'u1', email: 'lana@exemplo.com' }, client: {
+      auth: { getUser: async () => ({ data: { user: { id: 'u1' } }, error: null }), getSession: async () => ({ data: { session: null }, error: null }) },
+      rpc: async (n, a) => {
+      window.__rpcs.push({ n, a });
+      if (n === 'widget_passes_ativos') return { data: window.__ativos, error: null };
+      if (n === 'widget_passe_revogar_todos') { const k = window.__ativos; window.__ativos = 0; return { data: k, error: null }; }
+      return { data: null, error: null }; } } };
+  };
+  const { ctx, page } = await abrirApp(browser, base, sementeBase, stub);
+  try {
+    page.on('dialog', d => d.accept());
+    await page.evaluate(() => window.__catedraGoView('ajustes'));
+    await page.waitForSelector('[data-s="conta"]', { timeout: 10000 });
+    await page.click('[data-s="conta"]');
+    const viu = await page.waitForFunction(() => document.body.innerText.includes('Widgets ligados em 2 aparelhos.'), null, { timeout: 8000 }).then(() => true, () => false);
+    ok(viu, R + 'Ajustes → Conta diz em quantos aparelhos os widgets estão ligados');
+    const btn = page.getByRole('button', { name: 'Desligar todos' });
+    const caixa = await btn.boundingBox();
+    ok(!!caixa && caixa.height >= 44, R + 'o botão "Desligar todos" tem alvo de toque ≥ 44 px (' + (caixa && Math.round(caixa.height)) + ')');
+    await btn.click();
+    const apagou = await page.waitForFunction(() => document.body.innerText.includes('Nenhum aparelho com widget ligado.'), null, { timeout: 8000 }).then(() => true, () => false);
+    const chamou = await page.evaluate(() => window.__rpcs.some(r => r.n === 'widget_passe_revogar_todos'));
+    ok(apagou && chamou, R + '"Desligar todos" revoga os passes no servidor e a linha mostra zero');
+  } finally { await ctx.close(); }
+  // sem conta, a linha não aparece
+  const { ctx: c2, page: p2 } = await abrirApp(browser, base, sementeBase);
+  try {
+    await p2.evaluate(() => window.__catedraGoView('ajustes'));
+    await p2.waitForTimeout(800);
+    const aba = await p2.$('[data-s="conta"]');   // sem conta a seção pode nem existir: aí a linha também não
+    if (aba) { await aba.click(); await p2.waitForTimeout(800); }
+    const tem = await p2.evaluate(() => /Widgets ligados|Nenhum aparelho com widget|Desligar todos/.test(document.body.innerText));
+    ok(!tem, R + 'sem conta (dados locais), a linha dos widgets não aparece');
+  } finally { await c2.close(); }
 }

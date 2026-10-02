@@ -6774,6 +6774,16 @@ window.ctPdfLib = (function(){
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;margin-top:12px;"><span style="width:8px;height:8px;border-radius:99px;background:{{ syncDot }};flex:none;"></span><span style="font-size:var(--fs-sm);color:var(--text2);">{{ syncDetalhe }}</span></div>
+          <sc-if value="{{ widgetLinhaOn }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px;padding:12px 16px;border:1px solid var(--border);border-radius:var(--r-md);">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:var(--text2);flex:none;"><rect width="7" height="9" x="3" y="3" rx="1"></rect><rect width="7" height="5" x="14" y="3" rx="1"></rect><rect width="7" height="9" x="14" y="12" rx="1"></rect><rect width="7" height="5" x="3" y="16" rx="1"></rect></svg>
+            <div style="flex:1;min-width:180px;">
+              <div style="font-weight:600;color:var(--ink);">Widgets</div>
+              <div style="font-size:var(--fs-sm);color:var(--text2);margin-top:2px;line-height:1.5;">{{ widgetLinhaTxt }}</div>
+            </div>
+            <sc-if value="{{ widgetLinhaBotao }}" hint-placeholder-val="{{ false }}"><button type="button" onclick="{{ desligarWidgets }}" class="ct-btn-2" style="min-height:44px;">Desligar todos</button></sc-if>
+          </div>
+          </sc-if>
           <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:10px;line-height:1.5;">Sair desconecta este aparelho. O que já sincronizou continua na sua conta; o que ainda não subiu é enviado antes de sair.</div>
           <button onclick="{{ logout }}" style="margin-top:14px;background:transparent;border:1px solid var(--border);border-radius:var(--r-md);padding:10px 16px;font-size:var(--fs-base);color:var(--danger);cursor:pointer;font-family:inherit;font-weight:700;">Sair da conta</button>
         </div>
@@ -7248,7 +7258,7 @@ class Component extends DCLogic {
       // bancaAreaConc vazio = segue a área de estudo escolhida no app.
       bancaAreaSel:this._load('bancaAreaSel',''), bancaDicas:this._load('bancaDicas',{}), bancaBusy:'',
       bancaSel:this._load('bancaSel','cebraspe'), bancaAreaConc:this._load('bancaAreaConc',''), bancaAssunto:this._load('bancaAssunto',''),
-      ajSec:'perfil', ajPerfis:this._load('ajPerfis', []),
+      ajSec:'perfil', ajPerfis:this._load('ajPerfis', []), widgetAtivos:null,
       ajBusca:'', ajBuscaN:0, apAvancada:false, backupAutoErro:false, apPreset:this._load('apPreset','personalizado'),   // D11
       plataformaQuestoes:this._load('plataformaQuestoes','tec'),   // C2: onde ela prefere praticar questões
       ajAnkiOpen:false,
@@ -12856,6 +12866,22 @@ class Component extends DCLogic {
     this.setState({contaExcluindo:true});
     A.excluirConta().catch((err)=>{ this.setState({contaExcluindo:false}); const m=String(err&&err.message||''); this._toast(/admin_nao_pode/.test(m)?'Conta de administração não pode ser excluída por aqui':'Não consegui excluir agora — tente de novo com internet'); });
   };
+  // Ajustes → Conta → Widgets: quantos aparelhos têm passe de leitura ativo (null = não sei / sem conta).
+  _carregarWidgets = async ()=>{
+    const sb=this._sb(); const A=window.CatedraAuth;
+    if(!sb || !A || !A.user){ if(this.state.widgetAtivos!==null) this.setState({widgetAtivos:null}); return; }
+    try{ const r=await sb.rpc('widget_passes_ativos');
+      this.setState({widgetAtivos:(r && !r.error && typeof r.data==='number') ? r.data : null}); }
+    catch(_){ this.setState({widgetAtivos:null}); }
+  };
+  desligarWidgets = async ()=>{
+    const sb=this._sb(); if(!sb) return;
+    if(!confirm('Desligar os widgets de todos os aparelhos?\n\nCada widget passa a mostrar só o que o próprio aparelho já sabia. Um aparelho volta a ligar o widget quando o Cátedra for aberto nele de novo.')) return;
+    try{ const r=await sb.rpc('widget_passe_revogar_todos'); if(r && r.error) throw r.error;
+      this._toast('Widgets desligados em todos os aparelhos.'); }
+    catch(_){ this._toast('Não consegui desligar agora. Tente de novo com internet.'); }
+    this._carregarWidgets();
+  };
   /* ===== TELEMETRIA DE PRIMEIRA PARTE (P17) ==================================================
      Sem serviço de terceiros. Dois fluxos, os dois DESLIGADOS até a administração ligar app_config.telemetria
      (o app lê em app_avisos; o servidor também recusa, então nada passa por engano):
@@ -15243,6 +15269,7 @@ class Component extends DCLogic {
   setAjSec = (e)=>{
     this.setState({ajSec:e.currentTarget.dataset.s||'perfil', ajBusca:'', ajBuscaN:0});
     setTimeout(()=>{ try{ this._filtrarAjustes(''); }catch(_){} }, 0);
+    if((e.currentTarget.dataset.s||'perfil')==='conta') this._carregarWidgets();
   };
   /** O que, nesta seção, está diferente do valor de fábrica. Base do selo no menu de
    *  seções e do botão "voltar ao padrão" — os dois leem a MESMA conta, então o botão
@@ -15350,7 +15377,8 @@ class Component extends DCLogic {
   limparAjBusca = ()=>{ this.setState({ajBusca:'', ajBuscaN:0}); this._filtrarAjustes(''); };
   irParaAjuste = (e)=>{ const t=e.currentTarget.dataset.t||'perfil';
     this.setState({ajSec:t, ajBusca:'', ajBuscaN:0});
-    setTimeout(()=>{ try{ this._filtrarAjustes(''); window.scrollTo({top:0,behavior:this._rolagem()}); }catch(_){} }, 60); };
+    setTimeout(()=>{ try{ this._filtrarAjustes(''); window.scrollTo({top:0,behavior:this._rolagem()}); }catch(_){} }, 60);
+    if(t==='conta') this._carregarWidgets(); };
   _ajResultados(q){
     const t=String(q||'').trim().toLowerCase();
     if(!t) return [];
@@ -19209,6 +19237,12 @@ class Component extends DCLogic {
       docAberto:!!this.state.docAberto, docAbertoSrc:this.state.docAberto?('./'+this.state.docAberto+'.html'):'', docAbertoTitulo:this.state.docAberto==='privacidade'?'Política de privacidade':'Termos de uso', abrirDoc:this.abrirDoc, fecharDoc:this.fecharDoc,
       juridicoVersao:(window.CT_JURIDICO&&window.CT_JURIDICO.versao)||'', juridicoData:(()=>{ try{ const d=window.CT_JURIDICO.termos.data; return d?new Date(d+'T12:00:00').toLocaleDateString('pt-BR'):''; }catch(_){ return ''; } })(),
       aceiteTxt:(()=>{ const J=window.CT_JURIDICO, a=this.state.aceite; if(!J) return 'Documentos não publicados neste build.'; if(J.aceiteVigente(a)){ try{ return 'Você aceitou a versão '+a.versao+' em '+new Date(+a.ts).toLocaleDateString('pt-BR')+'.'; }catch(_){ return 'Aceitos.'; } } return 'A versão vigente ('+J.versao+') ainda não foi aceita nesta conta — o app pede no próximo login.'; })(),
+      widgetLinhaOn:!!(window.CatedraAuth&&window.CatedraAuth.user),
+      widgetLinhaTxt:(this.state.widgetAtivos==null ? 'Mostram o seu estudo na tela de início e na mesa. Ligam sozinhos quando o Cátedra abre no aparelho.'
+        : (this.state.widgetAtivos===0 ? 'Nenhum aparelho com widget ligado.'
+        : ('Widgets ligados em '+this.state.widgetAtivos+' aparelho'+(this.state.widgetAtivos===1?'':'s')+'.'))),
+      widgetLinhaBotao:(this.state.widgetAtivos||0)>0,
+      desligarWidgets:this.desligarWidgets,
       excluirConta:this.excluirConta, contaExcluindo:!!this.state.contaExcluindo, contaEmail:(window.CatedraAuth&&window.CatedraAuth.user&&window.CatedraAuth.user.email)||'',
       setOralModo:this.setOralModo, setOralRamo:this.setOralRamo, setOralTribunal:this.setOralTribunal,
       sortearOral:this.sortearOral, outraPerguntaOral:this.outraPerguntaOral,
