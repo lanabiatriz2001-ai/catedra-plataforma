@@ -20,6 +20,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { iniciarServidor, lancarNavegador } from './_infra.mjs';
 import { testarOralLeiSeca } from './oral-lei-seca.mjs';
 import { testarPastaSincronizada } from './pasta-sincronizada.mjs';
+import { testarPiiVerificador, testarPiiBuildSemTrecho } from './pii-verificador.mjs';
 import { testarLegisGuiado } from './legis-guiado.mjs';
 import { testarLeitorWeb } from './leitor-web.mjs';
 import { testarCicloInteligente } from './ciclo-inteligente.mjs';
@@ -66,6 +67,7 @@ import { testarSentinela } from './sentinela.mjs';
 import { testarSupportCorrecoesLocais } from './support-correcoes-locais.mjs';
 import { testarDesignNativo } from './design-nativo.mjs';
 import { testarExclusaoContaCobertura } from './exclusao-conta-cobertura.mjs';
+import { testarProvaEncerrarUmaVez } from './prova-encerrar-uma-vez.mjs';
 import { montar as montarEnam, parseProva as parseProvaEnam, parseGabarito as parseGabaritoEnam, carregarAreas as areasEnam, EDICOES as EDICOES_ENAM } from '../scripts/build-questoes-enam.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -3219,10 +3221,17 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     };
     // 51 certas, 25 erradas, 4 brancas — e a 1ª questão ganha referências conhecidas para o gabarito
     const responder = (its) => { const resp = {}; its.forEach((it, i) => { if (i < 51) resp[it.id] = it.certo; else if (i < 76) resp[it.id] = it.certo === 'A' ? 'B' : 'A'; }); return resp; };
+    // responde e encerra no mesmo instante. O setState do support.js grava o estado na hora (só a pintura espera o
+    // React) e o "Encerrar" lê dali, então não há o que esperar entre os dois. O relógio da prova segue correndo, um
+    // tique por segundo: os 200 ms que havia aqui deixavam um ou dois tiques cair sob carga, e a tentativa gravava
+    // 16921 ou 16922 no lugar dos 16920
+    const encerrar = (its) => {
+      app.setState({ sjResp: responder(its), provaSeconds: 16920 });
+      [...document.querySelectorAll('.ct-enam-acoes button')].find(b => /Encerrar e corrigir/.test(b.textContent)).click();
+    };
     let its = await montar();
     its[0].refs = ['Art. 25 da CF', 'Tema 698', 'Art. 11']; its[0].origem = 'enam';
-    app.setState({ sjResp: responder(its), provaSeconds: 16920 }); await w(200);
-    [...document.querySelectorAll('.ct-enam-acoes button')].find(b => /Encerrar e corrigir/.test(b.textContent)).click();
+    encerrar(its);
     // a correção cria o lote de erros e os cartões e troca a tela: espera isso, não um tempo fixo (sob
     // carga os 900 ms passavam e o teto de vinte era medido antes de o lote existir)
     for (let i = 0; i < 160 && !((app.state.errors || []).filter(e => e.source === 'Simulado ENAM').length >= 20 && document.querySelector('main .ct-enam-res-n')); i++) await w(50);
@@ -3248,9 +3257,11 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     r.desfazerTiraOLote = (() => { if (!desfazer) return false; desfazer.click(); return true; })();
     for (let i = 0; i < 160 && errs().length > 0; i++) await w(50);   // espera o lote sair, não 400 ms fixos
     r.desfazerTiraOLote = r.desfazerTiraOLote && errs().length === 0 && (app.state.flashcards || []).filter(c => c.origem === 'Simulado ENAM').length === 0;
-    // a tentativa: shape do E4, sem enunciado. O _autosave grava 500 ms depois do setState; sob
-    // carga isso passava do tempo fixo e a leitura dava null — que derrubava a suíte inteira.
-    for (let i = 0; i < 160 && !localStorage.getItem('catedra:enamSim'); i++) await w(50);
+    // a tentativa: shape do E4, sem enunciado. Ela só chega ao disco pelo _autosave (500 ms de debounce, que cada
+    // render rearma). Esperar a CHAVE não bastava: o mesmo _autosave grava catedra:enamSim = "[]" (o estado vazio)
+    // quando qualquer outra chave suja — no boot isso empatava com o removeItem lá de cima, a chave sobrevivia
+    // vazia e o laço saía na hora, antes da tentativa. Espera a tentativa, não a chave.
+    for (let i = 0; i < 160 && JSON.parse(localStorage.getItem('catedra:enamSim') || '[]').length < 1; i++) await w(50);
     const es = JSON.parse(localStorage.getItem('catedra:enamSim') || '[]'), t = es[0];
     r.tentativaNoHistorico = es.length === 1 && /^enam\d+$/.test(t.id) && t.up > 0 && /^\d{4}-\d\d-\d\dT/.test(t.quando) && t.meta === 56 && t.acertos === 51 && t.brancos === 4 && t.habilitaria === false && t.margem === -5
       && t.porArea.length === 8 && t.porArea.every(a => 'ok' in a && 'cota' in a && 'area' in a) && t.tempoTotalSeg === 16920 && t.idsUsados.length === 80 && Array.isArray(t.edicaoBanco) && t.edicaoBanco.length >= 1 && t.comPausa === false;
@@ -3261,17 +3272,24 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     const legisBtn = refs && [...refs.querySelectorAll('button')].find(b => /Art\. 25 da CF · Ler no LEGIS/.test(b.textContent));
     const jurisBtn = refs && [...refs.querySelectorAll('button')].find(b => /Tema 698 · Ver no JURIS/.test(b.textContent));
     r.referenciasNoGabarito = !!legisBtn && /constituicao\.htm$/.test(legisBtn.dataset.lei) && legisBtn.dataset.rot === 'Art. 25' && !!jurisBtn && jurisBtn.dataset.busca === 'Tema 698' && [...refs.querySelectorAll('span.ct-enam-ref')].some(s => s.textContent.trim() === 'Art. 11') && !refs.textContent.includes('Art. 11 · Ler');
+    // a lei por número sai do CT_LEIS (leis-seca.js, que o "Começar" do simulado manda carregar) ou do catálogo
+    // (CT_LEIS_CAT); sob carga o acervo ainda não tinha chegado quando o caso rodava — com CPU 8×, de 1 a 9 s depois
+    // daqui. Espera o acervo de que o caso depende. Súmula e tema não dependem de acervo: é só o padrão do texto.
+    for (let i = 0; i < 600 && !((window.CT_LEIS || []).some(l => l.sigla === 'Lei 14.133/2021') || (window.CT_LEIS_CAT || []).length); i++) await w(50);
     r.refResolveLeiPeloNumero = (() => { const x = app._enamRef('Art. 29 da Lei nº 14.133/2021'); return !!x && x.legis === true && /l14133/.test(x.lei) && x.rot === 'Art. 29'; })() && app._enamRef('Art. 1.641, inciso II do Código Civil').rot === 'Art. 1.641, inciso II' && /l10406/.test(app._enamRef('Art. 1.641, inciso II do Código Civil').lei) && app._enamRef('Súmula 591').jurisTem === true;
     // "Estudar esta área" leva ao LEGIS (Penal → Código Penal, artigo de incidência alta ainda não lido)
     faltou[0].querySelector('button').click(); await w(600);
     r.estudarAreaAbreOLegis = app.state.view === 'legis';
     // meta 40: a mesma prova habilitaria, com margem +11, selo em --ok
     localStorage.setItem('catedra:enam', JSON.stringify({ ...app._enamNovo(), metaAcertos: 40, up: Date.now() })); app.setState({ enam: JSON.parse(localStorage.getItem('catedra:enam')) }); await w(200);
-    its = await montar(); app.setState({ sjResp: responder(its), provaSeconds: 16920 }); await w(200);
-    [...document.querySelectorAll('.ct-enam-acoes button')].find(b => /Encerrar e corrigir/.test(b.textContent)).click(); await w(1400);
+    its = await montar(); encerrar(its);
+    // a 2ª correção troca a tela e a 2ª tentativa chega ao disco pelo _autosave: espera as duas, não 1,4 s fixos
+    // (com CPU 8× a gravação passava dos 1,4 s em todas as rodadas)
+    for (let i = 0; i < 160 && !(main().querySelector('.ct-enam-selo') && JSON.parse(localStorage.getItem('catedra:enamSim') || '[]').length >= 2); i++) await w(50);
     const selo2 = main().querySelector('.ct-enam-selo');
     r.meta40Habilitaria = !!selo2 && selo2.textContent.trim() === 'habilitaria' && selo2.getAttribute('data-ok') === '1' && corDe(selo2) === corToken('--ok') && /meta de 40 acertos · margem \+11/.test(main().textContent) && /16 de 16 · alvo 8/.test(main().querySelector('.ct-enam-barra').textContent);
-    r.duasTentativasSincronizaveis = JSON.parse(localStorage.getItem('catedra:enamSim')).length === 2 && JSON.parse(localStorage.getItem('catedra:enamSim'))[1].meta === 40 && JSON.parse(localStorage.getItem('catedra:enamSim'))[1].habilitaria === true;
+    const es2 = JSON.parse(localStorage.getItem('catedra:enamSim') || '[]');
+    r.duasTentativasSincronizaveis = es2.length === 2 && es2[1].meta === 40 && es2[1].habilitaria === true;
     app.closeSession(); ['catedra:enamSim', 'catedra:enam', 'catedra:errors', 'catedra:fc'].forEach(k => localStorage.removeItem(k)); app.setState({ enamSim: [], enam: null });
     return r;
   }).catch(e => ({ __excecao: String(e && e.message || e).split('\n')[0].slice(0, 200) }));
@@ -3279,6 +3297,12 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
   if (h.__excecao) ok(false, 'ENAM/E4 host o roteiro correu sem exceção (' + h.__excecao + ')');
   else for (const [k, v] of Object.entries(h)) ok(v, 'ENAM/E4 host ' + k);
 }
+
+/* ============= PROVA — encerrar uma vez só ============= */
+// um tique do relógio da prova na fila no instante do "Encerrar" corrigia o ENAM de novo, e o clique passava
+// o evento como `auto` (tests/prova-encerrar-uma-vez.mjs, que o WebKit também roda)
+try { await testarProvaEncerrarUmaVez(page, URL0, ok, { motor: 'chromium' }); }
+catch (e) { ok(false, 'PROVA ENCERRAR UMA VEZ [chromium] o roteiro correu sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
 
 /* ============= ENAM — E5: a Trilha ENAM no Início ============= */
 // Sem enam.ativo o bloco não existe. Ativo e sem tentativa: estado vazio com o formato da prova (nunca zeros), a
@@ -6494,6 +6518,17 @@ const { verificarPII } = await import('../scripts/verificar-pii.mjs');
     console.warn = warn;
     ok(comVazamento.length > 0, 'C1 PII continua acusando CPF válido (marca d\'água de verdade)');
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+}
+
+/* ===== PII no repositório: a marca d'água de PDF (tests/pii-verificador.mjs) =====
+   O repositório é público. O verificador da CI e do pré-commit acusa CPF, telefone e nome
+   rotulados (inteiros ou mascarados) sem repetir o trecho na mensagem — o log da CI é
+   público; caso jurídico legítimo ("Tema 951**", telefone de SAC) passa. A trava do build
+   também deixou de repetir o CPF que acha. */
+try { testarPiiVerificador(ok); await testarPiiBuildSemTrecho(ok); }
+catch (e) {
+  ok(false, 'PII VERIFICADOR o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
 /* ===== C2: ponte para as plataformas de questões (só link de saída) =====

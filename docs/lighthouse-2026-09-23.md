@@ -28,7 +28,7 @@ node scripts/build.mjs
 python3 -m http.server 8189 --bind 127.0.0.1 --directory public
 # Em outro terminal; repetir três vezes por URL, sem medições concorrentes:
 CHROME_PATH='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' \
-  node /Users/lanab/.npm/_npx/8003d8991b0d346b/node_modules/lighthouse/cli/index.js \
+  node ~/.npm/_npx/8003d8991b0d346b/node_modules/lighthouse/cli/index.js \
   http://127.0.0.1:8189/index.html --only-categories=performance \
   --chrome-flags='--headless' --output=json --output-path=/private/tmp/host.json --quiet
 # Repetir para /legis-web.html, com outro output-path.

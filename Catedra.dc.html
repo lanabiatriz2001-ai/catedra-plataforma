@@ -12476,6 +12476,7 @@ class Component extends DCLogic {
   _enamFecha(extra){ try{ localStorage.removeItem('ct_enam_prova'); localStorage.removeItem('ct_prova'); }catch(_){} const d=this._provaDurAntes; this._provaDurAntes=null;
     return {provaMode:false, provaRunning:false, ...(d?{provaDurationMin:d}:{}), ...(extra||{})}; }
   encerrarEnam = (auto)=>{
+    auto=auto===true;   // só o relógio passa true; o clique em "Encerrar e corrigir" passa o evento, que não é tempo esgotado
     if(this._provaT){ clearInterval(this._provaT); this._provaT=null; }
     const its=this.state.sjItens||[], r=this.state.sjResp||{}, T=window.CT_TREINO;
     if(!its.length){ this.setState(this._enamFecha()); return; }
@@ -14471,7 +14472,13 @@ class Component extends DCLogic {
   _provaTimer(){ if(this._provaT) clearInterval(this._provaT);
     this._provaLast=Date.now();   // ancorado no relógio: em segundo plano o interval é estrangulado
     this._provaT=setInterval(()=>{ const _n=Date.now(); const el=this._gapSeg(this._provaLast, _n); this._provaLast=_n;
-      this.setState(s=>{ const ns=s.provaSeconds+el; const cap=s.provaDurationMin*60; return {provaSeconds: ns>=cap?cap:ns}; }, ()=>{ try{ this._saveProva(); }catch(_){}
+      this.setState(s=>{ const ns=s.provaSeconds+el; const cap=s.provaDurationMin*60; return {provaSeconds: ns>=cap?cap:ns}; }, ()=>{
+        /* O estado muda na hora, mas este callback espera o commit do React — e o "Encerrar" clicado nesse meio
+           tempo passa na frente. Prova já encerrada não tem fim a cumprir: sem isto, no ENAM, a duração da sala
+           comum (240 min) já tinha voltado, 4 h 42 de prova passavam do limite e a correção rodava DE NOVO
+           (segunda tentativa, segundo lote de erros, "Tempo esgotado"). */
+        if(!this.state.provaMode) return;
+        try{ this._saveProva(); }catch(_){}
         const enam=this.state.sjModo==='enam' && (this.state.sjItens||[]).length>0;   // E3: a prova ENAM tem os próprios avisos (sem som) e o próprio fim (corrige)
         if(enam){ try{ this._enamAvisoTick(); if(this.state.provaSeconds%10===0) this._saveEnamProva(); }catch(_){} }
         if(this.state.provaSeconds>=this.state.provaDurationMin*60){ if(this._provaT){clearInterval(this._provaT);this._provaT=null;} if(enam){ this.encerrarEnam(true); return; } this._beep&&this._beep(); this.setState({provaRunning:false}); this.finishProva(true); } }); },1000); }
@@ -14490,7 +14497,8 @@ class Component extends DCLogic {
   startProva = ()=>{ const m=Math.max(1,Math.min(600,parseInt(this.state.provaDurationMin,10)||240)); this.setState({provaDurationMin:m, provaMode:true, provaSeconds:0, provaRunning:true}, ()=>{ try{ this._saveProva(); }catch(_){} }); this._provaTimer(); };
   provaToggle = ()=>{ if(this.state.provaRunning){ if(this._provaT){clearInterval(this._provaT);this._provaT=null;} this.setState({provaRunning:false, ...(this.state.sjModo==='enam'?{sjComPausa:true}:{})}, ()=>{ try{ this._saveProva(); }catch(_){} this._saveEnamProva(); }); }
     else { this.setState({provaRunning:true}); this._provaTimer(); } };
-  finishProva = (auto)=>{ if(this._provaT){ clearInterval(this._provaT); this._provaT=null; } try{ localStorage.removeItem('ct_prova'); }catch(_){} const elapsedMin=Math.round(this.state.provaSeconds/60);
+  finishProva = (auto)=>{ auto=auto===true;   // o clique em "Encerrar e registrar" passa o evento — só o relógio passa true
+    if(this._provaT){ clearInterval(this._provaT); this._provaT=null; } try{ localStorage.removeItem('ct_prova'); }catch(_){} const elapsedMin=Math.round(this.state.provaSeconds/60);
     this.setState(s=>({ provaMode:false, provaRunning:false, sessionModalOpen:true,
       sessionDraft:{...this._freshSessionDraft(s.sessionDraft), categorias:['Simulado'], categoria:'Simulado', minutos: elapsedMin>0?String(elapsedMin):'', topico: s.provaName||'Simulado cronometrado' } }));
     this._toast(auto?'Tempo esgotado — registre seu desempenho':'Prova encerrada — registre seu desempenho'); };

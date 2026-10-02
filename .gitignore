@@ -78,3 +78,8 @@ ios/DerivedData/
 AGENTS.md
 .agents/
 .codex/
+
+# Trabalho da auditoria jurídica: intermediários de comparação (até 21 MB cada), alguns com
+# marca d'água pessoal de PDF e caminhos desta máquina. Ficam no disco; só os relatórios entram.
+docs/auditoria-juris/*.json
+docs/auditoria-juris/inventario.mjs
