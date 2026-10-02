@@ -56,6 +56,8 @@ do {
     caso("prova que já passou não fica negativa", WidgetHoje.calcular(passada, agora: dia("2026-10-01"), calendario: cal).diasProva == 0)
     var semProva = r; semProva.prova = nil
     caso("sem prova, sem número", WidgetHoje.calcular(semProva, agora: dia("2026-10-01"), calendario: cal).diasProva == nil)
+    var semGerado = r; semGerado.geradoEm = 0
+    caso("resumo sem geradoEm não ganha rótulo de 'atualizado há…'", WidgetHoje.calcular(semGerado, agora: dia("2026-10-01"), calendario: cal).envelhecidoHa == nil)
     caso("rótulo de envelhecido em dias", WidgetHoje.rotuloEnvelhecido(3 * 86400) == "atualizado há 3 dias")
 
     var ny = Calendar(identifier: .gregorian); ny.timeZone = TimeZone(identifier: "America/New_York")!
@@ -74,6 +76,14 @@ do {
     caso("resumo: campo com tipo errado cai no padrão", WidgetResumo.ler(Data(#"{"metaDiariaMin":"muito","conta":"u1"}"#.utf8))?.metaDiariaMin == 180)
     caso("resumo: JSON quebrado → nada", WidgetResumo.ler(Data(#"{"conta":"#.utf8)) == nil)
     caso("resumo: null → nada", WidgetResumo.ler(Data("null".utf8)) == nil)
+    let ciclo = WidgetResumo.ler(Data(##"{"ciclo":{"feitos":1,"total":"x","proximos":[{"disc":"A","min":50,"corD":"#fff"},7,{"disc":"B","min":40,"cor":"#000","corD":"#111"}]}}"##.utf8))
+    caso("resumo: bloco sem cor mantém os outros blocos e o ciclo", ciclo?.ciclo.feitos == 1 && ciclo?.ciclo.total == 0 && ciclo?.ciclo.proximos.map(\.disc) == ["A", "B"] && ciclo?.ciclo.proximos[0].cor == "")
+    let prefs = WidgetResumo.ler(Data(##"{"prefs":{"baixa":true,"tema":{"accent":"#123456","escuro":true}}}"##.utf8))
+    caso("resumo: tema sem grad mantém prefs.baixa e o resto do tema", prefs?.prefs.baixa == true && prefs?.prefs.tema.accent == "#123456" && prefs?.prefs.tema.grad == [] && prefs?.prefs.tema.escuro == true)
+    let rev = WidgetResumo.ler(Data(#"{"revisoes":{"atrasadas":2,"porData":{"2026-10-01":3,"2026-10-02":"muitas","2026-10-03":1}}}"#.utf8))
+    caso("resumo: porData com valor de tipo errado mantém os outros dias", rev?.revisoes.atrasadas == 2 && rev?.revisoes.porData == ["2026-10-01": 3, "2026-10-03": 1])
+    let ofe = WidgetResumo.ler(Data(#"{"ofensiva":{"n":"seis","valeAte":"2026-10-03"}}"#.utf8))
+    caso("resumo: ofensiva com tipo errado cai no padrão só naquele campo", ofe?.ofensiva.n == 0 && ofe?.ofensiva.valeAte == "2026-10-03")
     let base = resumoBase()
     let volta = (try? JSONEncoder().encode(base)).flatMap(WidgetResumo.ler)
     caso("resumo: ida e volta pelo JSON", volta == base)

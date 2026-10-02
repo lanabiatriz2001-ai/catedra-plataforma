@@ -93,7 +93,7 @@ struct WidgetHoje: Equatable {
         h.cicloTotal = r.ciclo.total
         h.volta = r.ciclo.volta
         let idade = agora.timeIntervalSince1970 - r.geradoEm / 1000
-        h.envelhecidoHa = idade > limiteFresco ? idade : nil
+        h.envelhecidoHa = (r.geradoEm > 0 && idade > limiteFresco) ? idade : nil  // sem carimbo de geração, sem rótulo
         return h
     }
 }

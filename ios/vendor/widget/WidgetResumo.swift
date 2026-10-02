@@ -55,9 +55,9 @@ struct WidgetResumo: Codable, Equatable {
         r.revisoes = le(.revisoes, r.revisoes)
         r.ciclo = le(.ciclo, r.ciclo)
         r.metaDiariaMin = le(.metaDiariaMin, r.metaDiariaMin)
-        r.diasAtivos = le(.diasAtivos, r.diasAtivos)
+        r.diasAtivos = c.lista(.diasAtivos)
         r.metaSemanaMin = le(.metaSemanaMin, r.metaSemanaMin)
-        r.minPorDia = le(.minPorDia, r.minPorDia)
+        r.minPorDia = c.mapa(.minPorDia)
         r.ofensiva = le(.ofensiva, r.ofensiva)
         r.prefs = le(.prefs, r.prefs)
         self = r
@@ -85,5 +85,85 @@ struct WidgetResumo: Codable, Equatable {
         r.ofensiva = Ofensiva(n: 5, valeAte: em(1))
         r.prefs = Prefs(baixa: false, tema: Tema(accent: "#0f7a57", grad: ["#1e2b3a", "#0f7a57"], escuro: false))
         return r
+    }
+}
+
+// ---- Leitura tolerante também por dentro: campo que falta ou vem com tipo errado vira o padrão DAQUELE campo, e
+// item ruim de lista/mapa sai sozinho (um bloco sem cor não derruba o ciclo; um dia torto não zera as revisões).
+// Os init(from:) ficam em extensões para os structs manterem o init por membros.
+
+/// Decodifica um valor ou vira nil, sem lançar — para descartar só o item ruim de uma lista ou mapa.
+private struct Talvez<T: Decodable>: Decodable {
+    let valor: T?
+    init(from decoder: Decoder) throws { valor = try? T(from: decoder) }
+}
+
+extension KeyedDecodingContainer {
+    func le<T: Decodable>(_ k: Key, _ padrao: T) -> T {
+        do { return try decodeIfPresent(T.self, forKey: k) ?? padrao } catch { return padrao }
+    }
+    func lista<T: Decodable>(_ k: Key) -> [T] {
+        ((try? decodeIfPresent([Talvez<T>].self, forKey: k)) ?? nil)?.compactMap { $0.valor } ?? []
+    }
+    func mapa<T: Decodable>(_ k: Key) -> [String: T] {
+        (((try? decodeIfPresent([String: Talvez<T>].self, forKey: k)) ?? nil) ?? [:]).compactMapValues { $0.valor }
+    }
+}
+
+extension WidgetResumo.Prova {
+    private enum K: String, CodingKey { case data, nome }
+    init(from d: Decoder) throws {
+        let c = try d.container(keyedBy: K.self)
+        self.init(data: c.le(.data, ""), nome: c.le(.nome, ""))
+    }
+}
+extension WidgetResumo.Revisoes {
+    private enum K: String, CodingKey { case atrasadas, porData }
+    init(from d: Decoder) throws {
+        let c = try d.container(keyedBy: K.self)
+        self.init(atrasadas: c.le(.atrasadas, 0), porData: c.mapa(.porData))
+    }
+}
+extension WidgetResumo.Bloco {
+    private enum K: String, CodingKey { case disc, min, cor, corD }
+    init(from d: Decoder) throws {
+        let c = try d.container(keyedBy: K.self)
+        self.init(disc: c.le(.disc, ""), min: c.le(.min, 0), cor: c.le(.cor, ""), corD: c.le(.corD, ""))
+    }
+}
+extension WidgetResumo.Volta {
+    private enum K: String, CodingKey { case n, feitos, total }
+    init(from d: Decoder) throws {
+        let c = try d.container(keyedBy: K.self)
+        self.init(n: c.le(.n, 0), feitos: c.le(.feitos, 0), total: c.le(.total, 0))
+    }
+}
+extension WidgetResumo.Ciclo {
+    private enum K: String, CodingKey { case feitos, total, proximos, volta }
+    init(from d: Decoder) throws {
+        let c = try d.container(keyedBy: K.self)
+        self.init(feitos: c.le(.feitos, 0), total: c.le(.total, 0), proximos: c.lista(.proximos),
+                  volta: (try? c.decodeIfPresent(WidgetResumo.Volta.self, forKey: .volta)) ?? nil)
+    }
+}
+extension WidgetResumo.Ofensiva {
+    private enum K: String, CodingKey { case n, valeAte }
+    init(from d: Decoder) throws {
+        let c = try d.container(keyedBy: K.self)
+        self.init(n: c.le(.n, 0), valeAte: c.le(.valeAte, ""))
+    }
+}
+extension WidgetResumo.Tema {
+    private enum K: String, CodingKey { case accent, grad, escuro }
+    init(from d: Decoder) throws {
+        let c = try d.container(keyedBy: K.self)
+        self.init(accent: c.le(.accent, "#0f7a57"), grad: c.lista(.grad), escuro: c.le(.escuro, false))
+    }
+}
+extension WidgetResumo.Prefs {
+    private enum K: String, CodingKey { case baixa, tema }
+    init(from d: Decoder) throws {
+        let c = try d.container(keyedBy: K.self)
+        self.init(baixa: c.le(.baixa, false), tema: c.le(.tema, WidgetResumo.Tema(accent: "#0f7a57", grad: [], escuro: false)))
     }
 }
