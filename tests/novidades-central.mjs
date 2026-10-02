@@ -33,6 +33,10 @@
        novidade"; o último sucesso (do pacote OU de uma busca anterior) fica depois de uma falha;
    (k) toque: tudo ≥ 44 px (iPad retrato e iPhone), e a 390 px nada rola de lado;
    (l) área: em Saúde a Central não abre, o item some do menu e o resumo do Início também;
+   (n) Fase 2 (temas e súmulas): os tipos novos com rótulo próprio, a situação de CADA coleção no
+       cartão da fonte (com o erro da que falhou), o filtro de coleção, a tese antes/depois, as
+       datas oficiais e "Abrir no JURIS" com o título do verbete ("Tema 1234 (RG)") e a origem;
+       contraste medido e 44 px no toque;
    (m) vocabulário e estado únicos: "No acervo" diz onde (LEGIS/JURIS), parcial vence o
        incorporado, "Marcar como conferido" grava st:'conferido', "Manter em revisão" volta a
        'lida'; _novidEstado/_novidMarcar existem; estado vazio com lacuna nunca diz "Nenhuma
@@ -267,7 +271,7 @@ export async function testarNovidadesCentral(pageDaSuite, base, ok, ctxOpc = {})
     ok(!!areaPropria && !areaPropria.includes("'novidLidas'"), R + '(a) novidLidas é GLOBAL (fora de AREA_PROPRIA): ler a mudança da lei vale para toda carreira');
     ok(/'catedra:novidLidas': 1/.test((auth.match(/var ARRAY_ID = \{[^}]*\}/) || [''])[0]), R + '(a) catedra:novidLidas está no ARRAY_ID (união por id entre aparelhos)');
     ok(!/'catedra:novidLidas'/.test((auth.match(/var EXCLUDE = \{[\s\S]*?\};/) || [''])[0]), R + '(a) catedra:novidLidas NÃO está no EXCLUDE (sincroniza)');
-    const soTela = ['novidFonte', 'novidTipo', 'novidDisc', 'novidRamo', 'novidPeriodo', 'novidAssunto', 'novidBuscando', 'novidBuscandoFontes', 'novidVivo', 'novidResultado', 'novidAberto', 'novidAbertos', 'novidSoNaoLidas'];
+    const soTela = ['novidFonte', 'novidTipo', 'novidColecao', 'novidDisc', 'novidRamo', 'novidPeriodo', 'novidAssunto', 'novidBuscando', 'novidBuscandoFontes', 'novidVivo', 'novidResultado', 'novidAberto', 'novidAbertos', 'novidSoNaoLidas'];
     ok(soTela.every((k) => !auto.includes("'" + k + "'")), R + '(a) estado só de tela (filtros, busca, resultado, comparação) fica fora do autosave');
     // o acordo com a sessão "Interface de atualização oficial" (01/10/2026), literal onde é literal
     ok(host.includes('<button id="ct-of-abrir" class="ct-btn-2" onclick="{{ oficialPainelAbrir }}">Ver revisão oficial</button>')
@@ -355,7 +359,7 @@ export async function testarNovidadesCentral(pageDaSuite, base, ok, ctxOpc = {})
       ok(b.view === 'novidades' && b.cur === 'page', R + '(b) a Central abre e o item do menu diz que é a tela atual (view=' + b.view + ', aria-current=' + b.cur + ')');
       const fp = b.fontes[0].t, fs_ = b.fontes[1].t, fj = b.fontes[2].t;
       // compacto: normas e limites abrem com um toque, e o rótulo já diz quantos são
-      ok(/não cobre · 2 pontos/.test(fp) && /não cobre · 2 pontos/.test(fj) && /não cobre · 1 ponto\b/.test(fs_) && /Ver as 2 normas conferidas/.test(fp) && !/LIMITE-ISCA-1/.test(fp),
+      ok(/não cobre · 2 pontos/.test(fp) && /não cobre · 2 pontos/.test(fj) && /não cobre · 1 ponto\b/.test(fs_) && /Ver as 2 normas monitoradas/.test(fp) && !/LIMITE-ISCA-1/.test(fp),
         R + '(b) fontes compactas: os limites e as normas ficam atrás de um toque, com a contagem no rótulo');
       await page.evaluate(() => window.__nv.abrirTudo()); await page.waitForTimeout(350);
       const ab = await page.evaluate(() => {
@@ -838,6 +842,82 @@ export async function testarNovidadesCentral(pageDaSuite, base, ok, ctxOpc = {})
       });
       ok(mi.tem && mi.miudos.length === 0 && mi.docRola <= 0, R + '(k) ' + nome + ': no resumo do Início os botões medem ≥ 44 px e nada rola de lado (' + JSON.stringify(mi) + ')');
     } finally { await c.close(); }
+  }
+
+  /* ---------- (n) Fase 2: coleções (repercussão geral, repetitivos, súmulas) ---------- */
+  {
+    const H = 3600e3, iso = (d) => new Date(agora.getTime() + d).toISOString();
+    const P2 = JSON.parse(JSON.stringify(FIX));
+    P2.fontes.stf = { ...P2.fontes.stf, rotulo: 'STF — Informativo, repercussão geral e súmulas', resultado: 'parcial',
+      colecoes: {
+        informativo: { rotulo: 'STF — Informativo de Jurisprudência', rotuloCurto: 'Informativo', resultado: 'sem-novidade', ultimaTentativa: iso(-H), ultimoSucesso: iso(-H), erro: null, detalhe: 'a partir da edição 1231' },
+        rg: { rotulo: 'STF — Repercussão geral', rotuloCurto: 'Repercussão geral', resultado: 'novidades', ultimaTentativa: iso(-H), ultimoSucesso: iso(-H), erro: null, detalhe: '1.477 temas lidos' },
+        sumulas: { rotulo: 'STF — Súmulas e súmulas vinculantes', rotuloCurto: 'Súmulas', resultado: 'falha', ultimaTentativa: iso(-H), ultimoSucesso: null, erro: 'COLECAO-ERRO-ISCA HTTP 503', detalhe: '' },
+      } };
+    const tema = { id: 'STF-RG-1234-tese-fixada-abc12345', fonte: 'stf', colecao: 'rg', colecaoRotulo: 'STF — Repercussão geral', tipo: 'tese-fixada', numero: 1234,
+      titulo: 'Tema 1234 — STF', disp: 'Tema 1234 — STF', norma: 'STF', normaNome: 'STF — Repercussão geral',
+      antes: null, depois: 'TESE-ISCA É constitucional a cobrança prevista na lei.', situacao: 'Mérito julgado', julgadoEm: '18/09/2026', publicadoEm: '30/09/2026',
+      acompanhado: true, termoJuris: 'Tema 1234 (RG)', parcial: false, revisar: true,
+      pendencia: 'mudança detectada na fonte oficial; o CátedraJURIS ainda mostra o estado anterior — confira na fonte antes de usar. Decisão mais recente não significa, sozinha, superação do entendimento anterior.',
+      urlOficial: 'https://portal.stf.jus.br/jurisprudenciaRepercussao/verAndamentoProcesso.asp?incidente=1&numeroTema=1234', detectadoEm: iso(-H) };
+    const sum = { id: 'STJ-SUM-677-sumula-nova-def67890', fonte: 'stj', colecao: 'sumulas', colecaoRotulo: 'STJ — Súmulas', tipo: 'sumula-nova', numero: 677,
+      titulo: 'Súmula 677 — STJ', disp: 'Súmula 677 — STJ', norma: 'STJ', antes: null, depois: 'SUMULA-ISCA enunciado novo.', aprovadaEm: '24/09/2026',
+      acompanhado: false, termoJuris: null, parcial: false, revisar: true, pendencia: 'fora do CátedraJURIS: registrado aqui para você conferir na fonte; não entra no acervo sem revisão',
+      urlOficial: 'https://www.stj.jus.br/docs_internet/SumulasSTJ/VerbetesSTJ_asc.pdf', detectadoEm: iso(-2 * H) };
+    P2.itens = [...P2.itens, tema, sum];
+    const { c, page, erros } = await abrir({ pacote: P2 });
+    try {
+      await ir(page, 'novidades');
+      await page.waitForTimeout(900);
+      const n = await page.evaluate(() => {
+        const t = (s) => ((document.querySelector(s) || {}).innerText || '');
+        const cols = [...document.querySelectorAll('[data-novid-fonte="stf"] [data-novid-colecao]')].map((e) => e.getAttribute('data-novid-colecao') + ':' + e.innerText.replace(/\s+/g, ' ').trim());
+        return { tema: t('[data-novid-item="STF-RG-1234-tese-fixada-abc12345"]'), sum: t('[data-novid-item="STJ-SUM-677-sumula-nova-def67890"]'), cols,
+          stf: t('[data-novid-fonte="stf"]'), chipsCol: [...document.querySelectorAll('button[data-campo="novidColecao"]')].map((b) => b.textContent.trim()),
+          chipsTipo: [...document.querySelectorAll('button[data-campo="novidTipo"]')].map((b) => b.textContent.trim()),
+          acvTema: ((document.querySelector('button[data-acao="acervo"][data-id="STF-RG-1234-tese-fixada-abc12345"]') || {}).textContent || '').trim(),
+          acvSum: !!document.querySelector('button[data-acao="acervo"][data-id="STJ-SUM-677-sumula-nova-def67890"]') };
+      });
+      ok(/tese fixada/.test(n.tema) && /Conferir/.test(n.tema) && /Repercussão geral/.test(n.tema) && /julgado em 18\/09\/2026/.test(n.tema) && /acórdão publicado em 30\/09\/2026/.test(n.tema)
+        && /Situação na fonte: Mérito julgado/.test(n.tema) && /não significa, sozinha, superação/.test(n.tema),
+        R + '(n) tema: o tipo "tese fixada", a coleção, a situação, as datas oficiais e a frase da superação (' + n.tema.replace(/\s+/g, ' ').slice(0, 220) + ')');
+      ok(/súmula nova/.test(n.sum) && /aprovada em 24\/09\/2026/.test(n.sum) && !n.acvSum, R + '(n) súmula nova fora do acervo: rótulo, data de aprovação e nenhum "Abrir no JURIS" (o verbete não existe)');
+      ok(n.cols.length === 3 && /^informativo:Informativo Sem novidade/.test(n.cols[0]) && /^rg:Repercussão geral Detectado/.test(n.cols[1]) && /^sumulas:Súmulas Falhou COLECAO-ERRO-ISCA HTTP 503/.test(n.cols[2]),
+        R + '(n) o cartão do STF mostra a situação de cada coleção, com o erro da que falhou (' + n.cols.join(' | ') + ')');
+      ok(/Parcial/.test(n.stf) && !/nenhuma novidade/i.test(n.stf), R + '(n) a fonte com uma coleção em falha fica "Parcial", nunca "sem novidade"');
+      ok(n.chipsCol.join(',') === 'Todas,Informativo,Repercussão geral,Súmulas' && n.chipsTipo.includes('Tese fixada') && n.chipsTipo.includes('Súmula nova') && !n.chipsTipo.includes('Modulação'),
+        R + '(n) filtros: coleção (só as que têm item) e os tipos novos só quando há item deles (' + n.chipsCol.join(',') + ' / ' + n.chipsTipo.join(',') + ')');
+      await clicar(page, 'button[data-campo="novidColecao"][data-valor="rg"]'); await page.waitForTimeout(300);
+      const soRg = await itensNaTela(page);
+      await clicar(page, 'button[data-campo="novidColecao"][data-valor="todas"]'); await page.waitForTimeout(200);
+      await clicar(page, 'button[data-campo="novidTipo"][data-valor="sumula-nova"]'); await page.waitForTimeout(300);
+      const soSum = await itensNaTela(page);
+      await clicar(page, 'button[data-campo="novidTipo"][data-valor="todos"]'); await page.waitForTimeout(200);
+      ok(soRg.join() === 'STF-RG-1234-tese-fixada-abc12345' && soSum.join() === 'STJ-SUM-677-sumula-nova-def67890', R + '(n) o filtro de coleção e o de tipo novo deixam só o item certo (' + soRg.join() + ' / ' + soSum.join() + ')');
+      await clicar(page, 'button[data-acao="comparar"][data-id="STF-RG-1234-tese-fixada-abc12345"]'); await page.waitForTimeout(400);
+      const cmp = await page.evaluate(() => ((document.getElementById('nv-cmp-STF-RG-1234-tese-fixada-abc12345') || {}).innerText || ''));
+      ok(/Sem tese registrada na última leitura oficial/.test(cmp) && /TESE-ISCA/.test(cmp), R + '(n) a comparação mostra a tese antes (nenhuma) e depois (' + cmp.replace(/\s+/g, ' ').slice(0, 140) + ')');
+      const k = await page.evaluate(() => window.__nv.contraste('main'));
+      ok(k.achou && k.pior && k.pior.c >= 4.5, R + '(n) com as coleções e os tipos novos, todo texto segue ≥ 4,5:1 (pior: ' + JSON.stringify(k.pior) + (k.abaixo.length ? '; abaixo: ' + JSON.stringify(k.abaixo) : '') + ')');
+      if (process.env.CT_CAPTURA) {
+        await page.locator('[data-novid-fonte="stf"]').screenshot({ path: process.env.CT_CAPTURA + '-fonte.png' }).catch(() => {});
+        await page.locator('[data-novid-item="STF-RG-1234-tese-fixada-abc12345"]').screenshot({ path: process.env.CT_CAPTURA + '-tema.png' }).catch(() => {});
+      }
+      ok(n.acvTema === 'Abrir no JURIS', R + '(n) tema que o acervo acompanha ganha "Abrir no JURIS"');
+      await clicar(page, 'button[data-acao="acervo"][data-id="STF-RG-1234-tese-fixada-abc12345"]');
+      await page.waitForFunction(() => window.__catedraApp.state.view === 'juris', null, { timeout: 8000 }).catch(() => {});
+      const ida = await page.evaluate(() => { const s = window.__catedraApp.state; return { view: s.view, busca: s.acervoBusca, de: s.acervoDe && s.acervoDe.view }; });
+      ok(ida.view === 'juris' && ida.busca === 'Tema 1234 (RG)' && ida.de === 'novidades', R + '(n) "Abrir no JURIS" leva o título do verbete e a volta para a Central (' + JSON.stringify(ida) + ')');
+      ok(!erros.length, R + '(n) sem erro de página (' + erros.slice(0, 1).join('').slice(0, 120) + ')');
+    } finally { await c.close(); }
+    // toque: os botões novos (filtro de coleção) medem ≥ 44 px
+    const t = await abrir({ pacote: P2, viewport: { width: 390, height: 844 }, toque: true });
+    try {
+      await ir(t.page, 'novidades');
+      const m = await t.page.evaluate(() => { const b = [...document.querySelectorAll('main button[data-campo="novidColecao"], main button[data-campo="novidTipo"]')];
+        return { n: b.length, min: Math.min(...b.map((x) => x.getBoundingClientRect().height)), rola: document.documentElement.scrollWidth - innerWidth }; });
+      ok(m.n >= 6 && m.min >= 44 && m.rola <= 0, R + '(n) a 390 px no toque, os filtros de coleção e de tipo medem ≥ 44 px e nada rola de lado (' + JSON.stringify(m) + ')');
+    } finally { await t.c.close(); }
   }
 
   /* ---------- (l) área: fora das carreiras com jurisprudência a Central não abre ---------- */

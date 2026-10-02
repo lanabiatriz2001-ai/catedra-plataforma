@@ -62,10 +62,28 @@ Improbidade Administrativa), Lei 14.133/2021 (Licitações e Contratos), ECA, LE
 Penha e Lei de Drogas. A lista vai no estado do Planalto (`normas: [{sigla, nome}]`), e a tela
 a mostra.
 
-A comparação é trecho a trecho, do jeito que o acervo guarda o texto. Em geral, um trecho é um
-artigo. Às vezes, um trecho junta mais de um artigo. Medido em 01/10/2026: no CTN, 32 dos 98
-trechos; em poucos trechos de outras normas, como a Lei 14.133/2021 (6 de 139). Mudança num
-artigo embutido aparece com o rótulo do trecho, marcada como recorte e pendente de conferência.
+A comparação é ARTIGO a artigo (desde 02/10/2026). O acervo guarda o texto em trechos, e às
+vezes um trecho junta mais de um artigo: o parser (o mesmo do LEGIS, que o sentinela não muda)
+extrai 118 cabeçalhos dos 221 artigos do CTN; os outros ficam embutidos no trecho do vizinho,
+muitas vezes depois de um título ("CAPÍTULO IV Interpretação… Art. 107."). Antes de comparar,
+os dois lados — acervo e página — passam pela mesma divisão: a remissão de rótulo minúsculo
+("art. 142 desta Lei" começando linha) volta ao texto do artigo de onde saiu; cada trecho é
+dividido nos artigos embutidos, no cabeçalho "Art. N" maiúsculo de outro número (o mesmo número
+é outra redação do mesmo artigo); o título de divisão que fecha um artigo sai da comparação. A
+página é lida também sem o teto de 4.000 caracteres do bundle (`semTeto`, com os mesmos cortes),
+então o artigo que o acervo guarda inteiro é comparado inteiro.
+
+Conferido contra a página oficial do CTN de 01/10/2026 (LC 236/2026): a anotação da LC 236 vai
+para o artigo que a recebeu (107, 194, 196, 201, 202, 205), e não para o dono do trecho (106,
+193, 200, 204, 208), como antes; a alteração real do art. 146 vira item (antes ficava depois do
+teto do trecho do 142); o art. 211-A sai inteiro e com a LC 236 (antes, cortado em "… § 5º do" e
+sem modificadora); nenhum item de recorte sobra no CTN. Nas outras 13 normas, as páginas de
+01/10/2026 dão exatamente os mesmos itens que a comparação antiga.
+
+Artigo que o acervo não pôde guardar — depois do teto de um trecho cortado, ou depois de um
+"buraco" (remissão no teto no meio do trecho) — não tem "antes": não vira inclusão. Só vira item
+(`parcial`, sem "antes", para conferir) quando traz anotação de norma que o acervo da lei não cita
+em lugar nenhum.
 
 Não cobre:
 
@@ -76,30 +94,67 @@ Não cobre:
 - a data de publicação da norma modificadora: o item traz só o nome dela, como a página anota;
 - revogação sem anotação: só conta como revogação o "(Revogado pela…)" no caput do artigo.
 
-### STF — Informativo de Jurisprudência
+### STF e STJ — coleções (Fase 2, 02/10/2026)
 
-Monitora edições novas do Informativo, a partir da última presente em `juris-index.js`.
+A tela continua com TRÊS fontes. O STF e o STJ ganharam COLEÇÕES (`COLECOES` em
+`scripts/sentinela.mjs`; `colecao` em cada item; `colecoes: {id: {resultado, ultimaTentativa,
+ultimoSucesso, ultimaLeituraCompleta, erro, detalhe}}` no estado de cada fonte). O resultado da
+fonte é o PIOR das coleções que rodaram: falha > parcial > novidades > sem-novidade. Falha de uma
+coleção não apaga o que as outras leram, e nunca vira "sem novidade".
 
-Não cobre: inteiro teor, súmulas, repercussão geral e seus temas.
+| Fonte | Coleção | Rota oficial | Compara com |
+|---|---|---|---|
+| STF | `informativo` | `www.stf.jus.br/arquivo/informativo/documento/informativoN.htm` | a última edição do acervo |
+| STF | `rg` | `portal.stf.jus.br/jurisprudenciaRepercussao/exportarDados.asp?…` (todos os temas, 1 pedido, ~4 MB, 9–10 s); `tema.asp` e `verAndamentoProcesso.asp` para as datas (só na rotina) | a última leitura oficial registrada (`sentinela/retratos.json`, chave `stf.rg`) |
+| STF | `sumulas` | `portal.stf.jus.br/jurisprudencia/sumariosumulas.asp?base=26` (63 vinculantes) e `base=30` (736 comuns); detalhe só da súmula nova | o acervo (`juris-index.js`) |
+| STJ | `informativo` | `processo.stj.jus.br/jurisprudencia/externo/informativo/…` | a última edição de cada série |
+| STJ | `repetitivos` | `processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp` em faixas de 50 temas | `sentinela/retratos.json`, chave `stj.repetitivos` |
+| STJ | `sumulas` | o PDF "Enunciados das Súmulas do STJ" (`www.stj.jus.br/…/VerbetesSTJ_asc.pdf`, lido com o PDF.js de `vendor/pdfjs`) e o bloco "Súmulas" das edições NOVAS do Informativo (sem pedido extra) | o acervo |
 
-### STJ — Informativo de Jurisprudência
+Tipos novos de item, todos `revisar: true` ao nascer — nenhum reclassifica precedente sozinho:
+`tema-afetado`, `julgamento`, `tese-fixada` (antes/depois = a tese), `acordao-publicado`,
+`situacao`, `sumula-nova`, `sumula-cancelada`, `sumula-revisada` e `modulacao` (só nos
+repetitivos, quando o STJ registra "Modulação de efeitos" nas anotações; na RG a lista oficial não
+tem o campo, e isso é limite declarado). Cada item traz `colecao`, `numero`, `titulo` ("Tema 1234 —
+STF", "Súmula 677 — STJ", "Súmula Vinculante 63 — STF"), `antes`/`depois`, `situacao`, as datas
+oficiais quando a fonte as dá (`afetadoEm`, `julgadoEm`, `publicadoEm`, `transitadoEm`,
+`aprovadaEm`, `canceladaEm`), `urlOficial` (https em stf.jus.br ou stj.jus.br), `acompanhado` e
+`termoJuris` (o título exato do verbete no JURIS, para "Abrir no JURIS"). O id é determinístico:
+fonte + coleção + número + tipo + sha do estado NOVO. A pendência de julgamento e tese repete a
+regra da dona: "Decisão mais recente não significa, sozinha, superação do entendimento anterior."
 
-Monitora edições novas, ordinárias e extraordinárias, a partir da última de cada série presente
-no acervo.
+Por que a RG e os repetitivos comparam com a LINHA DE BASE e não com o acervo: medido em
+01/10/2026, com o acervo como base o STF daria 33 "temas novos" falsos (1452 a 1485) e calaria as
+mudanças reais da semana; o STJ daria 53 "tema afetado" falsos (1422 a 1474). 667 temas oficiais
+de RG estão fora do CátedraJURIS — lacuna do acervo, tratada na auditoria. A linha de base anda
+SÓ nas chaves que a rodada leu com sucesso, e vai no PR do robô junto com o `novidades.js`. O
+acervo decide `acompanhado` e a BAIXA ("No acervo · já no JURIS"): quando o acervo já mostra o
+estado apontado (tese contida no texto do verbete, mesma situação, súmula presente ou cancelada);
+"não dá para afirmar" não muda nada; comparação parcial nunca recebe baixa.
 
-Não cobre: inteiro teor, súmulas, temas repetitivos e Jurisprudência em Teses.
+Orçamento. A rotina diária (workflow, até 60 min) faz a varredura completa: o export da RG e os
+andamentos dos temas que mudaram; os repetitivos faixa por faixa (31 pedidos, 5 a 7 min); o PDF de
+súmulas do STJ inteiro. O botão "Buscar atualizações agora" (45 s) faz só a parte rápida: o export
+da RG inteiro (1 pedido); nos repetitivos, só a cauda (temas acima do último conhecido), e a
+coleção sai `parcial` com o detalhe "varredura completa só na rotina diária"; no PDF do STJ, só um
+GET condicional (304 = nada mudou; 200 = parcial, "a lista mudou"). As coleções de uma fonte rodam
+em paralelo, cada uma com a sua sessão de pedidos.
 
-Súmulas do STJ, em detalhe:
+Etiqueta com os tribunais: pausa de ≥ 3 s entre pedidos da mesma coleção, no máximo 2 conexões
+por host, teto por pedido, e na rotina até 3 tentativas (8 s e 16 s de espera) para erro de rede,
+5xx ou formato não reconhecido. User-Agent de navegador (o export da RG responde 403 sem ele).
+Hosts liberados em `scripts/lib/tls-fontes.mjs`: `www.stf.jus.br`, `portal.stf.jus.br`,
+`processo.stj.jus.br`, `www.stj.jus.br`. Ficam FORA, de propósito: `scon.stj.jus.br` e
+`jurisprudencia.stf.jus.br` (desafio anti-robô, que não se contorna), `bdjur.stj.jus.br` (sem um
+registro por súmula).
 
-- o SCON segue bloqueado para consulta automatizada;
-- na auditoria do JURIS, a rota oficial BDJur (Revista Eletrônica de Súmulas, PDF oficial)
-  conferiu 627 das 676 súmulas do acervo;
-- das 49 restantes, 11 são posteriores à Revista (666 a 676) e saem no bloco "Súmulas" do
-  Informativo. O sentinela detecta a edição, mas não confere súmula a súmula;
-- as outras 38 têm PDF ilegível ou ausente;
-- a rota BDJur não faz parte do sentinela.
+Travas: âncora (o último item conhecido tem de ser reconhecido pela mesma régua: senão, falha "a
+página mudou de formato"); mínimo de 1.400 linhas no export da RG; até 5 temas sumidos por faixa
+nos repetitivos; volume atípico (mais de 50 itens numa rodada) vira falha, para conferir a linha
+de base.
 
-Repetitivos do STJ e repercussão geral do STF ficam fora desta versão.
+Os limites de cada coleção estão em `COLECOES` e aparecem na tela, por extenso, com o rótulo da
+coleção na frente.
 
 ### Os limites na tela
 
@@ -153,6 +208,12 @@ Datas por fonte:
   artigo não entra no nome. Anotação sem fecho e sem data (artigo cortado no meio dela) não
   conta. Medido em 01/10/2026 no `leis-seca.js`: nenhum nome de norma modificadora traz "§" ou "("
   nem passa de 70 caracteres.
+- Acervo sem nenhuma edição extraordinária do STJ: a última é desconhecida e a série falha (antes,
+  o motor supunha a EE27 e reanunciaria da EE28 em diante).
+- Erro de rede chega por extenso, em português, com o host e a causa técnica entre parênteses
+  ("o endereço da fonte não foi encontrado (DNS) — www.stf.jus.br (ENOTFOUND)").
+- `parcial` move o último sucesso (é leitura útil, com a lacuna nomeada no erro); a última leitura
+  SEM lacuna fica em `ultimaLeituraCompleta`, na fonte e em cada coleção.
 - Vigência: `em-vigor`, `aguardando` ou `indeterminada`. A data só vale colada ao marcador:
   "(Vigência) a partir de 01/01/2027". Data solta no artigo quase sempre é a da lei
   modificadora e não decide nada. Um marcador sem data deixa o artigo `indeterminada`. Medido em
@@ -553,7 +614,9 @@ revisão antes do merge.
 
 ## Régua do motor
 
-`tests/sentinela.mjs` roda sem rede: 138 casos, verdes em 01/10/2026. Usa recortes reais do
+`tests/sentinela.mjs` roda sem rede: 240 casos, verdes em 02/10/2026 (os da Fase 2 em
+`tests/sentinela-colecoes.mjs`, com as fixtures de `tests/fixtures/stf-rg`, `stj-repetitivos`,
+`sumulas` e `planalto`, cada uma com a data de coleta no manifesto). Usa recortes reais do
 Planalto medidos em 15/09/2026 e os títulos e status das páginas oficiais dos informativos
 baixadas em 01/10/2026 (`tests/fixtures/informativos/manifesto.json`). Edição que não foi
 baixada é simulada no mesmo formato. Está ligado à suíte Chromium (`tests/run.mjs`). Cobre:
@@ -585,12 +648,23 @@ baixada é simulada no mesmo formato. Está ligado à suíte Chromium (`tests/ru
 - cobertura declarada, as 14 normas do Planalto e limites gravados iguais à cobertura do código;
 - `novidades.js` igual à semente enquanto não há varredura publicada;
 - o build da lei seca usando o parser de `scripts/lib/planalto.mjs`, sem cópia própria;
-- validade do intermediário do STF embutido.
+- nenhum certificado embutido vencendo, e a verificação TLS sempre ligada (S12);
+- comparação por artigo com trechos REAIS do CTN de 01/10/2026 (S29): a LC 236 no 107 e não no
+  106, no 194 e não no 193; a alteração do 146; o 211-A inteiro; a remissão "art. 927" sem
+  fantasma; artigo além do teto do acervo sem "inclusão" falsa;
+- acervo sem extraordinária, "Vigência" solto, erro de rede por extenso e o carimbo da leitura
+  completa (S30);
+- coleções (S22–S28 de `tests/sentinela-colecoes.mjs`): cada tipo novo com o recorte real que o
+  produz; a linha de base; a âncora e as travas; o orçamento do botão (cauda dos repetitivos,
+  GET condicional do PDF); a fonte com o pior resultado das coleções; a falha de uma coleção que
+  não apaga as outras; a baixa contra o acervo; o termo do "Abrir no JURIS".
 
 `tests/novidades-central.mjs` cobre a tela, nas suítes Chromium e WebKit: o pacote nas listas
 de cópia e na casca do service worker, `catedra:novidLidas` (global, no autosave e no
 `ARRAY_ID`), o vocabulário único, filtros, comparação, links oficiais, contraste medido e a
-Central que não consulta nada sozinha.
+Central que não consulta nada sozinha. A parte (n) cobre as coleções: os tipos novos, a situação
+de cada coleção no cartão da fonte, o filtro de coleção, a tese antes/depois, as datas oficiais e
+"Abrir no JURIS" com o título do verbete. `node tests/novidades-central-so.mjs` roda só ela.
 
 ## Relação com a auditoria do JURIS
 
@@ -635,11 +709,20 @@ O que continua valendo:
   `leis-seca.js`.
 - Nenhuma automação atualiza a lei seca do LEGIS. Regravar `leis-seca.js` pode deslocar as
   marcações da leitura ativa, cujo id usa a posição do dispositivo na lei.
-- Certificado do STF: a folha vence em 05/10/2026, e o intermediário embutido vale até 21/05/2027.
-  Se o STF trocar de intermediário, a fonte passa a `falha` até alguém trocar o certificado em
-  `scripts/lib/tls-fontes.mjs`. A receita está no cabeçalho do arquivo.
-- Súmulas, repetitivos e repercussão geral (rota BDJur, portal de repetitivos do STJ,
-  `exportarDados.asp` do STF) não estão integrados.
+- Certificado do STF: desde 01/10/2026 o STF serve a cadeia completa da Sectigo (folha até
+  11/04/2027), e o intermediário GlobalSign que ia embutido saiu (`CAS_EXTRAS` vazio). Se o STF
+  voltar a mandar cadeia incompleta, a fonte passa a `falha` ("o certificado da fonte não fecha a
+  cadeia de confiança") até alguém embutir o intermediário. A receita está no cabeçalho de
+  `scripts/lib/tls-fontes.mjs`.
+- Vigência: o rótulo "Vigência" SOLTO logo depois de uma anotação (o link do Planalto para a
+  cláusula de vigência da lei modificadora) conta como marcador sem data: o item fica
+  `indeterminada`. Medido no CPC de 01/10/2026: arts. 927, 932, 1.035-A e 1.042 (Lei 15.484/2026)
+  saíam "em vigor — sem marcador". O sentinela não segue o link para ler a cláusula da lei
+  modificadora (a Lei 15.484 entra em vigor 30 dias após a publicação de 04/08/2026).
+- Coleções: a primeira rodada da RG compara com a linha de base de 25/09/2026 e deve trazer as
+  mudanças oficiais desde então (10 itens na conferência de 01/10/2026). A Vercel alcançar
+  `portal.stf.jus.br`, `www.stj.jus.br` e o portal de repetitivos não foi verificado: se não
+  alcançar, a coleção sai `falha` no botão, nunca "sem novidade".
 - O JURIS nativo (corpus do VadeMecumJuris) não recebe os informativos novos, nem pelo workflow
   nem pela rotina.
 

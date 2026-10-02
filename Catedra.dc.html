@@ -4765,6 +4765,11 @@ window.ctPdfLib = (function(){
                   </div>
                   <sc-if value="{{ f.doCache }}" hint-placeholder-val="{{ false }}"><div class="ct-nota">Resultado guardado no servidor há {{ f.cacheIdade }} — a mesma fonte não é reconsultada antes de 10 minutos.</div></sc-if>
                   <sc-if value="{{ f.temErro }}" hint-placeholder-val="{{ false }}"><div style="font-size:var(--fs-xs);color:var(--danger);font-weight:600;line-height:1.5;overflow-wrap:anywhere;">{{ f.erroTxt }}</div></sc-if>
+                  <sc-if value="{{ f.temColecoes }}" hint-placeholder-val="{{ false }}">
+                    <ul aria-label="Coleções desta fonte" style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--ct-e1);">
+                      <sc-for list="{{ f.colecoes }}" as="c" hint-placeholder-count="3"><li data-novid-colecao="{{ c.id }}" style="display:flex;flex-wrap:wrap;align-items:center;gap:var(--ct-e1) var(--ct-e2);font-size:var(--fs-xs);color:var(--text2);line-height:1.5;min-width:0;"><b style="color:var(--ink);">{{ c.nome }}</b><span class="ct-selo" style="{{ c.estilo }}">{{ c.situacao }}</span><sc-if value="{{ c.temNota }}" hint-placeholder-val="{{ false }}"><span style="flex-basis:100%;overflow-wrap:anywhere;{{ c.notaEstilo }}">{{ c.nota }}</span></sc-if></li></sc-for>
+                    </ul>
+                  </sc-if>
                   <div style="display:flex;flex-direction:column;border-top:1px dashed var(--border);padding-top:var(--ct-e1);">
                     <sc-if value="{{ f.temNormas }}" hint-placeholder-val="{{ false }}">
                       <button type="button" class="ct-btn-2" data-acao="detalhe" data-chave="{{ f.normasChave }}" aria-expanded="{{ f.normasAttr }}" aria-controls="{{ f.normasCtl }}" onclick="{{ novidDetalhe }}" style="border-color:transparent;padding-left:0;padding-right:0;justify-content:space-between;width:100%;text-align:left;">{{ f.normasTit }}<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none;{{ f.chevAb }}"><path d="m6 9 6 6 6-6"></path></svg></button>
@@ -4795,6 +4800,7 @@ window.ctPdfLib = (function(){
               <input type="search" class="ct-campo ct-nv-busca" value="{{ novidAssunto }}" oninput="{{ novidAssuntoSet }}" placeholder="Buscar assunto, artigo, norma" aria-label="Buscar novidades por assunto, artigo ou norma">
               <div role="group" aria-label="Filtrar por fonte" style="display:flex;gap:var(--ct-e2);flex-wrap:wrap;align-items:center;"><span class="ct-eb" style="min-width:10ch;">Fonte</span><sc-for list="{{ novidFiltroFonte }}" as="c" hint-placeholder-count="4"><button type="button" data-campo="{{ c.campo }}" data-valor="{{ c.valor }}" aria-pressed="{{ c.ativo }}" onclick="{{ novidFiltro }}" style="{{ c.estilo }}">{{ c.rotulo }}</button></sc-for></div>
               <div role="group" aria-label="Filtrar por tipo de mudança" style="display:flex;gap:var(--ct-e2);flex-wrap:wrap;align-items:center;"><span class="ct-eb" style="min-width:10ch;">Tipo</span><sc-for list="{{ novidFiltroTipo }}" as="c" hint-placeholder-count="5"><button type="button" data-campo="{{ c.campo }}" data-valor="{{ c.valor }}" aria-pressed="{{ c.ativo }}" onclick="{{ novidFiltro }}" style="{{ c.estilo }}">{{ c.rotulo }}</button></sc-for></div>
+              <sc-if value="{{ novidTemFiltroColecao }}" hint-placeholder-val="{{ false }}"><div role="group" aria-label="Filtrar por coleção" style="display:flex;gap:var(--ct-e2);flex-wrap:wrap;align-items:center;"><span class="ct-eb" style="min-width:10ch;">Coleção</span><sc-for list="{{ novidFiltroColecao }}" as="c" hint-placeholder-count="4"><button type="button" data-campo="{{ c.campo }}" data-valor="{{ c.valor }}" aria-pressed="{{ c.ativo }}" onclick="{{ novidFiltro }}" style="{{ c.estilo }}">{{ c.rotulo }}</button></sc-for></div></sc-if>
               <sc-if value="{{ novidTemFiltroDisc }}" hint-placeholder-val="{{ true }}"><div role="group" aria-label="Filtrar por disciplina" style="display:flex;gap:var(--ct-e2);flex-wrap:wrap;align-items:center;"><span class="ct-eb" style="min-width:10ch;">Disciplina</span><sc-for list="{{ novidFiltroDisc }}" as="c" hint-placeholder-count="4"><button type="button" data-campo="{{ c.campo }}" data-valor="{{ c.valor }}" aria-pressed="{{ c.ativo }}" onclick="{{ novidFiltro }}" style="{{ c.estilo }}">{{ c.rotulo }}</button></sc-for></div></sc-if>
               <sc-if value="{{ novidTemFiltroNorma }}" hint-placeholder-val="{{ true }}"><div role="group" aria-label="Filtrar por norma" style="display:flex;gap:var(--ct-e2);flex-wrap:wrap;align-items:center;"><span class="ct-eb" style="min-width:10ch;">Norma</span><sc-for list="{{ novidFiltroNorma }}" as="c" hint-placeholder-count="4"><button type="button" data-campo="{{ c.campo }}" data-valor="{{ c.valor }}" aria-pressed="{{ c.ativo }}" onclick="{{ novidFiltro }}" style="{{ c.estilo }}">{{ c.rotulo }}</button></sc-for></div></sc-if>
               <div role="group" aria-label="Filtrar por período" style="display:flex;gap:var(--ct-e2);flex-wrap:wrap;align-items:center;"><span class="ct-eb" style="min-width:10ch;">Período</span><sc-for list="{{ novidFiltroPeriodo }}" as="c" hint-placeholder-count="4"><button type="button" data-campo="{{ c.campo }}" data-valor="{{ c.valor }}" aria-pressed="{{ c.ativo }}" onclick="{{ novidFiltro }}" style="{{ c.estilo }}">{{ c.rotulo }}</button></sc-for><button type="button" data-campo="novidSoNaoLidas" aria-pressed="{{ novidSoNaoLidasAttr }}" onclick="{{ novidSoNaoLidasTgl }}" style="{{ novidSoNaoLidasEstilo }}">Só não lidas</button></div>
@@ -4828,6 +4834,8 @@ window.ctPdfLib = (function(){
                   <h3 id="nv-t-{{ n.id }}" style="margin:var(--ct-e2) 0 0;font-family:var(--display);font-size:var(--fs-lg);font-weight:700;color:var(--ink);line-height:1.3;overflow-wrap:anywhere;">{{ n.titulo }}</h3>
                   <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:var(--ct-e1);line-height:1.5;overflow-wrap:anywhere;">{{ n.origemTxt }}</div>
                   <sc-if value="{{ n.temModificadora }}" hint-placeholder-val="{{ true }}"><div style="font-size:var(--fs-sm);color:var(--text2);margin-top:var(--ct-e2);overflow-wrap:anywhere;">Norma modificadora: <b style="color:var(--ink);">{{ n.modificadora }}</b></div></sc-if>
+                  <sc-if value="{{ n.temSituacao }}" hint-placeholder-val="{{ false }}"><div style="font-size:var(--fs-sm);color:var(--text2);margin-top:var(--ct-e2);overflow-wrap:anywhere;">{{ n.situacaoTxt }}</div></sc-if>
+                  <sc-if value="{{ n.temDatas }}" hint-placeholder-val="{{ false }}"><div class="ct-nota" data-novid-datas style="margin-top:var(--ct-e1);overflow-wrap:anywhere;">{{ n.datasTxt }}</div></sc-if>
                   <sc-if value="{{ n.temVigencia }}" hint-placeholder-val="{{ true }}"><div class="ct-nota" style="margin-top:var(--ct-e1);overflow-wrap:anywhere;">{{ n.vigenciaTxt }}</div></sc-if>
                   <sc-if value="{{ n.temEfeitos }}" hint-placeholder-val="{{ false }}"><div class="ct-nota" style="margin-top:var(--ct-e1);overflow-wrap:anywhere;">{{ n.efeitosTxt }}</div></sc-if>
                   <sc-if value="{{ n.ehParcial }}" hint-placeholder-val="{{ false }}"><div style="font-size:var(--fs-xs);margin-top:var(--ct-e1);line-height:1.5;{{ n.avisoTxt }}">O dispositivo passa do tamanho que o acervo guarda: só o trecho inicial foi comparado.</div></sc-if>
@@ -7312,7 +7320,7 @@ class Component extends DCLogic {
       casoAviso:'',           // o que o guarda de dados identificáveis encontrou
       paletteOpen:false, paletteQuery:'', lastPonto:this._load('lastPonto',null), lastPontoDispensado:this._load('lastPontoDispensado',0), palBuscaPronta:false, semanaLidos:this._load('semanaLidos',[]), semanaTudo:false,
       // Central de novidades: só novidLidas persiste (global, {id, up, st}, ARRAY_ID); o resto é estado de tela
-      novidLidas:this._load('novidLidas',[]), novidFonte:'todas', novidTipo:'todos', novidDisc:'todas', novidRamo:'todas', novidPeriodo:'todos', novidAssunto:'', novidSoNaoLidas:false, novidBuscando:false, novidBuscandoFontes:[], novidVivo:null, novidResultado:null, novidAberto:'', novidAbertos:{},
+      novidLidas:this._load('novidLidas',[]), novidFonte:'todas', novidTipo:'todos', novidColecao:'todas', novidDisc:'todas', novidRamo:'todas', novidPeriodo:'todos', novidAssunto:'', novidSoNaoLidas:false, novidBuscando:false, novidBuscandoFontes:[], novidVivo:null, novidResultado:null, novidAberto:'', novidAbertos:{},
       // U2: quais satélites já avisaram que pintaram. Vive só na memória desta sessão — é
       // exatamente o que se quer: esqueleto na PRIMEIRA carga de cada um, nunca depois.
       framesProntos:{},
@@ -13627,7 +13635,12 @@ class Component extends DCLogic {
   }
   NOVID_SIT = {novidades:['Detectado','ok'], 'sem-novidade':['Sem novidade','ok'], parcial:['Parcial','warn',1], falha:['Falhou','danger'], nunca:['Nunca consultada','text3']};
   NOVID_ST = {detectado:['Detectado','info'], conferir:['Conferir','warn'], parcial:['Parcial','warn',1], conferido:['Conferido','ok'], incorporado:['No acervo','ok']};
-  NOVID_TIPO = {alteracao:['alteração','accentD'], inclusao:['inclusão','ok'], revogacao:['revogação','danger'], informativo:['informativo novo','info']};
+  NOVID_TIPO = {alteracao:['alteração','accentD'], inclusao:['inclusão','ok'], revogacao:['revogação','danger'], informativo:['informativo novo','info'],
+    // Fase 2 (temas e súmulas): cada tipo diz o que a fonte oficial registrou — nenhum reclassifica precedente
+    'tema-afetado':['tema afetado','info'], julgamento:['julgamento','accentD'], 'tese-fixada':['tese fixada','accentD'], 'acordao-publicado':['acórdão publicado','info'],
+    situacao:['situação','warn'], 'sumula-nova':['súmula nova','ok'], 'sumula-cancelada':['súmula cancelada','danger'], 'sumula-revisada':['súmula revisada','warn'], modulacao:['modulação','warn']};
+  NOVID_COLECAO = {informativo:'Informativo', rg:'Repercussão geral', repetitivos:'Repetitivos', sumulas:'Súmulas'};
+  NOVID_DATAS = [['afetadoEm','afetado em'], ['julgadoEm','julgado em'], ['publicadoEm','acórdão publicado em'], ['transitadoEm','trânsito em julgado em'], ['aprovadaEm','aprovada em'], ['canceladaEm','cancelada em']];
   NOVID_AVISO = 'color:color-mix(in srgb, var(--warn) 64%, var(--ink));';
   NOVID_ATRASO = 'color:color-mix(in srgb, var(--danger) 82%, var(--ink));';
   /** O mais recente de dois carimbos ISO; null quando nenhum dos dois é data. */
@@ -13737,11 +13750,15 @@ class Component extends DCLogic {
     if(!it) return '';
     if(it.fonte==='planalto') return this._podeAbrir('legis') ? 'legis' : '';
     if(it.tipo==='informativo' && it.incorporado) return this._podeAbrir('juris') ? 'juris' : '';
+    // tema e súmula que o acervo acompanha: o verbete existe no JURIS (mesmo antes de mostrar a mudança)
+    if(it.colecao && it.colecao!=='informativo' && (it.termoJuris || it.acompanhado)) return this._podeAbrir('juris') ? 'juris' : '';
     return '';
   }
   /** Termo do JURIS para uma edição incorporada, no título que o verbete tem: "Info 1224 · STF";
    *  a extraordinária do STJ (INF-STJ-EE29) é "Info Ed. Extraordinária 29 · STJ". */
   _novidTermoJuris(it){
+    // tema e súmula: o título exato do verbete ("Tema 457 (RG)", "Súmula Vinculante 63"), que o motor manda
+    if(it && it.colecao && it.colecao!=='informativo') return String(it.termoJuris || (it.colecao==='sumulas' ? ((it.vinculante ? 'Súmula Vinculante ' : 'Súmula ')+it.numero) : ('Tema '+it.numero)));
     const m=/^INF-(STF|STJ)-(EE)?(\d+)$/.exec(String(it && it.id || ''));
     if(!m) return String((it && (it.titulo || it.disp)) || '');
     return (m[2] ? ('Info Ed. Extraordinária '+Number(m[3])) : ('Info '+m[3]))+' · '+m[1];
@@ -13972,12 +13989,12 @@ class Component extends DCLogic {
   novidDetalhe = (e)=>{ const k=String(((e && e.currentTarget && e.currentTarget.dataset) || {}).chave || '');
     if(!/^(planalto|stf|stj)\|(normas|limites)$/.test(k)) return;
     this.setState(st=>({novidAbertos:{...(st.novidAbertos||{}), [k]:!(st.novidAbertos||{})[k]}})); };
-  NOVID_CAMPOS = ['novidFonte','novidTipo','novidDisc','novidRamo','novidPeriodo'];
+  NOVID_CAMPOS = ['novidFonte','novidTipo','novidColecao','novidDisc','novidRamo','novidPeriodo'];
   novidFiltro = (e)=>{ const d=(e && e.currentTarget && e.currentTarget.dataset) || {};
     if(this.NOVID_CAMPOS.indexOf(d.campo)<0) return; this.setState({[d.campo]:String(d.valor || '')}); };
   novidSoNaoLidasTgl = ()=> this.setState(st=>({novidSoNaoLidas:!st.novidSoNaoLidas}));
   novidAssuntoSet = (e)=> this.setState({novidAssunto:String((e && e.currentTarget && e.currentTarget.value) || '').slice(0,120)});
-  novidLimparFiltros = ()=> this.setState({novidFonte:'todas', novidTipo:'todos', novidDisc:'todas', novidRamo:'todas', novidPeriodo:'todos', novidAssunto:'', novidSoNaoLidas:false});
+  novidLimparFiltros = ()=> this.setState({novidFonte:'todas', novidTipo:'todos', novidColecao:'todas', novidDisc:'todas', novidRamo:'todas', novidPeriodo:'todos', novidAssunto:'', novidSoNaoLidas:false});
   /** Atalho de um conteúdo afetado. A leitura ativa vai pelo canal do acervo (aba nativa nos
    *  apps); o resto é troca de tela comum. */
   novidIrPara = (e)=>{ const v=String(((e && e.currentTarget && e.currentTarget.dataset) || {}).ir || ''); if(!v) return;
@@ -14014,11 +14031,12 @@ class Component extends DCLogic {
     const filtrada=todos.filter(it=>{
       if(st.novidFonte!=='todas' && it.fonte!==st.novidFonte) return false;
       if(st.novidTipo!=='todos' && it.tipo!==st.novidTipo) return false;
+      if(st.novidColecao && st.novidColecao!=='todas' && String(it.colecao || (it.fonte==='planalto' ? '' : 'informativo'))!==st.novidColecao) return false;
       if(st.novidDisc!=='todas' && discDe.get(String(it.id))!==st.novidDisc) return false;
       if(st.novidRamo!=='todas' && String(it.norma||'')!==st.novidRamo) return false;
       if(st.novidSoNaoLidas && estDe(it)) return false;
       if(dias){ const t=Date.parse(it.detectadoEm||''); if(!isFinite(t) || (agora-t)/864e5>dias) return false; }
-      if(q){ const alvo=N([it.titulo, it.disp, it.norma, it.normaNome, it.modificadora, it.antes, it.depois, it.pendencia, discDe.get(String(it.id))].filter(Boolean).join(' '));
+      if(q){ const alvo=N([it.titulo, it.disp, it.norma, it.normaNome, it.modificadora, it.antes, it.depois, it.pendencia, it.situacao, it.colecaoRotulo, discDe.get(String(it.id))].filter(Boolean).join(' '));
         if(alvo.indexOf(q)<0) return false; }
       return true;
     }).sort((a,b)=>String(b.detectadoEm||'').localeCompare(String(a.detectadoEm||'')) || String(a.id).localeCompare(String(b.id)));
@@ -14044,8 +14062,13 @@ class Component extends DCLogic {
       // a pendência que só repete a linha de vigência não aparece duas vezes
       const pend=String(it.pendencia||''), pendRepete=!!pend && N(vig).indexOf(N(pend))>=0;
       const disc=discDe.get(b.id) || '';
+      // tema e súmula: as datas OFICIAIS que a fonte trouxe (afetação, julgamento, publicação, trânsito)
+      const col=(it.colecao && it.colecao!=='informativo') ? it.colecao : '';
+      const datas=col ? this.NOVID_DATAS.filter(([k])=>it[k]).map(([k, r])=>r+' '+it[k]) : [];
       return {...b,
-        origemTxt:[b.fonteNome, (it.fonte==='planalto' ? String(it.normaNome||it.norma||'') : ''), 'detectada em '+b.quando].filter(Boolean).join(' · '),
+        origemTxt:[b.fonteNome, (it.fonte==='planalto' ? String(it.normaNome||it.norma||'') : (col ? (this.NOVID_COLECAO[col] || '') : '')), 'detectada em '+b.quando].filter(Boolean).join(' · '),
+        temDatas:datas.length>0, datasTxt:datas.length ? ('Na fonte oficial: '+datas.join(' · ')+'.') : '',
+        temSituacao:!!(col && it.situacao), situacaoTxt:col && it.situacao ? ('Situação na fonte: '+String(it.situacao)) : '',
         // a cor da matéria no fio e na sombra do cartão (.ct-card[data-materia]): a disciplina antes do rótulo
         materia:disc || 'geral', cor:'--ct-materia:'+this._corDisc(disc)+';',
         aguardando:it.vigencia==='aguardando', efeitosProprios:ef, avisoSelo:this._novidTinta('warn'),
@@ -14062,7 +14085,8 @@ class Component extends DCLogic {
         // aria-controls só quando a região existe (ela nasce aberta, dentro do sc-if)
         cmpCtl:aberto ? ('nv-cmp-'+b.id) : null,
         compararLabel:aberto ? 'Fechar a comparação' : 'Comparar antes e depois',
-        antesTxt:it.antes ? String(it.antes) : (it.tipo==='inclusao' ? 'O dispositivo não existia no texto que o app guarda.' : '—'),
+        antesTxt:it.antes ? String(it.antes) : (it.tipo==='inclusao' ? 'O dispositivo não existia no texto que o app guarda.'
+          : ((it.tipo==='tema-afetado' || it.tipo==='sumula-nova') ? 'Não havia registro na última leitura oficial.' : (it.tipo==='tese-fixada' ? 'Sem tese registrada na última leitura oficial.' : '—'))),
         depoisTxt:it.depois ? String(it.depois) : 'A consulta não trouxe o texto atual — conferir na fonte.',
         url, temUrl:!!url, podeAgendar:!temRev, temRevisao:temRev };
     });
@@ -14086,7 +14110,13 @@ class Component extends DCLogic {
         doCache:!!e.doCache, cacheIdade:this._novidIdade(e.consultadoHa),
         temErro:!!e.erro, erroTxt:String(e.erro||''),
         normas:normasF, temNormas:normasF.length>0, normasAbertas:abN, normasAttr:abN ? 'true' : 'false', normasCtl:abN ? ('nv-normas-'+s.f) : null,
-        normasChave:kN, normasTit:(abN ? 'Esconder' : 'Ver')+' as '+normasF.length+' normas conferidas, artigo a artigo',
+        // "monitoradas": a lista é o que a fonte vigia, não o que esta rodada conseguiu ler (o detalhe diz quantas)
+        normasChave:kN, normasTit:(abN ? 'Esconder' : 'Ver')+' as '+normasF.length+' normas monitoradas, artigo a artigo',
+        // Fase 2: a situação de CADA coleção (Informativo, repercussão geral, repetitivos, súmulas) — a da fonte é a pior delas
+        colecoes:Object.keys((e.colecoes && typeof e.colecoes==='object') ? e.colecoes : {}).map(id=>{ const c=e.colecoes[id]||{}, cs=this._novidFonteSit(s.f, c);
+          return {id, nome:String(c.rotuloCurto || this.NOVID_COLECAO[id] || id), situacao:cs.situacao, estilo:cs.estilo,
+            nota:String(c.erro || c.detalhe || ''), temNota:!!(c.erro || c.detalhe), notaEstilo:c.erro ? 'color:var(--danger);font-weight:600;' : 'color:var(--text3);'}; }),
+        temColecoes:!!(e.colecoes && typeof e.colecoes==='object' && Object.keys(e.colecoes).length),
         limites:lim.map(t=>({t})), temLimites:lim.length>0, semLimites:!lim.length,
         limitesAbertos:abL, limitesAttr:abL ? 'true' : 'false', limitesCtl:abL ? ('nv-limites-'+s.f) : null, limitesChave:kL,
         limitesTit:'O que esta fonte não cobre · '+lim.length+(lim.length===1 ? ' ponto' : ' pontos'),
@@ -14125,7 +14155,11 @@ class Component extends DCLogic {
       novidRevisaoStr:String(todos.filter(x=>this._novidAConferir(this._novidStatus(x, estDe(x)))).length),
       novidPacoteMeta:base.geradoEm ? ('pacote do app gerado em '+this._novidDataExtenso(base.geradoEm)) : 'o pacote do app ainda não trouxe consulta nenhuma',
       novidFiltroFonte:chips('novidFonte', [['todas','Todas'],['planalto','Planalto'],['stf','STF'],['stj','STJ']]),
-      novidFiltroTipo:chips('novidTipo', [['todos','Tudo'],['alteracao','Alterações'],['inclusao','Inclusões'],['revogacao','Revogações'],['informativo','Informativos']]),
+      // os tipos da Fase 2 só ganham chip quando há item deles: a fila de filtros não cresce à toa
+      novidFiltroTipo:chips('novidTipo', [['todos','Tudo'],['alteracao','Alterações'],['inclusao','Inclusões'],['revogacao','Revogações'],['informativo','Informativos']]
+        .concat(Object.keys(this.NOVID_TIPO).filter(t=>['alteracao','inclusao','revogacao','informativo'].indexOf(t)<0 && todos.some(x=>x.tipo===t)).map(t=>[t, this.NOVID_TIPO[t][0].charAt(0).toUpperCase()+this.NOVID_TIPO[t][0].slice(1)]))),
+      novidFiltroColecao:chips('novidColecao', [['todas','Todas']].concat(Object.keys(this.NOVID_COLECAO).filter(c=>todos.some(x=>x.fonte!=='planalto' && String(x.colecao||'informativo')===c)).map(c=>[c, this.NOVID_COLECAO[c]]))),
+      novidTemFiltroColecao:new Set(todos.filter(x=>x.fonte!=='planalto').map(x=>String(x.colecao||'informativo'))).size>1,
       novidFiltroDisc:chips('novidDisc', [['todas','Todas']].concat(discs.map(d=>[d, d]))), novidTemFiltroDisc:discs.length>1,
       novidFiltroNorma:chips('novidRamo', [['todas','Todas']].concat(normas.map(n=>[n, n]))), novidTemFiltroNorma:normas.length>1,
       novidFiltroPeriodo:chips('novidPeriodo', [['todos','Sempre'],['7','7 dias'],['30','30 dias'],['90','90 dias']]),

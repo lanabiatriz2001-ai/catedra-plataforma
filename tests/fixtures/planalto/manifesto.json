@@ -1,0 +1,11 @@
+{
+  "coletadoEm": "2026-10-01",
+  "fonte": "https://www.planalto.gov.br/ccivil_03/leis/l5172compilado.htm",
+  "como": "texto compilado do CTN baixado em 01/10/2026 (verificação da sessão \"Atualização automática LEGIS/JURIS finalização\"), limpo com limparHTML de scripts/lib/planalto.mjs; só as linhas dos trechos usados nos casos, separados por uma linha \"@@@@\"",
+  "trechos": [
+    "Art. 106 a Art. 107 (o 107 embutido depois de \"CAPÍTULO IV Interpretação e Integração da Legislação Tributária\")",
+    "Art. 142 a Art. 148 (o 146 alterado pela LC 236 depois do teto do trecho do 142; a remissão \"art. 927\" começando linha)",
+    "Art. 193 a Art. 194-A (o 194 embutido no 193)",
+    "Art. 211, 211-A e 211-B (a remissão \"art. 142 desta Lei\" começando linha no meio do 211-A)"
+  ]
+}

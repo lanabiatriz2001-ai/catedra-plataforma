@@ -16,6 +16,8 @@
 // Uso:
 //   node scripts/sentinela.mjs                       # todas as fontes
 //   node scripts/sentinela.mjs --fonte planalto      # só uma (planalto|stf|stj)
+//   node scripts/sentinela.mjs --fonte stf --colecoes rg      # só estas coleções do STF/STJ
+//                                                    # (informativo, rg, repetitivos, sumulas)
 //   node scripts/sentinela.mjs --dry-run             # não escreve nada
 //   node scripts/sentinela.mjs --json                # despeja o relatório em JSON no stdout
 //   node scripts/sentinela.mjs --ja-propostos <arq>  # novidades.js de um PR fechado sem merge:
@@ -23,6 +25,13 @@
 //   node scripts/sentinela.mjs --semente             # SEM REDE: regrava novidades.js vazio de
 //                                                    # itens, com a cobertura de cada fonte e
 //                                                    # resultado/datas nulos ("nunca consultada")
+//   node scripts/sentinela.mjs --semear-retrato <chave> --arquivo <f> [--arquivo <f>…] --lido-em <ISO>
+//        [--origem "<frase>"] [--last-modified "<v>" --etag "<v>"]
+//                                                    # SEM REDE: grava só <chave> (stf.rg,
+//                                                    # stj.repetitivos ou stj.sumulas) em
+//                                                    # sentinela/retratos.json, a linha de base dos
+//                                                    # temas e súmulas, lendo arquivos já baixados
+//                                                    # com os MESMOS leitores e travas da consulta
 //   node scripts/sentinela.mjs --detectar-desde <juris-index.js de antes da incorporação>
 //                                                    # (workflow) os informativos são detectados
 //                                                    # a partir desse acervo; a baixa, contra o
@@ -41,6 +50,12 @@ import { createHash } from 'node:crypto';
 import vm from 'node:vm';
 import { ROOT, baixarLei } from './lib/planalto.mjs';
 import { buscarFonte } from './lib/tls-fontes.mjs';
+import {
+  pior, baseJuris, colecaoNoAcervo, pendenciaColecao, lerRetratos, conteudoRetratos, esperarPadrao, acervoDaColecao, CAMPOS_DATA, ARQ_RETRATOS, LIMIARES,
+} from './lib/colecoes.mjs';
+import { consultarRG, lerExportRG, retratoRG } from './lib/stf-rg.mjs';
+import { consultarRepetitivos, parsePaginaRepetitivos, retratoTemaRep } from './lib/stj-repetitivos.mjs';
+import { consultarSumulasSTJ, consultarSumulasSTF, textoDoPdf, listaVerbetesSTJ } from './lib/sumulas.mjs';
 
 const ARGV = process.argv.slice(2);
 const flag = (n) => ARGV.includes(n);
@@ -71,7 +86,64 @@ const sha = (s) => createHash('sha1').update(String(s)).digest('hex').slice(0, 1
 // Está aqui, e não num comentário, porque o app MOSTRA esta lista: prometer "todo o
 // Planalto" e conferir 14 normas seria mentir para quem estuda. O que não é monitorado
 // aparece em `limites`, visível na tela, e não vira silêncio.
+//
+// Fase 2 (01/10/2026): o STF e o STJ ganharam COLEÇÕES além do Informativo — repercussão geral,
+// recursos repetitivos e súmulas. A tela continua com três fontes; os limites da fonte são
+// DERIVADOS dos das coleções (com o rótulo curto na frente), para nada ficar de fora do que
+// ela já mostra.
 // ─────────────────────────────────────────────────────────────────────────────
+export const COLECOES = {
+  stf: {
+    informativo: { rotulo: 'STF — Informativo de Jurisprudência', rotuloCurto: 'Informativo',
+      monitora: 'edições novas do Informativo, a partir da última já presente no acervo do CátedraJURIS',
+      limites: ['cobre o Informativo, não o inteiro teor do acórdão'] },
+    rg: { rotulo: 'STF — Repercussão geral', rotuloCurto: 'Repercussão geral',
+      monitora: 'a lista oficial de temas de repercussão geral do STF (todos os temas numa leitura): tema novo, mudança de situação, julgamento de mérito, tese fixada ou alterada e acórdão de mérito publicado, comparados com a última leitura registrada',
+      limites: [
+        'a linha de base é a lista oficial de 25/09/2026, a mesma de que o acervo foi montado: tema que já estava fora do CátedraJURIS antes disso (667 temas oficiais, 501 com tese) não vira novidade sozinho — é lacuna do acervo, tratada na auditoria',
+        'a lista oficial corta a tese em 8.000 caracteres: nas teses mais longas só o começo é comparado, e o item sai como comparação parcial',
+        'as datas de julgamento, de publicação do acórdão e do trânsito em julgado vêm dos andamentos do processo e só são lidas na rotina diária; pelo botão "Buscar atualizações agora", o item pode chegar sem elas',
+        'modulação de efeitos não é detectada: a lista oficial não tem esse campo, e a observação da fonte só aparece junto da tese',
+        'relator e título do tema não são comparados: o relator da lista é o atual, não o do julgamento',
+      ] },
+    sumulas: { rotulo: 'STF — Súmulas e súmulas vinculantes', rotuloCurto: 'Súmulas',
+      monitora: 'as listas oficiais de súmulas e de súmulas vinculantes do portal do STF: número novo e marca nova (cancelada, revogada, alterada, superada), comparados com o acervo do CátedraJURIS',
+      limites: [
+        'revisão de texto sem marca na lista não é detectada: o texto do portal difere do acervo só na forma em 21 das 63 vinculantes, e comparar o texto acusaria mudança que não houve',
+        'situação anotada só no acervo (as súmulas "Superada" que o próprio Cátedra registra) não vira item: vale apenas a marca oficial',
+        'a data de publicação mostrada é a do portal do STF, que pode diferir da registrada no acervo',
+      ] },
+  },
+  stj: {
+    informativo: { rotulo: 'STJ — Informativo de Jurisprudência', rotuloCurto: 'Informativo',
+      monitora: 'edições novas do Informativo (ordinárias e extraordinárias), a partir da última já no acervo',
+      limites: ['cobre o Informativo, não o inteiro teor do acórdão nem a Jurisprudência em Teses'] },
+    repetitivos: { rotulo: 'STJ — Recursos repetitivos', rotuloCurto: 'Repetitivos',
+      monitora: 'a ficha oficial de cada tema repetitivo no portal de precedentes do STJ: tema afetado, julgamento, tese firmada ou alterada, acórdão publicado, trânsito, revisão, cancelamento e o registro de modulação, comparados com a última leitura registrada',
+      limites: [
+        'o botão "Buscar atualizações agora" lê só os temas acima do último conhecido (temas novos); a varredura completa, que acha julgamento, tese e publicação nos temas já existentes, roda só na rotina diária',
+        'a linha de base é a leitura oficial de 25/09/2026, a mesma de que o acervo foi montado: tema que já estava fora do CátedraJURIS antes disso (406 temas, 72 com tese) não vira novidade sozinho — é lacuna do acervo, tratada na auditoria',
+        'modulação só aparece quando o STJ a registra nas anotações do tema, com o título "Modulação de efeitos"; a falta do registro não prova que não houve modulação',
+        'o campo "Tese Firmada" com o aviso de que se aguarda a publicação do acórdão não é tratado como tese',
+        'as datas são as do processo paradigma principal; a "Última atualização" da ficha não é usada como sinal de mudança',
+      ] },
+    sumulas: { rotulo: 'STJ — Súmulas', rotuloCurto: 'Súmulas',
+      monitora: 'a lista oficial "Enunciados das Súmulas do STJ" (PDF do portal do STJ) e o bloco "Súmulas" de cada Informativo novo: súmula nova, cancelada, revogada ou alterada, comparada com o acervo do CátedraJURIS',
+      limites: [
+        'o STJ atualiza a lista oficial com atraso de semanas a meses (última versão de 05/12/2025), e o Informativo não publica todas as súmulas (643 a 645, 663 e 664 nunca saíram nele): súmula nova pode levar esse tempo para aparecer aqui',
+        'o SCON segue bloqueado para consulta automatizada e não é usado; a BDJur não tem um registro por súmula',
+        'pelo botão "Buscar atualizações agora", a lista oficial só é conferida quanto a ter mudado desde a última leitura; a leitura completa dela roda na rotina diária',
+        'superação de súmula não é detectada: o STJ não a marca, e uma decisão mais recente não significa superação',
+        'edição do Informativo incorporada fora da rotina não tem o bloco de súmulas relido; a lista oficial cobre essa falta mais tarde',
+      ] },
+  },
+};
+const GERAIS = {
+  stf: ['uma decisão mais recente não significa, sozinha, superação da anterior: o sentinela registra o que a fonte mudou e nunca reclassifica precedente'],
+  stj: ['uma decisão mais recente não significa, sozinha, superação da anterior: o sentinela registra o que a fonte mudou e nunca reclassifica precedente'],
+};
+const limitesDaFonte = (f) => [...GERAIS[f], ...Object.values(COLECOES[f]).flatMap((c) => c.limites.map((l) => `${c.rotuloCurto}: ${l}`))];
+
 export const COBERTURA = {
   planalto: {
     rotulo: 'Planalto — texto compilado das normas',
@@ -89,23 +161,18 @@ export const COBERTURA = {
     ],
   },
   stf: {
-    rotulo: 'STF — Informativo de Jurisprudência',
-    monitora: 'edições novas do Informativo, a partir da última já presente no acervo do CátedraJURIS',
+    rotulo: 'STF — Informativo, repercussão geral e súmulas',
+    monitora: 'o Informativo de Jurisprudência, a lista oficial de temas de repercussão geral e as listas de súmulas e súmulas vinculantes do STF',
     descobreNovas: true,
-    limites: [
-      'cobre o Informativo, não o inteiro teor do acórdão nem a base de repercussão geral',
-      'súmulas e temas de repercussão geral não são monitorados nesta versão',
-    ],
+    colecoes: COLECOES.stf,
+    limites: limitesDaFonte('stf'),
   },
   stj: {
-    rotulo: 'STJ — Informativo de Jurisprudência',
-    monitora: 'edições novas do Informativo (ordinárias e extraordinárias), a partir da última já no acervo',
+    rotulo: 'STJ — Informativo, repetitivos e súmulas',
+    monitora: 'o Informativo de Jurisprudência (edições ordinárias e extraordinárias), as fichas dos recursos repetitivos e a lista oficial de súmulas do STJ',
     descobreNovas: true,
-    limites: [
-      'cobre o Informativo, não o inteiro teor do acórdão',
-      'súmulas do STJ NÃO entram neste sentinela: o SCON segue bloqueado para consulta automatizada e a rota oficial BDJur/Revista de Súmulas, usada na auditoria, ainda não foi integrada à rotina diária',
-      'temas repetitivos têm rota oficial própria e não estão integrados nesta versão do sentinela',
-    ],
+    colecoes: COLECOES.stj,
+    limites: limitesDaFonte('stj'),
   },
 };
 
@@ -145,16 +212,25 @@ export function coberturaDe(fonte) {
     monitora: c.monitora,
     limites: c.limites,
     ...(fonte === 'planalto' ? { normas: normasMonitoradas() } : {}),
+    ...(COLECOES[fonte] ? { colecoes: Object.fromEntries(Object.entries(COLECOES[fonte]).map(([id, x]) =>
+      [id, { rotulo: x.rotulo, rotuloCurto: x.rotuloCurto, monitora: x.monitora, limites: x.limites }])) } : {}),
   };
 }
+const ESTADO_NULO = { resultado: null, ultimaTentativa: null, ultimoSucesso: null, erro: null, detalhe: null };
 
 /** O novidades.js versionado antes da primeira varredura revisada (decisão da dona,
  *  01/10/2026): nenhum item, e cada fonte com a cobertura e resultado/datas NULOS — a
- *  Central diz "nunca consultada" em vez de fingir uma conferência que não houve. */
+ *  Central diz "nunca consultada" em vez de fingir uma conferência que não houve. Cada coleção
+ *  também nasce "nunca consultada", com a própria cobertura. */
 export function semente() {
   const fontes = {};
   for (const f of Object.keys(COBERTURA)) {
-    fontes[f] = { ...coberturaDe(f), resultado: null, ultimaTentativa: null, ultimoSucesso: null, erro: null, detalhe: null };
+    const cob = coberturaDe(f);
+    if (cob.colecoes) {
+      cob.colecoes = Object.fromEntries(Object.entries(cob.colecoes).map(([id, c]) =>
+        [id, { ...c, resultado: null, ultimaTentativa: null, ultimoSucesso: null, ultimaLeituraCompleta: null, erro: null, detalhe: null }]));
+    }
+    fontes[f] = { ...cob, ...ESTADO_NULO };
   }
   return { geradoEm: null, fontes, itens: [] };
 }
@@ -219,6 +295,7 @@ function nomeDaNorma(s) {
 // nenhum dos 541 marcadores traz data colada. Basta UM marcador sem data no artigo para a
 // vigência ficar indeterminada.
 const RE_VIG_DATA = /\(\s*Vig[êe]ncia\s*\)(?:\s*[:,–—-]?\s*(?:a partir de|desde|em)?\s*(\d{1,2})[./](\d{1,2})[./](\d{4})\b)?/gi;
+const RE_VIG_SOLTA = /\)\s*Vig[êe]ncia\b(?!\s*\))/g;
 const RE_EFEITOS = /\(\s*Produ[çc][ãa]o de efeitos?\b([^)]*)\)/gi;
 const RE_DATA = /\b(\d{1,2})[./](\d{1,2})[./](\d{4})\b/;
 const dataBR = (dm) => (dm ? `${dm[1].padStart(2, '0')}/${dm[2].padStart(2, '0')}/${dm[3]}` : null);
@@ -246,6 +323,13 @@ function anotacoes(txt) {
   const datasVig = [];
   RE_VIG_DATA.lastIndex = 0;
   while ((m = RE_VIG_DATA.exec(semEfeitos))) datasVig.push(m[1] ? dataBR(m) : null);
+  // O rótulo "Vigência" SOLTO logo depois de uma anotação ("(Incluído pela Lei nº 15.484, de
+  // 2026) Vigência § 1º …") é o link do Planalto para a cláusula de vigência da lei que deu a
+  // redação. Ele sai da COMPARAÇÃO (RE_MARGEM), mas diz que há vigência própria: sem data, a
+  // vigência é indeterminada. Medido no CPC de 01/10/2026: arts. 927, 932, 1.035-A e 1.042 saíam
+  // "em vigor — texto compilado sem marcador de vigência própria", o que a página desmente.
+  RE_VIG_SOLTA.lastIndex = 0;
+  while ((m = RE_VIG_SOLTA.exec(semEfeitos))) datasVig.push(null);
   return {
     modificadoras: mods,
     temMarcadorVigencia: datasVig.length > 0,
@@ -329,6 +413,12 @@ function difereNoTrechoComum(a, b) {
   const n = Math.max(0, Math.min(x.length, y.length) - 64);
   return { difere: x.slice(0, n) !== y.slice(0, n), parcial: true };
 }
+// O começo do artigo que o acervo guardou (cortado no teto, 8) contra a página.
+function difereNoComeco(cortado, inteiro) {
+  const x = textoComparavel(cortado), y = textoComparavel(inteiro);
+  const n = Math.max(0, Math.min(x.length - 64, y.length));
+  return { difere: x.slice(0, n) !== y.slice(0, n), parcial: true };
+}
 // 4) TRECHO COM MAIS DE UM ARTIGO. Onde rótulo e corpo caem em células separadas (CTN,
 //    Lei 14.133), o parser corrido junta vários artigos num trecho só, e uma INCLUSÃO no
 //    meio (ex.: art. 211-A) muda o fim do trecho vizinho sem que o artigo dele mude. Medido
@@ -342,21 +432,17 @@ function difereNoTrechoComum(a, b) {
 //    111-A, 115 e 169) e em 15 do leis-seca-areas.js, todos com o cabeçalho repetido. Cortar
 //    no segundo "Art. 101" deixava só a redação riscada como texto próprio, e uma mudança real
 //    na redação em vigor saía como "recorte" ("o texto deste artigo não mudou"), sem autoria.
-const RE_CAB_INTERNO = /(?:[.;:!?)]\s+|\s{2,})(Art(?:igo)?\.?\s*\d+[ºª°]?(?:-[A-Z])?)\s*[.\-–—]?\s+(?=[A-ZÀ-Ú§])/g;
 const numeroDoArt = (s) => {
   const m = /^Art(?:igo)?\.?\s*(\d+(?:\.\d{3})*)\s*[ºª°]?(?:-([A-Z])(?![a-zà-ú]))?/.exec(String(s).trim());
   return m ? m[1] + (m[2] ? '-' + m[2] : '') : null;
 };
 export function textoProprio(t) {
+  // O corte é o mesmo da comparação por artigo (8): no cabeçalho "Art. N" maiúsculo de outro
+  // número, também depois de um título ("CAPÍTULO IV Interpretação… Art. 107."), que o corte
+  // antigo (só depois de fim de frase) deixava passar — CTN 106, 155-A, 193, 200, 204 e 208
+  // recebiam a anotação da LC 236 do artigo seguinte. O título que fecha o trecho também sai.
   const x = textoComparavel(t || '');
-  const proprio = numeroDoArt(x);
-  RE_CAB_INTERNO.lastIndex = 0;
-  let m;
-  while ((m = RE_CAB_INTERNO.exec(x))) {
-    if (proprio && numeroDoArt(m[1]) === proprio) continue;   // a outra redação do mesmo artigo
-    return x.slice(0, m.index + m[0].indexOf(m[1])).trim();
-  }
-  return x;
+  return semTituloFinal(dividirTrecho(x)[0].txt.trim()).trim();
 }
 
 // 6) REVOGAÇÃO NO TEXTO COMPILADO. O Planalto NÃO apaga o artigo revogado: mantém o texto
@@ -528,8 +614,109 @@ export function ondeDe(sigla, d) {
  *  aparece na leitura sai como `ausente`, NÃO como revogação: o Planalto mantém o artigo
  *  revogado no texto compilado (6), então o que some é indício de leitura ruim — quem
  *  chama decide (consultarPlanalto trata como falha da leitura daquela norma). */
-export function compararArtigos(antes, depois) {
+// 8) COMPARAÇÃO POR ARTIGO, NÃO POR TRECHO. Verificação contra a página oficial do CTN
+//    (01/10/2026, LC 236/2026): o parser do acervo (o mesmo do LEGIS, que esta fase NÃO muda)
+//    extrai 118 cabeçalhos dos 221 artigos — os outros 104 ficam EMBUTIDOS no trecho do vizinho,
+//    muitas vezes depois de um título ("CAPÍTULO IV Interpretação… Art. 107."). Comparar trecho
+//    com trecho dava três defeitos reais:
+//    · a anotação nova do artigo embutido (107) era atribuída ao dono do trecho (106): seis
+//      "alterações" do CTN com a LC 236 e revisar=false sem o texto do artigo ter mudado
+//      (106, 155-A, 193, 200, 204, 208) — textoProprio não cortava depois de "CAPÍTULO …";
+//    · a alteração real do art. 146 não virava item: o trecho do 142 passava do teto de 4.000
+//      caracteres e o 146 caía fora;
+//    · o 211-A saía cortado em "… § 5º do": a remissão "art. 142 desta Lei" começando linha vira
+//      entrada própria (rótulo minúsculo) e roubava o resto do artigo.
+//    Por isso, dos DOIS lados e antes de indexar: (a) a entrada de rótulo minúsculo (remissão)
+//    volta a fazer parte do texto da entrada anterior; (b) cada trecho é dividido nos artigos que
+//    traz embutidos, no cabeçalho "Art. N" MAIÚSCULO de outro número (o mesmo número é outra
+//    redação do mesmo artigo, 4); (c) o último artigo de um trecho do acervo cortado no teto fica
+//    marcado `cortado` (só o começo dele é comparável). Na página, a leitura vem SEM teto quando
+//    baixarLei entrega o texto (`arts.texto`) — o teto é do bundle, não da fonte.
+const RE_CAB_ARTIGO = /(?:^|\s)(Art(?:igo)?\.?\s*\d+(?:\.\d{3})*\s*[ºª°]?(?:-[A-Z](?![a-zà-ú]))?)\s*[.\-–—]?\s+(?=[A-ZÀ-Ú§])/g;
+export function dividirTrecho(txt) {
+  const x = String(txt || '');
+  const proprio = numeroDoArt(x.trim());
+  const cortes = [];
+  RE_CAB_ARTIGO.lastIndex = 0;
+  let m;
+  while ((m = RE_CAB_ARTIGO.exec(x))) {
+    const i = m.index + m[0].indexOf(m[1]);
+    if (i === 0 || !x.slice(0, i).trim()) continue;
+    const n = numeroDoArt(m[1]);
+    const anterior = cortes.length ? cortes[cortes.length - 1].n : proprio;
+    if (!n || n === anterior) continue;   // outra redação do mesmo artigo
+    cortes.push({ i, n, rot: m[1].replace(/\s+/g, ' ').replace(/\s*$/, '') });
+  }
+  if (!cortes.length) return [{ rot: null, txt: x }];
+  const out = [{ rot: null, txt: x.slice(0, cortes[0].i).trim() }];
+  cortes.forEach((c, k) => out.push({ rot: c.rot, txt: x.slice(c.i, k + 1 < cortes.length ? cortes[k + 1].i : x.length).trim() }));
+  return out;
+}
+// O título de divisão que fecha o texto do artigo ("… pecuniária. CAPÍTULO II Fato Gerador",
+// "… (Incluído pela LC nº 236, de 2026) Seção II Moratória") não é texto dele: é o cabeçalho do
+// que vem depois. Quando um artigo novo entra entre os dois, o título passa para o novo, e o
+// anterior parecia "alterado" sem mudar (CTN arts. 113 e 127, LC 236). Sai da comparação: o
+// que fica depois do último fecho de frase ou de anotação, curto e começando por maiúscula.
+const RE_TITULO_FINAL = /^[\s]*(?:[A-ZÀ-Ú][^.;:!?()]{0,240})$/;
+export function semTituloFinal(texto) {
+  const x = String(texto || '');
+  let i = -1;
+  for (const m of x.matchAll(/[.;:!?)](?=\s|$)/g)) i = m.index;
+  if (i < 0) return x;
+  const cauda = x.slice(i + 1);
+  if (cauda.trim() && RE_TITULO_FINAL.test(cauda)) return semTituloFinal(x.slice(0, i + 1));
+  // O título que veio com anotação própria ("… couber. CAPÍTULO IV (Incluído pela LC nº 236,
+  // de 2026)", CTN art. 208): a anotação é do título, não do artigo.
+  const t = RE_TITULO_ANOTADO.exec(x);
+  return t && t[0].length <= 300 ? x.slice(0, t.index + 1) : x;
+}
+const RE_TITULO_ANOTADO = /[.;:!?)]\s+(?:CAP[ÍI]TULO|Cap[íi]tulo|SE[ÇC][ÃA]O|Se[çc][ãa]o|SUBSE[ÇC][ÃA]O|Subse[çc][ãa]o|T[ÍI]TULO|T[íi]tulo|LIVRO|Livro)\s+[IVXLC]+\b[^.;:!?]*?(?:\s*\([^()]*\))+\s*$/;
+export function porArtigo(arts, { inteiro = false } = {}) {
+  // `inteiro`: a leitura veio sem teto (a página) — não há buraco nem artigo cortado.
+  const teto = (t) => !inteiro && noTeto(t);
+  const juntos = [];
+  for (const a of arts || []) {
+    if (ehCabecalho(a.rot)) juntos.push({ rot: a.rot, txt: String(a.txt || ''), teto: teto(a.txt) });
+    else if (juntos.length) {
+      const u = juntos[juntos.length - 1];
+      // Depois de um pedaço cortado no teto há um BURACO no texto do acervo: o que vem depois
+      // não continua o que veio antes (CTN art. 85, depois da remissão "art. 150" no teto).
+      // O resto do trecho fica de fora — esses artigos não têm "antes" confiável.
+      if (u.teto) continue;
+      u.txt += '\n' + String(a.txt || '');
+      u.teto = teto(a.txt);
+    }
+  }
+  const out = [];
+  for (const a of juntos) {
+    const partes = dividirTrecho(a.txt);
+    partes.forEach((p, k) => {
+      const ultimo = k === partes.length - 1;
+      const cortado = a.teto && ultimo;
+      out.push({ rot: k === 0 ? a.rot : p.rot, txt: cortado ? p.txt : semTituloFinal(p.txt), ...(cortado ? { cortado: true } : {}),
+        ...(k > 0 ? { embutidoEm: a.rot } : {}), ...(a.teto ? { trechoNoTeto: a.rot, ordemNoTrecho: k } : {}) });
+    });
+  }
+  return out;
+}
+
+export function compararArtigos(antesBrutos, depoisBrutos) {
+  const antes = porArtigo(antesBrutos);
+  // A página: sem o teto do bundle, quando a leitura trouxe o texto inteiro.
+  const depois = depoisBrutos && depoisBrutos.semTeto ? porArtigo(depoisBrutos.semTeto, { inteiro: true }) : porArtigo(depoisBrutos);
   const bA = blocosDe(indexarArtigos(antes)), bD = blocosDe(indexarArtigos(depois));
+  // Artigos que o acervo NÃO pôde guardar: os que vinham depois do teto no trecho do acervo.
+  // Na página eles aparecem; aqui não há "antes" com que comparar, e eles não são inclusão.
+  const tetoA = new Map();
+  for (const a of antes) if (a.trechoNoTeto) tetoA.set(chaveArt(a.trechoNoTeto), Math.max(tetoA.get(chaveArt(a.trechoNoTeto)) ?? -1, a.ordemNoTrecho));
+  const doAcervoEmTodo = (antes || []).map((a) => a.txt).join('\n');
+  const normasNoAcervo = new Set(anotacoes(doAcervoEmTodo).modificadoras.map((m) => m.norma));
+  const sombra = (art) => {
+    const t = art.embutidoEm ? chaveArt(art.embutidoEm) : null;
+    return t != null && tetoA.has(t) && art.ordemNoTrechoPagina > tetoA.get(t);
+  };
+  // ordem de cada artigo dentro do trecho da página (para saber se ficou além do teto do acervo)
+  { const cont = new Map(); for (const a of depois) { const t = a.embutidoEm ? chaveArt(a.embutidoEm) : chaveArt(a.rot); if (!a.embutidoEm) cont.set(t, 0); else cont.set(t, (cont.get(t) || 0) + 1); a.ordemNoTrechoPagina = a.embutidoEm ? cont.get(t) : 0; } }
   const ult = (b) => b[b.length - 1];
   const mesmoTexto = (x, y) => textoComparavel(x.art.txt) === textoComparavel(y.art.txt);
   const total = (l) => l.reduce((n, b) => n + b.length, 0);
@@ -554,13 +741,25 @@ export function compararArtigos(antes, depois) {
     // `antes`/`depois` guardam o texto como a fonte o escreve (é o que a pessoa lê na
     // comparação); quem decide SE mudou é a versão sem anotação de margem.
     const compara = (a, iD, bloco, extra) => {
-      const velho = ult(a), novo = ult(lD[iD]), cmp = difereNoTrechoComum(velho.art.txt, novo.art.txt);
+      const velho = ult(a), novo = ult(lD[iD]);
+      // Artigo do acervo cortado no teto (8): só o começo que o acervo guardou é comparável.
+      const cmp = velho.art.cortado ? difereNoComeco(velho.art.txt, novo.art.txt) : difereNoTrechoComum(velho.art.txt, novo.art.txt);
       if (cmp.difere) out.push({ tipo: 'alteracao', rot: novo.art.rot, chave: chave(bloco), bloco, ...onde(iD), ...extra,
         antes: normalizar(velho.art.txt), depois: normalizar(novo.art.txt), parcial: cmp.parcial });
     };
     const inclui = (iD, extra) => out.push({ tipo: 'inclusao', rot: ult(lD[iD]).art.rot, chave: chave(iD + 1), bloco: iD + 1, ...onde(iD), ...extra,
       antes: null, depois: normalizar(ult(lD[iD]).art.txt) });
-    if (!lA.length) { lD.forEach((_, iD) => inclui(iD, {})); continue; }
+    // Artigo da página que o acervo não tem: inclusão — salvo se ele fica além do teto de um
+    // trecho do acervo (8). Aí não há "antes": só vira item quando traz anotação de norma que o
+    // acervo desta lei não cita em lugar nenhum — mudança que o acervo certamente não tem.
+    const incluiOuSombra = (iD, extra) => {
+      const art = ult(lD[iD]).art;
+      if (!sombra(art)) return inclui(iD, extra);
+      const novas = anotacoes(art.txt).modificadoras.filter((m) => !normasNoAcervo.has(m.norma));
+      if (novas.length) out.push({ tipo: 'alteracao', rot: art.rot, chave: chave(iD + 1), bloco: iD + 1, ...onde(iD),
+        antes: null, depois: normalizar(art.txt), parcial: true, foraDoTeto: art.embutidoEm });
+    };
+    if (!lA.length) { lD.forEach((_, iD) => incluiOuSombra(iD, {})); continue; }
     if (lA.length === lD.length) { lD.forEach((_, iD) => compara(lA[iD], iD, iD + 1, {})); continue; }
     // Descompasso: casa primeiro quem tem a vigente idêntica.
     const descompasso = `${total(lA)} → ${total(lD)}`;
@@ -582,7 +781,7 @@ export function compararArtigos(antes, depois) {
         casados.add('D' + sD[k]); casados.add('A' + sA[k]);
       }
     }
-    for (const iD of sobraD) if (!casados.has('D' + iD)) inclui(iD, { descompasso });
+    for (const iD of sobraD) if (!casados.has('D' + iD)) incluiOuSombra(iD, { descompasso });
     sobraA = sobraA.filter((j) => !casados.has('A' + j));
     // Bloco do acervo que sobrou com o número ainda na página: leitura ruim (`ausente`, a norma
     // falha), salvo a remissão e a redação intercalada — bloco colado (até 4 entradas) a outro
@@ -710,7 +909,9 @@ export function ultimasDoIndice(IDX) {
   return {
     stf: stf.length ? Math.max(...stf) : null,
     stj: stj.length ? Math.max(...stj) : null,
-    stjExtra: ee.length ? Math.max(...ee) : 27,
+    // Sem nenhuma extraordinária no acervo, a última é DESCONHECIDA (null): consultarInformativos
+    // falha a série em vez de supor a EE27 — supor fazia a régua "achar" EE28 a EE33 de novo.
+    stjExtra: ee.length ? Math.max(...ee) : null,
     // QUAIS edições estão no acervo, série por série — não só a última. O
     // atualizar-informativos.py tolera lacuna: uma edição que não respondeu ("nada") seguida
     // de uma que respondeu não encerra o laço dele, e o acervo pode sair com a 901 e a 903 sem
@@ -764,9 +965,18 @@ export function edicoesNovasAlem(antes, aqui, recusado) {
   return out;
 }
 
-async function buscar(url, { timeoutMs = 40000, prazo = 0 } = {}) {
-  const r = await buscarFonte(url, { timeoutMs, prazo });
-  return { status: r.status, tam: r.buffer.length, texto: r.buffer.toString('latin1') };
+// `codificacao`: o Informativo e os repetitivos do STJ vêm em latin1 (o padrão); o export de
+// repercussão geral e as páginas de súmulas do STF, em UTF-8; o PDF de súmulas do STJ, binário.
+// `cabecalhos`: só os do GET condicional (if-modified-since, if-none-match).
+async function buscar(url, { timeoutMs = 40000, prazo = 0, codificacao = 'latin1', cabecalhos } = {}) {
+  const r = await buscarFonte(url, { timeoutMs, prazo, cabecalhos });
+  const h = r.headers || {};
+  return {
+    status: r.status, tam: r.buffer.length,
+    texto: codificacao === 'binario' ? null : r.buffer.toString(codificacao === 'utf8' ? 'utf8' : 'latin1'),
+    buffer: codificacao === 'binario' ? r.buffer : undefined,
+    cabecalhos: { 'last-modified': h['last-modified'] || null, etag: h.etag || null, 'content-type': h['content-type'] || null },
+  };
 }
 
 // Uma edição existe quando a página responde 200 E o <title> traz o NÚMERO PEDIDO. Medido
@@ -850,6 +1060,9 @@ async function consultarInformativos(fonte, ult, buscarPagina = buscar, prazo = 
 
   const itens = [];
   const falhas = [];
+  // As páginas das edições NOVAS (no STJ): a coleção de súmulas lê o bloco "Súmulas" delas sem
+  // pedido extra. Não entram no estado nem no novidades.js.
+  const paginas = [];
   let conclusivas = 0, acabouTempo = false;
   for (const s of series) {
     // O tempo acabou numa série anterior: esta fica sem consulta nenhuma, e o erro diz qual —
@@ -874,13 +1087,16 @@ async function consultarInformativos(fonte, ult, buscarPagina = buscar, prazo = 
       conclusivas++;
       if (v.estado === 'existe') {
         seguidasVazias = 0;
+        if (fonte === 'stj') paginas.push({ n: alvo.n, extra: alvo.extra, url: alvo.url, texto: r.texto });
         itens.push({
           id: `INF-${fonte.toUpperCase()}-${alvo.extra ? 'EE' : ''}${alvo.n}`,
           fonte,
-          fonteRotulo: COBERTURA[fonte].rotulo,
+          fonteRotulo: COLECOES[fonte].informativo.rotulo,
+          colecao: 'informativo',
+          colecaoRotulo: COLECOES[fonte].informativo.rotulo,
           tipo: 'informativo',
           norma: fonte.toUpperCase(),
-          normaNome: COBERTURA[fonte].rotulo,
+          normaNome: COLECOES[fonte].informativo.rotulo,
           disp: alvo.rotulo,
           titulo: alvo.rotulo,
           antes: null,
@@ -918,6 +1134,7 @@ async function consultarInformativos(fonte, ult, buscarPagina = buscar, prazo = 
     erro: falhas.length ? falhas.join('; ') : null,
     detalhe,
     itens,
+    ...(fonte === 'stj' ? { paginas } : {}),
   };
 }
 
@@ -928,19 +1145,91 @@ async function consultarInformativos(fonte, ult, buscarPagina = buscar, prazo = 
  *  se disfarça de "nenhuma novidade". Função à parte para poder ser testada sem rede. */
 export function carimbar(fonte, anterior, r, tentativaEm) {
   const okAgora = r.estado !== 'falha';
+  const ant = anterior || {};
   return {
     rotulo: COBERTURA[fonte].rotulo,
     monitora: COBERTURA[fonte].monitora,
     limites: COBERTURA[fonte].limites,
     // E9: no Planalto, QUAIS normas são conferidas — o limite "só estas 14" fica verificável.
-    ...(fonte === 'planalto' ? { normas: r.normas || anterior.normas || [] } : {}),
+    ...(fonte === 'planalto' ? { normas: r.normas || ant.normas || [] } : {}),
     ultimaTentativa: tentativaEm,
-    ultimoSucesso: okAgora ? tentativaEm : (anterior.ultimoSucesso || null),
+    ultimoSucesso: okAgora ? tentativaEm : (ant.ultimoSucesso || null),
+    // 'parcial' é leitura útil com lacuna NOMEADA (o erro diz o que faltou) e por isso move o
+    // último sucesso; quando foi a última leitura SEM lacuna, diz este carimbo, que só anda com
+    // 'novidades' ou 'sem-novidade'.
+    ultimaLeituraCompleta: r.estado === 'novidades' || r.estado === 'sem-novidade' ? tentativaEm : (ant.ultimaLeituraCompleta || null),
     resultado: r.estado,
     erro: r.erro || null,
     detalhe: r.detalhe || '',
     novidadesNaConsulta: r.itens.length,
+    // Fase 2: o diário de CADA coleção. A mesma regra da fonte (o último sucesso só anda sem
+    // falha), mais `ultimaLeituraCompleta`, que só anda com leitura conclusiva ('novidades' ou
+    // 'sem-novidade'): o botão deixa os repetitivos 'parcial' e não move esse carimbo — é ele que
+    // diz quando a varredura completa rodou de fato. Coleção que não rodou herda o seu diário.
+    ...(COLECOES[fonte] ? { colecoes: Object.fromEntries(Object.keys(COLECOES[fonte]).map((id) => {
+      const cob = coberturaDe(fonte).colecoes[id], a = (ant.colecoes || {})[id] || {}, rc = (r.colecoes || {})[id];
+      if (!rc) {
+        return [id, { ...cob, resultado: a.resultado ?? null, ultimaTentativa: a.ultimaTentativa ?? null, ultimoSucesso: a.ultimoSucesso ?? null,
+          ultimaLeituraCompleta: a.ultimaLeituraCompleta ?? null, erro: a.erro ?? null, detalhe: a.detalhe ?? null }];
+      }
+      const ok = rc.estado !== 'falha', completo = rc.estado === 'novidades' || rc.estado === 'sem-novidade';
+      return [id, { ...cob, resultado: rc.estado, ultimaTentativa: tentativaEm, ultimoSucesso: ok ? tentativaEm : (a.ultimoSucesso || null),
+        ultimaLeituraCompleta: completo ? tentativaEm : (a.ultimaLeituraCompleta || null), erro: rc.erro || null, detalhe: rc.detalhe || '',
+        novidadesNaConsulta: (rc.itens || []).length }];
+    })) } : {}),
   };
+}
+
+/** O estado de uma fonte que não terminou (a api, no tempo esgotado): falha na fonte e em toda
+ *  coleção dela, cada uma com o PRÓPRIO último sucesso preservado. */
+export function estadoDeFalha(fonte, anteriorFonte, erro, quando) {
+  const colecoes = COLECOES[fonte]
+    ? Object.fromEntries(Object.keys(COLECOES[fonte]).map((id) => [id, { estado: 'falha', erro, detalhe: '', itens: [] }])) : undefined;
+  // No Planalto, a lista de normas conferidas vem do acervo (o diário anterior pode não tê-la).
+  const normas = fonte === 'planalto' ? ((anteriorFonte && anteriorFonte.normas && anteriorFonte.normas.length) ? anteriorFonte.normas : normasMonitoradas()) : undefined;
+  return { ...carimbar(fonte, anteriorFonte || {}, { estado: 'falha', erro, detalhe: '', itens: [], ...(colecoes ? { colecoes } : {}), ...(normas ? { normas } : {}) }, quando), doCache: false };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STF e STJ por coleção (Fase 2). As coleções de uma fonte rodam em PARALELO, com o mesmo
+// prazo; cada uma usa um host (ou divide com no máximo mais uma), então não passam de 2
+// conexões por host. Uma coleção que lança vira falha DELA, com o erro por extenso — as outras
+// seguem. A fonte fica com o pior resultado (falha > parcial > novidades > sem-novidade).
+// ─────────────────────────────────────────────────────────────────────────────
+function juntarColecoes(f, res) {
+  const ids = Object.keys(res);
+  const rotular = (id) => (it) => ({ ...it, fonteRotulo: it.colecao === 'informativo' ? it.fonteRotulo : COBERTURA[f].rotulo,
+    colecaoRotulo: COLECOES[f][id].rotulo, normaNome: COLECOES[f][id].rotulo });
+  const itens = ids.flatMap((id) => (res[id].itens || []).map(rotular(id)));
+  const um = ids.length === 1;
+  const pref = (id, t) => (um ? t : `${COLECOES[f][id].rotuloCurto}: ${t}`);
+  const erros = ids.filter((id) => res[id].erro).map((id) => pref(id, res[id].erro));
+  const detalhes = ids.filter((id) => res[id].detalhe).map((id) => pref(id, res[id].detalhe));
+  const retratos = {};
+  for (const id of ids) if (res[id].retrato) retratos[`${f}.${id}`] = res[id].retrato;
+  return {
+    estado: pior(ids.map((id) => res[id].estado)) || 'falha',
+    erro: erros.length ? erros.join('; ') : null,
+    detalhe: detalhes.join(' · '),
+    itens,
+    colecoes: Object.fromEntries(ids.map((id) => [id, { estado: res[id].estado, erro: res[id].erro || null, detalhe: res[id].detalhe || '', itens: res[id].itens || [] }])),
+    retratos,
+  };
+}
+
+/** ctx = { modo, prazo, busca:{buscar, esperar, lerPdf}, retratos, J (função), ult, ids, limiares }. */
+export async function consultarJuris(f, ctx) {
+  const ids = ctx.ids;
+  const tarefas = {};
+  if (ids.includes('informativo')) tarefas.informativo = consultarInformativos(f, ctx.ult, ctx.busca.buscar, ctx.prazo);
+  if (f === 'stf' && ids.includes('rg')) tarefas.rg = consultarRG(ctx);
+  if (f === 'stf' && ids.includes('sumulas')) tarefas.sumulas = consultarSumulasSTF(ctx);
+  if (f === 'stj' && ids.includes('repetitivos')) tarefas.repetitivos = consultarRepetitivos(ctx);
+  // O PDF começa já; o bloco "Súmulas" espera o Informativo (null = ele falhou ou não rodou).
+  if (f === 'stj' && ids.includes('sumulas')) tarefas.sumulas = consultarSumulasSTJ(ctx, tarefas.informativo ? tarefas.informativo.catch(() => null) : null);
+  const res = Object.fromEntries(await Promise.all(Object.entries(tarefas).map(async ([id, p]) =>
+    [id, await p.catch((e) => ({ estado: 'falha', erro: (e && e.message) || String(e), detalhe: '', itens: [] }))])));
+  return juntarColecoes(f, res);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1006,6 +1295,15 @@ function desfazerBaixa(it) {
   delete b.incorporadoTxt;
   return b;
 }
+// O mesmo para tema e súmula: o acervo deixou de mostrar o estado do item (ou nunca mostrou).
+function desfazerBaixaColecao(it) {
+  const b = { ...it, revisar: true };
+  delete b.incorporado;
+  delete b.incorporadoTxt;
+  b.pendencia = pendenciaColecao(b);
+  return b;
+}
+const ehColecao = (it) => !!(it && it.colecao && it.colecao !== 'informativo');
 
 export function mesclarNovidades(atuais, achados, ult, noAcervo) {
   const antigos = new Map((atuais || []).map((i) => [i.id, i]));
@@ -1015,8 +1313,17 @@ export function mesclarNovidades(atuais, achados, ult, noAcervo) {
   for (const it of achados || []) {
     vistos.add(it.id);
     const velho = porId.get(it.id);
-    if (velho) porId.set(it.id, { ...it, detectadoEm: velho.detectadoEm || it.detectadoEm, lido: !!velho.lido });
-    else { porId.set(it.id, it); idsNovos.push(it.id); }
+    if (velho) {
+      const novo = { ...it, detectadoEm: velho.detectadoEm || it.detectadoEm, lido: !!velho.lido };
+      if (ehColecao(it)) {
+        // Tema e súmula: a data oficial que a rotina leu (andamentos) e o botão não lê fica;
+        // e a baixa já dada fica, até a conferência abaixo dizer o contrário — quando o acervo
+        // não pode ser consultado aqui (a api não tem o juris-text.js), "não sei" não desfaz nada.
+        for (const c of CAMPOS_DATA) if (novo[c] == null && velho[c] != null) novo[c] = velho[c];
+        if (velho.incorporado && !it.parcial) { novo.incorporado = true; novo.incorporadoTxt = velho.incorporadoTxt; novo.revisar = false; delete novo.pendencia; }
+      }
+      porId.set(it.id, novo);
+    } else { porId.set(it.id, it); idsNovos.push(it.id); }
   }
   // `baixas` = itens que o novidades.js já tinha e cujo estado de revisão mudou nesta rodada
   // (baixa de item incorporado, baixa desfeita, ou revisar recalculado pela regra de agora).
@@ -1030,10 +1337,22 @@ export function mesclarNovidades(atuais, achados, ult, noAcervo) {
     // Comparação PARCIAL (artigo cortado no teto, 3) nunca recebe baixa: noAcervo compara,
     // nesse caso, só o começo do texto (difereNoTrechoComum), e começo igual não prova que o
     // acervo tem o artigo inteiro. "Já no LEGIS" seria afirmação sem prova; fica para conferir.
-    const ed = edicaoNoAcervo(it, ult);
     let final = it;
-    if (!it.parcial && (ed === 'dentro' || plnNoAcervo(it))) final = darBaixa(it);
-    else if (ed === 'fora' && it.incorporado) final = desfazerBaixa(it);
+    if (it.fonte === 'planalto') {
+      if (!it.parcial && plnNoAcervo(it)) final = darBaixa(it);
+    } else if (ehColecao(it)) {
+      // Tema e súmula (Fase 2): baixa quando o acervo JÁ mostra o estado apontado (true);
+      // baixa desfeita quando deixou de mostrar (false); "não dá para afirmar" (null) não muda
+      // nada. Vale mesmo que a rodada tenha achado o item de novo.
+      let na = null;
+      if (!it.parcial && typeof noAcervo === 'function') { try { na = noAcervo(it); } catch (_) { na = null; } }
+      if (na === true) final = darBaixa(it);
+      else if (na === false && it.incorporado) final = desfazerBaixaColecao(it);
+    } else {
+      const ed = edicaoNoAcervo(it, ult);
+      if (!it.parcial && ed === 'dentro') final = darBaixa(it);
+      else if (ed === 'fora' && it.incorporado) final = desfazerBaixa(it);
+    }
     porId.set(id, final);
     const v = antigos.get(id);
     if (v && (!!v.incorporado !== !!final.incorporado || !!v.revisar !== !!final.revisar)) idsBaixa.push(id);
@@ -1084,7 +1403,8 @@ export function lerPropostos(caminho) {
  *  incorporação: assim a edição que acabou de entrar é detectada (vira item, com a URL
  *  oficial) e, na mesma junção, recebe a baixa contra o acervo de agora (`ultimas`) — o
  *  novidades.js do PR lista "já no JURIS" exatamente o que o juris-index.js do PR traz. */
-export async function rodar({ fontes = ['planalto', 'stf', 'stj'], busca = {}, leis, ultimas, ultimasConsulta, anterior, atuais, jaPropostos, silencioso = false, prazo = 0 } = {}) {
+export async function rodar({ fontes = ['planalto', 'stf', 'stj'], colecoes, modo, busca = {}, leis, ultimas, ultimasConsulta, anterior, atuais, jaPropostos,
+  silencioso = false, prazo = 0, retratos, juris, limiares } = {}) {
   const diga = silencioso ? () => {} : log;
   const antes = anterior || lerEstado();
   const estado = { geradoEm: agora(), fontes: { ...(antes.fontes || {}) } };
@@ -1095,11 +1415,25 @@ export async function rodar({ fontes = ['planalto', 'stf', 'stj'], busca = {}, l
   // foram comparadas.
   const conferidas = new Set();
   let LEIS_RODADA = [];
+  // Fase 2: o modo decide o orçamento de cada coleção (o botão, com prazo, faz só a parte
+  // rápida); a linha de base (sentinela/retratos.json) e o acervo do JURIS são lidos só quando
+  // alguma coleção precisa deles.
+  const MODO = modo || (prazo ? 'ao-vivo' : 'rotina');
+  const BUSCA = { buscar: busca.buscar || buscar, esperar: busca.esperar || esperarPadrao, lerPdf: busca.lerPdf || textoDoPdf };
+  let R = null;
+  const retratosDe = () => (R || (R = retratos || lerRetratos()));
+  let J = null;
+  const acervoJ = () => (J || (J = juris ? (typeof juris === 'function' ? juris() : juris) : baseJuris()));
+  const LIM = { ...LIMIARES, ...(limiares || {}) };
+  const novosRetratos = {};
+  // Fonte que, com o filtro de coleções, fica sem nenhuma não é consultada nem carimbada.
+  const rodam = fontes.map((f) => [f, COLECOES[f] ? Object.keys(COLECOES[f]).filter((id) => !colecoes || colecoes.includes(id)) : null])
+    .filter(([, ids]) => ids === null || ids.length);
 
-  for (const [k, f] of fontes.entries()) {
+  for (const [k, [f, ids]] of rodam.entries()) {
     const tentativaEm = agora();
     // Fatia justa do tempo que resta: a primeira fonte não come o prazo das seguintes.
-    const prazoFonte = prazo ? Date.now() + Math.max(0, prazo - Date.now()) / (fontes.length - k) : 0;
+    const prazoFonte = prazo ? Date.now() + Math.max(0, prazo - Date.now()) / (rodam.length - k) : 0;
     diga(`▸ ${COBERTURA[f].rotulo}…`);
     let r, LEIS = [];
     try {
@@ -1108,13 +1442,16 @@ export async function rodar({ fontes = ['planalto', 'stf', 'stj'], busca = {}, l
         LEIS_RODADA = LEIS;
         r = await consultarPlanalto(LEIS, busca.baixarLei || baixarLei, prazoFonte);
       } else {
-        r = await consultarInformativos(f, ultimasConsulta || ultDoAcervo(), busca.buscar || buscar, prazoFonte);
+        r = await consultarJuris(f, { modo: MODO, prazo: prazoFonte, busca: BUSCA, retratos: retratosDe(), J: acervoJ,
+          ult: ids.includes('informativo') ? (ultimasConsulta || ultDoAcervo()) : null, ids, limiares: LIM, quando: tentativaEm });
       }
     } catch (e) {
-      r = { estado: 'falha', erro: e.message, itens: [], detalhe: '' };
+      r = { estado: 'falha', erro: e.message, itens: [], detalhe: '',
+        ...(ids ? { colecoes: Object.fromEntries(ids.map((id) => [id, { estado: 'falha', erro: e.message, detalhe: '', itens: [] }])) } : {}) };
     }
     if (f === 'planalto' && LEIS.length) r.normas = normasDe(LEIS);
     for (const sg of r.conferidas || []) conferidas.add(sg);
+    for (const [chave, v] of Object.entries(r.retratos || {})) novosRetratos[chave] = v;
     estado.fontes[f] = carimbar(f, estado.fontes[f] || {}, r, tentativaEm);
     achados.push(...r.itens);
     diga(`  ${r.estado}${r.detalhe ? ' — ' + r.detalhe : ''}${r.erro ? ' — ' + r.erro : ''} (${r.itens.length} novidade(s))`);
@@ -1134,10 +1471,12 @@ export async function rodar({ fontes = ['planalto', 'stf', 'stj'], busca = {}, l
   // chave do rótulo, que é a da 1ª ocorrência.
   const indices = new Map();
   const noAcervo = (it) => {
+    // Tema e súmula: a regra da coleção, contra o acervo do JURIS (seção "Baixa" do documento).
+    if (it.fonte !== 'planalto') return ehColecao(it) ? colecaoNoAcervo(it, acervoJ()) : null;
     if (!conferidas.has(it.norma) || it.depois == null) return false;
     const lei = LEIS_RODADA.find((l) => l.sigla === it.norma);
     if (!lei) return false;
-    if (!indices.has(lei.sigla)) indices.set(lei.sigla, blocosDe(indexarArtigos(lei.artigos || [])));
+    if (!indices.has(lei.sigla)) indices.set(lei.sigla, blocosDe(indexarArtigos(porArtigo(lei.artigos || []))));
     // Qualquer bloco do número serve: a identidade (número + bloco) desliza se outro bloco ganhar
     // ou perder entrada, mas a vigente com o `depois` do item é a prova de que o acervo o tem.
     const raiz = String(it.chave || chaveArt(it.disp)).replace(/[@~]\d+$/, '');
@@ -1156,7 +1495,10 @@ export async function rodar({ fontes = ['planalto', 'stf', 'stj'], busca = {}, l
   const finais = new Map(m.itens.map((i) => [i.id, i]));
   const mesmoEstado = (p, i) => !!p && !!i && !!p.incorporado === !!i.incorporado && !!p.revisar === !!i.revisar;
   const baixas = m.idsBaixa.filter((id) => !mesmoEstado(ja.get(id), finais.get(id))).length;
-  return { estado, itens: m.itens, novos: novosItens.length, baixas, novosItens, achados: m.achados, fontes };
+  // `retratos` = a linha de base com as chaves que ESTA rodada leu com sucesso; só a linha de
+  // comando grava (a api nunca).
+  return { estado, itens: m.itens, novos: novosItens.length, baixas, novosItens, achados: m.achados, fontes,
+    retratos: { ...(R || {}), ...novosRetratos }, retratosMudados: Object.keys(novosRetratos) };
 }
 
 const CABECALHO = `/* Cátedra — CENTRAL DE NOVIDADES: o que mudou nas fontes oficiais.
@@ -1174,10 +1516,84 @@ export function conteudoNovidades(n) {
   return CABECALHO + 'window.CT_NOVIDADES = ' + JSON.stringify({ geradoEm: n.geradoEm, fontes: n.fontes, itens: n.itens }) + ';\n';
 }
 
-function escrever({ estado, itens }) {
+function escrever({ estado, itens, retratos, retratosMudados }) {
   mkdirSync(PASTA, { recursive: true });
   writeFileSync(ESTADO, JSON.stringify(estado, null, 2) + '\n');
   writeFileSync(SAIDA, conteudoNovidades({ geradoEm: estado.geradoEm, fontes: estado.fontes, itens }));
+  // A linha de base anda SÓ nas chaves que esta rodada leu com sucesso; o resto fica como está.
+  if (retratosMudados && retratosMudados.length) {
+    const novo = { versao: 1, ...lerRetratos() };
+    for (const k of retratosMudados) novo[k] = retratos[k];
+    writeFileSync(ARQ_RETRATOS, conteudoRetratos(novo));
+  }
+}
+
+/** A linha de base de UMA chave, a partir de arquivos já baixados (sem rede). Usa os MESMOS
+ *  leitores e travas da consulta: no export de RG, as 15 colunas e o mínimo de linhas; nas faixas
+ *  dos repetitivos, os contadores; no PDF de súmulas, a âncora da maior súmula do acervo.
+ *  `conteudos` = textos (stf.rg em UTF-8, stj.repetitivos em latin1) ou o buffer do PDF. */
+export async function semearRetrato(chave, conteudos, { minLinhas = LIMIARES.minLinhasRG, lidoEm, origem, lastModified, etag, juris } = {}) {
+  if (!lidoEm || Number.isNaN(Date.parse(lidoEm))) throw new Error('falta --lido-em <ISO> (quando a leitura oficial foi feita)');
+  const lista = conteudos || [];
+  if (!lista.length) throw new Error('falta --arquivo <caminho>');
+  if (chave === 'stf.rg') {
+    if (lista.length !== 1) throw new Error('stf.rg recebe um arquivo só: o export inteiro da lista oficial');
+    const temas = lerExportRG(String(lista[0]), { minLinhas });
+    return { lidoEm, origem: origem || 'lista oficial do portal do STF (exportarDados.asp)', ...retratoRG(temas, {}) };
+  }
+  if (chave === 'stj.repetitivos') {
+    const temas = {};
+    for (const [i, html] of lista.entries()) {
+      let pg;
+      try { pg = parsePaginaRepetitivos(String(html), { porPagina: 50 }); } catch (e) { throw new Error(`arquivo ${i + 1}: ${e.message}`); }
+      for (const t of pg.temas) {
+        if (temas[t.numero]) throw new Error(`o Tema ${t.numero} veio em mais de um arquivo`);
+        temas[t.numero] = retratoTemaRep(t);
+      }
+    }
+    const nums = Object.keys(temas).map(Number);
+    if (!nums.length) throw new Error('nenhum tema lido nas faixas');
+    return { lidoEm, origem: origem || 'fichas oficiais do Portal de Precedentes Qualificados do STJ', ultimoTema: Math.max(...nums), total: nums.length, temas };
+  }
+  if (chave === 'stj.sumulas') {
+    if (lista.length !== 1) throw new Error('stj.sumulas recebe um arquivo só: o PDF da lista oficial');
+    const buf = Buffer.isBuffer(lista[0]) ? lista[0] : Buffer.from(lista[0]);
+    const verbetes = listaVerbetesSTJ(await textoDoPdf(buf));
+    const J = juris || baseJuris();
+    const acervo = acervoDaColecao(J, 'stj', 'sumulas');
+    const maxAcv = acervo.size ? Math.max(...acervo.keys()) : 0;
+    if (!verbetes.some((v) => v.numero === maxAcv) || verbetes.length < acervo.size) {
+      throw new Error(`a lista oficial não traz a súmula ${maxAcv} (última do acervo) ou tem menos itens (${verbetes.length}) que o acervo (${acervo.size}): o arquivo mudou de formato`);
+    }
+    return { lidoEm, origem: origem || 'Enunciados das Súmulas do STJ (VerbetesSTJ_asc.pdf, portal do STJ)',
+      pdf: { lastModified: lastModified || null, etag: etag || null, bytes: buf.length, verbetes: verbetes.length, maior: Math.max(...verbetes.map((v) => v.numero)) } };
+  }
+  throw new Error(`chave desconhecida: ${chave || '(vazia)'} — use stf.rg, stj.repetitivos ou stj.sumulas`);
+}
+
+if (import.meta.url === `file://${process.argv[1]}` && flag('--semear-retrato')) {
+  // Sem rede: lê os arquivos, passa pelos leitores e grava só a chave pedida.
+  const chave = val('--semear-retrato', '');
+  const arquivos = ARGV.flatMap((a, i) => (a === '--arquivo' && ARGV[i + 1] ? [ARGV[i + 1]] : []));
+  try {
+    const conteudos = arquivos.map((f) => {
+      const b = readFileSync(f);
+      return chave === 'stj.sumulas' ? b : b.toString(chave === 'stj.repetitivos' ? 'latin1' : 'utf8');
+    });
+    const ret = await semearRetrato(chave, conteudos, { lidoEm: val('--lido-em', ''), origem: val('--origem', ''), lastModified: val('--last-modified', ''), etag: val('--etag', '') });
+    if (!DRY) {
+      const novo = { versao: 1, ...lerRetratos() };
+      novo[chave] = ret;
+      mkdirSync(PASTA, { recursive: true });
+      writeFileSync(ARQ_RETRATOS, conteudoRetratos(novo));
+    }
+    const resumo = ret.temas ? `${ret.total} temas, até o Tema ${ret.ultimoTema}` : `${ret.pdf.verbetes} súmulas, até a ${ret.pdf.maior} (${ret.pdf.bytes} B)`;
+    log(`Linha de base ${chave}: ${resumo}, lida em ${ret.lidoEm}.` + (DRY ? ' (--dry-run: nada escrito)' : ' Gravada em sentinela/retratos.json.'));
+    process.exit(0);
+  } catch (e) {
+    console.error(`--semear-retrato ${chave}: ${e.message}`);
+    process.exit(2);
+  }
 }
 
 if (import.meta.url === `file://${process.argv[1]}` && SEMENTE) {
@@ -1244,15 +1660,28 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const arqPropostos = val('--ja-propostos', '');
   const jaPropostos = arqPropostos ? lerPropostos(arqPropostos) : [];
   if (arqPropostos) log(`${jaPropostos.length} item(ns) de PR fechado sem merge não contam como novos (${arqPropostos}).`);
-  const r = await rodar({ fontes, jaPropostos, ultimasConsulta });
+  let colecoes;
+  if (flag('--colecoes')) {
+    const conhecidas = new Set(Object.values(COLECOES).flatMap((c) => Object.keys(c)));
+    colecoes = val('--colecoes', '').split(',').map((s) => s.trim()).filter(Boolean);
+    const estranhas = colecoes.filter((c) => !conhecidas.has(c));
+    if (!colecoes.length || estranhas.length) { console.error(`coleção desconhecida: ${estranhas.join(', ') || '(vazia)'}; use ${[...conhecidas].join(', ')}`); process.exit(2); }
+  }
+  const r = await rodar({ fontes, colecoes, modo: 'rotina', jaPropostos, ultimasConsulta });
   if (!DRY) escrever(r);
   if (SO_JSON) console.log(JSON.stringify({ ...r.estado, novos: r.novos, baixas: r.baixas, itens: r.itens }, null, 2));
   else {
-    log(`\n${r.itens.length} novidade(s) no total, ${r.novos} nova(s) e ${r.baixas} com a revisão mudada nesta rodada.` + (DRY ? ' (--dry-run: nada escrito)' : ` Escrito em novidades.js e ${ESTADO.replace(ROOT + '/', '')}.`));
+    log(`\n${r.itens.length} novidade(s) no total, ${r.novos} nova(s) e ${r.baixas} com a revisão mudada nesta rodada.` + (DRY ? ' (--dry-run: nada escrito)'
+      : ` Escrito em novidades.js e ${ESTADO.replace(ROOT + '/', '')}` + (r.retratosMudados.length ? ` (linha de base atualizada: ${r.retratosMudados.join(', ')}).` : '.')));
   }
   if (process.env.GITHUB_OUTPUT) {
     const falhas = fontes.filter((f) => r.estado.fontes[f] && r.estado.fontes[f].resultado === 'falha');
-    appendFileSync(process.env.GITHUB_OUTPUT, `novos=${r.novos}\nbaixas=${r.baixas}\nfalhas=${falhas.join(',')}\n`);
+    // As coleções que falharam NESTA rodada (a que não rodou guarda o resultado antigo).
+    const falhasColecoes = fontes.flatMap((f) => {
+      const e = r.estado.fontes[f];
+      return e && e.colecoes ? Object.entries(e.colecoes).filter(([, c]) => c.resultado === 'falha' && c.ultimaTentativa === e.ultimaTentativa).map(([id]) => `${f}.${id}`) : [];
+    });
+    appendFileSync(process.env.GITHUB_OUTPUT, `novos=${r.novos}\nbaixas=${r.baixas}\nfalhas=${falhas.join(',')}\nfalhasColecoes=${falhasColecoes.join(',')}\n`);
   }
   // Falha de fonte não derruba o processo: o relatório já diz o que falhou, e derrubar
   // faria a rotina diária não gravar o que as outras fontes conseguiram ler.

@@ -1,0 +1,213 @@
+{
+  "coletadoEm": "2026-10-01T20:56-03:00",
+  "fonte": "Portal de Precedentes Qualificados do STJ — pesquisa.jsp (repetitivos)",
+  "charset": "ISO-8859-1 no portal (Content-Type: text/html;charset=ISO-8859-1); aqui decodificado em latin1 e gravado em UTF-8",
+  "tratamento": "trechos LITERAIS das páginas: só espaços/linhas em branco colapsados; nenhum texto alterado",
+  "paginas": {
+    "1451-1500": {
+      "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=1451&cod_tema_final=1500&quantidadeResultadosPorPagina=50",
+      "hora": "20:56:17",
+      "status": 200,
+      "bytes": 326520,
+      "ttfb_s": 6.641748,
+      "total_s": 6.734425,
+      "arquivo": "cabecalho-1451-1500.html",
+      "contador": {
+        "temas": 24,
+        "documentos": 24
+      },
+      "temasLidos": 24
+    },
+    "1501-1550": {
+      "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=1501&cod_tema_final=1550&quantidadeResultadosPorPagina=50",
+      "hora": "20:56:20",
+      "status": 200,
+      "bytes": 49322,
+      "ttfb_s": 0.235046,
+      "total_s": 0.339251,
+      "arquivo": "cabecalho-1501-1550.html",
+      "contador": {
+        "temas": 0,
+        "documentos": 0
+      },
+      "temasLidos": 0
+    }
+  },
+  "amostras": {
+    "702": {
+      "arquivo": "tema-702.html",
+      "prova": "Trânsito em Julgado, tese idêntica ao acervo (repgeral-repetitivo-STJ-702) → nenhum item / \"No acervo\"",
+      "esperado": {
+        "numero": 702,
+        "situacao": "Trânsito em Julgado",
+        "orgao": "PRIMEIRA SEÇÃO",
+        "ramo": "DIREITO PROCESSUAL CIVIL E DO TRABALHO",
+        "tese": "A mera decretação da quebra não implica extinção da personalidade jurídica do estabelecimento empresarial. Ademais, a massa falida tem exclusivamente personalidade judiciária, sucedendo a empresa em todos os seus direitos e obrigações. Em consequência, o ajuizamento contra a pessoa jurídica, nessas condições, constitui mera irregularidade, sanável nos termos do art. 284 do CPC e do art. 2º, § 8º, da Lei 6.830/1980.",
+        "afetadoEm": "22/10/2013",
+        "julgadoEm": "11/12/2013",
+        "publicadoEm": "21/03/2014",
+        "transitadoEm": "30/04/2014",
+        "ultimaAtualizacao": "16/11/2023",
+        "modulacao": false,
+        "teseMarcador": false,
+        "processos": [
+          {
+            "processo": "REsp 1372243/SE",
+            "principal": true,
+            "relator": "NAPOLEÃO NUNES MAIA FILHO"
+          }
+        ]
+      }
+    },
+    "1228": {
+      "arquivo": "tema-1228.html",
+      "prova": "Mérito Julgado (20/08/2026) com o MARCADOR \"*Aguardando a publicação do acórdão do julgamento de mérito.\" no campo Tese Firmada — não é tese → julgamento, nunca tese-fixada",
+      "esperado": {
+        "numero": 1228,
+        "situacao": "Mérito Julgado",
+        "orgao": "PRIMEIRA SEÇÃO",
+        "ramo": "DIREITO TRIBUTÁRIO",
+        "tese": "*Aguardando a publicação do acórdão do julgamento de mérito.",
+        "afetadoEm": "18/12/2023",
+        "julgadoEm": "20/08/2026",
+        "publicadoEm": null,
+        "transitadoEm": null,
+        "ultimaAtualizacao": "21/08/2026",
+        "modulacao": false,
+        "teseMarcador": true,
+        "processos": [
+          {
+            "processo": "REsp 2068273/RS",
+            "principal": true,
+            "relator": "TEODORO SILVA SANTOS"
+          },
+          {
+            "processo": "REsp 2068698/PR",
+            "principal": false,
+            "relator": "TEODORO SILVA SANTOS"
+          },
+          {
+            "processo": "REsp 2068695/RS",
+            "principal": false,
+            "relator": "TEODORO SILVA SANTOS"
+          }
+        ]
+      }
+    },
+    "1455": {
+      "arquivo": "tema-1455.html",
+      "prova": "Acórdão Publicado (julgado 09/09/2026, publicado 14/09/2026), com tese; fora do acervo → tese-fixada + acordao-publicado",
+      "esperado": {
+        "numero": 1455,
+        "situacao": "Acórdão Publicado",
+        "orgao": "PRIMEIRA SEÇÃO",
+        "ramo": "DIREITO TRIBUTÁRIO",
+        "tese": "A diferença entre o valor antecipado com base na multiplicação do preço de tabela por multiplicador ou coeficiente e o valor apurado com base no preço de venda efetivamente praticado não deve ser restituída ao comerciante varejista de cigarros e de cigarrilhas nas contribuições para o Programa de Integração Social - PIS e para o Financiamento da Seguridade Social - Cofins.",
+        "afetadoEm": "19/06/2026",
+        "julgadoEm": "09/09/2026",
+        "publicadoEm": "14/09/2026",
+        "transitadoEm": null,
+        "ultimaAtualizacao": "14/09/2026",
+        "modulacao": false,
+        "teseMarcador": false,
+        "processos": [
+          {
+            "processo": "REsp 2215075/SC",
+            "principal": true,
+            "relator": "MARIA THEREZA DE ASSIS MOURA"
+          },
+          {
+            "processo": "REsp 2177940/RS",
+            "principal": false,
+            "relator": "MARIA THEREZA DE ASSIS MOURA"
+          }
+        ]
+      }
+    },
+    "1474": {
+      "arquivo": "tema-1474.html",
+      "prova": "tema mais novo do portal em 01/10/2026; Afetado (afetação 16/09/2026), sem tese, 2 processos; fora do acervo → tema-afetado",
+      "esperado": {
+        "numero": 1474,
+        "situacao": "Afetado",
+        "orgao": "SEGUNDA SEÇÃO",
+        "ramo": "DIREITO CIVIL",
+        "tese": null,
+        "afetadoEm": "16/09/2026",
+        "julgadoEm": null,
+        "publicadoEm": null,
+        "transitadoEm": null,
+        "ultimaAtualizacao": "16/09/2026",
+        "modulacao": false,
+        "teseMarcador": false,
+        "processos": [
+          {
+            "processo": "REsp 2252171/RS",
+            "principal": true,
+            "relator": "RICARDO VILLAS BÔAS CUEVA"
+          },
+          {
+            "processo": "REsp 2248247/RS",
+            "principal": false,
+            "relator": "RICARDO VILLAS BÔAS CUEVA"
+          }
+        ]
+      }
+    }
+  },
+  "medicoes": [
+    {
+      "faixa": "1451-1500",
+      "hora": "20:56:17",
+      "status": 200,
+      "bytes": 326520,
+      "ttfb_s": 6.641748,
+      "total_s": 6.734425
+    },
+    {
+      "faixa": "1501-1550",
+      "hora": "20:56:20",
+      "status": 200,
+      "bytes": 49322,
+      "ttfb_s": 0.235046,
+      "total_s": 0.339251
+    },
+    {
+      "faixa": "701-750",
+      "hora": "20:56:59",
+      "status": 200,
+      "bytes": 486597,
+      "ttfb_s": 5.85913,
+      "total_s": 5.976156
+    },
+    {
+      "faixa": "1201-1250",
+      "hora": "20:57:13",
+      "status": 200,
+      "bytes": 721653,
+      "ttfb_s": 10.520047,
+      "total_s": 10.778877
+    }
+  ],
+  "medicoes25set": "L0 de 25/09/2026 (~/catedra-auditoria-cache/teses-dod/l0/log-stj.tsv): 31 páginas (1–1550), 240 s de transferência, média 7,8 s, máx. 10,4 s, vazia 0,7 s; varredura inteira ~5,5 min com pausa de 3 s",
+  "acervo": {
+    "702": {
+      "ids": [
+        "repgeral-repetitivo-STJ-702"
+      ],
+      "esperado": "tese igual (comparação sem espaços) e situação igual → nenhum item"
+    },
+    "1228": {
+      "ids": [],
+      "esperado": "fora do acervo; tese é marcador → julgamento (julgadoEm 20/08/2026), sem tese-fixada"
+    },
+    "1455": {
+      "ids": [],
+      "esperado": "fora do acervo → tese-fixada + acordao-publicado (publicadoEm 14/09/2026)"
+    },
+    "1474": {
+      "ids": [],
+      "esperado": "número acima do último conhecido → tema-afetado (afetadoEm 16/09/2026)"
+    }
+  }
+}

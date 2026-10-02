@@ -6,7 +6,12 @@
 // quais ele poderia esconder que falhou.
 //
 // Sem rede: as fixtures são recortes do texto real das fontes (os informativos, pelos
-// títulos e status das páginas oficiais em tests/fixtures/informativos/manifesto.json).
+// títulos e status das páginas oficiais em tests/fixtures/informativos/manifesto.json; a
+// Fase 2 — repercussão geral, repetitivos e súmulas — em tests/sentinela-colecoes.mjs, com as
+// fixtures de tests/fixtures/stf-rg, stj-repetitivos e sumulas).
+// As chamadas de rodar() que tocam o STF ou o STJ pedem só a coleção do Informativo
+// (`colecoes: ['informativo']`): os casos daqui são do Informativo, e as outras coleções têm a
+// régua própria.
 // Assim a suíte roda em qualquer lugar, e uma quebra aponta o parser, não a conexão. Nenhum caso toca a rede:
 // o S12 confere a validade do intermediário EMBUTIDO, lendo o próprio arquivo, e o S14
 // roda o caminho inteiro do rodar() com as leituras das fontes TROCADAS por funções locais.
@@ -21,6 +26,7 @@ import {
   lerIdsPropostos, lerPropostos, mesclarNovidades, modificadorasDaDiferenca, parseSuspeito, recuoDoAcervo, rodar, semente, textoProprio,
   ultimasDeArquivo, ultimasDoIndice,
 } from '../scripts/sentinela.mjs';
+import { testarColecoes } from './sentinela-colecoes.mjs';
 
 const RAIZ = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const globaisDe = (...arquivos) => {
@@ -76,8 +82,13 @@ export async function testarSentinela(ok) {
       { rot: 'Art. 151', txt: 'Art. 151. Suspendem a exigibilidade.' },
       { rot: 'art. 927', txt: 'art. 927 da Lei nº 13.105, de 16 de março de 2015 (Código de Processo Civil);' },
     ];
-    ok(compararArtigos(antes, depois).length === 0,
-      'S3 remissão com rótulo minúsculo ("art. 927 da Lei…") não vira dispositivo incluído');
+    // Desde a comparação por artigo (8), a linha de rótulo minúsculo volta para o texto do artigo
+    // de onde o parser a tirou: dos dois lados, nada muda; só de um lado, é texto novo do 151 —
+    // nunca um "art. 927" incluído.
+    const ambos = [{ rot: 'Art. 151', txt: 'Art. 151. Suspendem a exigibilidade.' }, depois[1]];
+    const so = compararArtigos(antes, depois);
+    ok(compararArtigos(ambos, depois).length === 0 && so.length === 1 && so[0].tipo === 'alteracao' && so[0].rot === 'Art. 151',
+      'S3 remissão com rótulo minúsculo ("art. 927 da Lei…") não vira dispositivo incluído: volta a ser texto do artigo de onde saiu');
     const real = [...antes, { rot: 'Art. 152', txt: 'Art. 152. Artigo de verdade, com cabeçalho em maiúscula.' }];
     ok(compararArtigos(antes, real).length === 1 && compararArtigos(antes, real)[0].tipo === 'inclusao',
       'S3b controle — artigo novo de verdade ("Art. 152") continua sendo detectado');
@@ -364,16 +375,19 @@ export async function testarSentinela(ok) {
     }
   }
 
-  // ── S12 — o certificado embutido do STF ainda serve ────────────────────────
-  // O STF manda a cadeia TLS incompleta e o intermediário vai embutido no repositório.
-  // Quando ele vencer, a consulta ao STF passa a falhar — melhor descobrir aqui.
+  // ── S12 — certificado embutido, se houver, ainda serve ─────────────────────
+  // Até setembro de 2026 o STF mandava a cadeia incompleta e o intermediário ia embutido; em
+  // 01/10/2026 ele passou à cadeia completa da Sectigo (até 11/04/2027) e o embutido saiu. A
+  // régua confere que nenhum certificado guardado está vencendo — e não falha por um que a
+  // fonte não usa mais.
   {
-    const { CA_ALPHASSL_2025 } = await import('../scripts/lib/tls-fontes.mjs');
+    const { CAS_EXTRAS } = await import('../scripts/lib/tls-fontes.mjs');
     const { X509Certificate } = await import('node:crypto');
-    const c = new X509Certificate(CA_ALPHASSL_2025);
-    const dias = Math.round((new Date(c.validTo) - Date.now()) / 86400000);
-    ok(dias > 60,
-      `S12 o intermediário embutido do STF ainda vale por ${dias} dias (troque antes de vencer — a receita está em scripts/lib/tls-fontes.mjs)`);
+    const dias = CAS_EXTRAS.map((pem) => Math.round((new Date(new X509Certificate(pem).validTo) - Date.now()) / 86400000));
+    const src = readFileSync(path.join(RAIZ, 'scripts/lib/tls-fontes.mjs'), 'utf8');
+    ok(Array.isArray(CAS_EXTRAS) && dias.every((d) => d > 60) && !/GlobalSign GCC R6 AlphaSSL/.test(src)
+      && !/rejectUnauthorized\s*:\s*false/.test(src.replace(/\/\/.*$/gm, '')),
+      `S12 nenhum certificado embutido vencendo (${CAS_EXTRAS.length} embutido(s)); a verificação TLS segue ligada`);
   }
 
   const ULT = { stf: 1224, stj: 900, stjExtra: 33 };   // o acervo do JURIS em 01/10/2026
@@ -428,7 +442,7 @@ export async function testarSentinela(ok) {
     const ANTES = '2001-01-01T00:00:00.000Z';
     const anterior = { fontes: { planalto: { ultimoSucesso: ANTES, resultado: 'sem-novidade' }, stf: { ultimoSucesso: ANTES, resultado: 'sem-novidade' } } };
     const caiu = async () => { throw new Error('getaddrinfo ENOTFOUND (simulado)'); };
-    const r = await rodar({ fontes: ['planalto', 'stf'], busca: { baixarLei: caiu, buscar: caiu }, leis: [leiFalsa('LA', 30)],
+    const r = await rodar({ fontes: ['planalto', 'stf'], colecoes: ['informativo'], busca: { baixarLei: caiu, buscar: caiu }, leis: [leiFalsa('LA', 30)],
       ultimas: ULT, anterior, atuais: [], silencioso: true });
     const p = r.estado.fontes.planalto, s = r.estado.fontes.stf;
     ok(p.resultado === 'falha' && s.resultado === 'falha' && /ENOTFOUND/.test(p.erro || '') && /ENOTFOUND/.test(s.erro || ''),
@@ -478,17 +492,17 @@ export async function testarSentinela(ok) {
       pendencia: 'edição detectada na fonte oficial', urlOficial: 'https://www.stf.jus.br/arquivo/informativo/documento/informativo1225.htm',
       detectadoEm: '2026-09-20T12:00:00.000Z', lido: false };
     const so1225 = async (url) => (/informativo1225\.htm$/.test(url) ? pagina(PAG['stf-1225']) : { status: 404, tam: 0, texto: '' });
-    const bx = await rodar({ fontes: ['stf'], busca: { buscar: so1225 }, ultimas: { ...ULT, stf: 1225 }, anterior: { fontes: {} }, atuais: [pend], silencioso: true });
+    const bx = await rodar({ fontes: ['stf'], colecoes: ['informativo'], busca: { buscar: so1225 }, ultimas: { ...ULT, stf: 1225 }, anterior: { fontes: {} }, atuais: [pend], silencioso: true });
     ok(bx.novos === 0 && bx.baixas === 1 && bx.itens.length === 1 && bx.itens[0].incorporado === true && bx.itens[0].revisar === false
       && bx.estado.fontes.stf.resultado === 'sem-novidade',
       'S13h rodada só de baixa: nenhum item novo, mas baixas=1 — o workflow grava o novidades.js também por ela');
-    const bx2 = await rodar({ fontes: ['stf'], busca: { buscar: so1225 }, ultimas: { ...ULT, stf: 1225 }, anterior: bx.estado, atuais: bx.itens, silencioso: true });
+    const bx2 = await rodar({ fontes: ['stf'], colecoes: ['informativo'], busca: { buscar: so1225 }, ultimas: { ...ULT, stf: 1225 }, anterior: bx.estado, atuais: bx.itens, silencioso: true });
     ok(bx2.baixas === 0 && bx2.itens[0].incorporado === true, 'S13h2 a baixa do informativo conta uma vez só: a rodada seguinte não a reconta');
     // Rede de segurança (no workflow, a trava de recuo para o job antes — S21g): o
     // novidades.js de partida diz "já no JURIS" para a 1225, mas o juris-index.js desta
     // árvore só vai até a 1224. Ele não pode continuar dizendo.
     const caiu = async () => { throw new Error('ECONNRESET (simulado)'); };
-    const vt = await rodar({ fontes: ['stf'], busca: { buscar: caiu }, ultimas: ULT, anterior: bx.estado, atuais: bx.itens, silencioso: true });
+    const vt = await rodar({ fontes: ['stf'], colecoes: ['informativo'], busca: { buscar: caiu }, ultimas: ULT, anterior: bx.estado, atuais: bx.itens, silencioso: true });
     const it1225 = vt.itens[0];
     ok(vt.estado.fontes.stf.resultado === 'falha' && vt.baixas === 1 && vt.novos === 0 && !('incorporado' in it1225)
       && !('incorporadoTxt' in it1225) && it1225.revisar === true && /ainda não está no CátedraJURIS/.test(it1225.pendencia || '')
@@ -531,40 +545,40 @@ export async function testarSentinela(ok) {
     };
     const A = MAN.acervoNaData;
     const ids = (r) => JSON.stringify(r.itens.map((i) => i.id).sort());
-    const stj = await rodar({ fontes: ['stj'], busca: { buscar: real }, ultimas: A, anterior: { fontes: {} }, atuais: [], silencioso: true });
+    const stj = await rodar({ fontes: ['stj'], colecoes: ['informativo'], busca: { buscar: real }, ultimas: A, anterior: { fontes: {} }, atuais: [], silencioso: true });
     ok(ids(stj) === JSON.stringify(['INF-STJ-901', 'INF-STJ-902', 'INF-STJ-903']) && stj.estado.fontes.stj.resultado === 'novidades',
       'S17 STJ com os títulos reais: 901, 902 e 903 são novas, e nenhuma extraordinária');
     ok(['0033E', '0034E', '0035E', '0036E'].every((k) => chamadas.some((u) => u.includes('%27' + k + '%27'))),
       'S17b as extraordinárias são consultadas (a âncora 33 e as três seguintes) — o fim das ordinárias não as pula');
     ok(chamadas[0].includes('%270900%27'), 'S17c a âncora 900, já no acervo, é a primeira consulta — reconhecida antes de qualquer conclusão');
-    const stf = await rodar({ fontes: ['stf'], busca: { buscar: real }, ultimas: A, anterior: { fontes: {} }, atuais: [], silencioso: true });
+    const stf = await rodar({ fontes: ['stf'], colecoes: ['informativo'], busca: { buscar: real }, ultimas: A, anterior: { fontes: {} }, atuais: [], silencioso: true });
     ok(ids(stf) === JSON.stringify([1225, 1226, 1227, 1228, 1229, 1230].map((n) => 'INF-STF-' + n)) && stf.estado.fontes.stf.resultado === 'novidades',
       'S17d STF: 1225 a 1230 são novas, e o 404 da 1231 encerra a busca');
 
     const ANT = '2026-09-01T00:00:00.000Z';
     const ant = (f) => ({ fontes: { [f]: { ultimoSucesso: ANT, resultado: 'sem-novidade' } } });
     for (const [f, st] of [['stj', 503], ['stf', 503], ['stf', 403]]) {
-      const r = await rodar({ fontes: [f], busca: { buscar: async () => ({ status: st, tam: 0, texto: '' }) }, ultimas: A, anterior: ant(f), atuais: [], silencioso: true });
+      const r = await rodar({ fontes: [f], colecoes: ['informativo'], busca: { buscar: async () => ({ status: st, tam: 0, texto: '' }) }, ultimas: A, anterior: ant(f), atuais: [], silencioso: true });
       const e = r.estado.fontes[f];
       ok(e.resultado === 'falha' && new RegExp('HTTP ' + st).test(e.erro || '') && e.ultimoSucesso === ANT && r.itens.length === 0,
         `S17e ${f.toUpperCase()} respondendo ${st} é falha, com o erro por extenso e o último sucesso preservado — nunca "sem novidade"`);
     }
     const soAncora = async (url) => (url === PAG['stj-0900'].url || url === PAG['stj-EE33'].url ? pagina(porUrl.get(url)) : { status: 503, tam: 0, texto: '' });
-    const r2 = await rodar({ fontes: ['stj'], busca: { buscar: soAncora }, ultimas: A, anterior: ant('stj'), atuais: [], silencioso: true });
+    const r2 = await rodar({ fontes: ['stj'], colecoes: ['informativo'], busca: { buscar: soAncora }, ultimas: A, anterior: ant('stj'), atuais: [], silencioso: true });
     ok(r2.estado.fontes.stj.resultado === 'falha' && /nenhuma edição nova pôde ser conferida/.test(r2.estado.fontes.stj.erro || '')
       && r2.estado.fontes.stj.ultimoSucesso === ANT,
       'S17f âncora reconhecida mas toda edição nova com 503: falha, e o último sucesso não anda');
     const meio = async (url) => (url === PAG['stj-0902'].url ? { status: 503, tam: 0, texto: '' } : real(url));
-    const r3 = await rodar({ fontes: ['stj'], busca: { buscar: meio }, ultimas: A, anterior: ant('stj'), atuais: [], silencioso: true });
+    const r3 = await rodar({ fontes: ['stj'], colecoes: ['informativo'], busca: { buscar: meio }, ultimas: A, anterior: ant('stj'), atuais: [], silencioso: true });
     ok(r3.estado.fontes.stj.resultado === 'parcial' && /edição 902: HTTP 503/.test(r3.estado.fontes.stj.erro || '')
       && ids(r3) === JSON.stringify(['INF-STJ-901', 'INF-STJ-903']),
       'S17g uma edição com 503 no meio deixa a fonte parcial, nomeando a edição — as outras continuam valendo');
     const mudou = async () => ({ status: 200, tam: 300000, texto: '<title>STJ - Informativo de Jurisprudência n. 901</title>' });
-    const r4 = await rodar({ fontes: ['stj'], busca: { buscar: mudou }, ultimas: A, anterior: ant('stj'), atuais: [], silencioso: true });
+    const r4 = await rodar({ fontes: ['stj'], colecoes: ['informativo'], busca: { buscar: mudou }, ultimas: A, anterior: ant('stj'), atuais: [], silencioso: true });
     ok(r4.estado.fontes.stj.resultado === 'falha' && r4.itens.length === 0 && r4.estado.fontes.stj.ultimoSucesso === ANT
       && /a régua não reconheceu a edição 900, que já está no acervo: a página mudou de formato/.test(r4.estado.fontes.stj.erro || ''),
       'S17h âncora não reconhecida: falha "a régua não reconheceu a edição 900, que já está no acervo", com o último sucesso preservado');
-    const r5 = await rodar({ fontes: ['stf'], busca: { buscar: async () => ({ status: 200, tam: 9000, texto: '<title>Supremo Tribunal Federal</title>' }) },
+    const r5 = await rodar({ fontes: ['stf'], colecoes: ['informativo'], busca: { buscar: async () => ({ status: 200, tam: 9000, texto: '<title>Supremo Tribunal Federal</title>' }) },
       ultimas: A, anterior: ant('stf'), atuais: [], silencioso: true });
     ok(r5.estado.fontes.stf.resultado === 'falha' && /a régua não reconheceu a edição 1224/.test(r5.estado.fontes.stf.erro || ''),
       'S17i o mesmo vale para o STF: a 1224 do acervo sem "Nº 1224" no título é falha da fonte');
@@ -581,7 +595,7 @@ export async function testarSentinela(ok) {
     const real = async (url) => { const p = porUrl.get(url); return p ? pagina(p) : pagina(PAG['stj-7777']); };
     const ANTES = MAN.acervoNaData;                      // { stf: 1224, stj: 900, stjExtra: 33 }
     const DEPOIS = { ...ANTES, stj: 903 };               // a incorporação trouxe 901 a 903
-    const opc = { fontes: ['stj'], busca: { buscar: real }, anterior: { fontes: {} }, silencioso: true };
+    const opc = { fontes: ['stj'], colecoes: ['informativo'], busca: { buscar: real }, anterior: { fontes: {} }, silencioso: true };
     const ids = (r) => JSON.stringify(r.itens.map((i) => i.id).sort());
     const tres = JSON.stringify(['INF-STJ-901', 'INF-STJ-902', 'INF-STJ-903']);
 
@@ -844,7 +858,7 @@ export async function testarSentinela(ok) {
       ok(z.estado.fontes.planalto.resultado === 'falha' && z.estado.fontes.planalto.ultimoSucesso === ANT,
         'S20b sem tempo para nada é falha, e o último sucesso conhecido fica');
       const pag = async (url) => { t += 1000; return pagina(PAG[/0033E/.test(url) ? 'stj-EE33' : 'stj-0900']); };
-      const i = await rodar({ fontes: ['stj'], busca: { buscar: pag }, ultimas: ULT, anterior: ant, atuais: [], silencioso: true, prazo: t + 4500 });
+      const i = await rodar({ fontes: ['stj'], colecoes: ['informativo'], busca: { buscar: pag }, ultimas: ULT, anterior: ant, atuais: [], silencioso: true, prazo: t + 4500 });
       ok(i.estado.fontes.stj.resultado === 'falha' && /tempo da consulta esgotado antes da edição 901/.test(i.estado.fontes.stj.erro || '')
         && i.estado.fontes.stj.ultimoSucesso === ANT,
         'S20c no STJ, âncoras conferidas e o tempo acabando antes da 901: falha por tempo, nunca "sem novidade"');
@@ -1010,9 +1024,11 @@ export async function testarSentinela(ok) {
     ok(iAdct6 > 0 && d6.length === 2 && doAdct.length === 1 && /Acréscimo/.test(doAdct[0].depois || '') && d6.every((x) => x.revisar === true),
       `S22p com uma remissão no corpo deslocando os blocos, só a mudança do ADCT leva "do ADCT", e as duas vão para conferir (${d6.map((x) => x.titulo).join(' | ')})`);
     // artigo novo no fim do ADCT com número que o corpo tem: inclusão para conferir, com as duas hipóteses
-    const n138 = [...CF.artigos, { rot: 'Art. 138', txt: 'Art. 138. Disposição transitória nova. (Incluído pela Emenda Constitucional nº 199, de 2026)' }];
+    // (O ADCT já tem um art. 138, embutido no trecho do 137 — a comparação por artigo o enxerga,
+    // 8; por isso o número novo aqui é o 139, que o corpo tem e o ADCT não.)
+    const n138 = [...CF.artigos, { rot: 'Art. 139', txt: 'Art. 139. Disposição transitória nova. (Incluído pela Emenda Constitucional nº 199, de 2026)' }];
     const d138 = compararArtigos(CF.artigos, n138).map((x) => itemPlanalto(CF, x, 'x'));
-    ok(d138.length === 1 && d138[0].tipo === 'inclusao' && d138[0].titulo === 'Art. 138 do ADCT — CF' && /artigo novo com número repetido/.test(d138[0].pendencia || ''),
+    ok(d138.length === 1 && d138[0].tipo === 'inclusao' && d138[0].titulo === 'Art. 139 do ADCT — CF' && /artigo novo com número repetido/.test(d138[0].pendencia || ''),
       `S22q artigo novo no fim do ADCT sai como inclusão "do ADCT" para conferir, dizendo as duas hipóteses (${d138.map((x) => x.titulo).join(',')})`);
   }
 
@@ -1096,7 +1112,7 @@ export async function testarSentinela(ok) {
       pendencia: 'edição detectada na fonte oficial', urlOficial: 'https://www.stf.jus.br/arquivo/informativo/documento/informativo1225.htm',
       detectadoEm: '2026-09-20T12:00:00.000Z', lido: false };
     const so1225 = async (url) => (/informativo1225\.htm$/.test(url) ? pagina(PAG['stf-1225']) : { status: 404, tam: 0, texto: '' });
-    const dia = (ja) => rodar({ fontes: ['stf'], busca: { buscar: so1225 }, ultimas: { ...ULT, stf: 1225 }, anterior: { fontes: {} }, atuais: [pend],
+    const dia = (ja) => rodar({ fontes: ['stf'], colecoes: ['informativo'], busca: { buscar: so1225 }, ultimas: { ...ULT, stf: 1225 }, anterior: { fontes: {} }, atuais: [pend],
       jaPropostos: ja, silencioso: true });
     const recusouABaixa = await dia([{ id: 'INF-STF-1225', incorporado: true, revisar: false }]);
     ok(recusouABaixa.baixas === 0 && recusouABaixa.novos === 0 && recusouABaixa.itens[0].incorporado === true,
@@ -1122,7 +1138,7 @@ export async function testarSentinela(ok) {
     try {
       const porUrl = new Map(MAN.paginas.map((p) => [p.url, p]));
       const pag = async (url) => { t += 1000; const p = porUrl.get(url); return p ? pagina(p) : { status: 404, tam: 0, texto: '' }; };
-      const r = await rodar({ fontes: ['stj'], busca: { buscar: pag }, ultimas: ULT, anterior: { fontes: {} }, atuais: [], silencioso: true, prazo: t + 6500 });
+      const r = await rodar({ fontes: ['stj'], colecoes: ['informativo'], busca: { buscar: pag }, ultimas: ULT, anterior: { fontes: {} }, atuais: [], silencioso: true, prazo: t + 6500 });
       const e = r.estado.fontes.stj;
       ok(/tempo da consulta esgotado antes da edição 903/.test(e.erro || '')
         && /as extraordinárias a partir da extraordinária 34 não foram consultadas/.test(e.erro || ''),
@@ -1134,7 +1150,7 @@ export async function testarSentinela(ok) {
     await rodar({ fontes: ['planalto'], busca: { baixarLei: async (u, o) => { vistos.push(o && o.prazo); return lei.artigos; } }, leis: [lei],
       ultimas: ULT, anterior: { fontes: {} }, atuais: [], silencioso: true, prazo: Date.now() + 60000 });
     const vInf = [];
-    await rodar({ fontes: ['stf'], busca: { buscar: async (u, o) => { vInf.push(o && o.prazo); return { status: 404, tam: 0, texto: '' }; } },
+    await rodar({ fontes: ['stf'], colecoes: ['informativo'], busca: { buscar: async (u, o) => { vInf.push(o && o.prazo); return { status: 404, tam: 0, texto: '' }; } },
       ultimas: ULT, anterior: { fontes: {} }, atuais: [], silencioso: true, prazo: Date.now() + 60000 });
     ok(vistos.length > 0 && vistos.every((p) => p > Date.now()) && vInf.length > 0 && vInf.every((p) => p > Date.now()),
       'S20f o prazo da rodada chega a cada leitura do Planalto e dos informativos');
@@ -1199,6 +1215,89 @@ export async function testarSentinela(ok) {
     const importa = /import\s*\{[^}]*\blimparHTML\b[^}]*\bmelhorParse\b[^}]*\}\s*from\s*'\.\/lib\/planalto\.mjs'/.test(b);
     const copiaPropria = /function\s+(limparHTML|artigos|artigosCorrido|melhorParse|catalogo)\s*\(|const NAMED\s*=|alt\.length > arts\.length/.test(b);
     ok(importa && !copiaPropria, 'S16 o build da lei seca usa limparHTML e melhorParse de scripts/lib/planalto.mjs, sem cópia própria do parser');
+  }
+
+  // ── S22–S28 — Fase 2: repercussão geral, repetitivos e súmulas (tests/sentinela-colecoes.mjs) ──
+  await testarColecoes(ok);
+
+  // ── S29 — CTN e a LC 236/2026: comparação por artigo (verificação contra a página oficial) ──
+  // Fixture: trechos REAIS do texto compilado do CTN de 01/10/2026 (tests/fixtures/planalto),
+  // contra o acervo vivo (leis-seca.js, que esta fase não muda). Antes, a comparação por trecho
+  // dava 6 "alterações" com a LC 236 e revisar=false em artigos que não mudaram (a anotação era do
+  // artigo embutido depois de um título), perdia a alteração real do 146 (depois do teto do trecho
+  // do 142) e cortava o 211-A na remissão "art. 142 desta Lei".
+  {
+    const { artigos } = await import('../scripts/lib/planalto.mjs');
+    const CTN = (globaisDe('leis-seca.js').CT_LEIS || []).find((l) => l.sigla === 'CTN');
+    const trechos = readFileSync(path.join(RAIZ, 'tests/fixtures/planalto/ctn-trechos-2026-10-01.txt'), 'utf8').split('\n@@@@\n');
+    const LC = 'Lei Complementar nº 236, de 2026';
+    const faixa = (de, ate) => {
+      const i = CTN.artigos.findIndex((a) => a.rot === de), j = CTN.artigos.findIndex((a) => a.rot === ate);
+      return CTN.artigos.slice(i, j);
+    };
+    // A página: o parser de linhas (o que o CTN usa), com e sem o teto do bundle, como baixarLei entrega.
+    const pagina = (t) => { const a = artigos(t); Object.defineProperty(a, 'semTeto', { value: artigos(t, Infinity) }); return a; };
+    const itens = (de, ate, k) => compararArtigos(faixa(de, ate), pagina(trechos[k])).map((d) => itemPlanalto(CTN, d, 'x'));
+    const i106 = itens('Art. 106', 'Art. 110', 0);
+    const d107 = i106.find((x) => x.disp === 'Art. 107');
+    ok(trechos.length === 4 && !i106.some((x) => x.disp === 'Art. 106') && d107 && d107.tipo === 'alteracao' && d107.modificadora === LC
+      && /resolução de dúvidas/.test(d107.depois || '') && !/excluída a\s+aplicação de penalidade/.test(d107.depois || ''),
+      `S29a o art. 107 embutido depois de "CAPÍTULO IV …" é comparado sozinho: a LC 236 vai para o 107, e o 106 (sem mudança) não vira item (${i106.map((x) => x.disp).join(', ')})`);
+    ok(textoProprio(faixa('Art. 106', 'Art. 108')[0].txt).endsWith('vigente ao tempo da sua prática.'),
+      'S29b textoProprio corta no "Art. 107" que vem depois do título de capítulo, e o título não fica no texto do 106');
+    const i142 = itens('Art. 142', 'Art. 149', 1);
+    const d146 = i142.find((x) => x.disp === 'Art. 146');
+    ok(d146 && d146.tipo === 'alteracao' && d146.modificadora === LC && /sentença arbitral/.test(d146.depois || '') && !/sentença arbitral/.test(d146.antes || ''),
+      `S29c a alteração real do art. 146 (LC 236) vira item próprio — antes ficava depois do teto do trecho do 142 (${i142.map((x) => x.disp).join(', ')})`);
+    ok(!i142.some((x) => /927/.test(x.disp)) && i142.every((x) => /^Art\. 14[2-8]$/.test(x.disp)),
+      'S29d a remissão "art. 927" que começa linha volta ao artigo de onde saiu: nada de dispositivo fantasma');
+    const i193 = itens('Art. 193', 'Art. 195', 2);
+    ok(!i193.some((x) => x.disp === 'Art. 193') && i193.some((x) => x.disp === 'Art. 194' && x.modificadora === LC) && i193.some((x) => x.disp === 'Art. 194-A' && x.tipo === 'inclusao'),
+      `S29e no trecho do 193, a mudança é do 194 embutido: o 193 não vira item (${i193.map((x) => x.tipo + ' ' + x.disp).join(', ')})`);
+    const i211 = itens('Art. 211', 'Art. 213', 3);
+    const d211a = i211.find((x) => x.disp === 'Art. 211-A');
+    ok(d211a && d211a.tipo === 'inclusao' && d211a.modificadora === LC && !/§ 5º do$/.test(d211a.depois || '') && /art\. 142 desta Lei/.test(d211a.depois || '')
+      && !i211.some((x) => x.disp === 'Art. 211'),
+      `S29f o art. 211-A sai inteiro (a remissão "art. 142 desta Lei" no começo da linha não o corta) e com a LC 236; o 211 não vira item (${d211a ? d211a.depois.slice(-60) : 'nenhum'})`);
+    // O artigo além do teto do acervo sem "antes": só vira item com anotação de norma que o acervo não cita.
+    const longo = 'Art. 1. ' + 'Texto longo do artigo primeiro. '.repeat(140);
+    const acervoCortado = [{ rot: 'Art. 1', txt: longo.slice(0, 4005) }];
+    const pagSemNorma = [{ rot: 'Art. 1', txt: longo + 'Art. 2. Artigo antigo embutido, sem anotação nova.' }];
+    const pagComNorma = [{ rot: 'Art. 1', txt: longo + 'Art. 2. Artigo embutido alterado. (Redação dada pela Lei nº 15.999, de 2026)' }];
+    const semN = compararArtigos(acervoCortado, pagSemNorma), comN = compararArtigos(acervoCortado, pagComNorma);
+    ok(semN.length === 0 && comN.length === 1 && comN[0].rot === 'Art. 2' && comN[0].antes === null && comN[0].parcial === true,
+      'S29g artigo que o acervo não guardou (depois do teto do trecho) não é "inclusão": só vira item, parcial e sem "antes", quando traz norma que o acervo não cita');
+  }
+
+  // ── S30 — os achados BAIXOS da verificação de 01/10/2026 ───────────────────
+  {
+    // a) acervo sem nenhuma extraordinária: a última é desconhecida, e a série falha (antes: supunha EE27).
+    const sem = ultimasDoIndice([['INF0900-STJ-1-x', '', 'informativo_stj', 900], ['INF1224-STF-1-x', '', 'informativo_stf', 1224]]);
+    const chamadas = [];
+    const r = await rodar({ fontes: ['stj'], colecoes: ['informativo'], busca: { buscar: async (u) => { chamadas.push(u); return { status: 404, tam: 0, texto: '' }; } },
+      ultimas: sem, anterior: { fontes: {} }, atuais: [], silencioso: true });
+    ok(sem.stjExtra === null && r.estado.fontes.stj.resultado === 'falha' && /extraordinária no acervo/.test(r.estado.fontes.stj.erro || '')
+      && !chamadas.some((u) => /0028E/.test(u)),
+      'S30a acervo sem extraordinária nenhuma: a última fica desconhecida e a fonte falha — nada de supor a EE27 e reanunciar a EE28 em diante');
+    // b) o rótulo "Vigência" solto depois da anotação (CPC art. 927, página de 01/10/2026) é marcador
+    //    de vigência própria sem data: indeterminada, para conferir — não "em vigor, sem marcador".
+    const v927 = classificarVigencia('V - a orientação do plenário; (Incluído pela Lei nº 15.484, de 2026) Vigência IV - os enunciados das súmulas', new Date(2026, 9, 2));
+    const vSem = classificarVigencia('Art. 979. A instauração e o julgamento do incidente serão sucedidos da mais ampla divulgação. (Redação dada pela Lei nº 15.484, de 2026)', new Date(2026, 9, 2));
+    ok(v927.vigencia === 'indeterminada' && vSem.vigencia === 'em-vigor' && classificarVigencia('Art. 1º Texto. (Vigência)').vigencia === 'indeterminada',
+      'S30b "Vigência" solto logo depois da anotação conta como marcador sem data (indeterminada); sem ele, continua em vigor');
+    // c) erro de rede por extenso, com o host e a causa técnica entre parênteses
+    const { erroPorExtenso } = await import('../scripts/lib/tls-fontes.mjs');
+    const e1 = erroPorExtenso(Object.assign(new Error('getaddrinfo ENOTFOUND www.stf.jus.br'), { code: 'ENOTFOUND' }), 'www.stf.jus.br');
+    const e2 = erroPorExtenso(Object.assign(new Error('unable to verify the first certificate'), { code: 'UNABLE_TO_VERIFY_LEAF_SIGNATURE' }), 'www.stf.jus.br');
+    ok(/não foi encontrado/.test(e1.message) && /www\.stf\.jus\.br/.test(e1.message) && /\(ENOTFOUND\)/.test(e1.message)
+      && /cadeia de confiança/.test(e2.message),
+      `S30c erro de rede sai em português com a causa (${e1.message})`);
+    // d) 'parcial' move o último sucesso, mas não a última leitura completa
+    const ANT = '2026-09-01T00:00:00.000Z';
+    const cp = carimbar('stf', { ultimoSucesso: ANT, ultimaLeituraCompleta: ANT }, { estado: 'parcial', erro: 'edição 1226: HTTP 503', itens: [] }, '2026-10-02T10:00:00.000Z');
+    const cs = carimbar('stf', cp, { estado: 'sem-novidade', itens: [] }, '2026-10-03T10:00:00.000Z');
+    ok(cp.ultimoSucesso === '2026-10-02T10:00:00.000Z' && cp.ultimaLeituraCompleta === ANT && cs.ultimaLeituraCompleta === '2026-10-03T10:00:00.000Z',
+      'S30d leitura parcial anda o último sucesso (lacuna nomeada) mas não a última leitura completa');
   }
 }
 
