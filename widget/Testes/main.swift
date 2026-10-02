@@ -189,6 +189,25 @@ do {
 
 }
 
+// ---- WidgetNuvem ----
+do {
+    caso("nuvem: 200 + null = passe inválido (o app pede outro)", WidgetNuvem.interpretar(status: 200, corpo: Data("null".utf8)) == .invalido)
+    caso("nuvem: 200 + resumo nulo = ok sem resumo (conta ainda não publicou)", WidgetNuvem.interpretar(status: 200, corpo: Data(#"{"resumo":null,"carimbo":0}"#.utf8)) == .ok(nil))
+    if case .ok(let r?) = WidgetNuvem.interpretar(status: 200, corpo: Data(#"{"resumo":{"v":1,"conta":"u1","carimbo":5},"carimbo":5}"#.utf8)) {
+        caso("nuvem: 200 + resumo = ok com o resumo", r.conta == "u1" && r.carimbo == 5)
+    } else { caso("nuvem: 200 + resumo = ok com o resumo", false) }
+    caso("nuvem: 503 é falha (o passe NÃO cai)", WidgetNuvem.interpretar(status: 503, corpo: Data()) == .falha)
+    caso("nuvem: HTML no lugar de JSON é falha", WidgetNuvem.interpretar(status: 200, corpo: Data("<html>".utf8)) == .falha)
+    caso("nuvem: a configuração exige https e chave",
+         WidgetNuvem.config(["CatedraSupabaseURL": "http://x", "CatedraSupabaseChave": "k"]) == nil
+         && WidgetNuvem.config(["CatedraSupabaseURL": "https://x.supabase.co", "CatedraSupabaseChave": "k"]) != nil
+         && WidgetNuvem.config(nil) == nil)
+    let req = WidgetNuvem.pedido(passe: "abc", config: .init(url: "https://x.supabase.co", chave: "k"))
+    caso("nuvem: POST em /rest/v1/rpc/widget_ler, com apikey, sem Authorization, limite de 10 s",
+         req?.httpMethod == "POST" && req?.url?.absoluteString == "https://x.supabase.co/rest/v1/rpc/widget_ler"
+         && req?.value(forHTTPHeaderField: "apikey") == "k" && req?.value(forHTTPHeaderField: "Authorization") == nil
+         && req?.timeoutInterval == 10)
+}
 // ---- fim dos casos ----
 print("FIM \(total)")
 exit(falhas > 0 ? 1 : 0)
