@@ -51,6 +51,14 @@ export async function testarIconesAlvos(pageDaSuite, base, ok, opcoes = {}) {
   async function abrir(viewport, toque, escuro = false, extra = {}) {
     const ctx = await browser.newContext({ viewport, hasTouch: !!toque, isMobile: !!toque && viewport.width < 900 && motor !== 'firefox' });
     const page = await ctx.newPage();
+    /* RELÓGIO FIXO (02/10/2026). A ficha da prova é semeada como "hoje + 120 dias" e o caso cobra
+       o texto "120 dias p/ prova". Quem semeia é o teste e quem conta é o app, em instantes
+       diferentes: numa rodada que atravessou a meia-noite o app contou a partir do dia seguinte e
+       leu 121. Com o relógio da página fixo às 14:00 do dia corrente — o mesmo padrão de
+       tests/registro-sessao.mjs — a semente e a conta enxergam o mesmo "hoje". O relógio falso não
+       tem desinstalar, por isso cada caso já abre em contexto próprio e o fecha no fim. */
+    const t = new Date(); t.setHours(14, 0, 0, 0);
+    await page.clock.install({ time: t });
     const erros = [];
     page.on('pageerror', e => erros.push(String(e && e.message || e)));
     await page.goto(base + '/__semente');
