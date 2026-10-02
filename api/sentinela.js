@@ -52,18 +52,25 @@ const emCurso = new Map();  // chave das fontes → Promise do rodar()
 // A rede de segurança (PRAZO_MS + 8 s) responde mesmo se algo escapar do prazo do motor.
 const PRAZO_MS = 45 * 1000;
 const REDE_MS = PRAZO_MS + 8 * 1000;
+// Teto de cada portão no Supabase (sessão e as duas RPCs). Sem ele, um Supabase lento comia o
+// prazo da varredura — o prazo conta desde antes dos portões — e, parado de vez, levava a
+// função aos 60 s: 504 sem corpo, exatamente o que o PRAZO_MS existe para evitar.
+export const PORTAO_MS = 4000;
+const tempoEsgotado = (e) => !!e && (e.name === 'TimeoutError' || e.name === 'AbortError');
 
+/** O usuário da sessão, `null` sem sessão válida, ou 'tempo' quando o Supabase não respondeu
+ *  dentro do teto — "entre na sua conta" seria a resposta errada para quem está logado. */
 async function usuarioDoToken(req) {
   const h = req.headers['authorization'] || req.headers['Authorization'] || '';
   const m = /^Bearer\s+(.+)$/i.exec(String(h));
   if (!m) return null;
   try {
-    const r = await fetch(SB_URL + '/auth/v1/user', { headers: { apikey: SB_KEY, authorization: 'Bearer ' + m[1] } });
+    const r = await fetch(SB_URL + '/auth/v1/user', { headers: { apikey: SB_KEY, authorization: 'Bearer ' + m[1] }, signal: AbortSignal.timeout(PORTAO_MS) });
     if (!r.ok) return null;
     const u = await r.json();
     if (u && u.id) { u.__token = m[1]; return u; }
     return null;
-  } catch (_) { return null; }
+  } catch (e) { return tempoEsgotado(e) ? 'tempo' : null; }
 }
 
 function liberado(user) {
@@ -72,18 +79,21 @@ function liberado(user) {
   return lista.includes(String(user.email || '').toLowerCase());
 }
 
-// As duas RPCs abaixo seguem o fail-open de api/complete.js: o portão que importa (sessão)
-// já passou, e o Supabase piscar não pode derrubar o botão de todo mundo.
+// As duas RPCs abaixo seguem o fail-open de api/complete.js para ERRO do Supabase: o portão
+// que importa (sessão) já passou, e o Supabase piscar não pode derrubar o botão de todo mundo.
+// Estouro do teto NÃO é erro: devolve 'tempo' e o handler responde 503. Liberar por demora
+// deixaria passar conta bloqueada (e o interruptor global) só porque o Supabase ficou lento.
 async function rpc(user, nome, seErro) {
   try {
     const r = await fetch(SB_URL + '/rest/v1/rpc/' + nome, {
       method: 'POST',
       headers: { apikey: SB_KEY, authorization: 'Bearer ' + user.__token, 'content-type': 'application/json' },
       body: '{}',
+      signal: AbortSignal.timeout(PORTAO_MS),
     });
     if (!r.ok) return seErro;
     return await r.json();
-  } catch (_) { return seErro; }
+  } catch (e) { return tempoEsgotado(e) ? 'tempo' : seErro; }
 }
 
 export default async function handler(req, res) {
@@ -96,12 +106,20 @@ export default async function handler(req, res) {
     return;
   }
   const user = await usuarioDoToken(req);
+  // Sem ponto final: a tela acrescenta o dela ao montar "Não foi possível consultar agora: …".
+  const semTempo = () => res.status(503).json({ ok: false, error: 'O servidor de contas não respondeu a tempo para conferir o seu acesso. Tente de novo em instantes' });
+  if (user === 'tempo') { semTempo(); return; }
   if (!user) { res.status(401).json({ ok: false, error: 'Entre na sua conta do Cátedra para buscar atualizações.' }); return; }
-  if (!liberado(user) || (await rpc(user, 'meu_email_liberado', true)) === false) {
+  if (!liberado(user)) { res.status(403).json({ ok: false, error: 'Esta conta ainda não está liberada para o beta.' }); return; }
+  const emailLiberado = await rpc(user, 'meu_email_liberado', true);
+  if (emailLiberado === 'tempo') { semTempo(); return; }
+  if (emailLiberado === false) {
     res.status(403).json({ ok: false, error: 'Esta conta ainda não está liberada para o beta.' });
     return;
   }
-  if ((await rpc(user, 'meu_acesso_bloqueado', false)) === true) {
+  const bloqueado = await rpc(user, 'meu_acesso_bloqueado', false);
+  if (bloqueado === 'tempo') { semTempo(); return; }
+  if (bloqueado === true) {
     res.status(403).json({ ok: false, error: 'A busca de atualizações desta conta está pausada. Fale com quem te convidou.' });
     return;
   }
