@@ -231,6 +231,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     private var statusTimer: Timer?
     private var widgetTimer: Timer?
     private var pedindoPasseWidget = false
+    /// Sobe a cada saída de conta: um pedido de passe que estava em voo quando a conta saiu não regrava passe.json.
+    private var geracaoWidget = 0
     private var nativeRevTimer: Timer?           // agenda única: LEGIS/JURIS → Revisões do Cátedra
     private var autoBackupTimer: Timer?          // backup semanal automático (checa de 6 em 6h)
     // "Widget" desenhado pelo app (sem WidgetKit): painel flutuante + números no menu.
@@ -694,10 +696,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         if let d = WidgetGrupo.ler(WidgetGrupo.passe), let p = try? JSONDecoder().decode(WidgetPasse.self, from: d), p.conta == conta { return }
         guard !pedindoPasseWidget, let wv = webView else { return }
         pedindoPasseWidget = true
+        let geracao = geracaoWidget
         let aparelho = Host.current().localizedName ?? "Mac"
         wv.callAsyncJavaScript("return window.catedraWidgetPasse ? await window.catedraWidgetPasse(aparelho) : null",
                                arguments: ["aparelho": aparelho], in: nil, in: .page) { [weak self] res in
-            self?.pedindoPasseWidget = false
+            guard let self else { return }
+            self.pedindoPasseWidget = false
+            guard self.geracaoWidget == geracao else { return }   // a conta saiu com o pedido em voo
             guard case .success(let v) = res, let s = v as? String, let d = s.data(using: .utf8),
                   let p = try? JSONDecoder().decode(WidgetPasse.self, from: d), !p.passe.isEmpty, p.conta == conta else { return }
             WidgetGrupo.gravar(d, WidgetGrupo.passe)
@@ -707,6 +712,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     }
     /// A conta saiu (auth.js manda {saiu:true} antes do reload): o widget esquece resumo e passe.
     func apagarWidgetAoSair() {
+        geracaoWidget += 1
         for n in [WidgetGrupo.resumo, WidgetGrupo.resumoNuvem, WidgetGrupo.passe, WidgetGrupo.passeInvalido] { WidgetGrupo.apagar(n) }
         WidgetCenter.shared.reloadAllTimelines()
     }

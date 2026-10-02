@@ -31,6 +31,9 @@ export async function testarWidgetBuild(ok) {
   ok(/ios\/vendor\/widget/.test(macSem) && /-framework WidgetKit/.test(macSem), R + 'o app do Mac compila o código compartilhado do widget');
   ok(/scripts\/build-macos\.mjs/.test(macSem) && /CatedraSupabaseURL/.test(mac) && /CatedraSupabaseChave/.test(mac),
     R + 'o .appex do Mac recebe a URL e a chave pública do Supabase lidas de scripts/build-macos.mjs');
+  ok(/^if montar_widget; then$/m.test(macSem) && /rm -rf "\$APPEX"\n\s*echo "\s*⚠ widget não incluído: \$WIDGET_MOTIVO/.test(macSem)
+    && !/montar_widget\(\) \{[\s\S]*?\bexit 1\b[\s\S]*?\n\}/.test(macSem.slice(macSem.indexOf('montar_widget() {'), macSem.indexOf('if montar_widget; then'))),
+    R + 'falha do widget (chave ilegível, dodia.json ausente, swiftc) não derruba o build: avisa e o app segue sem o .appex');
   const entW = ler('widget/mac.entitlements'), entA = ler('mac/Catedra.entitlements');
   ok(/com\.apple\.security\.app-sandbox<\/key>\s*<true\/>/.test(entW) && /<string>2ZT3GWTS9Z\.com\.catedra<\/string>/.test(entW) && /com\.apple\.security\.network\.client<\/key>\s*<true\/>/.test(entW),
     R + 'o widget do Mac é sandboxed, no grupo do time e com rede de saída');

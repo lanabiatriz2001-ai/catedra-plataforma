@@ -227,27 +227,31 @@ echo "→ 4b/5 Montando o widget (CatedraWidget.appex)…"
 WIDGET_EXEC="CatedraWidget"
 APPEX="$APP/Contents/PlugIns/$WIDGET_EXEC.appex"
 # A URL e a chave PÚBLICA do Supabase vêm do mesmo lugar que o app web usa (scripts/build-macos.mjs).
-SB_URL="$(sed -n "s/^const SUPABASE_URL = '\(.*\)';$/\1/p" "$ROOT/scripts/build-macos.mjs")"
-SB_CHAVE="$(sed -n "s/^const SUPABASE_KEY = '\(.*\)';$/\1/p" "$ROOT/scripts/build-macos.mjs")"
-if [ -z "$SB_URL" ] || [ -z "$SB_CHAVE" ]; then echo "✗ não li SUPABASE_URL/KEY de scripts/build-macos.mjs — o widget ficaria sem nuvem" >&2; exit 1; fi
-if [ ! -f "$ROOT/widget/dodia.json" ]; then echo "✗ falta widget/dodia.json — rode: node scripts/build-widget-dodia.mjs" >&2; exit 1; fi
+SB_URL="$(sed -n "s/^const SUPABASE_URL = '\(.*\)';$/\1/p" "$ROOT/scripts/build-macos.mjs" 2>/dev/null || true)"
+SB_CHAVE="$(sed -n "s/^const SUPABASE_KEY = '\(.*\)';$/\1/p" "$ROOT/scripts/build-macos.mjs" 2>/dev/null || true)"
+# O widget é acessório: se algo dele falhar (chave ilegível, dodia.json ausente, swiftc), o app sai SEM o .appex,
+# como no ad-hoc, em vez de derrubar o build inteiro. Cada passo confere o próprio status (dentro de um `if`, o
+# `set -e` não vale para a função).
 compilar_widget() {
   swiftc -O -target "$1" "${SDK_FLAGS[@]}" -parse-as-library -application-extension \
     $WIDGET_COMUM $(find "$ROOT/widget/Sources" -name '*.swift') -o "$2" -framework WidgetKit -framework SwiftUI \
     -Xlinker -e -Xlinker _NSExtensionMain
 }
-mkdir -p "$APPEX/Contents/MacOS" "$APPEX/Contents/Resources"
-compilar_widget "arm64-apple-macos14.0" "$BUILD/$WIDGET_EXEC.arm64"
-if [ "$(lipo -archs "$APP/Contents/MacOS/$EXEC")" = "arm64" ]; then
-  cp "$BUILD/$WIDGET_EXEC.arm64" "$APPEX/Contents/MacOS/$WIDGET_EXEC"
-else
-  compilar_widget "x86_64-apple-macos14.0" "$BUILD/$WIDGET_EXEC.x86_64"
-  lipo -create "$BUILD/$WIDGET_EXEC.arm64" "$BUILD/$WIDGET_EXEC.x86_64" -output "$APPEX/Contents/MacOS/$WIDGET_EXEC"
-fi
-rm -f "$BUILD/$WIDGET_EXEC.arm64" "$BUILD/$WIDGET_EXEC.x86_64"
-cp "$ROOT/widget/dodia.json" "$APPEX/Contents/Resources/dodia.json"
-printf 'XPC!????' > "$APPEX/Contents/PkgInfo"
-cat > "$APPEX/Contents/Info.plist" <<WPLIST
+WIDGET_MOTIVO=""
+montar_widget() {
+  [ -n "$SB_URL" ] && [ -n "$SB_CHAVE" ] || { WIDGET_MOTIVO="não li SUPABASE_URL/KEY de scripts/build-macos.mjs"; return 1; }
+  [ -f "$ROOT/widget/dodia.json" ] || { WIDGET_MOTIVO="falta widget/dodia.json (rode: node scripts/build-widget-dodia.mjs)"; return 1; }
+  mkdir -p "$APPEX/Contents/MacOS" "$APPEX/Contents/Resources" || { WIDGET_MOTIVO="não criei a pasta do .appex"; return 1; }
+  compilar_widget "arm64-apple-macos14.0" "$BUILD/$WIDGET_EXEC.arm64" 2>"$BUILD/widget.log" || { WIDGET_MOTIVO="o swiftc do widget falhou (arm64; log: $BUILD/widget.log)"; return 1; }
+  if [ "$(lipo -archs "$APP/Contents/MacOS/$EXEC")" = "arm64" ]; then
+    cp "$BUILD/$WIDGET_EXEC.arm64" "$APPEX/Contents/MacOS/$WIDGET_EXEC" || { WIDGET_MOTIVO="não copiei o binário"; return 1; }
+  else
+    compilar_widget "x86_64-apple-macos14.0" "$BUILD/$WIDGET_EXEC.x86_64" 2>>"$BUILD/widget.log" || { WIDGET_MOTIVO="o swiftc do widget falhou (x86_64; log: $BUILD/widget.log)"; return 1; }
+    lipo -create "$BUILD/$WIDGET_EXEC.arm64" "$BUILD/$WIDGET_EXEC.x86_64" -output "$APPEX/Contents/MacOS/$WIDGET_EXEC" || { WIDGET_MOTIVO="o lipo do widget falhou"; return 1; }
+  fi
+  cp "$ROOT/widget/dodia.json" "$APPEX/Contents/Resources/dodia.json" || { WIDGET_MOTIVO="não copiei o dodia.json"; return 1; }
+  printf 'XPC!????' > "$APPEX/Contents/PkgInfo"
+  cat > "$APPEX/Contents/Info.plist" <<WPLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -268,7 +272,15 @@ cat > "$APPEX/Contents/Info.plist" <<WPLIST
 </dict>
 </plist>
 WPLIST
-plutil -lint "$APPEX/Contents/Info.plist" >/dev/null && echo "     widget: $(lipo -archs "$APPEX/Contents/MacOS/$WIDGET_EXEC") · $(du -sh "$APPEX" | cut -f1)"
+  plutil -lint "$APPEX/Contents/Info.plist" >/dev/null || { WIDGET_MOTIVO="Info.plist do widget inválido"; return 1; }
+}
+if montar_widget; then
+  echo "     widget: $(lipo -archs "$APPEX/Contents/MacOS/$WIDGET_EXEC") · $(du -sh "$APPEX" | cut -f1)"
+else
+  rm -rf "$APPEX"
+  echo "     ⚠ widget não incluído: $WIDGET_MOTIVO — o app segue sem ele."
+fi
+rm -f "$BUILD/$WIDGET_EXEC.arm64" "$BUILD/$WIDGET_EXEC.x86_64"
 
 echo "→ 5/5  Assinando…"
 # A política (Developer ID com hardened runtime + carimbo; ad-hoc se falhar) e o porquê de
