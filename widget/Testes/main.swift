@@ -165,6 +165,22 @@ do {
     caso("do dia: campo de tipo errado vira o padrão", itens.count == 2 && itens[1].n == 0 && itens[0].provas == nil)
 }
 
+// ---- WidgetCores: contraste medido depois de arredondar a 8 bits; hex inválido ----
+do {
+    func q(_ c: WidgetRGB) -> WidgetRGB {
+        func r(_ x: Double) -> Double { (min(1, max(0, x)) * 255).rounded() / 255 }
+        return WidgetRGB(r: r(c.r), g: r(c.g), b: r(c.b))
+    }
+    let branco = WidgetCores.branco
+    var ruins8: [String] = []
+    for (k, c, d) in CORES_RAMO {
+        for x in WidgetCores.gradienteMateria(c) + WidgetCores.gradienteMateria(d) where WidgetCores.contraste(q(x), branco) < 4.5 { ruins8.append(k + " (gradiente)") }
+        if WidgetCores.contraste(q(WidgetCores.textoSobreClaro(c)), branco) < 4.5 { ruins8.append(k + " (texto no claro)") }
+        if WidgetCores.contraste(q(WidgetCores.textoSobreEscuro(d)), WidgetCores.fundoEscuro) < 4.5 { ruins8.append(k + " (texto no escuro)") }
+    }
+    caso("cores: depois de arredondar a 8 bits todas as cores da tabela seguem ≥ 4,5:1" + (ruins8.isEmpty ? "" : " — falham: " + ruins8.joined(separator: ", ")), ruins8.isEmpty)
+    caso("cores: hex inválido vira nil (#ggg, vazio, 4 dígitos, #+12345)", WidgetCores.hex("#ggg") == nil && WidgetCores.hex("") == nil && WidgetCores.hex("#abcd") == nil && WidgetCores.hex("#+12345") == nil)
+}
 // ---- fim dos casos ----
 print("FIM \(total)")
 exit(falhas > 0 ? 1 : 0)

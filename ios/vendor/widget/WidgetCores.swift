@@ -18,7 +18,7 @@ enum WidgetCores {
         guard t.hasPrefix("#") else { return nil }
         t.removeFirst()
         if t.count == 3 { t = t.map { "\($0)\($0)" }.joined() }
-        guard t.count == 6, let v = UInt32(t, radix: 16) else { return nil }
+        guard t.count == 6, t.allSatisfy({ $0.isHexDigit }), let v = UInt32(t, radix: 16) else { return nil }
         return WidgetRGB(r: Double((v >> 16) & 0xff) / 255, g: Double((v >> 8) & 0xff) / 255, b: Double(v & 0xff) / 255)
     }
     static func hex(_ c: WidgetRGB) -> String {
@@ -36,10 +36,16 @@ enum WidgetCores {
     static func misturar(_ a: WidgetRGB, _ b: WidgetRGB, _ t: Double) -> WidgetRGB {
         WidgetRGB(r: a.r + (b.r - a.r) * t, g: a.g + (b.g - a.g) * t, b: a.b + (b.b - a.b) * t)
     }
+    /// Arredonda cada canal a 1/255 (a cor que a tela de fato pinta).
+    static func quantizar(_ c: WidgetRGB) -> WidgetRGB {
+        func q(_ x: Double) -> Double { (min(1, max(0, x)) * 255).rounded() / 255 }
+        return WidgetRGB(r: q(c.r), g: q(c.g), b: q(c.b))
+    }
     /// Mistura `c` com `com` em passos de 5 % até o contraste contra `alvo` passar de `minimo`.
     static func ajustar(_ c: WidgetRGB, com: WidgetRGB, contra alvo: WidgetRGB, minimo m: Double = minimo) -> WidgetRGB {
-        var t = 0.0, x = c
-        while contraste(x, alvo) < m && t < 1 { t = min(1, t + 0.05); x = misturar(c, com, t) }
+        // Compara a cor já arredondada a 8 bits: é ela que a tela pinta, e em Double 4,50 pode virar 4,49.
+        var t = 0.0, x = quantizar(c)
+        while contraste(x, alvo) < m && t < 1 { t = min(1, t + 0.05); x = quantizar(misturar(c, com, t)) }
         return x
     }
     /// Gradiente da matéria (do topo à base), as duas pontas com branco ≥ 4,5:1.
