@@ -81,7 +81,13 @@
           };
           return q;
         },
-        rpc: function (n) { chamou('rpc', n); return Promise.resolve({ data: null, error: null }); },
+        // rpc registra {n, a} (nome e argumentos) e responde por __ct:rpc_<nome> ({data, error}); __ct:rpcAtraso em ms
+        rpc: function (n, a) {
+          chamou('rpc', { n: n, a: a == null ? null : a });
+          var resp = cfg('rpc_' + n, { data: null, error: null });
+          var atraso = +cfg('rpcAtraso', 0) || 0;
+          return atraso ? new Promise(function (res) { setTimeout(function () { res(resp); }, atraso); }) : Promise.resolve(resp);
+        },
         channel: function () { return { on: function () { return this; }, subscribe: function () { return this; } }; },
         removeChannel: function () {}
       };

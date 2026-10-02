@@ -44,6 +44,9 @@
     // _srvCheio: as chaves que tinham conteúdo na nuvem no último acerto DESTE aparelho com ela
     // (trava "vazio nunca apaga cheio" do envio no fechamento — ver enviarCondicional). Subir
     // faria o outro aparelho herdar uma lista que não descreve o que ELE viu.
+    // _widgetPasse: o passe de leitura do widget DESTE aparelho (lembrado só para o Sair revogar). Subir daria o
+    // passe de um aparelho a todos os outros — e ele nem é segredo da conta, é do aparelho.
+    'catedra:_widgetPasse': 1,
     'catedra:_srvCheio': 1 };
 
   // ---------- LÁPIDES (tombstones): fazem a EXCLUSÃO valer ----------
@@ -215,6 +218,50 @@
     if (sincronizado) return;
     sincronizado = true;
     try { window.dispatchEvent(new CustomEvent('catedra:syncpronto')); } catch (_) {}
+  }
+  // ---------- widgets: o resumo de estudo vai para a nuvem depois de CADA acerto com ela ----------
+  // O carimbo é o updated_at do user_data (ms) que acabou de ser lido ou gravado: o servidor só aceita carimbo
+  // que não seja mais velho que o guardado, então um aparelho atrasado nunca apaga o resumo mais novo. Espera 3 s
+  // para juntar acertos seguidos. Falha aqui nunca atrasa, trava ou reverte a sincronização: vai para a fila de erros.
+  var widgetT = null, widgetCarimbo = 0;
+  function filaErroCalada(m) {
+    try { var f = JSON.parse(localStorage.getItem('catedra:_errFila') || '[]'); if (!Array.isArray(f)) f = [];
+      f.push({ ts: Date.now(), m: String(m).slice(0, 300) }); if (f.length > 20) f = f.slice(-20); _si('catedra:_errFila', JSON.stringify(f)); } catch (_) {}
+  }
+  function publicarWidget(carimbo) {
+    if (!user || !(carimbo > 0)) return;
+    if (carimbo > widgetCarimbo) widgetCarimbo = carimbo;
+    clearTimeout(widgetT);
+    widgetT = setTimeout(function () {
+      var dono = user, c = widgetCarimbo;
+      if (!dono || saindo || typeof window.catedraWidgetResumo !== 'function') return;
+      var r = null; try { r = window.catedraWidgetResumo(); } catch (_) { r = null; }
+      if (!r || typeof r !== 'object') return;
+      r.carimbo = c; r.conta = dono.id;
+      Promise.resolve(sb.rpc('widget_publicar', { p_resumo: r, p_carimbo: c })).then(function (res) {
+        if (res && res.error) filaErroCalada('widget_publicar: ' + (res.error.message || res.error.code || 'erro'));
+      }, function (e) { filaErroCalada('widget_publicar: ' + ((e && e.message) || e)); });
+    }, 3000);
+  }
+  // Passe de leitura do widget para ESTE aparelho (o app nativo pede e guarda no grupo de apps).
+  window.catedraWidgetPasse = function (aparelho) {
+    if (!user) return Promise.resolve(null);
+    var dono = user;
+    return Promise.resolve(sb.rpc('widget_passe_emitir', { p_aparelho: String(aparelho || '').slice(0, 60) })).then(function (res) {
+      if (!res || res.error || typeof res.data !== 'string' || !res.data) return null;
+      try { _si('catedra:_widgetPasse', res.data); } catch (_) {}
+      return JSON.stringify({ passe: res.data, conta: dono.id });
+    }, function () { return null; });
+  };
+  function avisarWidgetSaida() {
+    try { var mh = window.webkit && window.webkit.messageHandlers; if (mh && mh.catedraWidget) mh.catedraWidget.postMessage({ saiu: true }); } catch (_) {}
+  }
+  function revogarPasseWidget() {
+    var p = null; try { p = localStorage.getItem('catedra:_widgetPasse'); } catch (_) {}
+    // Só `user`: o authToken vem do onAuthStateChange e pode ainda não ter chegado; com a sessão vencida a RPC
+    // apenas falha, e a espera tem teto de 2 s — a saída nunca fica presa aqui.
+    if (!p || !user) return Promise.resolve();
+    return esperarAte(Promise.resolve(sb.rpc('widget_passe_revogar', { p_passe: p })), 2000);
   }
   function isDirty() { try { return localStorage.getItem('catedra:_dirty') === '1'; } catch (_) { return false; } }
   // Marcar sujo SEMPRE avança a geração — venha do CatedraSync.push ou de fora dele (o aceite e a
@@ -539,7 +586,7 @@
           .then(function (r2) {
             var e2 = erroDe(r2); if (e2) throw e2;
             if (saindo) return;
-            setLastSrv(now); gravarCheio(subiu); marcarSincronizado();
+            setLastSrv(now); gravarCheio(subiu); marcarSincronizado(); publicarWidget(tsMs(now));
             if (geracao === ger) { setDirty(false); setStatus('salvo'); }
             else denovo = true;   // chegou escrita durante o envio: o sujo fica e sobe já em seguida
           });
@@ -587,6 +634,8 @@
   get status() { return syncStatus; },
   // o primeiro acerto com a nuvem desta abertura terminou (ver marcarSincronizado)
   get pronto() { return sincronizado; },
+  // carimbo (ms) do último acerto com a nuvem — o resumo do widget nasce com ele (0 = nunca acertou)
+  get carimbo() { var t = tsMs(lastSrv()); return isFinite(t) ? t : 0; },
   // gancho interno de diagnóstico/teste (não usado pelo app)
   _test: { mergeAll: mergeAll, tombOnSet: tombOnSet, tombLoad: tombLoad, mergeHl: mergeHl } };
 
@@ -613,7 +662,7 @@
         // e a nuvem não tem nada mais novo: é o primeiro acerto com a nuvem (ver marcarSincronizado).
         if (!row || !row.data) { pulling = false; if (isDirty()) pushNow(); else { setStatus('salvo'); marcarSincronizado(); } return; }
         var serverNewer = srvMaisNovo(row.updated_at, lastSrv());
-        if (!serverNewer && !isDirty()) { pulling = false; gravarCheio(row.data); setStatus('salvo'); marcarSincronizado(); return; }
+        if (!serverNewer && !isDirty()) { pulling = false; gravarCheio(row.data); setStatus('salvo'); marcarSincronizado(); publicarWidget(tsMs(row.updated_at)); return; }
         // servidor mais novo e este aparelho limpo → escalares vêm do servidor; arrays sempre por id
         var merged = mergeAll(row.data, collect(), serverNewer && !isDirty());
         applyData(merged);
@@ -623,6 +672,7 @@
         pulling = false;
         if (isDirty()) pushNow(); else setStatus('salvo');
         marcarSincronizado();   // a memória local já é a mescla com a nuvem
+        publicarWidget(tsMs(row.updated_at || lastSrv()));
       })
       .catch(falhou);
   }
@@ -1488,7 +1538,7 @@
     ok.onclick = function () { if (!chk.checked) return; ok.disabled = true; ok.textContent = 'Carregando seus dados…'; cb(); };
     // "Não aceito": nada sobe (a trava da hidratação segue ligada até aqui). No fim, sem conta
     // (user nulo) e sem o dado local, a trava é solta: um login seguinte nesta aba liga a dele.
-    el.querySelector('#ctacsair').onclick = function (e) { e.preventDefault(); saindo = true; sessionStorage.removeItem('catedra:hydrated'); var fin = function () { clearTimeout(pushT); user = null; clearLocal(); soltarTravaHidratacao(); location.reload(); }; sb.auth.signOut().then(fin, fin); };
+    el.querySelector('#ctacsair').onclick = function (e) { e.preventDefault(); saindo = true; sessionStorage.removeItem('catedra:hydrated'); var fin = function () { clearTimeout(pushT); user = null; clearLocal(); soltarTravaHidratacao(); location.reload(); }; avisarWidgetSaida(); revogarPasseWidget().then(function () { sb.auth.signOut().then(fin, fin); }); };
   }
   /** Exclusão da conta pela própria pessoa: a função excluir_minha_conta (security definer) apaga o blob,
       a participação e a atividade em grupos, feedback, uso de IA, acesso beta e a linha em auth.users. */
@@ -1498,6 +1548,7 @@
       if (r && r.error) throw r.error;
       sessionStorage.removeItem('catedra:hydrated');
       clearLocal(); saindo = true;
+      avisarWidgetSaida();
       var fin = function () { location.reload(); };
       return sb.auth.signOut().then(fin, fin);
     });
@@ -1558,8 +1609,10 @@
     saindo = true;
     clearTimeout(pushT); clearTimeout(pullT);
     sessionStorage.removeItem('catedra:hydrated');
+    clearTimeout(widgetT);
     var fin = function () { clearTimeout(pushT); clearTimeout(pullT); clearLocal(); location.reload(); };
-    sb.auth.signOut().then(fin, fin);
+    avisarWidgetSaida();   // o app nativo apaga passe e resumo do grupo: o widget não mostra a conta que saiu
+    revogarPasseWidget().then(function () { sb.auth.signOut().then(fin, fin); });
   }
   window.CatedraAuth = { logout: logout, client: sb, excluirConta: excluirConta, abrirDoc: abrirDoc };
 

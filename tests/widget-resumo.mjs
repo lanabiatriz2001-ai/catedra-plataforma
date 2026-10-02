@@ -11,6 +11,7 @@ export async function testarWidgetResumo(pageDaSuite, base, ok, opcoes = {}) {
   const browser = pageDaSuite.context().browser();
   await resumoDoApp(browser, base, ok, R);
   await avisoAoHost(browser, base, ok, R);
+  await publicacao(browser, base, ok, R);
 }
 
 async function avisoAoHost(browser, base, ok, R) {
@@ -116,4 +117,108 @@ async function resumoDoApp(browser, base, ok, R) {
     const jur = await page.evaluate(() => window.catedraWidgetResumo().juridico);
     ok(jur === false, R + 'na área da saúde o resumo deixa de ser jurídico (o "Do dia" avisa)');
   } finally { await ctx.close(); }
+}
+
+const FIX = '/tests/auth-ipad-fixture.html';
+const U1 = { id: 'u1', email: 'lana@exemplo.com' };
+const UPD = '2026-09-30T12:00:00.000Z';
+const linha = (data, upd = UPD) => ({ data: { data, updated_at: upd }, error: null });
+
+async function casoAuth(browser, base, { ct = {}, local = {}, stub = true, semSessao = false, webkit = false }, corpo) {
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage();
+  page.on('pageerror', e => console.log('ERRO NA PÁGINA (widget-publicacao):', e.message));
+  try {
+    if (stub) await ctx.addInitScript(() => { window.catedraWidgetResumo = () => ({ v: 1, sessao: 'conta', marca: 'resumo-de-teste' }); });
+    if (webkit) await ctx.addInitScript(() => { window.webkit = { messageHandlers: { catedraWidget: { postMessage: (m) => {
+      try { const l = JSON.parse(localStorage.getItem('__ct:avisos') || '[]'); l.push(m); localStorage.setItem('__ct:avisos', JSON.stringify(l)); } catch (_) {} } } } }; });
+    await page.clock.install({ time: RELOGIO() });
+    await page.goto(base + '/__semente');
+    await page.evaluate(({ U1, ct, local, semSessao }) => {
+      localStorage.clear(); sessionStorage.clear();
+      if (!semSessao) localStorage.setItem('__ct:sessao', JSON.stringify(U1));
+      localStorage.setItem('__ct:online', '1'); localStorage.setItem('__ct:chamadas', '[]');
+      for (const [k, v] of Object.entries(ct)) localStorage.setItem('__ct:' + k, typeof v === 'string' ? v : JSON.stringify(v));
+      if (!semSessao) { localStorage.setItem('catedra:_owner', U1.id); localStorage.setItem('catedra:auth', '1'); sessionStorage.setItem('catedra:hydrated', '1'); }
+      for (const [k, v] of Object.entries(local)) localStorage.setItem(k, v);
+    }, { U1, ct, local, semSessao });
+    await page.goto(base + FIX);
+    const chamadas = () => page.evaluate(() => JSON.parse(localStorage.getItem('__ct:chamadas') || '[]'));
+    await corpo(page, chamadas);
+  } finally { await ctx.close(); }
+}
+const rpcs = (lista, n) => lista.filter(c => c.nome === 'rpc' && c.arg && c.arg.n === n);
+
+async function publicacao(browser, base, ok, R) {
+  // P1: depois da leitura da nuvem, publica uma vez, com o updated_at lido como carimbo
+  await casoAuth(browser, base, { ct: { select: linha({ 'catedra:prova': '2026-10-31' }) } }, async (page, chamadas) => {
+    await page.waitForTimeout(4500);
+    const pubs = rpcs(await chamadas(), 'widget_publicar');
+    ok(pubs.length === 1, R + 'depois da leitura da nuvem o resumo é publicado UMA vez (' + pubs.length + ')');
+    const a = pubs[0] && pubs[0].arg.a;
+    ok(!!a && a.p_carimbo === Date.parse(UPD), R + 'o carimbo publicado é o updated_at lido do user_data');
+    ok(!!a && a.p_resumo && a.p_resumo.marca === 'resumo-de-teste' && a.p_resumo.conta === 'u1' && a.p_resumo.carimbo === a.p_carimbo,
+      R + 'o resumo vai com a conta e com o mesmo carimbo dentro');
+    const c = await page.evaluate(() => window.CatedraSync && window.CatedraSync.carimbo);
+    ok(c === Date.parse(UPD), R + 'CatedraSync.carimbo devolve o carimbo do último acerto com a nuvem (' + c + ')');
+  });
+  // P2: com o aparelho sujo, o envio publica com o updated_at do upsert; o passe local nunca sobe
+  await casoAuth(browser, base, {
+    ct: { select: linha({ 'catedra:prova': '2026-10-31' }) },
+    local: { 'catedra:_dirty': '1', 'catedra:_lastSrv': UPD, 'catedra:prova': '2026-11-01', 'catedra:_widgetPasse': 'passe-local-nao-sobe' } }, async (page, chamadas) => {
+    await page.waitForTimeout(4500);
+    const l = await chamadas();
+    const up = l.filter(c => c.nome === 'upsert').pop();
+    const pub = rpcs(l, 'widget_publicar').pop();
+    ok(!!up && !!pub && pub.arg.a.p_carimbo === Date.parse(up.arg.updated_at), R + 'depois de subir, o carimbo publicado é o updated_at do upsert');
+    ok(!!up && !('catedra:_widgetPasse' in (up.arg.data || {})), R + 'o passe do widget deste aparelho nunca sobe para a nuvem');
+  });
+  // P3: sem a função do app (página sem o Catedra), não publica nada
+  await casoAuth(browser, base, { stub: false, ct: { select: linha({ 'catedra:prova': '2026-10-31' }) } }, async (page, chamadas) => {
+    await page.waitForTimeout(4500);
+    ok(rpcs(await chamadas(), 'widget_publicar').length === 0, R + 'sem window.catedraWidgetResumo, nada é publicado');
+  });
+  // P4: modo local (sem conta) não publica
+  await casoAuth(browser, base, { semSessao: true, local: { 'catedra:_modoLocal': '1', 'catedra:auth': '1' } }, async (page, chamadas) => {
+    await page.waitForTimeout(4500);
+    ok(rpcs(await chamadas(), 'widget_publicar').length === 0, R + 'no modo local (sem conta) nada é publicado');
+  });
+  // P5: falha da publicação não derruba a sincronização e vai para a fila de erros
+  await casoAuth(browser, base, { ct: { select: linha({ 'catedra:prova': '2026-10-31' }), rpc_widget_publicar: { data: null, error: { message: 'boom' } } } }, async (page) => {
+    await page.waitForTimeout(4500);
+    const st = await page.evaluate(() => window.CatedraSync.status);
+    const fila = await page.evaluate(() => localStorage.getItem('catedra:_errFila') || '');
+    ok(st === 'salvo', R + 'a publicação que falha não muda o estado da sincronização (' + st + ')');
+    ok(/widget_publicar/.test(fila), R + 'e o erro vai para a fila de erros, calado');
+  });
+  // P6: o passe
+  await casoAuth(browser, base, { ct: { select: linha({}), rpc_widget_passe_emitir: { data: 'passe-de-teste-0123456789abcdef', error: null } } }, async (page, chamadas) => {
+    await page.waitForTimeout(1500);
+    const s = await page.evaluate(() => window.catedraWidgetPasse('Mac de teste'));
+    let p = null; try { p = JSON.parse(s); } catch (_) {}
+    ok(!!p && p.passe === 'passe-de-teste-0123456789abcdef' && p.conta === 'u1', R + 'catedraWidgetPasse devolve {passe, conta} em JSON (' + s + ')');
+    const e = rpcs(await chamadas(), 'widget_passe_emitir').pop();
+    ok(!!e && e.arg.a.p_aparelho === 'Mac de teste', R + 'o passe é pedido com o nome do aparelho');
+    const guardado = await page.evaluate(() => localStorage.getItem('catedra:_widgetPasse'));
+    ok(guardado === 'passe-de-teste-0123456789abcdef', R + 'a web lembra o passe deste aparelho para revogar ao sair');
+  });
+  await casoAuth(browser, base, { semSessao: true, local: { 'catedra:_modoLocal': '1', 'catedra:auth': '1' } }, async (page) => {
+    await page.waitForTimeout(1500);
+    const s = await page.evaluate(() => window.catedraWidgetPasse ? window.catedraWidgetPasse('x') : 'sem-funcao');
+    ok(s === null, R + 'sem conta, catedraWidgetPasse devolve null (' + s + ')');
+  });
+  // P7: sair revoga o passe ANTES do signOut e avisa o app nativo
+  await casoAuth(browser, base, { webkit: true, ct: { select: linha({}) }, local: { 'catedra:_widgetPasse': 'passe-x-0123456789abcdef0000' } }, async (page, chamadas) => {
+    await page.waitForTimeout(1500);
+    await page.evaluate(() => window.CatedraAuth.logout());
+    await page.waitForTimeout(3000);
+    const l = await chamadas();
+    const iRev = l.findIndex(c => c.nome === 'rpc' && c.arg && c.arg.n === 'widget_passe_revogar' && c.arg.a && c.arg.a.p_passe === 'passe-x-0123456789abcdef0000');
+    const iOut = l.findIndex(c => c.nome === 'signOut');
+    ok(iRev >= 0 && iOut > iRev, R + 'sair revoga o passe deste aparelho antes de encerrar a sessão (' + iRev + ' < ' + iOut + ')');
+    const av = await page.evaluate(() => JSON.parse(localStorage.getItem('__ct:avisos') || '[]'));
+    ok(av.some(m => m && m.saiu === true), R + 'sair avisa o app nativo ({saiu:true}) para o widget esquecer a conta');
+    const resto = await page.evaluate(() => localStorage.getItem('catedra:_widgetPasse'));
+    ok(resto === null, R + 'depois de sair, o passe some deste aparelho');
+  });
 }
