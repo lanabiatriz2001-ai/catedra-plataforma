@@ -61,6 +61,10 @@ mac/build-app.sh · ios/build-ipad.sh                                           
 - Toda mudança que toca o app (web ou Swift) termina **instalada no Mac e no iPad**, sem perguntar.
   Regra da dona, reafirmada em 10/09/2026; vale sobre a linha contrária do "Prompt 0" de
   `docs/pedidos-claude-code.md`. Mudança só de documento ou de teste não precisa de build.
+- Trabalho, build e instalação partem da `origin/main` atualizada. Antes de `mac/build-app.sh` ou
+  `ios/build-ipad.sh`: `git fetch origin` e `git rev-list --count HEAD..origin/main` tem de dar `0`
+  (senão, `git merge origin/main` ou um worktree novo de `origin/main`). Nunca instale nos aparelhos a
+  partir de branch atrasada: em 30/09/2026 um checkout 104 commits atrás da `main` desfez 31 PRs no Mac e no iPad.
 
 ## Fluxo de trabalho
 
@@ -70,7 +74,7 @@ mac/build-app.sh · ios/build-ipad.sh                                           
 3. Build e instalação, UM de cada vez (dois builds juntos se atropelam) e sem editar `.swift` durante o
    build: `bash mac/build-app.sh` e copiar `mac/build/Cátedra.app` para `/Applications` (feche o app
    antes); depois `bash ios/build-ipad.sh device` e `xcrun devicectl device install app --device <UDID>
-   "ios/build/Cátedra.app"` — o UDID é o do "iPad de Lana Biatriz" em `xcrun devicectl list devices`.
+   "ios/build/Cátedra.app"` — o UDID é o do iPad da dona: em `xcrun devicectl list devices`, a linha do modelo `iPad13,16` (iPad Air de 5ª geração) com Reality `physical` — há outro aparelho físico pareado (iPhone).
    Mudança só em HTML/JS também exige o build: o bundle web vai embutido nos apps. Erro 4016 no install
    = iPad bloqueado ou fora da rede; tente de novo quando ele voltar, não é defeito do build.
 4. Merge pelo GitHub (`gh pr merge --merge`): a Vercel só publica commit **verificado**, de autor ligado

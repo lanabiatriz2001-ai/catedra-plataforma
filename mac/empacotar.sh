@@ -1,10 +1,15 @@
 #!/bin/bash
 # mac/empacotar.sh — prepara o Cátedra.app para MANDAR para um testador.
 #
-# Por que existe: o app é assinado só ad-hoc (sem conta de Apple Developer), então o
-# Gatekeeper recusa — "spctl -a" devolve "rejected". Quem baixar vai levar um aviso de
-# desenvolvedor não verificado e, sem instrução, desiste ali. Este script gera o .zip
-# junto com um COMO-INSTALAR.txt que explica o caminho exato no macOS atual.
+# Por que existe: o mac/build-app.sh assina com Developer ID (hardened runtime + carimbo de
+# tempo), mas NÃO notariza. O app sai íntegro (`codesign --verify --strict` passa) e mesmo
+# assim o Gatekeeper recusa: `spctl --assess --type execute` devolve "rejected" com
+# `source=Unnotarized Developer ID`, porque falta o tíquete da Apple grampeado no .app.
+# Neste Mac o app abre, já que o que se instala daqui não leva quarentena. Baixado em outra
+# máquina, é bloqueado. Este script notariza, grampeia o tíquete, refaz o zip e gera o
+# COMO-INSTALAR.txt. Sem Developer ID (build ad-hoc), ele só empacota com a instrução do
+# ritual "Abrir Mesmo Assim". Diagnóstico de 01/10/2026; ver ct_veredito_gatekeeper em
+# scripts/assinar-app.sh.
 #
 # Uso:  bash mac/empacotar.sh
 # Saída: mac/build/Catedra-<versão>-<arquiteturas>.zip
@@ -75,6 +80,10 @@ else
       echo "   ✓ notarizado e grampeado"
       # O veredito que vale é este: é o que o Mac do testador vai perguntar.
       spctl -a -vvv "$APP" 2>&1 | sed 's/^/     /'
+      # O app de /Applications continua sem tíquete até ser trocado por este (o spctl de lá
+      # segue "Unnotarized" e engana quem confere depois).
+      echo "   Para o app instalado neste Mac também passar no spctl, instale o grampeado (feche o app antes):"
+      echo "     rm -rf \"/Applications/Cátedra.app\" && ditto --norsrc --noextattr --noacl \"$APP\" \"/Applications/Cátedra.app\""
     else
       echo "   ✗ A Apple APROVOU, mas o STAPLE falhou (rc=$ST_RC)."
       echo "     Sem o grampo o app depende de consultar a Apple: offline o testador leva bloqueio."
