@@ -107,6 +107,29 @@ do {
     caso("seleção: nada → nada", WidgetSelecao.escolher(local: nil, nuvem: nil, contaDoPasse: nil) == nil)
 }
 
+// ---- WidgetCores (a tabela CORES_RAMO vem do Catedra.dc.html, gerada pelo rodador) ----
+do {
+    let branco = WidgetCores.branco
+    caso("cores: #abc é #aabbcc", WidgetCores.hex("#abc") == WidgetCores.hex("#aabbcc"))
+    caso("cores: ida e volta do hex", WidgetCores.hex("#2563EB").map(WidgetCores.hex) == "#2563eb")
+    caso("cores: contraste branco × preto = 21", abs(WidgetCores.contraste(branco, WidgetCores.preto) - 21) < 0.01)
+    caso("cores (controle): o teal da tabela NÃO passa 4,5 com branco antes do ajuste", WidgetCores.contraste(WidgetCores.hex("#0D9488")!, branco) < 4.5)
+    var ruins: [String] = []
+    for (k, c, d) in CORES_RAMO {
+        let g = WidgetCores.gradienteMateria(c)
+        if g.count != 2 || g.contains(where: { WidgetCores.contraste($0, branco) < 4.5 }) { ruins.append(k + " (gradiente)") }
+        if WidgetCores.contraste(WidgetCores.textoSobreClaro(c), branco) < 4.5 { ruins.append(k + " (texto no claro)") }
+        if WidgetCores.contraste(WidgetCores.textoSobreEscuro(d), WidgetCores.fundoEscuro) < 4.5 { ruins.append(k + " (texto no escuro)") }
+    }
+    caso("cores: as \(CORES_RAMO.count) cores da CT_CORES_RAMO passam 4,5:1 no gradiente e como texto" + (ruins.isEmpty ? "" : " — falham: " + ruins.joined(separator: ", ")), ruins.isEmpty && CORES_RAMO.count >= 20)
+    let ambar = WidgetCores.gradienteTema(["#f8bc52"], accent: "#f8bc52")
+    caso("cores: tema de uma parada clara (âmbar) vira 2 paradas que passam", ambar.count == 2 && ambar.allSatisfy { WidgetCores.contraste($0, branco) >= 4.5 })
+    let vazio = WidgetCores.gradienteTema([], accent: "var(--danger)")
+    caso("cores: tema sem paradas e accent inválido cai no verde padrão e passa", vazio.count == 2 && vazio.allSatisfy { WidgetCores.contraste($0, branco) >= 4.5 })
+    let solido = WidgetCores.gradienteTema(["#1c1d24"], accent: "#4f46e5")
+    caso("cores: fundo sólido escuro (Fibra/Terminal) segue passando", solido.count == 2 && solido.allSatisfy { WidgetCores.contraste($0, branco) >= 4.5 })
+    caso("cores: matéria com hex inválido usa o padrão", WidgetCores.gradienteMateria("azul").count == 2)
+}
 // ---- fim dos casos ----
 print("FIM \(total)")
 exit(falhas > 0 ? 1 : 0)
