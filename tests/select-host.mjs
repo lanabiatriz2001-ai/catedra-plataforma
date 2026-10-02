@@ -183,10 +183,18 @@ export async function testarSelectHost(pageDaSuite, base, ok, opcoes = {}) {
       + pont.largura + ' px, coarse ' + pont.coarse + ', data-toque ' + pont.toque + ') — sem isto o caso passaria por vacuidade');
     relatar(await varrer(page, true), '(a)', 'NO TOQUE');
 
-    const lab = await ctx.newPage();
     /* Captura da região da seta (22×12 px CSS à direita, longe da borda e do texto, que termina
-       34 px antes da borda) e contagem, numa página em branco, dos pixels que contrastam ≥ 3:1
-       com o fundo do select. A 2× a seta tem dezenas deles; sem seta, zero. */
+       34 px antes da borda) e contagem dos pixels que contrastam ≥ 3:1 com o fundo do select.
+       A 2× a seta tem dezenas deles; sem seta, zero.
+       A contagem roda na PRÓPRIA página do app, num canvas fora do DOM — não numa segunda aba.
+       Antes era numa aba em branco aberta aqui, e a suíte travava sob carga (01/10/2026, load
+       ~250, mais de 10 min a 0% de CPU depois de "(c) li as paletas"): o Chrome passa o processo
+       da aba que não está na frente para a prioridade "background" do macOS (PRI 4 no ps), mesmo
+       com --disable-renderer-backgrounding e com a aba ainda `visible`, e a aba nova empurrava a
+       do app para trás. Com a máquina cheia, esse processo fica sem CPU, e os timers da página
+       (trocarPaleta, abrirRegistro, irPara) não disparavam. Esperar pelo Playwright não salvaria:
+       o waitForFunction também faz o polling dentro da página (setTimeout ou rAF). Uma aba por
+       contexto: a medida é sempre a da frente. */
     const medirSeta = async (seletor) => {
       const info = await page.evaluate((sel) => {
         const el = document.querySelector(sel);
@@ -202,7 +210,7 @@ export async function testarSelectHost(pageDaSuite, base, ok, opcoes = {}) {
         catch (_) { await w(500); }
       }
       if (!png) return { fortes: 0, max: 0, achou: true, semCaptura: true };
-      return lab.evaluate(async ({ b64, fundo }) => {
+      return page.evaluate(async ({ b64, fundo }) => {
         const img = new Image(); img.src = 'data:image/png;base64,' + b64; await img.decode();
         const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
         const g = c.getContext('2d'); g.drawImage(img, 0, 0);
@@ -266,7 +274,6 @@ export async function testarSelectHost(pageDaSuite, base, ok, opcoes = {}) {
       await depois();
     }
     await trocarPaleta('sutil', false);
-    await lab.close();
     ok(!erros.length, R + '(a) sem erro de página no toque (' + erros.slice(0, 1).join('').slice(0, 120) + ')');
     await page.close();
   });
