@@ -34,6 +34,7 @@ import { testarAuthFechamento } from './auth-fechamento.mjs';
 import { testarCarregamentoInicial, testarAberturaEmbutida } from './carregamento-inicial.mjs';
 import { testarTemplateFileUrl } from './template-file-url.mjs';
 import { testarAuthModoLocal } from './auth-modo-local.mjs';
+import { testarSyncMemoriaVelha } from './sync-memoria-velha.mjs';
 import { testarBackupDriveErros } from './backup-drive-erros.mjs';
 import { testarSelectHost } from './select-host.mjs';
 import { testarJurisQuadro } from './juris-quadro.mjs';
@@ -181,6 +182,8 @@ for (const [base, origem, arquivo] of ORIGENS) {
     // no toque em vez de 44, e 20 com mouse no app do Mac em vez de 38) — só este motor acusa
     try { await testarTemplateFileUrl(browser, base, ok, { motor }); } catch (e) { ok(false, 'TEMPLATE/file exceção: ' + e.message); }
     { const ctxML = await browser.newContext(); const pML = await ctxML.newPage(); try { await testarAuthModoLocal(pML, base, ok); } catch (e) { ok(false, 'MODO LOCAL exceção: ' + e.message); } finally { await ctxML.close(); } }
+    // a memória velha não volta por cima da nuvem (incidente do iPad, 01/10/2026)
+    try { await testarSyncMemoriaVelha(browser, base, ok, motor); } catch (e) { ok(false, 'SYNC MEMÓRIA VELHA exceção: ' + e.message); }
     // backup na nuvem pessoal: o aviso do Drive e a faixa vermelha no motor do Safari (só http: semeia por /__semente)
     if (origem === 'http') { try { await testarBackupDriveErros(browser, base, ok); } catch (e) { ok(false, 'BACKUP/Drive [' + motor + '] exceção: ' + e.message); } }
     try { await testarSelectHost(page, base, ok, { motor, origem }); }
