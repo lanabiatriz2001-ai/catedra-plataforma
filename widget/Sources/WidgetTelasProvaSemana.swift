@@ -92,7 +92,7 @@ struct BarrasSemana: View {
     let dias: [WidgetDiaSemana]; let meta: Int; let tinta: Color
     var body: some View {
         let teto = max(meta, dias.map(\.min).max() ?? 0, 1)
-        HStack(alignment: .bottom, spacing: 6) {
+        HStack(alignment: .bottom, spacing: 4) {
             ForEach(dias, id: \.data) { d in
                 VStack(spacing: 3) {
                     GeometryReader { g in
@@ -103,11 +103,12 @@ struct BarrasSemana: View {
                                 .frame(height: max(3, g.size.height * CGFloat(d.min) / CGFloat(teto)))
                         }
                     }
-                    Text(d.rotulo).font(.system(size: 9, weight: d.ehHoje ? .heavy : .medium)).foregroundStyle(tinta)
+                    Text(d.rotulo).font(.system(size: 11, weight: d.ehHoje ? .heavy : .medium)).foregroundStyle(tinta).lineLimit(1).fixedSize()
                 }
             }
         }
         .accessibilityElement().accessibilityLabel("Minutos estudados em cada dia da semana")
+        .accessibilityValue(dias.map { "\($0.rotulo) \($0.min) min" }.joined(separator: ", "))
     }
 }
 
@@ -144,7 +145,7 @@ struct ProvaCirculo: View {
                 Text("dias").font(.system(size: 9, weight: .semibold))
             }
         }
-        .accessibilityElement().accessibilityLabel(h.diasProva.map { "\($0) dias até a prova" } ?? "Sem data de prova")
+        .accessibilityElement().accessibilityLabel(h.diasProva.map { ($0 == 1 ? "1 dia até a prova" : "\($0) dias até a prova") } ?? "Sem data de prova")
     }
 }
 

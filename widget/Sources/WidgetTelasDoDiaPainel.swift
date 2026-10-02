@@ -6,7 +6,8 @@ struct TelaDoDia: View {
     @Environment(\.widgetFamily) var familia
     var body: some View {
         conteudo
-            .widgetURL(e.item.map { WidgetLinks.url(WidgetDoDia.destino($0)) } ?? WidgetLinks.url(.tela("inicio")))
+            .widgetURL(e.resumo.map { !$0.juridico } == true ? WidgetLinks.url(.tela("inicio"))
+                        : (e.item.map { WidgetLinks.url(WidgetDoDia.destino($0)) } ?? WidgetLinks.url(.tela("inicio"))))
             .containerBackground(for: .widget) { Rectangle().fill(.background) }
     }
     @ViewBuilder var conteudo: some View {

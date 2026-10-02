@@ -49,7 +49,7 @@ struct ProvedorCatedra: TimelineProvider {
         let local = WidgetGrupo.ler(WidgetGrupo.resumo).flatMap(WidgetResumo.ler)
         let passe = WidgetGrupo.ler(WidgetGrupo.passe).flatMap { try? JSONDecoder().decode(WidgetPasse.self, from: $0) }
         var nuvem = WidgetGrupo.ler(WidgetGrupo.resumoNuvem).flatMap(WidgetResumo.ler)
-        if comNuvem, let p = passe, let cfg = WidgetNuvem.config(Bundle.main.infoDictionary) {
+        if comNuvem, WidgetGrupo.ler(WidgetGrupo.passeInvalido) == nil, let p = passe, let cfg = WidgetNuvem.config(Bundle.main.infoDictionary) {
             switch await WidgetNuvem.ler(passe: p.passe, config: cfg) {
             case .ok(let r):
                 if let r {

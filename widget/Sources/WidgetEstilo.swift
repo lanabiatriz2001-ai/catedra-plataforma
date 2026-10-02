@@ -94,7 +94,7 @@ struct BarraProgresso: View {
         GeometryReader { g in
             ZStack(alignment: .leading) {
                 Capsule().fill(tinta.opacity(0.25))
-                Capsule().fill(tinta).frame(width: max(6, g.size.width * CGFloat(min(100, max(0, pct))) / 100))
+                Capsule().fill(tinta).frame(width: pct <= 0 ? 0 : max(6, g.size.width * CGFloat(min(100, pct)) / 100))
             }
         }
         .frame(height: 6)

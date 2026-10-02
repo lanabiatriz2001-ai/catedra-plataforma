@@ -85,6 +85,7 @@ struct AgoraMedio: View {
                 LinkWidget(destino: WidgetLinks.url(.tela("revisoes"))) {
                     Label(Estilo.revisoes(h.revisoesHoje), systemImage: "arrow.triangle.2.circlepath")
                         .font(.system(size: 13, weight: .bold)).foregroundStyle(tinta).lineLimit(1)
+                        .frame(minHeight: 44).contentShape(Rectangle())
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -113,6 +114,7 @@ struct AgoraGrande: View {
                 RotuloVelho(h: h, tinta: tinta)
                 LinkWidget(destino: WidgetLinks.url(.tela("revisoes"))) {
                     Label(Estilo.revisoes(h.revisoesHoje), systemImage: "arrow.triangle.2.circlepath").font(.system(size: 12, weight: .bold))
+                        .frame(minHeight: 44).contentShape(Rectangle())
                 }
             }
             .foregroundStyle(tinta)
