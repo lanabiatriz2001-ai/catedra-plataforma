@@ -29,6 +29,7 @@ import { testarIntegracaoFase2 } from './integracao-fase2.mjs';
 import { testarVariosEditais } from './varios-editais.mjs';
 import { testarTemplateFileUrl } from './template-file-url.mjs';
 import { testarAuthModoLocal } from './auth-modo-local.mjs';
+import { testarSyncMemoriaVelha } from './sync-memoria-velha.mjs';
 import { testarIphoneHost390 } from './iphone-host-390.mjs';
 import { testarReguaUnica } from './regua-unica.mjs';
 import { testarPrioridadeErrosResolvidos } from './prioridade-erros-resolvidos.mjs';
@@ -7552,6 +7553,12 @@ const AUDITOR = () => {
   ok(sinc.depois.jur === 'jur1' && sinc.depois.jurRev === 'jr1',
     'AREA sync o caderno de Direito também fica intacto');
   await sincCtx.close();
+
+  /* 10b) A MEMÓRIA VELHA NÃO VOLTA POR CIMA DA NUVEM: o _salvarAgora do _rehydrateFromLocal
+     grava só o que está pendente (incidente do iPad, 01/10/2026). Roteiro em
+     tests/sync-memoria-velha.mjs. */
+  try { await testarSyncMemoriaVelha(browser, URL0, ok, motor); }
+  catch (e) { ok(false, 'SYNC MEMÓRIA VELHA o roteiro correu sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
 
   /* 11) A CASCA NATIVA precisa saber a área. No Mac e no iPad o CátedraJURIS é uma ABA
      fixa da barra (⌘3), escrita em Swift: o guarda de rota da web não a alcança, porque

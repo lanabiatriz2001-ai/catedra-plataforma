@@ -8317,17 +8317,26 @@ class Component extends DCLogic {
   // o _rehydrateFromLocal recarrega a partir dela — se as duas divergirem, o que vem
   // da nuvem é sobrescrito pela memória velha deste aparelho.
   _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'editais', 'editalAtivo', 'reviews', 'leituras', 'enam', 'enamSim', 'aceite', 'iaConsentimento', 'blocks', 'blocksDate', 'cicloVolta', 'manualVoltaN', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs', 'redGabarito', 'redEnunciado', 'redMarcas', 'redDisciplina', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis']; }
-  /** Grava JÁ o que está pendente, sem esperar o debounce de 500 ms. */
+  /** Grava JÁ o que está pendente, sem esperar o debounce de 500 ms.
+      PENDENTE é só o que a memória mudou desde o último salvamento (a mesma régua do
+      _autosave). O resto já está no disco — e o disco pode ter acabado de receber a nuvem:
+      regravar a memória por cima, com o carimbo de agora que o auth.js põe em cada setItem,
+      fazia o caderno velho deste aparelho vencer a nuvem. Foi o iPad saindo do modo sem
+      conta em 01/10/2026: a hidratação juntou certo, o _rehydrateFromLocal chamou isto e o
+      backup de 25/09 subiu por cima do edital, do ciclo e de uma sessão que só a nuvem tinha.
+      Sessões, lixeira e flashcards gravam na hora de cada mudança (_saveSessions,
+      _saveLixeira, _saveFC); aqui não há nada pendente deles. */
   _salvarAgora(){
     try{ clearTimeout(this._asT); }catch(_){}
     const L=this._lastSaved||(this._lastSaved={});
     this._autosaveKeys().forEach(k=>{
+      if(this.state[k]===L[k]) return;                                            // nada pendente nesta chave
+      if(this.state[k]===undefined){ L[k]=undefined; return; }
       if(k==='edital' && this._edSoReparado()){ L[k]=this.state[k]; return; }   // conserto de leitura: quem grava é _edPersistirReparo
-      try{ localStorage.setItem(this._chave(k), JSON.stringify(this.state[k])); L[k]=this.state[k]; }catch(_){}
+      try{ const ck=this._chave(k), s=this._serializar(k, this.state[k]);
+        if(localStorage.getItem(ck)!==s) localStorage.setItem(ck, s);
+        L[k]=this.state[k]; }catch(_){}
     });
-    try{ localStorage.setItem(this._chave('sessions'), JSON.stringify(this.state.sessions||[])); }catch(_){}
-    try{ localStorage.setItem(this._chave('sessionsLixeira'), JSON.stringify(this.state.sessionsLixeira||[])); }catch(_){}
-    try{ this._saveFC(this.state.flashcards||[]); }catch(_){}
   }
   /** O vazio certo de cada chave — array, objeto ou escalar. Sem isto, um caderno novo
       nasceria com `undefined` onde a tela espera lista. */
