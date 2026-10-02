@@ -197,9 +197,9 @@ export async function testarAuthFechamento(pageDaSuite, base, ok, opcoes = {}) {
     await h.zerarFetch();
     const dialogos = [];
     page.on('dialog', async dl => { dialogos.push(dl.message()); await dl.accept(); });
-    await page.evaluate(() => { window.CatedraAuth.logout(); });
+    await h.ev(() => { window.CatedraAuth.logout(); });
     const saiu = await h.esperar(() => window.__ctChamadas().some(c => c.nome === 'signOut') && !localStorage.getItem('catedra:sessions'), 10000);
-    const ch = await page.evaluate(() => window.__ctChamadas());
+    const ch = await h.ev(() => window.__ctChamadas());
     const f = paraNuvem(await h.fetchs());
     const iSel = ch.findIndex(c => c.nome === 'select'), iUp = ch.findIndex(c => c.nome === 'upsert'), iOut = ch.findIndex(c => c.nome === 'signOut');
     ok(saiu, R + '(g) Sair terminou: signOut e aparelho limpo');
@@ -227,11 +227,11 @@ export async function testarAuthFechamento(pageDaSuite, base, ok, opcoes = {}) {
     });
     let msg = '';
     page.once('dialog', async dl => { msg = dl.message(); await dl.dismiss(); });
-    await page.evaluate(() => window.CatedraAuth.logout());
+    await h.ev(() => window.CatedraAuth.logout());
     await page.waitForTimeout(400);
-    const upsAntesDoAviso = await page.evaluate(() => window.__upsAoAvisar == null ? -1 : window.__upsAoAvisar);
+    const upsAntesDoAviso = await h.ev(() => window.__upsAoAvisar == null ? -1 : window.__upsAoAvisar);
     const r = await h.ler();
-    const c = await page.evaluate(() => ({ s1: /"s1"/.test(localStorage.getItem('catedra:sessions') || ''), auth: localStorage.getItem('catedra:auth'),
+    const c = await h.ev(() => ({ s1: /"s1"/.test(localStorage.getItem('catedra:sessions') || ''), auth: localStorage.getItem('catedra:auth'),
       signOut: window.__ctChamadas().filter(x => x.nome === 'signOut').length,
       portao: getComputedStyle(document.getElementById('catedra-auth-gate')).display }));
     ok(/^Há estudos deste aparelho que ainda não subiram/.test(msg), R + '(h) envio falhando: o aviso de pendência aparece (' + msg.slice(0, 50) + '…)');
@@ -242,10 +242,10 @@ export async function testarAuthFechamento(pageDaSuite, base, ok, opcoes = {}) {
     await page.evaluate(() => localStorage.setItem('__ct:chamadas', '[]'));
     await h.zerarFetch();
     page.once('dialog', dl => dl.accept());
-    await page.evaluate(() => { window.CatedraAuth.logout(); });
+    await h.ev(() => { window.CatedraAuth.logout(); });
     const saiu = await h.esperar(() => window.__ctChamadas().some(x => x.nome === 'signOut') && !localStorage.getItem('catedra:sessions'), 10000);
     const f = paraNuvem(await h.fetchs());
-    const out = (await page.evaluate(() => window.__ctChamadas())).find(x => x.nome === 'signOut') || {};
+    const out = (await h.ev(() => window.__ctChamadas())).find(x => x.nome === 'signOut') || {};
     ok(saiu, R + '(h) confirmar: signOut e aparelho limpo');
     ok(f.length === 1 && f[0].metodo === 'PATCH' && f[0].keepalive && f[0].url.includes('updated_at=eq.2026-01-01T00%3A00%3A00.123%2B00%3A00'),
       R + '(h) confirmar: a última tentativa é o PATCH condicional (' + f.map(x => x.metodo).join(',') + ')');
@@ -267,9 +267,9 @@ export async function testarAuthFechamento(pageDaSuite, base, ok, opcoes = {}) {
     await h.zerarFetch();
     const dialogos = [];
     page.on('dialog', async dl => { dialogos.push(dl.message()); await dl.dismiss(); });
-    await page.evaluate(() => window.CatedraAuth.logout());
+    await h.ev(() => window.CatedraAuth.logout());
     await page.waitForTimeout(1500);
-    const c = await page.evaluate(() => ({ s1: /"s1"/.test(localStorage.getItem('catedra:sessions') || ''),
+    const c = await h.ev(() => ({ s1: /"s1"/.test(localStorage.getItem('catedra:sessions') || ''),
       dirty: localStorage.getItem('catedra:_dirty'),
       signOut: window.__ctChamadas().filter(x => x.nome === 'signOut').length,
       portao: getComputedStyle(document.getElementById('catedra-auth-gate')).display,
@@ -308,10 +308,10 @@ export async function testarAuthFechamento(pageDaSuite, base, ok, opcoes = {}) {
       ok(await h.esperar(() => window.__ctChamadas().some(c => c.nome === 'select'), 3000), R + '(i) o envio da edição está em voo (leitura pedida)');
       segurar = true;
       page.on('dialog', dl => dl.accept().catch(() => {}));
-      await page.evaluate(() => { window.__paginaVelha = 1; window.CatedraAuth.logout(); });
+      await h.ev(() => { window.__paginaVelha = 1; window.CatedraAuth.logout(); });
       // o Sair espera até 5 s, avisa, confirma, signOut, clearLocal e recarrega (segurado)
       const limpou = await h.esperar(() => window.__ctChamadas().some(c => c.nome === 'signOut') && !localStorage.getItem('catedra:sessions'), 15000);
-      const diag = limpou ? '' : await page.evaluate(() => window.__ctChamadas().map(c => c.nome).join(',') + ' / sessions=' + !!localStorage.getItem('catedra:sessions') + ' / velha=' + !!window.__paginaVelha).catch(e => String(e).slice(0, 80));
+      const diag = limpou ? '' : await h.ev(() => window.__ctChamadas().map(c => c.nome).join(',') + ' / sessions=' + !!localStorage.getItem('catedra:sessions') + ' / velha=' + !!window.__paginaVelha).catch(e => String(e).slice(0, 80));
       ok(limpou, R + '(i) o Sair limpou o aparelho com o envio ainda em voo' + (diag ? ' (' + diag + ')' : ''));
       // a leitura atrasada responde (6 s) com a página velha ainda viva (reload segurado 6,5 s); depois o reload conclui
       await page.waitForTimeout(3500);
@@ -361,7 +361,28 @@ async function casoBase(browser, base, ok, R, { nome, local, ct, hidratado, semH
       for (const [k, v] of Object.entries(local || {})) localStorage.setItem(k, v);
       if (hidratado) { localStorage.setItem('catedra:auth', '1'); sessionStorage.setItem('catedra:hydrated', '1'); }
     }, { U1, local, ct, hidratado });
+    /* O Sair RECARREGA a página, e um page.evaluate que cai nesse instante morre com "Execution
+       context was destroyed, most likely because of a navigation" — exceção que derruba o módulo
+       inteiro, não um caso (foi assim, sob carga, em 01/10/2026). Tudo o que estes casos leem
+       (chamadas do Supabase falso, fetchs, chaves do sync) vive no localStorage e SOBREVIVE ao
+       reload, então a leitura é repetida quando a página volta, em vez de abortar. Erro que não
+       seja de navegação continua subindo: só o barulho do reload é absorvido. */
+    const ev = async (fn, arg) => {
+      const fim = Date.now() + 15000;
+      let ultimo;
+      while (Date.now() < fim) {
+        try { return await page.evaluate(fn, arg); }
+        catch (e) {
+          ultimo = e;
+          if (!/Execution context was destroyed|because of a navigation|frame was detached/i.test(String(e && e.message || e))) throw e;
+          try { await page.waitForLoadState('domcontentloaded', { timeout: 5000 }); } catch (_) {}
+          await new Promise(r => setTimeout(r, 100));
+        }
+      }
+      throw ultimo;
+    };
     const h = {
+      ev,
       esperar: async (fn, ms = 10000) => {
         const fim = Date.now() + ms;
         while (Date.now() < fim) {
@@ -372,14 +393,14 @@ async function casoBase(browser, base, ok, R, { nome, local, ct, hidratado, semH
       },
       hidratado: () => h.esperar(() => sessionStorage.getItem('catedra:hydrated') === '1' && !!window.CatedraSync && !!window.CatedraAuth
         && getComputedStyle(document.getElementById('catedra-auth-gate')).display === 'none', 12000),
-      ler: () => page.evaluate(() => ({
+      ler: () => ev(() => ({
         ups: window.__ctChamadas().filter(c => c.nome === 'upsert').length,
         dirty: localStorage.getItem('catedra:_dirty'),
         lastSrv: localStorage.getItem('catedra:_lastSrv'),
         status: window.CatedraSync && window.CatedraSync.status,
       })),
-      fetchs: () => page.evaluate(() => JSON.parse(localStorage.getItem('__rep:fetch') || '[]')),
-      zerarFetch: () => page.evaluate(() => localStorage.setItem('__rep:fetch', '[]')),
+      fetchs: () => ev(() => JSON.parse(localStorage.getItem('__rep:fetch') || '[]')),
+      zerarFetch: () => ev(() => localStorage.setItem('__rep:fetch', '[]')),
     };
     await page.goto(base + FIX);
     // o supabase-js de verdade emite INITIAL_SESSION ao assinar onAuthStateChange — é dali que o
