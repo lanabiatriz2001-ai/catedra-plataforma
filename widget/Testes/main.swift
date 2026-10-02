@@ -130,6 +130,41 @@ do {
     caso("cores: fundo sólido escuro (Fibra/Terminal) segue passando", solido.count == 2 && solido.allSatisfy { WidgetCores.contraste($0, branco) >= 4.5 })
     caso("cores: matéria com hex inválido usa o padrão", WidgetCores.gradienteMateria("azul").count == 2)
 }
+// ---- WidgetLinks ----
+do {
+    let ds: [WidgetDestino] = [.tela("ciclo"), .tela("analise"), .legis(diploma: "Código de Processo Civil", artigo: "1015"), .juris(id: "STJ-SUM-7"), .entrar]
+    caso("links: ida e volta de todos os destinos", ds.allSatisfy { WidgetLinks.destino(WidgetLinks.url($0)) == $0 })
+    caso("links: tela desconhecida vira o Início na ida", WidgetLinks.url(.tela("admin")).absoluteString == "catedra://ver/inicio")
+    caso("links: tela desconhecida na volta é recusada", WidgetLinks.destino(URL(string: "catedra://ver/admin")!) == nil)
+    caso("links: outro esquema é recusado", WidgetLinks.destino(URL(string: "https://ver/ciclo")!) == nil)
+    caso("links: id do JURIS com barra é recusado", WidgetLinks.destino(URL(string: "catedra://juris?id=STJ%2FSUM")!) == nil)
+    caso("links: LEGIS sem artigo é recusado", WidgetLinks.destino(URL(string: "catedra://legis?diploma=CF")!) == nil)
+    caso("links: acento no diploma sobrevive", WidgetLinks.destino(WidgetLinks.url(.legis(diploma: "Constituição Federal", artigo: "5"))) == .legis(diploma: "Constituição Federal", artigo: "5"))
+}
+
+// ---- WidgetDoDia ----
+do {
+    let json = ##"{"v":1,"fontes":{},"itens":[{"tipo":"artigo","id":"cf#5","titulo":"Art. 5º","diploma":"Constituição Federal","artigo":"5","ramo":"Direito Constitucional","cor":"#2563eb","corD":"#38bdf8","texto":"Todos são iguais…","n":12,"rotulo":"caiu em 12 provas","provas":[{"orgao":"TJSP","ano":2023}]},{"tipo":"sumula","id":"STJ-SUM-7","titulo":"Súmula 7 do STJ","diploma":"STJ","ramo":"Direito Processual Civil","cor":"#0d9488","corD":"#2dd4bf","texto":"A pretensão…","n":11,"rotulo":"citada em 11 julgados"},{"tipo":"artigo","id":"l2848_1940#68","titulo":"Art. 68","diploma":"Código Penal","artigo":"68","ramo":"Direito Penal","cor":"#e11d48","corD":"#fb7185","texto":"A pena-base…","n":10,"rotulo":"caiu em 10 provas","provas":[]}]}"##
+    let itens = WidgetDoDia.carregar(Data(json.utf8))
+    caso("do dia: carrega os itens", itens.count == 3)
+    caso("do dia: arquivo quebrado → lista vazia", WidgetDoDia.carregar(Data("{".utf8)).isEmpty)
+    caso("do dia: 01/01/2026 é o item 0", WidgetDoDia.indice(em: dia("2026-01-01", 9), total: 3, calendario: cal) == 0)
+    caso("do dia: o dia seguinte é o item 1", WidgetDoDia.indice(em: dia("2026-01-02", 23), total: 3, calendario: cal) == 1)
+    caso("do dia: a lista dá a volta", WidgetDoDia.indice(em: dia("2026-01-04", 9), total: 3, calendario: cal) == 0)
+    caso("do dia: data antes da época não dá índice negativo", (0..<3).contains(WidgetDoDia.indice(em: dia("2025-12-30", 9), total: 3, calendario: cal)))
+    caso("do dia: mesmo dia, mesmo item, a qualquer hora", WidgetDoDia.item(itens, em: dia("2026-10-01", 0), calendario: cal) == WidgetDoDia.item(itens, em: dia("2026-10-01", 23), calendario: cal))
+    caso("do dia: lista vazia → nada", WidgetDoDia.item([], em: dia("2026-10-01"), calendario: cal) == nil)
+    caso("do dia: artigo abre o LEGIS no artigo", WidgetDoDia.destino(itens[0]) == .legis(diploma: "Constituição Federal", artigo: "5"))
+    caso("do dia: súmula abre o JURIS no verbete", WidgetDoDia.destino(itens[1]) == .juris(id: "STJ-SUM-7"))
+}
+
+do {
+    let json = #"{"v":1,"itens":[{"tipo":"sumula","id":"STJ-SUM-1","titulo":"Súmula 1"},{"id":"semtipo"},{"tipo":"artigo","id":"x#1","titulo":"Art. 1","diploma":"CF","artigo":"1","n":"três"},42]}"#
+    let itens = WidgetDoDia.carregar(Data(json.utf8))
+    caso("do dia: campo faltando não derruba a lista, item ruim é descartado", itens.map(\.id) == ["STJ-SUM-1", "x#1"])
+    caso("do dia: campo de tipo errado vira o padrão", itens.count == 2 && itens[1].n == 0 && itens[0].provas == nil)
+}
+
 // ---- fim dos casos ----
 print("FIM \(total)")
 exit(falhas > 0 ? 1 : 0)
