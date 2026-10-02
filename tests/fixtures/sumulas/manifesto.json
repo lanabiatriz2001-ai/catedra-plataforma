@@ -1,0 +1,61 @@
+{
+  "coleta": "01/10/2026, noite (Brasília) — 02/10/2026 01h UTC",
+  "etiqueta": "User-Agent de Chrome 129 completo; pausa >= 3 s entre pedidos ao mesmo host; 1 conexão por host; timeout por pedido",
+  "uso": "amostras ENXUTAS para testes sem rede das coleções de súmulas (STF: sumula_stf + sumula_vinculante; STJ: sumula_stj). Base de comparação = juris-index.js da árvore sentinela-fase2 (STJ 1–676, STF 1–736, SV 1–63).",
+  "rotas": {
+    "stj-verbetes-pdf": {
+      "url": "https://www.stj.jus.br/docs_internet/jurisprudencia/tematica/download/SU/Verbetes/VerbetesSTJ_asc.pdf",
+      "irma": "…/Verbetes/VerbetesSTJ.pdf (mesmo conteúdo em ordem decrescente, 417.628 B)",
+      "status": 200, "bytes": 417469, "tempo_s": [0.26, 0.31], "cdn": "Cloudflare, cf-cache-status HIT, max-age 1800",
+      "last_modified": "Fri, 05 Dec 2025 14:13:46 GMT", "etag": "W/\"417469-1764944026035\"",
+      "condicional": "If-Modified-Since com a data acima → 304 em 0,15 s",
+      "pdf": { "titulo": "Enunciados das Súmulas do STJ", "paginas": 93, "creationDate": "D:20251205111345-03'00'", "rodape": "scon.stj.jus.br/SCON/sumstj/" },
+      "extracao": "vendor/pdfjs (PDF.js 3.11.174, já versionado) em Node 24: require('pdf.worker.min.js') antes (define globalThis.pdfjsWorker; sem isso 'document is not defined'), depois require('pdf.min.js') e usar globalThis.pdfjsLib (module.exports vem vazio). 93 páginas em 0,35–4,1 s.",
+      "esperado": { "verbetes": 676, "min": 1, "max": 676, "marcas": { "CANCELADA": 29, "ALTERADA": 5, "REVOGADA": 1 }, "divergencias_com_acervo_hoje": 0 },
+      "fixtures": ["stj-verbetes-p30-p73.pdf (páginas 30 e 73 do original, fontes subconjunto; PDF.js lê 13 cabeçalhos: 219–225 com 222 CANCELADA, 541–546 com 545 ALTERADA)", "stj-verbetes-p30-p73.txt (saída do PDF.js para as mesmas páginas)", "stj-verbetes-indice.txt (676 linhas número|marca|julgado em, gerado do PDF inteiro)"]
+    },
+    "stj-informativo-bloco-sumulas": {
+      "url": "https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=%27NNNN%27.cod.",
+      "status": 200, "bytes": "250–400 KB por edição", "tempo_s": [1.37, 1.72], "codificacao": "ISO-8859-1 (ler em latin1)",
+      "marcadores": "<span class=\"clsInformativoOrgaojulgador\">SÚMULAS</span>; cada nota: <div id=\"temaNotaN\">… SÚMULA N. 674</div> | 'SÚMULA N. 222 (CANCELADA)' | 'SÚMULA N. 545 REVISADA' | 'SÚMULA 653' (sem N.); corpo em <div class=\"clsInformativoTexto\">; @CNOT=NNNNNN no <div id=\"urlNotaN\">",
+      "rodapes": ["Primeira Seção, aprovada em 13/11/2024, DJe de 25/11/2024. (2024+)", "(Primeira Seção. Aprovada em 2/12/2021) (2021–2023)", "(Súmula 648, Terceira Seção, julgado em 14/04/2021, DJe 19/04/2021)", "Primeira Seção, súmula n. 212 cancelada em 14/09/2022.", "REVISADA: 'A Terceira Seção, no julgamento do REsp …, no dia 10/9/2025, revisou a Súmula n. 545, que passou a ter o seguinte teor: Súmula 545: <texto>'"],
+      "fixtures": {
+        "stj-inf-0835-sumulas.html": [[674, "nova", "13/11/2024", "DJe 25/11/2024"], [675, "nova", "13/11/2024", "DJe 25/11/2024"], [222, "cancelada", "13/11/2024", "DJe 29/11/2024"]],
+        "stj-inf-0862-sumulas.html": [[545, "revisada", "10/9/2025"], [630, "revisada", "10/9/2025"]],
+        "stj-inf-0749-sumulas.html": [[212, "cancelada", "14/09/2022"], [497, "cancelada", "14/09/2022"]],
+        "stj-inf-0720-sumulas.html": [[652, "nova", "2/12/2021"], [653, "nova", "2/12/2021"]],
+        "stj-inf-0692-sumulas.html": [[648, "nova", "14/04/2021", "DJe 19/04/2021"]]
+      },
+      "recorte": "cada fixture = <title> + só o bloco SÚMULAS (sem barras de compartilhar e áudio), bytes latin1 preservados; o parser dá o MESMO resultado na fixture e na página inteira",
+      "lacunas_medidas": "súmulas 643, 644, 645 (DJe 17/02/2021) e 663, 664 (DJe 13/11/2023) nunca tiveram nota no bloco SÚMULAS (edições 684–688 e 794–799 conferidas; a 0686 ao vivo em 01/10/2026: órgãos RECURSOS REPETITIVOS, PRIMEIRA SEÇÃO, PRIMEIRA TURMA, TERCEIRA SEÇÃO, SEGUNDA TURMA, TERCEIRA TURMA, QUARTA TURMA, SEXTA TURMA; 16 notas; nenhuma súmula)",
+      "texto_diverge_do_oficial": { "651": "Informativo 'autoridade judicial' × oficial e acervo 'autoridade judiciária'", "669": "Informativo 'alcóolica' × oficial e acervo 'alcoólica'" }
+    },
+    "stf-lista-sumulas": {
+      "url": "https://portal.stf.jus.br/jurisprudencia/sumariosumulas.asp?base=30",
+      "status": 200, "bytes": 139841, "tempo_s": 2.74, "codificacao": "UTF-8",
+      "item": "<div class=\"sumula-item\"><a target=\"_blank\" href=\"sumariosumulas.asp?base=30&sumula=ID\">Súmula N <em>(cance&#8203;lada)</em></a></div> — ATENÇÃO ao &#8203; (espaço de largura zero) dentro da marca",
+      "esperado": { "itens": 736, "max": 736, "marcas": { "superada": [3], "cancelada": [4, 301, 394, 563, 584, 599], "revogada": [152, 274, 388, 619], "alterada": [359] } },
+      "fixtures": ["stf-sumarios-30-amostra.html (12 itens reais: 1–5, 152, 359, 394, 619, 734–736)", "stf-sumarios-30-indice.txt (736 linhas número|marca|id)"]
+    },
+    "stf-lista-vinculantes": {
+      "url": "https://portal.stf.jus.br/jurisprudencia/sumariosumulas.asp?base=26",
+      "status": 200, "bytes": 62287, "tempo_s": 0.53,
+      "esperado": { "itens": 63, "max": 63, "marcas": { "cancelada": [9] }, "obs": "SV 30 (publicação suspensa no acervo) aparece SEM marca na lista" },
+      "fixtures": ["stf-sumarios-26.html (os 63 itens reais)"]
+    },
+    "stf-detalhe": {
+      "url": "https://portal.stf.jus.br/jurisprudencia/sumariosumulas.asp?base=26&sumula=ID (ID interno da lista; não segue o número)",
+      "status": 200, "bytes": "54–72 KB", "tempo_s": { "n": 63, "mediana": 0.37, "max": 0.48 },
+      "estrutura": "<div class=\"titulo\">Súmula Vinculante 63</div><div class=\"parCOM\"><p>enunciado</p></div> … <div class=\"titulo\">Observação</div><div class=\"parCOM\">… Data de publicação do enunciado: DJE de 22-10-2025.</div>",
+      "fixtures": { "stf-sv-63.html": "SV 63, sem marca, DJE de 22-10-2025", "stf-sv-9.html": "SV 9 (cancelada) com a seção que cita PSV 60, j. 26-9-2025, DJE s/n 4-11-2025", "stf-sv-30.html": "'A Súmula Vinculante 30 está pendente de publicação.'", "stf-sum-359.html": "Súmula 359 (alterada); o enunciado termina repetindo '(alterada)'" },
+      "recorte": "seções do meio trocadas por '[seção omitida na fixture]'",
+      "texto_diverge_do_acervo": "21 de 63 SV diferem do acervo só por normalização editorial do portal (maiúsculas, 'nº', 'n.', vírgula, parênteses, 'do/de'): ex. SV 2 'Estadual ou Distrital' × 'estadual ou distrital'; SV 22 '45/2004.' × 'nº 45/04.'"
+    }
+  },
+  "rotas_recusadas": {
+    "scon": { "url": "https://scon.stj.jus.br/SCON/pesquisar.jsp?b=SUMU&livre=@NUM=677", "status": 403, "tempo_s": 0.22, "corpo": "desafio Cloudflare 'managed' ('Verificação automática em andamento… Enable JavaScript and cookies to continue')", "decisao": "não contornar" },
+    "jurisprudencia-stf": { "url": "https://jurisprudencia.stf.jus.br/pages/search/seq-sumula736/false", "status": 202, "bytes": 0, "cabecalho": "x-amzn-waf-action: challenge (Server: awselb/2.0)", "decisao": "não contornar; é a origem do texto do acervo (campo ur)" },
+    "bdjur-dspace7": { "url": "https://bdjur.stj.jus.br/server/api/discover/search/objects?query=…", "status": 200, "tempo_s": [0.17, 3.24], "achado": "não há item por súmula; tipos (facet itemtype) sem 'Súmula'; 'Súmula 677' só acha doutrina; as compilações são retratos: 'Revista de Súmulas do STJ' (2011/113502, Periódico 2017, aponta para a revista eletrônica, última edição 2022), 'Súmulas organizadas por ramos do direito' (2011/163139, capa 'Brasília-DF, 28 de agosto de 2023', bitstream last-modified 09/09/2023), 'Inteiro teor das súmulas' (2011/172508, 2022-09)", "decisao": "inútil para detectar súmula nova/cancelada" },
+    "stj-dados-abertos": { "url": "https://dadosabertos.web.stj.jus.br/api/3/action/package_list", "status": 200, "tempo_s": [42.2, 53.3], "achado": "21 conjuntos, nenhum de súmulas; 'precedentes-qualificados' (temas.csv 2,5 MB, atualizado 2026-10-01T18:39) tem o campo sumulaOriginada — interessa à coleção de repetitivos; o download do temas.csv deu 504 depois de 180 s", "decisao": "fora das súmulas; lento demais para o botão ao vivo" }
+  }
+}

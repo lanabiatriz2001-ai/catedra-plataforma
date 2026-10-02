@@ -48,7 +48,7 @@ export function limparHTML(buf) {
 }
 
 /** Quebra o texto corrido em artigos, preservando incisos e parágrafos de cada um. */
-export function artigos(texto) {
+export function artigos(texto, teto = 4000) {
   const linhas = texto.split('\n').map((l) => l.trim()).filter(Boolean);
   const out = [];
   let atual = null;
@@ -58,7 +58,7 @@ export function artigos(texto) {
       if (atual && atual.txt.length > 30) out.push(atual);
       atual = { rot: m[1].replace(/\.$/, '').replace(/\s+/g, ' '), txt: m[2] ? m[1] + ' ' + m[2] : m[1] };
     } else if (atual) {
-      if (atual.txt.length < 4000) atual.txt += '\n' + l;
+      if (atual.txt.length < teto) atual.txt += '\n' + l;
     }
   }
   if (atual && atual.txt.length > 30) out.push(atual);
@@ -69,7 +69,7 @@ export function artigos(texto) {
 /** Segundo parser, para páginas em que o rótulo e o corpo caem em linhas/células
  *  diferentes (a Lei 14.133 é assim: só 32 das 194 linhas começam com "Art."). Aqui o
  *  texto é tratado como corrido e cortado nas ocorrências de "Art. N" que iniciam frase. */
-export function artigosCorrido(texto) {
+export function artigosCorrido(texto, teto = 4000) {
   const t = texto.replace(/\n+/g, ' ').replace(/\s+/g, ' ');
   const re = /(?:^|[.;:!?]\s+|\s{2,})(Art(?:igo)?\.?\s*\d+[ºª°]?(?:-[A-Z])?)\s*[.\-–—]?\s+(?=[A-ZÀ-Ú§])/g;
   const cortes = [];
@@ -78,7 +78,7 @@ export function artigosCorrido(texto) {
   const out = [];
   for (let k = 0; k < cortes.length; k++) {
     const ini = cortes[k].i, fim = k + 1 < cortes.length ? cortes[k + 1].i : t.length;
-    const txt = t.slice(ini, Math.min(fim, ini + 4000)).trim();
+    const txt = t.slice(ini, Math.min(fim, ini + teto)).trim();
     if (txt.length > cortes[k].rot.length + 40) out.push({ rot: cortes[k].rot, txt });
   }
   // dedup por rótulo, ficando com a ocorrência mais longa (a do corpo, não a da remissão)
@@ -90,10 +90,12 @@ export function artigosCorrido(texto) {
   return [...melhor.values()];
 }
 
-/** Escolhe entre os dois parsers — critério único, usado pelo build da lei seca e pelo sentinela. */
-export function melhorParse(texto) {
-  let arts = artigos(texto);
-  const alt = artigosCorrido(texto);
+/** Escolhe entre os dois parsers — critério único, usado pelo build da lei seca e pelo sentinela.
+ *  `teto` (caracteres por trecho): 4.000 no bundle (padrão, o que o build usa); o sentinela lê a
+ *  página também sem teto, para comparar artigo por artigo (scripts/sentinela.mjs, 8). */
+export function melhorParse(texto, { teto = 4000 } = {}) {
+  let arts = artigos(texto, teto);
+  const alt = artigosCorrido(texto, teto);
   // fica com o parser que achou mais artigos: nenhuma lei da lista tem menos de 30
   if (alt.length > arts.length * 1.3) arts = alt;
   return arts;
@@ -109,5 +111,10 @@ export async function baixarLei(url, { minArtigos = 20, timeoutMs = 40000, prazo
   const texto = limparHTML(r.buffer);
   const arts = melhorParse(texto);
   if (arts.length < minArtigos) throw new Error('só ' + arts.length + ' artigos — parse suspeito');
+  // A mesma leitura sem o teto do bundle, com os MESMOS cortes (o teto só encurta o trecho):
+  // o sentinela compara por ela o que o acervo não pôde guardar. Não enumerável — quem só
+  // percorre os artigos (o build da lei seca) não vê diferença.
+  const semTeto = melhorParse(texto, { teto: Infinity });
+  if (semTeto.length === arts.length) Object.defineProperty(arts, 'semTeto', { value: semTeto, enumerable: false });
   return arts;
 }

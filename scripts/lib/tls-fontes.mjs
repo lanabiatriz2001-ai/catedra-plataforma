@@ -1,75 +1,76 @@
 // scripts/lib/tls-fontes.mjs — cadeia de certificados das fontes oficiais.
 //
-// Por que existe: www.stf.jus.br serve a cadeia TLS INCOMPLETA — manda só o certificado
-// da folha, sem o intermediário. O curl e o Safari disfarçam (o macOS busca o
-// intermediário por AIA e o guarda em cache); o Node não faz isso, e a consulta morria
-// com "unable to verify the first certificate". Medido em 15/09/2026.
+// Histórico: até setembro de 2026 www.stf.jus.br servia a cadeia TLS INCOMPLETA (só a folha,
+// sem o intermediário GlobalSign AlphaSSL), e o intermediário ia embutido aqui. Em 01/10/2026 o
+// STF trocou o certificado: hoje é *.stf.jus.br emitido por "Sectigo Public Server
+// Authentication CA DV R36", válido até 11/04/2027, com a cadeia COMPLETA (folha, DV R36, Root
+// R46) — conferido em 02/10/2026 com as raízes de fábrica do Node, em www.stf.jus.br e
+// portal.stf.jus.br. O intermediário embutido ficou obsoleto e saiu: guardar certificado que a
+// fonte não usa só fazia a régua (S12) falhar por um vencimento que não importa mais.
 //
-// A saída fácil seria desligar a verificação (rejectUnauthorized:false). Aqui NÃO se faz
-// isso: sem verificação, qualquer intermediário na rede poderia inventar um informativo
-// do STF, e o app anunciaria à pessoa uma novidade jurídica falsa. Em vez disso o
-// intermediário legítimo do GlobalSign vai embutido, e a cadeia continua sendo conferida
-// até uma raiz que o Node já confia.
-//
-// Quando o certificado do STF for trocado (a folha vence em 05/10/2026 e este
-// intermediário em 21/05/2027), pegue o novo assim:
+// A regra continua: a verificação NUNCA é desligada (rejectUnauthorized:false). Sem ela,
+// qualquer intermediário na rede poderia inventar um informativo do STF, e o app anunciaria à
+// pessoa uma novidade jurídica falsa. Se o STF voltar a mandar a cadeia incompleta, a consulta
+// falha com "unable to verify the first certificate" (vira "não foi possível consultar", nunca
+// "sem novidade"); aí o intermediário volta para CAS_EXTRAS, pego assim:
 //   echo | openssl s_client -connect www.stf.jus.br:443 -servername www.stf.jus.br \
 //     2>/dev/null | openssl x509 -noout -text | grep -A2 'Authority Information Access'
 //   curl -s <URL do CA Issuers> | openssl x509 -inform DER -out novo.pem
-// e substitua abaixo. tests/sentinela.mjs avisa quando a validade está perto do fim.
+// tests/sentinela.mjs (S12) avisa quando um certificado embutido está perto de vencer.
 //
-// Sem dependência nova: o fetch do Node não deixa acrescentar CA por host, então a busca
-// das fontes passa por node:https, que aceita `ca` direto no request. (A regra da casa
-// proíbe mexer nas dependências do projeto sem pedido.)
+// Sem dependência nova: a busca das fontes passa por node:https, que aceita `ca` direto no
+// request. (A regra da casa proíbe mexer nas dependências do projeto sem pedido.)
 import https from 'node:https';
 import tls from 'node:tls';
 import { URL } from 'node:url';
 
-/** GlobalSign GCC R6 AlphaSSL CA 2025 — intermediário de *.stf.jus.br.
- *  Emissor: GlobalSign Root CA - R6 (raiz já confiada pelo Node).
- *  Válido de 21/05/2025 a 21/05/2027. */
-export const CA_ALPHASSL_2025 = `-----BEGIN CERTIFICATE-----
-MIIFjTCCA3WgAwIBAgIRAIN9TriekS/nLK07x2kt3CAwDQYJKoZIhvcNAQELBQAw
-TDEgMB4GA1UECxMXR2xvYmFsU2lnbiBSb290IENBIC0gUjYxEzARBgNVBAoTCkds
-b2JhbFNpZ24xEzARBgNVBAMTCkdsb2JhbFNpZ24wHhcNMjUwNTIxMDIzNjUyWhcN
-MjcwNTIxMDAwMDAwWjBVMQswCQYDVQQGEwJCRTEZMBcGA1UEChMQR2xvYmFsU2ln
-biBudi1zYTErMCkGA1UEAxMiR2xvYmFsU2lnbiBHQ0MgUjYgQWxwaGFTU0wgQ0Eg
-MjAyNTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAJ/oiu0Bviq52UUE
-ADbFWmgu3rC7KDSMoorLN1Wd03McG3Z1aP71DlPCE33838r72Dfuj5M9LXfiQLJp
-Au6MwNExmKOzothw4x0zGf5oBYyrCMGm3fBpLPafwYQ3MchBOWMTbf83rKUPLH48
-KCJ0MnU8GUl8oA/J81wIvbbKPuNrFf6hvJDccjzc4NyxLz3A89zjV2g5whCg5O0u
-9YX4Zxk9JHuc/LvllOJO4waAYLjbWBJkz3rV3ts1SmSYnJqmyRTIjXwQgRvhEYqt
-DbRskt0W7M6cPwCze3GTBN2UHNpHkMs3YmVxku68I0aOQn5+uz//fDROP3z1Z/7I
-APteRtECAwEAAaOCAV8wggFbMA4GA1UdDwEB/wQEAwIBhjAdBgNVHSUEFjAUBggr
-BgEFBQcDAQYIKwYBBQUHAwIwEgYDVR0TAQH/BAgwBgEB/wIBADAdBgNVHQ4EFgQU
-xbSTj28r3B5Iv7cQMIXO0bK7SC0wHwYDVR0jBBgwFoAUrmwFo5MT4qLn4tcc1sfw
-f8hnU6AwewYIKwYBBQUHAQEEbzBtMC4GCCsGAQUFBzABhiJodHRwOi8vb2NzcDIu
-Z2xvYmFsc2lnbi5jb20vcm9vdHI2MDsGCCsGAQUFBzAChi9odHRwOi8vc2VjdXJl
-Lmdsb2JhbHNpZ24uY29tL2NhY2VydC9yb290LXI2LmNydDA2BgNVHR8ELzAtMCug
-KaAnhiVodHRwOi8vY3JsLmdsb2JhbHNpZ24uY29tL3Jvb3QtcjYuY3JsMCEGA1Ud
-IAQaMBgwCAYGZ4EMAQIBMAwGCisGAQQBoDIKAQMwDQYJKoZIhvcNAQELBQADggIB
-AB/uvBuZf4CiuSahwiXn4geF52roAH+6jxsEPTXTfb7bbeMDXsYgRRsOTNA70ruZ
-Tnz5DfFMuBhNoFhIFb0qR1izdy6VkdKOqFPNF2dOFI1EcnY9l2ory9mrzHqVbrL4
-vzUd17FLUVyjTVU7PAv4nxyhnO1GTeT83YlrdRF31NyR6bvZVTEERHmpbWSgeveJ
-LRtaMzlGWiLZ8IwkH7o6GH3jp/KPtDW4Npu8w64HrRZdN2pqQhi7+YKwfHM7H+2U
-dM1BGN0sjOWMVbMSB9MtCsleS2Mb7TRZEbOHxECJLLIluQypZr7Pol3+hAqrhyKI
-k+6y+Da0NeDuWxW59Ku4NvClqW1UFX1SpfNGhzVfp/CH+vPM1tySomx2jE0EnYZu
-GwVucXPBsp5nUWqUV9+143glVuS7GTg9hFPjNBInn17HbCoIIQIOzj5Vd9bK3A9U
-GxXNpwenDHEalCsD/4eQYDHPhFE7sNe0D/OXu+FAM02VZkARx37Jp4bDdujvgL9P
-vZPR3wThvDN1CTU8Bc3xea3yKFAraKcPZLkhReQUAm2VpR+HSJRPlUpYizlF9WkL
-h3KcAVCBJWvnOkVwxyU5QJMcnwW95JlOtx+9100GL99jHE5rs3gXp7F4bg8H01QT
-9jVOhBBmQ7nQoXuwI0tqal2QUqZz3eeu62CU7xBwtfYR
------END CERTIFICATE-----`;
-
-/** Raízes de fábrica do Node + o intermediário que o STF esquece de mandar. */
-const CAS = [...tls.rootCertificates, CA_ALPHASSL_2025];
+/** Intermediários embutidos (PEM), ACRESCENTADOS às raízes do Node. Vazio desde 01/10/2026:
+ *  nenhuma fonte oficial lida aqui manda cadeia incompleta. */
+export const CAS_EXTRAS = [];
+const CAS = CAS_EXTRAS.length ? [...tls.rootCertificates, ...CAS_EXTRAS] : undefined;
 
 export const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120 Safari/537.36';
 
 /** Hosts oficiais que este vigia pode ler. Lista fechada: sem ela a função serverless
- *  viraria proxy aberto (SSRF), do mesmo jeito que api/law.js já se protege. */
-export const HOSTS = [/^(www\.)?planalto\.gov\.br$/i, /^(www\.)?stf\.jus\.br$/i, /^processo\.stj\.jus\.br$/i];
+ *  viraria proxy aberto (SSRF), do mesmo jeito que api/law.js já se protege.
+ *  Fase 2 (01/10/2026): portal.stf.jus.br (repercussão geral e súmulas do STF) e
+ *  www.stj.jus.br (o PDF de súmulas do STJ). Seguem FORA, de propósito: scon.stj.jus.br e
+ *  jurisprudencia.stf.jus.br (desafio anti-robô, não se contorna), bdjur.stj.jus.br e
+ *  dadosabertos.web.stj.jus.br (sem rota útil). */
+export const HOSTS = [/^(www\.)?planalto\.gov\.br$/i, /^(www\.|portal\.)?stf\.jus\.br$/i, /^(processo|www)\.stj\.jus\.br$/i];
 export const hostPermitido = (h) => HOSTS.some((re) => re.test(h));
+
+/** Só os cabeçalhos do GET condicional passam (o PDF de súmulas do STJ: 304 = nada mudou).
+ *  Qualquer outro é descartado — a função serverless não repassa cabeçalho arbitrário. */
+const CAB_OK = ['if-modified-since', 'if-none-match'];
+export const cabecalhosPermitidos = (o) => Object.fromEntries(Object.entries(o || {})
+  .filter(([k, v]) => CAB_OK.includes(String(k).toLowerCase()) && typeof v === 'string' && v && !/[\r\n]/.test(v))
+  .map(([k, v]) => [String(k).toLowerCase(), v]));
+
+// O erro de rede chega à tela e ao resumo do workflow: em português, com o host e a causa
+// técnica entre parênteses ("getaddrinfo ENOTFOUND" sozinho não diz nada a quem estuda).
+const CAUSAS = {
+  ENOTFOUND: 'o endereço da fonte não foi encontrado (DNS)',
+  EAI_AGAIN: 'o endereço da fonte não respondeu à consulta de DNS',
+  ECONNREFUSED: 'a fonte recusou a conexão',
+  ECONNRESET: 'a fonte encerrou a conexão no meio da leitura',
+  ETIMEDOUT: 'a conexão com a fonte esgotou o tempo',
+  EHOSTUNREACH: 'a rede não alcança a fonte',
+  ENETUNREACH: 'sem rede até a fonte',
+  UNABLE_TO_VERIFY_LEAF_SIGNATURE: 'o certificado da fonte não fecha a cadeia de confiança',
+  CERT_HAS_EXPIRED: 'o certificado da fonte está vencido',
+  DEPTH_ZERO_SELF_SIGNED_CERT: 'a fonte apresentou certificado autoassinado',
+  ERR_TLS_CERT_ALTNAME_INVALID: 'o certificado não é do endereço da fonte',
+};
+export function erroPorExtenso(e, host) {
+  if (!e || e.porExtenso) return e;
+  const cod = e.code || '';
+  const causa = CAUSAS[cod] || (/certificate/i.test(e.message || '') ? 'o certificado da fonte não pôde ser verificado' : null);
+  if (!causa) return e;
+  const n = new Error(`${causa}${host ? ' — ' + host : ''} (${cod || e.message})`);
+  n.code = cod; n.porExtenso = true;
+  return n;
+}
 
 /** GET numa fonte oficial, com a cadeia completada e a verificação LIGADA.
  *  Se o certificado não fechar cadeia, isto lança — e lançar é o comportamento certo:
@@ -78,8 +79,9 @@ export const hostPermitido = (h) => HOSTS.some((re) => re.test(h));
  *  `timeoutMs` mede só o SILÊNCIO do socket: página grande chegando devagar passa dele.
  *  `prazo` (epoch ms, opcional) é o teto ABSOLUTO da leitura, saltos incluídos — é o que a
  *  função serverless usa para responder antes do maxDuration da Vercel. Sem prazo (rotina
- *  diária), nada muda. */
-export function buscarFonte(url, { timeoutMs = 40000, saltos = 4, prazo = 0 } = {}) {
+ *  diária), nada muda. `cabecalhos`: só os do GET condicional (cabecalhosPermitidos).
+ *  Devolve { status, buffer, headers }. */
+export function buscarFonte(url, { timeoutMs = 40000, saltos = 4, prazo = 0, cabecalhos } = {}) {
   return new Promise((resolve, reject) => {
     let u;
     try { u = new URL(url); } catch (_) { return reject(new Error('URL inválida')); }
@@ -89,9 +91,9 @@ export function buscarFonte(url, { timeoutMs = 40000, saltos = 4, prazo = 0 } = 
     const fim = () => { if (teto) { clearTimeout(teto); teto = null; } };
     const req = https.request(u, {
       method: 'GET',
-      headers: { 'user-agent': UA, accept: 'text/html,*/*' },
-      // ACRESCENTA ao depósito de raízes do Node. Passar só o intermediário SUBSTITUIRIA
-      // o depósito inteiro, e aí quem quebraria seria o Planalto.
+      headers: { 'user-agent': UA, accept: 'text/html,*/*', ...cabecalhosPermitidos(cabecalhos) },
+      // Sem extras: as raízes de fábrica do Node. Com extras, ACRESCENTA ao depósito (passar
+      // só o intermediário SUBSTITUIRIA o depósito inteiro, e aí quem quebraria seria o Planalto).
       ca: CAS,
       rejectUnauthorized: true,
       timeout: timeoutMs,
@@ -100,12 +102,12 @@ export function buscarFonte(url, { timeoutMs = 40000, saltos = 4, prazo = 0 } = 
         fim();
         res.resume();
         const prox = new URL(res.headers.location, u).toString();
-        return resolve(buscarFonte(prox, { timeoutMs, saltos: saltos - 1, prazo }));
+        return resolve(buscarFonte(prox, { timeoutMs, saltos: saltos - 1, prazo, cabecalhos }));
       }
       const pedacos = [];
       res.on('data', (c) => pedacos.push(c));
-      res.on('end', () => { fim(); resolve({ status: res.statusCode, buffer: Buffer.concat(pedacos) }); });
-      res.on('error', (e) => { fim(); reject(e); });
+      res.on('end', () => { fim(); resolve({ status: res.statusCode, buffer: Buffer.concat(pedacos), headers: res.headers || {} }); });
+      res.on('error', (e) => { fim(); reject(erroPorExtenso(e, u.hostname)); });
     });
     if (prazo) {
       teto = setTimeout(() => {
@@ -115,7 +117,7 @@ export function buscarFonte(url, { timeoutMs = 40000, saltos = 4, prazo = 0 } = 
       }, Math.max(0, prazo - Date.now()));
     }
     req.on('timeout', () => { req.destroy(new Error('tempo esgotado ao ler a fonte')); });
-    req.on('error', (e) => { fim(); reject(e); });
+    req.on('error', (e) => { fim(); reject(erroPorExtenso(e, u.hostname)); });
     req.end();
   });
 }

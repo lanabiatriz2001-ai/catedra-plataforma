@@ -25,7 +25,7 @@
 // credencial é o Bearer explícito (nada de cookie): página de fora não tem o token, e sem
 // ele recebe 401. Os cabeçalhos vão em TODA resposta, inclusive 401/403/400/405 — sem eles
 // o app leria "falha de rede" em vez da frase pronta do erro.
-import { rodar, COBERTURA, coberturaDe, estadoAnterior } from '../scripts/sentinela.mjs';
+import { rodar, COBERTURA, estadoAnterior, estadoDeFalha } from '../scripts/sentinela.mjs';
 
 function cors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -50,6 +50,13 @@ const emCurso = new Map();  // chave das fontes → Promise do rodar()
 // recebe um prazo ABSOLUTO com folga para responder (leitura em curso é cortada no prazo,
 // leitura nova não começa sem folga) e o que não coube volta como parcial/falha, por extenso.
 // A rede de segurança (PRAZO_MS + 8 s) responde mesmo se algo escapar do prazo do motor.
+// Fase 2: a tela pede UMA fonte por pedido; dentro dela, as coleções (Informativo, repercussão
+// geral, repetitivos, súmulas) rodam em PARALELO com este mesmo prazo e um teto por pedido —
+// cada uma só a parte rápida (modo 'ao-vivo'): o export de RG inteiro (8 a 10 s), a cauda dos
+// repetitivos (sempre 'parcial'), as listas de súmulas do STF e o GET condicional do PDF do STJ.
+// Medido: STF por volta de 15 s; STJ por volta de 15 s, pior caso 30 s. Não verificado: se a
+// Vercel alcança portal.stf.jus.br, www.stj.jus.br e o portal de repetitivos — se não alcançar,
+// a coleção sai 'falha', nunca "sem novidade".
 const PRAZO_MS = 45 * 1000;
 const REDE_MS = PRAZO_MS + 8 * 1000;
 // Teto de cada portão no Supabase (sessão e as duas RPCs). Sem ele, um Supabase lento comia o
@@ -154,11 +161,21 @@ export default async function handler(req, res) {
       const doCacheF = cache.get(f) && cache.get(f).dado.estado.ultimoSucesso;
       const doPacote = base[f] && base[f].ultimoSucesso;
       if (doCacheF && (!doPacote || doCacheF > doPacote)) anterior.fontes[f] = { ...(base[f] || {}), ultimoSucesso: doCacheF };
+      // O mesmo, coleção por coleção: o último sucesso de cada uma não some numa falha.
+      const colCache = (cache.get(f) && cache.get(f).dado.estado.colecoes) || {};
+      for (const [id, c] of Object.entries(colCache)) {
+        const doPacoteC = ((base[f] || {}).colecoes || {})[id] || {};
+        if (c && c.ultimoSucesso && (!doPacoteC.ultimoSucesso || c.ultimoSucesso > doPacoteC.ultimoSucesso)) {
+          const af = anterior.fontes[f] = { ...(anterior.fontes[f] || {}) };
+          af.colecoes = { ...(af.colecoes || {}), [id]: { ...doPacoteC, ultimoSucesso: c.ultimoSucesso,
+            ultimaLeituraCompleta: c.ultimaLeituraCompleta && (!doPacoteC.ultimaLeituraCompleta || c.ultimaLeituraCompleta > doPacoteC.ultimaLeituraCompleta) ? c.ultimaLeituraCompleta : (doPacoteC.ultimaLeituraCompleta || null) } };
+        }
+      }
     }
     const chave = aConsultar.join(',');
     let p = emCurso.get(chave);
     if (!p) {
-      p = rodar({ fontes: aConsultar, anterior, prazo: inicio + PRAZO_MS }).finally(() => emCurso.delete(chave));
+      p = rodar({ fontes: aConsultar, anterior, prazo: inicio + PRAZO_MS, modo: 'ao-vivo' }).finally(() => emCurso.delete(chave));
       emCurso.set(chave, p);
     }
     let rede = null;
@@ -180,15 +197,10 @@ export default async function handler(req, res) {
       }
     } catch (e) {
       // Um tombo aqui é "não foi possível consultar", com o erro por extenso — nunca
-      // "nenhuma novidade encontrada", e nunca 200 mudo. O último sucesso conhecido fica.
+      // "nenhuma novidade encontrada", e nunca 200 mudo. O último sucesso conhecido fica, na
+      // fonte e em cada coleção.
       for (const f of aConsultar) {
-        const antes = anterior.fontes[f] || {};
-        estado[f] = {
-          ...coberturaDe(f),   // rótulo, o que monitora, limites e (Planalto) as normas
-          resultado: 'falha', erro: String((e && e.message) || e),
-          ultimaTentativa: new Date().toISOString(), ultimoSucesso: antes.ultimoSucesso || null,
-          detalhe: '', novidadesNaConsulta: 0, doCache: false,
-        };
+        estado[f] = { ...estadoDeFalha(f, anterior.fontes[f], String((e && e.message) || e), new Date().toISOString()), doCache: false };
       }
     } finally {
       if (rede) clearTimeout(rede);

@@ -1,0 +1,32 @@
+{
+ "descricao": "Recorte do acervo do app em 01/10/2026 (juris-index.js + juris-text.js da árvore sentinela-fase2): verbetes de repercussão geral do STF dos temas da amostra. Campos: índice [3] numero, [4] titulo, [7] data, [8] situacao; texto en (enunciado = tese oficial literal) e ur.",
+ "registros": [
+  {
+   "id": "repgeral-repercussao_geral-STF-457",
+   "numero": 457,
+   "titulo": "Tema 457 (RG)",
+   "situacao": "Trânsito em Julgado",
+   "data": "13/10/2020",
+   "en": "É inconstitucional, por transgressão ao princípio da isonomia entre homens e mulheres (CF, art. 5º, I), a exigência de requisitos legais diferenciados para efeito de outorga de pensão por morte de ex-servidores públicos em relação a seus respectivos cônjuges ou companheiros/companheiras (CF, art. 201, V).",
+   "ur": "https://portal.stf.jus.br/jurisprudenciaRepercussao/verAndamentoProcesso.asp?incidente=4149442&numeroProcesso=659424&classeProcesso=RE&numeroTema=457"
+  },
+  {
+   "id": "repgeral-repercussao_geral-STF-912",
+   "numero": 912,
+   "titulo": "Tema 912 (RG)",
+   "situacao": "Trânsito em Julgado",
+   "data": "25/05/2026",
+   "en": "É constitucional lei estadual que veda o uso de máscaras ou de peças que cubram o rosto dos cidadãos em manifestações populares, salvo se a utilização ocorrer por razões culturais ou de saúde pública",
+   "ur": "https://portal.stf.jus.br/jurisprudenciaRepercussao/verAndamentoProcesso.asp?incidente=4819708&numeroProcesso=905149&classeProcesso=ARE&numeroTema=912"
+  },
+  {
+   "id": "repgeral-repercussao_geral-STF-474",
+   "numero": 474,
+   "titulo": "Tema 474 (RG)",
+   "situacao": "Cancelado",
+   "data": "25/04/2023",
+   "en": "Tema sem tese firmada. Questão: Recurso extraordinário em que se discute, à luz do art. 5º, caput, I e II, da Constituição Federal, a constitucionalidade, ou não, de lei amazonense que reserva 80% das vagas em vestibular da Universidade Estadual do Amazonas – UEA para egressos de escolas de ensino médio situadas na respectiva unidade federativa.",
+   "ur": "https://portal.stf.jus.br/jurisprudenciaRepercussao/verAndamentoProcesso.asp?incidente=3889914&numeroProcesso=614873&classeProcesso=RE&numeroTema=474"
+  }
+ ]
+}

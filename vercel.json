@@ -24,7 +24,7 @@
     "api/law.js": { "maxDuration": 30 },
     "api/sentinela.js": {
       "maxDuration": 60,
-      "includeFiles": "{leis-seca.js,juris-index.js,novidades.js}"
+      "includeFiles": "{leis-seca.js,juris-index.js,novidades.js,sentinela/retratos.json}"
     }
   }
 }
