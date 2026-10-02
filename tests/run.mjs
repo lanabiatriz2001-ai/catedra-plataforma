@@ -55,6 +55,7 @@ import { testarEditalSubtopicos } from './edital-subtopicos.mjs';
 import { testarJurisQuadro } from './juris-quadro.mjs';
 import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
+import { testarRevisaoOficial } from './revisao-oficial.mjs';
 import { testarMenuLateral } from './menu-lateral.mjs';
 import { testarNovidadesCentral } from './novidades-central.mjs';
 import { testarSemDodEstatico, testarSemDodNavegador } from './sem-dod.mjs';
@@ -9913,6 +9914,14 @@ catch (e) { ok(false, 'PDFJS LOCAL [' + motor + '] exceção: ' + String(e && e.
 try { await testarHarnessSemRede(browser, ok, { motor, origens: [[URL0, 'http'], [pathToFileURL(RAIZ).href, 'file']] }); }
 catch (e) { ok(false, 'REDE DA SUÍTE [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
 await testarRedeExternaExecucao(browser, ok, { motor, origens: [[URL0, 'publicado', 'public/index.html']] });
+
+// Revisão oficial (sentinela): painel do Cátedra, "Mudanças oficiais" do LEGIS e "Informativos
+// oficiais" do JURIS, com o mesmo vocabulário de status. Contextos próprios (fixture por ctx.route).
+try { await testarRevisaoOficial(browser, URL0, ok, { motor }); }
+catch (e) {
+  ok(false, 'OFICIAL [' + motor + '] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
 
 await browser.close();
 srv.close();

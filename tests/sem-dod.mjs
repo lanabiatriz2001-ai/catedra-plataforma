@@ -152,7 +152,7 @@ export async function testarSemDodNavegador(page, base, ok, opcoes = {}) {
     const r = await page.evaluate(async () => {
       const w = ms => new Promise(res => setTimeout(res, ms));
       const abas = [...document.querySelectorAll('#tabs .tab')].map(b => b.dataset.pane);
-      const PAINEL = { acervo: 'paneAcervo', dia: 'paneDia', infos: 'paneInfos', tribunais: 'paneTribunais' };
+      const PAINEL = { acervo: 'paneAcervo', dia: 'paneDia', infos: 'paneInfos', tribunais: 'paneTribunais', oficial: 'paneOficial' };
       const trocas = [];
       for (const a of abas) {
         document.querySelector('#tabs .tab[data-pane="' + a + '"]').click(); await w(250);
@@ -165,8 +165,9 @@ export async function testarSemDodNavegador(page, base, ok, opcoes = {}) {
         mapas: !!document.getElementById('paneMapas') || !!document.getElementById('mapasFrame'),
         texto: /Vade Mecum DOD|Dizer o Direito/.test(document.body.innerText) };
     });
-    ok(r.abas.join(',') === 'acervo,dia,infos,tribunais', R + 'o JURIS tem as quatro abas que sobraram (' + r.abas.join(',') + ')');
-    ok(r.trocas.length === 4 && r.trocas.every(Boolean), R + 'cada aba mostra o próprio painel e só ele (' + r.trocas.join(',') + ')');
+    // "Informativos oficiais" (revisão oficial do sentinela) entrou depois do DoD sair
+    ok(r.abas.join(',') === 'acervo,dia,infos,tribunais,oficial', R + 'o JURIS tem as quatro abas que sobraram e a dos informativos oficiais (' + r.abas.join(',') + ')');
+    ok(r.trocas.length === 5 && r.trocas.every(Boolean), R + 'cada aba mostra o próprio painel e só ele (' + r.trocas.join(',') + ')');
     ok(r.iframes === 0 && !r.mapas, R + 'sem iframe nem painel de mapas no JURIS');
     ok(!r.texto, R + 'nenhum texto do DOD na tela do JURIS');
     /* Em file:// o WebKit rejeita o fetch do manifesto das fatias (dados/…/manifesto.json,

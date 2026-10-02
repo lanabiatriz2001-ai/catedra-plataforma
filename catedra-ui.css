@@ -1070,7 +1070,8 @@ button:disabled { cursor: not-allowed; }
    todo botão da área de conteúdo e da barra superior sobe para 44px; os chips em estilo inline leem --ct-alvo.
    O mesmo atributo também DESLIGA O MOVIMENTO (regra global no Catedra.dc.html e as pontuais de hover/transition
    espalhadas por este arquivo, ao lado de cada @media prefers-reduced-motion). O host o espelha no <html>, e os
-   satélites o recebem pela mensagem ctTheme (tema-satelite.js). */
+   satélites o recebem pela mensagem ctTheme (tema-satelite.js) — isso vale para o data-baixa. O data-toque
+   NÃO atravessa o iframe: nos satélites o alvo de toque sai de @media (pointer:coarse). */
 [data-baixa="1"] .ct-emo, [data-baixa="1"] .ct-gam { display: none !important; }
 /* O WebKit pinta um retângulo cinza sobre QUALQUER coisa tocada — era o "pisca" a cada toque no
    iPad, por cima dos estados de pressionado que o app já desenha. Vale para o host e para os
@@ -1645,3 +1646,65 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 /* a medalha pesa mais que o ladrilho comum: é o único enfeite do ranking */
 .ct-ladrilho[class*="ct-medalha-"] { background: linear-gradient(135deg,
   color-mix(in oklab, var(--ct-tinta) 36%, var(--surface, #fffdf8)), color-mix(in oklab, var(--ct-tinta) 16%, var(--surface, #fffdf8))); }
+/* ===== REVISÃO OFICIAL (sentinela Planalto/STF/STJ) =====
+   Vocabulário único nos três produtos: Detectado · Conferir · Conferido · Falhou · Parcial.
+   Status sempre por TEXTO + cor (a cor nunca anda sozinha); tinta = token de estado,
+   fundo = mistura clara do mesmo token, para o par passar de 4,5:1 nos dois temas.
+   Sem faixa lateral: o estado mora no selo. Lido pelo host e pelos satélites. */
+.ct-of-st { display:inline-flex; align-items:center; gap:5px; font-size:var(--fs-2xs, 11px); font-weight:700;
+  letter-spacing:.02em; border-radius:99px; padding:3px 9px; white-space:nowrap; line-height:1.3;
+  border:1px solid var(--of-bd, var(--border, #e5ded2)); background:var(--of-bg, transparent);
+  /* a tinta é o token de estado puxado para a cor do texto: o token puro sobre a lavagem dele
+     mesmo fica abaixo de 4,5:1 (o verde de --ok media 4,17) */
+  color:color-mix(in srgb, var(--of-c, var(--ink, #1f1c17)) 72%, var(--ink, #1f1c17)); }
+.ct-of-st::before { content:''; width:7px; height:7px; border-radius:50%; background:currentColor; flex:none; }
+.ct-of-st-detectado { --of-c:var(--info, #06809a); }
+.ct-of-st-conferir  { --of-c:var(--warn, #a36306); }
+.ct-of-st-conferido { --of-c:var(--ok, #0e7f58); }
+.ct-of-st-falhou    { --of-c:var(--danger, #c0392f); }
+.ct-of-st-parcial   { --of-c:var(--warn, #a36306); border-style:dashed; }
+.ct-of-st-pendente  { --of-c:var(--text3, #6b655b); }
+.ct-of-st-detectado, .ct-of-st-conferir, .ct-of-st-conferido, .ct-of-st-falhou, .ct-of-st-parcial, .ct-of-st-pendente {
+  --of-bg:color-mix(in srgb, var(--of-c) 11%, var(--surface, #fff));
+  --of-bd:color-mix(in srgb, var(--of-c) 34%, var(--border, #e5ded2)); }
+.ct-of-st-parcial::before { background:transparent; border:1.5px solid currentColor; width:5px; height:5px; }
+.ct-of-tipo { font-size:var(--fs-2xs, 11px); font-weight:700; color:var(--text2, #4f4a42); text-transform:uppercase; letter-spacing:.05em; }
+
+/* barra de saúde (Início) e cabeçalho dos painéis */
+.ct-of-saude { display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px; }
+.ct-of-fonte { display:inline-flex; align-items:center; gap:7px; font-size:var(--fs-sm, 12.5px); color:var(--ink, #1f1c17); font-weight:600; min-width:0; }
+.ct-of-num { display:flex; flex-wrap:wrap; gap:6px 16px; font-size:var(--fs-sm, 12.5px); color:var(--text2, #4f4a42); }
+.ct-of-num b { font-family:var(--mono, ui-monospace, monospace); color:var(--ink, #1f1c17); font-size:var(--fs-base, 14px); }
+.ct-of-frase { font-size:var(--fs-xs, 11.5px); color:var(--text3, #6b655b); }
+
+/* fila (painel do host, LEGIS, JURIS) */
+.ct-of-lista { display:flex; flex-direction:column; gap:8px; }
+.ct-of-item { border:1px solid var(--border, #e5ded2); border-radius:var(--r-md, 10px); background:var(--surface, #fff); padding:12px 14px; min-width:0; }
+.ct-of-linha { display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; min-width:0; }
+.ct-of-titulo { font-weight:700; color:var(--ink, #1f1c17); font-size:var(--fs-base, 14px); overflow-wrap:anywhere; }
+.ct-of-meta { font-size:var(--fs-xs, 11.5px); color:var(--text3, #6b655b); }
+.ct-of-resumo { font-size:var(--fs-sm, 12.5px); color:var(--text2, #4f4a42); line-height:1.5; margin-top:6px; overflow-wrap:anywhere; }
+.ct-of-acoes { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+.ct-of-btn { min-height:36px; display:inline-flex; align-items:center; gap:6px; background:var(--surface, #fff); color:var(--accentD, var(--accent, #0f7a57));
+  border:1px solid var(--border, #e5ded2); border-radius:var(--r-md, 10px); padding:7px 12px; font:600 var(--fs-sm, 12.5px)/1.2 inherit; font-family:inherit; cursor:pointer; text-decoration:none; }
+.ct-of-btn:hover { border-color:var(--accentRing, var(--accent, #0f7a57)); }
+.ct-of-btn[aria-pressed="true"] { background:var(--accentSoft, #e7f3ee); border-color:var(--accentRing, var(--accent, #0f7a57)); }
+.ct-of-btn svg { width:16px; height:16px; flex:none; }
+/* alvo de toque: no host vale [data-toque="1"] (a raiz sempre tem o atributo, vazio fora do
+   toque); os satélites não recebem o atributo, então vale o ponteiro grosso — o mesmo par da
+   regra `main button:not(.ct-miudo)` do host e das linhas de alvo do legis-web/juris-web */
+[data-toque="1"] .ct-of-btn { min-height:44px; min-width:44px; }
+@media (pointer:coarse) { .ct-of-btn { min-height:44px; min-width:44px; } }
+.ct-of-filtros { display:flex; gap:6px; flex-wrap:nowrap; overflow-x:auto; padding-bottom:2px; }
+.ct-of-filtros .ct-of-btn { flex:none; }
+.ct-of-grupo { font-size:var(--fs-xs, 11.5px); font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--text2, #4f4a42); margin:14px 0 6px; }
+.ct-of-vazio { font-size:var(--fs-sm, 12.5px); color:var(--text2, #4f4a42); line-height:1.55; border:1px dashed var(--border, #e5ded2); border-radius:var(--r-md, 10px); padding:14px; }
+.ct-of-limites { font-size:var(--fs-xs, 11.5px); color:var(--text3, #6b655b); line-height:1.5; margin:0; padding-left:18px; }
+
+/* comparação antes × depois (LEGIS) */
+.ct-of-cmp { display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:8px; margin-top:10px; }
+.ct-of-lado { border:1px solid var(--border, #e5ded2); border-radius:var(--r-md, 10px); padding:10px 12px; font-size:var(--fs-sm, 12.5px); line-height:1.6; color:var(--ink, #1f1c17); overflow-wrap:anywhere; min-width:0; }
+.ct-of-lado h4 { margin:0 0 4px; font-size:var(--fs-2xs, 11px); text-transform:uppercase; letter-spacing:.06em; color:var(--text3, #6b655b); }
+.ct-of-del { background:color-mix(in srgb, var(--danger, #c0392f) 12%, transparent); color:inherit; text-decoration:line-through; text-decoration-color:var(--danger, #c0392f); }
+.ct-of-ins { background:color-mix(in srgb, var(--ok, #0e7f58) 14%, transparent); color:inherit; text-decoration:underline; text-decoration-color:var(--ok, #0e7f58); text-underline-offset:2px; }
+.ct-sr { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
