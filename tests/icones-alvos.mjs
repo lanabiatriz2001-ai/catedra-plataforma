@@ -59,7 +59,9 @@ export async function testarIconesAlvos(pageDaSuite, base, ok, opcoes = {}) {
     await page.waitForFunction(() => !!window.__catedraApp && typeof window.__catedraGoView === 'function' && !!document.querySelector('[data-toque]'), null, { timeout: 30000 });
     await page.evaluate(({ toque, escuro, extra }) => new Promise(r => { const a = window.__catedraApp;
       a._toque = !!toque;
-      const prova = new Date(Date.now() + 120 * 864e5).toISOString().slice(0, 10);
+      // Data LOCAL: o app conta os dias no fuso do aparelho. Com toISOString (UTC), das 20h à
+      // meia-noite em Porto Velho a data já virava o dia seguinte e a ficha dizia 121 dias.
+      const prova = (() => { const d = new Date(Date.now() + 120 * 864e5), p = (n) => String(n).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); })();
       // "Continuar de onde parei" aparece quando há um ponto recente em outra tela
       const ponto = { rotulo: 'Lei 8.112/1990 · art. 5º', view: 'legis', ts: Date.now() - 36e5 };
       a.setState({ dir: 'sutil', accent: null, darkMode: !!escuro, escudos: 2, provaData: prova, notifOpen: false, lastPonto: ponto,
