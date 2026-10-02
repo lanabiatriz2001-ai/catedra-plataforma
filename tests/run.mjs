@@ -73,6 +73,7 @@ import { testarDesignNativo } from './design-nativo.mjs';
 import { testarExclusaoContaCobertura } from './exclusao-conta-cobertura.mjs';
 import { testarWidgetDodia } from './widget-dodia.mjs';
 import { testarWidgetSwift } from './widget-swift.mjs';
+import { testarWidgetCapturas } from './widget-capturas.mjs';
 import { testarProvaEncerrarUmaVez } from './prova-encerrar-uma-vez.mjs';
 import { montar as montarEnam, parseProva as parseProvaEnam, parseGabarito as parseGabaritoEnam, carregarAreas as areasEnam, EDICOES as EDICOES_ENAM } from '../scripts/build-questoes-enam.mjs';
 
@@ -4869,6 +4870,9 @@ catch (e) { ok(false, 'WIDGET DO DIA correu sem exceção (' + String(e && e.mes
 // Widgets: as contas do dia e a escolha nuvem × cópia local em Swift (tests/widget-swift.mjs)
 try { await testarWidgetSwift(ok); }
 catch (e) { ok(false, 'WIDGET SWIFT correu sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
+// Widgets: as telas compilam e pintam (tests/widget-capturas.mjs)
+try { await testarWidgetCapturas(ok); }
+catch (e) { ok(false, 'WIDGET TELAS correu sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
 
 /* ============= D1 — TEMA ÚNICO NOS SATÉLITES ============= */
 // Todo satélite carrega a mesma ponte
