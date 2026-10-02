@@ -29,6 +29,7 @@ import { testarIntegracaoFase2 } from './integracao-fase2.mjs';
 import { testarVariosEditais } from './varios-editais.mjs';
 import { testarTemplateFileUrl } from './template-file-url.mjs';
 import { testarAuthModoLocal } from './auth-modo-local.mjs';
+import { testarBackupDriveErros } from './backup-drive-erros.mjs';
 import { testarIphoneHost390 } from './iphone-host-390.mjs';
 import { testarReguaUnica } from './regua-unica.mjs';
 import { testarPrioridadeErrosResolvidos } from './prioridade-erros-resolvidos.mjs';
@@ -3484,7 +3485,7 @@ catch (e) { ok(false, 'PROVA ENCERRAR UMA VEZ [chromium] o roteiro correu sem ex
       && /trata os dados também como controlador/.test(s6) && /Política de Dados do Usuário dos Serviços de API do Google, incluindo os requisitos de Uso Limitado/.test(s6)
       && /os dados recebidos do Google no login/.test(s92) && /Apps de terceiros com acesso à conta/.test(s112);
     // backup no Google Drive: um escopo só (drive.file), token que vive na promessa e nunca vai ao localStorage
-    const iTok = host.indexOf('_gdriveToken(){'), corpoTok = iTok < 0 ? '' : host.slice(iTok, host.indexOf('async _gdriveAcha', iTok));
+    const iTok = host.search(/_gdriveToken\([^)]*\)\{/), corpoTok = iTok < 0 ? '' : host.slice(iTok, host.indexOf('async _gdriveAcha', iTok));
     const driveSoArquivoProprio = (host.match(/googleapis\.com\/auth\//g) || []).length === 1 && /scope:'https:\/\/www\.googleapis\.com\/auth\/drive\.file'/.test(corpoTok) && !/localStorage|fetch\(/.test(corpoTok);
     const prefsPadrao = (host.match(/const AJ_PREFS_PADRAO = \{[\s\S]*?\n\};/) || [''])[0];   // o semanal nasce desligado
     r.politicaBackupNoGoogleDrive = driveSoArquivoProprio && prefsPadrao.length > 0 && !/backupAuto/.test(prefsPadrao) && /escopo drive\.file/.test(s53) && /não vê os demais arquivos do seu Drive/.test(s53)
@@ -9675,6 +9676,8 @@ try { await testarCotaIA(page, URL0, ok); } catch (e) { ok(false, 'COTA/IA exce�
 { const ctxR = await browser.newContext(); const pageR = await ctxR.newPage(); try { await testarReguaUnica(pageR, URL0, ok); } catch (e) { ok(false, 'RÉGUA/única exceção: ' + e.message); } finally { await ctxR.close(); } }
 try { await testarTemplateFileUrl(browser, URL0, ok, { motor }); } catch (e) { ok(false, 'TEMPLATE/file exceção: ' + e.message); }
 { const ctxML = await browser.newContext(); const pML = await ctxML.newPage(); try { await testarAuthModoLocal(pML, URL0, ok); } catch (e) { ok(false, 'MODO LOCAL exceção: ' + e.message); } finally { await ctxML.close(); } }
+// backup na nuvem pessoal: erro do Drive em português e nenhum clique acende a faixa vermelha global
+try { await testarBackupDriveErros(browser, URL0, ok); } catch (e) { ok(false, 'BACKUP/Drive exceção: ' + e.message); }
 try { await testarIphoneHost390(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'IPHONE/host 390 [' + motor + '] [http] o roteiro correu sem exceção ('
