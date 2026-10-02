@@ -11523,12 +11523,17 @@ class Component extends DCLogic {
           this._toast('O backup automático falhou — '+((e&&e.message)||'reconecte a nuvem nos Ajustes')); });
     }catch(_){}
   }
+  // Backup que deu certo, manual ou automático, conta como o backup da semana: grava o carimbo
+  // do destino e o do automático e apaga o aviso de falha. Antes só o automático gravava, e o
+  // aviso "o último backup automático não completou — clique em salvar acima" ficava na tela
+  // depois que ela clicava e salvava (01/10/2026).
+  _bkpFeito(chave){ const t=String(Date.now()); try{ localStorage.setItem(chave,t); localStorage.setItem('catedra:_bkpAutoTs',t); }catch(_){} this.setState({backupAutoErro:false}); }
   // Devolve a promessa e REJEITA quando não salvou — sem isso o backup automático semanal
   // não tinha como saber que falhou, e passava a afirmar na tela que tinha dado certo.
   backupICloud = ()=>{ const json=JSON.stringify(this._backupObjeto(),null,2);
     if(!this._nativoBackup()){ this.exportJSON(); return Promise.resolve(); }
     return window.webkit.messageHandlers.catedraBackup.postMessage({acao:'salvar', json, nome:'catedra-backup.json'}).then(r=>{
-      if(r&&r.ok){ try{ localStorage.setItem('catedra:_bkpICloud',String(Date.now())); }catch(_){} this.setState({}); this._toast('Backup salvo'+(r.onde?(' em '+r.onde):'')+' ✦'); }
+      if(r&&r.ok){ this._bkpFeito('catedra:_bkpICloud'); this._toast('Backup salvo'+(r.onde?(' em '+r.onde):'')+' ✦'); }
       else if(r&&r.cancelado){ throw new Error('você cancelou a escolha da pasta'); }
       else { this._toast('Não deu para salvar: '+((r&&r.erro)||'erro desconhecido'));
         throw new Error((r&&r.erro)||'não deu para salvar'); }
@@ -11540,25 +11545,71 @@ class Component extends DCLogic {
       else if(r&&r.cancelado){ }
       else this._toast((r&&r.erro)||'Nenhum backup encontrado');
     }).catch(()=>this._toast('Não deu para ler o backup')); };
-  _gdriveToken(){ return new Promise((ok,fail)=>{ const cid=this._gdriveCfg(); if(!cid) return fail(new Error('Google Drive não configurado'));
-    const go=()=>{ try{ const tc=google.accounts.oauth2.initTokenClient({client_id:cid, scope:'https://www.googleapis.com/auth/drive.file', callback:(r)=> (r&&r.access_token)?ok(r.access_token):fail(new Error('acesso negado'))}); tc.requestAccessToken(); }catch(e){ fail(e); } };
+  _GDRIVE_MSG = {
+    apiDesligada:'a API do Google Drive não está ativada no projeto do Google Cloud — ative-a e espere alguns minutos',
+    permissao:'o Google não deu permissão ao Drive — toque de novo e marque a permissão de acesso ao Google Drive',
+    expirou:'a sessão do Google expirou — toque de novo para entrar',
+    cheio:'o Google Drive desta conta está sem espaço — libere espaço ou use outra conta Google',
+    pedidos:'o Google Drive recebeu pedidos demais — espere um minuto e tente de novo',
+    instavel:'o Google Drive está instável agora — tente de novo em alguns minutos',
+  };
+  /** Resposta de erro da API do Drive → Error com o motivo em português.
+   *  O Drive explica a falha no corpo JSON (error.message, errors[].reason, details[].reason);
+   *  ficar só com "HTTP 403" não dizia se era a API desligada no projeto, a permissão do Drive
+   *  desmarcada ou o Drive cheio (o 403 real do primeiro teste, 01/10/2026). Motivo que não
+   *  está na lista cai no texto do próprio Google, com o código HTTP. */
+  async _gdriveErro(r){
+    let e={}; try{ const j=await r.json(); e=(j&&j.error)||{}; }catch(_){}
+    const st=r.status, M=this._GDRIVE_MSG;
+    const mot=[].concat((e.errors||[]).map(x=>x&&x.reason), (e.details||[]).map(x=>x&&x.reason), [e.status]).filter(Boolean).join(' ');
+    const msg=/accessNotConfigured|SERVICE_DISABLED/.test(mot) ? M.apiDesligada
+      : /insufficientPermissions|ACCESS_TOKEN_SCOPE_INSUFFICIENT/.test(mot) ? M.permissao
+      : /storageQuotaExceeded/.test(mot) ? M.cheio
+      : (st===401 || /authError|UNAUTHENTICATED/.test(mot)) ? M.expirou
+      : (st===429 || /[rR]ateLimitExceeded|RESOURCE_EXHAUSTED/.test(mot)) ? M.pedidos
+      : st>=500 ? M.instavel
+      : (e.message ? (e.message+' (HTTP '+st+')') : ('HTTP '+st));
+    const err=new Error(msg); err.status=st; err.motivo=mot; return err;
+  }
+  // Aviso de falha do Drive para quem clicou: fica 10 s (o motivo é uma frase inteira, não
+  // cabe nos 2 s do toast comum) e, com o Drive cheio, oferece trocar de conta ali mesmo.
+  // O prefixo "Google Drive:" só entra quando a frase não diz de quem é (o texto cru do Google).
+  _gdriveAvisa(e, deNovo){ const msg=(e&&e.message)||'falhou';
+    const txt=/Google|Drive/.test(msg) ? (msg.charAt(0).toUpperCase()+msg.slice(1)) : ('Google Drive: '+msg);
+    this._toastAcoes(txt, (msg===this._GDRIVE_MSG.cheio && deNovo)?[{rotulo:'Usar outra conta Google', destaque:true, on:deNovo}]:[], 10); }
+  // trocarConta: abre o Google já na escolha de conta. Sem isso o Google reaproveita em
+  // silêncio a conta que autorizou da última vez — e, com o Drive dela cheio, não havia como
+  // salvar em outra. Só o botão "Usar outra conta Google" pede; o clique comum segue direto.
+  _gdriveToken(trocarConta){ return new Promise((ok,fail)=>{ const cid=this._gdriveCfg(); if(!cid) return fail(new Error('Google Drive não configurado'));
+    // UM escopo só, literal aqui: a Política (5.3) promete drive.file e o JURÍDICO/P14 confere
+    const go=()=>{ try{ const o2=google.accounts.oauth2; const cfg={client_id:cid, scope:'https://www.googleapis.com/auth/drive.file', callback:(r)=>{
+        if(!r||!r.access_token) return fail(new Error((r&&r.error==='access_denied')?'você não autorizou o acesso na janela do Google — toque de novo e autorize o Drive':('o Google não deu acesso'+((r&&r.error)?(' ('+r.error+')'):''))));
+        // permissão granular: dá para desmarcar o Drive na janela do Google e o token vem
+        // assim mesmo — sem esta conferência o motivo só aparecia depois, como 403 da API
+        try{ if(typeof o2.hasGrantedAllScopes==='function' && !o2.hasGrantedAllScopes(r, cfg.scope)) return fail(new Error(this._GDRIVE_MSG.permissao)); }catch(_){}
+        ok(r.access_token); }}; o2.initTokenClient(cfg).requestAccessToken(trocarConta?{prompt:'select_account'}:{}); }catch(e){ fail(e); } };
     if(window.google&&window.google.accounts) return go();
     const sc=document.createElement('script'); sc.src='https://accounts.google.com/gsi/client'; sc.async=true; sc.onload=go; sc.onerror=()=>fail(new Error('não carregou o Google')); document.head.appendChild(sc); }); }
-  async _gdriveAcha(h){ const q=encodeURIComponent("name='catedra-backup.json' and trashed=false"); const r=await fetch('https://www.googleapis.com/drive/v3/files?q='+q+'&fields=files(id,modifiedTime)&orderBy=modifiedTime desc',{headers:h}); if(!r.ok) throw new Error('HTTP '+r.status); const j=await r.json(); return (j.files&&j.files[0])||null; }
-  backupDrive = async ()=>{ try{ const tok=await this._gdriveToken(); const h={Authorization:'Bearer '+tok}; const f=await this._gdriveAcha(h);
+  async _gdriveAcha(h){ const q=encodeURIComponent("name='catedra-backup.json' and trashed=false"); const r=await fetch('https://www.googleapis.com/drive/v3/files?q='+q+'&fields=files(id,modifiedTime)&orderBy=modifiedTime desc',{headers:h}); if(!r.ok) throw await this._gdriveErro(r); const j=await r.json(); return (j.files&&j.files[0])||null; }
+  // REJEITA quando não salvou, de propósito: o backup automático semanal (D11) precisa saber
+  // que falhou — engolir aqui fazia a tela afirmar que a cópia foi feita quando o token tinha
+  // expirado. O aviso fica com quem chama: o botão (backupDriveBotao) e o automático.
+  backupDrive = async (trocarConta)=>{ const tok=await this._gdriveToken(trocarConta===true); const h={Authorization:'Bearer '+tok}; const f=await this._gdriveAcha(h);
       const json=JSON.stringify(this._backupObjeto(),null,2); const meta=f?{}:{name:'catedra-backup.json', mimeType:'application/json'};
       const b='ctbkp'+Date.now(); const body='--'+b+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(meta)+'\r\n--'+b+'\r\nContent-Type: application/json\r\n\r\n'+json+'\r\n--'+b+'--';
-      const r=await fetch('https://www.googleapis.com/upload/drive/v3/files'+(f?('/'+f.id):'')+'?uploadType=multipart',{method:f?'PATCH':'POST', headers:{...h,'Content-Type':'multipart/related; boundary='+b}, body}); if(!r.ok) throw new Error('HTTP '+r.status);
-      try{ localStorage.setItem('catedra:_bkpDrive',String(Date.now())); }catch(_){} this.setState({}); this._toast('Backup salvo no Google Drive ✦');
-    // relança depois de avisar: o backup automático semanal precisa saber que falhou —
-    // engolir aqui fazia a tela afirmar que a cópia foi feita quando o token tinha expirado
-    }catch(e){ this._toast('Google Drive: '+((e&&e.message)||'falhou')); throw e; } };
+      const r=await fetch('https://www.googleapis.com/upload/drive/v3/files'+(f?('/'+f.id):'')+'?uploadType=multipart',{method:f?'PATCH':'POST', headers:{...h,'Content-Type':'multipart/related; boundary='+b}, body}); if(!r.ok) throw await this._gdriveErro(r);
+      this._bkpFeito('catedra:_bkpDrive'); this._toast('Backup salvo no Google Drive ✦'); };
+  // Os botões chamam e ENGOLEM a rejeição depois de avisar: sem o .catch ela virava
+  // unhandledrejection e acendia a faixa vermelha global de "Erro no app" (01/10/2026).
+  backupDriveBotao = (trocarConta)=>{ this.backupDrive(trocarConta===true).catch((e)=>this._gdriveAvisa(e, ()=>this.backupDriveBotao(true))); };
+  // iCloud: o backupICloud já avisou a falha de gravação, e cancelar o seletor de pasta não é erro.
+  backupICloudBotao = ()=>{ try{ Promise.resolve(this.backupICloud()).catch(()=>{}); }catch(e){ this._toast('Não deu para salvar: '+((e&&e.message)||'erro desconhecido')); } };
   restaurarDrive = async ()=>{ try{ const tok=await this._gdriveToken(); const h={Authorization:'Bearer '+tok}; const f=await this._gdriveAcha(h);
       if(!f){ this._toast('Nenhum backup do Cátedra no seu Google Drive'); return; }
       if(!window.confirm('Restaurar o backup do Google Drive de '+new Date(f.modifiedTime).toLocaleString('pt-BR')+'? Os dados atuais serão substituídos.')) return;
-      const r=await fetch('https://www.googleapis.com/drive/v3/files/'+f.id+'?alt=media',{headers:h}); if(!r.ok) throw new Error('HTTP '+r.status);
+      const r=await fetch('https://www.googleapis.com/drive/v3/files/'+f.id+'?alt=media',{headers:h}); if(!r.ok) throw await this._gdriveErro(r);
       this._restaurarBackup(await r.json());
-    }catch(e){ this._toast('Google Drive: '+((e&&e.message)||'falhou')); } };
+    }catch(e){ this._gdriveAvisa(e); } };
   importData = ()=>{ try{
       const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json,.json';
       inp.onchange=()=>{ const f=inp.files&&inp.files[0]; if(!f) return; const fr=new FileReader();
@@ -18939,7 +18990,7 @@ class Component extends DCLogic {
         return 'Ligado: uma vez por semana o app salva sozinho na sua nuvem pessoal'
           +(quando?(' — o último foi em '+quando+'.'):'; o primeiro sai nos próximos minutos.');
       })(),
-      prefs:this.state.prefs, togglePref:this.togglePref, copiarRelatorio:this.copiarRelatorio, enviarFeedback:this.enviarFeedback, buildLabel:((window.CATEDRA_BUILD&&('versão '+window.CATEDRA_BUILD.versao+' · '+window.CATEDRA_BUILD.alvo))||'versão de desenvolvimento'), exportJSON:this.exportJSON, backupICloud:this.backupICloud, restaurarICloud:this.restaurarICloud, backupDrive:this.backupDrive, restaurarDrive:this.restaurarDrive, backupNativoShow:this._nativoBackup(), driveShow:(!this._nativoBackup()&&!!this._gdriveCfg()), backupNuvemShow:(this._nativoBackup()||!!this._gdriveCfg()), backupNuvemDica:(this._nativoBackup()?'Uma cópia sua, fora da conta Cátedra. No Mac vai para a pasta Cátedra do iCloud Drive; no iPad você escolhe a pasta em Arquivos (o iCloud Drive aparece lá).':'Uma cópia sua, fora da conta Cátedra, guardada no seu Google Drive (arquivo catedra-backup.json).'), backupNuvemStatus:((()=>{ const a=this._bkpCarimbo('catedra:_bkpICloud'), b=this._bkpCarimbo('catedra:_bkpDrive'); return [a?('iCloud Drive: último backup '+a):'', b?('Google Drive: último backup '+b):''].filter(Boolean).join(' · ')||'Nenhum backup feito ainda neste aparelho.'; })()), exportFlashcardsCSV:this.exportFlashcardsCSV, exportICS:this.exportICS, exportEditalTXT:this.exportEditalTXT, exportEditalPDF:this.exportEditalPDF,
+      prefs:this.state.prefs, togglePref:this.togglePref, copiarRelatorio:this.copiarRelatorio, enviarFeedback:this.enviarFeedback, buildLabel:((window.CATEDRA_BUILD&&('versão '+window.CATEDRA_BUILD.versao+' · '+window.CATEDRA_BUILD.alvo))||'versão de desenvolvimento'), exportJSON:this.exportJSON, backupICloud:this.backupICloudBotao, restaurarICloud:this.restaurarICloud, backupDrive:this.backupDriveBotao, restaurarDrive:this.restaurarDrive, backupNativoShow:this._nativoBackup(), driveShow:(!this._nativoBackup()&&!!this._gdriveCfg()), backupNuvemShow:(this._nativoBackup()||!!this._gdriveCfg()), backupNuvemDica:(this._nativoBackup()?'Uma cópia sua, fora da conta Cátedra. No Mac vai para a pasta Cátedra do iCloud Drive; no iPad você escolhe a pasta em Arquivos (o iCloud Drive aparece lá).':'Uma cópia sua, fora da conta Cátedra, guardada no seu Google Drive (arquivo catedra-backup.json).'), backupNuvemStatus:((()=>{ const a=this._bkpCarimbo('catedra:_bkpICloud'), b=this._bkpCarimbo('catedra:_bkpDrive'); return [a?('iCloud Drive: último backup '+a):'', b?('Google Drive: último backup '+b):''].filter(Boolean).join(' · ')||'Nenhum backup feito ainda neste aparelho.'; })()), exportFlashcardsCSV:this.exportFlashcardsCSV, exportICS:this.exportICS, exportEditalTXT:this.exportEditalTXT, exportEditalPDF:this.exportEditalPDF,
       togRevisao:togStyle(this.state.prefs.notifRevisao), togRevisaoKnob:togKnob(this.state.prefs.notifRevisao),
       togMeta:togStyle(this.state.prefs.notifMeta), togMetaKnob:togKnob(this.state.prefs.notifMeta),
       contentMax, contentBoxStyle, contentInnerStyle,
