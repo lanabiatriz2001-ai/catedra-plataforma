@@ -1,0 +1,17 @@
+#!/bin/sh
+# Recusa enviar ao GitHub qualquer ref que parta do histórico de ANTES da reescrita de 01/10/2026:
+# aqueles commits levam dado pessoal (CPF e telefone), e um push deles devolve o dado ao repositório
+# público. Foi o que aconteceu com o branch do PR #191 em 02/10/2026.
+# a9c0381 é o primeiro commit antigo que a reescrita alterou: todo ramo antigo posterior a ele o contém.
+ANTIGO=a9c0381c3b3ea310c250ab4d26796304b3f6b222
+git cat-file -e "$ANTIGO^{commit}" 2>/dev/null || exit 0
+ZERO=0000000000000000000000000000000000000000
+while read lref lsha rref rsha; do
+  [ "$lsha" = "$ZERO" ] && continue
+  if git merge-base --is-ancestor "$ANTIGO" "$lsha" 2>/dev/null; then
+    echo "push recusado: $lref parte do histórico de ANTES da reescrita de 01/10/2026, que tem commits com dado pessoal." >&2
+    echo "Recrie o branch a partir da origin/main (git cherry-pick dos seus commits) ou rode bash ~/catedra-reescrita-2026-10-01/reconciliar.sh." >&2
+    exit 1
+  fi
+done
+exit 0
