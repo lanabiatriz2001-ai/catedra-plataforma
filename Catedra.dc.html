@@ -6782,6 +6782,16 @@ window.ctPdfLib = (function(){
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;margin-top:12px;"><span style="width:8px;height:8px;border-radius:99px;background:{{ syncDot }};flex:none;"></span><span style="font-size:var(--fs-sm);color:var(--text2);">{{ syncDetalhe }}</span></div>
+          <sc-if value="{{ widgetLinhaOn }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px;padding:12px 16px;border:1px solid var(--border);border-radius:var(--r-md);">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:var(--text2);flex:none;"><rect width="7" height="9" x="3" y="3" rx="1"></rect><rect width="7" height="5" x="14" y="3" rx="1"></rect><rect width="7" height="9" x="14" y="12" rx="1"></rect><rect width="7" height="5" x="3" y="16" rx="1"></rect></svg>
+            <div style="flex:1;min-width:180px;">
+              <div style="font-weight:600;color:var(--ink);">Widgets</div>
+              <div style="font-size:var(--fs-sm);color:var(--text2);margin-top:2px;line-height:1.5;">{{ widgetLinhaTxt }}</div>
+            </div>
+            <sc-if value="{{ widgetLinhaBotao }}" hint-placeholder-val="{{ false }}"><button type="button" onclick="{{ desligarWidgets }}" class="ct-btn-2" style="min-height:44px;">Desligar todos</button></sc-if>
+          </div>
+          </sc-if>
           <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:10px;line-height:1.5;">Sair desconecta este aparelho. O que já sincronizou continua na sua conta; o que ainda não subiu é enviado antes de sair.</div>
           <button onclick="{{ logout }}" style="margin-top:14px;background:transparent;border:1px solid var(--border);border-radius:var(--r-md);padding:10px 16px;font-size:var(--fs-base);color:var(--danger);cursor:pointer;font-family:inherit;font-weight:700;">Sair da conta</button>
         </div>
@@ -7256,7 +7266,7 @@ class Component extends DCLogic {
       // bancaAreaConc vazio = segue a área de estudo escolhida no app.
       bancaAreaSel:this._load('bancaAreaSel',''), bancaDicas:this._load('bancaDicas',{}), bancaBusy:'',
       bancaSel:this._load('bancaSel','cebraspe'), bancaAreaConc:this._load('bancaAreaConc',''), bancaAssunto:this._load('bancaAssunto',''),
-      ajSec:'perfil', ajPerfis:this._load('ajPerfis', []),
+      ajSec:'perfil', ajPerfis:this._load('ajPerfis', []), widgetAtivos:null,
       ajBusca:'', ajBuscaN:0, apAvancada:false, backupAutoErro:false, apPreset:this._load('apPreset','personalizado'),   // D11
       plataformaQuestoes:this._load('plataformaQuestoes','tec'),   // C2: onde ela prefere praticar questões
       ajAnkiOpen:false,
@@ -7734,6 +7744,8 @@ class Component extends DCLogic {
     try{ ['catedra:_bkpFase2','catedra:mentorMsgs','catedra:_ccprobe','catedra:_ccdiag'].forEach(k=>{ if(localStorage.getItem(k)!=null) localStorage.removeItem(k); });
       const _bp=JSON.parse(localStorage.getItem('ct_bkpFase2')||'null'); if(_bp&&_bp.ts&&(Date.now()-_bp.ts)>7*864e5) localStorage.removeItem('ct_bkpFase2'); }catch(_){}
     try{ window.catedraWidgetPayload = ()=>this._widgetPayload(); }catch(_){}
+    // Widgets (WidgetKit): o host nativo lê isto e grava no grupo de apps; o auth.js publica na nuvem.
+    try{ window.catedraWidgetResumo = ()=>{ try{ return this._widgetResumo(); }catch(_){ return null; } }; }catch(_){}
     // O widget da mesa (painel nativo) chama isto p/ abrir/fechar o PiP do cronômetro.
     try{ window.catedraTogglePiP = ()=>{ try{ this.togglePiP(); }catch(_){} }; }catch(_){}
     // O CátedraLEGIS lê isto ao abrir a aba p/ oferecer as matérias do SEU edital
@@ -7982,6 +7994,8 @@ class Component extends DCLogic {
         return 'ok';
       }catch(e){ return 'err:'+((e&&e.message)||e); }
     };
+    // Widgets: tira a primeira foto do resumo (o aviso ao app nativo só sai em mudança).
+    this._widgetAvisar();
   }
   // relê do localStorage as fatias que o merge de sync pode ter atualizado (sem reload)
   _rehydrateFromLocal(){
@@ -8171,6 +8185,90 @@ class Component extends DCLogic {
       return {diasProva:dias, revisoes:revVenc, metaPct, streak:(B.streak||0), proximo:(prox?String(prox.disc||'').replace('Direito ',''):''), updated:Date.now(), baixa:this._baixa()};
     }catch(_){ let baixa=false; try{ baixa=this._baixa(); }catch(__){}
       return {diasProva:-1, revisoes:0, metaPct:0, streak:0, proximo:'', updated:Date.now(), baixa}; }
+  }
+  // ===== Widgets (WidgetKit: Mac, iPad, iPhone) =====
+  // Resumo de FATOS, não das contas do dia: o widget refaz "dias até a prova", "revisões de hoje" e "meta de hoje"
+  // sozinho, inclusive à meia-noite. O auth.js publica isto na nuvem depois de cada sincronização (o carimbo é o
+  // updated_at do user_data) e o app nativo grava uma cópia no grupo de apps. Teto: 64 KB. Spec dos widgets §5.1.
+  _widgetResumo(){
+    const hoje=this._hoje();
+    let A=null; try{ A=window.CatedraAuth||null; }catch(_){}
+    const u=A&&A.user;
+    let sessao='local';
+    if(u&&u.id) sessao='conta';
+    else if(A){ let ml=false; try{ ml=localStorage.getItem('catedra:_modoLocal')==='1'; }catch(_){} sessao=ml?'local':'nenhuma'; }
+    let carimbo=0; try{ carimbo=+(window.CatedraSync&&window.CatedraSync.carimbo)||0; }catch(_){}
+    const C=this._concursoAtivo();
+    const prova=this.state.provaData ? {data:String(this.state.provaData), nome:String((C&&C.nome)||'')} : null;
+    // revisões pelo dueDate: o `due` numérico pode estar velho se o app ficou aberto na virada do dia
+    const lim=this._addDiasStr(hoje,30); let atrasadas=0; const porData={};
+    (this.state.reviews||[]).forEach(r=>{ const d=String((r&&r.dueDate)||''); if(!/^\d{4}-\d{2}-\d{2}$/.test(d)) return;
+      if(d<hoje) atrasadas++; else if(d<=lim) porData[d]=(porData[d]||0)+1; });
+    // ciclo: a fatia de hoje a partir do ponteiro; a cor própria do edital vence a tabela de ramos
+    const cor=(disc,dark)=>{ const k=String(disc||'').trim().toLowerCase();
+      const ed=(this.state.edital||[]).find(x=>String(x.disc||'').trim().toLowerCase()===k);
+      if(ed && /^#[0-9a-f]{3,8}$/i.test(ed.color||'')) return ed.color;
+      return CT_COR_RAMO(disc, dark); };
+    const blocos=(this.state.blocks||[]).filter(Boolean);
+    const proximos=blocos.filter(b=>!b.done).slice(0,8).map(b=>{ const d=String(b.discEdital||b.disc||'');
+      return {disc:String(b.disc||d||'—'), min:Math.max(0,Math.round(+b.min||0)), cor:this._hexDe(cor(d,false)), corD:this._hexDe(cor(d,true))}; });
+    const V=this.state.cicloVolta;
+    const volta=(V&&Array.isArray(V.blocos)&&V.blocos.length)?{n:+V.n||1, feitos:V.blocos.filter(b=>b&&b.done).length, total:V.blocos.length}:null;
+    // meta e minutos por dia na régua da meta (countMeta), com o cronômetro de hoje que ainda corre
+    const O=this.state.orient||{};
+    const diasAtivos=String(O.dias||'seg,ter,qua,qui,sex,sab').split(',').map(s=>s.trim()).filter(Boolean);
+    const metaDiariaMin=Math.max(30, parseInt(O.metaIdeal,10)||180);
+    const S=(this.state.sessions||[]).filter(Boolean); const minPorDia={};
+    for(let i=7;i>=0;i--){ const k=this._addDiasStr(hoje,-i);
+      minPorDia[k]=Math.round(S.filter(s=>s.date===k && s.countMeta!==false).reduce((a,s)=>a+(+s.min||0),0)); }
+    try{ const t=JSON.parse(localStorage.getItem('ct_timer')||'null'); if(!t||!t.d||t.d===hoje) minPorDia[hoje]+=Math.round((this.state.studiedSeconds||0)/60); }catch(_){}
+    // ofensiva com "vale até": último dia que segura a sequência + 1 + escudos (regra de _reconcileStreak)
+    const n=(this._brain().streak)||0; let valeAte='';
+    if(n>0){ const datas=new Set(S.map(s=>s.date)); const frz=new Set(this.state.streakFreezeUsados||[]);
+      const L=(datas.has(hoje)||frz.has(hoje))?hoje:this._addDiasStr(hoje,-1);
+      valeAte=this._addDiasStr(L, 1+Math.max(0, +this.state.escudos||0)); }
+    const area=this.state.areaEstudo||'juridica';
+    let juridico=true; try{ juridico=!!CT_AREA(area).juridico; }catch(_){}
+    return { v:1, carimbo, geradoEm:Date.now(), conta:(u&&u.id)||'', sessao, area, juridico, prova,
+      revisoes:{atrasadas, porData}, ciclo:{feitos:blocos.filter(b=>b.done).length, total:blocos.length, proximos, volta},
+      metaDiariaMin, diasAtivos, metaSemanaMin:metaDiariaMin*Math.max(1,diasAtivos.length), minPorDia,
+      ofensiva:{n, valeAte}, prefs:{baixa:this._baixa(), tema:this._widgetTema()} };
+  }
+  // Cor CSS → '#rrggbb' minúsculo ('' se não der): #abc, #aabbcc, rgb(), rgba().
+  _hexDe(c){
+    const s=String(c||'').trim().toLowerCase();
+    if(/^#[0-9a-f]{6}$/.test(s)) return s;
+    if(/^#[0-9a-f]{3}$/.test(s)) return '#'+s.slice(1).replace(/./g,'$&$&');
+    const m=s.match(/^rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/);
+    if(m) return '#'+[m[1],m[2],m[3]].map(x=>Math.max(0,Math.min(255,+x)).toString(16).padStart(2,'0')).join('');
+    return '';
+  }
+  // O tema resolvido na tela (o mesmo nó que _temaTokens lê): accent e até 2 paradas do --heroGrad, em hex.
+  // Avisa o app nativo (iPad/iPhone/Mac) que o resumo do widget mudou, para ele regravar o grupo de apps.
+  // Compara por IDENTIDADE as listas que o resumo lê (setState troca a lista inteira) e mais os escalares; junta
+  // mudanças seguidas em um aviso só, 2 s depois da última. Na web e sem o handler, não faz nada.
+  _widgetAvisar(){ try{
+    const s=this.state;
+    const refs=[s.sessions, s.reviews, s.blocks, s.cicloVolta, s.edital, s.editais, s.orient, s.prefs];
+    const esc=[s.provaData||'', s.editalAtivo||'', s.darkMode?1:0, s.dir||'', s.accent||'', s.areaEstudo||'', s.escudos||0, this._hoje()].join('|');
+    const antes=this._widgetRefs;
+    if(antes && antes.esc===esc && antes.refs.every((x,i)=>x===refs[i])) return;
+    this._widgetRefs={refs, esc};
+    if(!antes) return;   // a primeira foto não é mudança
+    clearTimeout(this._widgetT);
+    this._widgetT=setTimeout(()=>{ try{ const mh=window.webkit&&window.webkit.messageHandlers; if(mh&&mh.catedraWidget) mh.catedraWidget.postMessage({resumo:1}); }catch(_){} }, 2000);
+  }catch(_){} }
+  _widgetTema(){
+    const escuro=!!this.state.darkMode; let accent='', grad=[];
+    try{ const host=document.querySelector('[style*="--accent"]');
+      if(host){ const cs=getComputedStyle(host);
+        accent=this._hexDe(cs.getPropertyValue('--accent'));
+        grad=(String(cs.getPropertyValue('--heroGrad')||'').match(/#[0-9a-f]{6}\b|#[0-9a-f]{3}\b|rgba?\([^)]*\)/gi)||[]).map(x=>this._hexDe(x)).filter(Boolean); } }catch(_){}
+    if(!accent){ try{ const D=this.THEMES()[this.state.dir]||this.THEMES().sutil;
+      accent=this._hexDe(this.state.accent)||this._hexDe(D[escuro?'dark':'light'].accent)||'#0f7a57'; }catch(_){ accent='#0f7a57'; } }
+    if(grad.length>2) grad=[grad[0], grad[grad.length-1]];
+    if(!grad.length) grad=[accent];
+    return {accent, grad, escuro};
   }
   // "hoje" e aritmética de datas em YYYY-MM-DD no fuso LOCAL (antes era UTC via
   // toISOString → no Brasil, UTC-3, o "dia" do app virava às 21h: ofensiva, revisões,
@@ -8363,7 +8461,7 @@ class Component extends DCLogic {
   componentWillUnmount(){ try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onSelChange){ document.removeEventListener('selectionchange', this._onSelChange); clearTimeout(this._selChangeT); } ['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev, this._acDespertar)); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._areaMsg) window.removeEventListener('message', this._areaMsg); if(this._acervoMsg) window.removeEventListener('message', this._acervoMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._revT) clearInterval(this._revT);
     try{ if(this._mqDark && this._onMqDark){ if(this._mqDark.removeEventListener) this._mqDark.removeEventListener('change', this._onMqDark); else if(this._mqDark.removeListener) this._mqDark.removeListener(this._onMqDark); } }catch(_){}
     if(this._pipMsgT) clearTimeout(this._pipMsgT); if(this._bkpAutoT) clearInterval(this._bkpAutoT); if(this._salaT) clearTimeout(this._salaT); this._pipStop(); this._closeDocPiP();  }
-  componentDidUpdate(){ this._baixaRaiz(); this._syncModalFocus(); try{ const ta=this._toastAcaoEl; if(ta && ta.style.pointerEvents==='auto') this._toastAcaoPos(); }catch(_){} try{ this._edSincronizarConcurso(); }catch(_){} this._autosave(); this._montarFrames(); this._marcasEnunSync(); }
+  componentDidUpdate(){ this._baixaRaiz(); this._widgetAvisar(); this._syncModalFocus(); try{ const ta=this._toastAcaoEl; if(ta && ta.style.pointerEvents==='auto') this._toastAcaoPos(); }catch(_){} try{ this._edSincronizarConcurso(); }catch(_){} this._autosave(); this._montarFrames(); this._marcasEnunSync(); }
   // LEGIS e JURIS ficam em <iframe> com data-ct-frame (e não src=) de propósito: com
   // src no HTML cru o navegador baixava as duas páginas durante o parse — antes do
   // runtime existir — e jogava fora ao montar o app. Aqui o src entra só quando a
@@ -12776,6 +12874,22 @@ class Component extends DCLogic {
     this.setState({contaExcluindo:true});
     A.excluirConta().catch((err)=>{ this.setState({contaExcluindo:false}); const m=String(err&&err.message||''); this._toast(/admin_nao_pode/.test(m)?'Conta de administração não pode ser excluída por aqui':'Não consegui excluir agora — tente de novo com internet'); });
   };
+  // Ajustes → Conta → Widgets: quantos aparelhos têm passe de leitura ativo (null = não sei / sem conta).
+  _carregarWidgets = async ()=>{
+    const sb=this._sb(); const A=window.CatedraAuth;
+    if(!sb || !A || !A.user){ if(this.state.widgetAtivos!==null) this.setState({widgetAtivos:null}); return; }
+    try{ const r=await sb.rpc('widget_passes_ativos');
+      this.setState({widgetAtivos:(r && !r.error && typeof r.data==='number') ? r.data : null}); }
+    catch(_){ this.setState({widgetAtivos:null}); }
+  };
+  desligarWidgets = async ()=>{
+    const sb=this._sb(); if(!sb) return;
+    if(!confirm('Desligar os widgets de todos os aparelhos?\n\nCada widget passa a mostrar só o que o próprio aparelho já sabia. Um aparelho volta a ligar o widget quando o Cátedra for aberto nele de novo.')) return;
+    try{ const r=await sb.rpc('widget_passe_revogar_todos'); if(r && r.error) throw r.error;
+      this._toast('Widgets desligados em todos os aparelhos.'); }
+    catch(_){ this._toast('Não consegui desligar agora. Tente de novo com internet.'); }
+    this._carregarWidgets();
+  };
   /* ===== TELEMETRIA DE PRIMEIRA PARTE (P17) ==================================================
      Sem serviço de terceiros. Dois fluxos, os dois DESLIGADOS até a administração ligar app_config.telemetria
      (o app lê em app_avisos; o servidor também recusa, então nada passa por engano):
@@ -15189,6 +15303,7 @@ class Component extends DCLogic {
   setAjSec = (e)=>{
     this.setState({ajSec:e.currentTarget.dataset.s||'perfil', ajBusca:'', ajBuscaN:0});
     setTimeout(()=>{ try{ this._filtrarAjustes(''); }catch(_){} }, 0);
+    if((e.currentTarget.dataset.s||'perfil')==='conta') this._carregarWidgets();
   };
   /** O que, nesta seção, está diferente do valor de fábrica. Base do selo no menu de
    *  seções e do botão "voltar ao padrão" — os dois leem a MESMA conta, então o botão
@@ -15296,7 +15411,8 @@ class Component extends DCLogic {
   limparAjBusca = ()=>{ this.setState({ajBusca:'', ajBuscaN:0}); this._filtrarAjustes(''); };
   irParaAjuste = (e)=>{ const t=e.currentTarget.dataset.t||'perfil';
     this.setState({ajSec:t, ajBusca:'', ajBuscaN:0});
-    setTimeout(()=>{ try{ this._filtrarAjustes(''); window.scrollTo({top:0,behavior:this._rolagem()}); }catch(_){} }, 60); };
+    setTimeout(()=>{ try{ this._filtrarAjustes(''); window.scrollTo({top:0,behavior:this._rolagem()}); }catch(_){} }, 60);
+    if(t==='conta') this._carregarWidgets(); };
   _ajResultados(q){
     const t=String(q||'').trim().toLowerCase();
     if(!t) return [];
@@ -19155,6 +19271,12 @@ class Component extends DCLogic {
       docAberto:!!this.state.docAberto, docAbertoSrc:this.state.docAberto?('./'+this.state.docAberto+'.html'):'', docAbertoTitulo:this.state.docAberto==='privacidade'?'Política de privacidade':'Termos de uso', abrirDoc:this.abrirDoc, fecharDoc:this.fecharDoc,
       juridicoVersao:(window.CT_JURIDICO&&window.CT_JURIDICO.versao)||'', juridicoData:(()=>{ try{ const d=window.CT_JURIDICO.termos.data; return d?new Date(d+'T12:00:00').toLocaleDateString('pt-BR'):''; }catch(_){ return ''; } })(),
       aceiteTxt:(()=>{ const J=window.CT_JURIDICO, a=this.state.aceite; if(!J) return 'Documentos não publicados neste build.'; if(J.aceiteVigente(a)){ try{ return 'Você aceitou a versão '+a.versao+' em '+new Date(+a.ts).toLocaleDateString('pt-BR')+'.'; }catch(_){ return 'Aceitos.'; } } return 'A versão vigente ('+J.versao+') ainda não foi aceita nesta conta — o app pede no próximo login.'; })(),
+      widgetLinhaOn:!!(window.CatedraAuth&&window.CatedraAuth.user),
+      widgetLinhaTxt:(this.state.widgetAtivos==null ? 'Mostram o seu estudo na tela de início e na mesa. Ligam sozinhos quando o Cátedra abre no aparelho.'
+        : (this.state.widgetAtivos===0 ? 'Nenhum aparelho com widget ligado.'
+        : ('Widgets ligados em '+this.state.widgetAtivos+' aparelho'+(this.state.widgetAtivos===1?'':'s')+'.'))),
+      widgetLinhaBotao:(this.state.widgetAtivos||0)>0,
+      desligarWidgets:this.desligarWidgets,
       excluirConta:this.excluirConta, contaExcluindo:!!this.state.contaExcluindo, contaEmail:(window.CatedraAuth&&window.CatedraAuth.user&&window.CatedraAuth.user.email)||'',
       setOralModo:this.setOralModo, setOralRamo:this.setOralRamo, setOralTribunal:this.setOralTribunal,
       sortearOral:this.sortearOral, outraPerguntaOral:this.outraPerguntaOral,
