@@ -61,7 +61,7 @@ const corta = (t) => {
   const c = s.slice(0, MAX_TEXTO - 1);
   return c.slice(0, Math.max(c.lastIndexOf(' '), MAX_TEXTO - 40)).replace(/[,;:.\s]+$/, '') + '…';
 };
-const semRotulo = (t) => String(t || '').replace(/^\s*Art\.?\s*[\d.]+(?:-[A-Z])?\s*(?:[º°]|o(?![a-zà-ú]))?\s*[-–.]?\s*/i, '');
+const semRotulo = (t) => String(t || '').replace(/^\s*[Aa][Rr][Tt]\.?\s*\d+(?:\.\d{3})*(?:-[A-Za-z])?(?:[º°]|o(?![A-Za-zÀ-ú])|\s+o(?=\s+[A-ZÀ-Ú]))?\s*[-–.]?\s*/, '');
 const titulo = (n) => 'Art. ' + (/^\d$/.test(n) ? n + 'º' : n.replace(/^(\d+)(\d{3})(\b|-)/, '$1.$2$3'));
 
 export function montar() {
@@ -77,7 +77,14 @@ export function montar() {
   const texto = new Map();
   for (const l of leis) {
     const m = texto.get(norm(l.nome)) || new Map();
-    for (const a of l.artigos || []) { const n = numArt(a.rot); if (n && !m.has(n)) m.set(n, a.txt); }
+    // leis-seca.js tem linhas espúrias de remissão ("art. 1.647 ;\nV - …", rot minúsculo): prefere a linha que é o
+    // próprio artigo (rot e txt começando por "Art."), a primeira delas; senão a de texto mais longo.
+    for (const a of l.artigos || []) {
+      const n = numArt(a.rot); if (!n) continue;
+      const boa = /^Art\./.test(String(a.rot)) && /^\s*Art\./.test(String(a.txt || ''));
+      const ant = m.get(n);
+      if (!ant || (boa && !ant.boa) || (!boa && !ant.boa && String(a.txt || '').length > ant.txt.length)) m.set(n, { boa, txt: String(a.txt || '') });
+    }
     texto.set(norm(l.nome), m);
   }
 
@@ -86,19 +93,19 @@ export function montar() {
     if (k === 'meta' || !d || !d.artigos) continue;
     const doDiploma = texto.get(norm(d.nome));
     for (const [a, v] of Object.entries(d.artigos)) {
-      const n = numArt(a); const t = n && doDiploma && doDiploma.get(n);
+      const n = numArt(a); const t = n && doDiploma && doDiploma.has(n) && doDiploma.get(n).txt;
       if (!t) continue;
       const vistas = new Map();
       for (const p of (v && v.provas) || []) if (p && p.id && !vistas.has(p.id)) vistas.set(p.id, { orgao: String(p.orgao || ''), ano: +p.ano || 0 });
       if (!vistas.size) continue;
       const ramo = RAMO_DO_DIPLOMA[d.nome] || d.nome;
-      const provas = [...vistas.values()].sort((x, y) => y.ano - x.ano || x.orgao.localeCompare(y.orgao)).slice(0, MAX_PROVAS);
+      const provas = [...vistas.values()].sort((x, y) => y.ano - x.ano || x.orgao.localeCompare(y.orgao, 'pt')).slice(0, MAX_PROVAS);
       artigos.push({ tipo: 'artigo', id: k + '#' + n, titulo: titulo(n), diploma: d.nome, artigo: n, ramo,
         cor: cor(ramo, false), corD: cor(ramo, true), texto: corta(semRotulo(t)),
         n: vistas.size, rotulo: vistas.size === 1 ? 'caiu em 1 prova' : 'caiu em ' + vistas.size + ' provas', provas });
     }
   }
-  artigos.sort((x, y) => y.n - x.n || x.diploma.localeCompare(y.diploma) || x.artigo.localeCompare(y.artigo, 'pt', { numeric: true }));
+  artigos.sort((x, y) => y.n - x.n || x.diploma.localeCompare(y.diploma, 'pt') || x.artigo.localeCompare(y.artigo, 'pt', { numeric: true }));
 
   // súmulas: quantos verbetes do acervo citam cada uma (o próprio verbete não conta)
   const idx = new Map((W.__JURIS_IDX__ || []).map(r => [r[0], r]));

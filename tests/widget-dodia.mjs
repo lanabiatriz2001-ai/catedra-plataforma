@@ -32,6 +32,14 @@ export async function testarWidgetDodia(ok) {
   ok(d.itens.slice(0, 9).map(i => i.tipo[0]).join('') === 'aasaasaas', R + 'ordem fixa: dois artigos, uma súmula (' + d.itens.slice(0, 9).map(i => i.tipo[0]).join('') + ')');
   ok(d.itens.every(i => i.texto && i.texto.length <= 501 && /^#[0-9a-f]{6}$/.test(i.cor) && /^#[0-9a-f]{6}$/.test(i.corD)), R + 'todo item tem texto ≤ 500 caracteres e cores em hex');
   ok(!art.some(a => /^Art\.?\s*\d/i.test(a.texto)), R + 'o texto não repete o "Art. N" que já está no título');
+  const achar = (dip, n) => art.find(a => a.diploma === dip && a.artigo === n);
+  const cp59 = achar('Código Penal', '59'), cpp155 = achar('Código de Processo Penal', '155'), cc1647 = achar('Código Civil', '1647');
+  ok(!!cp59 && /^O juiz/.test(cp59.texto), R + 'o caput do CP art. 59 começa por "O juiz" (' + (cp59 ? cp59.texto.slice(0, 20) : 'ausente') + ')');
+  ok(!!cpp155 && /^O juiz/.test(cpp155.texto), R + 'o caput do CPP art. 155 começa por "O juiz" (' + (cpp155 ? cpp155.texto.slice(0, 20) : 'ausente') + ')');
+  ok(!art.some(a => /^[a-zà-ú][^\s]*,/.test(a.texto)), R + 'nenhum caput cortado (minúscula seguida de vírgula no início)');
+  ok(!art.some(a => /^[º°o]\s/.test(a.texto)), R + 'nenhum ordinal solto ("Art. 3 o A lei…") sobra no início do texto');
+  ok(!d.itens.some(i => /^[;,§]/.test(i.texto)), R + 'nenhum texto começa por ";", "," ou "§" (linha de remissão)');
+  ok(!!cc1647 && /^Ressalvado/.test(cc1647.texto), R + 'o CC art. 1.647 começa por "Ressalvado"');
   const cf5 = art.find(a => a.diploma === 'Constituição Federal' && a.artigo === '5');
   ok(!!cf5 && cf5.titulo === 'Art. 5º' && /Todos são iguais perante a lei/.test(cf5.texto), R + 'o art. 5º da CF traz o caput e o título com ordinal');
   const s7 = sum.find(s => s.id === 'STJ-SUM-7');
