@@ -172,7 +172,7 @@
       tipo: it.tipo || 'alteracao', tipoRotulo: ehLegis ? tipo : tipoJuris(it),
       status: st, statusRotulo: STATUS[st].rotulo, statusCls: STATUS[st].cls,
       titulo: it.titulo || it.disp || 'Mudança detectada', norma: it.norma || '', normaNome: it.normaNome || it.norma || '',
-      disp: it.disp || '', ramo: it.ramo || '', antes: it.antes || '', depois: it.depois || '',
+      disp: it.disp || '', rotulo: it.rotulo || it.disp || '', ramo: it.ramo || '', antes: it.antes || '', depois: it.depois || '',
       // Recorte: a vigência foi lida no trecho do artigo VIZINHO — o selo "Vigência futura"
       // contradiria a pendência ("o texto deste artigo não mudou").
       vigencia: it.vigencia || '', vigenciaEm: it.vigenciaEm || '', vigenciaFutura: !it.recorte && it.vigencia === 'aguardando',

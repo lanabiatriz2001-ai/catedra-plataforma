@@ -24,7 +24,7 @@ const FIX = {
       titulo: 'Art. 5º — CF', antes: 'Art. 5º Todos são iguais perante a lei, sem distinção de qualquer natureza.',
       depois: 'Art. 5º Todos são iguais perante a lei, sem distinção de qualquer espécie.', modificadora: 'Emenda Constitucional nº 999, de 2026',
       vigencia: 'em-vigor', vigenciaMotivo: 'texto compilado sem marcador de vigência própria', revisar: false, urlOficial: 'https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm', detectadoEm: '2026-09-30T10:00:00.000Z' },
-    { id: 'PLN-CF-art250-bbb', fonte: 'planalto', tipo: 'inclusao', norma: 'CF', normaNome: 'Constituição Federal', disp: 'Art. 250-A',
+    { id: 'PLN-CF-art250-bbb', fonte: 'planalto', tipo: 'inclusao', norma: 'CF', normaNome: 'Constituição Federal', disp: 'Art. 250-A', rotulo: 'Art. 250-A do ADCT',
       titulo: 'Art. 250-A — CF', antes: null, depois: 'Art. 250-A Regra nova. (Vigência) a partir de 01/01/2027',
       vigencia: 'aguardando', vigenciaEm: '01/01/2027', vigenciaMotivo: 'a página traz marcador de vigência e data futura',
       revisar: true, urlOficial: 'https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm', detectadoEm: '2026-09-30T10:00:00.000Z' },
@@ -230,13 +230,15 @@ export async function testarRevisaoOficial(browser, base, ok, { motor = 'chromiu
       const doisPontos = um({ tipo: 'inclusao', modificadora: 'Emenda Constitucional nº 27, de 2000:', modificadoras: [{ acao: 'incluído', norma: 'Emenda Constitucional nº 27, de 2000:' }], vigencia: 'em-vigor' });
       // Pendência sozinha abre a frase com maiúscula.
       const inf = R.itens({ geradoEm: null, fontes: {}, itens: [{ id: 'z', fonte: 'stj', tipo: 'informativo', revisar: true, pendencia: 'edição detectada na fonte oficial' }] }, {})[0];
-      return { inc: inc.resumo, rev: rev.resumo, rec: rec.resumo, recFut: rec.vigenciaFutura, pa: pa.status + '|' + pa.podeMarcar,
+      const adct = um({ tipo: 'alteracao', disp: 'Art. 1º', rotulo: 'Art. 1º do ADCT' });
+      return { adct: adct.rotulo + '|' + adct.disp + '|' + adct.busca, inc: inc.resumo, rev: rev.resumo, rec: rec.resumo, recFut: rec.vigenciaFutura, pa: pa.status + '|' + pa.podeMarcar,
         altInc: altInc.resumo, altRev: altRev.resumo, dl: dl.resumo, revOutra: revOutra.resumo, incOutra: incOutra.resumo,
         recInd: recInd.resumo, recIndFut: recInd.vigenciaFutura, incConf: incConf.status + '|' + incConf.podeMarcar,
         inc2: inc2.resumo, rev2: rev2.resumo, incSem: incSem.resumo, pelaPela: pelaPela.resumo, doisPontos: doisPontos.resumo, inf: inf.resumo };
     });
     ok(/^Incluído pela Lei nº 14\.994/.test(u.inc) && !/Modificada/.test(u.inc), `${tag} 6d inclusão diz "Incluído pela…" (${u.inc})`);
     ok(/deixa de valer em 01\/01\/2027; até lá, continua valendo/.test(u.rev) && /Revogado pela/.test(u.rev), `${tag} 6e revogação futura diz que DEIXA de valer na data (${u.rev})`);
+    ok(/^Art\. 1º do ADCT\|Art\. 1º\|/.test(u.adct) && !/ADCT/.test(u.adct.split('|')[2]), `${tag} 6j rótulo distingue o ADCT e a busca segue com o disp limpo (${u.adct})`);
     ok(u.rec === 'O texto deste artigo não mudou.' && u.recFut === false, `${tag} 6f recorte mostra só a pendência, sem selo de vigência futura (${u.rec})`);
     ok(u.pa === 'parcial|true', `${tag} 6g parcial vence o "No acervo" (${u.pa})`);
     ok(u.altInc === 'Alterado pela Lei nº 15.100, de 2026.' && u.altRev === 'Alterado pela Lei nº 15.101, de 2026.',
@@ -318,6 +320,7 @@ export async function testarRevisaoOficial(browser, base, ok, { motor = 'chromiu
         selo: /Detectado no Planalto em/.test(a ? a.textContent : ''),
         vigFutura: b ? /Vigência futura · 01\/01\/2027/.test(b.textContent) && /Incluído/.test(b.textContent) && /Conferir/.test(b.textContent) : false,
         alterado: a ? /Alterado/.test(a.textContent) : false,
+        rotulo: b ? b.querySelector('.ct-of-titulo').textContent.trim() : '',
         rolaLado: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
         semNome: eval(SEM)(box), contraste: a ? window.__ctContraste(a.querySelector('.ct-of-st')) : 0 };
     }, SEM_NOME);
@@ -325,6 +328,7 @@ export async function testarRevisaoOficial(browser, base, ok, { motor = 'chromiu
     ok(L.grupo, `${t} 8 agrupa por norma ("Constituição Federal · 2 dispositivos")`);
     ok(L.cmp && L.pintaDiff, `${t} 8b alteração mostra texto anterior × atual, com só o trecho mudado destacado`);
     ok(L.selo && L.alterado, `${t} 8c selo "Detectado no Planalto em …" e status por dispositivo (Alterado)`);
+    ok(L.rotulo === 'Art. 250-A do ADCT', `${t} 8d2 o cartão usa o rótulo do motor (${L.rotulo})`);
     ok(L.vigFutura, `${t} 8d inclusão com vigência futura mostra a data e fica em "Conferir"`);
     ok(!L.rolaLado, `${t} 8e sem rolagem horizontal`);
     ok(L.semNome === 0, `${t} 8f nenhum botão sem nome acessível (${L.semNome})`);

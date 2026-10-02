@@ -568,7 +568,7 @@ function renderOficial(){
       const conf=i.status==='conferido';
       h+='<article class="ct-of-item" data-id="'+R.esc(i.id)+'"'+(oficialFoco===i.id?' id="oficialFoco" tabindex="-1"':'')+'>'
         +'<div class="ct-of-linha">'+sel.join('')+'</div>'
-        +'<div class="ct-of-titulo" style="margin-top:6px">'+R.esc(i.disp||i.titulo)+'</div>'
+        +'<div class="ct-of-titulo" style="margin-top:6px">'+R.esc(i.rotulo||i.disp||i.titulo)+'</div>'
         +'<div class="ct-of-meta">Detectado no Planalto em '+R.esc(i.quando)+(i.parcial?' · comparação parcial (artigo no teto de tamanho)':'')+'</div>'
         +'<div class="ct-of-resumo">'+R.esc(i.resumo)+'</div>'+cmp
         +'<div class="ct-of-acoes"><button type="button" class="ct-of-btn" data-of-abrir="'+R.esc(i.id)+'">Abrir no leitor</button>'
