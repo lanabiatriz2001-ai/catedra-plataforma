@@ -35,6 +35,7 @@ import { testarCarregamentoInicial, testarAberturaEmbutida } from './carregament
 import { testarTemplateFileUrl } from './template-file-url.mjs';
 import { testarAuthModoLocal } from './auth-modo-local.mjs';
 import { testarSyncMemoriaVelha } from './sync-memoria-velha.mjs';
+import { testarBackupDriveErros } from './backup-drive-erros.mjs';
 import { testarSelectHost } from './select-host.mjs';
 import { testarJurisQuadro } from './juris-quadro.mjs';
 import { testarPrioridadeErrosResolvidos } from './prioridade-erros-resolvidos.mjs';
@@ -183,6 +184,8 @@ for (const [base, origem, arquivo] of ORIGENS) {
     { const ctxML = await browser.newContext(); const pML = await ctxML.newPage(); try { await testarAuthModoLocal(pML, base, ok); } catch (e) { ok(false, 'MODO LOCAL exceção: ' + e.message); } finally { await ctxML.close(); } }
     // a memória velha não volta por cima da nuvem (incidente do iPad, 01/10/2026)
     try { await testarSyncMemoriaVelha(browser, base, ok, motor); } catch (e) { ok(false, 'SYNC MEMÓRIA VELHA exceção: ' + e.message); }
+    // backup na nuvem pessoal: o aviso do Drive e a faixa vermelha no motor do Safari (só http: semeia por /__semente)
+    if (origem === 'http') { try { await testarBackupDriveErros(browser, base, ok); } catch (e) { ok(false, 'BACKUP/Drive [' + motor + '] exceção: ' + e.message); } }
     try { await testarSelectHost(page, base, ok, { motor, origem }); }
     catch (e) {
       ok(false, 'SELECT/host [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('

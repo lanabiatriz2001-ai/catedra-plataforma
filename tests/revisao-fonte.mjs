@@ -175,8 +175,11 @@ async function roteiro(page, base, ok, R) {
   const msPilula = Date.now() - t0Pilula;
   const volta = await page.evaluate(async () => {
     const w = ms => new Promise(resolve => setTimeout(resolve, ms)), app = window.__catedraApp;
+    // O estado muda na hora do clique; o modal só pinta no commit seguinte. Esperar só o
+    // estado deixava a leitura do modal correr à frente da pintura ("volta em 0 ms", CI 02/10).
+    const modal = () => !!document.querySelector('[role="dialog"][aria-label="Sessão de revisão"]');
     const t = Date.now();
-    while (Date.now() - t < 15000 && !(app.state.view === 'revisoes' && app.state.revSession)) await w(50);
+    while (Date.now() - t < 15000 && !(app.state.view === 'revisoes' && app.state.revSession && modal())) await w(50);
     return { view: app.state.view, sessao: app.state.revSession, ms: Date.now() - t,
       modal: !!document.querySelector('[role="dialog"][aria-label="Sessão de revisão"]') };
   });
