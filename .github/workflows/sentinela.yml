@@ -147,8 +147,13 @@ jobs:
 
       - name: Incorporar ao JURIS os informativos novos (STF e STJ)
         id: incorpora
-        # Roda sempre, qualquer que seja `fontes`: o PR é refeito a partir da main, e pular a
+        # Desligada por padrão (02/10/2026): quem incorpora os informativos é a tarefa local
+        # catedra-informativos-semanais, que abre o próprio PR toda segunda. Com as duas ligadas,
+        # sairiam dois PRs com o mesmo conteúdo. O sentinela segue DETECTANDO e mostra na Central.
+        # Para o sentinela voltar a incorporar: vars.SENTINELA_INCORPORA = 'ligado'.
+        # Ligada, roda qualquer que seja `fontes`: o PR é refeito a partir da main, e pular a
         # incorporação tiraria dele os julgados já propostos.
+        if: vars.SENTINELA_INCORPORA == 'ligado'
         shell: bash
         env:
           ABERTO: ${{ steps.base.outputs.aberto }}
