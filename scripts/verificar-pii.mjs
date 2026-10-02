@@ -70,13 +70,15 @@ export function verificarPII(dir, { abortar = true, rotulo = dir } = {}) {
       // Nos padrões de CPF, só conta o que valida: número de exemplo em modelo de peça
       // (o "111.222.333-33" dos espelhos) não é dado de ninguém.
       if (hits && /CPF/i.test(nome)) hits = hits.filter(cpfValido);
-      if (hits && hits.length) achados.push({ arq, tipo: nome, quantos: hits.length, exemplo: hits[0] });
+      // Sem o trecho: o build roda na CI (log público, repositório público) e na Vercel; repetir
+      // o CPF na mensagem seria vazar de novo o dado que a trava existe para segurar.
+      if (hits && hits.length) achados.push({ arq, tipo: nome, quantos: hits.length });
     }
   }
 
   if (achados.length) {
     const linhas = achados.map(
-      (a) => `    ${a.arq}: ${a.quantos}× ${a.tipo} (ex.: "${a.exemplo}")`
+      (a) => `    ${a.arq}: ${a.quantos}× ${a.tipo}`
     );
     const msg =
       `\n✗ BUILD ABORTADO — dado pessoal encontrado em ${rotulo}:\n` +

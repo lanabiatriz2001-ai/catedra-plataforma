@@ -59,7 +59,7 @@
 - [ ] **Step 1**
 
 ```bash
-cd /Users/lanab/catedra-plataforma-main/.claude/worktrees/redesenho-legis-juris
+cd ~/catedra-plataforma-main/.claude/worktrees/redesenho-legis-juris
 git checkout -b redesenho-nativo-2-leitor-legis && git branch --show-current
 ```
 Expected: `redesenho-nativo-2-leitor-legis`
@@ -690,6 +690,6 @@ E, dentro da classe, sobrescreva `drawGlyphs(forGlyphRange:at:)`. **Mac:**
 
   **Olhe cada captura.** Confira que a barra tem no máximo 5 controles.
 - [ ] **Step 3: Mac.** Instale (`ditto --norsrc --noextattr --noacl`), abra o LEGIS pelo menu Visualizar e capture o mesmo leitor e a mesma gaveta.
-- [ ] **Step 4: iPad da dona.** `bash ios/build-ipad.sh device` e `xcrun devicectl device install app --device <UDID do iPad> "ios/build/Cátedra.app"`. O perfil `ios/embedded.mobileprovision` precisa existir no worktree (copiado da pasta principal).
+- [ ] **Step 4: iPad da dona.** `bash ios/build-ipad.sh device` e `xcrun devicectl device install app --device <UDID do iPad> "ios/build/Cátedra.app"` (o UDID sai de `xcrun devicectl list devices`; veja o passo 3 do fluxo no CLAUDE.md). O perfil `ios/embedded.mobileprovision` precisa existir no worktree (copiado da pasta principal).
 - [ ] **Step 5: Push e PR** com base `redesenho-nativo-1-base` (`gh pr create --base redesenho-nativo-1-base`), título "Leitura da lei no LEGIS em foco, com gaveta de jurisprudência e remissões (entrega 2)". O corpo segue o modelo do PR #143 (o que muda para a pessoa, por dentro, testes, conferido na tela, decisões).
 - [ ] **Step 6: Relatório à dona.** Arquivos, testes novos, pendências e decisões.

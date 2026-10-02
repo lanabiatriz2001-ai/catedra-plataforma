@@ -17,8 +17,8 @@ import path from 'node:path';
 import vm from 'node:vm';
 import { spawnSync } from 'node:child_process';
 import {
-  COBERTURA, carimbar, classificarVigencia, compararArtigos, conteudoNovidades, edicaoIncorporada, edicaoNaPagina, edicoesNovasAlem, itemPlanalto,
-  lerIdsPropostos, mesclarNovidades, modificadorasDaDiferenca, parseSuspeito, recuoDoAcervo, rodar, semente, textoProprio,
+  COBERTURA, carimbar, classificarVigencia, compararArtigos, conteudoNovidades, edicaoIncorporada, edicaoNaPagina, edicoesNovasAlem, indexarArtigos, itemPlanalto,
+  lerIdsPropostos, lerPropostos, mesclarNovidades, modificadorasDaDiferenca, parseSuspeito, recuoDoAcervo, rodar, semente, textoProprio,
   ultimasDeArquivo, ultimasDoIndice,
 } from '../scripts/sentinela.mjs';
 
@@ -854,6 +854,342 @@ export async function testarSentinela(ok) {
     try { await buscarFonte('https://www.stf.jus.br/arquivo/informativo/documento/informativo1225.htm', { prazo: Date.now() - 1 }); } catch (e) { erro = e.message; }
     ok(erro === 'tempo da consulta esgotado', 'S20d leitura com o prazo já vencido nem sai para a rede');
   }
+
+  // ── S22 — número repetido na página: cada ocorrência é comparada (7) ──────
+  // A CF traz o ADCT no mesmo texto, com os artigos 1º, 2º… de novo. Indexar só pelo número
+  // fazia a última ocorrência apagar as anteriores: o corpo nunca era comparado e o Planalto
+  // saía "sem novidade" sem tê-lo lido.
+  {
+    const CF = (globaisDe('leis-seca.js').CT_LEIS || []).find((l) => l.sigla === 'CF');
+    const arts = CF ? CF.artigos.filter((a) => /^Art/.test(String(a.rot).trim())) : [];
+    const idx = indexarArtigos(CF ? CF.artigos : []);
+    ok(!!CF && idx.size === arts.length && idx.has('art101') && idx.has('art1~2'),
+      `S22 o índice guarda TODAS as entradas da CF real, inclusive as de número repetido (${idx.size}/${arts.length})`);
+    ok(CF && compararArtigos(CF.artigos, CF.artigos).length === 0, 'S22b a CF real comparada com ela mesma não acusa nada');
+    // Troca real de redação no caput do art. 101 do CORPO (que tem número repetido no ADCT).
+    let feito = false;
+    const mudada = CF ? CF.artigos.map((a) => {
+      if (!feito && String(a.rot).replace(/\s+/g, ' ').trim().replace(/\.$/, '') === 'Art. 101') {
+        feito = true; return { ...a, txt: a.txt.replace(/setenta/, 'setenta e cinco') + ' (Redação dada pela Emenda Constitucional nº 199, de 2026)' };
+      }
+      return a;
+    }) : [];
+    const d = compararArtigos(CF ? CF.artigos : [], mudada);
+    ok(feito && d.length === 1 && d[0].tipo === 'alteracao' && d[0].chave === 'art101' && d[0].bloco === 1,
+      `S22c mudança no art. 101 do corpo da CF (número repetido no ADCT) é detectada (${d.map((x) => x.tipo + ':' + x.chave).join(',') || 'nada'})`);
+
+    // Lei com o mesmo número duas vezes: a mudança na 2ª ocorrência vira item próprio, e a baixa
+    // escolhe o MESMO artigo que a comparação (antes: primeiro × último).
+    const lr = leiFalsa('LR', 30);
+    // O número repetido aqui é o 5 (não o 1º da página: o 1º voltando abre um 2º trecho, como na CLT e na CF).
+    lr.artigos.push({ rot: 'Art. 5', txt: 'Art. 5. Disposição final com o mesmo número do artigo quinto, texto suficiente.' });
+    const pag = lr.artigos.map((a, i) => (i === 30 ? { ...a, txt: a.txt + ' Novo. (Redação dada pela Lei nº 15.950, de 2026)' } : a));
+    const r1 = await rodar({ fontes: ['planalto'], busca: { baixarLei: async () => pag }, leis: [lr], ultimas: ULT, anterior: { fontes: {} }, atuais: [], silencioso: true });
+    const it = r1.itens[0] || {};
+    ok(r1.itens.length === 1 && it.chave === 'art5@2' && it.disp === 'Art. 5' && it.rotulo === 'Art. 5 (número repetido na página)' && it.titulo === 'Art. 5 (número repetido na página) — LR' && /-art5@2-/.test(it.id),
+      `S22d a 2ª aparição do número vira item próprio: rótulo limpo em disp (o app casa leitura e edital por ele) e o título diz qual é (${it.titulo || 'nenhum'})`);
+    const regerada = { ...lr, artigos: pag };
+    const r2 = await rodar({ fontes: ['planalto'], busca: { baixarLei: async () => pag }, leis: [regerada], ultimas: ULT, anterior: r1.estado, atuais: r1.itens, silencioso: true });
+    ok(r2.baixas === 1 && r2.itens[0].incorporado === true && r2.itens[0].incorporadoTxt === 'já no LEGIS',
+      'S22e com o leis-seca.js regerado, o item da 2ª ocorrência recebe a baixa (o mesmo artigo que a comparação usou)');
+  }
+
+  // ── S22f–j — os padrões reais de número repetido, com o leis-seca.js de verdade ──
+  // O Planalto põe a redação NOVA logo depois da antiga (riscada), com o mesmo cabeçalho; o ADCT
+  // repete os números da CF; remissão com "Art." maiúsculo às vezes começa linha.
+  {
+    const LS = globaisDe('leis-seca.js').CT_LEIS || [];
+    const lei = (sg) => LS.find((l) => l.sigla === sg);
+    const ch = (r) => String(r).toLowerCase().replace(/[^a-z0-9]/g, '');
+    // Insere uma entrada logo depois da última entrada SEGUIDA do 1º bloco do número.
+    const novaRedacao = (arts, rot, txt) => {
+      const i = arts.findIndex((a) => ch(a.rot) === ch(rot));
+      let j = i; while (j + 1 < arts.length && ch(arts[j + 1].rot) === ch(rot)) j++;
+      return [...arts.slice(0, j + 1), { rot: arts[j].rot, txt }, ...arts.slice(j + 1)];
+    };
+    const CF = lei('CF'), CPC = lei('CPC'), CPP = lei('CPP');
+    const EC = ' (Redação dada pela Emenda Constitucional nº 199, de 2026)';
+    // f) art. 144 (uma entrada só): nova redação acrescentada
+    const c144 = novaRedacao(CF.artigos, 'Art. 144', 'Art. 144. A segurança pública, dever do Estado, é exercida pela nova redação desta emenda.' + EC);
+    const d144 = compararArtigos(CF.artigos, c144);
+    const i144 = d144[0] && itemPlanalto(CF, d144[0], 'x');
+    ok(d144.length === 1 && d144[0].tipo === 'alteracao' && d144[0].bloco === 1 && /nova redação desta emenda/.test(d144[0].depois || '')
+      && i144.disp === 'Art. 144' && i144.titulo === 'Art. 144 — CF' && i144.modificadora === 'Emenda Constitucional nº 199, de 2026',
+      `S22f nova redação acrescentada depois da antiga é UMA alteração do artigo, com a emenda certa (${d144.map((x) => x.tipo + ':' + x.chave).join(',')})`);
+    // g) art. 6º (4 redações seguidas + gêmeo no ADCT): a 5ª redação
+    const c6 = novaRedacao(CF.artigos, 'Art. 6º', 'Art. 6º São direitos sociais, nesta quinta redação, a educação e a saúde.' + EC);
+    const d6 = compararArtigos(CF.artigos, c6);
+    ok(d6.length === 1 && d6[0].tipo === 'alteracao' && d6[0].bloco === 1 && /quinta redação/.test(d6[0].depois || '') && !/partido/i.test(d6[0].antes || ''),
+      `S22g a 5ª redação do art. 6º compara vigente com vigente; o art. 6º do ADCT não entra (${d6.map((x) => x.tipo + ':' + x.chave + ':b' + x.bloco).join(',')})`);
+    // h) o Planalto limpa a redação riscada do art. 12 do CPC: nada mudou, e o CPC não cai
+    const i12 = CPC.artigos.findIndex((a) => ch(a.rot) === 'art12');
+    const blocoDuplo = i12 >= 0 && ch(CPC.artigos[i12 + 1].rot) === 'art12';
+    const sem12 = CPC.artigos.filter((_, i) => i !== i12);
+    ok(blocoDuplo && compararArtigos(CPC.artigos, sem12).length === 0,
+      'S22h a página sem a redação riscada do art. 12 do CPC não acusa nada (nem "ausente", que derrubaria a norma)');
+    // i) remissão "Art. 387 , inciso IV…" passa a começar linha ANTES do art. 387 real do CPP
+    const i28a = CPP.artigos.findIndex((a) => ch(a.rot) === 'art28a');
+    const fantasma = { rot: 'Art. 387', txt: 'Art. 387 , inciso IV, deste Código, aplica-se ao caso. (Incluído pela Lei nº 15.999, de 2026)' };
+    const cpp = [...CPP.artigos.slice(0, i28a + 1), fantasma, ...CPP.artigos.slice(i28a + 1)];
+    const dF = compararArtigos(CPP.artigos, cpp);
+    const iF = dF[0] && itemPlanalto(CPP, dF[0], 'x');
+    ok(i28a >= 0 && dF.length === 1 && dF[0].tipo === 'inclusao' && /inciso IV, deste Código/.test(dF[0].depois || '')
+      && iF.revisar === true && /remissão que passou a começar linha/.test(iF.pendencia || ''),
+      `S22i remissão que passa a começar linha antes do artigo real vira UMA inclusão para conferir; o art. 387 real não muda (${dF.map((x) => x.tipo + ':' + x.chave).join(',')})`);
+    // j) mudança no art. 1º do ADCT: rótulo limpo, título "do ADCT"
+    const iAdct = CF.artigos.findIndex((a, i) => ch(a.rot) === 'art1' && i > 0 && CF.artigos.slice(0, i).some((b) => ch(b.rot) === 'art1'));
+    const cAdct = CF.artigos.map((a, i) => (i === iAdct ? { ...a, txt: a.txt + ' Texto acrescentado.' + EC } : a));
+    const dA = compararArtigos(CF.artigos, cAdct);
+    const iA = dA[0] && itemPlanalto(CF, dA[0], 'x');
+    ok(iAdct > 0 && dA.length === 1 && dA[0].bloco === 2 && iA.disp === 'Art. 1º' && iA.titulo === 'Art. 1º do ADCT — CF',
+      `S22j mudança no ADCT sai com o rótulo limpo e o título "do ADCT" (${iA ? iA.titulo : 'nenhum'})`);
+    // e a baixa da nova redação, depois de regerado o leis-seca.js (rodar de ponta a ponta). O
+    // art. 144 da CF está no teto de tamanho (comparação parcial nunca recebe baixa, 3): aqui vai
+    // o art. 300 do CPC, curto.
+    const c300 = novaRedacao(CPC.artigos, 'Art. 300', 'Art. 300. A tutela de urgência será concedida, na nova redação, quando houver probabilidade do direito. (Redação dada pela Lei nº 15.999, de 2026)');
+    const r1 = await rodar({ fontes: ['planalto'], busca: { baixarLei: async () => c300 }, leis: [CPC], ultimas: ULT, anterior: { fontes: {} }, atuais: [], silencioso: true });
+    const r2 = await rodar({ fontes: ['planalto'], busca: { baixarLei: async () => c300 }, leis: [{ ...CPC, artigos: c300 }], ultimas: ULT, anterior: r1.estado, atuais: r1.itens, silencioso: true });
+    const it300 = r1.itens[0] || {};
+    ok(r1.novos === 1 && it300.disp === 'Art. 300' && it300.parcial === false && it300.modificadora === 'Lei nº 15.999, de 2026'
+      && r2.baixas === 1 && r2.itens[0].incorporado === true && r2.itens[0].incorporadoTxt === 'já no LEGIS',
+      `S22k a nova redação do art. 300 do CPC vira 1 item com a lei certa e, com o leis-seca.js regerado, recebe a baixa (novos ${r1.novos}, baixas ${r2.baixas})`);
+  }
+
+  // ── S22l–q — o que a 2ª rodada de céticos achou na régua por bloco ─────────
+  {
+    const LS = globaisDe('leis-seca.js').CT_LEIS || [];
+    const lei = (sg) => LS.find((l) => l.sigla === sg);
+    const ch = (r) => String(r).toLowerCase().replace(/[^a-z0-9]/g, '');
+    const CF = lei('CF'), CPC = lei('CPC'), MP = lei('Maria da Penha'), CPP = lei('CPP');
+    const LEI = ' (Redação dada pela Lei nº 15.999, de 2026)';
+    // Desliza: a página limpa a redação riscada MAIS ANTIGA e acrescenta a nova, na mesma publicação.
+    const desliza = (arts, rot, txt) => {
+      const i = arts.findIndex((a) => ch(a.rot) === ch(rot)); let j = i; while (j + 1 < arts.length && ch(arts[j + 1].rot) === ch(rot)) j++;
+      return [...arts.slice(0, i), ...arts.slice(i + 1, j + 1), { rot: arts[j].rot, txt }, ...arts.slice(j + 1)];
+    };
+    const d12 = compararArtigos(CPC.artigos, desliza(CPC.artigos, 'Art. 12', 'Art. 12. Os juízes e os tribunais atenderão, na nova redação, à ordem cronológica.' + LEI));
+    const d12c = compararArtigos(MP.artigos, desliza(MP.artigos, 'Art. 12-C', 'Art. 12-C. Verificada a existência de risco, na nova redação, o agressor será afastado.' + LEI));
+    ok(d12.length === 1 && /nova redação/.test(d12[0].depois || '') && d12c.length === 1 && /nova redação/.test(d12c[0].depois || ''),
+      `S22l limpar a riscada mais antiga e acrescentar a nova na mesma publicação dá UMA alteração, não itens com leis antigas (CPC 12: ${d12.length}, Maria da Penha 12-C: ${d12c.length})`);
+    // ADCT cortado no fim (dentro do piso de 80%): não pode passar por "sem novidade"
+    // início do ADCT: onde o art. 1º volta a aparecer (depois do bloco de redações do corpo)
+    const adctIni = CF.artigos.findIndex((a, i) => i > 0 && ch(a.rot) === 'art1' && ch(CF.artigos[i - 1].rot) !== 'art1');
+    const corte = CF.artigos.findIndex((a, i) => i > adctIni && ch(a.rot) === 'art132');
+    const cortada = CF.artigos.slice(0, corte);
+    const rc = await rodar({ fontes: ['planalto'], busca: { baixarLei: async () => cortada }, leis: [CF], ultimas: ULT, anterior: { fontes: {} }, atuais: [], silencioso: true });
+    const ec = rc.estado.fontes.planalto;
+    ok(adctIni > 0 && corte > adctIni && ec.resultado === 'falha' && /sumiram da página/.test(ec.erro || '') && rc.itens.length === 0,
+      `S22m CF lida sem o fim do ADCT é falha da leitura, nunca "sem novidade" (${ec.resultado})`);
+    // remissão de uma entrada que deixa de começar linha (CPP "Art. 101 , I, g , da Constituição") não derruba a norma
+    const iRem = CPP.artigos.findIndex((a) => ch(a.rot) === 'art101' && /^Art\.?\s*101\s*,/.test(String(a.txt).trim()));
+    ok(iRem > 0 && compararArtigos(CPP.artigos, CPP.artigos.filter((_, i) => i !== iRem)).length === 0,
+      'S22n a remissão "Art. 101 , I, g , da Constituição" que some da página não vira ausência (o CPP continua vigiado)');
+    // identidade estável: mudança no ADCT detectada no dia 1; no dia 2 o corpo do mesmo número ganha
+    // redação nova (acervo ainda sem regerar) — o item do ADCT não ganha gêmeo; no dia 3, as duas baixas.
+    // a VIGENTE do art. 76 do ADCT: a última entrada do seu bloco de redações
+    const adct0 = CF.artigos.findIndex((a, i) => i > 0 && ch(a.rot) === 'art1' && ch(CF.artigos[i - 1].rot) !== 'art1');
+    let iA76 = CF.artigos.findIndex((a, i) => i > adct0 && ch(a.rot) === 'art76');
+    while (iA76 > 0 && ch(CF.artigos[iA76 + 1].rot) === 'art76') iA76++;
+    const dia1 = CF.artigos.map((a, i) => (i === iA76 ? { ...a, txt: a.txt + ' Acréscimo.' + LEI } : a));
+    const i76 = dia1.findIndex((a) => ch(a.rot) === 'art76'); let j76 = i76; while (ch(dia1[j76 + 1].rot) === 'art76') j76++;
+    const dia2 = [...dia1.slice(0, j76 + 1), { rot: dia1[j76].rot, txt: 'Art. 76. Nova redação do corpo.' + LEI }, ...dia1.slice(j76 + 1)];
+    const r1 = await rodar({ fontes: ['planalto'], busca: { baixarLei: async () => dia1 }, leis: [CF], ultimas: ULT, anterior: { fontes: {} }, atuais: [], silencioso: true });
+    const r2 = await rodar({ fontes: ['planalto'], busca: { baixarLei: async () => dia2 }, leis: [CF], ultimas: ULT, anterior: r1.estado, atuais: r1.itens, silencioso: true });
+    const r3 = await rodar({ fontes: ['planalto'], busca: { baixarLei: async () => dia2 }, leis: [{ ...CF, artigos: dia2 }], ultimas: ULT, anterior: r2.estado, atuais: r2.itens, silencioso: true });
+    const idAdct = (r1.itens[0] || {}).id;
+    ok(iA76 > 0 && r1.itens.length === 1 && (r1.itens[0].titulo || '') === 'Art. 76 do ADCT — CF' && r2.novos === 1 && r2.itens.length === 2
+      && r2.itens.some((x) => x.id === idAdct) && r3.baixas === 2 && r3.itens.every((x) => x.incorporado === true),
+      `S22o redação nova no corpo não muda a identidade do item do ADCT: nada de gêmeo, e as duas baixas chegam (dia 2: ${r2.novos} novo(s), ${r2.itens.length} itens; dia 3: ${r3.baixas} baixas)`);
+    // "do ADCT" pela posição: remissão "Art. 6º" começando linha no CORPO + mudança no art. 6º do ADCT
+    const iAdct6 = CF.artigos.findIndex((a, i) => ch(a.rot) === 'art6' && i > 200);
+    const i200 = CF.artigos.findIndex((a) => ch(a.rot) === 'art200');
+    const pagina6 = CF.artigos.map((a, i) => (i === iAdct6 ? { ...a, txt: a.txt + ' Acréscimo.' + LEI } : a));
+    const comRem = [...pagina6.slice(0, i200 + 1), { rot: 'Art. 6º', txt: 'Art. 6º , caput, desta Constituição, observado o disposto acima.' }, ...pagina6.slice(i200 + 1)];
+    const d6 = compararArtigos(CF.artigos, comRem).map((x) => itemPlanalto(CF, x, 'x'));
+    const doAdct = d6.filter((x) => /do ADCT/.test(x.titulo));
+    ok(iAdct6 > 0 && d6.length === 2 && doAdct.length === 1 && /Acréscimo/.test(doAdct[0].depois || '') && d6.every((x) => x.revisar === true),
+      `S22p com uma remissão no corpo deslocando os blocos, só a mudança do ADCT leva "do ADCT", e as duas vão para conferir (${d6.map((x) => x.titulo).join(' | ')})`);
+    // artigo novo no fim do ADCT com número que o corpo tem: inclusão para conferir, com as duas hipóteses
+    const n138 = [...CF.artigos, { rot: 'Art. 138', txt: 'Art. 138. Disposição transitória nova. (Incluído pela Emenda Constitucional nº 199, de 2026)' }];
+    const d138 = compararArtigos(CF.artigos, n138).map((x) => itemPlanalto(CF, x, 'x'));
+    ok(d138.length === 1 && d138[0].tipo === 'inclusao' && d138[0].titulo === 'Art. 138 do ADCT — CF' && /artigo novo com número repetido/.test(d138[0].pendencia || ''),
+      `S22q artigo novo no fim do ADCT sai como inclusão "do ADCT" para conferir, dizendo as duas hipóteses (${d138.map((x) => x.titulo).join(',')})`);
+  }
+
+  // ── S22r — a baixa acha o artigo mesmo com os blocos deslocados ───────────
+  // Dia 1: muda a disposição transitória (2º bloco do "Art. 1"). Dia 2: o leis-seca.js foi regerado
+  // com a mudança, e a página passou a ter uma remissão "Art. 1 , caput" no meio — a transitória
+  // virou o 3º bloco. A baixa procura a vigente em qualquer bloco do número.
+  {
+    const lt = leiFalsa('LT', 30);
+    lt.artigos.push({ rot: 'Art. 1', txt: 'Art. 1. Disposição transitória com o mesmo número do artigo primeiro, texto suficiente.' });
+    const dia1 = lt.artigos.map((a, i) => (i === 30 ? { ...a, txt: a.txt + ' Novo. (Redação dada pela Lei nº 15.960, de 2026)' } : a));
+    const r1 = await rodar({ fontes: ['planalto'], busca: { baixarLei: async () => dia1 }, leis: [lt], ultimas: ULT, anterior: { fontes: {} }, atuais: [], silencioso: true });
+    const dia2 = [...dia1.slice(0, 15), { rot: 'Art. 1', txt: 'Art. 1 , caput, desta Lei, observado o disposto acima.' }, ...dia1.slice(15)];
+    const r2 = await rodar({ fontes: ['planalto'], busca: { baixarLei: async () => dia2 }, leis: [{ ...lt, artigos: dia2 }], ultimas: ULT, anterior: r1.estado, atuais: r1.itens, silencioso: true });
+    ok(r1.itens.length === 1 && r1.itens[0].chave === 'art1@2' && r2.baixas === 1 && r2.itens.find((x) => x.id === r1.itens[0].id).incorporado === true,
+      `S22r com uma remissão nova deslocando os blocos, a baixa acha a transitória regerada (baixas ${r2.baixas})`);
+  }
+
+  // ── S22s–w — o que a 3ª rodada de céticos achou ───────────────────────────
+  {
+    const LS = globaisDe('leis-seca.js').CT_LEIS || [];
+    const lei = (sg) => LS.find((l) => l.sigla === sg);
+    const ch = (r) => String(r).toLowerCase().replace(/[^a-z0-9]/g, '');
+    const CF = lei('CF'), CPC = lei('CPC'), DR = lei('Lei de Drogas'), CLT = lei('CLT');
+    // s) redações intercaladas (63-C antiga, 63-D antiga, 63-C nova, 63-D nova): a página limpar as
+    //    antigas não derruba a norma — e uma alteração real em outro artigo na mesma rodada chega.
+    const p63 = DR.artigos.map((a, i) => [i, ch(a.rot)]).filter(([, k]) => k === 'art63c' || k === 'art63d').map(([i]) => i);
+    const semAntigas = DR.artigos.filter((_, i) => !(i === p63[0] || i === p63[1]));
+    const i33 = semAntigas.findIndex((a) => ch(a.rot) === 'art33');
+    const comMud = semAntigas.map((a, i) => (i === i33 ? { ...a, txt: a.txt + ' Parágrafo novo. (Incluído pela Lei nº 15.999, de 2026)' } : a));
+    const rD = await rodar({ fontes: ['planalto'], busca: { baixarLei: async () => comMud }, leis: [DR], ultimas: ULT, anterior: { fontes: {} }, atuais: [], silencioso: true });
+    ok(p63.length === 4 && compararArtigos(DR.artigos, semAntigas).length === 0 && rD.estado.fontes.planalto.resultado === 'novidades'
+      && rD.itens.length === 1 && rD.itens[0].disp === 'Art. 33',
+      `S22s limpar as redações intercaladas da Lei de Drogas (63-C/63-D) não derruba a norma, e a mudança no art. 33 chega (${rD.estado.fontes.planalto.resultado}, ${rD.itens.length} item)`);
+    // t) a citação "Art. 48. Caberão embargos… (NR)" deixando de começar linha não derruba o CPC
+    const iNR = CPC.artigos.findIndex((a) => ch(a.rot) === 'art48' && /\(NR\)\s*["”]?\s*$/.test(String(a.txt).trim()));
+    ok(iNR > 0 && compararArtigos(CPC.artigos, CPC.artigos.filter((_, i) => i !== iNR)).length === 0,
+      'S22t a citação de dispositivo de outra lei (termina em "(NR)") que some da página não vira ausência no CPC');
+    // u) remissão "Art. 1º , …" começando linha no corpo da CF não muda o lugar do ADCT
+    const i100 = CF.artigos.findIndex((a) => ch(a.rot) === 'art200');
+    const i226 = CF.artigos.findIndex((a) => ch(a.rot) === 'art226');
+    const cf1 = CF.artigos.map((a, i) => (i === i226 ? { ...a, txt: a.txt + ' § 9º Novo. (Incluído pela Emenda Constitucional nº 199, de 2026)' } : a));
+    const comRem1 = [...cf1.slice(0, i100 + 1), { rot: 'Art. 1º', txt: 'Art. 1º , III, desta Constituição, observado o disposto acima.' }, ...cf1.slice(i100 + 1)];
+    const du = compararArtigos(CF.artigos, comRem1).map((x) => itemPlanalto(CF, x, 'x'));
+    const d226 = du.find((x) => x.disp === 'Art. 226');
+    ok(!!d226 && d226.titulo === 'Art. 226 — CF',
+      `S22u uma remissão "Art. 1º , III…" no corpo não faz o resto do corpo virar "do ADCT" (${du.map((x) => x.titulo).join(' | ')})`);
+    // v) remissão nova no corpo entre dois dias: o item do ADCT não ganha gêmeo nem alteração sem sentido
+    const adct0 = CF.artigos.findIndex((a, i) => i > 0 && ch(a.rot) === 'art1' && ch(CF.artigos[i - 1].rot) !== 'art1');
+    let i6 = CF.artigos.findIndex((a, i) => i > adct0 && ch(a.rot) === 'art6'); while (ch(CF.artigos[i6 + 1].rot) === 'art6') i6++;
+    const dia1 = CF.artigos.map((a, i) => (i === i6 ? { ...a, txt: a.txt + ' Acréscimo. (Redação dada pela Emenda Constitucional nº 199, de 2026)' } : a));
+    const i200 = dia1.findIndex((a) => ch(a.rot) === 'art200');
+    const dia2 = [...dia1.slice(0, i200 + 1), { rot: 'Art. 6º', txt: 'Art. 6º , caput, desta Constituição, observado o disposto acima.' }, ...dia1.slice(i200 + 1)];
+    const v1 = await rodar({ fontes: ['planalto'], busca: { baixarLei: async () => dia1 }, leis: [CF], ultimas: ULT, anterior: { fontes: {} }, atuais: [], silencioso: true });
+    const v2 = await rodar({ fontes: ['planalto'], busca: { baixarLei: async () => dia2 }, leis: [CF], ultimas: ULT, anterior: v1.estado, atuais: v1.itens, silencioso: true });
+    const idAdct = (v1.itens[0] || {}).id;
+    const outros = v2.itens.filter((x) => x.id !== idAdct);
+    ok(v1.itens.length === 1 && v2.itens.some((x) => x.id === idAdct) && outros.length === 1 && outros[0].tipo === 'inclusao' && outros[0].revisar === true
+      && !v2.itens.some((x) => x.tipo === 'alteracao' && /desta Constituição, observado/.test(x.depois || '') && x.id !== idAdct),
+      `S22v remissão nova no corpo entre dois dias: o item do ADCT continua o mesmo, e a remissão vira só uma inclusão para conferir (${v2.itens.map((x) => x.tipo + ':' + x.chave).join(', ')})`);
+    // w) CLT: o 1º trecho é o decreto de aprovação; o art. 2º da Consolidação sai com rótulo limpo
+    const iEmp = CLT.artigos.findIndex((a) => ch(a.rot) === 'art2' && /empregador/i.test(a.txt));
+    const clt = CLT.artigos.map((a, i) => (i === iEmp ? { ...a, txt: a.txt + ' § 9º Novo. (Incluído pela Lei nº 15.999, de 2026)' } : a));
+    const dw = compararArtigos(CLT.artigos, clt).map((x) => itemPlanalto(CLT, x, 'x'));
+    const iDec = CLT.artigos.findIndex((a) => ch(a.rot) === 'art2');
+    const dec = CLT.artigos.map((a, i) => (i === iDec ? { ...a, txt: a.txt + ' Acréscimo. (Redação dada pela Lei nº 15.999, de 2026)' } : a));
+    const dd = compararArtigos(CLT.artigos, dec).map((x) => itemPlanalto(CLT, x, 'x'));
+    ok(iEmp > iDec && dw.length === 1 && dw[0].titulo === 'Art. 2º — CLT' && dd.length === 1 && dd[0].titulo === 'Art. 2º (trecho inicial da página) — CLT',
+      `S22w na CLT, o art. 2º da Consolidação sai limpo e o do decreto de aprovação sai "(trecho inicial da página)" (${dw.map((x) => x.titulo)} | ${dd.map((x) => x.titulo)})`);
+    // x) a falha por ADCT cortado diz "do ADCT" — o corpo com o mesmo número está na página
+    const adctIni = adct0;
+    const corte = CF.artigos.findIndex((a, i) => i > adctIni && ch(a.rot) === 'art132');
+    const rx = await rodar({ fontes: ['planalto'], busca: { baixarLei: async () => CF.artigos.slice(0, corte) }, leis: [CF], ultimas: ULT, anterior: { fontes: {} }, atuais: [], silencioso: true });
+    ok(/Art\. 132 do ADCT/.test(rx.estado.fontes.planalto.erro || ''),
+      `S22x a falha por ADCT cortado nomeia "Art. 132 do ADCT", não o art. 132 do corpo que está na página (${(rx.estado.fontes.planalto.erro || '').slice(0, 120)})`);
+  }
+
+  // ── S13m — baixa de item que a dona recusou não reabre PR ──────────────────
+  {
+    const pend = { id: 'INF-STF-1225', fonte: 'stf', tipo: 'informativo', norma: 'STF', disp: 'Informativo 1225 do STF', revisar: true,
+      pendencia: 'edição detectada na fonte oficial', urlOficial: 'https://www.stf.jus.br/arquivo/informativo/documento/informativo1225.htm',
+      detectadoEm: '2026-09-20T12:00:00.000Z', lido: false };
+    const so1225 = async (url) => (/informativo1225\.htm$/.test(url) ? pagina(PAG['stf-1225']) : { status: 404, tam: 0, texto: '' });
+    const dia = (ja) => rodar({ fontes: ['stf'], busca: { buscar: so1225 }, ultimas: { ...ULT, stf: 1225 }, anterior: { fontes: {} }, atuais: [pend],
+      jaPropostos: ja, silencioso: true });
+    const recusouABaixa = await dia([{ id: 'INF-STF-1225', incorporado: true, revisar: false }]);
+    ok(recusouABaixa.baixas === 0 && recusouABaixa.novos === 0 && recusouABaixa.itens[0].incorporado === true,
+      'S13m a baixa que um PR recusado JÁ propunha não conta: o PR fechado não reabre sozinho (o item segue com a baixa)');
+    const estavaPendente = await dia([{ id: 'INF-STF-1225', incorporado: false, revisar: true }]);
+    const soId = await dia(['INF-STF-1225']);
+    ok(estavaPendente.baixas === 1 && soId.baixas === 1,
+      'S13m2 baixa NOVA de item que o PR recusado trazia pendente conta (e abre PR); id sem estado não desconta baixa');
+    const dir = mkdtempSync(path.join(os.tmpdir(), 'sentinela-'));
+    const arq = path.join(dir, 'novidades-recusado.js');
+    writeFileSync(arq, conteudoNovidades({ geradoEm: 'x', fontes: {}, itens: [{ ...pend, incorporado: true, revisar: false }] }));
+    const lidos = lerPropostos(arq);
+    rmSync(dir, { recursive: true, force: true });
+    ok(lidos.length === 1 && lidos[0].id === 'INF-STF-1225' && lidos[0].incorporado === true && lidos[0].revisar === false,
+      'S13m3 lerPropostos devolve o estado que o PR recusado propunha');
+  }
+
+  // ── S20e/f — tempo nas extraordinárias e o prazo chegando a cada leitura ──
+  {
+    const real = Date.now;
+    let t = real();
+    Date.now = () => t;
+    try {
+      const porUrl = new Map(MAN.paginas.map((p) => [p.url, p]));
+      const pag = async (url) => { t += 1000; const p = porUrl.get(url); return p ? pagina(p) : { status: 404, tam: 0, texto: '' }; };
+      const r = await rodar({ fontes: ['stj'], busca: { buscar: pag }, ultimas: ULT, anterior: { fontes: {} }, atuais: [], silencioso: true, prazo: t + 6500 });
+      const e = r.estado.fontes.stj;
+      ok(/tempo da consulta esgotado antes da edição 903/.test(e.erro || '')
+        && /as extraordinárias a partir da extraordinária 34 não foram consultadas/.test(e.erro || ''),
+        `S20e o tempo que acaba nas ordinárias diz que as extraordinárias ficaram sem consulta (${(e.erro || '').slice(0, 140)})`);
+    } finally { Date.now = real; }
+    // O prazo do rodar() chega a CADA leitura (é o que corta a leitura em curso, em tls-fontes).
+    const vistos = [];
+    const lei = leiFalsa('LP', 30);
+    await rodar({ fontes: ['planalto'], busca: { baixarLei: async (u, o) => { vistos.push(o && o.prazo); return lei.artigos; } }, leis: [lei],
+      ultimas: ULT, anterior: { fontes: {} }, atuais: [], silencioso: true, prazo: Date.now() + 60000 });
+    const vInf = [];
+    await rodar({ fontes: ['stf'], busca: { buscar: async (u, o) => { vInf.push(o && o.prazo); return { status: 404, tam: 0, texto: '' }; } },
+      ultimas: ULT, anterior: { fontes: {} }, atuais: [], silencioso: true, prazo: Date.now() + 60000 });
+    ok(vistos.length > 0 && vistos.every((p) => p > Date.now()) && vInf.length > 0 && vInf.every((p) => p > Date.now()),
+      'S20f o prazo da rodada chega a cada leitura do Planalto e dos informativos');
+  }
+
+  // ── S20g — portão do Supabase com teto: Supabase parado não leva a função aos 60 s ──
+  // BETA_EMAILS fica vazio aqui (e no S20h): com a lista ligada no ambiente, o usuário de mentira
+  // pararia no portão do beta antes do portão que o caso exercita.
+  const betaReal = process.env.BETA_EMAILS;
+  delete process.env.BETA_EMAILS;
+  {
+    const realFetch = globalThis.fetch;
+    globalThis.fetch = (url, o) => new Promise((_, rej) => { if (o && o.signal) o.signal.addEventListener('abort', () => rej(o.signal.reason)); });
+    try {
+      const { default: handler, PORTAO_MS } = await import('../api/sentinela.js');
+      const res = { h: {}, c: 0, b: null, setHeader(k, v) { this.h[k] = v; }, status(c) { this.c = c; return this; }, json(b) { this.b = b; }, end() {} };
+      const t0 = Date.now();
+      // O timer do AbortSignal.timeout não segura o processo (unref); na Vercel quem segura é a
+      // própria requisição aberta. Aqui, um intervalo faz esse papel enquanto o handler roda.
+      // Sem o teto, o handler esperaria para sempre: a corrida contra um relógio faz o caso
+      // FALHAR em vez de pendurar a suíte.
+      const vivo = setInterval(() => {}, 500);
+      let relogio;
+      try {
+        await Promise.race([handler({ method: 'GET', headers: { authorization: 'Bearer x' }, query: {} }, res),
+          new Promise((r) => { relogio = setTimeout(r, PORTAO_MS + 3000); })]);
+      } finally { clearInterval(vivo); clearTimeout(relogio); }
+      const dt = Date.now() - t0;
+      ok(res.c === 503 && /não respondeu a tempo/.test((res.b && res.b.error) || '') && dt < PORTAO_MS + 1500,
+        `S20g Supabase parado: a função responde 503 com o motivo em ${Math.round(dt / 100) / 10} s, sem esperar os 60 s`);
+    } finally { globalThis.fetch = realFetch; }
+  }
+
+  // ── S20h — consulta de permissão lenta não libera a conta: 503 ──────────────
+  {
+    const realFetch = globalThis.fetch;
+    globalThis.fetch = (url, o) => (/\/auth\/v1\/user/.test(String(url))
+      ? Promise.resolve({ ok: true, json: async () => ({ id: 'u1', email: 'a@b.c' }) })
+      : new Promise((_, rej) => { if (o && o.signal) o.signal.addEventListener('abort', () => rej(o.signal.reason)); }));
+    try {
+      const { default: handler, PORTAO_MS } = await import('../api/sentinela.js');
+      const res = { h: {}, c: 0, b: null, setHeader(k, v) { this.h[k] = v; }, status(c) { this.c = c; return this; }, json(b) { this.b = b; }, end() {} };
+      const vivo = setInterval(() => {}, 500);
+      let relogio;
+      try {
+        // fonte inválida de propósito: se o portão deixasse passar, a resposta seria 400 (sem rede)
+        await Promise.race([handler({ method: 'GET', headers: { authorization: 'Bearer x' }, query: { fonte: 'nenhuma' } }, res),
+          new Promise((r) => { relogio = setTimeout(r, PORTAO_MS + 3000); })]);
+      } finally { clearInterval(vivo); clearTimeout(relogio); }
+      ok(res.c === 503 && !/\.$/.test((res.b && res.b.error) || '.'),
+        `S20h consulta de permissão acima do teto responde 503 (não libera conta bloqueada por demora), sem ponto final na mensagem (${res.c})`);
+    } finally { globalThis.fetch = realFetch; }
+  }
+
+  if (betaReal === undefined) delete process.env.BETA_EMAILS; else process.env.BETA_EMAILS = betaReal;
 
   // ── S16 — um parser só: o build da lei seca importa o recorte desta lib ──
   // Até 01/10/2026 eram duas cópias (scripts/lib/planalto.mjs e scripts/build-leis-seca.mjs).

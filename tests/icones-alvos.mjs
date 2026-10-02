@@ -49,7 +49,10 @@ export async function testarIconesAlvos(pageDaSuite, base, ok, opcoes = {}) {
   const w = ms => new Promise(r => setTimeout(r, ms));
 
   async function abrir(viewport, toque, escuro = false, extra = {}) {
-    const ctx = await browser.newContext({ viewport, hasTouch: !!toque, isMobile: !!toque && viewport.width < 900 && motor !== 'firefox' });
+    const ctx = await browser.newContext({ viewport, hasTouch: !!toque, isMobile: !!toque && viewport.width < 900 && motor !== 'firefox',
+      ...(extra.relogio ? { timezoneId: extra.relogio.fuso } : {}) });
+    // relógio fixo ANTES da semente e do app (padrão de tests/registro-sessao.mjs); o tempo segue correndo
+    if (extra.relogio) await ctx.clock.install({ time: extra.relogio.t });
     const page = await ctx.newPage();
     const erros = [];
     page.on('pageerror', e => erros.push(String(e && e.message || e)));
@@ -59,9 +62,11 @@ export async function testarIconesAlvos(pageDaSuite, base, ok, opcoes = {}) {
     await page.waitForFunction(() => !!window.__catedraApp && typeof window.__catedraGoView === 'function' && !!document.querySelector('[data-toque]'), null, { timeout: 30000 });
     await page.evaluate(({ toque, escuro, extra }) => new Promise(r => { const a = window.__catedraApp;
       a._toque = !!toque;
-      // Data LOCAL: o app conta os dias no fuso do aparelho. Com toISOString (UTC), das 20h à
-      // meia-noite em Porto Velho a data já virava o dia seguinte e a ficha dizia 121 dias.
-      const prova = (() => { const d = new Date(Date.now() + 120 * 864e5), p = (n) => String(n).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); })();
+      // hoje + 120 no calendário LOCAL, que é como o app conta (meia-noite local de provaData,
+      // o _ymd do host). toISOString() é UTC: das 20h à meia-noite em UTC-4 já é amanhã, e dava 121.
+      const d = new Date(); d.setDate(d.getDate() + 120);
+      const p = n => String(n).padStart(2, '0');
+      const prova = d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
       // "Continuar de onde parei" aparece quando há um ponto recente em outra tela
       const ponto = { rotulo: 'Lei 8.112/1990 · art. 5º', view: 'legis', ts: Date.now() - 36e5 };
       a.setState({ dir: 'sutil', accent: null, darkMode: !!escuro, escudos: 2, provaData: prova, notifOpen: false, lastPonto: ponto,
@@ -107,6 +112,22 @@ export async function testarIconesAlvos(pageDaSuite, base, ok, opcoes = {}) {
       ok(p.icos.length >= 2 && p.emojis.length === 0 && p.ruins.length === 0,
         R + '(a) busca da barra de cima: ' + p.icos.length + ' resultados com SVG 16×16 aria-hidden e nenhum emoji (ícones: ' + [...new Set(p.icos)].join(', ') + (p.emojis.length ? '; emojis: ' + p.emojis.join(' | ') : '') + (p.ruins.length ? '; fora: ' + p.ruins.join(' / ') : '') + ')');
       ok(!erros.length, R + '(a) sem erro de página (' + (erros[0] || 'nenhum') + ')');
+    } finally { await ctx.close(); }
+  }
+  /* ---------------- (a) a ficha da prova à noite em UTC-4 ---------------- */
+  // Das 20h à meia-noite em Porto Velho o dia UTC já virou: com a data da prova montada por
+  // toISOString(), a ficha dizia «121 dias» no Mac todas as noites, e a CI (em UTC) nunca via.
+  // Fuso e relógio fixos no contexto (21:40 de hoje em Porto Velho) cobram a janela em qualquer
+  // máquina e a qualquer hora; o caso confere que o relógio caiu mesmo nela.
+  {
+    const hojePV = new Date(Date.now() - 4 * 36e5).toISOString().slice(0, 10);   // UTC-4 fixo: Porto Velho não tem horário de verão
+    const relogio = { fuso: 'America/Porto_Velho', t: new Date(hojePV + 'T21:40:00-04:00') };
+    const { ctx, page } = await abrir({ width: 1280, height: 1000 }, false, false, { relogio });
+    try {
+      const r = await page.evaluate(varrerIcones);
+      const j = await page.evaluate(() => { const d = new Date(); return { h: d.getHours(), virou: d.getDate() !== d.getUTCDate() }; });
+      ok(j.h === 21 && j.virou && r.textoProva === '120 dias p/ prova',
+        R + '(a) às 21:40 em Porto Velho, com o dia UTC já virado, a ficha continua «120 dias p/ prova» (' + j.h + 'h local, dia UTC ' + (j.virou ? 'virado' : 'igual') + '; «' + r.textoProva + '»)');
     } finally { await ctx.close(); }
   }
 
