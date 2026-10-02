@@ -561,12 +561,11 @@ export function ultimasDeArquivo(caminho) {
 }
 const RE_ID_EE = /^INF\d{4}-STJ-EE(\d+)-/;
 export function ultimasDoIndice(IDX) {
-  // Sem teto, nos dois. scripts/atualizar-informativos.py corta o STJ em `nu < 900` para
-  // separar edição ordinária de extraordinária — mas as extraordinárias do acervo usam
-  // `nu` de 28 a 33 (conferido em 15/09/2026; elas se distinguem pelo id `-EE<n>-`, não
-  // pelo número). O teto só fazia o vigia reanunciar a edição 900, que já está no bundle.
-  // E aplicá-lo ao STF travava a busca na 862 com o acervo já na 1224. Por isso a linha de
-  // extraordinária sai da série das ordinárias pelo id, não pelo número.
+  // Sem teto, nos dois — como o scripts/atualizar-informativos.py desde o PR #176, que
+  // largou o antigo corte `nu < 900`. As extraordinárias do acervo usam `nu` de 28 a 33
+  // (conferido em 15/09/2026) e se distinguem pelo id `-EE<n>-`, não pelo número. Um teto
+  // fazia o vigia reanunciar a edição 900, que já estava no bundle, e aplicado ao STF
+  // travava a busca na 862. Por isso a extraordinária sai da série das ordinárias pelo id.
   const ord = (fo) => IDX.filter((r) => r[2] === fo && typeof r[3] === 'number' && !RE_ID_EE.test(String(r[0]))).map((r) => r[3]);
   const stf = ord('informativo_stf'), stj = ord('informativo_stj');
   const ee = IDX.map((r) => RE_ID_EE.exec(String(r[0]))).filter(Boolean).map((m) => +m[1]);
