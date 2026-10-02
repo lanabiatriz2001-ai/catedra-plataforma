@@ -271,8 +271,8 @@ export async function testarNovidadesCentral(pageDaSuite, base, ok, ctxOpc = {})
     ok(soTela.every((k) => !auto.includes("'" + k + "'")), R + '(a) estado só de tela (filtros, busca, resultado, comparação) fica fora do autosave');
     // o acordo com a sessão "Interface de atualização oficial" (01/10/2026), literal onde é literal
     ok(host.includes('<button id="ct-of-abrir" class="ct-btn-2" onclick="{{ oficialPainelAbrir }}">Ver revisão oficial</button>')
-      && /oficialPainelAbrir = \(\)=> this\._irPara\('novidades'\);/.test(host),
-      R + '(a) o gancho do acordo: #ct-of-abrir com oficialPainelAbrir, que neste PR leva à Central');
+      && /oficialPainelAbrir = \(\)=> this\.setState\(\{oficialPainelOpen:true\}\);/.test(host),
+      R + '(a) o gancho do acordo: #ct-of-abrir com oficialPainelAbrir, que abre o diálogo "Revisão oficial" (pilha do painel)');
     ok(/<section id="ct-fontes-oficiais"/.test(host) && host.includes(FRASE_INICIO), R + '(a) o resumo do Início é uma <section> com a frase "' + FRASE_INICIO + '"');
     ok(host.includes(FRASE_DONA), R + '(a) a frase da dona está, literal, no template da Central');
     ok(/\n  _novidEstado\(id\)\{/.test(host) && /\n  _novidMarcar\(id, st\)\{/.test(host), R + '(a) o contrato com o painel "Revisão oficial": _novidEstado(id) e _novidMarcar(id, st)');
@@ -594,7 +594,8 @@ export async function testarNovidadesCentral(pageDaSuite, base, ok, ctxOpc = {})
       ok(await page.evaluate(() => window.__catedraApp.state.view) === 'novidades', R + '(i) o link das edições que aguardam o acervo abre a Central');
       await ir(page, 'inicio');
       await clicar(page, '#ct-of-abrir'); await page.waitForTimeout(500);
-      ok(await page.evaluate(() => window.__catedraApp.state.view) === 'novidades', R + '(i) "Ver revisão oficial" (#ct-of-abrir) leva à Central de novidades neste PR');
+      ok(await page.evaluate(() => window.__catedraApp.state.view === 'inicio' && !!document.getElementById('ct-revisao-oficial')), R + '(i) "Ver revisão oficial" (#ct-of-abrir) abre o diálogo da revisão oficial sobre o Início');
+      await page.keyboard.press('Escape'); await page.waitForTimeout(300);
       ok(pedidosApi.length === 0, R + '(j) nada foi pedido a /api/sentinela sem clique no botão (' + pedidosApi.length + ')');
       ok(!erros.length, R + 'sem erro de página (' + erros.slice(0, 2).join(' | ').slice(0, 160) + ')');
     } finally { await c.close(); }
