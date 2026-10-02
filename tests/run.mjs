@@ -1092,14 +1092,27 @@ ok(!!PECA, 'ACERVO há peças com roteiro pronto (' + PECA + ')');
 
 // abre direto no bloco
 await page.goto(URL0 + '/ritos-web.html?peca=' + encodeURIComponent(PECA) + '&bloco=2');
-await page.waitForTimeout(500);
-const a1 = await page.evaluate(() => {
-  const rot = document.querySelector('.ctr');
-  const blks = [...document.querySelectorAll('.ctr .blk')];
-  return { aberto: rot && rot.classList.contains('on'), volta: blks.findIndex(b => b.classList.contains('volta')) };
+// O destaque .blk.volta do peca-roteiro.js é PASSAGEIRO (sai em 2,6 s): esperar 500 ms fixos erra
+// para os dois lados — cedo demais o roteiro ainda não pintou (achava -1, e foi assim que este
+// caso caiu sob carga em 01/10/2026), tarde demais o destaque já saiu. Então olha de 50 em 50 ms
+// desde o começo e guarda o índice no primeiro instante em que ele existe.
+const a1 = await page.evaluate(async () => {
+  const w = ms => new Promise(r => setTimeout(r, ms));
+  const t = Date.now();
+  let aberto = false, volta = -1, blocos = 0;
+  while (Date.now() - t < 8000) {
+    const rot = document.querySelector('.ctr');
+    const blks = [...document.querySelectorAll('.ctr .blk')];
+    aberto = !!rot && rot.classList.contains('on');
+    blocos = blks.length;
+    volta = blks.findIndex(b => b.classList.contains('volta'));
+    if (aberto && volta >= 0) break;
+    await w(50);
+  }
+  return { aberto, volta, blocos, ms: Date.now() - t };
 });
-ok(a1.aberto, 'ACERVO painel abre via ?peca=');
-ok(a1.volta === 2, 'ACERVO bloco 2 destacado — achou ' + a1.volta);
+ok(a1.aberto, 'ACERVO painel abre via ?peca= (em ' + a1.ms + ' ms)');
+ok(a1.volta === 2, 'ACERVO bloco 2 destacado — achou ' + a1.volta + ' entre ' + a1.blocos + ' blocos, em ' + a1.ms + ' ms');
 
 // chip do fluxo carrega a origem (rito)
 await page.goto(URL0 + '/ritos-web.html');
@@ -3216,7 +3229,11 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     encerrar(its);
     // a correção cria o lote de erros e os cartões e troca a tela: espera isso, não um tempo fixo (sob
     // carga os 900 ms passavam e o teto de vinte era medido antes de o lote existir)
-    for (let i = 0; i < 160 && !((app.state.errors || []).filter(e => e.source === 'Simulado ENAM').length >= 20 && document.querySelector('main .ct-enam-res-n')); i++) await w(50);
+    // o lote de erros e os cartões nascem em momentos diferentes: esperar só os erros media os
+    // flashcards no meio do caminho (foi assim que tetoDeVinte caiu sob carga em 01/10/2026)
+    const cartoesEnam = () => (app.state.flashcards || []).filter(c => c.origem === 'Simulado ENAM').length;
+    for (let i = 0; i < 160 && !((app.state.errors || []).filter(e => e.source === 'Simulado ENAM').length >= 20
+      && cartoesEnam() >= 20 && document.querySelector('main .ct-enam-res-n')); i++) await w(50);
     const main = () => document.querySelector('main');
     const selo = main().querySelector('.ct-enam-selo');
     r.numeroGrande = /51/.test(main().querySelector('.ct-enam-res-n').textContent) && /\/80/.test(main().querySelector('.ct-enam-res-n').textContent) && /Georgia|serif|Fraunces|Playfair|Display/i.test(getComputedStyle(main().querySelector('.ct-enam-res-n')).fontFamily);
@@ -3237,8 +3254,10 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     r.flashcardComGabaritoEReferencia = (app.state.flashcards || []).filter(c => c.origem === 'Simulado ENAM').every(c => /^Gabarito: [A-E] — /.test(c.back) && /\(ENAM 20\d\d\.\d · questão \d+\)$/.test(c.back));
     const desfazer = [...document.querySelectorAll('div[role=status] button')].find(b => /desfazer/i.test(b.textContent));
     r.desfazerTiraOLote = (() => { if (!desfazer) return false; desfazer.click(); return true; })();
-    for (let i = 0; i < 160 && errs().length > 0; i++) await w(50);   // espera o lote sair, não 400 ms fixos
-    r.desfazerTiraOLote = r.desfazerTiraOLote && errs().length === 0 && (app.state.flashcards || []).filter(c => c.origem === 'Simulado ENAM').length === 0;
+    // o desfazer também tira os cartões, e não no mesmo instante: esperar os DOIS zerarem
+    for (let i = 0; i < 160 && (errs().length > 0 || cartoesEnam() > 0); i++) await w(50);
+    r.desfazerTiraOLote = r.desfazerTiraOLote && errs().length === 0 && cartoesEnam() === 0;
+    r._diag = 'ENAM/E4 diagnóstico: erros=' + errs().length + ' cartões=' + cartoesEnam();
     // a tentativa: shape do E4, sem enunciado. Ela só chega ao disco pelo _autosave (500 ms de debounce, que cada
     // render rearma). Esperar a CHAVE não bastava: o mesmo _autosave grava catedra:enamSim = "[]" (o estado vazio)
     // quando qualquer outra chave suja — no boot isso empatava com o removeItem lá de cima, a chave sobrevivia
@@ -3277,7 +3296,8 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
   }).catch(e => ({ __excecao: String(e && e.message || e).split('\n')[0].slice(0, 200) }));
   // uma exceção aqui dentro vira UMA falha nomeada, não o fim da suíte inteira
   if (h.__excecao) ok(false, 'ENAM/E4 host o roteiro correu sem exceção (' + h.__excecao + ')');
-  else for (const [k, v] of Object.entries(h)) ok(v, 'ENAM/E4 host ' + k);
+  // chave com `_` na frente é DIAGNÓSTICO e vai para o log: virar ok() daria "✓" de graça
+  else for (const [k, v] of Object.entries(h)) { if (k[0] === '_') console.log('  ' + v); else ok(v, 'ENAM/E4 host ' + k); }
 }
 
 /* ============= PROVA — encerrar uma vez só ============= */
