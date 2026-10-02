@@ -41,6 +41,8 @@ begin
   if p_resumo is null or jsonb_typeof(p_resumo) <> 'object' then raise exception 'resumo_invalido'; end if;
   if octet_length(p_resumo::text) > 65536 then raise exception 'resumo_grande'; end if;
   if p_carimbo is null or p_carimbo <= 0 then raise exception 'carimbo_invalido'; end if;
+  -- Relógio adiantado de um aparelho congelaria o resumo da conta (nenhuma publicação honesta passaria): tolera 10 min.
+  if p_carimbo > (extract(epoch from clock_timestamp()) * 1000)::bigint + 600000 then raise exception 'carimbo_futuro'; end if;
   insert into public.widget_resumo as w (user_id, resumo, carimbo, atualizado_em)
     values (uid, p_resumo, p_carimbo, now())
     on conflict (user_id) do update set resumo = excluded.resumo, carimbo = excluded.carimbo, atualizado_em = now()

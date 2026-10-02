@@ -7,6 +7,8 @@ begin
   select id into u1 from auth.users order by created_at limit 1;
   select id into u2 from auth.users where id <> u1 order by created_at limit 1;
   if u2 is null then raise exception 'precisa de duas contas em auth.users'; end if;
+  -- As duas contas podem já ter resumo: limpa para os casos partirem do zero (desfeito pelo desfazer final, por erro).
+  delete from public.widget_resumo where user_id in (u1, u2);
 
   perform set_config('request.jwt.claims', json_build_object('sub', u1)::text, true);
   ok := public.widget_publicar('{"v":1,"x":1}'::jsonb, 1000);
@@ -22,6 +24,12 @@ begin
     res := res || 'W4 FALHOU (aceitou > 64 KB); ';
   exception when others then
     res := res || case when sqlerrm = 'resumo_grande' then 'W4 ok; ' else 'W4 FALHOU (' || sqlerrm || '); ' end;
+  end;
+  begin
+    perform public.widget_publicar('{"v":1,"x":9}'::jsonb, (extract(epoch from now()) * 1000)::bigint + 86400000);
+    res := res || 'W4b FALHOU (aceitou carimbo 1 dia no futuro); ';
+  exception when others then
+    res := res || case when sqlerrm = 'carimbo_futuro' then 'W4b ok; ' else 'W4b FALHOU (' || sqlerrm || '); ' end;
   end;
 
   p1 := public.widget_passe_emitir('Mac de teste');
