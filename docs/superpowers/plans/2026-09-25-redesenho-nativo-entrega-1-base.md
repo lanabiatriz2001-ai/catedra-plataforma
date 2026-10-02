@@ -73,7 +73,7 @@
 A especificação e este plano já estão commitados no worktree `.claude/worktrees/redesenho-legis-juris`. O PR da entrega 1 leva os três juntos.
 
 ```bash
-cd /Users/lanab/catedra-plataforma-main/.claude/worktrees/redesenho-legis-juris
+cd ~/catedra-plataforma-main/.claude/worktrees/redesenho-legis-juris
 git branch -m redesenho-legis-juris-spec redesenho-nativo-1-base && git branch --show-current
 ```
 Expected: `redesenho-nativo-1-base`

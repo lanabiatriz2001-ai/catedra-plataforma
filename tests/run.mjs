@@ -20,6 +20,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { iniciarServidor, lancarNavegador } from './_infra.mjs';
 import { testarOralLeiSeca } from './oral-lei-seca.mjs';
 import { testarPastaSincronizada } from './pasta-sincronizada.mjs';
+import { testarPiiVerificador, testarPiiBuildSemTrecho } from './pii-verificador.mjs';
 import { testarLegisGuiado } from './legis-guiado.mjs';
 import { testarLeitorWeb } from './leitor-web.mjs';
 import { testarCicloInteligente } from './ciclo-inteligente.mjs';
@@ -6416,6 +6417,17 @@ const { verificarPII } = await import('../scripts/verificar-pii.mjs');
     console.warn = warn;
     ok(comVazamento.length > 0, 'C1 PII continua acusando CPF válido (marca d\'água de verdade)');
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+}
+
+/* ===== PII no repositório: a marca d'água de PDF (tests/pii-verificador.mjs) =====
+   O repositório é público. O verificador da CI e do pré-commit acusa CPF, telefone e nome
+   rotulados (inteiros ou mascarados) sem repetir o trecho na mensagem — o log da CI é
+   público; caso jurídico legítimo ("Tema 951**", telefone de SAC) passa. A trava do build
+   também deixou de repetir o CPF que acha. */
+try { testarPiiVerificador(ok); await testarPiiBuildSemTrecho(ok); }
+catch (e) {
+  ok(false, 'PII VERIFICADOR o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
 /* ===== C2: ponte para as plataformas de questões (só link de saída) =====

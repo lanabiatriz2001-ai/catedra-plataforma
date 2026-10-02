@@ -51,7 +51,7 @@ Nenhum trecho foi completado por memória ou por inferência sem fonte.
 | Segredos | Nenhuma chave de API encontrada nos arquivos verificados |
 | Build web | `public/` gerado com sucesso, sem dado pessoal e sem dependência externa em runtime |
 | Mac | Bundle universal arm64/x86_64, Developer ID, hardened runtime e carimbo de tempo; instalado em `/Applications/Cátedra.app`; assinatura estrita e hashes dos acervos conferidos |
-| iPad | Bundle de aparelho assinado com `Catedra iOS Dev`; instalado no `iPad de Lana Biatriz` (bundle id `com.catedra.ipad`) |
+| iPad | Bundle de aparelho assinado com `Catedra iOS Dev`; instalado no iPad da dona (bundle id `com.catedra.ipad`) |
 
 O build continua sinalizando que Termos e Política saem como rascunho porque faltam os
 dados do controlador em `docs/juridico/controlador.json`. Essa pendência é anterior e não
