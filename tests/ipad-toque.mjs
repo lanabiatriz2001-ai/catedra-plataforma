@@ -297,8 +297,9 @@ export async function testarIpadToque(pageDaSuite, base, ok, ctx = {}) {
         r.foiParaAjustes = a.state.view === 'ajustes';
         await a.backupICloud(); await w(100);
         r.manualAbre = window.__ponte.length === 1 && window.__ponte[0] === 'salvar';
-        // Mac: sem catedraAcervo, o automático grava direto (como antes)
-        localStorage.removeItem('catedra:_bkpAutoTry'); window.__ponte.length = 0;
+        // Mac: sem catedraAcervo, o automático grava direto (como antes). O salvar manual acima
+        // já conta como o backup da semana (_bkpAutoTs, 01/10/2026): sai com ele também
+        localStorage.removeItem('catedra:_bkpAutoTry'); localStorage.removeItem('catedra:_bkpAutoTs'); window.__ponte.length = 0;
         delete window.webkit.messageHandlers.catedraAcervo;
         a._backupAutoSemanal(); await w(300);
         r.macSegueAutomatico = window.__ponte.length === 1 && window.__ponte[0] === 'salvar';
