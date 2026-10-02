@@ -35,7 +35,9 @@ enum WidgetLinks {
         func q(_ n: String) -> String { (c.queryItems?.first { $0.name == n }?.value ?? "").trimmingCharacters(in: .whitespaces) }
         switch c.host?.lowercased() {
         case "ver":
-            let v = c.path.split(separator: "/").first.map(String.init) ?? ""
+            let partes = c.path.split(separator: "/", omittingEmptySubsequences: true)
+            guard partes.count == 1 else { return nil }
+            let v = String(partes[0])
             return telas.contains(v) ? .tela(v) : nil
         case "legis":
             let d = q("diploma"), a = q("artigo")
@@ -43,7 +45,7 @@ enum WidgetLinks {
         case "juris":
             let id = q("id")
             guard !id.isEmpty, id.count <= 80,
-                  id.allSatisfy({ $0.isLetter || $0.isNumber || $0 == "-" || $0 == "_" }) else { return nil }
+                  id.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "-" || $0 == "_") }) else { return nil }
             return .juris(id: id)
         case "entrar":
             return .entrar

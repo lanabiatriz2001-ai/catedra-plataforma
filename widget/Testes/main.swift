@@ -181,6 +181,14 @@ do {
     caso("cores: depois de arredondar a 8 bits todas as cores da tabela seguem ≥ 4,5:1" + (ruins8.isEmpty ? "" : " — falham: " + ruins8.joined(separator: ", ")), ruins8.isEmpty)
     caso("cores: hex inválido vira nil (#ggg, vazio, 4 dígitos, #+12345)", WidgetCores.hex("#ggg") == nil && WidgetCores.hex("") == nil && WidgetCores.hex("#abcd") == nil && WidgetCores.hex("#+12345") == nil)
 }
+do {
+    caso("links: ver com mais de um componente é recusado", WidgetLinks.destino(URL(string: "catedra://ver/ciclo/x")!) == nil)
+    caso("links: id do JURIS com letra não ASCII é recusado", WidgetLinks.destino(URL(string: "catedra://juris?id=STJ-S%C3%A9rie-7")!) == nil)
+    let it = WidgetDoDia.carregar(Data(#"{"v":1,"itens":[{"tipo":"artigo","id":"cf#5","titulo":"Art. 5º","artigo":"5"}]}"#.utf8))
+    caso("do dia: artigo sem diploma abre o Início", it.count == 1 && WidgetDoDia.destino(it[0]) == .tela("inicio"))
+
+}
+
 // ---- fim dos casos ----
 print("FIM \(total)")
 exit(falhas > 0 ? 1 : 0)

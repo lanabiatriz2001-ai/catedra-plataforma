@@ -58,7 +58,12 @@ enum WidgetDoDia {
         itens.isEmpty ? nil : itens[indice(em: data, total: itens.count, calendario: cal)]
     }
     static func destino(_ i: WidgetItemDoDia) -> WidgetDestino {
-        if i.tipo == "artigo", let a = i.artigo, !i.diploma.isEmpty { return .legis(diploma: i.diploma, artigo: a) }
+        if i.tipo == "artigo" {
+            // Artigo sem diploma ou sem número não tem para onde ir no LEGIS; o id de artigo ("cf#5")
+            // não é verbete do JURIS (o filtro de links o recusaria), então abre o Início.
+            if let a = i.artigo, !i.diploma.isEmpty { return .legis(diploma: i.diploma, artigo: a) }
+            return .tela("inicio")
+        }
         return .juris(id: i.id)
     }
 }
