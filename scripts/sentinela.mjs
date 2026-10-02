@@ -400,16 +400,32 @@ export function itemPlanalto(lei, d, quando, hoje = new Date()) {
   // atribuiria a este artigo uma mudança que não é dele.
   const novas = soRecorte ? [] : modificadorasDaDiferenca(textoProprio(d.antes), textoProprio(d.depois));
   const tipo = d.tipo === 'alteracao' && caputRevogadoAgora(d.antes, d.depois) ? 'revogacao' : d.tipo;
+  // Número repetido na página (7): o id leva número + bloco; `disp` fica o rótulo limpo — a
+  // leitura ativa e o edital casam por ele no app —, e `rotulo`/`titulo` dizem onde está. Na CF,
+  // "do ADCT" vem da POSIÇÃO (2º trecho da página, onde o art. 1º volta), não do número do bloco:
+  // uma remissão no corpo desloca a contagem de blocos, não a posição (ondeDe, 7).
+  const chave = d.chave || chaveArt(d.rot);
+  const onde = ondeDe(lei.sigla, d);
+  // Comparação que só fechou porque a quantidade de aparições do número mudou: nada sai como
+  // "Detectado" limpo.
+  const descompasso = d.descompasso && !soRecorte
+    ? { pendencia: d.tipo === 'inclusao'
+      ? `o número já existia na página (${d.descompasso} entradas): pode ser artigo novo com número repetido (como no ADCT) ou remissão que passou a começar linha — conferir na fonte`
+      : `o número mudou de quantidade de entradas na página (${d.descompasso}); a comparação usou a redação vigente — conferir na fonte` }
+    : {};
   return {
-    id: 'PLN-' + lei.sigla.replace(/\W+/g, '') + '-' + chaveArt(d.rot) + '-'
+    id: 'PLN-' + lei.sigla.replace(/\W+/g, '') + '-' + chave + '-'
       + sha(chaveTexto(d.depois, d.parcial) + '\n' + chaveTexto(d.antes, d.parcial)),
     fonte: 'planalto',
     fonteRotulo: COBERTURA.planalto.rotulo,
     tipo,
     norma: lei.sigla,
     normaNome: lei.nome,
+    chave,
+    bloco: d.bloco || 1,
     disp: d.rot,
-    titulo: `${d.rot} — ${lei.sigla}`,
+    rotulo: d.rot + onde,
+    titulo: `${d.rot}${onde} — ${lei.sigla}`,
     antes: d.antes,
     depois: d.depois,
     modificadora: novas.length ? novas[novas.length - 1].norma : null,
@@ -422,7 +438,8 @@ export function itemPlanalto(lei, d, quando, hoje = new Date()) {
     parcial: !!d.parcial,
     recorte: soRecorte,
     ...(soRecorte ? { pendencia: 'o texto deste artigo não mudou: a diferença está em outro artigo que o acervo guarda no mesmo trecho — conferir na fonte' } : {}),
-    revisar: v.vigencia === 'indeterminada' || !!d.parcial || soRecorte || !novas.length || efeitosSemData,
+    ...descompasso,
+    revisar: v.vigencia === 'indeterminada' || !!d.parcial || soRecorte || !novas.length || efeitosSemData || !!d.descompasso,
     urlOficial: lei.url,
     detectadoEm: quando,
     lido: false,
@@ -442,26 +459,146 @@ export function parseSuspeito(esperados, obtidos) {
   return y && x < PISO_PARSE * y ? `parse suspeito: ${x} de ${y} artigos` : null;
 }
 
+// 7) NÚMERO REPETIDO NA MESMA PÁGINA. Dois padrões reais (leis-seca.js, 01/10/2026: 242
+//    entradas extras em 182 números):
+//    · REDAÇÕES. Quando uma lei dá nova redação, o Planalto mantém a antiga riscada e põe a
+//      nova LOGO DEPOIS, com o mesmo cabeçalho (CF art. 6º tem 4 redações seguidas; CPC art. 12,
+//      Lei de Drogas). Entradas seguidas com o mesmo número formam um BLOCO; a vigente é a última.
+//    · OUTRO TRECHO. O número reaparece longe: o ADCT na CF (131 números), remissão com "Art."
+//      maiúsculo (CPP art. 101, CPC arts. 1.064 e seguintes), o decreto de aprovação da CLT.
+//      Cada aparição longe é outro bloco.
+//    Indexar só pelo número fazia a ÚLTIMA entrada apagar as anteriores: o corpo da CF com gêmeo
+//    no ADCT nunca era comparado e a fonte saía "sem novidade" sem tê-lo lido. Parear entrada por
+//    entrada também erra: a redação nova (e a limpeza da riscada) desloca as entradas, e o artigo
+//    comparado deixa de ser o mesmo — itens falsos, com a lei de uma redação antiga. A régua é por
+//    bloco, sempre VIGENTE contra VIGENTE (compararArtigos):
+//    · mesmo número de blocos: o 1º com o 1º, o 2º com o 2º…;
+//    · número de blocos diferente ("descompasso"): blocos de vigente idêntica se casam; as sobras
+//      se casam na ordem, para conferir; sobra na página vira inclusão para conferir; sobra no
+//      acervo é `ausente` — consultarPlanalto trata como leitura ruim e a norma falha (um ADCT
+//      cortado não pode passar por "sem novidade") —, salvo a remissão de uma entrada só
+//      ("Art. 101 , I, g , da Constituição"), que pode deixar de começar linha;
+//    · número que sumiu de vez continua `ausente`.
+//    A identidade do item é número + bloco ("art6", "art6@2"): redação nova num bloco não muda a
+//    identidade dos outros. A baixa (noAcervo, em rodar) procura o `depois` na vigente de
+//    qualquer bloco do número.
+export function indexarArtigos(arts) {
+  const vistas = new Map(), out = new Map();
+  soArtigosDeVerdade(arts || []).forEach((a, pos) => {
+    const base = chaveArt(a.rot), n = (vistas.get(base) || 0) + 1;
+    vistas.set(base, n);
+    out.set(n === 1 ? base : base + '~' + n, { art: a, ocorrencia: n, pos });
+  });
+  return out;
+}
+
+/** Os blocos de cada número (7): número → [bloco, bloco…], cada bloco com as entradas
+ *  seguidas daquele número, na ordem da página. */
+export function blocosDe(indice) {
+  const g = new Map();
+  let anterior = null;
+  for (const [k, v] of indice) {
+    const raiz = k.replace(/~\d+$/, '');
+    if (!g.has(raiz)) g.set(raiz, []);
+    const lista = g.get(raiz);
+    if (raiz !== anterior) lista.push([]);
+    lista[lista.length - 1].push({ k, ...v });
+    anterior = raiz;
+  }
+  return g;
+}
+
+/** O que o parser lê como artigo sem ser artigo desta lei: a remissão ("Art. 101 , I, g , da
+ *  Constituição") e a citação de dispositivo de outra lei que esta altera, entre aspas e
+ *  terminada em "(NR)" (CPC arts. 1.064 a 1.068 citando a Lei 9.099). */
+const pareceRemissao = (txt) => {
+  const t = String(txt || '').trim();
+  return /^Art(?:igo)?\.?\s*\d+[ºª°]?(?:-[A-Z])?\s*(?:,|\(|da |do |de |das |dos )/i.test(t) || /\(NR\)\s*["”]?\s*$/.test(t);
+};
+
+/** Onde a entrada está, para o rótulo do item e para a mensagem de falha (7). Na CF, o 2º trecho
+ *  é o ADCT; na CLT, o 1º é o decreto de aprovação (o texto principal é o 2º). Medido em
+ *  01/10/2026: só essas duas normas têm 2º trecho. */
+export function ondeDe(sigla, d) {
+  const trecho = sigla === 'CF' ? (d.trecho2 ? ' do ADCT' : '') : (d.doisTrechos && !d.trecho2 ? ' (trecho inicial da página)' : '');
+  return trecho + (d.repeticao ? ' (número repetido na página)' : '');
+}
+
 /** Compara dois conjuntos de artigos e devolve as diferenças. Artigo do acervo que não
  *  aparece na leitura sai como `ausente`, NÃO como revogação: o Planalto mantém o artigo
  *  revogado no texto compilado (6), então o que some é indício de leitura ruim — quem
  *  chama decide (consultarPlanalto trata como falha da leitura daquela norma). */
 export function compararArtigos(antes, depois) {
-  const A = new Map(soArtigosDeVerdade(antes).map((a) => [chaveArt(a.rot), a]));
-  const D = new Map(soArtigosDeVerdade(depois).map((a) => [chaveArt(a.rot), a]));
+  const bA = blocosDe(indexarArtigos(antes)), bD = blocosDe(indexarArtigos(depois));
+  const ult = (b) => b[b.length - 1];
+  const mesmoTexto = (x, y) => textoComparavel(x.art.txt) === textoComparavel(y.art.txt);
+  const total = (l) => l.reduce((n, b) => n + b.length, 0);
+  const remissao = (b) => b.length === 1 && pareceRemissao(b[0].art.txt);
+  // O 2º trecho começa onde o PRIMEIRO número volta a aparecer, sem contar remissão — senão um
+  // "Art. 1º , III, desta Constituição" começando linha no corpo mudaria o lugar do ADCT.
+  const inicio2 = (blocos) => {
+    const v = (blocos.values().next().value || []).filter((b) => !remissao(b));
+    return v.length > 1 ? v[1][0].pos : Infinity;
+  };
+  const ini2A = inicio2(bA), ini2D = inicio2(bD);
+  const doisTrechos = ini2D !== Infinity;
+  const trechoA = (b) => (b[0].pos >= ini2A ? 2 : 1), trechoD = (b) => (b[0].pos >= ini2D ? 2 : 1);
   const out = [];
-  for (const [k, novo] of D) {
-    const velho = A.get(k);
+  for (const [raiz, lD] of bD) {
+    const lA = bA.get(raiz) || [];
+    const chave = (bloco) => (bloco > 1 ? raiz + '@' + bloco : raiz);
+    // Ordem do bloco DENTRO do seu trecho: o 2º bloco no mesmo trecho é repetição (remissão…).
+    const vistos = { 1: 0, 2: 0 };
+    const ordD = lD.map((b) => ++vistos[trechoD(b)]);
+    const onde = (iD) => ({ trecho2: trechoD(lD[iD]) === 2, doisTrechos, repeticao: ordD[iD] > 1 });
     // `antes`/`depois` guardam o texto como a fonte o escreve (é o que a pessoa lê na
     // comparação); quem decide SE mudou é a versão sem anotação de margem.
-    if (!velho) { out.push({ tipo: 'inclusao', rot: novo.rot, antes: null, depois: normalizar(novo.txt) }); continue; }
-    const cmp = difereNoTrechoComum(velho.txt, novo.txt);
-    if (cmp.difere) {
-      out.push({ tipo: 'alteracao', rot: novo.rot, antes: normalizar(velho.txt), depois: normalizar(novo.txt), parcial: cmp.parcial });
+    const compara = (a, iD, bloco, extra) => {
+      const velho = ult(a), novo = ult(lD[iD]), cmp = difereNoTrechoComum(velho.art.txt, novo.art.txt);
+      if (cmp.difere) out.push({ tipo: 'alteracao', rot: novo.art.rot, chave: chave(bloco), bloco, ...onde(iD), ...extra,
+        antes: normalizar(velho.art.txt), depois: normalizar(novo.art.txt), parcial: cmp.parcial });
+    };
+    const inclui = (iD, extra) => out.push({ tipo: 'inclusao', rot: ult(lD[iD]).art.rot, chave: chave(iD + 1), bloco: iD + 1, ...onde(iD), ...extra,
+      antes: null, depois: normalizar(ult(lD[iD]).art.txt) });
+    if (!lA.length) { lD.forEach((_, iD) => inclui(iD, {})); continue; }
+    if (lA.length === lD.length) { lD.forEach((_, iD) => compara(lA[iD], iD, iD + 1, {})); continue; }
+    // Descompasso: casa primeiro quem tem a vigente idêntica.
+    const descompasso = `${total(lA)} → ${total(lD)}`;
+    const usados = new Set(), sobraD = [];
+    lD.forEach((b, iD) => {
+      const j = lA.findIndex((a, jj) => !usados.has(jj) && mesmoTexto(ult(a), ult(b)));
+      if (j >= 0) usados.add(j); else sobraD.push(iD);
+    });
+    let sobraA = lA.map((_, j) => j).filter((j) => !usados.has(j));
+    // As sobras se casam na ordem, SÓ dentro do mesmo trecho e sem remissão — senão o artigo do
+    // ADCT casaria com uma remissão nova no corpo. A chave é a do bloco no ACERVO, que não muda
+    // enquanto o acervo não for regerado: a mesma mudança não ganha gêmeo de um dia para o outro.
+    const casados = new Set();
+    for (const t of [1, 2]) {
+      const sD = sobraD.filter((iD) => trechoD(lD[iD]) === t && !remissao(lD[iD]));
+      const sA = sobraA.filter((j) => trechoA(lA[j]) === t && !remissao(lA[j]));
+      for (let k = 0; k < Math.min(sD.length, sA.length); k++) {
+        compara(lA[sA[k]], sD[k], sA[k] + 1, { descompasso });
+        casados.add('D' + sD[k]); casados.add('A' + sA[k]);
+      }
+    }
+    for (const iD of sobraD) if (!casados.has('D' + iD)) inclui(iD, { descompasso });
+    sobraA = sobraA.filter((j) => !casados.has('A' + j));
+    // Bloco do acervo que sobrou com o número ainda na página: leitura ruim (`ausente`, a norma
+    // falha), salvo a remissão e a redação intercalada — bloco colado (até 4 entradas) a outro
+    // bloco do mesmo número que casou (63-C/63-D na Lei de Drogas: antiga, antiga, nova, nova).
+    const perto = (j) => lA.some((o, jj) => jj !== j && usados.has(jj)
+      && (Math.abs(o[0].pos - ult(lA[j]).pos) <= 4 || Math.abs(lA[j][0].pos - ult(o).pos) <= 4));
+    for (const j of sobraA) {
+      if (remissao(lA[j]) || perto(j)) continue;
+      out.push({ tipo: 'ausente', rot: ult(lA[j]).art.rot, chave: chave(j + 1), bloco: j + 1, descompasso,
+        trecho2: trechoA(lA[j]) === 2, doisTrechos: ini2A !== Infinity, antes: normalizar(ult(lA[j]).art.txt), depois: null });
     }
   }
-  for (const [k, velho] of A) {
-    if (!D.has(k)) out.push({ tipo: 'ausente', rot: velho.rot, antes: normalizar(velho.txt), depois: null });
+  for (const [raiz, lA] of bA) {
+    if (bD.has(raiz)) continue;
+    lA.forEach((a, i) => out.push({ tipo: 'ausente', rot: ult(a).art.rot, chave: i ? raiz + '@' + (i + 1) : raiz, bloco: i + 1,
+      trecho2: trechoA(a) === 2, doisTrechos: ini2A !== Infinity, antes: normalizar(ult(a).art.txt), depois: null }));
   }
   return out;
 }
@@ -490,7 +627,7 @@ async function consultarPlanalto(LEIS, baixar = baixarLei, prazo = 0) {
       // desta leitura, com o último conteúdo válido intacto, em vez de N "revogações".
       const sumiram = difs.filter((d) => d.tipo === 'ausente');
       if (sumiram.length) {
-        const quais = sumiram.slice(0, 5).map((d) => d.rot).join(', ') + (sumiram.length > 5 ? '…' : '');
+        const quais = sumiram.slice(0, 5).map((d) => d.rot + ondeDe(lei.sigla, d)).join(', ') + (sumiram.length > 5 ? '…' : '');
         falhas.push(`${lei.sigla}: ${sumiram.length} artigo(s) do acervo sumiram da página (${quais}) — o Planalto mantém o artigo revogado no texto compilado, com a anotação, então isto é leitura suspeita; nada registrado`);
         continue;
       }
@@ -503,7 +640,7 @@ async function consultarPlanalto(LEIS, baixar = baixarLei, prazo = 0) {
         const susp2 = parseSuspeito(lei.artigos, arts2);
         if (susp2) { falhas.push(`${lei.sigla}: ${susp2} (segunda leitura)`); continue; }
         const difs2 = compararArtigos(lei.artigos, arts2);
-        const assina = (d) => d.map((x) => x.tipo + '|' + chaveArt(x.rot) + '|' + sha(chaveTexto(x.depois, x.parcial))).sort().join(';');
+        const assina = (d) => d.map((x) => x.tipo + '|' + (x.chave || chaveArt(x.rot)) + '|' + sha(chaveTexto(x.depois, x.parcial))).sort().join(';');
         if (assina(difs) !== assina(difs2)) {
           // Divergência NÃO conta como norma lida: nada foi confirmado. Se todas divergirem,
           // a fonte sai como falha e o último sucesso fica onde estava.
@@ -715,6 +852,9 @@ async function consultarInformativos(fonte, ult, buscarPagina = buscar, prazo = 
   const falhas = [];
   let conclusivas = 0, acabouTempo = false;
   for (const s of series) {
+    // O tempo acabou numa série anterior: esta fica sem consulta nenhuma, e o erro diz qual —
+    // senão as extraordinárias do STJ sumiam do relatório sem aviso.
+    if (acabouTempo) { falhas.push(`tempo da consulta esgotado: ${s.extra ? 'as extraordinárias' : 'as ordinárias'} a partir da ${nomeEdicao(s.ultima + 1, s.extra)} não foram consultadas`); continue; }
     let seguidasVazias = 0, seguidasFalhas = 0;
     for (let n = s.ultima + 1; n <= s.ultima + s.max && !acabouTempo; n++) {
       // Duas ordinárias em branco = chegamos no fim. As extraordinárias são poucas e
@@ -882,7 +1022,9 @@ export function mesclarNovidades(atuais, achados, ult, noAcervo) {
   // (baixa de item incorporado, baixa desfeita, ou revisar recalculado pela regra de agora).
   // Rodada só de baixas não traz item novo, mas MUDA o que a tela mostra: o workflow grava
   // por ela também.
-  let baixas = 0;
+  // `idsBaixa` vai junto para rodar() descontar os ids de um PR que a dona fechou sem mesclar
+  // (jaPropostos): sem isso, a baixa recusada reabria o PR a cada dia.
+  const idsBaixa = [];
   const plnNoAcervo = (it) => it.fonte === 'planalto' && !vistos.has(it.id) && typeof noAcervo === 'function' && noAcervo(it);
   for (const [id, it] of porId) {
     // Comparação PARCIAL (artigo cortado no teto, 3) nunca recebe baixa: noAcervo compara,
@@ -894,14 +1036,15 @@ export function mesclarNovidades(atuais, achados, ult, noAcervo) {
     else if (ed === 'fora' && it.incorporado) final = desfazerBaixa(it);
     porId.set(id, final);
     const v = antigos.get(id);
-    if (v && (!!v.incorporado !== !!final.incorporado || !!v.revisar !== !!final.revisar)) baixas++;
+    if (v && (!!v.incorporado !== !!final.incorporado || !!v.revisar !== !!final.revisar)) idsBaixa.push(id);
   }
   const itens = [...porId.values()].sort((a, b) =>
     String(b.detectadoEm).localeCompare(String(a.detectadoEm)) || String(a.id).localeCompare(String(b.id)));
   return {
     itens,
     novos: idsNovos.length,
-    baixas,
+    baixas: idsBaixa.length,
+    idsBaixa,
     // `novosItens` = o que nem o novidades.js conhecia (o botão conta estes, não o acumulado
     // do bundle); `achados` = o que ESTA consulta viu, já com o estado de leitura preservado.
     novosItens: idsNovos.map((id) => porId.get(id)),
@@ -915,11 +1058,18 @@ export function estadoAnterior() { return lerEstado(); }
 
 /** Ids de um novidades.js qualquer (o do último PR do sentinela fechado SEM merge). */
 export function lerIdsPropostos(caminho) {
+  return lerPropostos(caminho).map((p) => p.id);
+}
+/** Os itens desse novidades.js com o estado de revisão que o PR recusado propunha
+ *  ({id, incorporado, revisar}): a baixa só deixa de contar quando o PR já propunha o MESMO
+ *  estado — baixa nova de item que lá estava pendente conta, e abre PR. */
+export function lerPropostos(caminho) {
   try {
     const ctx = { window: {} };
     vm.createContext(ctx);
     vm.runInContext(readFileSync(caminho, 'utf8'), ctx);
-    return ((ctx.window.CT_NOVIDADES && ctx.window.CT_NOVIDADES.itens) || []).map((i) => i.id).filter(Boolean);
+    return ((ctx.window.CT_NOVIDADES && ctx.window.CT_NOVIDADES.itens) || []).filter((i) => i && i.id)
+      .map((i) => ({ id: i.id, incorporado: !!i.incorporado, revisar: !!i.revisar }));
   } catch (_) { return []; }
 }
 
@@ -978,17 +1128,35 @@ export async function rodar({ fontes = ['planalto', 'stf', 'stj'], busca = {}, l
   // item parcial, e aqui a comparação PARCIAL também não prova nada: um item inteiro (abaixo
   // do teto) cujo artigo, no acervo regerado, passou do teto (D1 no fim do artigo trocado por
   // um D2 longo) teria só o começo comparado. O item fica para conferir.
+  // O artigo é escolhido pelo MESMO índice da comparação (indexarArtigos, 7): antes era o
+  // primeiro com o número, e a comparação usava o último — nos números repetidos (182 no
+  // acervo: ADCT, CPC, Lei de Drogas…) a baixa nunca vinha. Item antigo sem `chave` usa a
+  // chave do rótulo, que é a da 1ª ocorrência.
+  const indices = new Map();
   const noAcervo = (it) => {
     if (!conferidas.has(it.norma) || it.depois == null) return false;
     const lei = LEIS_RODADA.find((l) => l.sigla === it.norma);
-    const art = lei && soArtigosDeVerdade(lei.artigos || []).find((a) => chaveArt(a.rot) === chaveArt(it.disp));
-    const c = art && difereNoTrechoComum(art.txt, it.depois);
-    return !!c && !c.difere && !c.parcial;
+    if (!lei) return false;
+    if (!indices.has(lei.sigla)) indices.set(lei.sigla, blocosDe(indexarArtigos(lei.artigos || [])));
+    // Qualquer bloco do número serve: a identidade (número + bloco) desliza se outro bloco ganhar
+    // ou perder entrada, mas a vigente com o `depois` do item é a prova de que o acervo o tem.
+    const raiz = String(it.chave || chaveArt(it.disp)).replace(/[@~]\d+$/, '');
+    return (indices.get(lei.sigla).get(raiz) || []).some((bl) => {
+      const c = difereNoTrechoComum(bl[bl.length - 1].art.txt, it.depois);
+      return !c.difere && !c.parcial;
+    });
   };
   const m = mesclarNovidades(atuais || lerNovidadesAtuais(), achados, ultDoAcervo(), noAcervo);
-  const ja = new Set(jaPropostos || []);
+  // jaPropostos: ids (texto) ou {id, incorporado, revisar} (lerPropostos). Os novos se descontam
+  // pelo id; a baixa, só quando o PR recusado já propunha o MESMO estado — ela segue no
+  // resultado, mas não reabre PR sozinha. Id sem estado não desconta baixa nenhuma: na dúvida,
+  // a mudança da tela conta.
+  const ja = new Map((jaPropostos || []).map((p) => (typeof p === 'string' ? [p, null] : [p.id, p])));
   const novosItens = m.novosItens.filter((i) => !ja.has(i.id));
-  return { estado, itens: m.itens, novos: novosItens.length, baixas: m.baixas, novosItens, achados: m.achados, fontes };
+  const finais = new Map(m.itens.map((i) => [i.id, i]));
+  const mesmoEstado = (p, i) => !!p && !!i && !!p.incorporado === !!i.incorporado && !!p.revisar === !!i.revisar;
+  const baixas = m.idsBaixa.filter((id) => !mesmoEstado(ja.get(id), finais.get(id))).length;
+  return { estado, itens: m.itens, novos: novosItens.length, baixas, novosItens, achados: m.achados, fontes };
 }
 
 const CABECALHO = `/* Cátedra — CENTRAL DE NOVIDADES: o que mudou nas fontes oficiais.
@@ -1074,7 +1242,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     log(`Informativos detectados a partir do acervo de antes da incorporação (STF ${ultimasConsulta.stf}, STJ ${ultimasConsulta.stj}, extraordinária ${ultimasConsulta.stjExtra}); a baixa compara com o juris-index.js de agora.`);
   }
   const arqPropostos = val('--ja-propostos', '');
-  const jaPropostos = arqPropostos ? lerIdsPropostos(arqPropostos) : [];
+  const jaPropostos = arqPropostos ? lerPropostos(arqPropostos) : [];
   if (arqPropostos) log(`${jaPropostos.length} item(ns) de PR fechado sem merge não contam como novos (${arqPropostos}).`);
   const r = await rodar({ fontes, jaPropostos, ultimasConsulta });
   if (!DRY) escrever(r);
