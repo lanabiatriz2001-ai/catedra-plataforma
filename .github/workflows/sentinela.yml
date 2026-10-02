@@ -31,6 +31,8 @@
 # cada rodada (o create-pull-request recria o commit sobre a main). Por isso o acervo é
 # reincorporado a partir da main toda vez, e do PR aberto só vêm o novidades.js e o
 # sentinela/estado.json — "detectado em" e o que a revisão já viu não voltam a zero.
+# A linha de base dos temas e súmulas (sentinela/retratos.json) vem do PR aberto, como o
+# novidades.js; ver docs/fontes-oficiais-sentinela.md.
 # Duas travas protegem o PR aberto:
 #   • incorporação que ficou ATRÁS dele (página que não respondeu hoje) — na última edição ou
 #     numa do meio, edição por edição — para o job sem tocar no PR: atualizá-lo tiraria
@@ -127,6 +129,11 @@ jobs:
             ref=$(git rev-parse FETCH_HEAD)
             # Do PR aberto vêm só o novidades.js e o diário; o acervo é reincorporado da main.
             git checkout "$ref" -- novidades.js sentinela/estado.json
+            # A linha de base dos temas e súmulas anda junto com o novidades.js do PR aberto:
+            # sem ela, a rodada compararia de novo com a da main e reproporia o que o PR já traz.
+            # Com PR recusado ou sem PR, vale a da main (os ids já propostos voltam iguais e
+            # são filtrados por --ja-propostos).
+            if git cat-file -e "$ref:sentinela/retratos.json" 2>/dev/null; then git checkout "$ref" -- sentinela/retratos.json; fi
             {
               echo "aberto=$aberto"
               echo "ref=$ref"
@@ -268,11 +275,13 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Avisar fonte que falhou
-        if: steps.consulta.outputs.falhas != ''
+        if: steps.consulta.outputs.falhas != '' || steps.consulta.outputs.falhasColecoes != ''
         shell: bash
         env:
           FALHAS: ${{ steps.consulta.outputs.falhas }}
-        run: echo "::warning title=Sentinela::não foi possível consultar $FALHAS — veja o log; isto não é 'nenhuma novidade'"
+          COLECOES: ${{ steps.consulta.outputs.falhasColecoes }}
+        run: |
+          echo "::warning title=Sentinela::não foi possível consultar $FALHAS (coleções: ${COLECOES:-nenhuma}) — veja o log; isto não é 'nenhuma novidade'"
 
       - name: Nenhuma chave no que vai para o PR
         if: >-
@@ -294,7 +303,7 @@ jobs:
           # Rascunho de propósito: a dona decide o que entra no acervo.
           draft: true
           title: 'Atualizações das fontes oficiais'
-          commit-message: 'Incorpora os informativos novos e registra o que mudou no Planalto, no STF e no STJ desde a última consulta'
+          commit-message: 'Incorpora os informativos novos e registra o que mudou no Planalto, no STF e no STJ (informativos, repercussão geral, repetitivos e súmulas) desde a última consulta'
           body: |
             Varredura automática das fontes oficiais. Este PR é atualizado no lugar a cada
             rodada que encontra item novo, dá baixa em item (já no acervo, ou baixa desfeita)
@@ -317,6 +326,13 @@ jobs:
             ${{ steps.consulta.outputs.resumo }}
             ```
 
+            **Temas e súmulas** (repercussão geral, repetitivos, súmulas do STF e do STJ): tema afetado,
+            julgamento, tese fixada, acórdão publicado, mudança de situação, modulação registrada pelo STJ
+            e súmula nova, cancelada ou revisada. Cada item compara a fonte oficial com a última leitura
+            registrada (`sentinela/retratos.json`, atualizado neste PR) e fica "Conferir" até o acervo do
+            CátedraJURIS mostrar o mesmo estado. Nada disso é aplicado ao acervo sozinho. Uma decisão mais
+            recente não significa superação da anterior.
+
             Antes de aprovar: confira na fonte oficial os itens marcados para revisão —
             vigência não informada, comparação parcial, diferença só de recorte, norma
             modificadora não identificada e informativo detectado que não entrou no acervo
@@ -337,6 +353,7 @@ jobs:
             dados/indice.json
             novidades.js
             sentinela/estado.json
+            sentinela/retratos.json
 
       - name: Commit novo volta o PR a rascunho (a suíte roda quando a dona marcar pronto)
         # O create-pull-request v6 só aplica `draft` na criação. PR que a dona já marcou como

@@ -1,0 +1,32 @@
+{
+ "sobre": "Recortes REAIS do portal do STF para a coleção 'rg' do sentinela (Fase 2). Sem rede nos testes.",
+ "coletado_em": "export de 01/10/2026 21:55 (Brasília) e de 25/09/2026 19:44 (cache da auditoria L0); andamentos em 01/10/2026 21:57–21:58",
+ "etiqueta": "GET com User-Agent de navegador (o de scripts/lib/tls-fontes.mjs também é aceito); pausa >= 3 s; 1 conexão; sem User-Agent o export responde 403 com 118 B",
+ "rotas": {
+  "export": "https://portal.stf.jus.br/jurisprudenciaRepercussao/exportarDados.asp?situacaoRG=TODAS&situacaoAtual=S&tipoComRG=ComRG&tipoSemRG=SemRG&tipoSemRGQC=SemRGQC&ordenacao=asc (HTML como .xls, UTF-8; 4.021.111 B em 8,9–10,3 s; 1.479 temas, máximo 1485)",
+  "tema": "https://portal.stf.jus.br/jurisprudenciaRepercussao/tema.asp?num=N (traz o link verAndamentoProcesso.asp com o incidente)",
+  "andamentos": "https://portal.stf.jus.br/jurisprudenciaRepercussao/verAndamentoProcesso.asp?incidente=I&numeroProcesso=P&classeProcesso=C&numeroTema=N (~165 KB, ~0,9 s)"
+ },
+ "arquivos": {
+  "export-2026-10-01.html": "cabeçalho real + linhas <tr> literais dos temas 38, 210, 457, 474, 912, 1071, 1113, 1234, 1253, 1451, 1470, 1483, 1484, 1485",
+  "export-2026-09-25.html": "cabeçalho real + linhas <tr> literais dos temas 38, 210, 457, 474, 912, 1071, 1113, 1234, 1253, 1451, 1470 (1483–1485 ainda não existiam)",
+  "andamentos-1113.html": "linhas reais de andamento do Tema 1113 (mérito 28/09/2026; atas; acórdão da RG de 2020)",
+  "andamentos-1253.html": "linhas reais de andamento do Tema 1253 (mérito 12/03/2026; acórdão de mérito publicado 30/09/2026; acórdão RE-RG de 04/03/2024, que NÃO conta)",
+  "acervo-amostra.json": "verbetes do acervo de 01/10/2026 (juris-index.js + juris-text.js) dos temas 457, 474 e 912",
+  "soft404-intermitente.html": "portal.stf.jus.br respondeu HTTP 200 com a página '404 Desculpe' (listarProcesso.asp, 01/10/2026): a régua reconhece o export pelo cabeçalho de 15 colunas, nunca pelo status",
+  "tema-1485-recorte.html": "recorte literal de tema.asp?num=1485: o <title> e o link para os andamentos com o incidente (7563417, ARE 1600294) — prova o leitor incidenteDaPaginaTema na marcação real",
+  "teses-com-2026-10-01.json": "3 registros reais do banco de teses (POST tipo=com) — usados SÓ para tirar os incidentes reais de 1113 (5035916, RE 990115) e 1253 (5553510, RE 1163774) ao montar, no teste, a página tema.asp SINTÉTICA desses dois temas; o banco não é rota do sentinela"
+ },
+ "esperado_25_09_para_01_10": {
+  "1071": "julgamento ('Acórdão de Repercussão Geral publicado' → 'Mérito julgado'), sem tese",
+  "1113": "julgamento + tese-fixada (Data da Tese 28/09/2026)",
+  "1253": "acordao-publicado ('Mérito julgado' → 'Acórdão de mérito publicado'); publicadoEm 30/09/2026 só pelos andamentos",
+  "1470": "situacao ('Analisada Preliminar de Repercussão Geral' → 'Acórdão de Repercussão Geral publicado')",
+  "1483": "tema-afetado + julgamento + tese-fixada (tema novo já em 'Mérito julgado', 'Há (com reafirmação de jurisprudência)', sem Data da Tese)",
+  "1484": "tema-afetado ('Analisada Preliminar de Repercussão Geral', 'Há')",
+  "1485": "tema-afetado ('Analisada Preliminar de Repercussão Geral', 'Há')",
+  "38, 210, 457, 474, 912, 1234, 1451": "nada (iguais nos dois dias; 1234 tem a tese cortada em 7.937 caracteres pela lista oficial; 38 é Cancelado com o motivo na coluna Tese; 210 traz 'Tese modificada…' na Observação)",
+  "total": "10 itens"
+ },
+ "conferido_no_export_inteiro": "o mesmo protótipo, sobre os dois exports INTEIROS (1.476 × 1.479 temas), deu exatamente estes 10 itens e nenhum outro; o export de 01/10 contra ele mesmo deu 0"
+}

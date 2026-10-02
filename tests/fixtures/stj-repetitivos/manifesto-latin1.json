@@ -1,0 +1,34 @@
+{
+ "sobre": "Recortes REAIS do portal de repetitivos do STJ (processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp), lidos em latin1, para a régua da Fase 2 sem rede.",
+ "paginas": [
+  {
+   "arquivo": "cauda-2026-10-01.html",
+   "bytes": 21074,
+   "temas": [
+    1470,
+    1474
+   ],
+   "nota": "GET pesquisa.jsp cod_tema_inicial=1470&cod_tema_final=1519 em 01/10/2026 (102.312 B, 8,2 s). A página declara 5 documentos; o recorte guarda 2 blocos inteiros (1470 e 1474, ambos \"Afetado\"). A régua deve exigir bloco \"Documento N\" == tema lido, não total declarado == blocos do recorte.",
+   "recorte": "só o <title> e, do corpo, de div#resultadoPesquisa (\"Temas (N)\", \"N documentos encontrados\") até o fim dos blocos \"Documento N\"; sem menus, <script>, <style>, <select>, <svg> e comentários. O parser da auditoria (oficial.stj_paginas) lê o mesmo antes e depois do recorte.",
+   "titulo": "STJ - Precedentes Qualificados",
+   "declarados": 5
+  },
+  {
+   "arquivo": "vazia-2026-10-01.html",
+   "bytes": 1977,
+   "temas": [],
+   "nota": "GET cod_tema_inicial=1475&cod_tema_final=1524 em 01/10/2026: HTTP 200, título \"STJ - Precedentes Qualificados\", \"Temas (0)\" e \"0 documentos encontrados\" — fim da cauda (não é falha).",
+   "recorte": "só o <title> e, do corpo, de div#resultadoPesquisa (\"Temas (N)\", \"N documentos encontrados\") até o fim dos blocos \"Documento N\"; sem menus, <script>, <style>, <select>, <svg> e comentários. O parser da auditoria (oficial.stj_paginas) lê o mesmo antes e depois do recorte.",
+   "titulo": "STJ - Precedentes Qualificados",
+   "declarados": 0
+  },
+  {
+   "arquivo": "amostra-126-1009-2026-09-25.html",
+   "temas": [
+    126,
+    1009
+   ],
+   "nota": "recorte de amostra-2026-09-25.html (cache L0 de 25/09/2026): cabeçalho da faixa 1401-1450 (declara 50) + SÓ os blocos 126 (Revisado, com Entendimento Anterior) e 1009 (Trânsito, com \"Modulação de efeitos:\" nas Anotações NUGEPNAC). Use com parseBloco; o contador não bate com o recorte."
+  }
+ ]
+}
