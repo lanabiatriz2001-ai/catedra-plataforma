@@ -368,9 +368,11 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
             defer { feito?() }
             guard let self, let s = result as? String, !s.isEmpty, let dados = s.data(using: .utf8),
                   let r = WidgetResumo.ler(dados), r.sessao != "nenhuma" else { return }
-            WidgetGrupo.gravar(dados, WidgetGrupo.resumo)
             if r.sessao == "conta" { self.garantirPasseWidget(conta: r.conta) }
             else { WidgetGrupo.apagar(WidgetGrupo.passe); WidgetGrupo.apagar(WidgetGrupo.resumoNuvem) }
+            // resumo igual ao já gravado: nada a regravar nem a redesenhar (o orçamento de recargas do iOS é curto)
+            if WidgetGrupo.ler(WidgetGrupo.resumo) == dados { return }
+            WidgetGrupo.gravar(dados, WidgetGrupo.resumo)
             WidgetCenter.shared.reloadAllTimelines()
         }
     }

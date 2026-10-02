@@ -470,31 +470,31 @@ if [ "$ALVO" = "device" ]; then
   # O perfil também muda: o de desenvolvimento traz a lista de UDIDs; o de loja traz
   # `beta-reports-active`, que é o que o TestFlight exige.
   # Widget: assinado ANTES do app (o app sela o que tem dentro), com perfil próprio que traz o grupo de apps.
+  # Acessório, como no Mac: perfil sem o grupo ou assinatura recusada tiram o widget e o app segue sem ele.
+  widget_fora() { rm -rf "$APP/PlugIns"; echo "     ⚠ widget não incluído: $1 — o app segue sem ele."; }
   ios_assinar_widget() {
-    if ! ct_assinar_limpo "$APPEX" "$BUILD/codesign-widget.log" "$@"; then
-      echo "     ✗ a assinatura do widget falhou."
+    if ct_assinar_limpo "$APPEX" "$BUILD/codesign-widget.log" "$@"; then
+      echo "     ✓ widget assinado (codesign --verify --strict)"
+    else
       ct_motivo_codesign "$BUILD/codesign-widget.log"
-      exit 1
+      widget_fora "a assinatura do widget falhou (log: $BUILD/codesign-widget.log)"
     fi
-    echo "     ✓ widget assinado (codesign --verify --strict)"
   }
   PERFIL_WIDGET="$HERE/embedded-widget.mobileprovision"
   if [ -d "$APPEX" ]; then
     if [ "$ALVO_REAL" = "testflight" ]; then
-      rm -rf "$APP/PlugIns"
-      echo "     ⚠ widget FORA do TestFlight: falta o perfil de DISTRIBUIÇÃO do widget (pendente — spec dos widgets §3.4)"
+      widget_fora "falta o perfil de DISTRIBUIÇÃO do widget (pendente — spec dos widgets §3.4)"
     elif [ -f "$PERFIL_WIDGET" ]; then
       cp "$PERFIL_WIDGET" "$APPEX/embedded.mobileprovision"
-      security cms -D -i "$PERFIL_WIDGET" > "$BUILD/perfil-widget.plist" 2>/dev/null
-      /usr/libexec/PlistBuddy -x -c "Print :Entitlements" "$BUILD/perfil-widget.plist" > "$BUILD/widget.entitlements" 2>/dev/null
+      security cms -D -i "$PERFIL_WIDGET" > "$BUILD/perfil-widget.plist" 2>/dev/null || true
+      /usr/libexec/PlistBuddy -x -c "Print :Entitlements" "$BUILD/perfil-widget.plist" > "$BUILD/widget.entitlements" 2>/dev/null || true
       if ! grep -q 'group.com.catedra' "$BUILD/widget.entitlements" 2>/dev/null; then
-        echo "     ✗ o perfil do widget não traz o grupo group.com.catedra — gere o perfil de novo (plano dos widgets, Task 15)"
-        exit 1
+        widget_fora "o perfil do widget não traz o grupo group.com.catedra (gere de novo — plano dos widgets, Task 15)"
+      else
+        ios_assinar_widget --force --sign "$IOS_ID" --entitlements "$BUILD/widget.entitlements" --timestamp=none
       fi
-      ios_assinar_widget --force --sign "$IOS_ID" --entitlements "$BUILD/widget.entitlements" --timestamp=none
     else
-      rm -rf "$APP/PlugIns"
-      echo "     ⚠ widget FORA deste build: falta ios/embedded-widget.mobileprovision (copie do checkout principal)"
+      widget_fora "falta ios/embedded-widget.mobileprovision (copie do checkout principal) — widget FORA deste build"
     fi
   fi
   if [ "$ALVO_REAL" = "testflight" ]; then

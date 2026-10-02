@@ -60,6 +60,9 @@ export async function testarWidgetBuild(ok) {
   ok(/^ios\/embedded-widget\.mobileprovision$/m.test(ler('.gitignore')), R + 'o perfil do widget não vai para o repositório');
   const iosMontar = iosSem.slice(iosSem.indexOf('montar_widget() {'), iosSem.indexOf('if montar_widget; then'));
   ok(/^if montar_widget; then$/m.test(iosSem) && !/\bexit 1\b/.test(iosMontar), R + 'no iOS, falha do widget não derruba o build: avisa e o app segue sem o .appex');
+  const iosAss = iosSem.slice(iosSem.indexOf('widget_fora() {'), iosSem.indexOf('PERFIL="$HERE/appstore.mobileprovision"'));
+  ok(iosAss.length > 0 && /^\s*ios_assinar_widget --force/m.test(iosAss) && !/\bexit 1\b/.test(iosAss) && /rm -rf "\$APP\/PlugIns"/.test(iosAss),
+    R + 'no aparelho, perfil do widget sem o grupo ou assinatura recusada tiram o widget e o build segue');
   const iosMain = ler('ios/Sources/main.swift');
   const irTela = iosMain.slice(iosMain.indexOf('func irParaTelaWeb('), iosMain.indexOf('func irParaTelaWeb(') + 900);
   ok(/arguments: \["v": v\]/.test(irTela) && !/evaluateJavaScript/.test(irTela), R + 'iOS: o id da tela vai como argumento do callAsyncJavaScript, nunca colado no JavaScript');
