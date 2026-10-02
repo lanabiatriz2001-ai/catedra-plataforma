@@ -446,6 +446,8 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
 <script src="./tema-satelite.js"></script>
 <script src="ct-dados.js"></script>
 <script src="juris-index.js"></script>
+<script src="./novidades.js"></script>
+<script src="./revisao-oficial.js"></script>
 </head>
 <body><div class="wrap">
 <div class="head"><div class="ic" id="hIc"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="scale"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path></svg></div><div><h1 id="hTit">CátedraJURIS</h1><p id="hSub">Vade mecum de jurisprudência · STF, STJ, TSE, TJRO e os tribunais de contas</p></div></div>
@@ -454,6 +456,12 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   <button class="tab" data-pane="dia" aria-pressed="false">Julgado do dia</button>
   <button class="tab" data-pane="infos" aria-pressed="false">Informativos <small id="nInfos"></small></button>
   <button class="tab" data-pane="tribunais" aria-pressed="false">Tribunais de contas <small id="nTcs"></small></button>
+  <button class="tab" data-pane="oficial" aria-pressed="false" id="tabOficial">Informativos oficiais <small id="nOficial"></small></button>
+</div>
+<div id="paneOficial" hidden aria-labelledby="tabOficial">
+  <!-- Fila editorial do sentinela (STF/STJ): o que saiu na fonte oficial e ainda precisa ser
+       comparado com o acervo. Mesmo vocabulário de status do Cátedra (revisao-oficial.js). -->
+  <div id="oficialJuris"></div>
 </div>
 <div id="paneDia" hidden>
   <!-- Um verbete por dia, sorteado com semente na DATA: o mesmo dia devolve sempre o
@@ -854,7 +862,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   /* D8 — no celular a fileira deixou de quebrar linha e virou rolagem com encaixe.
      Quem chega pelo diretório de tribunais de contas cai num chip lá do fim da fila:
      sem isto ele ficaria fora da tela e a pessoa não veria por que o acervo encolheu. */
-  function trazAFoco(el){ try{ if(el&&el.scrollIntoView)el.scrollIntoView({block:'nearest',inline:'nearest'}); }catch(e){} }
+  function trazAFoco(el){ try{ if(el&&el.scrollIntoView)el.scrollIntoView({block:'nearest',inline:'center'}); }catch(e){} }
   function renderTribChips(){
     var el=document.getElementById('trib'); el.innerHTML='';
     el.appendChild(chipBtn(f.tribunal==='','Todos',IDX.length,null,function(){f.tribunal='';build();}));
@@ -1467,6 +1475,8 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
 
   function setPane(nome){
     document.getElementById('paneAcervo').hidden=(nome!=='acervo');
+    document.getElementById('paneOficial').hidden=(nome!=='oficial');
+    if(nome==='oficial')renderOficial();
     document.getElementById('paneTribunais').hidden=(nome!=='tribunais');
     document.getElementById('paneInfos').hidden=(nome!=='infos');
     if(nome==='infos')renderInfos();
@@ -1604,6 +1614,70 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
     });
   }catch(e){} })();
   document.querySelectorAll('#tabs .tab').forEach(function(b){ b.onclick=function(){ setPane(b.dataset.pane); }; });
+
+  /* ===== INFORMATIVOS OFICIAIS (sentinela STF/STJ) =========================
+     Fila editorial, não painel técnico: cada edição detectada vira um cartão com o que
+     ela PODE significar para o acervo (novo informativo, possível verbete novo, possível
+     atualização) e as três saídas — ver no acervo, ver o registro oficial, manter em revisão.
+     Julgado novo não é entendimento superado: tudo nasce "Conferir". */
+  var oficialFoco=null;
+  function renderOficial(){
+    var box=document.getElementById('oficialJuris'), R=window.CT_REVISAO_OFICIAL;
+    if(!box||!R) return;
+    var todos=R.itens().filter(function(i){ return i.produto==='juris'; });
+    var fontes=R.fontes().filter(function(f){ return f.produto==='juris'; });
+    var nTab=document.getElementById('nOficial'); if(nTab) nTab.textContent=todos.filter(R.precisaRevisar).length||'';
+    var h='<div class="ct-of-saude" style="margin:2px 2px 8px">'+fontes.map(function(f){
+      return '<span class="ct-of-fonte">'+R.esc(f.nome)+' <span class="ct-of-st '+f.statusCls+'">'+R.esc(f.statusRotulo)+'</span></span>'; }).join('')+'</div>'
+      +'<p class="ct-of-frase" style="margin:0 2px 12px">'+R.esc(R.FRASE)+' Cobertura: o Informativo de cada tribunal. '
+      +fontes.map(function(f){ return R.esc(f.nome)+': '+R.esc(f.limite); }).join(' · ')+'</p>';
+    if(!todos.length){
+      var lac=R.lacunas(fontes), okF=fontes.filter(function(f){ return f.status==='ok'; });
+      var txt=!R.pacote().geradoEm
+        ? 'Ainda não há varredura publicada: nenhuma consulta ao STF ou ao STJ chegou a este aparelho.'
+        : (lac.length
+          ? 'A última varredura não se completou: '+R.lacunasTxt(lac)+'. A falta de edições daí não quer dizer que nada saiu.'
+            +(okF.length?' '+okF.map(function(f){ return f.nome; }).join(' e ')+': nenhuma edição nova detectada.':'')
+          : 'Nenhuma edição nova do STF ou do STJ detectada na última varredura.');
+      box.innerHTML=h+'<div class="ct-of-vazio" id="oficialVazio">'+R.esc(txt)
+        +' Isso não garante o acervo integralmente atualizado: súmulas, repercussão geral e repetitivos ficam fora desta rotina.</div>';
+      return;
+    }
+    var porTrib={}; todos.forEach(function(i){ (porTrib[i.fonteNome]=porTrib[i.fonteNome]||[]).push(i); });
+    Object.keys(porTrib).sort().forEach(function(t){
+      var L=porTrib[t], porRamo={};
+      L.forEach(function(i){ var r=i.ramo||'Ramo a definir na conferência'; (porRamo[r]=porRamo[r]||[]).push(i); });
+      h+='<h3 class="ct-of-grupo">'+R.esc(t)+' · '+L.length+(L.length===1?' edição':' edições')+'</h3>';
+      Object.keys(porRamo).sort().forEach(function(r){
+        if(Object.keys(porRamo).length>1||porRamo[r][0].ramo) h+='<div class="ct-of-meta" style="margin:4px 2px">'+R.esc(r)+'</div>';
+        h+='<div class="ct-of-lista">';
+        porRamo[r].forEach(function(i){
+          var conf=i.status==='conferido';
+          h+='<article class="ct-of-item" data-id="'+R.esc(i.id)+'"'+(oficialFoco===i.id?' id="oficialFoco" tabindex="-1"':'')+'>'
+            +'<div class="ct-of-linha"><span class="ct-of-st '+i.statusCls+'">'+R.esc(i.statusRotulo)+'</span><span class="ct-of-tipo">'+R.esc(i.tipoRotulo)+'</span>'
+            +'<span class="ct-of-meta">detectado em '+R.esc(i.quando)+'</span></div>'
+            +'<div class="ct-of-titulo" style="margin-top:6px">'+R.esc(i.titulo)+'</div>'
+            +'<div class="ct-of-resumo">'+(i.incorporado?R.esc(i.resumo):('Precisa comparar com o acervo: '+R.esc(i.resumo.charAt(0).toLowerCase()+i.resumo.slice(1))))+'</div>'
+            +'<div class="ct-of-acoes"><button type="button" class="ct-of-btn" data-of-acervo="'+R.esc(i.id)+'">Ver no acervo</button>'
+            +(i.urlOficial?'<a class="ct-of-btn" href="'+R.esc(i.urlOficial)+'" target="_blank" rel="noopener">Registro oficial<span class="ct-sr"> (abre fora do app)</span></a>':'')
+            +(i.podeMarcar?'<button type="button" class="ct-of-btn" data-of-marcar="'+R.esc(i.id)+'" data-st="'+(conf?'conferir':'conferido')+'" aria-pressed="'+(conf?'true':'false')+'">'+(conf?'Manter em revisão':'Marcar como conferido')+'</button>':'')+'</div></article>';
+        });
+        h+='</div>';
+      });
+    });
+    box.innerHTML=h;
+    box.querySelectorAll('[data-of-marcar]').forEach(function(b){ b.onclick=function(){ R.marcar(b.dataset.ofMarcar, b.dataset.st); oficialFoco=b.dataset.ofMarcar; renderOficial();
+      // O botão é recriado pelo innerHTML: o foco volta a ele ou, se a lista mudou e ele não
+      // voltou, ao cartão — nunca cai no body.
+      var n=box.querySelector('[data-of-marcar="'+CSS.escape(oficialFoco)+'"]')||document.getElementById('oficialFoco'); if(n) n.focus(); }; });
+    box.querySelectorAll('[data-of-acervo]').forEach(function(b){ b.onclick=function(){
+      var i=todos.filter(function(x){ return x.id===b.dataset.ofAcervo; })[0]; if(!i) return;
+      setPane('acervo'); window.ctAplicarBusca(i.busca); }; });
+    var f=document.getElementById('oficialFoco'); if(f){ try{ f.scrollIntoView({block:'center'}); }catch(e){} }
+  }
+  window.ctOficialAbrir=function(id){ oficialFoco=id||null; setPane('oficial'); };
+  (function(){ try{ var id=new URLSearchParams(location.search).get('oficial'); if(id) setTimeout(function(){ window.ctOficialAbrir(id); },0); else renderOficial(); }catch(e){} })();
+  window.addEventListener('message', function(e){ if(window.ctMensagemDoHost&&window.ctMensagemDoHost(e)&&e.data&&e.data.type==='ctOficialAbrir') window.ctOficialAbrir(e.data.id); });
 
   // ---- Central de Contas: o índice entra na MESMA lista, sem trocar de acervo
   // São 2,5 MB, então não vêm no <script> da página: carregam logo após a primeira

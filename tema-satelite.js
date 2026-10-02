@@ -31,7 +31,7 @@
            '--accentSolid', '--accentSolidD',
            // o par da pílula de voltar (LEGIS/JURIS): fundo e texto calculados no host por contraste
            '--accentFill', '--onAccentFill',
-           '--ok', '--warn', '--danger',
+           '--ok', '--warn', '--danger', '--info',
            // o texto sobre as cores de situação, calculado no host (branco ou a cor escurecida)
            '--onOk', '--onWarn', '--onDanger',
            '--radius', '--r-sm', '--r-md',

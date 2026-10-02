@@ -7,7 +7,7 @@
    A F0 deixou aqui o primeiro caso, que MEDE a barra inferior. A F4 acrescenta os seus, e
    todos medem caixa, estilo computado ou classe — presença no DOM não prova que pinta:
 
-   · (a) nenhuma das seis telas rola de lado, e nada passa da borda direita SEM um pai que o
+   · (a) nenhuma das sete telas (a Central de novidades entrou em 01/10/2026) rola de lado, e nada passa da borda direita SEM um pai que o
          corte de propósito (sem esse filtro a medida acusaria os círculos decorativos dos
          heros em nove telas e todo texto com ellipsis — falso vermelho que a auditoria previu);
    · (b) a barra inferior tem cinco alvos de 44 × 44 medidos (o caso da F0);
@@ -112,7 +112,7 @@ export async function testarIphoneHost390(pageDaSuite, base, ok, opcoes = {}) {
     } finally { await ctx.close(); }
   }
 
-  /* ---------- (a) seis telas · (c) a tabela do Início · (e) o meta viewport ---------- */
+  /* ---------- (a) sete telas · (c) a tabela do Início · (e) o meta viewport ---------- */
   {
     const { ctx, page, erros } = await abrir({ width: 390, height: 844 });
     try {
@@ -122,7 +122,7 @@ export async function testarIphoneHost390(pageDaSuite, base, ok, opcoes = {}) {
       });
       ok(/viewport-fit\s*=\s*cover/.test(viewport), R + '(e) o meta viewport traz viewport-fit=cover (' + viewport + ')');
 
-      const TELAS = ['inicio', 'historico', 'redacao', 'analise', 'ajustes', 'calendario'];
+      const TELAS = ['inicio', 'historico', 'redacao', 'analise', 'ajustes', 'calendario', 'novidades'];
       for (const v of TELAS) {
         await ir(page, v); await page.waitForTimeout(1400);
         const m = await page.evaluate(() => {

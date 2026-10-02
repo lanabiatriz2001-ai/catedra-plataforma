@@ -56,7 +56,9 @@ import { testarEditalSubtopicos } from './edital-subtopicos.mjs';
 import { testarJurisQuadro } from './juris-quadro.mjs';
 import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
+import { testarRevisaoOficial } from './revisao-oficial.mjs';
 import { testarMenuLateral } from './menu-lateral.mjs';
+import { testarNovidadesCentral } from './novidades-central.mjs';
 import { testarSemDodEstatico, testarSemDodNavegador } from './sem-dod.mjs';
 import { testarTesesOficiaisEstatico, testarTesesOficiaisNavegador, testarMigracaoL4Navegador, lerReferencia as lerTesesOficiais } from './teses-oficiais.mjs';
 import { testarSemMapasMentaisEstatico, testarSemMapasMentaisNavegador } from './sem-mapas-mentais.mjs';
@@ -64,6 +66,7 @@ import { testarPdfjsLocal } from './pdfjs-local.mjs';
 import { testarVarreduraRedeExterna, testarSupportSemRede, testarHarnessSemRede, testarRedeExternaExecucao, resumoRedeSuite } from './rede-externa.mjs';
 import { testarAssinaturaLimpa } from './assinatura-limpa.mjs';
 import { testarXcodeCloud } from './xcode-cloud.mjs';
+import { testarSentinela } from './sentinela.mjs';
 import { testarSupportCorrecoesLocais } from './support-correcoes-locais.mjs';
 import { testarDesignNativo } from './design-nativo.mjs';
 import { testarExclusaoContaCobertura } from './exclusao-conta-cobertura.mjs';
@@ -492,8 +495,8 @@ function pdfjsNaSaida(dir) {
   const naCasca = (p) => casca.indexOf(p) >= 0;
   ok(['./index.html', './support.js', './auth.js', './ct-dados.js'].every(naCasca),
     'U10 a casca traz o documento e os scripts do runtime');
-  ok(['./prioridade-calc.js', './busca-unica.js', './semana-juris.js'].every(naCasca),
-    'U10 a casca traz os três scripts do <head> (antes só entravam depois da 1a visita)');
+  ok(['./prioridade-calc.js', './busca-unica.js', './semana-juris.js', './novidades.js'].every(naCasca),
+    'U10 a casca traz os scripts do <head> — prioridade, busca, semana e o pacote das fontes oficiais (antes só entravam depois da 1a visita)');
   ok(casca.some(p => /^\.\/vendor\//.test(p)) && naCasca('./fonts.css') && casca.some(p => /^\.\/fonts\//.test(p)),
     'U10 a casca traz as libs vendoradas e as fontes locais');
   /* O `< 20` daqui era a marca de quando o build baixava 48 faces do Google e só algumas
@@ -981,6 +984,24 @@ const sync = await page.evaluate(() => {
   const mL = JSON.parse(M(svL, lcL, false)['catedra:leituras']);
   r.leiturasUniaoPorId = mL.length === 3 && mL.some(x => x.id === 'la|cf|413') && mL.some(x => x.id === 'la|cc|9');
   r.leiturasUpMaiorVence = (mL.find(x => x.id === 'la|cf|412').nao || []).length === 0;
+
+  // 9b. Central de novidades: catedra:novidLidas é array {id, up, st:'lida'|'conferido'} em ARRAY_ID e
+  //     GLOBAL (não é do caderno da área). Dois aparelhos marcam leituras diferentes: o resultado é a
+  //     união por id; na colisão vence o up maior, com o st dele. Fora do ARRAY_ID a chave inteira de
+  //     um aparelho venceria a do outro, e a mudança de lei lida no iPad voltaria como não lida no Mac.
+  const svNv = { 'catedra:novidLidas': J([{ id: 'PLN-CDC-art12-a', up: 100, st: 'lida' }, { id: 'INF-STF-1230', up: 300, st: 'conferido' }]) };
+  const lcNv = { 'catedra:novidLidas': J([{ id: 'PLN-CDC-art12-a', up: 200, st: 'conferido' }, { id: 'PLN-CP-art9-b', up: 50 }]) };
+  const mNv = JSON.parse(M(svNv, lcNv, false)['catedra:novidLidas']);
+  r.novidLidasUniaoPorId = mNv.length === 3 && ['PLN-CDC-art12-a', 'INF-STF-1230', 'PLN-CP-art9-b'].every(id => mNv.some(x => x.id === id));
+  r.novidLidasUpMaiorVence = mNv.find(x => x.id === 'PLN-CDC-art12-a').up === 200 && mNv.filter(x => x.id === 'PLN-CDC-art12-a').length === 1;
+  const mNvSrv = JSON.parse(M(svNv, lcNv, true)['catedra:novidLidas']);
+  r.novidLidasUniaoNasDuasDirecoes = mNvSrv.length === 3 && mNvSrv.find(x => x.id === 'PLN-CDC-art12-a').up === 200;
+  r.novidLidasStViaja = mNv.find(x => x.id === 'PLN-CDC-art12-a').st === 'conferido' && mNv.find(x => x.id === 'INF-STF-1230').st === 'conferido';
+  //     "Agendar revisão" de uma novidade tem id determinístico ('rv|nov|<id>'): Mac e iPad agendando
+  //     a mesma mudança antes de sincronizar convergem numa revisão só.
+  const mRvNov = JSON.parse(M({ 'catedra:reviews': J([{ id: 'rv|nov|PLN-CDC-art12-a', up: 100, novidId: 'PLN-CDC-art12-a' }]) },
+    { 'catedra:reviews': J([{ id: 'rv|nov|PLN-CDC-art12-a', up: 200, novidId: 'PLN-CDC-art12-a' }]) }, false)['catedra:reviews']);
+  r.novidRevisaoUmaSoEntreAparelhos = mRvNov.length === 1 && mRvNov[0].up === 200;
 
   // 10. INTERRUPTOR ('0'/'1'): '0' é escolha, não vazio. A regra "vazio nunca apaga cheio"
   //     fazia o '1' do servidor vencer SEMPRE o '0' daqui, sem olhar o carimbo — era o que
@@ -3962,6 +3983,15 @@ catch (e) { ok(false, 'PROVA ENCERRAR UMA VEZ [chromium] o roteiro correu sem ex
   r.hostMostraEmToast = /chamadas de IA de hoje\/\.test\(m\)\) this\._toast\(m\)/.test(src) && /data-adm="cota"/.test(src) && /admin_ia_cota_set/.test(src);
   r.migracaoVersionada = fs.existsSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-ia-cota.sql'));
   for (const [k, v] of Object.entries(r)) ok(v, 'IA/P18 cota ' + k);
+}
+
+/* ============= SENTINELA DAS FONTES OFICIAIS =============
+   Planalto, STF e STJ: o que vira novidade, o que é só aparência, e a regra de que
+   falha nunca se disfarça de "sem novidade". Roteiro em tests/sentinela.mjs (sem rede). */
+try { await testarSentinela(ok); }
+catch (e) {
+  ok(false, 'SENTINELA o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
 /* ============= ÁREAS — P19: foco de escopo para o beta público ============= */
@@ -9866,6 +9896,16 @@ catch (e) {
   ok(false, 'MENU/BARALHO [' + motor + '] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
+// Central de novidades (tests/novidades-central.mjs): o pacote das fontes oficiais na tela, com
+// as duas datas por fonte e os limites; filtros; lida/conferido em {id, up, st}; comparar; texto
+// oficial; revisão agendada sem duplicar; LEGIS com a volta à origem; o resumo do Início no desenho
+// acordado (#ct-of-abrir); a busca ao vivo (falha e parcial nunca viram "nenhuma novidade"); o
+// vocabulário único; contraste nas oito direções; 44 px no toque e nada de lado a 390; o portão de área.
+try { await testarNovidadesCentral(page, URL0, ok, { motor, origem: 'http' }); }
+catch (e) {
+  ok(false, 'NOVIDADES [' + motor + '] [http] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
 // PDF.js local (tests/pdfjs-local.mjs): o app extrai texto de PDF com toda origem externa
 // bloqueada — em http (o site) e em file:// (o caminho dos apps nativos, com o worker falso).
 try {
@@ -9881,6 +9921,14 @@ catch (e) { ok(false, 'PDFJS LOCAL [' + motor + '] exceção: ' + String(e && e.
 try { await testarHarnessSemRede(browser, ok, { motor, origens: [[URL0, 'http'], [pathToFileURL(RAIZ).href, 'file']] }); }
 catch (e) { ok(false, 'REDE DA SUÍTE [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
 await testarRedeExternaExecucao(browser, ok, { motor, origens: [[URL0, 'publicado', 'public/index.html']] });
+
+// Revisão oficial (sentinela): painel do Cátedra, "Mudanças oficiais" do LEGIS e "Informativos
+// oficiais" do JURIS, com o mesmo vocabulário de status. Contextos próprios (fixture por ctx.route).
+try { await testarRevisaoOficial(browser, URL0, ok, { motor }); }
+catch (e) {
+  ok(false, 'OFICIAL [' + motor + '] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
 
 await browser.close();
 srv.close();

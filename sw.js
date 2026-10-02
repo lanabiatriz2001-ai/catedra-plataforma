@@ -423,6 +423,10 @@ if (!IS_PROD) {
   self.addEventListener('fetch', function(e){
     var url = new URL(e.request.url);
     if (e.request.method !== 'GET' || url.origin !== self.location.origin) return; // fontes/CDN seguem direto
+    // A consulta ao vivo das fontes oficiais ("Buscar atualizações agora") nunca passa pelo
+    // cache: guardada, ela voltaria offline como se fosse de agora, e a tela diria "sem novidade"
+    // com a resposta de outro dia. Sem rede, o pedido falha, e a tela diz que não conseguiu consultar.
+    if (url.pathname === '/api/sentinela') return;
     var ehDoc = (url.pathname === '/' || /\/index\.html$/.test(url.pathname));
     if (e.request.mode === 'navigate') talvezAquecer();   // retoma o acervo depois de o worker ter sido morto
 

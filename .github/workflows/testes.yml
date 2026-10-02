@@ -4,6 +4,12 @@ on:
   push:
     branches: [main]
   pull_request:
+    # Os três primeiros tipos são o padrão do GitHub para `pull_request:` sem `types` — todo
+    # PR normal continua rodando a suíte como antes (ao abrir, a cada push, ao reabrir).
+    # ready_for_review entra por causa do PR do sentinela: ele é aberto e atualizado pelo
+    # GITHUB_TOKEN, e evento do GITHUB_TOKEN não dispara workflow. Quem marca o rascunho como
+    # pronto é a dona — esse evento é dela, então a suíte roda no commit que vai entrar.
+    types: [opened, synchronize, reopened, ready_for_review]
 jobs:
   testes:
     runs-on: ubuntu-latest

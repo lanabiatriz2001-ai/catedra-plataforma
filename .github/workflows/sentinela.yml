@@ -1,0 +1,356 @@
+# Vigia das fontes oficiais: INCORPORA ao CátedraJURIS os informativos novos do STF e do STJ,
+# lê Planalto, STF e STJ e PREPARA um PR de rascunho com o que mudou. Nunca mescla:
+# atualização jurídica não se publica sozinha (regra da dona).
+#
+# É esta rotina que faz a atualização acontecer com o APP FECHADO — ela roda no servidor do
+# GitHub, não no aparelho da pessoa. O botão "Buscar atualizações agora" (api/sentinela.js)
+# só CONSULTA; quem prepara o registro é este PR, que passa pela revisão de sempre.
+#
+# Por que a incorporação mora aqui (01/10/2026): a rotina semanal na nuvem (trig_01SpBv…), que
+# rodava scripts/atualizar-informativos.py, falha toda segunda por bloqueio de rede a
+# stf.jus.br e a processo.stj.jus.br (issues #84, #113 e #173) — o acervo parou no STJ 900 e
+# no STF 1224. Desligá-la é decisão da dona. NÃO verificado: se os runners do GitHub alcançam
+# stf.jus.br (o script manda User-Agent de Chrome, que o STF exige) — a primeira rodada
+# manual dirá.
+#
+# A ORDEM da rodada é o que deixa o novidades.js coerente com o acervo do MESMO PR:
+#   1. o juris-index.js da main é guardado antes de tudo (o acervo de ANTES);
+#   2. scripts/atualizar-informativos.py anexa os julgados novos a juris-index.js e
+#      juris-text.js e, ao terminar, já regenera semana-juris.js e as fatias de
+#      dados/juris-text/ (por isso não há passo "Regerar" aqui);
+#   3. o sentinela roda UMA vez, com --detectar-desde apontando o acervo de antes: a edição
+#      que acabou de entrar é detectada (vira item, com a URL oficial) e, na mesma junção,
+#      recebe a baixa contra o juris-index.js de agora — "já no JURIS". Edição que existe e o
+#      script não trouxe (ele escreve "nada" e sai 0 quando a página não responde) fica
+#      "Conferir"; fonte que não respondeu ao sentinela sai "falha", com aviso.
+# Detectar só DEPOIS, a partir do acervo já incorporado, as edições que acabaram de entrar nem
+# apareceriam no novidades.js; detectar só ANTES, elas ficariam "Conferir" num PR que já as
+# traz (a baixa só viria numa rodada seguinte).
+#
+# Um PR só, sempre o mesmo: branch fixo `sentinela/atualizacoes`, refeito a partir da main a
+# cada rodada (o create-pull-request recria o commit sobre a main). Por isso o acervo é
+# reincorporado a partir da main toda vez, e do PR aberto só vêm o novidades.js e o
+# sentinela/estado.json — "detectado em" e o que a revisão já viu não voltam a zero.
+# Duas travas protegem o PR aberto:
+#   • incorporação que ficou ATRÁS dele (página que não respondeu hoje) — na última edição ou
+#     numa do meio, edição por edição — para o job sem tocar no PR: atualizá-lo tiraria
+#     julgados já propostos (vazio nunca apaga cheio);
+#   • acervo IGUAL ao dele: as fatias e o índice regerados hoje só diferem na data "gerado" —
+#     volta a versão do PR, para carimbo de data não atualizar o PR (nem devolvê-lo a rascunho).
+#
+# O PR é aberto ou atualizado quando há item novo, baixa (item que o novidades.js já tinha e
+# cuja revisão mudou: informativo incorporado, mudança de lei que já está no leis-seca.js, ou
+# baixa desfeita porque o acervo não traz mais a edição) ou acervo diferente do já proposto.
+# Só carimbo de data não é novidade.
+#
+# PR fechado SEM merge: os ids dele entram como "já propostos" (--ja-propostos) e, no
+# acervo, só conta como novidade a edição que a incorporação de HOJE trouxe e o recusado não
+# tinha (--novas-alem-de) — rodada sem rede, ou que trouxe menos que o recusado, não reabre
+# PR. Os itens continuam no resultado (a mudança na fonte é real); se outra novidade abrir um
+# PR novo, eles voltam junto, para a dona rever. Fechar o PR silencia o que ele trazia até a
+# próxima novidade de verdade — não para sempre.
+#
+# Falha de incorporação é falha do job (bash -eo pipefail, sem `|| echo`), com aviso no resumo
+# da rodada — nunca "nada novo". Acervo pela metade (índice sem as fatias de texto) ou menor
+# que o já proposto não vai para revisão.
+#
+# add-paths COMPLETO: sem as fatias de dados/juris-text/, "Abrir no JURIS" dos julgados novos
+# abria sem texto (o defeito do PR #81).
+#
+# Frequência: diária às 9h de Brasília (12h UTC). É o único lugar em que ela vive.
+#
+# PRÉ-REQUISITO, cumprido em 01/10/2026: Settings → Actions → General → Workflow permissions →
+# "Allow GitHub Actions to create and approve pull requests" foi LIGADO pela dona. Se for
+# desligado, o create-pull-request publica o branch, recebe 403 ao abrir o PR e nada aparece
+# para revisão.
+#
+# CI: PR aberto ou atualizado pelo GITHUB_TOKEN NÃO dispara os workflows de teste (regra do
+# GitHub). Por isso o testes.yml também ouve `ready_for_review`: a suíte roda quando a dona
+# marca o rascunho como pronto — esse evento é dela. Se o robô empurrar commit novo depois
+# disso, o último passo devolve o PR a rascunho, e a suíte volta a rodar quando ela marcar de
+# novo. Assim nenhum commit do robô entra na main sem a suíte ter rodado sobre ele.
+name: Sentinela das fontes oficiais
+
+on:
+  schedule:
+    - cron: '0 12 * * *'
+  workflow_dispatch:
+    inputs:
+      fontes:
+        description: 'Fontes a consultar (planalto,stf,stj) — a incorporação dos informativos roda sempre'
+        required: false
+        default: 'planalto,stf,stj'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  # Duas varreduras ao mesmo tempo bateriam em dobro nas fontes oficiais. Uma de cada vez.
+  group: sentinela
+  cancel-in-progress: false
+
+jobs:
+  vigiar:
+    # Desligado por padrão: o agendamento só vale com a variável do repositório
+    # SENTINELA_DIARIO=ligado. Ligar é decisão da dona — cada rodada gasta minutos do Actions
+    # (pagos enquanto o repositório for privado). Para ligar: Settings → Secrets and variables →
+    # Actions → Variables → New repository variable, nome SENTINELA_DIARIO, valor ligado
+    # (ou `gh variable set SENTINELA_DIARIO --body ligado`). Para desligar, apague a variável
+    # ou troque o valor. A rodada manual (Actions → Sentinela → Run workflow) funciona sempre.
+    if: github.event_name == 'workflow_dispatch' || vars.SENTINELA_DIARIO == 'ligado'
+    runs-on: ubuntu-latest
+    # Teto: fonte que pendure não consome as 6 h padrão de minutos pagos.
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      # Sem `npm ci`: o sentinela, o verificador de chaves, os geradores do acervo e as libs
+      # que eles usam só importam módulos node:. O atualizar-informativos.py só usa a
+      # biblioteca padrão do python3 que já vem no ubuntu-latest.
+
+      - name: Partir do PR aberto, ou lembrar o PR recusado
+        id: base
+        # `shell: bash` = bash -eo pipefail: qualquer comando que falhe derruba o passo.
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -o pipefail
+          # O acervo de ANTES da incorporação (o da main): a detecção dos informativos parte dele.
+          cp juris-index.js "$RUNNER_TEMP/juris-index-antes.js"
+          aberto=$(gh pr list --repo "$GITHUB_REPOSITORY" --head sentinela/atualizacoes --state open --json number -q '.[0].number // empty')
+          if [ -n "$aberto" ]; then
+            git fetch --depth=1 origin sentinela/atualizacoes
+            ref=$(git rev-parse FETCH_HEAD)
+            # Do PR aberto vêm só o novidades.js e o diário; o acervo é reincorporado da main.
+            git checkout "$ref" -- novidades.js sentinela/estado.json
+            {
+              echo "aberto=$aberto"
+              echo "ref=$ref"
+            } >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Sem PR aberto: o último PR fechado do sentinela, se foi fechado SEM merge (`// empty`:
+          # lista vazia não vira a palavra "null").
+          recusado=$(gh pr list --repo "$GITHUB_REPOSITORY" --head sentinela/atualizacoes --state closed --json number,mergedAt -q '[.[0] | select(. != null and .mergedAt == null) | .number][0] // empty')
+          if [ -n "$recusado" ]; then
+            git fetch --depth=1 origin "pull/$recusado/head"
+            ref=$(git rev-parse FETCH_HEAD)
+            echo "ref=$ref" >> "$GITHUB_OUTPUT"
+            if git show "$ref:novidades.js" > "$RUNNER_TEMP/novidades-recusado.js"; then
+              echo "propostos=$RUNNER_TEMP/novidades-recusado.js" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+      - name: Incorporar ao JURIS os informativos novos (STF e STJ)
+        id: incorpora
+        # Roda sempre, qualquer que seja `fontes`: o PR é refeito a partir da main, e pular a
+        # incorporação tiraria dele os julgados já propostos.
+        shell: bash
+        env:
+          ABERTO: ${{ steps.base.outputs.aberto }}
+          REF: ${{ steps.base.outputs.ref }}
+          PYTHONUTF8: '1'
+        run: |
+          set -o pipefail
+          # Sem `|| echo`: se o script cair, o passo cai, o job fica vermelho e nenhum PR sai.
+          python3 scripts/atualizar-informativos.py | tee "$RUNNER_TEMP/incorpora.log"
+
+          # Trava 1 — a incorporação de hoje não pode ficar ATRÁS do PR aberto: nem na última
+          # edição, nem numa do meio (o script segue adiante depois de UMA edição que não
+          # respondeu, e o acervo pode sair com a 901 e a 903 sem a 902). `--desde` = o acervo
+          # da main: edição do PR que a main tirou não é recuo desta rodada.
+          if [ -n "$ABERTO" ]; then
+            git show "$REF:juris-index.js" > "$RUNNER_TEMP/juris-index-do-pr.js"
+            if ! msg=$(node scripts/sentinela.mjs --conferir-recuo "$RUNNER_TEMP/juris-index-do-pr.js" --desde "$RUNNER_TEMP/juris-index-antes.js" 2>&1); then
+              printf '%s\n' "$msg" | tee "$RUNNER_TEMP/incorpora-falha.txt"
+              exit 1
+            fi
+            printf '%s\n' "$msg"
+          fi
+
+          # Referência = o que já foi proposto (PR aberto, ou o recusado), senão a main.
+          ref="${REF:-HEAD}"
+          # Trava 2 — acervo igual ao da referência (ou ao da main, quando nada entrou hoje):
+          # as fatias e o índice regerados só diferem na data "gerado"; volta a versão de lá.
+          if git diff --quiet "$ref" -- juris-index.js juris-text.js; then
+            rm -rf dados/juris-text
+            git checkout "$ref" -- semana-juris.js dados/juris-text dados/indice.json
+          elif git diff --quiet HEAD -- juris-index.js juris-text.js; then
+            rm -rf dados/juris-text
+            git checkout HEAD -- semana-juris.js dados/juris-text dados/indice.json
+          fi
+
+          if [ -z "$ABERTO" ] && [ -n "$REF" ]; then
+            # Referência = PR fechado SEM merge. Acervo diferente do recusado NÃO basta: a
+            # rodada sem rede (acervo = main) e a que trouxe MENOS que o recusado também diferem
+            # dele, e reabririam um PR só com o que a dona já recusou. Só é novidade a edição
+            # que a incorporação de HOJE trouxe (está aqui e não na main) e o recusado não
+            # tinha. A resposta vem na última linha (novas=sim|nao); queda do node derruba o
+            # passo — nunca vira "nada novo".
+            git show "$REF:juris-index.js" > "$RUNNER_TEMP/juris-index-recusado.js"
+            if ! novas=$(node scripts/sentinela.mjs --novas-alem-de "$RUNNER_TEMP/juris-index-recusado.js" --desde "$RUNNER_TEMP/juris-index-antes.js" 2>&1); then
+              printf '%s\n' "$novas" | tee "$RUNNER_TEMP/incorpora-falha.txt"
+              exit 1
+            fi
+            printf '%s\n' "$novas"
+            case "$novas" in
+              *novas=sim) echo 'acervo=mudou' >> "$GITHUB_OUTPUT" ;;
+              *novas=nao) echo 'acervo=igual' >> "$GITHUB_OUTPUT" ;;
+              *) echo 'resposta inesperada de --novas-alem-de' | tee "$RUNNER_TEMP/incorpora-falha.txt"; exit 1 ;;
+            esac
+          # A incorporação mudou o acervo em relação à referência? `git diff --quiet` vê os
+          # rastreados; as fatias novas nascem com nome novo (hash do conteúdo) e ficam fora
+          # do índice do git — daí o `ls-files --others`.
+          elif git diff --quiet "$ref" -- juris-index.js juris-text.js semana-juris.js dados/juris-text dados/indice.json \
+             && [ -z "$(git ls-files --others --exclude-standard -- dados/juris-text)" ]; then
+            echo 'acervo=igual' >> "$GITHUB_OUTPUT"
+          else
+            echo 'acervo=mudou' >> "$GITHUB_OUTPUT"
+          fi
+          {
+            echo 'resumo<<FIM_DO_RESUMO'
+            sed -n -E '/^(corpus|STF|STJ|NOVOS|índice)/p' "$RUNNER_TEMP/incorpora.log"
+            echo 'FIM_DO_RESUMO'
+          } >> "$GITHUB_OUTPUT"
+          {
+            echo '### Incorporação dos informativos'
+            echo
+            echo '```'
+            sed -n -E '/^(corpus|STF|STJ|NOVOS|índice)/p' "$RUNNER_TEMP/incorpora.log"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Incorporação falhou — nenhum PR nesta rodada
+        if: failure() && steps.incorpora.outcome == 'failure'
+        shell: bash
+        run: |
+          echo "::error title=Sentinela::a incorporação dos informativos falhou — nenhum PR foi aberto nem atualizado nesta rodada; isto não é 'nada novo'"
+          {
+            echo '### Incorporação dos informativos FALHOU'
+            echo
+            echo 'scripts/atualizar-informativos.py, ou a trava que compara com o PR aberto, terminou com erro. Nenhum PR foi aberto nem atualizado: acervo pela metade, ou menor que o já proposto, não vai para revisão. Isto **não** é "nada novo".'
+            if [ -s "$RUNNER_TEMP/incorpora-falha.txt" ]; then echo; cat "$RUNNER_TEMP/incorpora-falha.txt"; fi
+            if [ -s "$RUNNER_TEMP/incorpora.log" ]; then echo; echo '```'; tail -n 20 "$RUNNER_TEMP/incorpora.log"; echo '```'; fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Consultar as fontes oficiais
+        id: consulta
+        # `shell: bash` = bash -eo pipefail. No shell padrão (bash -e, SEM pipefail) o `| tee`
+        # engolia a queda do node (exceção, erro de sintaxe, --fonte inválida): o passo saía 0,
+        # o GITHUB_OUTPUT ficava sem `novos` e sem `falhas` e a queda se disfarçava de "nada
+        # novo". Com pipefail, o passo falha e o job fica vermelho.
+        shell: bash
+        env:
+          FONTES: ${{ inputs.fontes || 'planalto,stf,stj' }}
+          PROPOSTOS: ${{ steps.base.outputs.propostos }}
+        run: |
+          set -o pipefail
+          extra=()
+          if [ -n "$PROPOSTOS" ]; then extra=(--ja-propostos "$PROPOSTOS"); fi
+          # Detecção a partir do acervo de ANTES da incorporação; baixa contra o de agora.
+          node scripts/sentinela.mjs --fonte "$FONTES" --detectar-desde "$RUNNER_TEMP/juris-index-antes.js" "${extra[@]}" \
+            | tee "$RUNNER_TEMP/sentinela.log"
+          {
+            echo 'resumo<<FIM_DO_RESUMO'
+            cat "$RUNNER_TEMP/sentinela.log"
+            echo 'FIM_DO_RESUMO'
+          } >> "$GITHUB_OUTPUT"
+          {
+            echo '### O que o sentinela viu'
+            echo
+            echo '```'
+            cat "$RUNNER_TEMP/sentinela.log"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Avisar fonte que falhou
+        if: steps.consulta.outputs.falhas != ''
+        shell: bash
+        env:
+          FALHAS: ${{ steps.consulta.outputs.falhas }}
+        run: echo "::warning title=Sentinela::não foi possível consultar $FALHAS — veja o log; isto não é 'nenhuma novidade'"
+
+      - name: Nenhuma chave no que vai para o PR
+        if: >-
+          fromJSON(steps.consulta.outputs.novos || '0') > 0
+          || fromJSON(steps.consulta.outputs.baixas || '0') > 0
+          || steps.incorpora.outputs.acervo == 'mudou'
+        shell: bash
+        run: node scripts/verificar-segredos.mjs
+
+      - name: Preparar o PR de rascunho (nunca mescla)
+        id: pr
+        if: >-
+          fromJSON(steps.consulta.outputs.novos || '0') > 0
+          || fromJSON(steps.consulta.outputs.baixas || '0') > 0
+          || steps.incorpora.outputs.acervo == 'mudou'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: sentinela/atualizacoes
+          # Rascunho de propósito: a dona decide o que entra no acervo.
+          draft: true
+          title: 'Atualizações das fontes oficiais'
+          commit-message: 'Incorpora os informativos novos e registra o que mudou no Planalto, no STF e no STJ desde a última consulta'
+          body: |
+            Varredura automática das fontes oficiais. Este PR é atualizado no lugar a cada
+            rodada que encontra item novo, dá baixa em item (já no acervo, ou baixa desfeita)
+            ou muda o acervo proposto; nada aqui é mesclado sem revisão.
+
+            Atualização assistida: o sentinela detecta e propõe; item marcado para revisão só entra no acervo depois de conferido na fonte oficial.
+
+            **Informativos incorporados ao CátedraJURIS** (scripts/atualizar-informativos.py;
+            juris-index.js e juris-text.js, com semana-juris.js e as fatias de
+            dados/juris-text/ regeradas):
+
+            ```
+            ${{ steps.incorpora.outputs.resumo }}
+            ```
+
+            **O que o sentinela viu** (novidades.js: informativo incorporado aparece "já no
+            JURIS"; edição detectada que a incorporação não trouxe fica "Conferir"):
+
+            ```
+            ${{ steps.consulta.outputs.resumo }}
+            ```
+
+            Antes de aprovar: confira na fonte oficial os itens marcados para revisão —
+            vigência não informada, comparação parcial, diferença só de recorte, norma
+            modificadora não identificada e informativo detectado que não entrou no acervo
+            entram assim de propósito. Confira também, por amostragem, os julgados
+            incorporados contra o Informativo oficial.
+
+            Testes: este PR é aberto pelo robô (GITHUB_TOKEN), o que não dispara a suíte. Ela
+            roda quando o rascunho é marcado como pronto. Se o robô empurrar commit novo depois
+            disso, o PR volta a rascunho — marque como pronto de novo.
+
+            Fechar este PR sem mesclar faz o que ele traz não reabrir PR sozinho; volta junto
+            com uma novidade nova.
+          add-paths: |
+            juris-index.js
+            juris-text.js
+            semana-juris.js
+            dados/juris-text/**
+            dados/indice.json
+            novidades.js
+            sentinela/estado.json
+
+      - name: Commit novo volta o PR a rascunho (a suíte roda quando a dona marcar pronto)
+        # O create-pull-request v6 só aplica `draft` na criação. PR que a dona já marcou como
+        # pronto e recebeu commit do robô volta a rascunho: o commit novo também passa pela
+        # suíte quando ela marcar pronto de novo (ready_for_review em testes.yml).
+        if: steps.pr.outputs.pull-request-operation == 'updated'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ steps.pr.outputs.pull-request-number }}
+        run: |
+          set -o pipefail
+          rascunho=$(gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json isDraft -q .isDraft)
+          if [ "$rascunho" = "false" ]; then
+            gh pr ready "$PR" --repo "$GITHUB_REPOSITORY" --undo
+            echo "::notice title=Sentinela::o PR #$PR recebeu commit novo e voltou a rascunho — marque como pronto de novo para a suíte rodar no commit que vai entrar"
+          fi

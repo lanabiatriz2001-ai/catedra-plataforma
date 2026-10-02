@@ -24,6 +24,11 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;mostr
 <script src="./busca-unica.js"></script>
 <!-- "O que mudou esta semana" (item 7): recorte dos informativos, gerado no build -->
 <script src="./semana-juris.js"></script>
+<!-- Fontes oficiais (Central de novidades): pacote gerado no servidor por scripts/sentinela.mjs.
+     O app só LÊ este arquivo; a consulta ao vivo é o botão da Central (/api/sentinela), por clique. -->
+<script src="./novidades.js"></script>
+<!-- Vocabulário único da revisão oficial: o mesmo módulo que o LEGIS e o JURIS carregam. -->
+<script src="./revisao-oficial.js"></script>
 <!-- Leitura ativa (grade de 7 perguntas): módulo puro, o mesmo que o CátedraLEGIS carrega.
      O host é a fonte da verdade de catedra:leituras; o iframe é tela. -->
 <script src="./leitura-ativa.js"></script>
@@ -79,6 +84,15 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .rd-hl:hover{filter:brightness(.93);box-shadow:0 0 0 1.5px rgba(0,0,0,.18);}
 .rd-hl.uline{background:transparent!important;border-bottom:2.5px solid;border-radius:0;mix-blend-mode:normal;}
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent)!important;outline-offset:2px!important}
+/* Central de novidades: o anel do botão claro do hero acompanha o texto dele (branco opaco) — a regra
+   acima, com !important, pintava o anel na cor de destaque SOBRE o gradiente do destaque (2,4:1).
+   O placeholder da busca em token (o cinza padrão do WebKit media 2,3:1). Texto só para leitor de tela. */
+.ct-hero .ct-btn-clara:focus-visible{outline-color:currentColor!important}
+.ct-nv-busca::placeholder{color:var(--text3);opacity:1}
+.ct-nv-oculto{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* no estreito, as ações de cada novidade em duas colunas (a primária na linha toda): em fila, cada botão
+   tomava uma linha e o cartão ganhava seis */
+@media (max-width:540px){.ct-nv-acoes{display:grid!important;grid-template-columns:1fr 1fr;align-items:stretch!important}.ct-nv-acoes>*{min-width:0;white-space:normal;text-align:center}.ct-nv-acoes>.ct-btn{grid-column:1/-1}}
 .aj-meta{font-family:var(--display)!important;font-size:24px!important;font-weight:700!important;text-align:center}
 .aj-ess{transition:border-color .15s,transform .15s,box-shadow .15s;border-top:3px solid var(--accent)!important}
 .aj-ess:hover{border-color:var(--accent);transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,0,0,.10)}
@@ -796,6 +810,7 @@ window.ctPdfLib = (function(){
     <div style="font-size:var(--fs-2xs);letter-spacing:.14em;text-transform:uppercase;color:var(--stext);opacity:.65;font-weight:600;padding:18px 8px 8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);">Mais opções</div>
     <nav style="display:flex;flex-direction:column;gap:3px;">
       <button data-view="analise" aria-current="{{ navCur.analise }}" onclick="{{ onNav }}" style="{{ navStyle.analise }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 3v18h18M7 14l3-4 4 3 5-7" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Desempenho</span></button>
+      <sc-if value="{{ capNovidades }}" hint-placeholder-val="{{ true }}"><button data-view="novidades" aria-current="{{ navCur.novidades }}" onclick="{{ onNav }}" style="{{ navStyle.novidades }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18h-5"></path><path d="M18 14h-8"></path><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-4 0v-9a2 2 0 0 1 2-2h2"></path><rect width="8" height="4" x="10" y="6" rx="1"></rect></svg><span>Central de novidades</span></button></sc-if>
       <button data-view="conquistas" aria-current="{{ navCur.conquistas }}" onclick="{{ onNav }}" style="{{ navStyle.conquistas }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M7 4h10v4a5 5 0 0 1-10 0V4ZM5 4H3v2a3 3 0 0 0 3 3M19 4h2v2a3 3 0 0 1-3 3M9 17h6M8 21h8M12 13v4" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Metas &amp; Conquistas</span></button>
       <button data-view="historico" aria-current="{{ navCur.historico }}" onclick="{{ onNav }}" style="{{ navHistorico }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-7 3.3M3 4v3.3h3.3M12 8v4l3 2" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Histórico</span></button>
       <button data-view="comunidade" aria-current="{{ navCur.comunidade }}" onclick="{{ onNav }}" style="{{ navComunidade }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M16 14a4 4 0 1 0-8 0M12 7a3 3 0 1 0 0 0M3 20a6 6 0 0 1 18 0" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="12" cy="7" r="3"></circle></svg><span>Comunidade</span></button>
@@ -1087,6 +1102,60 @@ window.ctPdfLib = (function(){
               <button onclick="{{ closeSession }}" class="ct-btn-2">Cancelar</button>
               <button onclick="{{ saveSession }}" class="ct-btn">Registrar sessão</button>
             </div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- REVISÃO OFICIAL — a fila de tudo que o sentinela detectou, com o mesmo vocabulário de
+         status do LEGIS e do JURIS. Item marcado para revisão nunca se parece com publicado. -->
+    <sc-if value="{{ oficialPainelOpen }}" hint-placeholder-val="{{ false }}">
+      <div onclick="{{ oficialPainelFechar }}" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px;">
+        <div onclick="{{ stop }}" role="dialog" aria-modal="true" aria-labelledby="ct-of-painel-h" id="ct-revisao-oficial" class="ct-modal-panel" tabindex="-1" style="background:var(--bg);border-radius:18px;width:100%;max-width:760px;max-height:92vh;overflow:auto;box-shadow:0 24px 60px rgba(0,0,0,.35);padding:18px;box-sizing:border-box;min-width:0;">
+          <div style="display:flex;align-items:flex-start;gap:12px;">
+            <div style="flex:1;min-width:0;">
+              <h2 id="ct-of-painel-h" style="margin:0;font-size:var(--fs-xl);font-weight:800;color:var(--ink);">Revisão oficial</h2>
+              <div class="ct-of-frase" style="margin-top:2px;">Atualização assistida: o sentinela detecta e propõe; item marcado para revisão só entra no acervo depois de conferido na fonte oficial. · {{ oficialAtualizado }}</div>
+            </div>
+            <button type="button" class="ct-of-btn" onclick="{{ oficialPainelFechar }}" aria-label="Fechar revisão oficial" style="min-width:44px;min-height:44px;justify-content:center;padding:0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+          </div>
+          <div class="ct-of-num" style="margin:12px 0 10px;"><span><b>{{ oficialNumOk }}</b> fontes ok</span><span><b>{{ oficialNumFalha }}</b> com falha ou parcial</span><span><b>{{ oficialNumRevisar }}</b> para revisar</span><span><b>{{ oficialNumConferidos }}</b> conferidos</span></div>
+          <div class="ct-of-filtros" role="group" aria-label="Filtrar a revisão oficial">
+            <sc-for list="{{ oficialFiltros }}" as="b" hint-placeholder-count="5"><button type="button" class="ct-of-btn" data-f="{{ b.k }}" aria-pressed="{{ b.on }}" onclick="{{ oficialFiltrar }}">{{ b.rotulo }} · {{ b.n }}</button></sc-for>
+          </div>
+          <sc-if value="{{ oficialFiltroFalhas }}" hint-placeholder-val="{{ false }}">
+            <div class="ct-of-lista" style="margin-top:12px;">
+              <sc-for list="{{ oficialFontesProblema }}" as="f" hint-placeholder-count="1">
+                <div class="ct-of-item"><div class="ct-of-linha"><span class="{{ f.cls }}">{{ f.statusRotulo }}</span><span class="ct-of-titulo">{{ f.nome }}</span><span class="ct-of-meta">tentativa {{ f.tentativa }} · último sucesso {{ f.sucesso }}</span></div>
+                  <div class="ct-of-resumo">{{ f.erroTxt }}</div></div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ oficialListaTem }}" hint-placeholder-val="{{ true }}">
+            <div class="ct-of-lista" style="margin-top:12px;" id="ct-of-lista">
+              <sc-for list="{{ oficialLista }}" as="n" hint-placeholder-count="3">
+                <article class="ct-of-item" data-id="{{ n.id }}">
+                  <div class="ct-of-linha"><span class="{{ n.cls }}">{{ n.statusRotulo }}</span><span class="ct-of-tipo">{{ n.tipoRotulo }}</span><span class="ct-of-meta">{{ n.fonteNome }} · detectado em {{ n.quando }}</span></div>
+                  <div class="ct-of-titulo" style="margin-top:6px;">{{ n.titulo }}</div>
+                  <div class="ct-of-resumo">{{ n.resumo }}</div>
+                  <div class="ct-of-acoes">
+                    <button type="button" class="ct-of-btn" data-id="{{ n.id }}" data-alvo="{{ n.produto }}" data-q="{{ n.busca }}" onclick="{{ oficialAbrir }}">Abrir no {{ n.produtoNome }}</button>
+                    <sc-if value="{{ n.podeMarcar }}" hint-placeholder-val="{{ true }}"><button type="button" class="ct-of-btn" data-id="{{ n.id }}" data-st="{{ n.proxSt }}" onclick="{{ oficialMarcar }}">{{ n.marcarRotulo }}</button></sc-if>
+                  </div>
+                </article>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ oficialListaVazia }}" hint-placeholder-val="{{ false }}">
+            <div class="ct-of-vazio" style="margin-top:12px;" id="ct-of-vazio">{{ oficialVazioTxt }}</div>
+          </sc-if>
+          <h3 class="ct-of-grupo">Cobertura e limites</h3>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;" id="ct-of-cobertura">
+            <sc-for list="{{ oficialFontes }}" as="f" hint-placeholder-count="3">
+              <div class="ct-of-item" style="padding:10px 12px;"><div class="ct-of-linha"><span class="ct-of-titulo">{{ f.nome }}</span><span class="{{ f.cls }}">{{ f.statusRotulo }}</span></div>
+                <div class="ct-of-meta" style="margin-top:4px;">tentativa {{ f.tentativa }} · sucesso {{ f.sucesso }}</div>
+                <div class="ct-of-resumo">{{ f.limite }}</div></div>
+            </sc-for>
           </div>
         </div>
       </div>
@@ -1899,7 +1968,7 @@ window.ctPdfLib = (function(){
         </sc-if>
         <!-- O QUE MUDOU ESTA SEMANA (item 7) -->
         <sc-if value="{{ semanaTem }}" hint-placeholder-val="{{ true }}">
-          <div id="ct-semana" class="cth-sec"><h2>O que mudou esta semana</h2><span class="rule"></span><span class="meta">informativos recentes do STF, STJ e TSE · <button class="ct-alvo" onclick="{{ semanaVerTudo }}" style="background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:0;">ver todos →</button></span></div>
+          <div id="ct-semana" class="cth-sec"><h2>O que mudou esta semana</h2><span class="rule"></span><span class="meta">informativos recentes do STF, STJ e TSE{{ semanaRecorteTxt }} · <button class="ct-alvo" onclick="{{ semanaVerTudo }}" style="background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:0;">ver todos →</button><sc-if value="{{ semanaAguardaAcervo }}" hint-placeholder-val="{{ false }}"><span aria-hidden="true"> · </span><button class="ct-alvo" data-view="novidades" onclick="{{ onNav }}" style="background:transparent;border:none;color:color-mix(in srgb, var(--accentD) 62%, var(--ink));font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:0;">{{ semanaAguardaLabel }}</button></sc-if></span></div>
           <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:26px;">
             <sc-for list="{{ semanaLista }}" as="s" hint-placeholder-count="4">
               <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
@@ -1923,6 +1992,44 @@ window.ctPdfLib = (function(){
               <button class="ct-alvo" onclick="{{ semanaMais }}" style="align-self:flex-start;background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:4px 0;">{{ semanaMaisLabel }}</button>
             </sc-if>
           </div>
+        </sc-if>
+        <!-- FONTES OFICIAIS — o resumo no Início, no desenho acordado com a sessão "Interface de
+             atualização oficial" (01/10/2026): a saúde de cada fonte no vocabulário único, três
+             contadores (fontes ok / com falha ou parcial / itens a conferir), a frase da casa, até
+             três mudanças de LEI ainda não vistas e o botão #ct-of-abrir. Aparece SEMPRE nas áreas
+             com jurisprudência — sem varredura, cada fonte diz "Nunca consultada". Neste PR o botão
+             leva à Central de novidades; a pilha do painel "Revisão oficial" troca o handler. -->
+        <sc-if value="{{ ofMostrar }}" hint-placeholder-val="{{ false }}">
+          <section id="ct-fontes-oficiais" aria-labelledby="ct-of-tit" style="margin-bottom:var(--ct-e5);min-width:0;">
+            <div class="cth-sec"><h2 id="ct-of-tit">Fontes oficiais</h2><span class="rule"></span><span class="meta">{{ ofMeta }}</span></div>
+            <div class="ct-card" style="display:flex;flex-direction:column;gap:var(--ct-e3);margin-top:var(--ct-e3);min-width:0;">
+              <div role="list" aria-label="Situação de cada fonte oficial" style="display:flex;gap:var(--ct-e2) var(--ct-e4);flex-wrap:wrap;align-items:center;">
+                <sc-for list="{{ ofFontes }}" as="f" hint-placeholder-count="3"><span role="listitem" data-of-fonte="{{ f.id }}" style="display:inline-flex;align-items:center;gap:var(--ct-e2);font-size:var(--fs-sm);font-weight:700;color:var(--ink);">{{ f.nome }}<span class="ct-selo" style="{{ f.estilo }}">{{ f.situacao }}</span></span></sc-for>
+              </div>
+              <div role="list" aria-label="Contadores das fontes oficiais" style="display:flex;gap:var(--ct-e2) var(--ct-e5);flex-wrap:wrap;align-items:baseline;">
+                <span role="listitem" data-of-cont="ok" style="display:inline-flex;align-items:baseline;gap:var(--ct-e1);"><b style="font-family:var(--display);font-size:var(--fs-xl);color:var(--ink);">{{ ofContOk }}</b><span style="font-size:var(--fs-sm);color:var(--text2);">fontes ok</span></span>
+                <span role="listitem" data-of-cont="falha" style="display:inline-flex;align-items:baseline;gap:var(--ct-e1);"><b style="font-family:var(--display);font-size:var(--fs-xl);color:var(--ink);">{{ ofContFalha }}</b><span style="font-size:var(--fs-sm);color:var(--text2);">com falha ou parcial</span></span>
+                <span role="listitem" data-of-cont="conferir" style="display:inline-flex;align-items:baseline;gap:var(--ct-e1);"><b style="font-family:var(--display);font-size:var(--fs-xl);color:var(--ink);">{{ ofContConferir }}</b><span style="font-size:var(--fs-sm);color:var(--text2);">itens a conferir</span></span>
+              </div>
+              <p class="ct-nota" style="margin:0;">Detecção automática, publicação assistida.</p>
+              <sc-if value="{{ ofTemItens }}" hint-placeholder-val="{{ true }}">
+                <ul aria-label="Mudanças de lei ainda não conferidas" style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;min-width:0;">
+                  <sc-for list="{{ ofItens }}" as="n" hint-placeholder-count="3">
+                    <li data-novid-resumo="{{ n.id }}" style="display:flex;align-items:center;gap:var(--ct-e2);flex-wrap:wrap;padding:var(--ct-e2) 0;border-top:1px dashed var(--border);min-width:0;">
+                      <span class="ct-selo" style="{{ n.tipoEstilo }}">{{ n.tipoLabel }}</span>
+                      <span class="ct-selo" style="{{ n.stEstilo }}">{{ n.stLabel }}</span>
+                      <span id="ct-of-t-{{ n.id }}" style="flex:1 1 160px;min-width:0;font-weight:600;color:var(--ink);font-size:var(--fs-base);overflow-wrap:anywhere;">{{ n.titulo }}</span>
+                      <span style="display:flex;gap:var(--ct-e2);flex-wrap:wrap;">
+                        <sc-if value="{{ n.temAcervo }}" hint-placeholder-val="{{ true }}"><button type="button" class="ct-btn-2" data-acao="acervo" data-id="{{ n.id }}" aria-describedby="ct-of-t-{{ n.id }}" onclick="{{ novidAbrirAcervo }}">{{ n.acervoLabel }}</button></sc-if>
+                        <button type="button" class="ct-btn-2" data-acao="lida" data-id="{{ n.id }}" aria-describedby="ct-of-t-{{ n.id }}" onclick="{{ novidMarcarLida }}" style="border-color:transparent;">Já vi</button>
+                      </span>
+                    </li>
+                  </sc-for>
+                </ul>
+              </sc-if>
+              <div><button id="ct-of-abrir" class="ct-btn-2" onclick="{{ oficialPainelAbrir }}">Ver revisão oficial</button></div>
+            </div>
+          </section>
         </sc-if>
         <!-- O BARALHO NO PAINEL. Os cartões eram gerados por três caminhos e não apareciam em
              lugar nenhum: o painel dizia que o dia estava em dia com uma pilha vencida ao lado. -->
@@ -4571,6 +4678,198 @@ window.ctPdfLib = (function(){
        </div>
       </sc-if>
 
+      <!-- ═══════════ CENTRAL DE NOVIDADES (fontes oficiais: Planalto, STF e STJ) ═══════════
+           Regra da tela: nada aparece como atualizado sem a consulta daquela fonte ter dado
+           certo. Por isso o diário de cada fonte (as duas datas, o erro, o que ela NÃO cobre)
+           vem antes da lista, e "a consulta falhou" ou "respondeu em parte" nunca se escreve
+           como "nada de novo". Status no vocabulário único (Detectado, Sem novidade, Parcial,
+           Falhou, Nunca consultada; Conferir, Conferido, No acervo) — o mesmo do Início e do
+           painel "Revisão oficial". Exceção declarada à gramática espelho/bancada: é leitura de
+           feed, como o Calendário.
+           Ganchos de teste: [data-novid-fonte], [data-novid-item], [data-acao], #nv-resultado. -->
+      <sc-if value="{{ isNovid }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:var(--ct-e5);min-width:0;">
+          <!-- Texto do hero em branco OPACO (color:inherit herda o da faixa) e o botão sobre um véu
+               escuro (--sbg, escuro em toda direção): o branco translúcido da classe somava a cor do
+               fundo e caía abaixo de 4,5:1 onde o gradiente clareia — medido a 390 px no escuro
+               (tests/novidades-central.mjs), o mesmo defeito que o banner do Início já corrigiu.
+               A frase do subtítulo é a da dona, literal (01/10/2026). -->
+          <div class="ct-hero">
+            <div class="ct-hero-eb" style="color:inherit;">Planalto · STF · STJ</div>
+            <h2 class="ct-hero-tit">O que mudou nas fontes oficiais</h2>
+            <p class="ct-hero-sub" style="color:inherit;">Atualização assistida: o sentinela detecta e propõe; item marcado para revisão só entra no acervo depois de conferido na fonte oficial.</p>
+            <div class="ct-hero-kpis">
+              <div class="ct-kpi"><b>{{ novidTotalStr }}</b><span style="color:inherit;">no total</span></div>
+              <div class="ct-kpi"><b>{{ novidNaoLidasStr }}</b><span style="color:inherit;">não lidas</span></div>
+              <div class="ct-kpi"><b>{{ novidRevisaoStr }}</b><span style="color:inherit;">a conferir</span></div>
+            </div>
+            <div style="display:flex;gap:var(--ct-e2);flex-wrap:wrap;align-items:center;">
+              <button type="button" class="ct-btn-clara" data-acao="buscar" data-fonte="planalto,stf,stj" onclick="{{ novidBuscar }}" disabled="{{ novidBuscando }}" aria-busy="{{ novidBuscandoTodas }}" style="background:color-mix(in srgb, var(--sbg) 42%, transparent);">{{ novidBuscarLabel }}</button>
+            </div>
+          </div>
+
+          <div role="group" aria-label="Consultar uma fonte só" style="display:flex;gap:var(--ct-e2);flex-wrap:wrap;align-items:center;">
+            <span class="ct-nota">Ou consulte uma fonte só:</span>
+            <sc-for list="{{ novidBotoesFonte }}" as="b" hint-placeholder-count="3"><button type="button" class="ct-btn-2" data-acao="buscar" data-fonte="{{ b.f }}" onclick="{{ novidBuscar }}" disabled="{{ novidBuscando }}" aria-busy="{{ b.ocupado }}">{{ b.nome }}</button></sc-for>
+          </div>
+
+          <!-- Sem role=status próprio: quem anuncia é o _toast (já é role=status, aria-live=polite).
+               Um anúncio nascido dentro de sc-if é pouco confiável e duplicaria o toast. -->
+          <sc-if value="{{ novidBuscando }}" hint-placeholder-val="{{ false }}">
+            <div class="ct-estado ct-estado-carregando"><div class="ct-estado-titulo">{{ novidBuscandoTit }}</div><div class="ct-estado-desc">Cada fonte é consultada pelo servidor, as três ao mesmo tempo. Leva alguns segundos — o resto do app continua livre.</div></div>
+          </sc-if>
+
+          <!-- O resultado separa o que o pedido exige que não se misture: novidades, o que exige
+               revisão, quem respondeu por inteiro, quem respondeu em parte e quem falhou (as duas
+               lacunas com o "tentar de novo" só delas) e o que foi aplicado ao acervo — nada: o
+               botão só consulta. "Nada de novo" só aparece com TODA fonte pedida inteira. -->
+          <sc-if value="{{ temNovidResumo }}" hint-placeholder-val="{{ false }}">
+            <div id="nv-resultado" class="ct-card" style="display:flex;flex-direction:column;gap:var(--ct-e2);min-width:0;">
+              <div class="ct-eb">Resultado da consulta · {{ novidResumo.quando }}</div>
+              <sc-if value="{{ novidResumo.temErroGeral }}" hint-placeholder-val="{{ false }}"><div style="font-size:var(--fs-base);color:var(--danger);font-weight:600;line-height:1.5;">{{ novidResumo.erroGeral }}</div></sc-if>
+              <sc-if value="{{ novidResumo.temContagem }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;flex-direction:column;gap:var(--ct-e1);font-size:var(--fs-sm);color:var(--text2);line-height:1.5;">
+                  <div>Novidades encontradas: <b style="color:var(--ink);">{{ novidResumo.novidades }}</b>{{ novidResumo.vistasTxt }}</div>
+                  <div>Itens que exigem revisão: <b style="color:var(--ink);">{{ novidResumo.exigemRevisao }}</b></div>
+                  <div>Fontes consultadas com sucesso: <b style="color:var(--ink);">{{ novidResumo.ok }}</b></div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ novidResumo.semFonteOk }}" hint-placeholder-val="{{ false }}"><div style="font-size:var(--fs-sm);color:var(--text2);line-height:1.5;">Nenhuma fonte foi consultada com sucesso — não dá para dizer se algo mudou.</div></sc-if>
+              <sc-if value="{{ novidResumo.temParciais }}" hint-placeholder-val="{{ false }}"><div style="font-size:var(--fs-sm);line-height:1.5;font-weight:600;{{ novidAvisoTxt }}">Consulta parcial: {{ novidResumo.parciais }} — parte das leituras falhou, e o que não foi lido não conta como “sem mudança”.</div></sc-if>
+              <sc-if value="{{ novidResumo.temFalhas }}" hint-placeholder-val="{{ false }}"><div style="font-size:var(--fs-sm);color:var(--danger);font-weight:600;line-height:1.5;overflow-wrap:anywhere;">Não foi possível consultar: {{ novidResumo.falhas }}</div></sc-if>
+              <sc-if value="{{ novidResumo.temTentar }}" hint-placeholder-val="{{ false }}"><div><button type="button" class="ct-btn-2" data-acao="tentar" data-fonte="{{ novidResumo.falhasFontes }}" onclick="{{ novidBuscar }}" disabled="{{ novidBuscando }}">{{ novidResumo.tentarLabel }}</button></div></sc-if>
+              <sc-if value="{{ novidResumo.temCache }}" hint-placeholder-val="{{ false }}"><div class="ct-nota">{{ novidResumo.cache }}</div></sc-if>
+              <sc-if value="{{ novidResumo.semNovidade }}" hint-placeholder-val="{{ false }}"><div style="font-size:var(--fs-sm);color:var(--text2);">As fontes consultadas responderam e não trouxeram nada de novo.</div></sc-if>
+              <div class="ct-nota" style="border-top:1px dashed var(--border);padding-top:var(--ct-e2);">Alterações aplicadas ao acervo: nenhuma — o botão só consulta; o que muda entra por revisão.</div>
+            </div>
+          </sc-if>
+
+          <!-- O diário de cada fonte, compacto: situação, as duas datas e o erro sempre à vista; as
+               normas conferidas e o que a fonte NÃO cobre abrem com um toque (a contagem fica no
+               rótulo do botão). align-items:start: um cartão não estica os outros. -->
+          <section aria-labelledby="nv-fontes-tit" style="min-width:0;">
+            <div class="cth-sec"><h2 id="nv-fontes-tit">Fontes monitoradas</h2><span class="rule"></span><span class="meta">{{ novidPacoteMeta }}</span></div>
+            <div class="ct-grade ct-grade-larga" style="margin-top:var(--ct-e3);align-items:start;">
+              <sc-for list="{{ novidFontes }}" as="f" hint-placeholder-count="3">
+                <article class="ct-card" data-novid-fonte="{{ f.id }}" style="display:flex;flex-direction:column;gap:var(--ct-e2);min-width:0;">
+                  <div style="display:flex;align-items:center;gap:var(--ct-e2);flex-wrap:wrap;">
+                    <h3 style="margin:0;font-family:var(--display);font-size:var(--fs-xl);font-weight:700;color:var(--ink);">{{ f.nome }}</h3>
+                    <span class="ct-selo" style="{{ f.estilo }}">{{ f.situacao }}</span>
+                  </div>
+                  <sc-if value="{{ f.temRotulo }}" hint-placeholder-val="{{ true }}"><div style="font-size:var(--fs-xs);color:var(--text3);font-weight:600;">{{ f.rotulo }}</div></sc-if>
+                  <div style="font-size:var(--fs-sm);color:var(--text2);line-height:1.5;">{{ f.monitoraTxt }}</div>
+                  <div style="display:flex;flex-direction:column;gap:var(--ct-e1);font-size:var(--fs-xs);color:var(--text3);line-height:1.5;">
+                    <span>Última tentativa: <b style="color:var(--text2);">{{ f.ultimaTentativa }}</b></span>
+                    <span>Última consulta bem-sucedida: <b style="color:var(--text2);">{{ f.ultimoSucesso }}</b></span>
+                    <sc-if value="{{ f.temDetalhe }}" hint-placeholder-val="{{ false }}"><span>{{ f.detalhe }}</span></sc-if>
+                  </div>
+                  <sc-if value="{{ f.doCache }}" hint-placeholder-val="{{ false }}"><div class="ct-nota">Resultado guardado no servidor há {{ f.cacheIdade }} — a mesma fonte não é reconsultada antes de 10 minutos.</div></sc-if>
+                  <sc-if value="{{ f.temErro }}" hint-placeholder-val="{{ false }}"><div style="font-size:var(--fs-xs);color:var(--danger);font-weight:600;line-height:1.5;overflow-wrap:anywhere;">{{ f.erroTxt }}</div></sc-if>
+                  <div style="display:flex;flex-direction:column;border-top:1px dashed var(--border);padding-top:var(--ct-e1);">
+                    <sc-if value="{{ f.temNormas }}" hint-placeholder-val="{{ false }}">
+                      <button type="button" class="ct-btn-2" data-acao="detalhe" data-chave="{{ f.normasChave }}" aria-expanded="{{ f.normasAttr }}" aria-controls="{{ f.normasCtl }}" onclick="{{ novidDetalhe }}" style="border-color:transparent;padding-left:0;padding-right:0;justify-content:space-between;width:100%;text-align:left;">{{ f.normasTit }}<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none;{{ f.chevAb }}"><path d="m6 9 6 6 6-6"></path></svg></button>
+                      <sc-if value="{{ f.normasAbertas }}" hint-placeholder-val="{{ false }}">
+                        <ul id="nv-normas-{{ f.id }}" style="margin:0 0 var(--ct-e2);padding:0;list-style:none;columns:2 150px;column-gap:var(--ct-e3);">
+                          <sc-for list="{{ f.normas }}" as="m" hint-placeholder-count="4"><li style="break-inside:avoid;font-size:var(--fs-xs);color:var(--text3);line-height:1.55;overflow-wrap:anywhere;"><b style="color:var(--text2);">{{ m.sigla }}</b> {{ m.nomeTxt }}</li></sc-for>
+                        </ul>
+                      </sc-if>
+                    </sc-if>
+                    <sc-if value="{{ f.temLimites }}" hint-placeholder-val="{{ true }}">
+                      <button type="button" class="ct-btn-2" data-acao="detalhe" data-chave="{{ f.limitesChave }}" aria-expanded="{{ f.limitesAttr }}" aria-controls="{{ f.limitesCtl }}" onclick="{{ novidDetalhe }}" style="border-color:transparent;padding-left:0;padding-right:0;justify-content:space-between;width:100%;text-align:left;">{{ f.limitesTit }}<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none;{{ f.chevAbL }}"><path d="m6 9 6 6 6-6"></path></svg></button>
+                      <sc-if value="{{ f.limitesAbertos }}" hint-placeholder-val="{{ false }}">
+                        <ul id="nv-limites-{{ f.id }}" style="margin:0 0 var(--ct-e2);padding-left:var(--ct-e4);display:flex;flex-direction:column;gap:var(--ct-e1);">
+                          <sc-for list="{{ f.limites }}" as="l" hint-placeholder-count="2"><li style="font-size:var(--fs-xs);color:var(--text3);line-height:1.55;overflow-wrap:anywhere;">{{ l.t }}</li></sc-for>
+                        </ul>
+                      </sc-if>
+                    </sc-if>
+                    <sc-if value="{{ f.semLimites }}" hint-placeholder-val="{{ false }}"><div class="ct-nota" style="padding-top:var(--ct-e1);">Os limites desta fonte chegam com o pacote do app, e este aparelho ainda não tem um.</div></sc-if>
+                  </div>
+                </article>
+              </sc-for>
+            </div>
+          </section>
+
+          <section aria-labelledby="nv-lista-tit" style="min-width:0;">
+            <div class="cth-sec"><h2 id="nv-lista-tit">Novidades</h2><span class="rule"></span><span class="meta"><b>{{ novidMostrandoStr }}</b> de {{ novidTotalStr }} · <b>{{ novidNaoLidasStr }}</b> não lidas</span></div>
+            <div class="ct-card ct-card-plano" style="display:flex;flex-direction:column;gap:var(--ct-e3);margin-top:var(--ct-e3);min-width:0;">
+              <input type="search" class="ct-campo ct-nv-busca" value="{{ novidAssunto }}" oninput="{{ novidAssuntoSet }}" placeholder="Buscar assunto, artigo, norma" aria-label="Buscar novidades por assunto, artigo ou norma">
+              <div role="group" aria-label="Filtrar por fonte" style="display:flex;gap:var(--ct-e2);flex-wrap:wrap;align-items:center;"><span class="ct-eb" style="min-width:10ch;">Fonte</span><sc-for list="{{ novidFiltroFonte }}" as="c" hint-placeholder-count="4"><button type="button" data-campo="{{ c.campo }}" data-valor="{{ c.valor }}" aria-pressed="{{ c.ativo }}" onclick="{{ novidFiltro }}" style="{{ c.estilo }}">{{ c.rotulo }}</button></sc-for></div>
+              <div role="group" aria-label="Filtrar por tipo de mudança" style="display:flex;gap:var(--ct-e2);flex-wrap:wrap;align-items:center;"><span class="ct-eb" style="min-width:10ch;">Tipo</span><sc-for list="{{ novidFiltroTipo }}" as="c" hint-placeholder-count="5"><button type="button" data-campo="{{ c.campo }}" data-valor="{{ c.valor }}" aria-pressed="{{ c.ativo }}" onclick="{{ novidFiltro }}" style="{{ c.estilo }}">{{ c.rotulo }}</button></sc-for></div>
+              <sc-if value="{{ novidTemFiltroDisc }}" hint-placeholder-val="{{ true }}"><div role="group" aria-label="Filtrar por disciplina" style="display:flex;gap:var(--ct-e2);flex-wrap:wrap;align-items:center;"><span class="ct-eb" style="min-width:10ch;">Disciplina</span><sc-for list="{{ novidFiltroDisc }}" as="c" hint-placeholder-count="4"><button type="button" data-campo="{{ c.campo }}" data-valor="{{ c.valor }}" aria-pressed="{{ c.ativo }}" onclick="{{ novidFiltro }}" style="{{ c.estilo }}">{{ c.rotulo }}</button></sc-for></div></sc-if>
+              <sc-if value="{{ novidTemFiltroNorma }}" hint-placeholder-val="{{ true }}"><div role="group" aria-label="Filtrar por norma" style="display:flex;gap:var(--ct-e2);flex-wrap:wrap;align-items:center;"><span class="ct-eb" style="min-width:10ch;">Norma</span><sc-for list="{{ novidFiltroNorma }}" as="c" hint-placeholder-count="4"><button type="button" data-campo="{{ c.campo }}" data-valor="{{ c.valor }}" aria-pressed="{{ c.ativo }}" onclick="{{ novidFiltro }}" style="{{ c.estilo }}">{{ c.rotulo }}</button></sc-for></div></sc-if>
+              <div role="group" aria-label="Filtrar por período" style="display:flex;gap:var(--ct-e2);flex-wrap:wrap;align-items:center;"><span class="ct-eb" style="min-width:10ch;">Período</span><sc-for list="{{ novidFiltroPeriodo }}" as="c" hint-placeholder-count="4"><button type="button" data-campo="{{ c.campo }}" data-valor="{{ c.valor }}" aria-pressed="{{ c.ativo }}" onclick="{{ novidFiltro }}" style="{{ c.estilo }}">{{ c.rotulo }}</button></sc-for><button type="button" data-campo="novidSoNaoLidas" aria-pressed="{{ novidSoNaoLidasAttr }}" onclick="{{ novidSoNaoLidasTgl }}" style="{{ novidSoNaoLidasEstilo }}">Só não lidas</button></div>
+            </div>
+
+            <sc-if value="{{ novidVazio }}" hint-placeholder-val="{{ false }}">
+              <div class="ct-estado" style="margin-top:var(--ct-e3);">
+                <div class="ct-estado-titulo">{{ novidVazioTit }}</div>
+                <div class="ct-estado-desc">{{ novidVazioDesc }}</div>
+                <div class="ct-estado-acao">
+                  <sc-if value="{{ novidVazioFiltro }}" hint-placeholder-val="{{ false }}"><button type="button" class="ct-btn-2" data-acao="limpar" onclick="{{ novidLimparFiltros }}">Limpar os filtros</button></sc-if>
+                  <sc-if value="{{ novidVazioBusca }}" hint-placeholder-val="{{ true }}"><button type="button" class="ct-btn" data-acao="buscar" data-fonte="planalto,stf,stj" onclick="{{ novidBuscar }}" disabled="{{ novidBuscando }}">Buscar atualizações agora</button></sc-if>
+                </div>
+              </div>
+            </sc-if>
+
+            <!-- Cada novidade: a cor da matéria no fio do cartão (.ct-card[data-materia]), o tipo e o
+                 status em selos coloridos por situação, UMA ação primária (comparar) e as marcas da
+                 pessoa (lida / conferido) como ações discretas, separadas das que levam a outro lugar.
+                 Os botões dizem de qual item são (aria-describedby → título do cartão). -->
+            <ul style="list-style:none;margin:var(--ct-e3) 0 0;padding:0;display:flex;flex-direction:column;gap:var(--ct-e3);min-width:0;">
+              <sc-for list="{{ novidLista }}" as="n" hint-placeholder-count="4">
+                <li class="ct-card" data-novid-item="{{ n.id }}" data-materia="{{ n.materia }}" id="nv-{{ n.id }}" style="{{ n.cor }}min-width:0;">
+                  <div style="display:flex;align-items:center;gap:var(--ct-e2);flex-wrap:wrap;">
+                    <span class="ct-selo" data-selo="tipo" style="{{ n.tipoEstilo }}">{{ n.tipoLabel }}</span>
+                    <span class="ct-selo" data-selo="status" data-status="{{ n.status }}" style="{{ n.stEstilo }}">{{ n.stLabel }}</span>
+                    <sc-if value="{{ n.aguardando }}" hint-placeholder-val="{{ false }}"><span class="ct-selo" style="{{ n.avisoSelo }}">publicada — aguardando vigência</span></sc-if>
+                    <sc-if value="{{ n.efeitosProprios }}" hint-placeholder-val="{{ false }}"><span class="ct-selo" style="{{ n.avisoSelo }}">produz efeitos em data própria — conferir</span></sc-if>
+                    <sc-if value="{{ n.lida }}" hint-placeholder-val="{{ false }}"><span class="ct-selo">lida</span></sc-if>
+                  </div>
+                  <h3 id="nv-t-{{ n.id }}" style="margin:var(--ct-e2) 0 0;font-family:var(--display);font-size:var(--fs-lg);font-weight:700;color:var(--ink);line-height:1.3;overflow-wrap:anywhere;">{{ n.titulo }}</h3>
+                  <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:var(--ct-e1);line-height:1.5;overflow-wrap:anywhere;">{{ n.origemTxt }}</div>
+                  <sc-if value="{{ n.temModificadora }}" hint-placeholder-val="{{ true }}"><div style="font-size:var(--fs-sm);color:var(--text2);margin-top:var(--ct-e2);overflow-wrap:anywhere;">Norma modificadora: <b style="color:var(--ink);">{{ n.modificadora }}</b></div></sc-if>
+                  <sc-if value="{{ n.temVigencia }}" hint-placeholder-val="{{ true }}"><div class="ct-nota" style="margin-top:var(--ct-e1);overflow-wrap:anywhere;">{{ n.vigenciaTxt }}</div></sc-if>
+                  <sc-if value="{{ n.temEfeitos }}" hint-placeholder-val="{{ false }}"><div class="ct-nota" style="margin-top:var(--ct-e1);overflow-wrap:anywhere;">{{ n.efeitosTxt }}</div></sc-if>
+                  <sc-if value="{{ n.ehParcial }}" hint-placeholder-val="{{ false }}"><div style="font-size:var(--fs-xs);margin-top:var(--ct-e1);line-height:1.5;{{ n.avisoTxt }}">O dispositivo passa do tamanho que o acervo guarda: só o trecho inicial foi comparado.</div></sc-if>
+                  <sc-if value="{{ n.temPendencia }}" hint-placeholder-val="{{ false }}"><div class="ct-nota" style="margin-top:var(--ct-e1);overflow-wrap:anywhere;">{{ n.pendencia }}</div></sc-if>
+
+                  <!-- O que isto mexe no SEU material: calculado aqui no aparelho (o servidor não
+                       conhece edital, ciclo nem sessões). Aponta; não mexe em nada sozinho. -->
+                  <sc-if value="{{ n.temAfetados }}" hint-placeholder-val="{{ false }}">
+                    <div style="margin-top:var(--ct-e3);padding:var(--ct-e2) var(--ct-e3);background:var(--surface2);border-radius:var(--r-md);">
+                      <div class="ct-eb" style="margin-bottom:var(--ct-e2);">{{ n.afetadosMeta }}</div>
+                      <div style="display:flex;gap:var(--ct-e2);flex-wrap:wrap;"><sc-for list="{{ n.afetados }}" as="a" hint-placeholder-count="2"><button type="button" class="ct-btn-2" data-acao="ir" data-ir="{{ a.ir }}" data-id="{{ n.id }}" onclick="{{ novidIrPara }}" style="background:var(--surface);">{{ a.rotulo }}</button></sc-for></div>
+                    </div>
+                  </sc-if>
+
+                  <sc-if value="{{ n.aberto }}" hint-placeholder-val="{{ false }}">
+                    <div id="nv-cmp-{{ n.id }}" style="margin-top:var(--ct-e3);display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:var(--ct-e3);">
+                      <div style="min-width:0;"><div class="ct-eb" style="margin-bottom:var(--ct-e1);">Antes</div><div class="ct-leitura" style="font-size:var(--fs-sm);color:var(--text2);background:var(--surface2);border-radius:var(--r-md);padding:var(--ct-e2) var(--ct-e3);white-space:pre-wrap;overflow-wrap:anywhere;">{{ n.antesTxt }}</div></div>
+                      <div style="min-width:0;"><div class="ct-eb" style="margin-bottom:var(--ct-e1);">Depois</div><div class="ct-leitura" style="font-size:var(--fs-sm);color:var(--ink);background:var(--surface2);border-radius:var(--r-md);padding:var(--ct-e2) var(--ct-e3);white-space:pre-wrap;overflow-wrap:anywhere;">{{ n.depoisTxt }}</div></div>
+                    </div>
+                  </sc-if>
+
+                  <div class="ct-nv-acoes" style="display:flex;gap:var(--ct-e2);margin-top:var(--ct-e3);flex-wrap:wrap;align-items:center;">
+                    <sc-if value="{{ n.podeComparar }}" hint-placeholder-val="{{ true }}"><button type="button" class="ct-btn" data-acao="comparar" data-id="{{ n.id }}" aria-expanded="{{ n.abertoAttr }}" aria-controls="{{ n.cmpCtl }}" aria-describedby="nv-t-{{ n.id }}" onclick="{{ novidAbrirComparacao }}">{{ n.compararLabel }}</button></sc-if>
+                    <sc-if value="{{ n.temAcervo }}" hint-placeholder-val="{{ true }}"><button type="button" class="ct-btn-2" data-acao="acervo" data-id="{{ n.id }}" aria-describedby="nv-t-{{ n.id }}" onclick="{{ novidAbrirAcervo }}">{{ n.acervoLabel }}</button></sc-if>
+                    <sc-if value="{{ n.temUrl }}" hint-placeholder-val="{{ true }}"><a class="ct-btn-2" data-acao="oficial" data-id="{{ n.id }}" href="{{ n.url }}" target="_blank" rel="noopener noreferrer" aria-describedby="nv-t-{{ n.id }}" style="text-decoration:none;min-height:max(var(--control-h, 38px), var(--ct-alvo, 0px));box-sizing:border-box;">Abrir o texto oficial<span class="ct-nv-oculto"> (abre em nova janela)</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="external-link"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg></a></sc-if>
+                    <sc-if value="{{ n.podeAgendar }}" hint-placeholder-val="{{ true }}"><button type="button" class="ct-btn-2" data-acao="revisao" data-id="{{ n.id }}" aria-describedby="nv-t-{{ n.id }}" onclick="{{ novidAgendarRevisao }}">Agendar revisão</button></sc-if>
+                    <sc-if value="{{ n.temRevisao }}" hint-placeholder-val="{{ false }}"><span class="ct-nota">revisão agendada</span></sc-if>
+                  </div>
+                  <sc-if value="{{ n.temMarca }}" hint-placeholder-val="{{ true }}">
+                    <div role="group" aria-label="Sua marca nesta novidade" class="ct-nv-acoes" style="display:flex;gap:var(--ct-e1);margin-top:var(--ct-e2);flex-wrap:wrap;align-items:center;border-top:1px dashed var(--border);padding-top:var(--ct-e1);">
+                      <sc-if value="{{ n.podeLida }}" hint-placeholder-val="{{ true }}"><button type="button" class="ct-btn-2" data-acao="lida" data-id="{{ n.id }}" aria-describedby="nv-t-{{ n.id }}" onclick="{{ novidMarcarLida }}" style="border-color:transparent;">Marcar como lida</button></sc-if>
+                      <sc-if value="{{ n.podeConferir }}" hint-placeholder-val="{{ true }}"><button type="button" class="ct-btn-2" data-acao="conferido" data-id="{{ n.id }}" aria-describedby="nv-t-{{ n.id }}" onclick="{{ novidMarcarConferido }}" style="border-color:transparent;">Marcar como conferido</button></sc-if>
+                      <sc-if value="{{ n.podeManter }}" hint-placeholder-val="{{ false }}"><button type="button" class="ct-btn-2" data-acao="manter" data-id="{{ n.id }}" aria-describedby="nv-t-{{ n.id }}" onclick="{{ novidManterRevisao }}" style="border-color:transparent;">Manter em revisão</button></sc-if>
+                    </div>
+                  </sc-if>
+                </li>
+              </sc-for>
+            </ul>
+          </section>
+        </div>
+      </sc-if>
+
       <!-- ================= CONQUISTAS ================= -->
       <sc-if value="{{ isConqMetas }}" hint-placeholder-val="{{ true }}">
        <div style="display:flex;flex-direction:column;gap:16px;">
@@ -6935,7 +7234,7 @@ class Component extends DCLogic {
       errSearch:'', errStatus:'todos', errSort:'recentes', errTagInput:'', errMaisCampos:false, errBulk:'', errBulkBusy:false, errBulkDrafts:null, errPlano:'', errPlanoBusy:false, errShowStats:true,
       meusGrupos:this._load('meusGrupos', []), gruposBusy:false, comErro:'',
       comGrupoAtivo:null, comRankRows:[], comMyUid:'',
-      isAdmin:false, adminData:null, adminFeedback:[], adminBusy:false, adminErro:'', authEmail:'', acervoBusca:'',
+      isAdmin:false, adminData:null, adminFeedback:[], adminBusy:false, adminErro:'', authEmail:'', acervoBusca:'', oficialPainelOpen:false, oficialFiltro:'todos',
       acervoDe:null, origemAbrir:'', origemAbrirView:'',
       adminGrupos:[], adminAllow:[], adminAllowInput:'', adminDetalhe:null, adminDetalheBusy:false,
       // console de administração: aba aberta, recorte da lista de contas e a gaveta
@@ -7002,6 +7301,8 @@ class Component extends DCLogic {
       casoResp:false,         // as respostas que a pessoa registrou já estão à vista?
       casoAviso:'',           // o que o guarda de dados identificáveis encontrou
       paletteOpen:false, paletteQuery:'', lastPonto:this._load('lastPonto',null), lastPontoDispensado:this._load('lastPontoDispensado',0), palBuscaPronta:false, semanaLidos:this._load('semanaLidos',[]), semanaTudo:false,
+      // Central de novidades: só novidLidas persiste (global, {id, up, st}, ARRAY_ID); o resto é estado de tela
+      novidLidas:this._load('novidLidas',[]), novidFonte:'todas', novidTipo:'todos', novidDisc:'todas', novidRamo:'todas', novidPeriodo:'todos', novidAssunto:'', novidSoNaoLidas:false, novidBuscando:false, novidBuscandoFontes:[], novidVivo:null, novidResultado:null, novidAberto:'', novidAbertos:{},
       // U2: quais satélites já avisaram que pintaram. Vive só na memória desta sessão — é
       // exatamente o que se quer: esqueleto na PRIMEIRA carga de cada um, nunca depois.
       framesProntos:{},
@@ -7106,7 +7407,7 @@ class Component extends DCLogic {
           if(k==='Escape'){ e.preventDefault(); this.enamDescartar(); return; }
         }
       }
-      if(e.key==='Escape'){ if(this.state.menuOpen) this.setState({menuOpen:false}); else if(this.state.atalhosOpen) this.setState({atalhosOpen:false}); else if(this.state.paletteOpen) this.setState({paletteOpen:false, paletteQuery:''}); else if(this.state.treino) this.setState({treino:null}); else if(this.state.revSession) this.setState({revSession:null}); else if(this.state.focusMode) this.exitFocus(); else if(this.state.provaMode) this.exitProva(); else if(this.state.sessionModalOpen) this.closeSession(); else if(this.state.histEdit) this.setState({histEdit:null}); }
+      if(e.key==='Escape'){ if(this.state.oficialPainelOpen) this.oficialPainelFechar(); else if(this.state.menuOpen) this.setState({menuOpen:false}); else if(this.state.atalhosOpen) this.setState({atalhosOpen:false}); else if(this.state.paletteOpen) this.setState({paletteOpen:false, paletteQuery:''}); else if(this.state.treino) this.setState({treino:null}); else if(this.state.revSession) this.setState({revSession:null}); else if(this.state.focusMode) this.exitFocus(); else if(this.state.provaMode) this.exitProva(); else if(this.state.sessionModalOpen) this.closeSession(); else if(this.state.histEdit) this.setState({histEdit:null}); }
       // D13: dentro da sala, espaço pausa/retoma e F sai. Fora dela, F entra. Nada disso
       // vale enquanto ela digita — senão um espaço no meio da redação pararia o cronômetro.
       const _dig=(()=>{ try{ const el=document.activeElement; if(!el) return false;
@@ -7143,7 +7444,7 @@ class Component extends DCLogic {
         // o app crescer e o iframe dentro dele continuar miúdo.
         const V=['--bg','--surface','--surface2','--border','--ink','--text','--text2','--text3',
                  '--accent','--accentD','--accentSoft','--accentRing','--onAccent','--accentSolid','--accentSolidD','--accentFill','--onAccentFill',
-                 '--ok','--warn','--danger','--onOk','--onWarn','--onDanger','--radius','--r-sm','--r-md',
+                 '--ok','--warn','--danger','--info','--onOk','--onWarn','--onDanger','--radius','--r-sm','--r-md',
                  '--display','--body','--mono','--heroGrad',
                  '--fs-3xs','--fs-2xs','--fs-xs','--fs-sm','--fs-base','--fs-md',
                  '--fs-lg','--fs-xl','--fs-2xl','--control-h',
@@ -7243,7 +7544,8 @@ class Component extends DCLogic {
         ctVoltarAcervo:['legis','juris'],
         ctFlashcards:['juris'], ctErrosSegundaFase:['segundafase'], ctRedacaoResultado:['segundafase'],
         ctLeiturasPedir:['legis'], ctLeituraAtiva:['legis'], ctRegistrarLeitura:['legis'],
-        ctLeiturasResumo:['legis'], ctLeituraConferida:['legis'], ctIA:['juris']
+        ctLeiturasResumo:['legis'], ctLeituraConferida:['legis'], ctIA:['juris'],
+        ctOficialMarcar:['legis','juris']
       };
       // A revisão (item 4 do laço) abre o acervo mandando ctAbrirAcervo para a PRÓPRIA
       // janela, para que o shim nativo intercepte e troque a aba. e.source===window só
@@ -7263,6 +7565,7 @@ class Component extends DCLogic {
         if(d) this._abrirPratica({disciplina:d, assunto:''});
         return;
       }
+      if(e.data.type==='ctOficialMarcar'){ this._novidMarcar(e.data.id, e.data.st); return; }   // LEGIS/JURIS: "Marcar como conferido"
       if(e.data.type==='ctFecharDoc'){ this.setState({docAberto:''}); return; }   // P14: "Voltar ao app" dentro de termos/privacidade
       if(e.data.type==='ctAbrirAcervo'){
         const alvo=e.data.alvo==='juris'?'juris':'legis';
@@ -8109,7 +8412,7 @@ class Component extends DCLogic {
   /** Chave do que precisa chegar ao iframe — muda quando busca/ponto mudam. */
   _frameChave(dono){
     // o rótulo entra na chave: trocar de origem com o LEGIS aberto troca o texto da pílula
-    if(dono==='legis'||dono==='juris') return 'q:'+(this.state.acervoBusca||'')+'|v:'+(this.state.acervoDe?('1:'+this._rotuloVolta(this.state.acervoDe)):'0');
+    if(dono==='legis'||dono==='juris') return 'q:'+(this.state.acervoBusca||'')+'|v:'+(this.state.acervoDe?('1:'+this._rotuloVolta(this.state.acervoDe)):'0')+'|o:'+((this._oficialAbrir&&this._oficialAbrir.alvo===dono)?this._oficialAbrir.id:'');
     // 2ª fase não recebe nada do host depois de montada: chave fixa para não mandar
     // ctAbrirBloco (que é do mapa de ritos) a cada volta do acervo. A correção em curso
     // mora no próprio iframe, que nunca sai do DOM.
@@ -8140,9 +8443,11 @@ class Component extends DCLogic {
     const _area=_a?('area='+encodeURIComponent(_a)):'';
     if(dono==='legis'||dono==='juris'){
       const la=(dono==='legis'&&this._laAbrir)?this._laAbrir:null; if(la) this._laAbrir=null;
+      const oid=(this._oficialAbrir&&this._oficialAbrir.alvo===dono)?this._oficialAbrir.id:null; if(oid) this._oficialAbrir=null;
       const q=[(this.state.acervoBusca||'').trim()?('q='+encodeURIComponent(this.state.acervoBusca.trim())):'',
                this.state.acervoDe?('volta=1&vr='+encodeURIComponent(this._rotuloVolta(this.state.acervoDe))):'',
                la?('la='+encodeURIComponent(la.leiId)+'&rot='+encodeURIComponent(la.rot)+(la.conferir?'&conferir=1':'')):'',
+               oid?('oficial='+encodeURIComponent(oid)):'',
                (base.indexOf('area=')<0?_area:'')].filter(Boolean).join('&');
       return q?(sep+q):'';
     }
@@ -8159,6 +8464,7 @@ class Component extends DCLogic {
         w.postMessage({type:'ctVoltaDisponivel', on:!!this.state.acervoDe,
           rotulo:(this.state.acervoDe?this._rotuloVolta(this.state.acervoDe):'')}, this._msgDestino());
         // LA6: "Ler ativamente" / "Conferir de novo" vindos do oral e do simulado
+        if(this._oficialAbrir&&this._oficialAbrir.alvo===dono){ const oid=this._oficialAbrir.id; this._oficialAbrir=null; w.postMessage({type:'ctOficialAbrir', id:oid}, this._msgDestino()); }
         if(dono==='legis' && this._laAbrir){ const a=this._laAbrir; this._laAbrir=null; w.postMessage({type:'ctLeituraAbrir', leiId:a.leiId, rot:a.rot, conferir:!!a.conferir}, this._msgDestino()); }
         return;
       }
@@ -8323,7 +8629,7 @@ class Component extends DCLogic {
   // Chaves que o app salva sozinho. Lista ÚNICA: o _autosave grava a partir dela e
   // o _rehydrateFromLocal recarrega a partir dela — se as duas divergirem, o que vem
   // da nuvem é sobrescrito pela memória velha deste aparelho.
-  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'editais', 'editalAtivo', 'reviews', 'leituras', 'enam', 'enamSim', 'aceite', 'iaConsentimento', 'blocks', 'blocksDate', 'cicloVolta', 'manualVoltaN', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs', 'redGabarito', 'redEnunciado', 'redMarcas', 'redDisciplina', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis']; }
+  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'editais', 'editalAtivo', 'reviews', 'leituras', 'enam', 'enamSim', 'aceite', 'iaConsentimento', 'blocks', 'blocksDate', 'cicloVolta', 'manualVoltaN', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs', 'redGabarito', 'redEnunciado', 'redMarcas', 'redDisciplina', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'novidLidas', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis']; }
   /** Grava JÁ o que está pendente, sem esperar o debounce de 500 ms.
       PENDENTE é só o que a memória mudou desde o último salvamento (a mesma régua do
       _autosave). O resto já está no disco — e o disco pode ter acabado de receber a nuvem:
@@ -9521,7 +9827,7 @@ class Component extends DCLogic {
       areamod:'Módulo de estudo da área', roteiros:'Roteiros e peças',
       segundafase:'Provas de 2ª fase', redacao:'Discursivas', oral:'Prova oral',
       prioridade:'Painel de prioridade', simulados:'Simulados', edital:'Edital', bancas:'Bancas',
-      casos:'Casos de estudo'};
+      casos:'Casos de estudo', novidades:'Central de novidades'};
     return N[v]||'Esta tela';
   }
   _indispPorque(v){
@@ -9535,6 +9841,7 @@ class Component extends DCLogic {
       simulados:'O simulado monta os itens a partir de lei seca e jurisprudência. Sem banco de questões da sua área, ele geraria prova de Direito.',
       legis:'O CátedraLEGIS ainda não tem uma lista de fontes normativas fixada para esta área.',
       areamod:'Esta área ainda não tem um módulo de estudo próprio.',
+      novidades:'A Central acompanha a lei seca do acervo jurídico no Planalto e os informativos do STF e do STJ — fontes que a sua área de estudo não usa.',
       /* Sem esta linha a tela dizia que os casos "dependem de um acervo que a sua área
          ainda não tem" — o oposto do que eles são: o acervo é seu. */
       casos:'O construtor de casos tem a estrutura de cada profissão — caso clínico em Saúde, caso socioassistencial em Assistência Social. A sua área de estudo não usa esse formato.'};
@@ -9611,6 +9918,7 @@ class Component extends DCLogic {
       case 'simulados': return 'Voltar ao simulado';
       case 'oral': return 'Voltar à prova oral';
       case 'inicio': return 'Voltar ao Início';
+      case 'novidades': return 'Voltar à Central de novidades';
     }
     return 'Voltar';
   }
@@ -9632,7 +9940,7 @@ class Component extends DCLogic {
   VIEWS_VOLTA = ['admin','ajustes','analise','areamod','bancas','bemestar','calendario','casos','ciclo',
     'comunidade','conquistas','dominio','edital','flashcards','historico','inicio','metas','oral',
     'orientacao','personalizacao','prioridade','redacao','reta-final','revisoes','roteiros',
-    'segundafase','simulados'];
+    'segundafase','simulados','novidades'];
   /** Normaliza uma origem: só os campos que cada view usa, strings curtas, rótulo daqui. */
   _normalizarDe(d, view, doHost){
     d=(d && typeof d==='object') ? d : {};
@@ -13168,7 +13476,558 @@ class Component extends DCLogic {
       ()=>{ try{ localStorage.setItem(this._chave('semanaLidos'), JSON.stringify(this.state.semanaLidos)); }catch(_){} this.flashSync(); });
   };
   semanaMais = ()=> this.setState({semanaTudo:!this.state.semanaTudo});
+  /* Revisão oficial: Planalto abre o LEGIS, STF/STJ abrem o JURIS — e o item vai junto
+     (?oficial=ID na 1ª carga, ctOficialAbrir com o iframe vivo), para o satélite abrir a aba
+     de mudanças já no item. No app nativo o LEGIS/JURIS é SwiftUI: lá vale só a busca. */
+  oficialAbrir = (e)=>{ const ds=(e.currentTarget&&e.currentTarget.dataset)||{};
+    const q=ds.q||''; const alvo=ds.alvo==='legis'?'legis':'juris';
+    this._oficialAbrir=ds.id?{id:ds.id, alvo}:null;
+    this._irPara(alvo, {acervoBusca:q, acervoDe:(this._origemIda?this._origemIda():null), origemAbrir:'', oficialPainelOpen:false});
+  };
+  /* Foco de entrada e de volta: _syncModalFocus (o painel é .ct-modal-panel), como em todo modal. */
+  oficialPainelAbrir = ()=> this.setState({oficialPainelOpen:true});
+  oficialPainelFechar = ()=> this.setState({oficialPainelOpen:false});
+  oficialFiltrar = (e)=>{ const f=(e.currentTarget&&e.currentTarget.dataset&&e.currentTarget.dataset.f)||'todos'; this.setState({oficialFiltro:f}); };
+  oficialMarcar = (e)=>{ const ds=(e.currentTarget&&e.currentTarget.dataset)||{};
+    if(ds.id) this._novidMarcar(ds.id, ds.st==='conferido'?'conferido':'lida'); };
+
   semanaVerTudo = ()=> this._irPara('juris', {acervoBusca:'', acervoDe:this._origemIda(), origemAbrir:''});
+
+  // ===== CENTRAL DE NOVIDADES — fontes oficiais (Planalto, STF e STJ) ======================
+  // O pacote vem de novidades.js, gerado no servidor por scripts/sentinela.mjs e revisado por
+  // PR antes de entrar no app. O botão "Buscar atualizações agora" fala com /api/sentinela,
+  // que CONSULTA as fontes ao vivo e responde — não grava acervo nenhum. A regra que rege a
+  // tela inteira: nada aparece como atualizado sem a consulta daquela fonte ter dado certo, e
+  // "a consulta falhou" (ou respondeu só em parte) nunca se escreve como "nenhuma novidade".
+  NOVID_FONTES = ['planalto','stf','stj'];
+  NOVID_NOME = {planalto:'Planalto', stf:'STF', stj:'STJ'};
+  /* VOCABULÁRIO ÚNICO (acordo com a sessão "Interface de atualização oficial", 01/10/2026) — o
+     mesmo no Início, na Central e no painel "Revisão oficial": situação da FONTE e status do
+     ITEM, sempre texto + cor. A tinta é o token de estado puxado para a cor do texto e o fundo,
+     uma lavagem clara do mesmo token: o token puro sobre a própria lavagem cai abaixo de 4,5:1
+     em várias direções (o --accentD do .ct-selo-hoje media 3,6 no holo claro). Medido nas oito
+     direções, claro e escuro, em tests/novidades-central.mjs. */
+  _novidTinta(tk, tracejado){
+    return 'color:color-mix(in srgb, var(--'+tk+') 64%, var(--ink));background:color-mix(in srgb, var(--'+tk+') 11%, var(--surface));'
+      +'border-color:color-mix(in srgb, var(--'+tk+') 34%, var(--border));'+(tracejado ? 'border-style:dashed;' : '');
+  }
+  NOVID_SIT = {novidades:['Detectado','ok'], 'sem-novidade':['Sem novidade','ok'], parcial:['Parcial','warn',1], falha:['Falhou','danger'], nunca:['Nunca consultada','text3']};
+  NOVID_ST = {detectado:['Detectado','info'], conferir:['Conferir','warn'], parcial:['Parcial','warn',1], conferido:['Conferido','ok'], incorporado:['No acervo','ok']};
+  NOVID_TIPO = {alteracao:['alteração','accentD'], inclusao:['inclusão','ok'], revogacao:['revogação','danger'], informativo:['informativo novo','info']};
+  NOVID_AVISO = 'color:color-mix(in srgb, var(--warn) 64%, var(--ink));';
+  NOVID_ATRASO = 'color:color-mix(in srgb, var(--danger) 82%, var(--ink));';
+  /** O mais recente de dois carimbos ISO; null quando nenhum dos dois é data. */
+  _novidMaisRecente(a, b){
+    const ta=Date.parse(a||''), tb=Date.parse(b||'');
+    if(!isFinite(ta)) return isFinite(tb) ? b : null;
+    if(!isFinite(tb)) return a;
+    return tb>ta ? b : a;
+  }
+  /** Junta o estado de UMA fonte. O que chega por cima manda no que trouxe, mas: campo de
+   *  cobertura ausente não apaga o de baixo, e o último sucesso é o MAIS RECENTE entre os
+   *  dois — uma falha agora não pode apagar um sucesso já registrado (no pacote OU numa busca
+   *  anterior desta sessão). */
+  _novidJuntarFonte(b, v){
+    b=(b && typeof b==='object') ? b : {};
+    if(!v || typeof v!=='object') return b;
+    const out={...b};
+    for(const k of Object.keys(v)){
+      const x=v[k];
+      if(x===undefined) continue;
+      if(x===null && (k==='rotulo' || k==='monitora' || k==='limites' || k==='normas')) continue;
+      out[k]=x;
+    }
+    out.ultimoSucesso=this._novidMaisRecente(b.ultimoSucesso, v.ultimoSucesso);
+    out.ultimaTentativa=this._novidMaisRecente(b.ultimaTentativa, v.ultimaTentativa);
+    return out;
+  }
+  /** O pacote do app + o que as buscas ao vivo DESTA sessão trouxeram, fonte a fonte; os
+   *  itens por id (o id é determinístico: a mesma mudança vinda do pacote e da busca é uma
+   *  só). Memorizado pela identidade das duas entradas — o render roda a cada tique. */
+  _novidBase(){
+    const P=(window.CT_NOVIDADES && typeof window.CT_NOVIDADES==='object') ? window.CT_NOVIDADES : null;
+    const V=this.state.novidVivo || null;
+    const c=this._novidMemo;
+    if(c && c.P===P && c.V===V) return c.r;
+    const pf=(P && P.fontes && typeof P.fontes==='object') ? P.fontes : {};
+    const fontes={};
+    for(const f of this.NOVID_FONTES){
+      let e=this._novidJuntarFonte((V && V.cobertura && V.cobertura[f]) || {}, pf[f]);
+      if(V && V.fontes && V.fontes[f]) e=this._novidJuntarFonte(e, V.fontes[f]);
+      fontes[f]=e;
+    }
+    const porId=new Map();
+    for(const i of ((P && Array.isArray(P.itens)) ? P.itens : [])) if(i && i.id!=null && !porId.has(String(i.id))) porId.set(String(i.id), i);
+    for(const i of ((V && Array.isArray(V.itens)) ? V.itens : [])) if(i && i.id!=null && !porId.has(String(i.id))) porId.set(String(i.id), {...i, aoVivo:true});
+    const r={fontes, itens:[...porId.values()], geradoEm:(P && P.geradoEm) || ''};
+    this._novidMemo={P, V, r};
+    return r;
+  }
+  _novidItem(id){ id=String(id||''); return id ? (this._novidBase().itens.find(i=>String(i.id)===id) || null) : null; }
+  /* ESTADO ÚNICO (o mesmo acordo): catedra:novidLidas = [{id, up, st:'lida'|'conferido'}] —
+     global (não muda com a área), em _autosaveKeys e em ARRAY_ID (dois aparelhos se unem por id;
+     na colisão vence o up maior). "Conferido" implica lida. A forma antiga (string, ou {id, up}
+     sem st) vale como 'lida'. _novidEstado e _novidMarcar são o contrato com o painel "Revisão
+     oficial", que os reutiliza em vez de definir os seus. */
+  _novidMarcas(){
+    const L=this.state.novidLidas, c=this._novidMarcasMemo;
+    if(c && c.L===L) return c.m;
+    const m=new Map();
+    for(const x of (Array.isArray(L) ? L : [])){
+      const id=String((x && typeof x==='object') ? (x.id||'') : (x||'')); if(!id) continue;
+      m.set(id, (x && typeof x==='object' && x.st==='conferido') ? 'conferido' : 'lida');
+    }
+    this._novidMarcasMemo={L, m};
+    return m;
+  }
+  /** 'conferido' | 'lida' | '' (nunca marcada). */
+  _novidEstado(id){ return this._novidMarcas().get(String(id||'')) || ''; }
+  _novidLidas(){ return new Set(this._novidMarcas().keys()); }
+  /** Grava a marca da pessoa: {id, up: agora, st}, sem duplicar id. 'lida' também é o "Manter
+   *  em revisão" de um item conferido — a marca volta a lida, e o item volta a pedir conferência. */
+  _novidMarcar(id, st){
+    id=String(id||'').slice(0,160); if(!id) return;
+    const v=(st==='conferido') ? 'conferido' : 'lida';
+    this.setState(s0=>({novidLidas:[...(Array.isArray(s0.novidLidas) ? s0.novidLidas : []).filter(x=>String((x && typeof x==='object') ? x.id : x)!==id), {id, up:Date.now(), st:v}].slice(-800)}),
+      ()=>{ try{ localStorage.setItem(this._chave('novidLidas'), JSON.stringify(this.state.novidLidas)); }catch(_){} this.flashSync(); });
+  }
+  /** Status de UM item, na ordem do painel "Revisão oficial" (statusItem de revisao-oficial.js):
+   *  o que já está no acervo por comparação INTEIRA vence; depois a marca da pessoa; parcial e
+   *  "conferir" nunca viram "Detectado" limpo — e o parcial vence o incorporado, porque a baixa
+   *  de um artigo cortado no teto compararia só o começo dele. */
+  _novidStatus(it, est){
+    if(it && it.incorporado && !it.parcial) return 'incorporado';
+    if(est==='conferido') return 'conferido';
+    if(it && it.parcial) return 'parcial';
+    if(it && it.revisar) return 'conferir';
+    return 'detectado';
+  }
+  /** "A conferir" = tudo o que a pessoa ainda não conferiu e não está no acervo (a mesma régua
+   *  do "Precisa revisar" do painel): nenhum item nasce publicado. */
+  _novidAConferir(status){ return status!=='conferido' && status!=='incorporado'; }
+  /** URL oficial só de fonte oficial e só https — o dado vem do pacote OU da resposta ao vivo. */
+  _novidUrl(u){
+    try{ const x=new URL(String(u||''));
+      return (x.protocol==='https:' && /(^|\.)(planalto\.gov\.br|stf\.jus\.br|stj\.jus\.br)$/i.test(x.hostname)) ? x.href : '';
+    }catch(_){ return ''; }
+  }
+  /** O endereço de UMA consulta ao vivo. O carimbo no fim faz de cada clique um pedido novo: o
+   *  service worker da web é network-first e, sem rede, devolveria a resposta de um clique
+   *  ANTERIOR como se fosse de agora — "nada de novo" no lugar de "não foi possível consultar".
+   *  Com o endereço único, sem rede o worker não tem cópia e responde 503, que é falha. */
+  _novidUrlApi(f){ return String(window.CATEDRA_API_BASE || '')+'/api/sentinela?fonte='+encodeURIComponent(f)+'&_='+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+  /** Para onde "Abrir no acervo" leva: lei do Planalto → LEGIS; informativo cuja edição JÁ
+   *  está no acervo → JURIS. Informativo recém-detectado não está no JURIS por construção (é
+   *  o que o sentinela detecta), então ele não ganha o botão — só "Abrir o texto oficial". */
+  _novidAlvo(it){
+    if(!it) return '';
+    if(it.fonte==='planalto') return this._podeAbrir('legis') ? 'legis' : '';
+    if(it.tipo==='informativo' && it.incorporado) return this._podeAbrir('juris') ? 'juris' : '';
+    return '';
+  }
+  /** Termo do JURIS para uma edição incorporada, no título que o verbete tem: "Info 1224 · STF";
+   *  a extraordinária do STJ (INF-STJ-EE29) é "Info Ed. Extraordinária 29 · STJ". */
+  _novidTermoJuris(it){
+    const m=/^INF-(STF|STJ)-(EE)?(\d+)$/.exec(String(it && it.id || ''));
+    if(!m) return String((it && (it.titulo || it.disp)) || '');
+    return (m[2] ? ('Info Ed. Extraordinária '+Number(m[3])) : ('Info '+m[3]))+' · '+m[1];
+  }
+  /** A disciplina canônica de cada norma monitorada, para quando nem o edital da pessoa nem o
+   *  catálogo do LEGIS (só carrega com ele) dizem qual é: sem isto o filtro ganhava "CTN" ao
+   *  lado de "Direito do Consumidor", e a revisão agendada ia para a disciplina "CTN". */
+  NOVID_DISC = {CF:'Direito Constitucional', CC:'Direito Civil', CPC:'Direito Processual Civil', CP:'Direito Penal', CPP:'Direito Processual Penal',
+    CDC:'Direito do Consumidor', CTN:'Direito Tributário', CLT:'Direito do Trabalho', LIA:'Direito Administrativo', 'Lei 14.133/2021':'Direito Administrativo',
+    ECA:'Direito da Criança e do Adolescente', LEP:'Direito Processual Penal', 'Maria da Penha':'Direito Penal', 'Lei de Drogas':'Direito Penal'};
+  /** A disciplina de uma novidade: lei pela régua da leitura ativa (edital dela primeiro); se a
+   *  régua só devolver a sigla, a disciplina canônica — com o nome que o edital DELA usa, se
+   *  houver; informativo é Jurisprudência. */
+  _novidDisc(it){
+    if(!it) return '';
+    if(it.fonte!=='planalto') return 'Jurisprudência';
+    const sigla=String(it.norma||'');
+    let d='';
+    try{ d=this._laDisciplina({sigla, leiId:String(it.urlOficial||'')}) || ''; }catch(_){ d=''; }
+    const cru=!d || d==='Lei seca' || d.toUpperCase()===sigla.toUpperCase();
+    if(!cru) return d;
+    const canon=this.NOVID_DISC[sigla] || this.NOVID_DISC[sigla.toUpperCase()] || '';
+    if(!canon) return d || sigla;
+    const N=(s)=>this._novidNorm(s), nc=N(canon);
+    const ed=(this.state.edital||[]).map(x=>String((x && x.disc) || '')).filter(Boolean);
+    return ed.find(n=>N(n)===nc) || (()=>{ const c=ed.filter(n=>N(n).indexOf(nc)>=0); return c.length===1 ? c[0] : ''; })() || canon;
+  }
+  _novidNorm(s){ return String(s==null?'':s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim(); }
+  /** Nomes de norma MAIORES que contêm este ("código penal militar" contém "código penal"):
+   *  saem do texto antes da procura, para a mudança no CP não apontar o tópico do CPM. */
+  _novidNomesMaiores(nome){
+    const c=this._novidMaioresMemo || (this._novidMaioresMemo={});
+    if(c[nome]) return c[nome];
+    const todos=new Set(['codigo penal militar', 'codigo de processo penal militar']);
+    try{ for(const l of (Array.isArray(window.CT_LEIS) ? window.CT_LEIS : [])) if(l && l.nome) todos.add(this._novidNorm(l.nome)); }catch(_){}
+    try{ for(const l of (Array.isArray(window.CT_LEIS_CAT) ? window.CT_LEIS_CAT : [])) if(l && l.t) todos.add(this._novidNorm(l.t)); }catch(_){}
+    return (c[nome]=[...todos].filter(n=>n!==nome && n.indexOf(nome)>=0).sort((a,b)=>b.length-a.length));
+  }
+  _novidDataExtenso(iso){
+    const t=Date.parse(iso||''); if(!isFinite(t)) return 'nunca';
+    try{ return new Date(t).toLocaleString('pt-BR', {day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit'}); }
+    catch(_){ return new Date(t).toISOString().slice(0,16).replace('T',' '); }
+  }
+  _novidDataCurta(iso){
+    const t=Date.parse(iso||''); if(!isFinite(t)) return 'data não informada';
+    try{ return new Date(t).toLocaleDateString('pt-BR', {day:'numeric', month:'long', year:'numeric'}); }
+    catch(_){ return new Date(t).toISOString().slice(0,10); }
+  }
+  _novidIdade(seg){ const n=Number(seg); if(!isFinite(n) || n<60) return 'menos de 1 min'; return Math.round(n/60)+' min'; }
+  /** Situação de uma fonte, no vocabulário único: ok (Detectado / Sem novidade), lacuna
+   *  (Parcial / Falhou) ou Nunca consultada. Lacuna nunca vira "nada de novo". */
+  _novidFonteSit(f, e){
+    e=(e && typeof e==='object') ? e : {};
+    const k=this.NOVID_SIT[e.resultado] ? e.resultado : 'nunca', p=this.NOVID_SIT[k];
+    return {f, e, nome:this.NOVID_NOME[f]||f, situacao:p[0], estilo:this._novidTinta(p[1], !!p[2]),
+      ok:(k==='novidades' || k==='sem-novidade'), problema:(k==='falha' || k==='parcial'), nunca:k==='nunca'};
+  }
+  /** O cartão mínimo de uma novidade — o mesmo no Início e na Central. */
+  _novidItemBase(it, est){
+    const tp=this.NOVID_TIPO[it.tipo] || [String(it.tipo || 'mudança'), 'text3'];
+    const status=this._novidStatus(it, est), sp=this.NOVID_ST[status];
+    const alvo=this._novidAlvo(it);
+    // "No acervo" diz ONDE: o motor grava incorporadoTxt; sem ele, a reserva pela fonte —
+    // mudança de lei entra no LEGIS, informativo no JURIS (nunca "já no JURIS" para uma lei)
+    const onde=String(it.incorporadoTxt || (it.fonte==='planalto' ? 'já no LEGIS' : 'já no JURIS'));
+    return { id:String(it.id), titulo:String(it.titulo || it.disp || 'Mudança detectada'),
+      fonteNome:this.NOVID_NOME[it.fonte] || String(it.fonteRotulo || 'Fonte oficial'),
+      quando:this._novidDataCurta(it.detectadoEm), tipoLabel:tp[0], tipoEstilo:this._novidTinta(tp[1]),
+      status, stLabel:(status==='incorporado' ? (sp[0]+' · '+onde) : sp[0]), stEstilo:this._novidTinta(sp[1], !!sp[2]),
+      aConferir:this._novidAConferir(status),
+      temAcervo:!!alvo, acervoLabel:(alvo==='legis' ? 'Abrir no LEGIS' : (alvo==='juris' ? 'Abrir no JURIS' : '')) };
+  }
+  /** Conteúdos JÁ CADASTRADOS que esta novidade afeta. Calculado no aparelho: o servidor não
+   *  conhece edital, ciclo nem sessões. Só aponta para revisão — não mexe em nada sozinho.
+   *  Sigla casa por PALAVRA INTEIRA e com a caixa dela: "LIA" não pode casar "família"; o nome
+   *  também, e sem o nome maior que o contém ("Código Penal" não casa "Código Penal Militar"). */
+  _novidAfetados(it){
+    const out=[];
+    try{
+      const N=(s)=>this._novidNorm(s);
+      const planalto=it.fonte==='planalto';
+      const disc=planalto ? this._novidDisc(it) : '', nd=N(disc);
+      const esc=(s)=>String(s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+      const sigla=String(it.norma||'').trim();
+      const reSigla=(planalto && sigla.length>=2) ? new RegExp('(^|[^A-Za-zÀ-ÿ0-9])'+esc(sigla)+'(?![A-Za-zÀ-ÿ0-9])') : null;
+      const nome=planalto ? N(it.normaNome) : '';
+      const reNome=(nome.length>8) ? new RegExp('(^|[^a-z0-9])'+esc(nome)+'(?![a-z0-9])') : null;
+      const maiores=reNome ? this._novidNomesMaiores(nome) : [];
+      const art=planalto ? this._laNormRot(String(it.disp||'').split(',')[0]) : '';
+      const reArt=art ? new RegExp('(^|[^a-z0-9])'+esc(art)+'(?![0-9a-z])') : null;
+      const cita=(txt, mesmaDisc)=>{ const t=String(txt||''); if(!t) return false;
+        if(reSigla && reSigla.test(t)) return true;
+        let nt=N(t);
+        for(const m of maiores) nt=nt.split(m).join(' ');
+        if(reNome && reNome.test(nt)) return true;
+        return !!(mesmaDisc && reArt && reArt.test(nt)); };
+      // Edital: os tópicos que citam a norma (ou o artigo, dentro da própria disciplina)
+      const edital=Array.isArray(this.state.edital) ? this.state.edital : [];
+      const topicos=[]; let discEd=null;
+      for(const d of edital){
+        if(!d) continue;
+        const mesma=!!nd && N(d.disc)===nd; if(mesma) discEd=d;
+        for(const t of (Array.isArray(d.topics) ? d.topics : [])){
+          const nomeT=(typeof t==='string') ? t : (t && t.name);
+          if(nomeT && cita(nomeT, mesma)) topicos.push(String(nomeT));
+        }
+      }
+      topicos.slice(0,3).forEach(n=>out.push({tipo:'Edital', nome:n.length>70 ? (n.slice(0,68)+'…') : n, ir:'edital'}));
+      if(!topicos.length && discEd) out.push({tipo:'Edital', nome:String(discEd.disc), ir:'edital'});
+      if(planalto && nd){
+        const revs=(this.state.reviews||[]).filter(r=>r && !r.novidId && (N(r.disc)===nd || cita(String(r.ref||'')+' '+String(r.topic||''), false)));
+        if(revs.length) out.push({tipo:'Revisões', nome:revs.length+(revs.length===1 ? ' revisão desta matéria' : ' revisões desta matéria'), ir:'revisoes'});
+        const sess=(this.state.sessions||[]).filter(s=>s && N(s.disc)===nd);
+        if(sess.length) out.push({tipo:'Sessões', nome:sess.length+(sess.length===1 ? ' sessão registrada' : ' sessões registradas'), ir:'historico'});
+        const V=this.state.cicloVolta, bl=(V && Array.isArray(V.blocos)) ? V.blocos : [];
+        const doDia=(this.state.blocks||[]).filter(b=>b && !b.voltaId);
+        const pend=bl.concat(doDia).filter(b=>b && !b.done && (N(b.disc)===nd || N(b.discEdital)===nd));
+        if(pend.length) out.push({tipo:'Ciclo', nome:pend.length+(pend.length===1 ? ' bloco pendente' : ' blocos pendentes'), ir:'ciclo'});
+        const leit=this._laLeiturasDe(it.urlOficial, it.disp);
+        if(leit.length) out.push({tipo:'Leitura ativa', nome:leit.length+(leit.length===1 ? ' dispositivo lido neste artigo' : ' dispositivos lidos neste artigo'), ir:'legis'});
+      }
+    }catch(_){ }
+    // o rótulo vai pronto: dentro do botão (inline-flex com gap) cada {{ }} viraria um item separado
+    return out.slice(0,6).map(a=>({...a, rotulo:a.tipo+': '+a.nome}));
+  }
+  /** "Buscar atualizações agora": UMA fonte por pedido, as escolhidas em paralelo. Cada
+   *  função da Vercel tem o próprio limite de tempo, e uma fonte lenta não derruba as outras.
+   *  Junta FONTE A FONTE com o que já havia: sem rede, sem conta ou com o servidor fora do ar
+   *  é "não foi possível consultar"; resposta pela metade é "parcial" — nunca "nenhuma novidade". */
+  novidBuscar = async (e)=>{
+    if(this.state.novidBuscando) return;
+    const ds=(e && e.currentTarget && e.currentTarget.dataset) || {};
+    const fontes=[...new Set(String(ds.fonte || 'planalto,stf,stj').split(',').map(s=>s.trim()).filter(f=>this.NOVID_FONTES.indexOf(f)>=0))];
+    if(!fontes.length) return;
+    this.setState({novidBuscando:true, novidBuscandoFontes:fontes});
+    let tok='';
+    try{ const s=await window.CatedraAuth.client.auth.getSession(); tok=(s && s.data && s.data.session && s.data.session.access_token) || ''; }catch(_){}
+    const uma=async (f)=>{
+      let r=null;
+      try{ r=await fetch(this._novidUrlApi(f), {headers: tok ? {authorization:'Bearer '+tok} : {}, cache:'no-store'}); }
+      catch(_){ throw new Error('sem conexão com o servidor do Cátedra'); }
+      let j=null; try{ j=await r.json(); }catch(_){ j=null; }
+      if(!r.ok){
+        const pronta=!!(j && typeof j.error==='string' && j.error);
+        const err=new Error(pronta ? j.error : (r.status===503 ? 'sem conexão com o servidor do Cátedra' : ('o servidor respondeu '+r.status)));
+        err.status=r.status; err.pronta=pronta; throw err;
+      }
+      if(!j || typeof j!=='object' || !j.fontes || typeof j.fontes!=='object') throw new Error('a resposta do servidor veio ilegível');
+      return j;
+    };
+    const res=await Promise.allSettled(fontes.map(uma));
+    const quando=new Date().toISOString();
+    const V0=this.state.novidVivo || {}, F0=V0.fontes || {};
+    const vivo={fontes:{...F0}, cobertura:{...(V0.cobertura||{})}, itens:(V0.itens||[]).slice()};
+    const ids=new Set(vivo.itens.map(i=>String(i.id)));
+    // a falha ao vivo se junta ao que esta sessão já tinha da fonte: o último sucesso fica
+    const falhou=(f, erro)=>{ vivo.fontes[f]=this._novidJuntarFonte(F0[f], {resultado:'falha', erro, detalhe:'', doCache:false, consultadoHa:null, ultimaTentativa:quando}); };
+    const R={quando, consultadas:fontes, ok:[], parciais:[], falhas:[], erros:{}, novidades:0, encontradas:0, exigemRevisao:0, cache:[], erroGeral:''};
+    res.forEach((r, i)=>{
+      const f=fontes[i];
+      if(r.status==='fulfilled'){
+        const j=r.value, est=j.fontes[f], rs=(j.resumo && typeof j.resumo==='object') ? j.resumo : {};
+        if(j.cobertura && j.cobertura[f]) vivo.cobertura[f]=j.cobertura[f];
+        const itens=(Array.isArray(j.itens) ? j.itens : []).filter(x=>x && x.id!=null && (!x.fonte || x.fonte===f));
+        for(const x of itens) if(!ids.has(String(x.id))){ ids.add(String(x.id)); vivo.itens.push(x); }
+        if(!est || typeof est!=='object'){
+          R.falhas.push(f); R.erros[f]='a resposta não trouxe o estado desta fonte';
+          falhou(f, 'Não foi possível consultar: a resposta não trouxe o estado desta fonte.');
+          return;
+        }
+        // o que a consulta de agora não trouxe não sobra da anterior (erro velho, idade do cache)
+        vivo.fontes[f]=this._novidJuntarFonte(F0[f], {erro:'', detalhe:'', doCache:false, consultadoHa:null, ...est});
+        if(est.resultado==='falha'){ R.falhas.push(f); R.erros[f]=String(est.erro || 'a fonte não respondeu'); }
+        else if(est.resultado==='parcial') R.parciais.push(f);   // lacuna: nunca entra em "com sucesso"
+        else R.ok.push(f);
+        if(est.doCache) R.cache.push({f, ha:est.consultadoHa});
+        R.novidades+=(typeof rs.novidades==='number') ? rs.novidades : itens.length;
+        R.encontradas+=(typeof rs.encontradas==='number') ? rs.encontradas : itens.length;
+        R.exigemRevisao+=(typeof rs.exigemRevisao==='number') ? rs.exigemRevisao : itens.filter(x=>x.revisar).length;
+      } else {
+        const err=r.reason || {}, msg=String((err && err.message) || err || 'falha');
+        const conta=(err.status===401 || err.status===403);
+        R.falhas.push(f); R.erros[f]=conta ? 'exige entrar na conta' : msg;
+        // sem conta a fonte nem chegou a ser consultada: o diário dela não muda
+        if(conta) R.erroGeral=err.pronta ? msg : 'Entre na sua conta do Cátedra para buscar atualizações.';
+        else falhou(f, 'Não foi possível consultar agora: '+msg+'.');
+      }
+    });
+    this.setState({novidBuscando:false, novidBuscandoFontes:[], novidVivo:vivo, novidResultado:R});
+    const nomes=(l)=>l.map(f=>this.NOVID_NOME[f]||f).join(', ');
+    const outras=R.novidades ? (' · '+R.novidades+(R.novidades===1 ? ' novidade nas outras' : ' novidades nas outras')) : '';
+    if(R.erroGeral && !R.ok.length && !R.parciais.length) this._toast(R.erroGeral);
+    else if(R.falhas.length) this._toast('Não foi possível consultar: '+nomes(R.falhas)+(R.parciais.length ? (' · consulta parcial: '+nomes(R.parciais)) : '')+outras);
+    else if(R.parciais.length) this._toast('Consulta parcial: '+nomes(R.parciais)+' — o que não foi lido não conta como “sem mudança”'+outras);
+    else if(R.novidades) this._toast(R.novidades+(R.novidades===1 ? ' novidade encontrada' : ' novidades encontradas'));
+    else this._toast('As fontes responderam: nada de novo desde a última consulta');
+  };
+  /** "Marcar como lida" (Central) e "Já vi" (Início). Não rebaixa um item já conferido. */
+  novidMarcarLida = (e)=>{
+    const id=String(((e && e.currentTarget && e.currentTarget.dataset) || {}).id || ''); if(!id) return;
+    if(this._novidEstado(id)==='conferido') return;
+    this._novidMarcar(id, 'lida');
+  };
+  /** "Marcar como conferido": a pessoa conferiu na fonte oficial (implica lida). */
+  novidMarcarConferido = (e)=>{
+    const id=String(((e && e.currentTarget && e.currentTarget.dataset) || {}).id || ''); if(!id) return;
+    this._novidMarcar(id, 'conferido');
+    this._toast('Marcada como conferida');
+  };
+  /** "Manter em revisão": a marca volta a 'lida' e o item volta a pedir conferência. */
+  novidManterRevisao = (e)=>{
+    const id=String(((e && e.currentTarget && e.currentTarget.dataset) || {}).id || ''); if(!id) return;
+    this._novidMarcar(id, 'lida');
+  };
+  /** O botão do resumo do Início (#ct-of-abrir) abre o diálogo "Revisão oficial" (definido junto
+   *  dos outros handlers do painel); a Central continua em "Mais opções". */
+  /** Abre a lei no LEGIS (ou a edição incorporada no JURIS) pelo MESMO canal das revisões
+   *  (ctAbrirAcervo): iframe na web, ABA nativa no Mac e no iPad, com a origem para a pílula
+   *  de volta. O termo do LEGIS é o NOME da norma — o catálogo filtra por pedaço do título. */
+  novidAbrirAcervo = (e)=>{
+    const it=this._novidItem(((e && e.currentTarget && e.currentTarget.dataset) || {}).id);
+    const alvo=this._novidAlvo(it); if(!alvo) return;
+    const termo=(alvo==='legis') ? String(it.normaNome || it.norma || '') : this._novidTermoJuris(it);
+    this._abrirAcervoPorMensagem(alvo, termo, this._origemAqui());
+  };
+  novidAbrirComparacao = (e)=>{ const id=String(((e && e.currentTarget && e.currentTarget.dataset) || {}).id || ''); if(id) this.setState(st=>({novidAberto:st.novidAberto===id ? '' : id})); };
+  /** Abre/fecha "as normas conferidas" e "o que esta fonte não cobre" de um cartão de fonte. */
+  novidDetalhe = (e)=>{ const k=String(((e && e.currentTarget && e.currentTarget.dataset) || {}).chave || '');
+    if(!/^(planalto|stf|stj)\|(normas|limites)$/.test(k)) return;
+    this.setState(st=>({novidAbertos:{...(st.novidAbertos||{}), [k]:!(st.novidAbertos||{})[k]}})); };
+  NOVID_CAMPOS = ['novidFonte','novidTipo','novidDisc','novidRamo','novidPeriodo'];
+  novidFiltro = (e)=>{ const d=(e && e.currentTarget && e.currentTarget.dataset) || {};
+    if(this.NOVID_CAMPOS.indexOf(d.campo)<0) return; this.setState({[d.campo]:String(d.valor || '')}); };
+  novidSoNaoLidasTgl = ()=> this.setState(st=>({novidSoNaoLidas:!st.novidSoNaoLidas}));
+  novidAssuntoSet = (e)=> this.setState({novidAssunto:String((e && e.currentTarget && e.currentTarget.value) || '').slice(0,120)});
+  novidLimparFiltros = ()=> this.setState({novidFonte:'todas', novidTipo:'todos', novidDisc:'todas', novidRamo:'todas', novidPeriodo:'todos', novidAssunto:'', novidSoNaoLidas:false});
+  /** Atalho de um conteúdo afetado. A leitura ativa vai pelo canal do acervo (aba nativa nos
+   *  apps); o resto é troca de tela comum. */
+  novidIrPara = (e)=>{ const v=String(((e && e.currentTarget && e.currentTarget.dataset) || {}).ir || ''); if(!v) return;
+    if(v==='legis'){ this.novidAbrirAcervo(e); return; }
+    this._irPara(v); };
+  /** "Agendar revisão" (E7): só com o clique, uma por novidade, com desfazer. O id sai da
+   *  própria novidade ('rv|nov|<id>', como o 'rv|la|…' da leitura ativa): Mac e iPad agendando
+   *  a mesma mudança antes de sincronizar convergem numa revisão só pela união por id. Não cria
+   *  chave nova — reviews já é array com id em ARRAY_ID. */
+  novidAgendarRevisao = (e)=>{
+    const it=this._novidItem(((e && e.currentTarget && e.currentTarget.dataset) || {}).id); if(!it) return;
+    const rid='rv|nov|'+String(it.id);
+    if((this.state.reviews||[]).some(r=>r && (r.id===rid || r.novidId===String(it.id)))){ this._toast('Esta mudança já tem revisão agendada'); return; }
+    const agora=Date.now(), disc=this._novidDisc(it) || 'Jurisprudência';
+    const rev={id:rid, disc, topic:('Mudou: '+String(it.titulo || it.disp || it.norma || '')).slice(0,140),
+      ref:(it.fonte==='planalto' ? (String(it.disp||'')+' do '+String(it.norma||'')) : String(it.titulo||'')).slice(0,140),
+      color:this._corDisc(disc), due:1, dueDate:this._addDiasStr(this._hoje(),1), intervalo:1, facilidade:2.5, repeticoes:0,
+      up:agora, novidId:String(it.id)};
+    this.setState(st=>({reviews:[...(st.reviews||[]), rev]}), ()=>this.flashSync());
+    this._toastDesfazer('Revisão agendada para amanhã', ()=>{
+      this.setState(st=>({reviews:(st.reviews||[]).filter(r=>!(r && r.id===rev.id))}), ()=>this.flashSync());
+      this._toast('Revisão desfeita');
+    });
+  };
+  /** Tudo o que só a Central usa: filtros, conteúdos afetados, antes/depois e o resultado da
+   *  busca. Mesclado no render SÓ com a Central na tela (o D16 confere que nada disto vaza). */
+  _novidVM(){
+    const st=this.state, base=this._novidBase(), marcas=this._novidMarcas(), todos=base.itens;
+    const N=(s)=>this._novidNorm(s);
+    const dias={'7':7, '30':30, '90':90}[st.novidPeriodo];
+    const agora=Date.now(), q=N(st.novidAssunto);
+    const discDe=new Map(todos.map(it=>[String(it.id), this._novidDisc(it)]));
+    const estDe=(it)=>marcas.get(String(it.id)) || '';
+    const filtrada=todos.filter(it=>{
+      if(st.novidFonte!=='todas' && it.fonte!==st.novidFonte) return false;
+      if(st.novidTipo!=='todos' && it.tipo!==st.novidTipo) return false;
+      if(st.novidDisc!=='todas' && discDe.get(String(it.id))!==st.novidDisc) return false;
+      if(st.novidRamo!=='todas' && String(it.norma||'')!==st.novidRamo) return false;
+      if(st.novidSoNaoLidas && estDe(it)) return false;
+      if(dias){ const t=Date.parse(it.detectadoEm||''); if(!isFinite(t) || (agora-t)/864e5>dias) return false; }
+      if(q){ const alvo=N([it.titulo, it.disp, it.norma, it.normaNome, it.modificadora, it.antes, it.depois, it.pendencia, discDe.get(String(it.id))].filter(Boolean).join(' '));
+        if(alvo.indexOf(q)<0) return false; }
+      return true;
+    }).sort((a,b)=>String(b.detectadoEm||'').localeCompare(String(a.detectadoEm||'')) || String(a.id).localeCompare(String(b.id)));
+    const revIds=new Set((st.reviews||[]).map(r=>r && r.novidId).filter(Boolean).map(String));
+    const VIG=(it)=>{
+      if(it.fonte!=='planalto') return '';
+      const m=it.vigenciaMotivo ? (' · '+it.vigenciaMotivo) : '';
+      // Revogação: o motor só a aponta quando a página anota "(Revogado pela …)" no caput — o
+      // dispositivo continua no texto compilado (artigo que SOME é leitura falha, não revogação)
+      if(it.tipo==='revogacao'){
+        const rv='Revogado no texto compilado: a página anota “(Revogado pela …)” no caput';
+        if(it.vigencia==='aguardando') return rv+' — a revogação vale a partir de '+(it.vigenciaEm || 'data a conferir na fonte')+'; até lá, o dispositivo continua valendo.';
+        return rv+(it.vigenciaEm ? (' · em vigor desde '+it.vigenciaEm) : '')+'.';
+      }
+      if(it.vigencia==='aguardando') return 'Publicada — aguardando vigência'+(it.vigenciaEm ? (': vigora a partir de '+it.vigenciaEm) : '')+'. Até lá vale a redação anterior.';
+      if(it.vigencia==='indeterminada') return 'Vigência não informada pela fonte'+m;
+      return 'Em vigor'+(it.vigenciaEm ? (' desde '+it.vigenciaEm) : '')+m;
+    };
+    const novidLista=filtrada.slice(0,120).map(it=>{
+      const est=estDe(it), b=this._novidItemBase(it, est), af=this._novidAfetados(it), aberto=st.novidAberto===b.id;
+      const url=this._novidUrl(it.urlOficial), temRev=revIds.has(b.id) || (st.reviews||[]).some(r=>r && r.id==='rv|nov|'+b.id);
+      const vig=VIG(it), ef=(it.efeitos==='marcador-proprio');
+      // a pendência que só repete a linha de vigência não aparece duas vezes
+      const pend=String(it.pendencia||''), pendRepete=!!pend && N(vig).indexOf(N(pend))>=0;
+      const disc=discDe.get(b.id) || '';
+      return {...b,
+        origemTxt:[b.fonteNome, (it.fonte==='planalto' ? String(it.normaNome||it.norma||'') : ''), 'detectada em '+b.quando].filter(Boolean).join(' · '),
+        // a cor da matéria no fio e na sombra do cartão (.ct-card[data-materia]): a disciplina antes do rótulo
+        materia:disc || 'geral', cor:'--ct-materia:'+this._corDisc(disc)+';',
+        aguardando:it.vigencia==='aguardando', efeitosProprios:ef, avisoSelo:this._novidTinta('warn'),
+        lida:est==='lida', podeLida:!est, podeConferir:b.status!=='conferido' && b.status!=='incorporado', podeManter:b.status==='conferido',
+        temMarca:!est || (b.status!=='incorporado'),
+        avisoTxt:this.NOVID_AVISO,
+        temModificadora:!!it.modificadora, modificadora:String(it.modificadora||''),
+        temVigencia:!!vig, vigenciaTxt:vig,
+        temEfeitos:ef, efeitosTxt:ef ? ('Produz efeitos em data própria'+(it.efeitosEm ? (': a partir de '+it.efeitosEm) : ' — a página não traz a data; conferir na fonte')+'. Publicação, vigência e produção de efeitos não são a mesma coisa.') : '',
+        ehParcial:!!it.parcial, temPendencia:!!pend && !pendRepete, pendencia:pend,
+        afetados:af, temAfetados:af.length>0,
+        afetadosMeta:af.length ? (af.length===1 ? 'Toca 1 conteúdo seu — vale revisar' : ('Toca '+af.length+' conteúdos seus — vale revisar')) : '',
+        podeComparar:!!(it.antes || it.depois), aberto, abertoAttr:aberto ? 'true' : 'false',
+        // aria-controls só quando a região existe (ela nasce aberta, dentro do sc-if)
+        cmpCtl:aberto ? ('nv-cmp-'+b.id) : null,
+        compararLabel:aberto ? 'Fechar a comparação' : 'Comparar antes e depois',
+        antesTxt:it.antes ? String(it.antes) : (it.tipo==='inclusao' ? 'O dispositivo não existia no texto que o app guarda.' : '—'),
+        depoisTxt:it.depois ? String(it.depois) : 'A consulta não trouxe o texto atual — conferir na fonte.',
+        url, temUrl:!!url, podeAgendar:!temRev, temRevisao:temRev };
+    });
+    // filtros: o chip do sistema (this._chip) — 44 px no toque pelo --ct-alvo — e aria-pressed
+    const chips=(campo, pares)=>pares.map(([v, r])=>({campo, valor:v, rotulo:r, ativo:(st[campo]===v) ? 'true' : 'false', estilo:this._chip(st[campo]===v)}));
+    const discs=[...new Set([...discDe.values()].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+    const normas=[...new Set(todos.filter(x=>x.fonte==='planalto').map(x=>String(x.norma||'')).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+    const fontesSit=this.NOVID_FONTES.map(f=>this._novidFonteSit(f, base.fontes[f]));
+    const abertos=st.novidAbertos || {};
+    const novidFontes=fontesSit.map(s=>{
+      const e=s.e, lim=(Array.isArray(e.limites) ? e.limites : []).filter(x=>typeof x==='string' && x.trim());
+      let normasF=(s.f==='planalto' && Array.isArray(e.normas)) ? e.normas : [];
+      if(s.f==='planalto' && !normasF.length && Array.isArray(window.CT_LEIS)) normasF=window.CT_LEIS.map(l=>({sigla:l.sigla, nome:l.nome}));
+      normasF=normasF.filter(m=>m && m.sigla).map(m=>({sigla:String(m.sigla), nomeTxt:(m.nome && String(m.nome)!==String(m.sigla)) ? ('— '+m.nome) : ''}));
+      const kN=s.f+'|normas', kL=s.f+'|limites', abN=!!abertos[kN], abL=!!abertos[kL];
+      return { id:s.f, nome:s.nome, situacao:s.situacao, estilo:s.estilo,
+        rotulo:String(e.rotulo||''), temRotulo:!!e.rotulo,
+        monitoraTxt:e.monitora ? ('Monitora '+e.monitora+'.') : 'O pacote deste aparelho ainda não descreve o que esta fonte cobre.',
+        ultimaTentativa:this._novidDataExtenso(e.ultimaTentativa), ultimoSucesso:this._novidDataExtenso(e.ultimoSucesso),
+        detalhe:String(e.detalhe||''), temDetalhe:!!e.detalhe,
+        doCache:!!e.doCache, cacheIdade:this._novidIdade(e.consultadoHa),
+        temErro:!!e.erro, erroTxt:String(e.erro||''),
+        normas:normasF, temNormas:normasF.length>0, normasAbertas:abN, normasAttr:abN ? 'true' : 'false', normasCtl:abN ? ('nv-normas-'+s.f) : null,
+        normasChave:kN, normasTit:(abN ? 'Esconder' : 'Ver')+' as '+normasF.length+' normas conferidas, artigo a artigo',
+        limites:lim.map(t=>({t})), temLimites:lim.length>0, semLimites:!lim.length,
+        limitesAbertos:abL, limitesAttr:abL ? 'true' : 'false', limitesCtl:abL ? ('nv-limites-'+s.f) : null, limitesChave:kL,
+        limitesTit:'O que esta fonte não cobre · '+lim.length+(lim.length===1 ? ' ponto' : ' pontos'),
+        chevAb:abN ? 'transform:rotate(180deg);' : '', chevAbL:abL ? 'transform:rotate(180deg);' : '' };
+    });
+    const R=st.novidResultado, nomes=(l)=>(l||[]).map(f=>this.NOVID_NOME[f]||f).join(', ');
+    const retentar=R ? [...R.falhas, ...R.parciais] : [];
+    const novidResumo=R ? {
+      quando:this._novidDataExtenso(R.quando), temErroGeral:!!R.erroGeral, erroGeral:String(R.erroGeral||''),
+      temContagem:(R.ok.length+R.parciais.length)>0, semFonteOk:!R.ok.length && !R.parciais.length,
+      novidades:String(R.novidades), exigemRevisao:String(R.exigemRevisao), ok:(R.ok.length ? nomes(R.ok) : 'nenhuma'),
+      vistasTxt:(R.encontradas>R.novidades) ? (' (de '+R.encontradas+' itens vistos nesta consulta)') : '',
+      temParciais:R.parciais.length>0, parciais:nomes(R.parciais),
+      temFalhas:R.falhas.length>0, falhas:R.falhas.map(f=>(this.NOVID_NOME[f]||f)+' ('+R.erros[f]+')').join('; '),
+      temTentar:retentar.length>0, falhasFontes:retentar.join(','), tentarLabel:'Tentar de novo: '+nomes(retentar),
+      temCache:R.cache.length>0, cache:R.cache.map(c=>(this.NOVID_NOME[c.f]||c.f)+': resultado guardado no servidor há '+this._novidIdade(c.ha)).join(' · '),
+      // "nada de novo" só com TODA fonte pedida respondendo por inteiro
+      semNovidade:R.ok.length>0 && !R.falhas.length && !R.parciais.length && !R.novidades
+    } : {quando:'', temErroGeral:false, erroGeral:'', temContagem:false, semFonteOk:false, novidades:'', exigemRevisao:'', ok:'', vistasTxt:'',
+      temParciais:false, parciais:'', temFalhas:false, falhas:'', temTentar:false, falhasFontes:'', tentarLabel:'', temCache:false, cache:'', semNovidade:false};
+    // Estado vazio: nunca diz "nada mudou" com lacuna — fonte que falhou, respondeu só em parte
+    // ou nunca foi consultada (o vocabulário das três no aviso)
+    const comFiltro=todos.length>0, nuncaTodas=fontesSit.every(s=>s.nunca);
+    const lacunas=fontesSit.filter(s=>!s.ok);
+    const novidVazioTit=comFiltro ? 'Nada nesses filtros'
+      : (nuncaTodas ? 'Nenhuma consulta chegou a este aparelho ainda' : (lacunas.length ? 'A última consulta não se completou' : 'Nenhuma mudança registrada'));
+    const novidVazioDesc=comFiltro ? 'Tire um filtro ou mude o período — as novidades continuam aqui.'
+      : (nuncaTodas ? 'O pacote do app ainda não trouxe a primeira consulta às fontes oficiais. "Buscar atualizações agora" consulta o Planalto, o STF e o STJ pelo servidor — é preciso estar na sua conta.'
+        : (lacunas.length ? ('Sem resposta completa de '+lacunas.map(s=>s.nome+' ('+s.situacao.toLowerCase()+')').join(', ')+': a falta de itens daí não quer dizer que nada mudou. Busque de novo ou confira acima a data da última consulta bem-sucedida de cada fonte.')
+          : 'Nenhum item foi registrado até agora, dentro do que cada fonte cobre — os limites de cada uma estão acima.'));
+    const ocupadas=st.novidBuscandoFontes||[];
+    return {
+      novidLista, novidFontes, novidResumo, temNovidResumo:!!R,
+      novidMostrandoStr:String(filtrada.length), novidTotalStr:String(todos.length),
+      novidNaoLidasStr:String(todos.filter(x=>!estDe(x)).length),
+      novidRevisaoStr:String(todos.filter(x=>this._novidAConferir(this._novidStatus(x, estDe(x)))).length),
+      novidPacoteMeta:base.geradoEm ? ('pacote do app gerado em '+this._novidDataExtenso(base.geradoEm)) : 'o pacote do app ainda não trouxe consulta nenhuma',
+      novidFiltroFonte:chips('novidFonte', [['todas','Todas'],['planalto','Planalto'],['stf','STF'],['stj','STJ']]),
+      novidFiltroTipo:chips('novidTipo', [['todos','Tudo'],['alteracao','Alterações'],['inclusao','Inclusões'],['revogacao','Revogações'],['informativo','Informativos']]),
+      novidFiltroDisc:chips('novidDisc', [['todas','Todas']].concat(discs.map(d=>[d, d]))), novidTemFiltroDisc:discs.length>1,
+      novidFiltroNorma:chips('novidRamo', [['todas','Todas']].concat(normas.map(n=>[n, n]))), novidTemFiltroNorma:normas.length>1,
+      novidFiltroPeriodo:chips('novidPeriodo', [['todos','Sempre'],['7','7 dias'],['30','30 dias'],['90','90 dias']]),
+      novidSoNaoLidasAttr:st.novidSoNaoLidas ? 'true' : 'false', novidSoNaoLidasEstilo:this._chip(!!st.novidSoNaoLidas),
+      novidVazio:filtrada.length===0, novidVazioTit, novidVazioDesc, novidVazioFiltro:comFiltro, novidVazioBusca:!comFiltro,
+      novidBuscando:!!st.novidBuscando, novidBuscandoTodas:(st.novidBuscando && ocupadas.length===3) ? 'true' : 'false',
+      novidBuscandoTit:'Consultando '+(ocupadas.length ? nomes(ocupadas) : 'as fontes')+'…',
+      novidBuscarLabel:(st.novidBuscando ? 'Consultando as fontes…' : 'Buscar atualizações agora'),
+      novidBotoesFonte:this.NOVID_FONTES.map(f=>({f, nome:this.NOVID_NOME[f], ocupado:(st.novidBuscando && ocupadas.length<3 && ocupadas.indexOf(f)>=0) ? 'true' : 'false'})),
+      novidAvisoTxt:this.NOVID_AVISO,
+      novidBuscar:this.novidBuscar, novidAbrirComparacao:this.novidAbrirComparacao, novidFiltro:this.novidFiltro, novidDetalhe:this.novidDetalhe,
+      novidSoNaoLidasTgl:this.novidSoNaoLidasTgl, novidAssunto:String(st.novidAssunto||''), novidAssuntoSet:this.novidAssuntoSet,
+      novidLimparFiltros:this.novidLimparFiltros, novidIrPara:this.novidIrPara, novidAgendarRevisao:this.novidAgendarRevisao,
+      novidMarcarConferido:this.novidMarcarConferido, novidManterRevisao:this.novidManterRevisao,
+    };
+  }
 
   _redDiscDoBanco(nome){
     const d=String(nome||'').trim().slice(0,140); if(!d) return '';
@@ -15489,7 +16348,7 @@ class Component extends DCLogic {
     /* O item ativo do menu só se distinguia pela cor: leitor de tela lia 23 botões
        iguais, sem dizer em qual tela a pessoa está. aria-current="page" resolve, e
        string vazia é lida como "não é a atual". */
-    const navCur = {}; ['admin', 'ajustes', 'analise', 'areamod', 'bancas', 'bemestar', 'calendario', 'casos', 'ciclo', 'comunidade', 'conquistas', 'edital', 'flashcards', 'historico', 'inicio', 'juris', 'legis', 'oral', 'prioridade', 'redacao', 'revisoes', 'roteiros', 'segundafase', 'simulados'].forEach(id=>{ navCur[id]= this.state.view===id ? 'page' : ''; });
+    const navCur = {}; ['admin', 'ajustes', 'analise', 'areamod', 'bancas', 'bemestar', 'calendario', 'casos', 'ciclo', 'comunidade', 'conquistas', 'edital', 'flashcards', 'historico', 'inicio', 'juris', 'legis', 'novidades', 'oral', 'prioridade', 'redacao', 'revisoes', 'roteiros', 'segundafase', 'simulados'].forEach(id=>{ navCur[id]= this.state.view===id ? 'page' : ''; });
     const navStyle = (id)=>{
       const on = this.state.view===id;
       // No Mac e no iPad, CátedraLEGIS e CátedraJURIS são ABAS no topo — e agora o nativo
@@ -15512,7 +16371,7 @@ class Component extends DCLogic {
     };
     const bnInicio=bnStyle('inicio'), bnCiclo=bnStyle('ciclo'), bnRevisoes=bnStyle('revisoes');
     // ===== menu simplificado: essenciais visíveis + "Mais opções" =====
-    const _moreViews=['analise','conquistas','historico','comunidade','bemestar','ajustes','admin'];
+    const _moreViews=['analise','novidades','conquistas','historico','comunidade','bemestar','ajustes','admin'];
     const _onMore=_moreViews.indexOf(this.state.view)>=0;
     const navShowMore=this.state.navExpanded||_onMore;
     const navToggleShow=!_onMore;
@@ -17253,6 +18112,7 @@ class Component extends DCLogic {
       {view:'flashcards', label:'Ir para o Baralho', hint:'flashcards · revisão dos cartões'},
       {view:'simulados', label:'Ir para Simulados', hint:'raio-x'},
       {view:'analise', label:'Ir para Desempenho', hint:'análise, disciplina, risco, domínio'},
+      ...(_podeView('novidades') ? [{view:'novidades', label:'Ir para a Central de novidades', hint:'o que mudou no Planalto, no STF e no STJ'}] : []),
       {view:'conquistas', label:'Ir para Metas & Conquistas', hint:'metas e gamificação'},
       {view:'bemestar', label:'Ir para Bem-estar', hint:'respiração, hábitos, mindfulness'},
       {view:'comunidade', label:'Ir para Comunidade', hint:'ranking, grupos, estudando agora'},
@@ -17364,6 +18224,29 @@ class Component extends DCLogic {
       assunto:this._topicoMaisFraco(p.disc),
       temDados:!p.semDados
     }));
+    // ─────────── FONTES OFICIAIS: o leve, sempre (resumo do Início, menu, bloco da semana) ───────────
+    // A Central inteira (filtros, conteúdos afetados, antes/depois) só monta na própria tela: _novidVM.
+    // O resumo do Início segue o acordo com a sessão "Interface de atualização oficial" (01/10/2026):
+    // aparece SEMPRE nas áreas com jurisprudência — sem varredura, cada fonte diz "Nunca consultada".
+    const _nvPode=_podeView('novidades');
+    const _nvBase=_nvPode ? this._novidBase() : {fontes:{}, itens:[], geradoEm:''};
+    const _nvMarcas=this._novidMarcas();
+    const _nvSit=this.NOVID_FONTES.map(f=>this._novidFonteSit(f, _nvBase.fontes[f]));
+    const ofFontes=_nvSit.map(s=>({id:s.f, nome:s.nome, situacao:s.situacao, estilo:s.estilo}));
+    const _nvSt=_nvBase.itens.map(it=>{ const est=_nvMarcas.get(String(it.id)) || ''; return {it, est, st:this._novidStatus(it, est)}; });
+    const ofContOk=String(_nvSit.filter(s=>s.ok).length), ofContFalha=String(_nvSit.filter(s=>s.problema).length);
+    const ofContConferir=String(_nvSt.filter(x=>this._novidAConferir(x.st)).length);
+    // Até três mudanças de LEI ainda não vistas nem conferidas, as que pedem conferência primeiro —
+    // informativo novo já tem o "O que mudou esta semana" logo acima; aqui ele só entra na contagem.
+    const ofItens=_nvSt.filter(x=>x.it.fonte==='planalto' && !x.est && this._novidAConferir(x.st))
+      .sort((a,b)=>(+(b.st!=='detectado'))-(+(a.st!=='detectado')) || String(b.it.detectadoEm||'').localeCompare(String(a.it.detectadoEm||'')))
+      .slice(0,3).map(x=>this._novidItemBase(x.it, x.est));
+    const ofMostrar=_nvPode;
+    const ofMeta=_nvBase.geradoEm ? ('varredura publicada em '+this._novidDataCurta(_nvBase.geradoEm)) : 'nenhuma varredura publicada ainda';
+    // E16: o bloco da semana diz de quando é o recorte e quantas edições já foram vistas na
+    // fonte oficial sem estar no acervo (a Central mostra quais são)
+    const _semRecorte=String((window.CT_SEMANA && window.CT_SEMANA.gerado) || '');
+    const _nvAguarda=_nvPode ? _nvBase.itens.filter(x=>x.tipo==='informativo' && !x.incorporado).length : 0;
     // O QUE MUDOU ESTA SEMANA (item 7): marcados primeiro, com selo por tipo
     const _SEMSELO={superacao:{t:'entendimento superado', c:'var(--danger)', tx:'var(--onDanger)'},
       divergencia:{t:'divergência STF × STJ', c:'var(--warn)', tx:'var(--onWarn)'},
@@ -17375,6 +18258,48 @@ class Component extends DCLogic {
         ondeQuem:[x.tribunal, x.ramo].filter(Boolean).join(' · '),
         temSelo:!!sel, selo:(sel?sel.t:''), seloStyle:(sel?('background:'+sel.c+';color:'+(sel.tx||'#fff')+';'):'') };
     });
+    // FONTES OFICIAIS — o sentinela gera `novidades.js` no servidor; o app só mostra o
+    // estado empacotado, lido por revisao-oficial.js (o mesmo módulo do LEGIS e do JURIS, para
+    // que Detectado/Conferir/Conferido/Falhou/Parcial queiram dizer a mesma coisa nos três).
+    // Só o painel consome estas variáveis: fechado, nada é mapeado (o resumo do Início é do #175).
+    const _RO=window.CT_REVISAO_OFICIAL;
+    const _roVivo=this.state.oficialPainelOpen ? _RO : null;
+    const _nov=_roVivo?_roVivo.pacote():{geradoEm:null,fontes:{},itens:[]};
+    const _roMarcas=_roVivo?_roVivo.marcasDe(this.state.novidLidas):{};
+    const _roItens=_roVivo?_roVivo.itens(_nov,_roMarcas):[];
+    const _roFontes=_roVivo?_roVivo.fontes(_nov):[];
+    const _roN=_roVivo?(_roVivo.contarDe?_roVivo.contarDe(_roItens,_roFontes):_roVivo.contagem(_nov,_roMarcas)):{total:0,revisar:0,conferidos:0,legis:0,juris:0,fontesOk:0,fontesProblema:0,fontesPendentes:0};
+    const oficialFontes=_roFontes.map(f=>({...f, cls:'ct-of-st '+f.statusCls,
+      erroTxt:f.erro?('Erro da última tentativa: '+f.erro+'. O último conteúdo válido continua no acervo.'):(f.status==='parcial'?'A consulta respondeu só em parte; o que não foi lido continua como estava.':'')}));
+    const oficialFontesProblema=oficialFontes.filter(f=>f.status==='falhou'||f.status==='parcial');
+    const _ofFiltro=this.state.oficialFiltro||'todos';
+    const _ofPassa={
+      todos:()=>true,
+      revisar:i=>_RO.precisaRevisar(i),
+      legis:i=>i.produto==='legis',
+      juris:i=>i.produto==='juris',
+      falhas:i=>i.status==='parcial'
+    };
+    const oficialLista=_roItens.filter(_ofPassa[_ofFiltro]||_ofPassa.todos).map(i=>({...i, cls:'ct-of-st '+i.statusCls,
+      proxSt:i.status==='conferido'?'conferir':'conferido',
+      marcarRotulo:i.status==='conferido'?'Manter em revisão':'Marcar como conferido'}));
+    const oficialFiltros=[
+      {k:'todos', rotulo:'Todos', n:_roItens.length},
+      {k:'revisar', rotulo:'Precisa revisar', n:_roN.revisar},
+      {k:'legis', rotulo:'LEGIS', n:_roN.legis},
+      {k:'juris', rotulo:'JURIS', n:_roN.juris},
+      {k:'falhas', rotulo:'Falhas/parciais', n:oficialFontesProblema.length+_roItens.filter(i=>i.status==='parcial').length}
+    ].map(b=>({...b, on:b.k===_ofFiltro?'true':'false'}));
+    const oficialAtualizado=_nov.geradoEm?('pacote gerado em '+_RO.data(_nov.geradoEm,true)):'aguardando a primeira varredura publicada';
+    const _ofLacunas=_roVivo?_roVivo.lacunas(_roFontes):[];
+    const _ofLacunaTxt=_ofLacunas.length
+      ? ('A última varredura não se completou: '+_roVivo.lacunasTxt(_ofLacunas)+'. A falta de itens dessas fontes não quer dizer que nada mudou; o último conteúdo válido continua no acervo até a próxima consulta. Detalhes em "Cobertura e limites", abaixo.')
+      : '';
+    const oficialVazioTxt=_roItens.length
+      ? ('Nenhum item nesta seleção.'+((_ofLacunaTxt && _ofFiltro!=='falhas')?(' '+_ofLacunaTxt):''))
+      : (!_nov.geradoEm
+        ? 'Ainda não há varredura publicada. Quando o sentinela rodar, as mudanças que ele detectar no Planalto, no STF e no STJ aparecem aqui para conferência, nunca publicadas sozinhas.'
+        : (_ofLacunaTxt || 'Nenhuma mudança detectada na última varredura, dentro do que o sentinela cobre. Isso não garante que o acervo esteja integralmente atualizado: veja os limites de cada fonte abaixo.'));
     const redHist=this.state.redHistory.map(h=>({...h, notaStr:(+h.nota).toFixed(1),
       when:(()=>{ try{ return new Date(h.ts).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}); }catch(_){ return ''; } })(),
       temaShort:(h.tema||'').replace(/^(Discursiva|Peça)\s—\s/,''), tipo:(h.tema||'').startsWith('Peça')?'Peça':'Discursiva',
@@ -18173,7 +19098,7 @@ class Component extends DCLogic {
         ? `position:fixed;top:0;left:0;bottom:0;flex:none;width:248px;background:var(--sbg);display:flex;flex-direction:column;padding:20px 16px calc(20px + env(safe-area-inset-bottom));overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;z-index:50;transition:transform .28s ease;transform:translateX(${this.state.menuOpen?'0':'-110%'});box-shadow:${this.state.menuOpen?'0 0 40px rgba(0,0,0,.4)':'none'};`
         : `position:sticky;top:0;align-self:flex-start;height:100vh;overflow-y:auto;flex:none;width:248px;background:var(--sbg);display:flex;flex-direction:column;padding:20px 16px;z-index:50;`,
       showBackdrop: this.state.isMobile && this.state.menuOpen,
-      navStyle:{ inicio:navStyle('inicio'), ciclo:navStyle('ciclo'), edital:navStyle('edital'), revisoes:navStyle('revisoes'), flashcards:navStyle('flashcards'), simulados:navStyle('simulados'), analise:navStyle('analise'), conquistas:navStyle('conquistas'), ajustes:navStyle('ajustes') },
+      navStyle:{ inicio:navStyle('inicio'), ciclo:navStyle('ciclo'), edital:navStyle('edital'), revisoes:navStyle('revisoes'), flashcards:navStyle('flashcards'), simulados:navStyle('simulados'), analise:navStyle('analise'), novidades:navStyle('novidades'), conquistas:navStyle('conquistas'), ajustes:navStyle('ajustes') },
       navShowMore, navToggleShow, navMoreLabel, navChevStyle, toggleNav:this.toggleNav,
       dirStyle:CT_DIRS.reduce((o,d)=>{ o[d]=dirBtn(d); return o; },{}),
       onNav:this.onNav, onDir:this.onDir, toggleMenu:this.toggleMenu,
@@ -18482,7 +19407,7 @@ class Component extends DCLogic {
       capLegis:_podeView('legis'), capJuris:_podeView('juris'), capAreaMod:_podeView('areamod'),
       capEdital:_podeView('edital'), capSimulados:_podeView('simulados'), capRedacao:_podeView('redacao'),
       capRoteiros:_podeView('roteiros'), capSegundaFase:_podeView('segundafase'), capOral:_podeView('oral'),
-      capPrioridade:_podeView('prioridade'), capBancas:_podeView('bancas'),
+      capPrioridade:_podeView('prioridade'), capBancas:_podeView('bancas'), capNovidades:_nvPode,
       // --- casos da área (estrutura própria por área, conteúdo da pessoa) ---
       capCasos:_podeView('casos'), isCasos:this.state.view==='casos', navCasos:navStyle('casos'),
       casosNome:(_ce?_ce.nome:'Caso'), casosPlural:(_ce?_ce.nomePlural:'casos'),
@@ -18735,11 +19660,26 @@ class Component extends DCLogic {
       // O bloco "o que mudou esta semana" é de JURISPRUDÊNCIA — informativos de STF, STJ
       // e TSE. Ele ficava no Início de TODA área: quem estuda Enfermagem via
       // "STJ · Direito Processual Civil" no painel dela. Agora só onde há acervo.
+      oficialFontes, oficialFontesProblema, oficialAtualizado, oficialAbrir:this.oficialAbrir,
+      oficialNumOk:_roN.fontesOk, oficialNumFalha:_roN.fontesProblema, oficialNumRevisar:_roN.revisar, oficialNumConferidos:_roN.conferidos,
+      oficialPainelOpen:!!this.state.oficialPainelOpen, oficialPainelAbrir:this.oficialPainelAbrir, oficialPainelFechar:this.oficialPainelFechar,
+      oficialFiltros, oficialFiltrar:this.oficialFiltrar, oficialFiltroFalhas:(_ofFiltro==='falhas' && oficialFontesProblema.length>0),
+      oficialLista, oficialListaTem:oficialLista.length>0, oficialListaVazia:oficialLista.length===0, oficialVazioTxt,
+      oficialMarcar:this.oficialMarcar,
       semanaLista, semanaTem:(semanaLista.length>0 && _podeView('juris')),
       semanaVazio:(semanaLista.length===0 && _podeView('juris')),
       semanaAbrir:this.semanaAbrir, semanaLido:this.semanaLido, semanaMais:this.semanaMais,
       semanaVerTudo:this.semanaVerTudo, semanaMaisLabel:(this.state.semanaTudo?'ver menos':'ver mais'),
       semanaTemMais:_semanaTodos.length>this.SEMANA_N,
+      // Fontes oficiais: o resumo do Início, o meta do bloco da semana (E16) e os dois atos que o
+      // Início divide com a Central. O resto da Central só nasce com ela na tela (_novidVM).
+      ofMostrar, ofFontes, ofItens, ofTemItens:ofItens.length>0, ofContOk, ofContFalha, ofContConferir, ofMeta,
+      semanaRecorteTxt:(_semRecorte ? (' · recorte de '+_semRecorte) : ''),
+      semanaAguardaAcervo:_nvAguarda>0,
+      semanaAguardaLabel:(_nvAguarda===1 ? '1 edição nova aguardando o acervo →' : (_nvAguarda+' edições novas aguardando o acervo →')),
+      novidMarcarLida:this.novidMarcarLida, novidAbrirAcervo:this.novidAbrirAcervo,
+      isNovid:this.state.view==='novidades',
+      ...(this.state.view==='novidades' ? this._novidVM() : {}),
       redHist, redHistTem:redHist.length>0, redHistEmpty:redHist.length===0, redBtnDisabled, redBtnLabel,
       redEvo, redEvoTem:redEvo.length>0, redEvoOpen:this.state.redEvoOpen, toggleRedEvo:this.toggleRedEvo,
       redEvoLabel:(this.state.redEvoOpen?'ocultar':'ver'), redParaCiclo:this.redParaCiclo,
@@ -18756,8 +19696,8 @@ class Component extends DCLogic {
       isRev:this.state.view==='revisoes', isSim:this.state.view==='simulados', isAnalise:this.state.view==='analise', isConq:this.state.view==='conquistas', isConqMetas:(this.state.view==='conquistas'||this.state.view==='metas'),
       isBaralho:this.state.view==='flashcards',
       isAnki:this.state.view==='anki', isPersonal:this.state.view==='personalizacao', isAjustes:this.state.view==='ajustes', isConfig:(this.state.view==='ajustes'||this.state.view==='personalizacao'||this.state.view==='orientacao'), isDash:this.state.view==='dashboards',
-      viewTitle:({indisponivel:'Não faz parte da sua área',inicio:'Início',areamod:areaModLabel,roteiros:'Roteiros e peças',oral:'Prova oral',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',flashcards:'Baralho',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'Redação',anki:'Anki',erros:'Caderno de erros',dominio:'Desempenho · Domínio por tópico',metas:'Metas',dashboards:'Dashboards',analise:'Desempenho',conquistas:'Metas & Conquistas',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório',admin:'Console de administração',bancas:'Bancas'}[this.state.view]),
-      viewSub:({indisponivel:'Esta tela depende de um acervo que a sua área de estudo não tem',inicio:'Seu painel de hoje',ciclo:'Uma volta pelas matérias, na ordem certa — o dia consome os próximos blocos',edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',flashcards:'Os cartões que o seu estudo gerou — revisados pela mesma régua das revisões',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:'Simulado cronometrado e registro de resultados',redacao:'Escolha uma prova real, responda e corrija pelo espelho',anki:'Baralho da biblioteca + analisador de retenção',erros:'Registre cada erro com o motivo e transforme em revisão',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',conquistas:'Objetivos pessoais, marcos e constância',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação',admin:'Contas, IA, moderação e os interruptores do app',bancas:'Perfil de cada banca e dicas por área'}[this.state.view]),
+      viewTitle:({indisponivel:'Não faz parte da sua área',inicio:'Início',areamod:areaModLabel,roteiros:'Roteiros e peças',oral:'Prova oral',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',flashcards:'Baralho',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'Redação',anki:'Anki',erros:'Caderno de erros',dominio:'Desempenho · Domínio por tópico',metas:'Metas',dashboards:'Dashboards',analise:'Desempenho',novidades:(this.state.isMobile?'Novidades':'Central de novidades'),conquistas:'Metas & Conquistas',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório',admin:'Console de administração',bancas:'Bancas'}[this.state.view]),
+      viewSub:({indisponivel:'Esta tela depende de um acervo que a sua área de estudo não tem',inicio:'Seu painel de hoje',ciclo:'Uma volta pelas matérias, na ordem certa — o dia consome os próximos blocos',edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',flashcards:'Os cartões que o seu estudo gerou — revisados pela mesma régua das revisões',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:'Simulado cronometrado e registro de resultados',redacao:'Escolha uma prova real, responda e corrija pelo espelho',anki:'Baralho da biblioteca + analisador de retenção',erros:'Registre cada erro com o motivo e transforme em revisão',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',novidades:'O que mudou nas fontes oficiais — Planalto, STF e STJ',conquistas:'Objetivos pessoais, marcos e constância',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação',admin:'Contas, IA, moderação e os interruptores do app',bancas:'Perfil de cada banca e dicas por área'}[this.state.view]),
       notLoggedIn:!this.state.loggedIn,
       // ===== U5: selo de sincronização permanente, honesto e sem travar nada ==========
       // O estado vem do auth.js (local|enviando|salvo|offline|erro). O texto diz o que
