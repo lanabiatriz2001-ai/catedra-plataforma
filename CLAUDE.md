@@ -61,6 +61,10 @@ mac/build-app.sh · ios/build-ipad.sh                                           
 - Toda mudança que toca o app (web ou Swift) termina **instalada no Mac e no iPad**, sem perguntar.
   Regra da dona, reafirmada em 10/09/2026; vale sobre a linha contrária do "Prompt 0" de
   `docs/pedidos-claude-code.md`. Mudança só de documento ou de teste não precisa de build.
+- Trabalho, build e instalação partem da `origin/main` atualizada. Antes de `mac/build-app.sh` ou
+  `ios/build-ipad.sh`: `git fetch origin` e `git rev-list --count HEAD..origin/main` tem de dar `0`
+  (senão, `git merge origin/main` ou um worktree novo de `origin/main`). Nunca instale nos aparelhos a
+  partir de branch atrasada: em 30/09/2026 um checkout 104 commits atrás da `main` desfez 31 PRs no Mac e no iPad.
 
 ## Fluxo de trabalho
 
