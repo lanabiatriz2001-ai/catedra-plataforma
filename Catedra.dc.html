@@ -7726,6 +7726,8 @@ class Component extends DCLogic {
     try{ ['catedra:_bkpFase2','catedra:mentorMsgs','catedra:_ccprobe','catedra:_ccdiag'].forEach(k=>{ if(localStorage.getItem(k)!=null) localStorage.removeItem(k); });
       const _bp=JSON.parse(localStorage.getItem('ct_bkpFase2')||'null'); if(_bp&&_bp.ts&&(Date.now()-_bp.ts)>7*864e5) localStorage.removeItem('ct_bkpFase2'); }catch(_){}
     try{ window.catedraWidgetPayload = ()=>this._widgetPayload(); }catch(_){}
+    // Widgets (WidgetKit): o host nativo lê isto e grava no grupo de apps; o auth.js publica na nuvem.
+    try{ window.catedraWidgetResumo = ()=>{ try{ return this._widgetResumo(); }catch(_){ return null; } }; }catch(_){}
     // O widget da mesa (painel nativo) chama isto p/ abrir/fechar o PiP do cronômetro.
     try{ window.catedraTogglePiP = ()=>{ try{ this.togglePiP(); }catch(_){} }; }catch(_){}
     // O CátedraLEGIS lê isto ao abrir a aba p/ oferecer as matérias do SEU edital
@@ -8163,6 +8165,76 @@ class Component extends DCLogic {
       return {diasProva:dias, revisoes:revVenc, metaPct, streak:(B.streak||0), proximo:(prox?String(prox.disc||'').replace('Direito ',''):''), updated:Date.now(), baixa:this._baixa()};
     }catch(_){ let baixa=false; try{ baixa=this._baixa(); }catch(__){}
       return {diasProva:-1, revisoes:0, metaPct:0, streak:0, proximo:'', updated:Date.now(), baixa}; }
+  }
+  // ===== Widgets (WidgetKit: Mac, iPad, iPhone) =====
+  // Resumo de FATOS, não das contas do dia: o widget refaz "dias até a prova", "revisões de hoje" e "meta de hoje"
+  // sozinho, inclusive à meia-noite. O auth.js publica isto na nuvem depois de cada sincronização (o carimbo é o
+  // updated_at do user_data) e o app nativo grava uma cópia no grupo de apps. Teto: 64 KB. Spec dos widgets §5.1.
+  _widgetResumo(){
+    const hoje=this._hoje();
+    let A=null; try{ A=window.CatedraAuth||null; }catch(_){}
+    const u=A&&A.user;
+    let sessao='local';
+    if(u&&u.id) sessao='conta';
+    else if(A){ let ml=false; try{ ml=localStorage.getItem('catedra:_modoLocal')==='1'; }catch(_){} sessao=ml?'local':'nenhuma'; }
+    let carimbo=0; try{ carimbo=+(window.CatedraSync&&window.CatedraSync.carimbo)||0; }catch(_){}
+    const C=this._concursoAtivo();
+    const prova=this.state.provaData ? {data:String(this.state.provaData), nome:String((C&&C.nome)||'')} : null;
+    // revisões pelo dueDate: o `due` numérico pode estar velho se o app ficou aberto na virada do dia
+    const lim=this._addDiasStr(hoje,30); let atrasadas=0; const porData={};
+    (this.state.reviews||[]).forEach(r=>{ const d=String((r&&r.dueDate)||''); if(!/^\d{4}-\d{2}-\d{2}$/.test(d)) return;
+      if(d<hoje) atrasadas++; else if(d<=lim) porData[d]=(porData[d]||0)+1; });
+    // ciclo: a fatia de hoje a partir do ponteiro; a cor própria do edital vence a tabela de ramos
+    const cor=(disc,dark)=>{ const k=String(disc||'').trim().toLowerCase();
+      const ed=(this.state.edital||[]).find(x=>String(x.disc||'').trim().toLowerCase()===k);
+      if(ed && /^#[0-9a-f]{3,8}$/i.test(ed.color||'')) return ed.color;
+      return CT_COR_RAMO(disc, dark); };
+    const blocos=(this.state.blocks||[]).filter(Boolean);
+    const proximos=blocos.filter(b=>!b.done).slice(0,8).map(b=>{ const d=String(b.discEdital||b.disc||'');
+      return {disc:String(b.disc||d||'—'), min:Math.max(0,Math.round(+b.min||0)), cor:this._hexDe(cor(d,false)), corD:this._hexDe(cor(d,true))}; });
+    const V=this.state.cicloVolta;
+    const volta=(V&&Array.isArray(V.blocos)&&V.blocos.length)?{n:+V.n||1, feitos:V.blocos.filter(b=>b&&b.done).length, total:V.blocos.length}:null;
+    // meta e minutos por dia na régua da meta (countMeta), com o cronômetro de hoje que ainda corre
+    const O=this.state.orient||{};
+    const diasAtivos=String(O.dias||'seg,ter,qua,qui,sex,sab').split(',').map(s=>s.trim()).filter(Boolean);
+    const metaDiariaMin=Math.max(30, parseInt(O.metaIdeal,10)||180);
+    const S=(this.state.sessions||[]).filter(Boolean); const minPorDia={};
+    for(let i=7;i>=0;i--){ const k=this._addDiasStr(hoje,-i);
+      minPorDia[k]=Math.round(S.filter(s=>s.date===k && s.countMeta!==false).reduce((a,s)=>a+(+s.min||0),0)); }
+    try{ const t=JSON.parse(localStorage.getItem('ct_timer')||'null'); if(!t||!t.d||t.d===hoje) minPorDia[hoje]+=Math.round((this.state.studiedSeconds||0)/60); }catch(_){}
+    // ofensiva com "vale até": último dia que segura a sequência + 1 + escudos (regra de _reconcileStreak)
+    const n=(this._brain().streak)||0; let valeAte='';
+    if(n>0){ const datas=new Set(S.map(s=>s.date)); const frz=new Set(this.state.streakFreezeUsados||[]);
+      const L=(datas.has(hoje)||frz.has(hoje))?hoje:this._addDiasStr(hoje,-1);
+      valeAte=this._addDiasStr(L, 1+Math.max(0, +this.state.escudos||0)); }
+    const area=this.state.areaEstudo||'juridica';
+    let juridico=true; try{ juridico=!!CT_AREA(area).juridico; }catch(_){}
+    return { v:1, carimbo, geradoEm:Date.now(), conta:(u&&u.id)||'', sessao, area, juridico, prova,
+      revisoes:{atrasadas, porData}, ciclo:{feitos:blocos.filter(b=>b.done).length, total:blocos.length, proximos, volta},
+      metaDiariaMin, diasAtivos, metaSemanaMin:metaDiariaMin*Math.max(1,diasAtivos.length), minPorDia,
+      ofensiva:{n, valeAte}, prefs:{baixa:this._baixa(), tema:this._widgetTema()} };
+  }
+  // Cor CSS → '#rrggbb' minúsculo ('' se não der): #abc, #aabbcc, rgb(), rgba().
+  _hexDe(c){
+    const s=String(c||'').trim().toLowerCase();
+    if(/^#[0-9a-f]{6}$/.test(s)) return s;
+    if(/^#[0-9a-f]{3}$/.test(s)) return '#'+s.slice(1).replace(/./g,'$&$&');
+    const m=s.match(/^rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/);
+    if(m) return '#'+[m[1],m[2],m[3]].map(x=>Math.max(0,Math.min(255,+x)).toString(16).padStart(2,'0')).join('');
+    return '';
+  }
+  // O tema resolvido na tela (o mesmo nó que _temaTokens lê): accent e até 2 paradas do --heroGrad, em hex.
+  _widgetTema(){
+    const escuro=!!this.state.darkMode; let accent='', grad=[];
+    try{ const host=document.querySelector('[style*="--accent"]');
+      if(host){ const cs=getComputedStyle(host);
+        accent=this._hexDe(cs.getPropertyValue('--accent'));
+        grad=(String(cs.getPropertyValue('--heroGrad')||'').match(/#[0-9a-f]{6}\b|#[0-9a-f]{3}\b|rgba?\([^)]*\)/gi)||[]).map(x=>this._hexDe(x)).filter(Boolean); } }catch(_){}
+    if(!accent){ try{ const D=this.THEMES()[this.state.dir]||this.THEMES().sutil;
+      accent=this._hexDe(this.state.accent)||this._hexDe(D[escuro?'dark':'light'].accent)||'#0f7a57'; }catch(_){ accent='#0f7a57'; } }
+    if(grad.length>2) grad=[grad[0], grad[grad.length-1]];
+    if(!grad.length) grad=[accent];
+    return {accent, grad, escuro};
   }
   // "hoje" e aritmética de datas em YYYY-MM-DD no fuso LOCAL (antes era UTC via
   // toISOString → no Brasil, UTC-3, o "dia" do app virava às 21h: ofensiva, revisões,
