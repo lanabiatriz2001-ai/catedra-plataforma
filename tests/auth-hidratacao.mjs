@@ -353,7 +353,7 @@ export async function testarAuthHidratacao(pageDaSuite, base, ok, opcoes = {}) {
     const r = await h.ler(), f = await h.fetchs();
     const ult = r.ups[r.ups.length - 1] || {};
     ok(r.ups.length >= 1 && /"s1"/.test(ult.sessions || '') && /"s9"/.test(ult.sessions || ''), R + '(m) depois do aceite, o pushNow pós-reload sobe s9+s1 (' + r.ups.length + ' upsert[s])');
-    ok(r.ups.length >= 1 && /"1\.0\/1\.1"/.test(aceiteDe(ult)), R + '(m) e sobe o aceite novo (' + aceiteDe(ult).slice(0, 40) + ')');
+    ok(r.ups.length >= 1 && /"1\.0\/1\.2"/.test(aceiteDe(ult)), R + '(m) e sobe o aceite novo (' + aceiteDe(ult).slice(0, 40) + ')');
     ok(r.ups.every(u => !/0\.9\/0\.9/.test(aceiteDe(u))), R + '(m) nenhum envio levou o aceite velho');
     ok(cegos(f) === 0 && r.dirty == null && r.status === 'salvo', R + '(m) sem POST cego em nenhum momento; sujo limpo e "salvo" (' + cegos(f) + ', ' + r.dirty + ', ' + r.status + ')');
   });
@@ -383,7 +383,7 @@ export async function testarAuthHidratacao(pageDaSuite, base, ok, opcoes = {}) {
     await page.waitForTimeout(1500);
     const r = await h.ler();
     const ult = r.ups[r.ups.length - 1] || {};
-    ok(r.ups.length >= 1 && /"1\.0\/1\.1"/.test(aceiteDe(ult)) && /"s9"/.test(ult.sessions || '') && !/"s1"/.test(ult.sessions || ''), R + '(n) o login seguinte sobe o aceite novo com a conta da nuvem (s9; o s1 recusado foi apagado) (' + r.ups.length + ')');
+    ok(r.ups.length >= 1 && /"1\.0\/1\.2"/.test(aceiteDe(ult)) && /"s9"/.test(ult.sessions || '') && !/"s1"/.test(ult.sessions || ''), R + '(n) o login seguinte sobe o aceite novo com a conta da nuvem (s9; o s1 recusado foi apagado) (' + r.ups.length + ')');
     ok(r.dirty == null && r.status === 'salvo', R + '(n) o login seguinte termina sem sujo e "salvo" (' + r.dirty + ', ' + r.status + ')');
   });
 
@@ -443,7 +443,7 @@ export async function testarAuthHidratacao(pageDaSuite, base, ok, opcoes = {}) {
       ok(await h.hidratado(), R + P + ' a hidratação terminou depois do aceite');
       await page.waitForTimeout(2000);
       const r = await h.ler();
-      const comNovo = r.ups.filter(u => /"1\.0\/1\.1"/.test(aceiteDe(u)));
+      const comNovo = r.ups.filter(u => /"1\.0\/1\.2"/.test(aceiteDe(u)));
       ok(comNovo.length >= 1, R + P + ' o aceite novo SUBIU (' + r.ups.map(u => aceiteDe(u).slice(12, 19) || '—').join(' | ') + ')');
       ok(comNovo.some(u => /"s1"/.test(u.sessions) && /"s9"/.test(u.sessions) && (!nos700 || /"s3"/.test(u.sessions))),
         R + P + (nos700 ? ' a edição dos 700 ms do viaPendente sobe junto (s1, s3, s9)' : ' o envio com o aceite novo leva s1 e s9'));
@@ -458,7 +458,7 @@ export async function testarAuthHidratacao(pageDaSuite, base, ok, opcoes = {}) {
 /* Os casos do aceite que sincroniza — (q), (r), (s). Ver o cabeçalho. */
 async function casosAceite(caso, ok, R) {
   const VELHO = JSON.stringify({ versao: '0.9/0.9', ts: 1 });
-  const VIGENTE_OLD = JSON.stringify({ versao: '1.0/1.1', ts: 777 });   // aceito antes do conserto
+  const VIGENTE_OLD = JSON.stringify({ versao: '1.0/1.2', ts: 777 });   // aceito antes do conserto
   const aceiteDe = u => String(u.aceite || '');
   const versaoLocal = page => page.evaluate(() => { try { return JSON.parse(localStorage.getItem('catedra:aceite')).versao; } catch (_) { return null; } });
   const esconder = page => page.evaluate(() => { Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' }); document.dispatchEvent(new Event('visibilitychange')); });
@@ -495,15 +495,15 @@ async function casosAceite(caso, ok, R) {
     await page.waitForTimeout(1500);
     const r = await h.ler();
     const v = await versaoLocal(page);
-    ok(v === '1.0/1.1', R + '(q) depois da mescla com a nuvem, o aceite do aparelho continua o vigente (' + v + ')');
+    ok(v === '1.0/1.2', R + '(q) depois da mescla com a nuvem, o aceite do aparelho continua o vigente (' + v + ')');
     const kts = await page.evaluate(() => { try { return JSON.parse(localStorage.getItem('catedra:_kts'))['catedra:aceite']; } catch (_) { return null; } });
     ok(kts > 0, R + '(q) o aceite novo foi gravado com carimbo em catedra:_kts (' + kts + ')');
     const ult = r.ups[r.ups.length - 1] || {};
-    ok(r.ups.length >= 1 && /"1\.0\/1\.1"/.test(aceiteDe(ult)) && /"s1"/.test(ult.sessions || '') && /"s9"/.test(ult.sessions || ''), R + '(q) o envio pós-reload sobe o aceite vigente junto de s1 e s9 (' + r.ups.map(u => aceiteDe(u).slice(12, 19) || '—').join(' | ') + ')');
+    ok(r.ups.length >= 1 && /"1\.0\/1\.2"/.test(aceiteDe(ult)) && /"s1"/.test(ult.sessions || '') && /"s9"/.test(ult.sessions || ''), R + '(q) o envio pós-reload sobe o aceite vigente junto de s1 e s9 (' + r.ups.map(u => aceiteDe(u).slice(12, 19) || '—').join(' | ') + ')');
     ok(r.ups.every(u => !/0\.9\/0\.9/.test(aceiteDe(u))), R + '(q) nenhum envio levou o aceite antigo');
     const seg = await reabrir(page, h);
     ok(!seg.pediu && seg.hidratou, R + '(q) segunda abertura (sessionStorage novo): NÃO pede o aceite de novo e hidrata (pediu=' + seg.pediu + ')');
-    ok(await versaoLocal(page) === '1.0/1.1', R + '(q) segunda abertura: o aceite do aparelho segue o vigente');
+    ok(await versaoLocal(page) === '1.0/1.2', R + '(q) segunda abertura: o aceite do aparelho segue o vigente');
   });
 
   // (r) aparelho que aceitou o vigente ANTES do conserto (sem carimbo), nuvem com o antigo
@@ -520,11 +520,11 @@ async function casosAceite(caso, ok, R) {
       ok(!pediu && await h.hidratado(), R + '(r) ' + rot + ': aceite vigente no aparelho, nada é pedido e a hidratação termina');
       await page.waitForTimeout(1500);
       const v = await versaoLocal(page);
-      ok(v === '1.0/1.1', R + '(r) ' + rot + ': o aparelho NÃO volta ao aceite antigo da nuvem (' + v + ')');
+      ok(v === '1.0/1.2', R + '(r) ' + rot + ': o aparelho NÃO volta ao aceite antigo da nuvem (' + v + ')');
       const r = await h.ler();
-      ok(r.ups.length >= 1 && r.ups.every(u => /"1\.0\/1\.1"/.test(aceiteDe(u))), R + '(r) ' + rot + ': o aceite vigente sobe e substitui o antigo na nuvem (' + r.ups.map(u => aceiteDe(u).slice(12, 19) || '—').join(' | ') + ')');
+      ok(r.ups.length >= 1 && r.ups.every(u => /"1\.0\/1\.2"/.test(aceiteDe(u))), R + '(r) ' + rot + ': o aceite vigente sobe e substitui o antigo na nuvem (' + r.ups.map(u => aceiteDe(u).slice(12, 19) || '—').join(' | ') + ')');
       const seg = await reabrir(page, h);
-      ok(!seg.pediu && seg.hidratou && await versaoLocal(page) === '1.0/1.1', R + '(r) ' + rot + ': segunda abertura também não pede (pediu=' + seg.pediu + ')');
+      ok(!seg.pediu && seg.hidratou && await versaoLocal(page) === '1.0/1.2', R + '(r) ' + rot + ': segunda abertura também não pede (pediu=' + seg.pediu + ')');
     });
   }
 
@@ -565,7 +565,7 @@ async function casosAceite(caso, ok, R) {
     await page.waitForTimeout(1500);
     const r = await h.ler();
     const ult = r.ups[r.ups.length - 1] || {};
-    ok(r.ups.length >= 1 && /"1\.0\/1\.1"/.test(aceiteDe(ult)) && ['s1', 's2', 's9'].every(id => new RegExp('"' + id + '"').test(ult.sessions || '')), R + '(s) depois do aceite sobem a edição offline (s2), s1, s9 e o aceite vigente (' + r.ups.length + ')');
+    ok(r.ups.length >= 1 && /"1\.0\/1\.2"/.test(aceiteDe(ult)) && ['s1', 's2', 's9'].every(id => new RegExp('"' + id + '"').test(ult.sessions || '')), R + '(s) depois do aceite sobem a edição offline (s2), s1, s9 e o aceite vigente (' + r.ups.length + ')');
     ok(r.ups.every(u => !/0\.9\/0\.9/.test(aceiteDe(u))), R + '(s) nenhum envio levou o aceite antigo');
     ok(r.dirty == null && r.status === 'salvo', R + '(s) no fim, sem sujo e "salvo" (' + r.dirty + ', ' + r.status + ')');
   });
