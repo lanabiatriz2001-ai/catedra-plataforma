@@ -208,6 +208,19 @@ do {
          && req?.value(forHTTPHeaderField: "apikey") == "k" && req?.value(forHTTPHeaderField: "Authorization") == nil
          && req?.timeoutInterval == 10)
 }
+// ---- WidgetNuvem (revisão) ----
+do {
+    caso("nuvem: resumo presente que não decodifica é falha (mantém a cópia boa)",
+         WidgetNuvem.interpretar(status: 200, corpo: Data(#"{"resumo":[1,2],"carimbo":9}"#.utf8)) == .falha
+         && WidgetNuvem.interpretar(status: 200, corpo: Data(#"{"resumo":"x","carimbo":9}"#.utf8)) == .falha)
+    caso("nuvem: 401 é falha", WidgetNuvem.interpretar(status: 401, corpo: Data("null".utf8)) == .falha)
+    caso("nuvem: status 0 (sem resposta) é falha", WidgetNuvem.interpretar(status: 0, corpo: Data()) == .falha)
+    caso("nuvem: URL https sem host é recusada",
+         WidgetNuvem.config(["CatedraSupabaseURL": "https://", "CatedraSupabaseChave": "k"]) == nil)
+    let req = WidgetNuvem.pedido(passe: "abc", config: .init(url: "https://x.supabase.co", chave: "k"))
+    let corpo = req?.httpBody.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: String] }
+    caso("nuvem: o corpo do pedido leva p_passe", corpo == ["p_passe": "abc"])
+}
 // ---- fim dos casos ----
 print("FIM \(total)")
 exit(falhas > 0 ? 1 : 0)

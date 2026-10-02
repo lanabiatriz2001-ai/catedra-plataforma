@@ -11,7 +11,7 @@ enum WidgetNuvem {
 
     static func config(_ info: [String: Any]?) -> Config? {
         guard let u = info?["CatedraSupabaseURL"] as? String, let k = info?["CatedraSupabaseChave"] as? String,
-              u.hasPrefix("https://"), !k.isEmpty else { return nil }
+              u.hasPrefix("https://"), URL(string: u)?.host != nil, !k.isEmpty else { return nil }
         return Config(url: u, chave: k)
     }
 
@@ -25,24 +25,36 @@ enum WidgetNuvem {
         guard let d = obj as? [String: Any] else { return .falha }
         guard let r = d["resumo"], !(r is NSNull) else { return .ok(nil) }
         guard JSONSerialization.isValidJSONObject(r), let dados = try? JSONSerialization.data(withJSONObject: r) else { return .falha }
-        return .ok(WidgetResumo.ler(dados))
+        // resumo presente que não decodifica (versão futura, corrompido) é falha: mantém a cópia boa
+        guard let resumo = WidgetResumo.ler(dados) else { return .falha }
+        return .ok(resumo)
     }
 
     static func pedido(passe: String, config: Config) -> URLRequest? {
-        guard let url = URL(string: config.url + "/rest/v1/rpc/widget_ler") else { return nil }
+        guard let url = URL(string: config.url + "/rest/v1/rpc/widget_ler"),
+              let corpo = try? JSONSerialization.data(withJSONObject: ["p_passe": passe]) else { return nil }
         var req = URLRequest(url: url, timeoutInterval: 10)
         req.httpMethod = "POST"
         req.setValue(config.chave, forHTTPHeaderField: "apikey")
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        req.httpBody = try? JSONSerialization.data(withJSONObject: ["p_passe": passe])
+        req.httpBody = corpo
         return req
     }
 
     #if canImport(Darwin)
+    /// Sessão sem cache nem cookies, com teto total de 10 s e sem esperar conectividade.
+    static let sessao: URLSession = {
+        let c = URLSessionConfiguration.ephemeral
+        c.timeoutIntervalForRequest = 10
+        c.timeoutIntervalForResource = 10
+        c.waitsForConnectivity = false
+        return URLSession(configuration: c)
+    }()
+
     static func ler(passe: String, config: Config) async -> Resultado {
         guard let req = pedido(passe: passe, config: config) else { return .falha }
         do {
-            let (dados, resp) = try await URLSession.shared.data(for: req)
+            let (dados, resp) = try await sessao.data(for: req)
             return interpretar(status: (resp as? HTTPURLResponse)?.statusCode ?? 0, corpo: dados)
         } catch { return .falha }
     }

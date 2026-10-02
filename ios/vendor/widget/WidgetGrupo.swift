@@ -32,7 +32,13 @@ enum WidgetGrupo {
     @discardableResult
     static func gravar(_ dados: Data, _ nome: String) -> Bool {
         guard let p = pasta else { return false }
-        do { try dados.write(to: p.appendingPathComponent(nome), options: .atomic); return true } catch { return false }
+        #if os(iOS)
+        // o widget lê com o aparelho bloqueado (depois do primeiro desbloqueio)
+        let opcoes: Data.WritingOptions = [.atomic, .completeFileProtectionUntilFirstUserAuthentication]
+        #else
+        let opcoes: Data.WritingOptions = [.atomic]
+        #endif
+        do { try dados.write(to: p.appendingPathComponent(nome), options: opcoes); return true } catch { return false }
     }
     static func ler(_ nome: String) -> Data? {
         guard let p = pasta else { return nil }
