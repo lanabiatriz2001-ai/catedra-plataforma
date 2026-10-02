@@ -7976,6 +7976,8 @@ class Component extends DCLogic {
         return 'ok';
       }catch(e){ return 'err:'+((e&&e.message)||e); }
     };
+    // Widgets: tira a primeira foto do resumo (o aviso ao app nativo só sai em mudança).
+    this._widgetAvisar();
   }
   // relê do localStorage as fatias que o merge de sync pode ter atualizado (sem reload)
   _rehydrateFromLocal(){
@@ -8224,6 +8226,20 @@ class Component extends DCLogic {
     return '';
   }
   // O tema resolvido na tela (o mesmo nó que _temaTokens lê): accent e até 2 paradas do --heroGrad, em hex.
+  // Avisa o app nativo (iPad/iPhone/Mac) que o resumo do widget mudou, para ele regravar o grupo de apps.
+  // Compara por IDENTIDADE as listas que o resumo lê (setState troca a lista inteira) e mais os escalares; junta
+  // mudanças seguidas em um aviso só, 2 s depois da última. Na web e sem o handler, não faz nada.
+  _widgetAvisar(){ try{
+    const s=this.state;
+    const refs=[s.sessions, s.reviews, s.blocks, s.cicloVolta, s.edital, s.editais, s.orient, s.prefs];
+    const esc=[s.provaData||'', s.editalAtivo||'', s.darkMode?1:0, s.dir||'', s.accent||'', s.areaEstudo||'', s.escudos||0, this._hoje()].join('|');
+    const antes=this._widgetRefs;
+    if(antes && antes.esc===esc && antes.refs.every((x,i)=>x===refs[i])) return;
+    this._widgetRefs={refs, esc};
+    if(!antes) return;   // a primeira foto não é mudança
+    clearTimeout(this._widgetT);
+    this._widgetT=setTimeout(()=>{ try{ const mh=window.webkit&&window.webkit.messageHandlers; if(mh&&mh.catedraWidget) mh.catedraWidget.postMessage({resumo:1}); }catch(_){} }, 2000);
+  }catch(_){} }
   _widgetTema(){
     const escuro=!!this.state.darkMode; let accent='', grad=[];
     try{ const host=document.querySelector('[style*="--accent"]');
@@ -8427,7 +8443,7 @@ class Component extends DCLogic {
   componentWillUnmount(){ try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onSelChange){ document.removeEventListener('selectionchange', this._onSelChange); clearTimeout(this._selChangeT); } ['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev, this._acDespertar)); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._areaMsg) window.removeEventListener('message', this._areaMsg); if(this._acervoMsg) window.removeEventListener('message', this._acervoMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._revT) clearInterval(this._revT);
     try{ if(this._mqDark && this._onMqDark){ if(this._mqDark.removeEventListener) this._mqDark.removeEventListener('change', this._onMqDark); else if(this._mqDark.removeListener) this._mqDark.removeListener(this._onMqDark); } }catch(_){}
     if(this._pipMsgT) clearTimeout(this._pipMsgT); if(this._bkpAutoT) clearInterval(this._bkpAutoT); if(this._salaT) clearTimeout(this._salaT); this._pipStop(); this._closeDocPiP();  }
-  componentDidUpdate(){ this._baixaRaiz(); this._syncModalFocus(); try{ const ta=this._toastAcaoEl; if(ta && ta.style.pointerEvents==='auto') this._toastAcaoPos(); }catch(_){} try{ this._edSincronizarConcurso(); }catch(_){} this._autosave(); this._montarFrames(); this._marcasEnunSync(); }
+  componentDidUpdate(){ this._baixaRaiz(); this._widgetAvisar(); this._syncModalFocus(); try{ const ta=this._toastAcaoEl; if(ta && ta.style.pointerEvents==='auto') this._toastAcaoPos(); }catch(_){} try{ this._edSincronizarConcurso(); }catch(_){} this._autosave(); this._montarFrames(); this._marcasEnunSync(); }
   // LEGIS e JURIS ficam em <iframe> com data-ct-frame (e não src=) de propósito: com
   // src no HTML cru o navegador baixava as duas páginas durante o parse — antes do
   // runtime existir — e jogava fora ao montar o app. Aqui o src entra só quando a

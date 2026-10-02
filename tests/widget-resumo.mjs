@@ -10,6 +10,24 @@ export async function testarWidgetResumo(pageDaSuite, base, ok, opcoes = {}) {
   const R = 'WIDGET [' + motor + '] ';
   const browser = pageDaSuite.context().browser();
   await resumoDoApp(browser, base, ok, R);
+  await avisoAoHost(browser, base, ok, R);
+}
+
+async function avisoAoHost(browser, base, ok, R) {
+  const stub = () => { window.__avisos = []; window.webkit = { messageHandlers: { catedraWidget: { postMessage: (m) => { window.__avisos.push(m); } } } }; };
+  const { ctx, page } = await abrirApp(browser, base, sementeBase, stub);
+  try {
+    await page.waitForTimeout(2600);
+    await page.evaluate(() => { window.__avisos = []; });
+    await page.evaluate(() => { const a = window.__catedraApp; a.setState({ provaData: '2026-12-01' }); setTimeout(() => a.setState({ provaData: '2026-12-02' }), 100); setTimeout(() => a.setState({ provaData: '2026-12-03' }), 200); });
+    await page.waitForTimeout(2800);
+    const av = await page.evaluate(() => window.__avisos.filter(m => m && m.resumo === 1).length);
+    ok(av === 1, R + 'três mudanças seguidas viram UM aviso catedraWidget {resumo:1} ao app nativo (' + av + ')');
+    await page.evaluate(() => { window.__avisos = []; window.__catedraApp.setState({ menuOpen: !window.__catedraApp.state.menuOpen }); });
+    await page.waitForTimeout(2600);
+    const nada = await page.evaluate(() => window.__avisos.length);
+    ok(nada === 0, R + 'mudança de tela que não mexe no resumo não avisa o app nativo (' + nada + ')');
+  } finally { await ctx.close(); }
 }
 
 async function abrirApp(browser, base, semente, initScript) {
