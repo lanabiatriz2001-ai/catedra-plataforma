@@ -103,6 +103,21 @@ Se (1) falhar, o Mac ganha um perfil Developer ID para o widget pela API (`MAC_A
 igual. Se (2) falhar (EPERM, como em `group.com.catedra.desktop`), a alternativa é o app gravar via
 `UserDefaults(suiteName: "2ZT3GWTS9Z.com.catedra")`. O resultado vai para este arquivo antes de seguir.
 
+**Resultado (01/10/2026, 22h27):** caminho (a), funciona **sem perfil e sem passo no site da Apple**, com uma
+condição que o teste descobriu. Sonda `com.catedra.sonda` + `com.catedra.sonda.widget`, Developer ID, hardened runtime,
+widget sandboxed com o grupo `2ZT3GWTS9Z.com.catedra.sonda`, nenhum perfil embutido:
+1. o `pluginkit` registrou a extensão e o app (sem sandbox) gravou `sonda.txt` no container do grupo;
+2. **mas a extensão não aparecia na galeria:** o processo nascia e caía no arranque (`EXC_BREAKPOINT` em
+   `_EXRunningExtension._shared`, antes de qualquer código nosso). Hipóteses refutadas uma a uma: chaves de plataforma no
+   Info.plist (continua caindo); entitlements (sem nenhum, continua caindo); falta de perfil (o widget do PDF Expert,
+   Developer ID, re-assinado SEM o perfil e sem `application-identifier`, NÃO cai). A diferença real: o binário do Xcode
+   entra por `_NSExtensionMain` da Foundation; o nosso, ligado à mão pelo `swiftc`, entrava pelo `main`;
+3. ligado com **`-Xlinker -e -Xlinker _NSExtensionMain`**, a sonda passou a se comportar igual ao PDF Expert, apareceu
+   na galeria (a dona viu) e o widget leu o arquivo do app: `lido.txt` = "widget leu: ola do app …".
+
+Consequência para o plano: toda ligação do `.appex` (Mac e iOS, e a compilação de verificação do teste) leva
+`-e _NSExtensionMain`; o Mac NÃO precisa de perfil Developer ID para o widget.
+
 ## 4. Os widgets e o visual
 
 ### 4.1 Quadro
