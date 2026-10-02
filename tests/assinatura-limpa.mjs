@@ -148,6 +148,8 @@ export async function testarAssinaturaLimpa(ok) {
       R + 'Developer ID que falha cai para ad-hoc, e o app sai assinado e íntegro');
     ok(/motivo: .*no identity found/.test(mac.saida), R + 'a falha mostra a primeira linha real do codesign.log');
     ok(!/internet|\brede\b/i.test(mac.saida), R + 'e não culpa a internet quando o log não fala em timestamp');
+    ok(/Gatekeeper: rejeitado.*esperado em assinatura ad-hoc/.test(mac.saida),
+      R + 'e, caída para ad-hoc, mostra o veredito do Gatekeeper como o esperado do ad-hoc');
 
     // 5) o diagnóstico só sugere rede quando o log fala no carimbo de tempo
     const logTs = path.join(dir, 'timestamp.log');
@@ -171,6 +173,102 @@ export async function testarAssinaturaLimpa(ok) {
       R + 'assinatura que reprova no --verify --strict não conta como sucesso (e o motivo fica no log)');
     ok(!fs.existsSync(path.join(comLink, 'Contents', '_CodeSignature')) && fs.existsSync(indexDe(comLink)),
       R + 'e o app de origem fica como estava, sem a cópia reprovada por cima');
+
+    // 6b) o veredito do Gatekeeper vem à parte da assinatura (01/10/2026). O app instalado
+    //     passava no codesign --strict e o spctl dizia "rejected / Unnotarized Developer ID";
+    //     o build anunciava "assinado para DISTRIBUIÇÃO". Um `spctl` de mentira no PATH responde
+    //     cada caso NO FORMATO DO REAL: escreve no stderr, sai com 0 (aceito), 3 (recusa) ou 1
+    //     (erro de selo/certificado, sem linha source=), e recusa chamada que não seja a
+    //     avaliação de execução. Um stub no stdout, ou com formato inventado, deixava passar
+    //     verde um módulo que derrubaria o build de verdade (medido na revisão do item 2).
+    const gate = montar('Gate');
+    sh('ct_assinar_limpo "$APP" "$LOG" --force --sign -', { APP: gate, LOG: path.join(dir, 'gate.log') });
+    const binG = path.join(dir, 'bin-spctl');
+    fs.mkdirSync(binG);
+    fs.writeFileSync(path.join(binG, 'spctl'), [
+      '#!/bin/bash',
+      'case " $* " in *" --assess "*"--type execute "*) ;; *) echo "args inesperados: $*" >&2; exit 9;; esac',
+      'alvo="${@: -1}"',
+      'case "$SPCTL_CASO" in',
+      '  aceito) printf "%s: accepted\\nsource=Notarized Developer ID\\norigin=Developer ID Application: Teste (XXXXXXXXXX)\\n" "$alvo" >&2; exit 0;;',
+      '  semnotarizar) printf "%s: rejected\\nsource=Unnotarized Developer ID\\norigin=Developer ID Application: Teste (XXXXXXXXXX)\\n" "$alvo" >&2; exit 3;;',
+      '  desligado) printf "%s: accepted\\nsource=Unnotarized Developer ID\\noverride=security disabled\\norigin=Developer ID Application: Teste (XXXXXXXXXX)\\n" "$alvo" >&2; exit 0;;',
+      '  desenvolvimento) printf "%s: rejected\\norigin=Apple Development: Teste (YYYYYYYYYY)\\n" "$alvo" >&2; exit 3;;',
+      '  revogado) printf "%s: CSSMERR_TP_CERT_REVOKED\\n" "$alvo" >&2; exit 1;;',
+      'esac'].join('\n'), { mode: 0o755 });
+    const comStub = (caso) => ({ PATH: binG + ':' + process.env.PATH, SPCTL_CASO: caso });
+    const veredito = (caso, modo, alvo = gate) => sh('ct_veredito_gatekeeper "$APP" ' + modo, { APP: alvo, ...comStub(caso) });
+    const semArgsErrados = (r) => !/args inesperados/.test(r.saida);
+    const semNot = veredito('semnotarizar', 'devid');
+    ok(semNot.code === 0 && semArgsErrados(semNot) && /Unnotarized Developer ID/.test(semNot.saida) && /notariza[çc][ãa]o/i.test(semNot.saida),
+      R + 'Developer ID sem notarização: o veredito diz "Unnotarized Developer ID" e que falta a notarização');
+    ok(/bash mac\/empacotar\.sh/.test(semNot.saida) && !/DISTRIBUI[ÇC][ÃA]O|pronto para distribuir|✓/i.test(semNot.saida),
+      R + 'e dá o próximo comando (bash mac/empacotar.sh) sem ✓ e sem chamar o app de pronto para distribuir');
+    const aceito = veredito('aceito', 'devid');
+    ok(aceito.code === 0 && /✓ Gatekeeper: aceito \(Notarized Developer ID\)/.test(aceito.saida),
+      R + 'app notarizado: o veredito é "✓ aceito (Notarized Developer ID)"');
+    const desligado = veredito('desligado', 'devid');
+    ok(desligado.code === 0 && !/✓/.test(desligado.saida) && /override=security disabled/.test(desligado.saida)
+      && /bash mac\/empacotar\.sh/.test(desligado.saida),
+      R + 'Gatekeeper desligado (accepted com override=): nada de ✓; diz que não há veredito e repete o aviso de notarização');
+    const dev = veredito('desenvolvimento', 'devid');
+    ok(dev.code === 0 && /não é Developer ID/.test(dev.saida) && /Apple Development/.test(dev.saida) && !/revogado/.test(dev.saida),
+      R + 'identidade Apple Development: avisa que não serve para distribuir, sem derrubar o build nem culpar o certificado');
+    const revogado = veredito('revogado', 'devid');
+    ok(revogado.code !== 0 && /REJEITADO por motivo de assinatura — CSSMERR_TP_CERT_REVOKED/.test(revogado.saida)
+      && !/empacotar/.test(revogado.saida) && !revogado.saida.includes(gate + ':'),
+      R + 'certificado revogado (formato real: "<app>: <motivo>", sem source=) é erro de assinatura e para o build');
+    const adhocV = veredito('revogado', 'adhoc');
+    ok(adhocV.code === 0 && /esperado em assinatura ad-hoc/.test(adhocV.saida),
+      R + 'ad-hoc recusado pelo Gatekeeper é o esperado e não derruba o build');
+
+    //     Com o spctl de VERDADE (nenhum certificado é preciso):
+    const real = sh('ct_veredito_gatekeeper "$APP" adhoc', { APP: gate });
+    ok(estrito(gate) && real.code === 0 && /Gatekeeper: rejeitado — esperado em assinatura ad-hoc/.test(real.saida),
+      R + 'spctl real, ad-hoc íntegro: o veredito sai por extenso e o build segue');
+    //     Selo quebrado E pasta que remarca a raiz: obriga o ramo da cópia temporária (o --strict
+    //     reprova no lugar) e prova que a cópia some, que o caminho dela não vaza na mensagem e
+    //     que a avaliação mira o bundle certo dentro da cópia.
+    const quebradoG = path.join(dir, 'GateQuebrado.app');
+    rodar('ditto', [gate, quebradoG]);
+    fs.appendFileSync(indexDe(quebradoG), '<!-- mexido depois de assinar -->');
+    marcar(quebradoG);
+    const antesTmp = fs.readdirSync(tmpBase).length;
+    const selo = sh('ct_veredito_gatekeeper "$APP" devid', { APP: quebradoG });
+    ok(selo.code !== 0 && /REJEITADO por motivo de assinatura/.test(selo.saida) && /sealed resource is missing or invalid/.test(selo.saida),
+      R + 'spctl real, selo quebrado em modo Developer ID: erro de assinatura, o build para (' + selo.saida.trim().split('\n')[0] + ')');
+    ok(!selo.saida.includes(tmpBase) && fs.readdirSync(tmpBase).length === antesTmp,
+      R + 'a cópia temporária da pasta remarcada é apagada e o caminho dela não aparece na mensagem');
+
+    // 6c) a política do Mac pelo caminho Developer ID, sem certificado: um `codesign` de mentira
+    //     troca a identidade por "-" e tira o carimbo (que exige rede); o resto vai ao de verdade.
+    //     Prova que ct_assinar_mac CONSULTA o Gatekeeper e obedece ao veredito — uma regex no
+    //     texto do módulo não pega um "return 0" posto antes da chamada.
+    const binC = path.join(dir, 'bin-codesign');
+    fs.mkdirSync(binC);
+    fs.writeFileSync(path.join(binC, 'codesign'), [
+      '#!/bin/bash',
+      'args=(); troca=0',
+      'for a in "$@"; do',
+      '  if [ "$troca" = 1 ]; then args+=("-"); troca=0; continue; fi',
+      '  case "$a" in --sign) args+=("$a"); troca=1;; --timestamp) ;; *) args+=("$a");; esac',
+      'done',
+      'exec /usr/bin/codesign "${args[@]}"'].join('\n'), { mode: 0o755 });
+    const devid = 'Developer ID Application: Teste de Mentira (XXXXXXXXXX)';
+    const politica = (caso, nome) => {
+      const alvo = montar(nome);
+      const logsP = path.join(dir, 'logs-' + nome);
+      fs.mkdirSync(logsP);
+      return sh('ct_assinar_mac "$APP" "$LOGS" "$ID"',
+        { APP: alvo, LOGS: logsP, ID: devid, PATH: binC + ':' + binG + ':' + process.env.PATH, SPCTL_CASO: caso });
+    };
+    const polSem = politica('semnotarizar', 'PolSem');
+    ok(polSem.code === 0 && /assinado com Developer ID/.test(polSem.saida) && /Unnotarized Developer ID/.test(polSem.saida)
+      && /bash mac\/empacotar\.sh/.test(polSem.saida) && !/Caindo para ad-hoc/.test(polSem.saida),
+      R + 'ct_assinar_mac (Developer ID, sem notarização): assina, consulta o Gatekeeper e segue com o aviso de notarizar');
+    const polRev = politica('revogado', 'PolRev');
+    ok(polRev.code !== 0 && /REJEITADO por motivo de assinatura/.test(polRev.saida),
+      R + 'ct_assinar_mac (Developer ID recusado por motivo de assinatura): devolve erro e o build para');
 
     // 7) se nem o ad-hoc assina, erro — e o app de origem continua lá
     const quebrado = montar('Quebrado', { executavelPasta: true });
@@ -202,6 +300,9 @@ export async function testarAssinaturaLimpa(ok) {
   const macTxt = scripts['mac/build-app.sh'];
   ok(/^ct_assinar_mac "\$APP" .*\|\|\s*exit [1-9]/m.test(macTxt), R + 'mac/build-app.sh sai com erro quando nem o ad-hoc assina');
   ok(!/sem internet/.test(semComentario(macTxt)), R + 'mac/build-app.sh não supõe mais "sem internet"');
+  const moduloTxt = semComentario(fs.readFileSync(MODULO, 'utf8'));
+  ok(!/assinado para DISTRIBUI/.test(moduloTxt) && /ct_veredito_gatekeeper "\$app" devid \|\| return 1/.test(moduloTxt),
+    R + 'a política do Mac não chama mais o app de "assinado para DISTRIBUIÇÃO" e para o build se o Gatekeeper recusa a assinatura');
   ok(/CT_REMARCADO[\s\S]{0,600}ditto --norsrc --noextattr --noacl[^\n]*\/Applications\//.test(macTxt),
     R + 'mac/build-app.sh ensina a instalar com ditto sem atributos quando a pasta remarcou o bundle');
   const ipadTxt = scripts['ios/build-ipad.sh'];
