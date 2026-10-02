@@ -4946,18 +4946,51 @@ else ok(false, 'U3 ' + u3b.erro);
 // O app já reabre a prova pausada em TELA CHEIA no boot (_restoreProva consome ct_prova),
 // e descarta prova de outro dia de propósito: por isso o cartão NÃO trata simulado — seria
 // um botão que nunca aparece. Este teste guarda a decisão.
-await page.evaluate(() => {
-  localStorage.setItem('ct_prova', JSON.stringify({ d: new Date().toISOString().slice(0, 10), min: 60, sec: 1800 }));
-  localStorage.removeItem('catedra:lastPonto');
-});
-await page.goto(URL0 + '/Catedra.dc.html');
-await page.waitForTimeout(1700);
-const u3c = await page.evaluate(() => ({
-  consumiuAChave: !localStorage.getItem('ct_prova'),
-  semCartaoDeProva: !/simulado cronometrado pausado/i.test(document.querySelector('main').innerText),
-}));
+// A prova é de HOJE no calendário LOCAL, que é como o _hoje() do app conta (_ymd). Com
+// toISOString() (UTC), das 20h à meia-noite em UTC-4 já era amanhã: o app descartava a prova
+// e as duas primeiras asserções passavam pelo caminho do descarte. `retomou` lê o estado do
+// app logo depois do boot e só passa se a prova voltou aberta, pausada e no segundo salvo.
+async function u3ProvaPausada(pg) {
+  await pg.evaluate(() => {
+    const d = new Date(), p = n => String(n).padStart(2, '0');
+    localStorage.setItem('ct_prova', JSON.stringify({ d: d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()), min: 60, sec: 1800 }));
+    localStorage.removeItem('catedra:lastPonto');
+  });
+  await pg.goto(URL0 + '/Catedra.dc.html');
+  await pg.waitForTimeout(1700);
+  return pg.evaluate(() => {
+    const s = window.__catedraApp.state, d = new Date();
+    return {
+      consumiuAChave: !localStorage.getItem('ct_prova'),
+      semCartaoDeProva: !/simulado cronometrado pausado/i.test(document.querySelector('main').innerText),
+      retomou: s.provaMode === true && s.provaSeconds === 1800 && s.provaRunning === false,
+      estado: s.provaMode + '/' + s.provaSeconds + '/' + s.provaRunning,
+      hora: d.getHours(), diaUtcVirou: d.getDate() !== d.getUTCDate(),
+    };
+  });
+}
+const u3c = await u3ProvaPausada(page);
 ok(u3c.consumiuAChave, 'U3 a prova pausada é retomada pelo app (a chave é consumida no boot)');
 ok(u3c.semCartaoDeProva, 'U3 o cartão não duplica a retomada da prova');
+ok(u3c.retomou, 'U3 a prova volta aberta, pausada e onde parou (provaMode/provaSeconds/provaRunning = ' + u3c.estado + ')');
+// A janela das 20h à meia-noite em UTC-4 cobrada em qualquer máquina e a qualquer hora (a CI
+// roda em UTC e nunca a via): contexto próprio com o fuso de Porto Velho e o relógio às 21:40
+// de hoje, padrão de tests/registro-sessao.mjs e tests/icones-alvos.mjs. O caso confere que o
+// relógio caiu mesmo na janela.
+{
+  const hojePV = new Date(Date.now() - 4 * 36e5).toISOString().slice(0, 10);   // UTC-4 fixo: Porto Velho não tem horário de verão
+  const ctxU3 = await browser.newContext({ viewport: { width: 1280, height: 900 }, timezoneId: 'America/Porto_Velho' });
+  await ctxU3.clock.install({ time: new Date(hojePV + 'T21:40:00-04:00') });
+  const pU3 = await ctxU3.newPage();
+  try {
+    await pU3.goto(URL0 + '/__semente');   // página SEM o app: a semente não corre com o autosave
+    await pU3.evaluate(() => { localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1'); });
+    const n = await u3ProvaPausada(pU3);
+    ok(n.hora === 21 && n.diaUtcVirou && n.consumiuAChave && n.semCartaoDeProva && n.retomou,
+      'U3 às 21:40 em Porto Velho, com o dia UTC já virado, a prova pausada também é retomada (' + n.hora + 'h local, dia UTC ' + (n.diaUtcVirou ? 'virado' : 'igual') + '; estado ' + n.estado + ')');
+  } catch (e) { ok(false, 'U3 noite em Porto Velho exceção: ' + e.message); }
+  finally { await ctxU3.close(); }
+}
 await page.evaluate(() => { ['catedra:lastPonto', 'catedra:lastPontoDispensado', 'ct_prova'].forEach(k => localStorage.removeItem(k)); });
 /* ============= U1 — IFRAMES VIVOS ============= */
 await page.goto(URL0 + '/Catedra.dc.html');
