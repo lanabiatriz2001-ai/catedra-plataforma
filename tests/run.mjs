@@ -71,6 +71,7 @@ import { testarSentinela } from './sentinela.mjs';
 import { testarSupportCorrecoesLocais } from './support-correcoes-locais.mjs';
 import { testarDesignNativo } from './design-nativo.mjs';
 import { testarExclusaoContaCobertura } from './exclusao-conta-cobertura.mjs';
+import { testarWidgetDodia } from './widget-dodia.mjs';
 import { testarProvaEncerrarUmaVez } from './prova-encerrar-uma-vez.mjs';
 import { montar as montarEnam, parseProva as parseProvaEnam, parseGabarito as parseGabaritoEnam, carregarAreas as areasEnam, EDICOES as EDICOES_ENAM } from '../scripts/build-questoes-enam.mjs';
 
@@ -4860,6 +4861,10 @@ catch (e) {
   ok(false, 'EXCLUSÃO o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
+
+// Widgets: o recorte da lei/súmula do dia (tests/widget-dodia.mjs)
+try { await testarWidgetDodia(ok); }
+catch (e) { ok(false, 'WIDGET DO DIA correu sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
 
 /* ============= D1 — TEMA ÚNICO NOS SATÉLITES ============= */
 // Todo satélite carrega a mesma ponte
