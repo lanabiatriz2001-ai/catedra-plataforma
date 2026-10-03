@@ -1708,3 +1708,108 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 .ct-of-del { background:color-mix(in srgb, var(--danger, #c0392f) 12%, transparent); color:inherit; text-decoration:line-through; text-decoration-color:var(--danger, #c0392f); }
 .ct-of-ins { background:color-mix(in srgb, var(--ok, #0e7f58) 14%, transparent); color:inherit; text-decoration:underline; text-decoration-color:var(--ok, #0e7f58); text-underline-offset:2px; }
 .ct-sr { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+
+/* ═══ AJUSTES · RITMO E METAS (03/10/2026) ═══════════════════════════════════════════════
+   Perfis no topo, decisões por pergunta, e a prévia do dia SEMPRE à vista: ao lado quando a
+   área de conteúdo é larga (a largura que conta é a do conteúdo, não a da janela — o menu
+   lateral come parte dela, daí a consulta de contêiner), presa no topo e compacta quando é
+   estreita. --ct-rm-topo é a altura da barra superior fixa, por baixo da qual a prévia gruda. */
+.ct-rm-caixa { container-type: inline-size; container-name: ctrm; }
+/* A caixa de conteúdo do host declara overflow-y:auto, mas quem rola é a PÁGINA: um ancestral
+   com overflow diferente de visible/clip vira a referência do sticky e a prévia nunca gruda.
+   `clip` corta o que vazar para os lados sem criar contêiner de rolagem. Só nesta aba. */
+.ct-scroll:has(.ct-rm) { overflow-x: clip !important; overflow-y: visible !important; }
+/* Efeito colateral a conter: com a caixa sem contêiner de rolagem, o cabeçalho dos Ajustes
+   (.aj-abas, sticky top:0) passaria a grudar de verdade — ele nunca grudou no host, porque a
+   referência dele era a mesma caixa que não rola — e cobriria a prévia com ~270 px. Aqui ele
+   segue no fluxo, como sempre esteve na prática. */
+.ct-scroll:has(.ct-rm) .aj-abas { position: static !important; }
+.ct-rm { --ct-rm-topo: 84px; display: block; }
+@media (max-width: 640px) { .ct-rm { --ct-rm-topo: 58px; } }
+.ct-rm-decisoes { display: flex; flex-direction: column; gap: var(--ct-e4); min-width: 0; }
+.ct-rm-h { margin: 0; font-family: var(--display); font-weight: 700; font-size: var(--fs-xl); letter-spacing: -.01em; color: var(--ink); }
+.ct-rm-sub { margin: var(--ct-e1) 0 var(--ct-e4); font-size: var(--fs-sm); color: var(--text2); }
+.ct-rm-rot { display: block; margin: var(--ct-e4) 0 var(--ct-e2); }
+.ct-rm-perfis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--ct-e3); }
+.ct-rm-perfil { display: flex; flex-direction: column; gap: var(--ct-e1); text-align: left; cursor: pointer; font-family: inherit;
+  min-height: 136px; padding: var(--ct-e4); border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface); color: var(--ink);
+  transition: border-color .15s, box-shadow .15s, transform .15s; }
+.ct-rm-perfil:hover { border-color: var(--accent); transform: translateY(-1px); }
+.ct-rm-perfil-on { border-color: var(--accent); background: var(--accentSoft); box-shadow: 0 0 0 2px var(--accent) inset; }
+.ct-rm-perfil-regua { display: flex; flex-direction: column; gap: 3px; margin-bottom: var(--ct-e2); }
+.ct-rm-perfil-regua i { display: block; height: 5px; min-width: 8px; border-radius: 99px; background: var(--accent); }
+.ct-rm-perfil-regua i:nth-child(1) { opacity: .4; }
+.ct-rm-perfil-regua i:nth-child(3) { opacity: .65; }
+.ct-rm-perfil-nome { font-family: var(--display); font-weight: 700; font-size: var(--fs-lg); }
+.ct-rm-perfil-desc { font-size: var(--fs-sm); color: var(--text2); }
+.ct-rm-perfil-resumo { margin-top: auto; padding-top: var(--ct-e2); font-family: var(--mono); font-size: var(--fs-xs); color: var(--text2); }
+.ct-rm-perfil-on .ct-rm-perfil-desc, .ct-rm-perfil-on .ct-rm-perfil-resumo { color: var(--ink); }
+.ct-rm-nota { margin-top: var(--ct-e3); font-size: var(--fs-sm); color: var(--text2); }
+.ct-rm-desfazer { margin-top: var(--ct-e3); display: flex; align-items: center; justify-content: space-between; gap: var(--ct-e3); flex-wrap: wrap;
+  padding: var(--ct-e2) var(--ct-e4); border-radius: var(--radius); background: var(--accentSoft); color: var(--ink); font-size: var(--fs-sm); }
+.ct-rm-desfazer .ct-btn-2 { min-height: var(--ct-alvo-toque); color: var(--ink); }
+.ct-rm-regua { display: flex; flex-direction: column; margin-top: var(--ct-e4); border-top: 1px solid var(--border); }
+/* cada marca é uma linha: o que ela é à esquerda, o passo à direita */
+.ct-rm-marca { display: grid; grid-template-columns: minmax(0, 1fr) minmax(170px, 210px); grid-template-areas: "rot passo" "hm passo"; align-items: center; column-gap: var(--ct-e4);
+  padding: var(--ct-e3) 0; border-bottom: 1px solid var(--border); }
+.ct-rm-marca .ct-eb { grid-area: rot; align-self: end; }
+.ct-rm-marca .ct-rm-passo { grid-area: passo; }
+.ct-rm-marca .ct-rm-hm { grid-area: hm; align-self: start; }
+@container ctrm (max-width: 420px) { .ct-rm-marca { grid-template-columns: minmax(0, 1fr); grid-template-areas: "rot" "passo" "hm"; row-gap: var(--ct-e1); } }
+.ct-rm-passo { display: flex; align-items: stretch; gap: var(--ct-e1); }
+.ct-rm-pm { flex: none; width: var(--ct-alvo-toque); min-height: var(--ct-alvo-toque); border-radius: var(--r-md, 10px); border: 1px solid var(--border);
+  background: var(--surface2); color: var(--ink); font-size: var(--fs-lg); font-weight: 700; line-height: 1; cursor: pointer; font-family: inherit; }
+.ct-rm-pm:hover { border-color: var(--accent); }
+.ct-rm-num { flex: 1; min-width: 0; text-align: center; min-height: var(--ct-alvo-toque); font-size: var(--fs-md); }
+.ct-rm-hm { margin-top: var(--ct-e1); font-size: var(--fs-xs); color: var(--text2); }
+.ct-rm-opcs { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--ct-e2); }
+.ct-rm-opcs-curtas { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ct-rm-opc { display: flex; flex-direction: column; justify-content: center; gap: 2px; text-align: left; min-height: var(--ct-alvo-toque); padding: var(--ct-e2) var(--ct-e3);
+  border-radius: var(--r-md, 10px); border: 1px solid var(--border); background: var(--surface); color: var(--ink); cursor: pointer; font-family: inherit; font-size: var(--fs-sm); }
+.ct-rm-opc:hover { border-color: var(--accent); }
+.ct-rm-opc b { font-weight: 700; font-size: var(--fs-base); }
+/* filho direto: o runtime embrulha cada {{ var }} num <span>, e "span" solto pegaria o rótulo */
+.ct-rm-opc > span { font-size: var(--fs-xs); color: var(--text2); font-weight: 400; line-height: 1.35; }
+.ct-rm-opc-on { border-color: var(--accent); background: var(--accentSoft); box-shadow: 0 0 0 1px var(--accent) inset; }
+.ct-rm-opc-on > span { color: var(--ink); }
+.ct-rm-duas { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0 var(--ct-e4); }
+.ct-rm-recolhe > summary { cursor: pointer; min-height: var(--ct-alvo-toque); display: flex; align-items: center; font-weight: 600; font-size: var(--fs-lg); color: var(--ink); }
+.ct-rm-recolhe[open] > summary { margin-bottom: var(--ct-e4); }
+.ct-rm-pilha { display: flex; flex-direction: column; gap: var(--ct-e4); }
+
+/* O véu escuro por cima do gradiente do tema garante o texto branco ≥ 4,5:1 também na ponta
+   mais clara do gradiente (no tema escuro ela dava 4,31:1). O teste compõe véu + gradiente. */
+.ct-rm-previa { position: sticky; top: var(--ct-rm-topo); z-index: 3; border-radius: var(--radius); padding: var(--ct-e4) var(--ct-e5); margin-bottom: var(--ct-e4);
+  background: linear-gradient(rgba(0,0,0,.3), rgba(0,0,0,.3)), var(--heroGrad, linear-gradient(135deg, #1e2b3a, #0f7a57)); color: #fff;
+  box-shadow: 0 10px 28px -14px rgba(0,0,0,.45); }
+.ct-rm-previa-eb { font-size: var(--fs-2xs); letter-spacing: .08em; text-transform: uppercase; font-weight: 700; }
+.ct-rm-previa-num { font-family: var(--display); font-weight: 700; font-size: clamp(28px, 6cqi, 46px); letter-spacing: -.02em; line-height: 1.05; margin-top: var(--ct-e1); }
+.ct-rm-previa-num .ct-rm-de { font-size: .45em; font-weight: 600; white-space: nowrap; }
+.ct-rm-previa-veredito { font-size: var(--fs-sm); line-height: 1.5; margin: var(--ct-e2) 0 var(--ct-e3); }
+.ct-rm-barra { display: flex; gap: 3px; height: 14px; border-radius: 99px; overflow: hidden; background: rgba(255,255,255,.18); margin-top: var(--ct-e2); }
+.ct-rm-barra i { display: block; min-width: 6px; transition: flex-grow .3s; }
+.ct-rm-previa-abre { margin-top: var(--ct-e1); min-height: var(--ct-alvo-toque); background: transparent; border: none; color: #fff; font: inherit; font-size: var(--fs-sm); font-weight: 600; text-decoration: underline; cursor: pointer; padding: 0 var(--ct-e2) 0 0; }
+.ct-rm-previa-lista { margin-top: var(--ct-e2); }
+.ct-rm-previa-linha { display: flex; justify-content: space-between; gap: var(--ct-e3); padding: var(--ct-e2) 0; border-top: 1px solid rgba(255,255,255,.22); font-size: var(--fs-sm); }
+.ct-rm-previa-linha em { font-style: normal; }
+.ct-rm-previa-linha > span:last-child { font-family: var(--mono); flex: none; }
+.ct-rm-previa-fatos { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--ct-e2); margin-top: var(--ct-e3); }
+.ct-rm-previa-fatos div { background: rgba(255,255,255,.14); border-radius: var(--r-md, 10px); padding: var(--ct-e2) var(--ct-e3); }
+.ct-rm-previa-fatos div > span { display: block; font-size: var(--fs-2xs); }
+.ct-rm-previa-fatos b { font-size: var(--fs-sm); }
+.ct-rm-previa-cumprido { margin-top: var(--ct-e2); font-size: var(--fs-xs); }
+/* estreita e fechada: só o essencial fica preso no topo */
+.ct-rm-previa:has(.ct-rm-previa-lista[data-aberta="false"]) :is(.ct-rm-previa-lista, .ct-rm-previa-fatos, .ct-rm-previa-cumprido, .ct-rm-previa-veredito) { display: none; }
+
+@container ctrm (min-width: 860px) {
+  .ct-rm { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(300px, 1fr); gap: var(--ct-e5); align-items: start; }
+  .ct-rm-decisoes { grid-column: 1; grid-row: 1; }
+  .ct-rm-previa { grid-column: 2; grid-row: 1; margin-bottom: 0; top: calc(var(--ct-rm-topo) + var(--ct-e4)); }
+  .ct-rm-previa-abre { display: none; }
+  .ct-rm-previa:has(.ct-rm-previa-lista[data-aberta="false"]) :is(.ct-rm-previa-lista, .ct-rm-previa-fatos, .ct-rm-previa-cumprido, .ct-rm-previa-veredito) { display: block; }
+  .ct-rm-previa:has(.ct-rm-previa-lista[data-aberta="false"]) .ct-rm-previa-fatos { display: grid; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ct-rm-perfil, .ct-rm-barra i { transition: none; }
+  .ct-rm-perfil:hover { transform: none; }
+}
