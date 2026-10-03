@@ -19,6 +19,7 @@
    · todo modelo do índice tem conteúdo, e as contagens do cartão batem com o arquivo. */
 
 import fs from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -155,6 +156,10 @@ DIREITO AMBIENTAL
 1. Meio Ambiente. 2. Súmulas do Supremo Tribunal Federal e do
 Tribunal de Justiça do Estado.
 DIREITO PENAL Princípios aplicáveis ao Direito Penal. Aplicação da lei penal.`,
+  // o edital repete "Disposições gerais" e "Conceito" a cada assunto; e repete o título em itens seguidos
+  repetidos: `Direito Civil: Pessoas jurídicas. Disposições gerais. Associações. Negócio jurídico. Disposições gerais. Prescrição. Disposições gerais.
+DIREITO DE FAMÍLIA
+1. Direito das famílias. Direitos pessoais. Casamento. 2. Direito das famílias. Direitos patrimoniais. Alimentos. 3. Sucessões.`,
   caps: `DIREITO CIVIL
 LEI DE INTRODUÇÃO
 PESSOAS NATURAIS
@@ -272,6 +277,12 @@ async function formatos(page, ok, R) {
   ok(/Tribunal de Justiça do Estado$/.test(tops('miudezas', 2)[1] || ''),
     R + 'linha quebrada que termina em "do" emenda na de baixo (' + (tops('miudezas', 2)[1] || '') + ')');
 
+  // nome de tópico é identidade: repetido, a 2ª ocorrência sumia ao entrar no edital
+  ok(tops('repetidos', 0).join(' | ') === 'Pessoas jurídicas | Pessoas jurídicas — Disposições gerais | Associações | Negócio jurídico | Negócio jurídico — Disposições gerais | Prescrição | Prescrição — Disposições gerais',
+    R + 'tópico repetido sem subtópicos ganha o assunto a que pertence (' + tops('repetidos', 0).join(' | ') + ')');
+  ok(tops('repetidos', 1).join(' | ') === 'Direito das famílias | Sucessões' && subs('repetidos', 1, 0).join(' | ') === 'Direitos pessoais | Casamento | Direitos patrimoniais | Alimentos',
+    R + 'título repetido em itens seguidos é o mesmo tópico: os subtópicos se juntam no primeiro (' + subs('repetidos', 1, 0).join(' | ') + ')');
+
   // o que já funcionava continua funcionando
   ok(nomes('livro') === 'Direito Eleitoral | Direito Civil' && subs('livro', 0, 0).length === 3
     && subs('livro', 0, 0)[1] === '1.2 Inelegibilidade de Magistrado e membro do MP',
@@ -366,10 +377,11 @@ async function integridadeDosModelos(page, ok, R) {
   const r = await page.evaluate(async () => {
     const app = window.__catedraApp; await app._carregarModelos();
     const D = window.CT_MODELOS_DATA || {};
-    return { cont: Object.keys(D).map(id => { let nt = 0, ns = 0, ruim = 0;
-      (D[id] || []).forEach(([n, c, t]) => { if (!n || !/^#[0-9a-f]{6}$/i.test(c || '') || !(t || []).length) ruim++;
+    return { cont: Object.keys(D).map(id => { let nt = 0, ns = 0, ruim = 0, repetidos = 0; const vazias = [];
+      (D[id] || []).forEach(([n, c, t]) => { if (!n || !/^#[0-9a-f]{6}$/i.test(c || '')) ruim++; if (!(t || []).length) vazias.push(n);
+        const vistos = {}; (t || []).forEach(([x]) => { const k = String(x).trim().toLowerCase(); if (vistos[k]) repetidos++; vistos[k] = 1; });
         (t || []).forEach(([x, s]) => { nt++; ns += (s || []).length; if (!String(x || '').trim()) ruim++; (s || []).forEach(y => { if (!String(y || '').trim()) ruim++; }); }); });
-      return { id, nd: (D[id] || []).length, nt, ns, ruim }; }) };
+      return { id, nd: (D[id] || []).length, nt, ns, ruim, vazias, repetidos }; }) };
   });
   // o índice (cartões) é lido do arquivo que o app carrega, não copiado para cá
   const m = fs.readFileSync(path.join(RAIZ, 'Catedra.dc.html'), 'utf8').match(/^const CT_MODELOS = (\[.*\]);$/m);
@@ -383,5 +395,38 @@ async function integridadeDosModelos(page, ok, R) {
   ok(!semDado.length, R + 'modelos: todo modelo do índice tem conteúdo no arquivo' + (semDado.length ? ' — sem: ' + semDado.join(', ') : ' (' + r.idx.length + ')'));
   ok(!errados.length, R + 'modelos: disciplinas, tópicos e subtópicos do cartão batem com o arquivo' + (errados.length ? ' — divergem: ' + errados.join(', ') : ''));
   ok(!orfaos.length, R + 'modelos: nenhum conteúdo sem cartão' + (orfaos.length ? ' — ' + orfaos.join(', ') : ''));
-  ok(!ruins.length, R + 'modelos: nenhuma disciplina vazia, sem cor, nem tópico em branco' + (ruins.length ? ' — ' + ruins.join(', ') : ''));
+  ok(!ruins.length, R + 'modelos: nenhuma disciplina sem nome ou sem cor, nem tópico em branco' + (ruins.length ? ' — ' + ruins.join(', ') : ''));
+  const comRepetido = r.cont.filter(c => c.repetidos).map(c => c.id + '(' + c.repetidos + ')');
+  ok(!comRepetido.length, R + 'modelos: nenhum tópico de nome repetido dentro da mesma disciplina — o repetido sumia ao aplicar' + (comRepetido.length ? ' — ' + comRepetido.join(', ') : ''));
+  /* Disciplina SEM tópicos só existe onde o edital nomeia a matéria e não dá programa — hoje, a
+     1ª fase da OAB — e tem de estar declarada em "semPrograma" no índice das fontes. */
+  const indice = JSON.parse(fs.readFileSync(path.join(RAIZ, 'scripts', 'fontes', 'editais', 'indice.json'), 'utf8'));
+  const declaradas = {}; indice.modelos.forEach(x => { declaradas[x.id] = (x.semPrograma || []).slice().sort().join(' | '); });
+  const vaziasErradas = r.cont.filter(c => c.vazias.slice().sort().join(' | ') !== (declaradas[c.id] || '')).map(c => c.id);
+  ok(!vaziasErradas.length, R + 'modelos: disciplina sem tópicos só onde o edital não traz programa, e declarada na fonte' + (vaziasErradas.length ? ' — ' + vaziasErradas.join(', ') : ''));
+  const semFonte = indice.modelos.filter(x => !/^https:\/\//.test(x.url || '') || !x.orgao || !x.banca || !x.paginas || !(x.disciplinas || []).length).map(x => x.id);
+  ok(indice.modelos.length >= 36 && !semFonte.length, R + 'modelos de 2026: cada um tem órgão, banca, endereço oficial, páginas e a lista de disciplinas conferida (' + indice.modelos.length + ')' + (semFonte.length ? ' — falta em: ' + semFonte.join(', ') : ''));
+  /* O gerador relê os textos oficiais pelo importador DA TELA e exige que as disciplinas batam com
+     as do edital: se o importador regredir, ou alguém editar o arquivo gerado à mão, ele acusa. */
+  let gerador = '';
+  try { gerador = execFileSync(process.execPath, [path.join(RAIZ, 'scripts', 'build-modelos-edital.mjs'), '--conferir'], { encoding: 'utf8' }); }
+  catch (e) { gerador = 'FALHOU: ' + String((e && (e.stdout || '') + (e.stderr || '')) || e).split('\n').filter(Boolean).slice(-3).join(' / '); }
+  ok(/em dia\s*$/.test(gerador), R + 'modelos de 2026: gerados do texto oficial e em dia com as fontes (' + gerador.trim().split('\n').pop().slice(0, 200) + ')');
+  // na tela: o modelo novo aparece entre os da área e entra no edital
+  const tela = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const app = window.__catedraApp;
+    app.setState({ edital: [], editais: [], modeloOpen: false, modeloSel: [] }); await w(300);
+    window.__catedraGoView('edital'); await w(600);
+    app.toggleModelo(); await w(900);
+    const chips = [...document.querySelectorAll('button[data-id]')].map(b => b.dataset.id);
+    const chip = document.querySelector('button[data-id="oab2Civil"]');
+    const caixa = chip ? chip.getBoundingClientRect() : { height: 0 };
+    if (chip) chip.click(); await w(700);
+    app.aplicarModelo(); await w(700);
+    return { temOab: chips.indexOf('oab1') >= 0 && chips.indexOf('juizTJPE') >= 0, alto: caixa.height,
+      ed: (app.state.edital || []).map(d => d.disc + ':' + d.topics.length).join(' | ') };
+  });
+  ok(tela.temOab && tela.alto > 0, R + 'tela: OAB e os concursos de 2026 aparecem entre os modelos da área jurídica (chip medido: ' + Math.round(tela.alto) + ' px)');
+  ok(tela.ed === 'Direito Civil:26 | Direito Processual Civil:37', R + 'tela: escolher "OAB · 2ª fase · Civil" e aplicar põe as duas disciplinas no edital (' + tela.ed + ')');
 }
