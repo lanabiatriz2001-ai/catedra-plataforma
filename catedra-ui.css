@@ -1716,17 +1716,20 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 .ct-mesa { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ct-e4); align-items: start; }
 @container mesa (min-width: 880px) {
   .ct-mesa { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
-  .ct-mesa-questao { position: sticky; top: var(--ct-e3); max-height: calc(100vh - var(--ct-e5)); overflow: auto; }
+  /* duas classes: tem de vencer o overflow:hidden de .ct-card.ct-mesa-questao, senão questão longa fica cortada */
+  .ct-card.ct-mesa-questao { position: sticky; top: var(--ct-e3); max-height: calc(100vh - var(--ct-e5)); overflow: hidden auto; }
   .ct-mesa-acao.ct-mesa-recolher { display: none; }
 }
 @supports not (container-type: inline-size) {
   @media (min-width: 1280px) {
     .ct-mesa { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
-    .ct-mesa-questao { position: sticky; top: var(--ct-e3); max-height: calc(100vh - var(--ct-e5)); overflow: auto; }
+    .ct-card.ct-mesa-questao { position: sticky; top: var(--ct-e3); max-height: calc(100vh - var(--ct-e5)); overflow: hidden auto; }
     .ct-mesa-acao.ct-mesa-recolher { display: none; }
   }
 }
-.ct-card.ct-mesa-questao, .ct-card.ct-mesa-folha { min-width: 0; padding: 0; overflow: hidden; }
+.ct-card.ct-mesa-questao, .ct-card.ct-mesa-folha { min-width: 0; padding: 0; }
+.ct-card.ct-mesa-folha { overflow: hidden; }
+.ct-card.ct-mesa-questao { overflow-x: hidden; }
 .ct-mesa-chips { display: flex; gap: var(--ct-e2); flex-wrap: wrap; margin-top: var(--ct-e2); }
 .ct-mesa-chips:empty { display: none; }
 .ct-mesa-chip { font-family: var(--mono); font-size: var(--fs-xs); padding: 2px var(--ct-e2); border-radius: 99px; background: var(--surface); color: var(--ink); }

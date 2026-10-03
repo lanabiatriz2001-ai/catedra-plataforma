@@ -3494,7 +3494,7 @@ window.ctPdfLib = (function(){
                     <span style="font-family:var(--display);font-size:var(--fs-2xl);font-weight:700;color:{{ h.notaColor }};min-width:44px;">{{ h.notaStr }}</span>
                     <span style="flex:1;min-width:0;">
                       <span style="display:block;font-size:var(--fs-base);font-weight:600;color:var(--ink);">{{ h.temaShort }}</span>
-                      <span style="display:block;font-size:var(--fs-xs);color:var(--text3);margin-top:2px;">{{ h.when }} · {{ h.words }} palavras · {{ h.tipo }}</span>
+                      <span style="display:block;font-size:var(--fs-xs);color:var(--text3);margin-top:2px;">{{ h.when }} · {{ h.comoFoi }} · {{ h.tipo }}</span>
                       <sc-if value="{{ h.disc }}" hint-placeholder-val="{{ false }}"><span class="ct-nota">{{ h.disc }}</span></sc-if>
                     </span>
                     <!-- C3: nota tirada de espelho sugerido não se confunde com a oficial -->
@@ -7400,7 +7400,7 @@ class Component extends DCLogic {
       loggedIn: (typeof localStorage!=='undefined' && localStorage.getItem('catedra:auth')==='1'),
       loginEmail:'', loginPass:'',
       errors:this._load('errors', []),
-      redText:this._load('redText', ''), redTextTs:this._load('redTextTs', 0), redTempoMs:this._load('redTempoMs', 0), redBusy:false, redResult:null, redHistory:this._redLoad(), redHist:this._load('redHist',[]), redDisciplina:this._load('redDisciplina',{}), redEvoOpen:false, redGabarito:this._load('redGabarito', ''), redEspelhoOculto:false, redModoProva:false, redGabBusy:false,
+      redText:this._load('redText', ''), redTextTs:this._load('redTextTs', 0), redTempoMs:this._redTempoBoot(), redBusy:false, redResult:null, redHistory:this._redLoad(), redHist:this._load('redHist',[]), redDisciplina:this._load('redDisciplina',{}), redEvoOpen:false, redGabarito:this._load('redGabarito', ''), redEspelhoOculto:false, redModoProva:false, redGabBusy:false,
       // C3: espelhos SUGERIDOS pela IA (nunca oficiais) — cache por prova, sincronizado
       espelhosSugeridos:this._load('espelhosSugeridos',[]), espSugBusy:false, espSugAtual:null,
       // guarda qual prova está aberta: sem isso, recarregar o app deixava o gabarito
@@ -7846,7 +7846,7 @@ class Component extends DCLogic {
     this._onHide = ()=>{ try{ this._saveTimer(); }catch(_){} };   // salva o cronômetro ao fechar/ocultar
     window.addEventListener('pagehide', this._onHide);
     window.addEventListener('beforeunload', this._onHide);
-    document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden'){ try{ this._redCronoPausar(); }catch(_){} try{ this._saveTimer(); }catch(_){} try{ this._telemetriaEnviar(); }catch(_){} } });
+    document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden'){ try{ if(this.state.redModoResposta==='digitar') this._redCronoPausar(); }catch(_){} try{ this._saveTimer(); }catch(_){} try{ this._telemetriaEnviar(); }catch(_){} } });
     window.addEventListener('online', ()=>{ try{ this._telemetriaEnviar(); }catch(_){} });
     // D11: o backup semanal não pede clique. Passa 8s depois do boot (para não competir
     // com o carregamento) e reconfere de hora em hora, para quem deixa o app aberto.
@@ -8582,7 +8582,9 @@ class Component extends DCLogic {
   componentWillUnmount(){ if(this._redCronoT) clearInterval(this._redCronoT); try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onSelChange){ document.removeEventListener('selectionchange', this._onSelChange); clearTimeout(this._selChangeT); } ['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev, this._acDespertar)); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._areaMsg) window.removeEventListener('message', this._areaMsg); if(this._acervoMsg) window.removeEventListener('message', this._acervoMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._revT) clearInterval(this._revT);
     try{ if(this._mqDark && this._onMqDark){ if(this._mqDark.removeEventListener) this._mqDark.removeEventListener('change', this._onMqDark); else if(this._mqDark.removeListener) this._mqDark.removeListener(this._onMqDark); } }catch(_){}
     if(this._pipMsgT) clearTimeout(this._pipMsgT); if(this._bkpAutoT) clearInterval(this._bkpAutoT); if(this._salaT) clearTimeout(this._salaT); this._pipStop(); this._closeDocPiP();  }
-  componentDidUpdate(){ if(this.state.view==='redacao') this._redVigiarFolha(); this._baixaRaiz(); this._widgetAvisar(); this._syncModalFocus(); try{ const ta=this._toastAcaoEl; if(ta && ta.style.pointerEvents==='auto') this._toastAcaoPos(); }catch(_){} try{ this._edSincronizarConcurso(); }catch(_){} this._autosave(); this._montarFrames(); this._marcasEnunSync(); }
+  componentDidUpdate(){ if(this.state.view==='redacao'){ this._redVigiarFolha();
+      // texto que muda sem tecla (zerar o rascunho, chegar da nuvem) também precisa remedir a folha
+      if(this.state.redText!==this._redTextoMedido){ this._redTextoMedido=this.state.redText; try{ requestAnimationFrame(this._redMedirFolha); }catch(_){} } } this._baixaRaiz(); this._widgetAvisar(); this._syncModalFocus(); try{ const ta=this._toastAcaoEl; if(ta && ta.style.pointerEvents==='auto') this._toastAcaoPos(); }catch(_){} try{ this._edSincronizarConcurso(); }catch(_){} this._autosave(); this._montarFrames(); this._marcasEnunSync(); }
   // LEGIS e JURIS ficam em <iframe> com data-ct-frame (e não src=) de propósito: com
   // src no HTML cru o navegador baixava as duas páginas durante o parse — antes do
   // runtime existir — e jogava fora ao montar o app. Aqui o src entra só quando a
@@ -12447,29 +12449,41 @@ class Component extends DCLogic {
   toggleRedQuestao = ()=> this.setState({redQuestaoAberta:!this.state.redQuestaoAberta});
   toggleRedMarcas = ()=> this.setState({redMarcasAberto:!this.state.redMarcasAberto});
   toggleRedEditarEnun = ()=>{ if(this.state.redModoProva) return; this.setState({redEditandoEnun:!this.state.redEditandoEnun}); };
-  // Cronômetro da resposta. `redTempoMs` é o acumulado SALVO; o trecho em curso vive em
-  // this._redCronoDesde e é "dobrado" para o estado a cada 15 s, ao pausar e quando a janela
-  // some — dobrar a cada segundo recarimbaria a chave e acordaria o sync à toa.
+  // Cronômetro da resposta. `redTempoMs` é o acumulado SALVO e só muda ao pausar, terminar ou
+  // zerar. O trecho em curso é só o seu INÍCIO, numa chave local fora da sincronização
+  // (catedra:_redCronoDesde, no EXCLUDE do auth.js), gravada uma vez ao começar. Antes o trecho era
+  // "dobrado" no estado a cada 15 s: cada dobra regravava a chave e acordava o sync inteiro, e fechar
+  // o app sem aviso perdia até 15 s. Agora nada é gravado enquanto o tempo corre, e o boot recupera
+  // o trecho pela chave (_redTempoBoot).
   _redFmtTempo(ms){ const s=Math.max(0,Math.floor((+ms||0)/1000)); const p=(n)=>String(n).padStart(2,'0');
     const h=Math.floor(s/3600), m=Math.floor((s%3600)/60);
     return h?(h+':'+p(m)+':'+p(s%60)):(p(m)+':'+p(s%60)); }
   _redTempoAgora(){ return (+this.state.redTempoMs||0) + (this._redCronoDesde?(Date.now()-this._redCronoDesde):0); }
-  _redCronoDobrar(){ if(!this._redCronoDesde) return; const agora=Date.now();
-    const soma=(+this.state.redTempoMs||0)+(agora-this._redCronoDesde); this._redCronoDesde=agora;
-    this.setState({redTempoMs:soma}); }
-  _redCronoIniciar(){ if(this._redCronoDesde) return; this._redCronoDesde=Date.now(); this._redCronoDobra=Date.now();
+  // No boot: havia um trecho em curso quando o app fechou? À mão o relógio é de parede (a pessoa
+  // estava no papel): conta até agora. Digitando, conta até a última tecla (redTextTs).
+  _redTempoBoot(){ let ms=+this._load('redTempoMs',0)||0;
+    try{ const d=+localStorage.getItem('catedra:_redCronoDesde')||0;
+      if(d>0){ localStorage.removeItem('catedra:_redCronoDesde');
+        const digitando=!!String(this._load('redText','')||'').trim();
+        const fim=digitando?(+this._load('redTextTs',0)||0):Date.now();
+        if(fim>d){ ms+=fim-d; localStorage.setItem(this._chave('redTempoMs'),JSON.stringify(ms)); } }
+    }catch(_){}
+    return ms; }
+  _redCronoIniciar(){ if(this._redCronoDesde) return; this._redCronoDesde=Date.now();
+    try{ localStorage.setItem('catedra:_redCronoDesde', String(this._redCronoDesde)); }catch(_){}
     this.setState({redCronoOn:true});
     if(!this._redCronoT) this._redCronoT=setInterval(()=>{
       // quem decide se ainda vale contar é o tique: a view muda por vários caminhos
       if(this.state.view!=='redacao' || this.state.redResult || this.state.redBusy || !(this.state.redEnunciado||'').trim()){ this._redCronoPausar(); return; }
-      if(Date.now()-this._redCronoDobra>=15000){ this._redCronoDobra=Date.now(); this._redCronoDobrar(); }
       this.setState({redCronoTick:Date.now()});
     },1000); }
   _redCronoPausar(){ if(this._redCronoT){ clearInterval(this._redCronoT); this._redCronoT=null; }
+    try{ localStorage.removeItem('catedra:_redCronoDesde'); }catch(_){}
     if(this._redCronoDesde){ const soma=(+this.state.redTempoMs||0)+(Date.now()-this._redCronoDesde); this._redCronoDesde=0;
       this.setState({redTempoMs:soma, redCronoOn:false}); }
     else if(this.state.redCronoOn) this.setState({redCronoOn:false}); }
   _redCronoZerar(){ if(this._redCronoT){ clearInterval(this._redCronoT); this._redCronoT=null; } this._redCronoDesde=0;
+    try{ localStorage.removeItem('catedra:_redCronoDesde'); }catch(_){}
     this.setState({redTempoMs:0, redCronoOn:false});
     try{ localStorage.setItem(this._chave('redTempoMs'),JSON.stringify(0)); }catch(_){} }
   // Mede a folha. Com a folha na medida cheia, conta as linhas RENDERIZADAS (medidor
@@ -14481,7 +14495,7 @@ class Component extends DCLogic {
     const resto=(this.state.espelhosSugeridos||[]).filter(x=>!x||x.id!==id);
     const texto=M.texto(sug);
     this.setState({ espelhosSugeridos:[...resto, sug], espSugAtual:sug, espSugBusy:false,
-      redGabarito:texto, redEspelhoOculto:true });
+      redGabarito:texto, redEspelhoOculto:true, redConf:{}, redConferindo:false });   // espelho novo: notas marcadas no antigo não valem
     try{ localStorage.setItem(this._chave('redGabarito'),JSON.stringify(texto)); }catch(_){}
     this._toast('Espelho sugerido gerado — confira os fundamentos antes de usar a nota');
   };
@@ -18714,6 +18728,10 @@ class Component extends DCLogic {
     const redHist=this.state.redHistory.map(h=>({...h, notaStr:(+h.nota).toFixed(1),
       when:(()=>{ try{ return new Date(h.ts).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}); }catch(_){ return ''; } })(),
       temaShort:(h.tema||'').replace(/^(Discursiva|Peça)\s—\s/,''), tipo:(h.tema||'').startsWith('Peça')?'Peça':'Discursiva',
+      // conferência própria não tem texto digitado: "0 palavras" seria mentira — diz como foi feita
+      comoFoi:(h.origem==='conferencia-propria'
+        ? ['à mão', h.linhas?(h.linhas+' linhas'):'', h.tempoMs?this._redFmtTempo(h.tempoMs):''].filter(Boolean).join(' · ')
+        : ((h.words||0)+' palavras')),
       // C3: nota tirada de espelho sugerido não pode passar por nota de espelho oficial
       aprox:!!h.aproximada, aproxLabel:(h.aproximada?'aprox.':''),
       notaColor:h.nota>=8?'var(--ok)':h.nota>=6?'var(--warn)':'var(--danger)'}));

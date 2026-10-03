@@ -77,7 +77,10 @@ por aparelho: iPad deitado fica lado a lado, iPad em pé empilha.
 - Painel no lugar da folha: orientação curta ("Escreva na sua folha, como na prova"), o
   limite de linhas da banca em destaque e o cronômetro.
 - Cronômetro com botão explícito "Começar" / "Pausar" (não há tecla para disparar).
-  Mesmo `redTempoMs`, mesmas regras de pausa e de zerar do modo digitado.
+  Mesmo `redTempoMs` e mesmas regras de zerar do modo digitado. À mão o relógio é de parede: a
+  tela apagar ou a janela sumir NÃO pausa (a pessoa está no papel), e o tempo sobrevive a fechar
+  o app. Sair da Redação pausa. (Revisão final, 03/10: a regra anterior parava o tempo no
+  bloqueio automático do iPad.)
 - Botão principal "Terminei — conferir pelo padrão". Ao tocar:
   - o cronômetro para;
   - a tela pergunta "Quantas linhas você usou?" (campo numérico, opcional). Com limite
@@ -106,7 +109,9 @@ por aparelho: iPad deitado fica lado a lado, iPad em pé empilha.
   dizer "faltam N" / "passou N".
 - Cronômetro progressivo `mm:ss` (`h:mm:ss` acima de 1 h), em `--mono`:
   - começa na primeira tecla; pausa ao sair da view, com a janela oculta ou durante `redBusy`;
-  - acumula em `redTempoMs` (persistido, ver Dados); o tique é de tela;
+  - acumula em `redTempoMs` (persistido, ver Dados), que só muda ao pausar, terminar ou zerar;
+    o início do trecho em curso fica em `catedra:_redCronoDesde` (local, no EXCLUDE do sync) e é
+    recuperado no boot; o tique é de tela e não grava nada;
   - zera junto com o rascunho (`redZerarRascunho`, `redReset`, `_abrirDiscursiva`);
   - na entrega, `submitRed` grava `tempoMs` na entrada do histórico.
   Sem contagem regressiva nesta fatia.

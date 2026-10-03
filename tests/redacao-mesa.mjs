@@ -38,7 +38,7 @@ const caixa = (page, sel) => page.evaluate(s => { const e = document.querySelect
 
 export async function testarRedacaoMesa(pageDaSuite, base, ok, opcoes = {}) {
   const R = 'MESA [' + (opcoes.motor || 'chromium') + '] ';
-  const blocos = [arranjo, papel, folha, espelho, conferencia, acessivel];
+  const blocos = [arranjo, papel, folha, espelho, conferencia, acessivel, revisao];
   for (const b of blocos) {
     try { await b(pageDaSuite, base, ok, R, opcoes); }
     catch (e) { ok(false, R + b.name + ' exceção: ' + e.message); }
@@ -103,14 +103,24 @@ async function papel(pageDaSuite, base, ok, R) {
     ok((await page.textContent('[data-red="crono"]')).trim() === pausado, R + '"Pausar" congela o tempo');
     await page.clock.runFor(1500);
     ok(Math.abs((await lerStore(page, 'redTempoMs')) - 65000) < 3000, R + 'tempo pausado é salvo');
-    // Review Focus 1: fechar com o cronômetro andando não perde o que passou
+    // Review Focus 1: fechar com o cronômetro andando não perde o que passou — e sem gravar a cada tique
     await page.click('[data-red="crono-btn"]'); await page.clock.runFor(40000);
+    ok(Math.abs((await lerStore(page, 'redTempoMs')) - 65000) < 3000, R + 'cronômetro andando não regrava o tempo salvo (não acorda a sincronização)');
+    ok(+(await page.evaluate(() => localStorage.getItem('catedra:_redCronoDesde'))) > 0, R + 'o início do trecho em curso fica numa chave local');
+    // à mão, a tela apaga enquanto se escreve no papel: o relógio é de parede e não pausa
     await page.evaluate(() => { Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true }); document.dispatchEvent(new Event('visibilitychange')); });
+    await page.clock.runFor(60000);
+    await page.evaluate(() => { Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true }); document.dispatchEvent(new Event('visibilitychange')); });
     await page.clock.runFor(1500);
-    ok((await lerStore(page, 'redTempoMs')) >= 100000, R + 'tempo em curso é salvo quando a janela some');
-    await page.evaluate(() => { Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true }); });
+    const sg = t => t.split(':').reduce((x, y) => x * 60 + (+y), 0);
+    const apagada = (await page.textContent('[data-red="crono"]')).trim();
+    ok(sg(apagada) >= 165 && sg(apagada) <= 180, R + 'à mão, tela apagada não para o cronômetro (' + apagada + ')');
+    // fechar sem aviso (sem visibilitychange) e reabrir: o trecho em curso é recuperado
     await abrirRedacao(page, base);
-    ok(/^01:4\d$/.test((await page.textContent('[data-red="crono"]')).trim()), R + 'tempo volta depois de recarregar');
+    // relógio de parede: recarregar leva tempo real (mais sob carga), e esse tempo conta
+    const voltou = (await page.textContent('[data-red="crono"]')).trim();
+    ok(sg(voltou) >= sg(apagada) && sg(voltou) <= sg(apagada) + 90, R + 'tempo em curso volta depois de recarregar (' + apagada + ' → ' + voltou + ')');
+    ok((await page.evaluate(() => localStorage.getItem('catedra:_redCronoDesde'))) === null, R + 'depois de recuperar, a chave do trecho em curso sai');
     // sair da view pausa
     await page.click('[data-red="crono-btn"]'); await page.clock.runFor(2000);
     const antes = (await page.textContent('[data-red="crono"]')).trim();
@@ -146,6 +156,8 @@ async function papel(pageDaSuite, base, ok, R) {
     page.once('dialog', d => d.accept());
     await page.click('button:has-text("Começar do zero")'); await page.clock.runFor(1500);
     ok((await lerStore(page, 'redTempoMs')) === 0 && (await page.textContent('[data-red="crono"]')).trim() === '00:00', R + '"Começar do zero" zera o tempo junto com o rascunho');
+    await page.waitForTimeout(300);
+    ok(/^\s*0 \/ 30 linhas/.test((await page.textContent('[data-red="linhas"]')).replace(/\s+/g, ' ')), R + 'contador de linhas acompanha o texto que some sem tecla (' + (await page.textContent('[data-red="linhas"]')).replace(/\s+/g, ' ').trim() + ')');
   } finally { await ctx.close(); }
 }
 
@@ -262,6 +274,8 @@ async function conferencia(pageDaSuite, base, ok, R) {
     await page.screenshot({ path: 'tests/_capturas/mesa-resultado-proprio.png', fullPage: true }).catch(() => {});
     page.once('dialog', d => d.accept());
     await page.click('button:has-text("Nova prova")'); await page.waitForTimeout(300);
+    const rot = (await page.locator('[data-id^="rd"]').first().textContent()).replace(/\s+/g, ' ');
+    ok(/à mão/.test(rot) && /28 linhas/.test(rot) && !/0 palavras/.test(rot), R + 'no histórico, a conferência aparece como feita à mão, com linhas e tempo (' + rot.trim().slice(0, 90) + ')');
     await page.locator('[data-id^="rd"]').first().click(); await page.waitForTimeout(300);
     ok(/Conferência própria/i.test(await page.textContent('.ct-hero')), R + 'conferência reabre pelo histórico');
   } finally { await ctx.close(); }
@@ -309,12 +323,12 @@ async function acessivel(pageDaSuite, base, ok, R) {
     const rgb = c => { const m = c.match(/[\d.]+/g).map(Number); return /color\(srgb/.test(c) ? m.slice(0, 3).map(v => v * 255) : m.slice(0, 3); };
     const lum = c => { const m = rgb(c); const f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(m[0]) + 0.7152 * f(m[1]) + 0.0722 * f(m[2]); };
     const fundo = el => { let e = el; while (e) { const cs = getComputedStyle(e);
-      // fundo em gradiente (botão primário, herói): vale a cor mais CLARA do gradiente, que é o pior caso para texto claro
-      if (/gradient/.test(cs.backgroundImage)) { const cores = cs.backgroundImage.match(/rgba?\([^)]*\)|color\(srgb[^)]*\)/g) || []; if (cores.length) return cores.sort((x, y) => lum(y) - lum(x))[0]; }
+      // fundo em gradiente (botão primário, herói): devolve TODAS as paradas — o contraste que vale é o pior
+      if (/gradient/.test(cs.backgroundImage)) { const cores = cs.backgroundImage.match(/rgba?\([^)]*\)|color\(srgb[^)]*\)/g) || []; if (cores.length) return cores; }
       const b = cs.backgroundColor; const m = b.match(/[\d.]+/g); if (m && (m.length < 4 || +m[3] >= 0.99)) return b; e = e.parentElement; } return 'rgb(255,255,255)'; };
-    const sels = ['[data-red="crono"]', '[data-red="modo-mao"]', '[data-red="modo-digitar"]', '[data-red="gab-estado"]', '[data-red="terminei"]', '.ct-folha-mao .ct-nota', '[data-red="marcas-toggle"]', '[data-red="chip-limite"]'];
+    const sels = ['[data-red="crono-btn"]', '[data-red="crono"]', '[data-red="modo-mao"]', '[data-red="modo-digitar"]', '[data-red="gab-estado"]', '[data-red="terminei"]', '.ct-folha-mao .ct-nota', '[data-red="marcas-toggle"]', '[data-red="chip-limite"]'];
     return sels.map(s => { const el = document.querySelector(s); if (!el) return { s, falta: true };
-      const a = lum(getComputedStyle(el).color), b = lum(fundo(el)); const r = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+      const a = lum(getComputedStyle(el).color); const fs = [].concat(fundo(el)); const r = Math.min(...fs.map(f => { const b = lum(f); return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05); }));
       const bx = el.getBoundingClientRect(); return { s, r: Math.round(r * 100) / 100, h: Math.round(bx.height), w: Math.round(bx.width) }; });
   });
   let page;
@@ -329,9 +343,13 @@ async function acessivel(pageDaSuite, base, ok, R) {
       for (const x of m) {
         ok(!x.falta && x.r >= 4.5, R + esquema + ': contraste de ' + x.s + ' ≥ 4,5:1 (mediu ' + (x.falta ? 'ausente' : x.r) + ')');
       }
-      for (const x of m.filter(x => /modo-|terminei|marcas-toggle/.test(x.s))) ok(x.h >= 44, R + esquema + ': alvo de ' + x.s + ' ≥ 44 px (mediu ' + x.h + ')');
+      for (const x of m.filter(x => /modo-|terminei|marcas-toggle|crono-btn/.test(x.s))) ok(x.h >= 44, R + esquema + ': alvo de ' + x.s + ' ≥ 44 px (mediu ' + x.h + ')');
       await page.click('[data-red="terminei"]'); await page.waitForSelector('[data-red="conf-opcao"]');
-      const alvos = await page.evaluate(() => [...document.querySelectorAll('[data-red="conf-opcao"]')].map(b => Math.round(b.getBoundingClientRect().height)));
+      await page.locator('[data-red="conf-opcao"]').first().click();
+      const marcado = await page.evaluate(() => { const lum = c => { const m = c.match(/[\d.]+/g).map(Number); const v3 = /color\(srgb/.test(c) ? m.slice(0, 3).map(v => v * 255) : m.slice(0, 3); const f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(v3[0]) + 0.7152 * f(v3[1]) + 0.0722 * f(v3[2]); };
+        const b = document.querySelector('[data-red="conf-opcao"][aria-pressed="true"]'); const cs = getComputedStyle(b); const x = lum(cs.color), y = lum(cs.backgroundColor); return Math.round((Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05) * 100) / 100; });
+      ok(marcado >= 4.5, R + esquema + ': degrau marcado da conferência ≥ 4,5:1 (mediu ' + marcado + ')');
+      const alvos = await page.evaluate(() => [...document.querySelectorAll('[data-red="conf-opcao"], [data-red="gab-vista-quesitos"], [data-red="gab-vista-texto"], [data-red="linhas-mao"]')].map(b => Math.round(b.getBoundingClientRect().height)));
       ok(alvos.every(h => h >= 44), R + esquema + ': degraus da conferência ≥ 44 px (mínimo ' + Math.min(...alvos) + ')');
       ok(await page.evaluate(() => [...document.querySelectorAll('[data-red="mesa"] button, [data-red="espelho"] button, [data-red="mesa"] input, [data-red="mesa"] textarea, [data-red="espelho"] input')].every(e => (e.textContent || '').trim() || e.getAttribute('aria-label') || e.getAttribute('aria-labelledby') || (e.id && document.querySelector('label[for="' + e.id + '"]')))), R + esquema + ': todo controle da mesa tem nome');
       ok(await page.evaluate(() => !/[\u{1F300}-\u{1FAFF}☀-➿]/u.test(document.querySelector('[data-red="mesa"]').textContent + document.querySelector('[data-red="espelho"]').textContent)), R + esquema + ': nenhum emoji como ícone');
@@ -344,5 +362,30 @@ async function acessivel(pageDaSuite, base, ok, R) {
     await semear(page, base, { redText: 'Um texto digitado para a barra existir.', redTextTs: Date.now() }); await abrirRedacao(page, base);
     await page.waitForSelector('[data-red="barra"]');
     ok(await page.evaluate(() => { const b = document.querySelector('[data-red="barra"] > div'); return getComputedStyle(b).transitionDuration.split(',').every(d => parseFloat(d) < 0.01); }), R + 'movimento reduzido: a barra não anima');
+  } finally { await ctx.close(); }
+}
+
+// Achados da revisão final do ramo (03/10/2026)
+async function revisao(pageDaSuite, base, ok, R) {
+  // questão maior que a janela, lado a lado: a coluna rola por dentro e nada fica inalcançável
+  let { ctx, page } = await novoContexto(pageDaSuite);
+  try {
+    const longo = ENUN + '\n\n' + Array.from({ length: 60 }, (_, i) => 'Parágrafo ' + (i + 1) + ' da situação hipotética, com fatos suficientes para ocupar mais de uma linha na coluna da questão.').join('\n\n');
+    await semear(page, base, { redEnunciado: longo }); await abrirRedacao(page, base);
+    const q = await page.evaluate(() => { const e = document.querySelector('[data-red="questao"]'); return { oy: getComputedStyle(e).overflowY, sh: e.scrollHeight, ch: e.clientHeight, vh: window.innerHeight }; });
+    ok(q.oy === 'auto' && q.sh > q.ch && q.ch <= q.vh, R + 'questão longa rola dentro da coluna (overflow ' + q.oy + ', ' + q.sh + ' > ' + q.ch + ')');
+    await page.locator('#red-disciplina').scrollIntoViewIfNeeded();
+    ok(await page.evaluate(() => { const r = document.querySelector('#red-disciplina').getBoundingClientRect(); const el = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); return !!el && (el.id === 'red-disciplina' || !!el.closest('#red-disciplina')); }), R + 'com questão longa, o seletor de disciplina continua alcançável');
+  } finally { await ctx.close(); }
+
+  // a única mudança no submitRed: a entrada do histórico leva o tempo da resposta
+  ({ ctx, page } = await novoContexto(pageDaSuite));
+  try {
+    const resp = Array.from({ length: 12 }, () => 'A tutela antecipada antecedente estabiliza-se quando não há recurso, nos termos do art. 304 do CPC.').join(' ');
+    await semear(page, base, { redText: resp, redTextTs: Date.now() - 1000, redTempoMs: 300000 }); await abrirRedacao(page, base);
+    await page.click('[data-red="folha"] .ct-folha-rodape .ct-btn');
+    await page.waitForFunction(() => { try { return JSON.parse(localStorage.getItem('catedra:red') || '[]').length > 0; } catch (_) { return false; } }, null, { timeout: 60000 });
+    const h = await page.evaluate(() => JSON.parse(localStorage.getItem('catedra:red'))[0]);
+    ok(Math.abs(h.tempoMs - 300000) < 3000 && h.origem !== 'conferencia-propria' && h.words > 40, R + 'correção digitada grava o tempo da resposta no histórico (' + h.tempoMs + ' ms)');
   } finally { await ctx.close(); }
 }
