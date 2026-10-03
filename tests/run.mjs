@@ -57,6 +57,7 @@ import { testarWidgetResumo } from './widget-resumo.mjs';
 import { testarCarregamentoInicial, testarAberturaEmbutida } from './carregamento-inicial.mjs';
 import { testarSelectHost } from './select-host.mjs';
 import { testarAjustesRitmo } from './ajustes-ritmo.mjs';
+import { testarCicloNivelEstrategia } from './ciclo-nivel-estrategia.mjs';
 import { testarEditalSubtopicos } from './edital-subtopicos.mjs';
 import { testarSemAnotacoesEstatico, testarSemAnotacoesNavegador } from './sem-anotacoes.mjs';
 import { testarAvisosOficiaisEstatico, testarAvisosOficiaisNavegador } from './avisos-oficiais.mjs';
@@ -9831,6 +9832,9 @@ catch (e) {
 // O <select> do host (tests/select-host.mjs): no WebKit o tema nativo reescrevia padding, raio e
 // min-height; aqui o mesmo roteiro prova que o Chromium segue igual (e emula as cores forçadas)
 // Ajustes · Ritmo e metas (tests/ajustes-ritmo.mjs): perfis, régua de metas, energia de hoje e a tela medida
+// Nível e estratégia mudam o ciclo (tests/ciclo-nivel-estrategia.mjs); a volta de fábrica confere com a referência gravada
+try { await testarCicloNivelEstrategia(page, URL0, ok, { motor, origem: 'http', voltaDeReferencia: JSON.parse(fs.readFileSync(path.join(RAIZ, 'tests', 'fixtures', 'volta-fabrica.json'), 'utf8')) }); }
+catch (e) { ok(false, 'CICLO-NÍVEL [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
 try { await testarAjustesRitmo(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) { ok(false, 'RITMO [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
 try { await testarSelectHost(page, URL0, ok, { motor, origem: 'http' }); }

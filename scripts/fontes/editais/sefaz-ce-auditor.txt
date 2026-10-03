@@ -1,0 +1,269 @@
+Língua Portuguesa:
+Redação Oficial. Ortografia e acentuação. Emprego do sinal indicativo de crase. Compreensão e interpretação de textos de
+gêneros variados. Relação do texto com seu contexto histórico. Denotação e conotação. Discurso direto, discurso indireto
+e discurso indireto livre. Intertextualidade. Figuras de linguagem. Morfossintaxe. Elementos estruturais e processos de
+formação de palavras. Sinonímia e antonímia. Pontuação. Pronomes. Concordância nominal e concordância verbal. Flexão
+nominal e flexão verbal. Vozes do verbo. Correlação de tempos e modos verbais. Regência nominal e regência verbal.
+Coordenação e subordinação. Conectivos. Redação (confronto e reconhecimento de frases corretas e incorretas;
+organização e reorganização de orações e períodos; equivalência e transformação de estruturas).
+
+Matemática Financeira/Estatística e Raciocínio Lógico:
+Juros simples. Montante e juros. Taxa real e taxa efetiva. Taxas equivalentes. Capitais equivalentes. Juros compostos.
+Montante e juros. Taxa real e taxa efetiva. Taxas equivalentes. Capitais equivalentes. Capitalização contínua. Descontos:
+simples, composto. Desconto racional e desconto comercial. Amortizações. Sistema francês. Sistema de amortização
+constante. Sistema misto. Fluxo de caixa. Valor atual. Taxa interna de retorno. Estatística Descritiva: gráficos, tabelas,
+medidas de posição (média, moda, mediana, quartis, mínimo e máximo) e de variabilidade (variância, desvio-padrão,
+amplitude). Técnicas de Contagem e Análise Combinatória: Combinações Simples, Arranjos e Permutação com e sem
+repetição. Probabilidades: conceito, espaço amostral, axiomas e distribuições de probabilidades discretas e contínuas
+(Bernoulli, binomial, geométrica, uniforme, discreta, contínua, normal, Poisson, qui-quadrado, t de Student e F-Snedecor).
+Inferência estatística. Amostragem: amostras casuais e não casuais. Processos de amostragem, incluindo estimativa pontual
+de parâmetros. Intervalos de confiança. Testes de hipóteses para médias e proporções. Correlação e regressão linear
+simples. Raciocínio Lógico: Estrutura lógica de relações arbitrárias entre pessoas, lugares, objetos ou eventos fictícios;
+dedução de novas informações das relações fornecidas e avaliação das condições usadas para estabelecer a estrutura
+daquelas relações. Compreensão e elaboração da lógica das situações por meio de: raciocínio verbal; raciocínio
+matemático; raciocínio sequencial; orientação espacial e temporal; formação de conceitos; discriminação de elementos.
+Compreensão do processo lógico que, a partir de um conjunto de hipóteses, conduz, de forma válida, a conclusões
+determinadas.
+
+Administração Pública e Governança Pública:
+Administração Pública: Reformas Administrativas. Gestão de suprimentos e logística na administração pública. Processos
+participativos de gestão pública: orçamento participativo, parceria entre governo e sociedade, ouvidorias, governança
+interna e externa. Novas formas de gestão de serviços públicos: formas de supervisão e contratualização de resultados. Os
+controles interno e externo. Responsabilização e Prestação de Contas. Lei de Acesso à Informação. Competências da
+Secretaria
+de
+Administração.
+Governança Pública Organizacional: conceito, princípios, diretrizes e boa governança; Stakeholders da Administração
+Pública: teoria da agência; Instâncias de Governança: estratégica, tática e operacional,  Modelo de Gestão do Poder
+Executivo do Estado do Ceará; Integridade: conceitos e princípios, Programa de Integridade do Poder Executivo do Estado
+do Ceará; Gestão de Riscos: conceito e princípios, gestão de riscos e gerenciamento de riscos, modelo de três linhas, Política
+de Gestão de Riscos do Poder Executivo do Estado do Ceará; Responsabilidade do agente público: deveres e proibições do
+servidor público civil do Estado do Ceará, Código de Ética e Conduta da Administração Pública Estadual do Ceará, sanções
+éticas e disciplinares, sindicância, processo administrativo disciplinar e termo de ajustamento de conduta, sistema de
+correição do Poder Executivo do Estado do Ceará, sistema de ética do Poder Executivo do Estado do Ceará; Assédio e
+violência no trabalho: conceitos e tipificação, Convenção nº 190/2019 da Organização Internacional do Trabalho (OIT),
+sistema de combate e prevenção ao assédio moral no Poder Executivo do Estado do Ceará.
+
+Economia:
+Microeconomia: Conceitos fundamentais de economia. Teoria elementar de equilíbrio do mercado.  Fatores que
+influenciam a oferta e a procura por bens e serviços. Efeitos de deslocamentos das curvas de procura e oferta. Elasticidades
+- preço da procura e da oferta. Equilíbrio da firma no curto prazo nas estruturas de mercado, concorrência perfeita,
+concorrência monopolística, oligopólio e monopólio. Economia da Tributação: A necessidade econômica da tributação,
+Formas de Tributação: Impostos, taxas e contribuições de melhoria. Classificação dos impostos: Impostos indiretos:
+Impostos Ad Valorem e impostos específicos, impostos sobre valor adicionado, impostos únicos (excise tax). Tributação e
+eficiência, conceituação econômica de eficiência: eficiência de Pareto. O peso morto da tributação. Determinantes do Peso
+Morto: elasticidades de oferta e demanda. Tributação Ótima sobre mercadorias: a regra de Ramsey. Curva de Laffer.
+Tributação e equidade: o trade-off entre eficiência e equidade. Implicações da regra de Ramsey sobre a equidade, critérios
+de equidade: capacidade contributiva, critério do benefício. Efeitos distributivos dos impostos: incidência econômica dos
+tributos. Tributação e estruturas de mercado: incidência de impostos em concorrência perfeita e monopólio. Política
+tributária: como os impostos influem nas decisões de consumo, poupança e gasto. Macroeconomia: Fluxo Circular da
+Renda, Contabilidade nacional. Mensurando a Renda Nacional: os agregados macroeconômicos: consumo, investimento,
+gastos do governo, exportações líquidas. Determinação do produto de equilíbrio, investimento e poupança, a curva IS.
+Política monetária, taxa de juros e a curva LM. PIB real X PIB nominal, Deflator do PIB. Inflação: conceitos e formas de
+mensuração, correção monetária utilizando índices de inflação. Contas nacionais do Brasil. Balanço de Pagamentos e
+relações com o resto do mundo. Noções sobre economia do setor público. Políticas fiscal, monetária e cambial. Efeitos da
+atuação do Estado na economia. Sistema Tributário como instrumento de distribuição de renda.
+
+Direito Constitucional:
+1. Constituição da República Federativa do Brasil de 1988. 2. Aplicabilidade das normas constitucionais. 2.1 Normas de
+eficácia plena, contida e limitada. 2.2 Normas programáticas. 3. Direitos e garantias fundamentais. 3.1 Direitos e deveres
+individuais e coletivos, direitos sociais, direitos de nacionalidade, direitos políticos, partidos políticos. 4. Organização
+político-administrativa do Estado. 4.1 Estado federal brasileiro, União, Estados, Distrito Federal, Municípios e Territórios. 5.
+Administração Pública. 5.1 Disposições gerais, servidores públicos 6. Poder Executivo. 6.1 Atribuições e responsabilidades
+do Presidente da República. 7. Poder Legislativo. 7.1 Estrutura. 7.2 Funcionamento e atribuições. 7.3 Processo legislativo.
+7.3.1 Processo legislativo federal: conceito, espécies normativas, modalidades, fases. 7.3.2 Processo legislativo estadual,
+distrital e municipal: normas constitucionais federais aplicáveis. 7.4 Fiscalização contábil, financeira e orçamentária. 7.5
+Comissões parlamentares de inquérito. 8. Poder Judiciário. 8.1 Disposições gerais. 9. Funções essenciais à Justiça. 9.1
+Ministério Público, advocacia pública. 10. Controle de constitucionalidade. 10.1 Controle judicial de constitucionalidade:
+conceito, histórico, sistemas, pressupostos, modalidades, órgãos competentes, sujeitos legitimados, objetos de controle,
+tipos de inconstitucionalidade, parâmetros de controle, formalidades, procedimentos, julgamentos, decisões, efeitos das
+decisões, técnicas de decisão, segurança e estabilidade das decisões. 10.2 Súmula vinculante. 10.3 Reclamação
+constitucional. 10.4 Controle não judicial de constitucionalidade: órgãos, institutos e procedimentos. 10.5 Controle de
+constitucionalidade nos estados e no Distrito Federal. 11. Ordem econômica e financeira. 12. Constituição do Estado de
+Goiás. 12.1. Da Organização do Estado: Poder Legislativo, Poder Executivo, Poder Judiciário. 12.2. Da Ordem Econômica e
+Social: Da Política de Desenvolvimento.
+
+Direito Administrativo:
+Estado, Governo e Administração Pública. Conceitos. Elementos. Direito Administrativo. Conceito. Objeto. Fontes. Ato
+administrativo. Conceito, requisitos, atributos, classificação e espécies. Extinção do ato administrativo. Cassação, anulação,
+revogação e convalidação. Decadência administrativa. Agentes públicos: Conceito. Espécies. Cargo, emprego e função
+pública. Provimento. Vacância. Efetividade, estabilidade e vitaliciedade. Remuneração. Direitos e deveres.
+Responsabilidade. Processo administrativo disciplinar. Poderes da Administração Pública: Hierárquico, disciplinar,
+regulamentar e de polícia. Uso e abuso do poder. Regime jurídico-administrativo: Conceito. Princípios expressos e implícitos
+da administração pública. Responsabilidade civil do Estado: Evolução histórica. Responsabilidade civil do Estado no direito
+brasileiro: Responsabilidade por ato comissivo do Estado. Responsabilidade por omissão do Estado. Requisitos para a
+demonstração da responsabilidade do Estado. Causas excludentes e atenuantes da responsabilidade do Estado. Reparação
+do dano. Direito de regresso. Serviços Públicos: Conceito. Elementos constitutivos. Formas de prestação e meios de
+execução: Delegação. Concessão, permissão e autorização. Classificação. Princípios. Parceria Público-Privada: Lei nº
+8.987/1995, que dispõe sobre o regime de concessão e permissão da prestação de serviços públicos e Lei nº 11.079/2004,
+que institui normas gerais para licitação e contratação de parceria público-privada no âmbito da administração pública.
+Parcerias com organizações da sociedade civil, Lei nº 13.019/2014 e alterações. Organização Administrativa: Centralização,
+descentralização, concentração e desconcentração. Administração direta e indireta. Autarquias, fundações, empresas
+públicas e sociedades de economia mista. Entidades paraestatais e terceiro setor: Serviços sociais autônomos, entidades
+de apoio, organizações sociais, organizações da sociedade civil de interesse público. Contratos de Gestão. Controle da
+Administração Pública: Controle externo e controle interno: Controle exercido pela administração pública. Controle judicial.
+Controle legislativo e pelos Tribunais de Contas. Improbidade administrativa: Lei nº 8.429/1992 e alterações, que dispõe
+sobre improbidade administrativa. Lei Anticorrupção: Lei nº 12.846/2013 e alterações, que dispõe sobre a
+responsabilização administrativa e civil de pessoas jurídicas pela prática de atos contra a administração pública, nacional
+ou estrangeira, e dá outras providências. Lei de Licitações e Contratos Administrativos: Lei nº 14.133/2021. Bens Públicos.
+Bens públicos: regime jurídico, classificação, administração, aquisição e alienação, formas de utilização por terceiros. Lei de
+acesso à informação: Lei nº 12.527/2011. Lei Geral de Proteção de Dados: Lei nº 13.709/2018.
+
+Direito Civil:
+Lei de Introdução às Normas do Direito Brasileiro. Vigência, aplicação, obrigatoriedade, interpretação e integração das leis.
+Conflito das leis no tempo. Eficácia das leis no espaço. Pessoas naturais. Conceito. Início da pessoa natural. Personalidade.
+Capacidade. Direitos da personalidade. Domicílio. Pessoas jurídicas. Disposições gerais. Associações. Fundações. Bens
+imóveis, móveis e públicos. Fato jurídico. Negócio jurídico. Disposições gerais. Invalidade. Prescrição. Disposições gerais.
+Decadência. Obrigações. Características. Adimplemento pelo pagamento. Inadimplemento das obrigações – disposições
+gerais e mora. Contratos. Princípios. Contratos em geral. Disposições gerais. Responsabilidade civil objetiva e subjetiva.
+Formas de direito de exploração de propriedades (posse, usufruto, contratos de compra e venda, comodato, arrendamento,
+inventários). Regime de bens do casamento. Sucessões: sucessão legítima e sucessão testamentária, inventário e partilha.
+
+Direito Penal:
+Princípios constitucionais e gerais do Direito Penal. Aplicação da lei penal. Crime. Imputabilidade penal. Concurso de
+pessoas. Das Penas. Ação penal. Extinção da punibilidade. Disposições gerais. Crimes contra a Fé Pública: falsidade de títulos
+e outros papéis públicos; falsidade documental; fraudes em certames de interesse público. Crimes contra a Administração
+Pública: crimes praticados por funcionário público e por particular contra a Administração Pública. Crimes em licitações e
+contratos administrativos (Lei nº 14.133/2021 e suas alterações). Crimes contra as finanças públicas. Crimes contra o estado
+democrático de direito. Crimes contra a ordem tributária, econômica e contra as relações de consumo (Lei nº 8.137/1990
+e suas alterações). Crimes contra as Finanças Públicas. Crime organizado (Lei nº 12.850/2013 e suas alterações). Crimes de
+lavagem de dinheiro (Lei nº 9.613/1998 e suas alterações). Interceptação telefônica (Lei nº 9.296/1996 e suas alterações).
+Crimes de preconceito (Lei nº 7.716/1989 e suas alterações). Lei de abuso de autoridade (Lei nº 13.869/2019 e suas
+alterações). Doutrina e Jurisprudência aplicada dos tribunais superiores.
+
+Direito Financeiro
+Orçamento na Constituição de 1988. Plano Plurianual (PPA), Lei de Diretrizes Orçamentárias (LDO), Lei Orçamentária Anual
+(LOA). Princípios Orçamentários. Processo de aprovação da proposta orçamentária. Emendas parlamentares ao Orçamento;
+emendas impositivas individuais e de bancada. Créditos Adicionais. Lei de Diretrizes Orçamentárias (LDO): objetivos,
+estrutura, base legal e conteúdo, Anexos de Metas Fiscais, Anexos de Riscos Fiscais, critérios para limitação de empenho.
+Lei Complementar nº 101, de 04 de maio de 2000, que estabelece normas de finanças públicas voltadas para a
+responsabilidade na gestão fiscal e da outras providências: Capítulo II - Planejamento; Capítulo III – Da Receita Pública;
+Capítulo IV – Da Despesa Pública; Capítulo V – Das Transferências Voluntárias; Capítulo VI – Da Destinação de Recursos para
+o Setor Privado; Capítulo VII – Da Dívida e do Endividamento; Capítulo VIII – Da Gestão Patrimonial. Lei nº 4.320, de 17 de
+março de 1964, que estatui normas gerais de direito financeiro para elaboração e controle dos orçamentos e balanços da
+União, dos Estados, dos Municípios e do Distrito Federal: Restos a pagar, despesas de exercícios anteriores. Fundos
+Especiais de Despesa; Fundos de Investimento e Financiamento; Desvinculação de Receitas de Estados e Municípios
+(DREM).
+
+Contabilidade Geral e Pública:
+Contabilidade Geral: Conceito, objetivos, campo de atuação, usuários da informação contábil e características qualitativas
+da informação contábil. Normas Brasileiras de Contabilidade (NBC) e pronunciamentos do Comitê de Pronunciamentos
+Contábeis (CPC).
+Itens patrimoniais do ativo, do passivo e do patrimônio líquido: Conceitos de ativo e passivo. Critérios de mensuração.
+Classificações e formas de apresentação. Receitas e despesas: Conceitos. Mensuração e contabilização.
+Estoques: Componentes do custo. Critérios de valoração, apuração do custo das mercadorias vendidas e métodos de
+avaliação (Preço específico, PEPS, Média Ponderada Móvel). Tipos de inventário. Tratamento contábil dos tributos
+incidentes em operações comerciais.
+Ativo imobilizado: Reconhecimento. Mensuração inicial e mensuração subsequente. Depreciação: cálculo e contabilização.
+Tratamento do resultado na venda e da baixa do ativo.
+Ativo intangível: Reconhecimento. Mensuração inicial e mensuração subsequente. Amortização: cálculo e contabilização.
+Tratamento do resultado na venda e da baixa do ativo.
+Redução ao valor recuperável de ativos: Conceito e reconhecimento. Mensuração e contabilização. Tratamento da
+reversão.
+Provisões, passivos contingentes e ativos contingentes: Conceito e reconhecimento. Mensuração inicial e mensuração
+subsequente.
+Demonstrações contábeis: Balanço patrimonial: estrutura e classificação. Demonstração do resultado: estrutura e
+classificação. Demonstração do resultado abrangente: conceito, estrutura e classificação. Demonstração das mutações do
+patrimônio líquido.
+Contabilidade Pública: Lei nº 4.320/1964 e suas alterações. Manual de Contabilidade Aplicada ao Setor Público, 11ª edição:
+Procedimentos Contábeis Orçamentários; Procedimentos Contábeis Patrimoniais; Procedimentos Contábeis Específicos;
+Demonstrações Contábeis Aplicadas ao Setor Público; Plano de Contas Aplicado ao Setor Público; Anexo - Plano de Contas
+Aplicado ao Setor Público. Normas Brasileiras de Contabilidade Aplicadas ao Setor Público – NBC TSP: NBC TSP Estrutura
+Conceitual; NBC TSP 01, NBC TSP 02, NBC TSP 03, NBC TSP 04, NBC TSP 05, NBC TSP 06, NBC TSP 07, NBC TSP 08, NBC TSP
+09, NBC TSP 10, NBC TSP 11, NBC TSP 12, NBC TSP 13, NBC TSP 14, NBC TSP 15, NBC TSP 16, NBC TSP 17, NBC TSP 18, NBC
+TSP 19, NBC TSP 20, NBC TSP 21, NBC TSP 22, NBC TSP 23, NBC TSP 24, NBC TSP 25, NBC TSP 26, NBC TSP 27, NBC TSP 29,
+NBC TSP 30, NBC TSP 31, NBC TSP 32, NBC TSP 33 e NBC TSP 34. Decreto nº 10.540/2020.
+Auditoria: Distinção entre auditoria interna, auditoria independente e perícia contábil. Planejamento da auditoria. Fraude
+e erro. Relevância na auditoria. Riscos da auditoria. Amostragem: tamanho, tipos e avaliação dos resultados. Procedimentos
+de auditoria. Confirmações externas. Testes de observância. Estudo e avaliação do sistema contábil e de controles internos.
+Testes substantivos. Estimativas contábeis. Auditoria de estoque: interna, externa, sistemas e fluxo de mercadorias. Papéis
+de trabalho e documentação de auditoria. Evidência em auditoria. Pareceres de auditoria. NBC TA 230 (R1), NBC TA 240
+(R1), NBC TA 265, NBC TA 300 (R1), NBC TA 315 (R2), NBC TA 320 (R1), NBC TA 500 (R1), NBC TA 501, NBC TA 505, NBC TA
+530, NBC TA 540, NBC TA 610, NBC TA 620, NBC TA 700.
+Direito Tributário:
+Sistema Tributário Nacional na Constituição Federal: Da Tributação e do Orçamento. Do sistema tributário nacional. Dos
+princípios gerais. Das limitações do poder de tributar. Dos impostos da União. Dos impostos dos Estados e do Distrito
+Federal. Dos impostos dos Municípios. Do imposto de competência compartilhada entre Estados, Distrito federal e
+Municípios. Da repartição das receitas tributárias.
+Código Tributário Nacional (Lei nº 5.172/1966): Disposição preliminar. Sistema Tributário Nacional no CTN: Disposições
+Gerais. Competência Tributária: Disposições Gerais; Limitações da Competência Tributária: Disposições Gerais, Disposições
+Especiais. Impostos: Disposições Gerais. Impostos sobre o Patrimônio e a Renda. Imposto sobre a Transmissão de Bens
+Imóveis e de Direitos a eles relativos. Taxas. Contribuição de Melhoria. Normas Gerais de Direito Tributário. Legislação
+Tributária: Disposições Gerais: Disposição preliminar; Leis, tratados e Convenções Internacionais e Decretos; Normas
+Complementares. Vigência da Legislação Tributária. Aplicação da Legislação Tributária. Interpretação e Integração da
+Legislação Tributária. Obrigação Tributária: Disposições Gerais, Fato Gerador, Sujeito Ativo. Sujeito Passivo: disposições
+gerais, solidariedade, capacidade tributária, domicílio tributário. Responsabilidade Tributária: disposição geral,
+responsabilidade dos sucessores, responsabilidade de terceiros, responsabilidade por infrações. Crédito Tributário:
+Disposições Gerais. Constituição de Crédito Tributário: lançamento, modalidades de lançamento. Suspensão da
+exigibilidade do Crédito Tributário. Disposições Gerais. Moratória. Extinção do Crédito Tributário: modalidades de extinção,
+pagamento, pagamento indevido, demais modalidades de extinção. Exclusão de Crédito Tributário: disposições gerais,
+isenção, anistia. Garantias e Privilégios do Crédito Tributário: disposições gerais, preferências. Administração Tributária:
+Fiscalização, Dívida Ativa, Certidões Negativas. Disposições Finais e Transitórias.
+Legislação Tributária Nacional: Lei Complementar nº 24/1975 (Dispõe sobre os convênios para a concessão de isenções do
+imposto sobre operações relativas à circulação de mercadorias, e dá outras providências). Lei Complementar nº 87/1996
+(Dispõe sobre o imposto dos Estados e do Distrito Federal sobre operações relativas à circulação de mercadorias e sobre
+prestações de serviços de transporte interestadual e intermunicipal e de comunicação, e dá outras providências. Lei
+Complementar Federal nº 105/01 (Dispõe sobre o sigilo das operações de instituições financeiras e dá outras providências.).
+Lei Complementar nº 116/2003 (Dispõe sobre o ISSQN e conflito de competência com o ICMS). Lei Complementar nº
+123/2006 (Estatuto Nacional da Microempresa e da Empresa de Pequeno Porte). Resolução CGSN nº 140/2018 (Dispõe
+sobre o Regime Especial Unificado de Arrecadação de Tributos e Contribuições devidos pelas Microempresas e Empresas
+de Pequeno Porte). Lei Complementar nº 160/2017 (Dispõe sobre convênio que permite aos estados e ao distrito federal
+deliberar sobre a remissão dos créditos tributários, constituídos ou não, decorrentes das isenções, dos incentivos e dos
+benefícios fiscais ou financeiro-fiscais instituídos em desacordo com o disposto no Art. 155, § 2º, inciso XII, alínea g, da
+Constituição Federal de 1988, e a reinstituição das respectivas isenções, incentivos e benefícios fiscais ou financeiro-
+fiscais.). Lei Complementar nº 192/2022 (Define os combustíveis sobre os quais incidirá uma única vez o Imposto sobre
+Operações Relativas à Circulação de Mercadorias e sobre Prestações de Serviços de Transporte Interestadual e
+Intermunicipal e de Comunicação (ICMS), ainda que as operações se iniciem no exterior; e dá outras providências.).
+Reforma Tributária: Emenda Constitucional nº 132/2023. Lei Complementar nº 214/2025. Imposto sobre bens e serviços
+(IBS). Comitê Gestor do IBS. Contribuição sobre bens e serviços (CBS). Lei Complementar nº 227/2026. Da administração e
+da gestão do Imposto sobre Bens e Serviços (IBS). Inclusive dispositivos destas normas que entram em vigor nos anos
+seguintes.
+
+Legislação Tributária Estadual:
+Lei nº 18.665, de 2023. DISPÕE sobre o ICMS. Decreto nº 33.327, de 2019. Dispõe sobre o ICMS. Lei nº 15.812, de 2015.
+Dispõe sobre o ITCD. Lei nº 12.023, de 1992. Dispõe sobre o IPVA. Lei Complementar nº 37, de 2003. INSTITUI o FECOP.
+
+Contabilidade Avançada e de Custos:
+Contabilidade Avançada: Políticas Contábeis, Mudança de Estimativa e Retificação de Erro. Mensuração a Valor justo:
+Conceitos envolvidos. Critérios de cálculo e tratamento contábil. Ajuste a valor presente: Conceitos. Tratamento contábil.
+Instrumentos financeiros: Conceito e tratamento contábil. Valores a receber de clientes. Aplicações financeiras.
+Empréstimos e Debêntures. Propriedade para Investimento: Conceito. Mensuração inicial e mensuração subsequente.
+Tratamento contábil. Operações de arrendamento: Reconhecimento. Mensuração inicial e mensuração subsequente.
+Tratamento contábil. Participações Societárias: Conceito de coligadas e controladas. Definição de influência significativa e
+controle. Métodos de avaliação e tratamento contábil: Mensuração inicial e mensuração subsequente. Apuração e
+tratamento contábil da mais valia, do “goodwill” e da compra com deságio. Subvenção e Assistência governamentais:
+Conceitos e tipos. Mensuração e tratamento contábil. Conversão de demonstrações contábeis: Tratamento dos efeitos das
+mudanças nas taxas de câmbio. Mensuração e contabilização. Demonstrações contábeis: Balanço patrimonial: estrutura e
+classificação. Demonstração do resultado: estrutura e classificação. Demonstração do resultado abrangente: conceito,
+estrutura e classificação. Demonstração das mutações do patrimônio líquido. Demonstração dos Fluxos de Caixa: estrutura
+e classificação. Demonstração do Valor Adicionado: estrutura e classificação.
+Contabilidade de Custos:
+Conceitos gerais e terminologia aplicável à contabilidade de custos. Classificação de custos: Custos diretos e indiretos.
+Custos fixos e variáveis. Métodos de custeio: Custeio por absorção. Custeio variável. Custeio Baseado em Atividades (ABC).
+Departamentalização: Conceitos e tratamento contábil. Produção por ordem, produção contínua e produção conjunta:
+Apuração do custo da produção acabada, dos produtos em elaboração e dos produtos vendidos. Custo padrão: conceito,
+finalidades e utilidades. Tratamento contábil. Margem de contribuição: Conceito, cálculos e aplicação. Relação custo,
+volume e lucro. Ponto de equilíbrio contábil, econômico e financeiro. Margem de segurança.
+
+Fluência de Dados
+Ciência de Dados: Conceitos fundamentais de ciência de dados. Tipos de dados: estruturados, não estruturados,
+semiestruturados. O ciclo de vida da informação e do processo de Ciência de Dados. Metodologia CRISP. Big Data e
+Arquitetura de Dados: Data Warehouse, Data Mart, Data Lake, Data Lakehouse. Engenharia de Dados. Pré-processamento
+de Dados: Técnicas para preparação, limpeza e transformação de dados. Banco de dados: Bancos de Dados Relacionais e
+Não Relacionais (NoSQL). Linguagem SQL: DQL, (Funções de Agregação, Agrupamento, Junção, Ordenação, Restrições e
+Operações Lógicas. Análise de dados: Agrupamentos, Tendências e Projeções. Data Mining. Noções de Aprendizado de
+Máquina (Machine Learning), Aprendizado Profundo (Deep Learning), Inteligência Artificial (IA) e Processamento de
+Linguagem Natural (NLP). Governança de Dados: conceito, tipos (centralizada, compartilhada e colegiada), papéis e
+responsabilidades. Governança e Ética na IA: Transparência, Responsabilidade, Explicabilidade, Privacidade, Segurança,
+Alucinação, Viés. Segurança da Informação e Proteção de Dados: princípios de confidencialidade, integridade,
+disponibilidade e rastreabilidade. Classificação e controle de acesso a dados. Anonimização, mascaramento e políticas de
+retenção de dados. Conformidade legal e regulatória (LGPD, Marco Civil da Internet. Sigilo Fiscal e sigilo funcional (Código
+Tributário Nacional, de 25 de outubro de 1966, art. 198-199, Resolução SF Nº 20/2012, com modificações introduzidas pela
+Resolução SFP 42/2020 e atualizações).
+
+Finanças Públicas:
+Objetivos, metas, abrangência e definição de Finanças Públicas. Visão clássica das funções do Estado. Evolução das funções
+do Governo. Falhas de mercado, bens públicos e externalidades. O papel do Governo. Os objetivos da política fiscal. Políticas
+alocativas, distributivas e de estabilização. O financiamento dos gastos públicos – tributação e equidade. Tipos de tributos.
+Conceito de déficit público; financiamento do déficit. Resultado Fiscal do Governo (Necessidade de Financiamento do Setor
+Público – NFSP): Resultado Primário e Resultado Nominal.

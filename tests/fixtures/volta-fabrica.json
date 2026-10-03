@@ -1,0 +1,128 @@
+[
+ {
+  "disc": "Direito Civil",
+  "kind": "Questões",
+  "tag": "Obrigações",
+  "min": 40
+ },
+ {
+  "disc": "Direito Penal",
+  "kind": "Teoria",
+  "tag": "Teoria do crime",
+  "min": 50
+ },
+ {
+  "disc": "Direito Constitucional",
+  "kind": "Teoria",
+  "tag": "Controle",
+  "min": 50
+ },
+ {
+  "disc": "Direito Civil",
+  "kind": "Teoria",
+  "tag": "Obrigações",
+  "min": 50
+ },
+ {
+  "disc": "Direito Penal",
+  "kind": "Teoria",
+  "tag": "Penas",
+  "min": 50
+ },
+ {
+  "disc": "Direito Constitucional",
+  "kind": "Teoria",
+  "tag": "Direitos fundamentais",
+  "min": 50
+ },
+ {
+  "disc": "Direito Civil",
+  "kind": "Teoria",
+  "tag": "Contratos",
+  "min": 50
+ },
+ {
+  "disc": "Direito Penal",
+  "kind": "Questões",
+  "tag": "Teoria do crime",
+  "min": 40
+ },
+ {
+  "disc": "Direito Civil",
+  "kind": "Teoria",
+  "tag": "Posse",
+  "min": 50
+ },
+ {
+  "disc": "Direito Constitucional",
+  "kind": "Questões",
+  "tag": "Controle",
+  "min": 40
+ },
+ {
+  "disc": "Direito Civil",
+  "kind": "Questões",
+  "tag": "Contratos",
+  "min": 40
+ },
+ {
+  "disc": "Direito Penal",
+  "kind": "Questões",
+  "tag": "Penas",
+  "min": 40
+ },
+ {
+  "disc": "Direito Civil",
+  "kind": "Questões",
+  "tag": "Posse",
+  "min": 40
+ },
+ {
+  "disc": "Direito Constitucional",
+  "kind": "Questões",
+  "tag": "Direitos fundamentais",
+  "min": 40
+ },
+ {
+  "disc": "Direito Civil",
+  "kind": "Lei seca",
+  "tag": "artigos mais citados",
+  "min": 35
+ },
+ {
+  "disc": "Direito Penal",
+  "kind": "Lei seca",
+  "tag": "artigos mais citados",
+  "min": 35
+ },
+ {
+  "disc": "Direito Constitucional",
+  "kind": "Lei seca",
+  "tag": "artigos mais citados",
+  "min": 35
+ },
+ {
+  "disc": "Direito Civil",
+  "kind": "Jurisprudência",
+  "tag": "súmulas e teses",
+  "min": 35
+ },
+ {
+  "disc": "Direito Penal",
+  "kind": "Jurisprudência",
+  "tag": "súmulas e teses",
+  "min": 35
+ },
+ {
+  "disc": "Direito Civil",
+  "kind": "Revisão",
+  "tag": "revisão geral",
+  "min": 30
+ },
+ {
+  "disc": "Direito Constitucional",
+  "kind": "Jurisprudência",
+  "tag": "súmulas e teses",
+  "min": 35
+ }
+]

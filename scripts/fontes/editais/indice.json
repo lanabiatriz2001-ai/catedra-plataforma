@@ -1,0 +1,1521 @@
+{
+ "_": "Fontes oficiais dos modelos de edital gerados por scripts/build-modelos-edital.mjs. Cada .txt é o conteúdo programático copiado do PDF da banca, sem reescrever.",
+ "modelos": [
+  {
+   "orgao": "Conselho Federal da OAB",
+   "banca": "FGV",
+   "publicado": "2026-09-21",
+   "url": "https://s.oab.org.br/arquivos/2026/09/fb43fb37-838e-4d33-a863-99fa1f98b921.pdf",
+   "areas": [
+    "juridica"
+   ],
+   "id": "oab1",
+   "nome": "OAB · 1ª fase",
+   "sub": "48º Exame de Ordem Unificado · prova objetiva · FGV",
+   "cargo": "Exame de Ordem — 1ª fase",
+   "paginas": "item 3 (p. 12–13) e Anexo II (p. 31–37)",
+   "observacao": "O edital não traz programa da prova objetiva nem a divisão das 80 questões por disciplina: só nomeia as áreas (item 3). As dez disciplinas com programa oficial no Anexo II (2ª fase) entram com esses tópicos. Em sete das demais, os tópicos são a ESTRUTURA dos diplomas que formam a disciplina (títulos, capítulos e seções do texto oficial do Planalto e do Conselho Federal da OAB, com as faixas de artigos) — não é programa de edital; as fontes estão em \"fontesComplementares\". Direitos Humanos, Filosofia do Direito e Direito Internacional não têm diploma único nem programa oficial: entram com os TEMAS das questões dessas disciplinas nas provas objetivas dos exames 45º, 46º e 47º (seis por disciplina, com exame e número da questão, lidos nos cadernos Tipo 1 da FGV). É amostra do que foi cobrado, descrita com palavras nossas — não é programa nem texto oficial. Decisão da dona em 03/10/2026. Busca por programa oficial da 1ª fase em 03/10/2026: Provimento 144/2011, edital Cespe 2009.3 e edital do 48º Exame não trazem; editais dos primeiros exames unificados da FGV não puderam ser abertos.",
+   "fontes": [
+    "oab-48-administrativo.txt",
+    "oab-48-civil.txt",
+    "oab-48-processual-civil.txt",
+    "oab-48-constitucional.txt",
+    "oab-48-trabalho.txt",
+    "oab-48-processual-trabalho.txt",
+    "oab-48-empresarial.txt",
+    "oab-48-penal.txt",
+    "oab-48-processual-penal.txt",
+    "oab-48-tributario.txt",
+    "oab-48-1fase-estatuto-da-advocacia-e-etica.txt",
+    "oab-48-1fase-direito-do-consumidor.txt",
+    "oab-48-1fase-direito-da-crianca-e-do-adolescente.txt",
+    "oab-48-1fase-direito-ambiental.txt",
+    "oab-48-1fase-direito-financeiro.txt",
+    "oab-48-1fase-direito-previdenciario.txt",
+    "oab-48-1fase-direito-eleitoral.txt",
+    "oab-48-1fase-direitos-humanos.txt",
+    "oab-48-1fase-filosofia-do-direito.txt",
+    "oab-48-1fase-direito-internacional.txt"
+   ],
+   "disciplinas": [
+    "Direito Administrativo",
+    "Direito Civil",
+    "Direito Processual Civil",
+    "Direito Constitucional",
+    "Direito do Trabalho",
+    "Direito Processual do Trabalho",
+    "Direito Empresarial",
+    "Direito Penal",
+    "Direito Processual Penal",
+    "Direito Tributário e Processual Tributário",
+    "Estatuto da Advocacia e da OAB, Regulamento Geral e Código de Ética e Disciplina",
+    "Direito do Consumidor",
+    "Direito da Criança e do Adolescente",
+    "Direito Ambiental",
+    "Direito Financeiro",
+    "Direito Previdenciário",
+    "Direito Eleitoral",
+    "Direitos Humanos",
+    "Filosofia do Direito",
+    "Direito Internacional"
+   ],
+   "renomear": {
+    "Estatuto da Advocacia e da Oab, Regulamento Geral e Código de Ética e Disciplina": "Estatuto da Advocacia e da OAB, Regulamento Geral e Código de Ética e Disciplina"
+   },
+   "fontesComplementares": [
+    {
+     "disciplina": "Estatuto da Advocacia e da OAB, Regulamento Geral e Código de Ética e Disciplina",
+     "fontes": [
+      {
+       "titulo": "Lei nº 8.906/1994 (Planalto)",
+       "url": "https://www.planalto.gov.br/ccivil_03/leis/l8906.htm",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Regulamento Geral do Estatuto da Advocacia e da OAB (PDF do Conselho Federal)",
+       "url": "https://www.oab.org.br/publicacoes/AbrirPDF?LivroId=0000004095",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Código de Ética e Disciplina da OAB – Resolução nº 02/2015 do CFOAB (PDF do Conselho Federal)",
+       "url": "https://www.oab.org.br/publicacoes/AbrirPDF?LivroId=0000004085",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Página Legislação do portal da OAB (onde estão os dois links acima)",
+       "url": "https://www.oab.org.br/leisnormas/legislacao",
+       "acessado_em": "2026-10-03"
+      }
+     ]
+    },
+    {
+     "disciplina": "Direito do Consumidor",
+     "fontes": [
+      {
+       "titulo": "Lei nº 8.078/1990 – Código de Defesa do Consumidor (Planalto, compilado)",
+       "url": "https://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm",
+       "acessado_em": "2026-10-03"
+      }
+     ]
+    },
+    {
+     "disciplina": "Direito da Criança e do Adolescente",
+     "fontes": [
+      {
+       "titulo": "Lei nº 8.069/1990 – Estatuto da Criança e do Adolescente (Planalto)",
+       "url": "https://www.planalto.gov.br/ccivil_03/leis/l8069.htm",
+       "acessado_em": "2026-10-03"
+      }
+     ]
+    },
+    {
+     "disciplina": "Direito Ambiental",
+     "fontes": [
+      {
+       "titulo": "Constituição da República Federativa do Brasil de 1988 (texto compilado, Planalto)",
+       "url": "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Lei nº 6.938/1981 (Planalto)",
+       "url": "https://www.planalto.gov.br/ccivil_03/leis/l6938.htm",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Lei nº 9.605/1998 (Planalto)",
+       "url": "https://www.planalto.gov.br/ccivil_03/leis/l9605.htm",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Lei nº 12.651/2012 (Planalto)",
+       "url": "https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2012/lei/l12651.htm",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Lei nº 9.985/2000 (Planalto)",
+       "url": "https://www.planalto.gov.br/ccivil_03/leis/l9985.htm",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Lei Complementar nº 140/2011 (Planalto)",
+       "url": "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp140.htm",
+       "acessado_em": "2026-10-03"
+      }
+     ]
+    },
+    {
+     "disciplina": "Direito Financeiro",
+     "fontes": [
+      {
+       "titulo": "Constituição da República Federativa do Brasil de 1988 (texto compilado, Planalto)",
+       "url": "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Lei nº 4.320/1964 (Planalto)",
+       "url": "https://www.planalto.gov.br/ccivil_03/leis/l4320.htm",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Lei Complementar nº 101/2000 (Planalto)",
+       "url": "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm",
+       "acessado_em": "2026-10-03"
+      }
+     ]
+    },
+    {
+     "disciplina": "Direito Previdenciário",
+     "fontes": [
+      {
+       "titulo": "Constituição da República Federativa do Brasil de 1988 (texto compilado, Planalto)",
+       "url": "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Lei nº 8.212/1991 (Planalto, consolidada)",
+       "url": "https://www.planalto.gov.br/ccivil_03/leis/l8212cons.htm",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Lei nº 8.213/1991 (Planalto, consolidada)",
+       "url": "https://www.planalto.gov.br/ccivil_03/leis/l8213cons.htm",
+       "acessado_em": "2026-10-03"
+      }
+     ]
+    },
+    {
+     "disciplina": "Direito Eleitoral",
+     "fontes": [
+      {
+       "titulo": "Lei nº 4.737/1965 – Código Eleitoral (Planalto, compilado)",
+       "url": "https://www.planalto.gov.br/ccivil_03/leis/l4737compilado.htm",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Lei nº 9.504/1997 (Planalto)",
+       "url": "https://www.planalto.gov.br/ccivil_03/leis/l9504.htm",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Lei nº 9.096/1995 (Planalto)",
+       "url": "https://www.planalto.gov.br/ccivil_03/leis/l9096.htm",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Lei Complementar nº 64/1990 (Planalto)",
+       "url": "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp64.htm",
+       "acessado_em": "2026-10-03"
+      }
+     ]
+    },
+    {
+     "disciplina": "Direitos Humanos",
+     "tipo": "temas cobrados nas provas objetivas dos exames 45º, 46º e 47º",
+     "fontes": [
+      {
+       "titulo": "47º Exame de Ordem Unificado — Caderno de Prova Tipo 1 (Branca), FGV, prova de 06/09/2026",
+       "url": "https://oab.fgv.br/arq/650/566837_ADVOGADO%20OAB(CNS01)%20Tipo%201.pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "47º Exame de Ordem Unificado — Gabaritos definitivos da prova objetiva (1ª fase)",
+       "url": "https://oab.fgv.br/arq/650/480420_gabarito%20definitivo%20(1).pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Página do 47º Exame de Ordem Unificado no portal da FGV (lista de documentos após escolher a seccional OAB/DF)",
+       "url": "https://oab.fgv.br/home.aspx?key=650",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "46º Exame de Ordem Unificado — Caderno de Prova Tipo 1 (Branca), FGV, prova de 03/05/2026",
+       "url": "https://oab.fgv.br/arq/649/561671_ADVOGADO%20OAB(CNS01)%20Tipo%201.pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "46º Exame de Ordem Unificado — Gabaritos definitivos da prova objetiva (1ª fase)",
+       "url": "https://oab.fgv.br/arq/649/103500_oab261_gabarito_definitivo.pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Página do 46º Exame de Ordem Unificado no portal da FGV (lista de documentos após escolher a seccional OAB/DF)",
+       "url": "https://oab.fgv.br/home.aspx?key=649",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "45º Exame de Ordem Unificado — Caderno de Prova Tipo 1 (Branca), FGV, prova de 21/12/2025",
+       "url": "https://oab.fgv.br/arq/648/405589_ADVOGADO%20OAB(CNS01)%20Tipo%201.pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "45º Exame de Ordem Unificado — Gabaritos definitivos da prova objetiva (1ª fase)",
+       "url": "https://oab.fgv.br/arq/648/85707_OAB45%20Gabaritos%20para%20publica%C3%A7%C3%A3o%20-%20v3.pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Página do 45º Exame de Ordem Unificado no portal da FGV (lista de documentos após escolher a seccional OAB/DF)",
+       "url": "https://oab.fgv.br/home.aspx?key=648",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "47º Exame — Comunicado de anulação da questão 47 (Direito Empresarial) do caderno Tipo 1",
+       "url": "https://oab.fgv.br/arq/650/90523_47%20eou.%20anulacao.%20po.%20questao%2047.%20tipo1.%20(2).pdf",
+       "acessado_em": "2026-10-03"
+      }
+     ]
+    },
+    {
+     "disciplina": "Filosofia do Direito",
+     "tipo": "temas cobrados nas provas objetivas dos exames 45º, 46º e 47º",
+     "fontes": [
+      {
+       "titulo": "47º Exame de Ordem Unificado — Caderno de Prova Tipo 1 (Branca), FGV, prova de 06/09/2026",
+       "url": "https://oab.fgv.br/arq/650/566837_ADVOGADO%20OAB(CNS01)%20Tipo%201.pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "47º Exame de Ordem Unificado — Gabaritos definitivos da prova objetiva (1ª fase)",
+       "url": "https://oab.fgv.br/arq/650/480420_gabarito%20definitivo%20(1).pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Página do 47º Exame de Ordem Unificado no portal da FGV (lista de documentos após escolher a seccional OAB/DF)",
+       "url": "https://oab.fgv.br/home.aspx?key=650",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "46º Exame de Ordem Unificado — Caderno de Prova Tipo 1 (Branca), FGV, prova de 03/05/2026",
+       "url": "https://oab.fgv.br/arq/649/561671_ADVOGADO%20OAB(CNS01)%20Tipo%201.pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "46º Exame de Ordem Unificado — Gabaritos definitivos da prova objetiva (1ª fase)",
+       "url": "https://oab.fgv.br/arq/649/103500_oab261_gabarito_definitivo.pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Página do 46º Exame de Ordem Unificado no portal da FGV (lista de documentos após escolher a seccional OAB/DF)",
+       "url": "https://oab.fgv.br/home.aspx?key=649",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "45º Exame de Ordem Unificado — Caderno de Prova Tipo 1 (Branca), FGV, prova de 21/12/2025",
+       "url": "https://oab.fgv.br/arq/648/405589_ADVOGADO%20OAB(CNS01)%20Tipo%201.pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "45º Exame de Ordem Unificado — Gabaritos definitivos da prova objetiva (1ª fase)",
+       "url": "https://oab.fgv.br/arq/648/85707_OAB45%20Gabaritos%20para%20publica%C3%A7%C3%A3o%20-%20v3.pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Página do 45º Exame de Ordem Unificado no portal da FGV (lista de documentos após escolher a seccional OAB/DF)",
+       "url": "https://oab.fgv.br/home.aspx?key=648",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "47º Exame — Comunicado de anulação da questão 47 (Direito Empresarial) do caderno Tipo 1",
+       "url": "https://oab.fgv.br/arq/650/90523_47%20eou.%20anulacao.%20po.%20questao%2047.%20tipo1.%20(2).pdf",
+       "acessado_em": "2026-10-03"
+      }
+     ]
+    },
+    {
+     "disciplina": "Direito Internacional",
+     "tipo": "temas cobrados nas provas objetivas dos exames 45º, 46º e 47º",
+     "fontes": [
+      {
+       "titulo": "47º Exame de Ordem Unificado — Caderno de Prova Tipo 1 (Branca), FGV, prova de 06/09/2026",
+       "url": "https://oab.fgv.br/arq/650/566837_ADVOGADO%20OAB(CNS01)%20Tipo%201.pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "47º Exame de Ordem Unificado — Gabaritos definitivos da prova objetiva (1ª fase)",
+       "url": "https://oab.fgv.br/arq/650/480420_gabarito%20definitivo%20(1).pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Página do 47º Exame de Ordem Unificado no portal da FGV (lista de documentos após escolher a seccional OAB/DF)",
+       "url": "https://oab.fgv.br/home.aspx?key=650",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "46º Exame de Ordem Unificado — Caderno de Prova Tipo 1 (Branca), FGV, prova de 03/05/2026",
+       "url": "https://oab.fgv.br/arq/649/561671_ADVOGADO%20OAB(CNS01)%20Tipo%201.pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "46º Exame de Ordem Unificado — Gabaritos definitivos da prova objetiva (1ª fase)",
+       "url": "https://oab.fgv.br/arq/649/103500_oab261_gabarito_definitivo.pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Página do 46º Exame de Ordem Unificado no portal da FGV (lista de documentos após escolher a seccional OAB/DF)",
+       "url": "https://oab.fgv.br/home.aspx?key=649",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "45º Exame de Ordem Unificado — Caderno de Prova Tipo 1 (Branca), FGV, prova de 21/12/2025",
+       "url": "https://oab.fgv.br/arq/648/405589_ADVOGADO%20OAB(CNS01)%20Tipo%201.pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "45º Exame de Ordem Unificado — Gabaritos definitivos da prova objetiva (1ª fase)",
+       "url": "https://oab.fgv.br/arq/648/85707_OAB45%20Gabaritos%20para%20publica%C3%A7%C3%A3o%20-%20v3.pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Página do 45º Exame de Ordem Unificado no portal da FGV (lista de documentos após escolher a seccional OAB/DF)",
+       "url": "https://oab.fgv.br/home.aspx?key=648",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "47º Exame — Comunicado de anulação da questão 47 (Direito Empresarial) do caderno Tipo 1",
+       "url": "https://oab.fgv.br/arq/650/90523_47%20eou.%20anulacao.%20po.%20questao%2047.%20tipo1.%20(2).pdf",
+       "acessado_em": "2026-10-03"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "orgao": "Conselho Federal da OAB",
+   "banca": "FGV",
+   "publicado": "2026-09-21",
+   "url": "https://s.oab.org.br/arquivos/2026/09/fb43fb37-838e-4d33-a863-99fa1f98b921.pdf",
+   "areas": [
+    "juridica"
+   ],
+   "id": "oab2Administrativo",
+   "nome": "OAB · 2ª fase · Administrativo",
+   "sub": "48º Exame de Ordem · prova prático-profissional · FGV",
+   "cargo": "Exame de Ordem — 2ª fase",
+   "paginas": "Anexo II, p. 31–37",
+   "fontes": [
+    "oab-48-administrativo.txt"
+   ],
+   "disciplinas": [
+    "Direito Administrativo"
+   ]
+  },
+  {
+   "orgao": "Conselho Federal da OAB",
+   "banca": "FGV",
+   "publicado": "2026-09-21",
+   "url": "https://s.oab.org.br/arquivos/2026/09/fb43fb37-838e-4d33-a863-99fa1f98b921.pdf",
+   "areas": [
+    "juridica"
+   ],
+   "id": "oab2Civil",
+   "nome": "OAB · 2ª fase · Civil",
+   "sub": "48º Exame de Ordem · prova prático-profissional · FGV",
+   "cargo": "Exame de Ordem — 2ª fase",
+   "paginas": "Anexo II, p. 31–37",
+   "fontes": [
+    "oab-48-civil.txt",
+    "oab-48-processual-civil.txt"
+   ],
+   "disciplinas": [
+    "Direito Civil",
+    "Direito Processual Civil"
+   ]
+  },
+  {
+   "orgao": "Conselho Federal da OAB",
+   "banca": "FGV",
+   "publicado": "2026-09-21",
+   "url": "https://s.oab.org.br/arquivos/2026/09/fb43fb37-838e-4d33-a863-99fa1f98b921.pdf",
+   "areas": [
+    "juridica"
+   ],
+   "id": "oab2Constitucional",
+   "nome": "OAB · 2ª fase · Constitucional",
+   "sub": "48º Exame de Ordem · prova prático-profissional · FGV",
+   "cargo": "Exame de Ordem — 2ª fase",
+   "paginas": "Anexo II, p. 31–37",
+   "fontes": [
+    "oab-48-constitucional.txt"
+   ],
+   "disciplinas": [
+    "Direito Constitucional"
+   ]
+  },
+  {
+   "orgao": "Conselho Federal da OAB",
+   "banca": "FGV",
+   "publicado": "2026-09-21",
+   "url": "https://s.oab.org.br/arquivos/2026/09/fb43fb37-838e-4d33-a863-99fa1f98b921.pdf",
+   "areas": [
+    "juridica"
+   ],
+   "id": "oab2Empresarial",
+   "nome": "OAB · 2ª fase · Empresarial",
+   "sub": "48º Exame de Ordem · prova prático-profissional · FGV",
+   "cargo": "Exame de Ordem — 2ª fase",
+   "paginas": "Anexo II, p. 31–37",
+   "fontes": [
+    "oab-48-empresarial.txt"
+   ],
+   "disciplinas": [
+    "Direito Empresarial"
+   ]
+  },
+  {
+   "orgao": "Conselho Federal da OAB",
+   "banca": "FGV",
+   "publicado": "2026-09-21",
+   "url": "https://s.oab.org.br/arquivos/2026/09/fb43fb37-838e-4d33-a863-99fa1f98b921.pdf",
+   "areas": [
+    "juridica"
+   ],
+   "id": "oab2Penal",
+   "nome": "OAB · 2ª fase · Penal",
+   "sub": "48º Exame de Ordem · prova prático-profissional · FGV",
+   "cargo": "Exame de Ordem — 2ª fase",
+   "paginas": "Anexo II, p. 31–37",
+   "fontes": [
+    "oab-48-penal.txt",
+    "oab-48-processual-penal.txt"
+   ],
+   "disciplinas": [
+    "Direito Penal",
+    "Direito Processual Penal"
+   ]
+  },
+  {
+   "orgao": "Conselho Federal da OAB",
+   "banca": "FGV",
+   "publicado": "2026-09-21",
+   "url": "https://s.oab.org.br/arquivos/2026/09/fb43fb37-838e-4d33-a863-99fa1f98b921.pdf",
+   "areas": [
+    "juridica"
+   ],
+   "id": "oab2Trabalho",
+   "nome": "OAB · 2ª fase · Trabalho",
+   "sub": "48º Exame de Ordem · prova prático-profissional · FGV",
+   "cargo": "Exame de Ordem — 2ª fase",
+   "paginas": "Anexo II, p. 31–37",
+   "fontes": [
+    "oab-48-trabalho.txt",
+    "oab-48-processual-trabalho.txt"
+   ],
+   "disciplinas": [
+    "Direito do Trabalho",
+    "Direito Processual do Trabalho"
+   ]
+  },
+  {
+   "orgao": "Conselho Federal da OAB",
+   "banca": "FGV",
+   "publicado": "2026-09-21",
+   "url": "https://s.oab.org.br/arquivos/2026/09/fb43fb37-838e-4d33-a863-99fa1f98b921.pdf",
+   "areas": [
+    "juridica"
+   ],
+   "id": "oab2Tributario",
+   "nome": "OAB · 2ª fase · Tributário",
+   "sub": "48º Exame de Ordem · prova prático-profissional · FGV",
+   "cargo": "Exame de Ordem — 2ª fase",
+   "paginas": "Anexo II, p. 31–37",
+   "fontes": [
+    "oab-48-tributario.txt"
+   ],
+   "disciplinas": [
+    "Direito Tributário e Processual Tributário"
+   ]
+  },
+  {
+   "id": "juizTJBA",
+   "nome": "Juiz de Direito · TJ-BA",
+   "sub": "edital 01/2026 · FGV",
+   "orgao": "Tribunal de Justiça do Estado da Bahia",
+   "cargo": "Juiz Substituto",
+   "banca": "FGV",
+   "publicado": "2026-01-29",
+   "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-concurso-juiz-substituto-tjba_.pdf",
+   "paginas": "Anexo I (p. 50–66)",
+   "areas": [
+    "juridica"
+   ],
+   "fontes": [
+    "tjba-juiz.txt"
+   ],
+   "disciplinas": [
+    "Direito Civil",
+    "Direito Processual Civil",
+    "Direito do Consumidor",
+    "Direito da Criança e do Adolescente",
+    "Direito Penal",
+    "Direito Processual Penal",
+    "Direito Constitucional",
+    "Direito Eleitoral",
+    "Direito Empresarial",
+    "Direito Financeiro e Tributário",
+    "Direito Ambiental",
+    "Direito Administrativo",
+    "Legislação Estadual",
+    "Sociologia do Direito",
+    "Psicologia Judiciária",
+    "Ética e Estatuto Jurídico da Magistratura Nacional",
+    "Filosofia do Direito",
+    "Teoria Geral do Direito e da Política",
+    "Direito Digital",
+    "Pragmatismo, Análise Econômica do Direito e Economia Comportamental",
+    "Direito da Antidiscriminação",
+    "Direitos Humanos"
+   ],
+   "observacao": "O edital traz \"Noções Gerais de Direito e Formação Humanística\" como UMA matéria dividida em partes com letra (A, B, C…). O importador devolve cada parte como disciplina própria e o nome-mãe some (fica sem tópicos). Nada do conteúdo se perde; a dona decide se quer as partes soltas ou agrupadas. Direito Digital sai com 1 tópico em vez de 4 (o item '1. 4ª Revolução industrial' impede o desdobramento) e Direito da Criança e do Adolescente com 12 em vez de 13 (o item 12 fica dentro do 11). Defeitos de leitura do importador em subtópicos (item partido na quebra de linha, alínea 'b)' no começo da linha) estão listados no relatório da curadoria; o texto-fonte é o oficial, sem reescrita."
+  },
+  {
+   "id": "juizTJPE",
+   "nome": "Juiz de Direito · TJ-PE",
+   "sub": "edital de 26/05/2026 · FGV",
+   "orgao": "Tribunal de Justiça do Estado de Pernambuco",
+   "cargo": "Juiz Substituto",
+   "banca": "FGV",
+   "publicado": "2026-05-26",
+   "url": "https://conhecimento.fgv.br/sites/default/files/concursos/tjpe_edital-26.05.2026-vfinal.pdf",
+   "paginas": "Anexo I (p. 51–67)",
+   "areas": [
+    "juridica"
+   ],
+   "fontes": [
+    "tjpe-juiz.txt"
+   ],
+   "disciplinas": [
+    "Direito Civil",
+    "Direito Processual Civil",
+    "Direito do Consumidor",
+    "Direito da Criança e do Adolescente",
+    "Direito Penal",
+    "Direito Processual Penal",
+    "Direito Constitucional",
+    "Direito Eleitoral",
+    "Direito Empresarial",
+    "Direito Financeiro e Tributário",
+    "Direito Ambiental",
+    "Direito Administrativo",
+    "Legislação Estadual",
+    "Sociologia do Direito",
+    "Psicologia Judiciária",
+    "Ética e Estatuto Jurídico da Magistratura Nacional",
+    "Filosofia do Direito",
+    "Teoria Geral do Direito e da Política",
+    "Direito Digital",
+    "Pragmatismo, Análise Econômica do Direito e Economia Comportamental",
+    "Direito da Antidiscriminação",
+    "Direitos Humanos"
+   ],
+   "observacao": "O edital traz \"Noções Gerais de Direito e Formação Humanística\" como UMA matéria dividida em partes com letra (A, B, C…). O importador devolve cada parte como disciplina própria e o nome-mãe some (fica sem tópicos). Nada do conteúdo se perde; a dona decide se quer as partes soltas ou agrupadas. Direito Digital sai com 1 tópico em vez de 4 e Direito da Criança e do Adolescente com 12 em vez de 13 (mesmos casos do TJ-BA). Defeitos de leitura do importador em subtópicos (item partido na quebra de linha, alínea 'b)' no começo da linha) estão listados no relatório da curadoria; o texto-fonte é o oficial, sem reescrita."
+  },
+  {
+   "id": "juizTJRS",
+   "nome": "Juiz de Direito · TJ-RS",
+   "sub": "edital 0031/2026-DMAG (consolidado) · FGV",
+   "orgao": "Tribunal de Justiça do Estado do Rio Grande do Sul",
+   "cargo": "Juiz de Direito Substituto",
+   "banca": "FGV",
+   "publicado": "2026-09-10",
+   "url": "https://conhecimento.fgv.br/sites/default/files/concursos/sei_9998416_edital_consolidado.pdf",
+   "paginas": "Anexo II (p. 37–51)",
+   "areas": [
+    "juridica"
+   ],
+   "fontes": [
+    "tjrs-juiz.txt"
+   ],
+   "disciplinas": [
+    "Língua Portuguesa",
+    "Direito Civil",
+    "Direito Processual Civil",
+    "Direito do Consumidor",
+    "Direito da Criança e do Adolescente",
+    "Direito Penal",
+    "Direito Processual Penal",
+    "Direito Constitucional",
+    "Direito Eleitoral",
+    "Direito Empresarial",
+    "Direito Tributário",
+    "Direito Ambiental",
+    "Direito Administrativo",
+    "Sociologia do Direito",
+    "Psicologia Judiciária",
+    "Ética e Estatuto Jurídico da Magistratura Nacional",
+    "Filosofia do Direito",
+    "Teoria Geral do Direito e da Política",
+    "Direito Digital e Tecnologia",
+    "Pragmatismo, Análise Econômica do Direito e Economia Comportamental",
+    "Direito da Antidiscriminação",
+    "Direitos Humanos"
+   ],
+   "observacao": "NÃO GERA HOJE: a lista acima é a do edital (22 nomes na leitura esperada), mas o importador devolve 19 — somem Direito Processual Civil, Direito da Criança e do Adolescente e Direito Tributário, engolidas pela matéria anterior. Causa: a linha 'Tribunal de Justiça do Estado do Rio Grande do Sul.' fecha o último item de três matérias, aparece 3 vezes e é descartada como cabeçalho de página; a linha de cima termina em 'e do' e costura com o nome da matéria seguinte. Depende de conserto no importador. O edital traz \"Noções Gerais de Direito e Formação Humanística\" como UMA matéria dividida em partes com letra (A, B, C…). O importador devolve cada parte como disciplina própria e o nome-mãe some (fica sem tópicos). Nada do conteúdo se perde; a dona decide se quer as partes soltas ou agrupadas. O edital inclui Língua Portuguesa. A última palavra do anexo ('institucionais.') está na p. 51."
+  },
+  {
+   "id": "juizTJGO",
+   "nome": "Juiz de Direito · TJ-GO",
+   "sub": "59º concurso · edital consolidado · FGV",
+   "orgao": "Tribunal de Justiça do Estado de Goiás",
+   "cargo": "Juiz Substituto",
+   "banca": "FGV",
+   "publicado": "2026-01-13",
+   "url": "https://conhecimento.fgv.br/sites/default/files/concursos/59_juiz_edital_abertura_consolidado_13-01-2026.pdf",
+   "paginas": "Anexo II (p. 43–58)",
+   "areas": [
+    "juridica"
+   ],
+   "fontes": [
+    "tjgo-juiz.txt"
+   ],
+   "disciplinas": [
+    "Direito Civil",
+    "Direito Processual Civil",
+    "Direito do Consumidor",
+    "Direito da Criança e do Adolescente",
+    "Direito Penal",
+    "Direito Processual Penal",
+    "Direito Constitucional",
+    "Direito Eleitoral",
+    "Direito Empresarial",
+    "Direito Tributário e Financeiro",
+    "Direito Ambiental",
+    "Direito Administrativo",
+    "Noções Gerais de Direito e Formação Humanística",
+    "Direitos Humanos"
+   ],
+   "observacao": "A data é a do edital consolidado (13/01/2026); a abertura do concurso é de 2025. Neste edital 'Noções Gerais de Direito e Formação Humanística' é uma disciplina só, com 9 itens numerados (diferente de TJ-BA/PE/RS, onde as partes vêm com letra). Em Direito Constitucional o item 6 sai partido em dois: a linha que começa com a data '22 de novembro de 1969' é lida como item 22. Defeitos de leitura do importador em subtópicos (item partido na quebra de linha, alínea 'b)' no começo da linha) estão listados no relatório da curadoria; o texto-fonte é o oficial, sem reescrita."
+  },
+  {
+   "id": "juizFederalTRF5",
+   "nome": "Juiz Federal · TRF-5",
+   "sub": "XVI concurso · edital 01/2026 (retificado) · FGV",
+   "orgao": "Tribunal Regional Federal da 5ª Região",
+   "cargo": "Juiz Federal Substituto",
+   "banca": "FGV",
+   "publicado": "2026-08-17",
+   "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-01-de-2026-xvi-concurso-juiz-federal-retificado.pdf",
+   "paginas": "Anexo I (p. 53–74)",
+   "areas": [
+    "juridica"
+   ],
+   "fontes": [
+    "trf5-juiz-federal.txt"
+   ],
+   "disciplinas": [
+    "Direito Constitucional",
+    "Direito Previdenciário",
+    "Direito Penal",
+    "Direito Processual Penal",
+    "Direito Econômico e de Proteção ao Consumidor",
+    "Direito Civil",
+    "Direito Processual Civil",
+    "Direito Empresarial",
+    "Direito Financeiro e Tributário",
+    "Direito Administrativo",
+    "Direito Ambiental",
+    "Direito Internacional Público e Privado",
+    "Sociologia do Direito",
+    "Psicologia Judiciária",
+    "Ética e Estatuto Jurídico da Magistratura Nacional",
+    "Filosofia do Direito",
+    "Teoria Geral do Direito e da Política",
+    "Direito Digital",
+    "Pragmatismo, Análise Econômica do Direito e Economia Comportamental",
+    "Direito da Antidiscriminação",
+    "Direitos Humanos"
+   ],
+   "observacao": "O edital traz \"Noções Gerais de Direito e Formação Humanística\" como UMA matéria dividida em partes com letra (A, B, C…). O importador devolve cada parte como disciplina própria e o nome-mãe some (fica sem tópicos). Nada do conteúdo se perde; a dona decide se quer as partes soltas ou agrupadas. "
+  },
+  {
+   "id": "procuradorManaus",
+   "nome": "Procurador do Município · PGM Manaus",
+   "sub": "edital de 02/07/2026 · FCC",
+   "orgao": "Procuradoria Geral do Município de Manaus",
+   "cargo": "Procurador do Município",
+   "banca": "FCC",
+   "publicado": "2026-07-02",
+   "url": "https://www.concursosfcc.com.br/concursos/pgmam126/edital_de_abertura._revisao_final_03_07_26_._corrigido__1_.pdf",
+   "paginas": "Anexo II (p. 25–34)",
+   "areas": [
+    "juridica"
+   ],
+   "fontes": [
+    "pgm-manaus-procurador.txt"
+   ],
+   "disciplinas": [
+    "Direito Constitucional",
+    "Direito Administrativo",
+    "Direito Tributário",
+    "Direito Processual Civil",
+    "Direito Financeiro",
+    "Direito Civil",
+    "Direito Previdenciário",
+    "Direito Ambiental",
+    "Direito Empresarial",
+    "Direito do Trabalho",
+    "Direito Processual do Trabalho",
+    "Direito Municipal"
+   ],
+   "renomear": {
+    "Direito Processualcivil": "Direito Processual Civil"
+   },
+   "observacao": "O edital grafa 'DIREITO PROCESSUALCIVIL' (sem espaço); corrigido só no nome, por 'renomear'. Dois erros de numeração do próprio edital foram mantidos como estão: em Direito Administrativo o item 25 traz um '3. Anticorrupção Empresarial' no meio, e em Direito Ambiental o item 12 (Concessão urbanística) tem subitens '11.1' e '11.2'. O nome do arquivo no site da FCC indica revisão de 03/07/2026."
+  },
+  {
+   "id": "trt8Analista",
+   "nome": "Analista Judiciário · TRT-8",
+   "sub": "área judiciária · FCC · 2026",
+   "orgao": "Tribunal Regional do Trabalho da 8ª Região (PA/AP)",
+   "cargo": "Analista Judiciário – Área Judiciária (cargo 01)",
+   "banca": "FCC",
+   "publicado": "2026-10-02",
+   "url": "https://www.concursosfcc.com.br/concursos/trt8r126/trt8r126_edital_de_abertura.pdf",
+   "paginas": "Anexo II: conhecimentos gerais (p. 45–46) e específicos do cargo 01 (p. 48–51)",
+   "areas": [
+    "juridica",
+    "administrativa"
+   ],
+   "fontes": [
+    "trt8-analista-judiciaria.txt"
+   ],
+   "disciplinas": [
+    "Língua Portuguesa",
+    "Matemática e Raciocínio lógico",
+    "Noções de Legislação",
+    "Noções de Direitos Humanos",
+    "Noções sobre direitos das pessoas com deficiência (Resolução CSJT nº 386/2024 - Art. 6º)",
+    "Noções de Informática",
+    "Direito Constitucional",
+    "Direito Administrativo",
+    "Direito do Trabalho",
+    "Direito Processual do Trabalho",
+    "Direito Civil",
+    "Direito Processual Civil"
+   ],
+   "observacao": "Dois defeitos do importador: (1) \"Noções sobre direitos das pessoas com deficiência (Resolução CSJT nº 386/2024 - Art. 6º)\" não vira disciplina e os 7 tópicos dela caem no fim de \"Noções de Direitos Humanos\"; (2) a linha do PDF que começa com \"Sítios de busca e pesquisa na internet:\" (tópico de Noções de Informática) vira disciplina falsa com 3 tópicos. Bloco geral usado: o dos cargos 01–03 e 05–20."
+  },
+  {
+   "id": "trt8Tecnico",
+   "nome": "Técnico Judiciário · TRT-8",
+   "sub": "área administrativa · FCC · 2026",
+   "orgao": "Tribunal Regional do Trabalho da 8ª Região (PA/AP)",
+   "cargo": "Técnico Judiciário – Área Administrativa (cargo 21)",
+   "banca": "FCC",
+   "publicado": "2026-10-02",
+   "url": "https://www.concursosfcc.com.br/concursos/trt8r126/trt8r126_edital_de_abertura.pdf",
+   "paginas": "Anexo II: conhecimentos gerais dos cargos 21, 22 e 24 (p. 47–48) e específicos do cargo 21 (p. 72–73)",
+   "areas": [
+    "administrativa"
+   ],
+   "fontes": [
+    "trt8-tecnico-administrativa.txt"
+   ],
+   "disciplinas": [
+    "Língua Portuguesa",
+    "Matemática e Raciocínio lógico",
+    "Noções de Legislação",
+    "Noções de Direitos Humanos",
+    "Noções sobre direitos das pessoas com deficiência (Resolução CSJT nº 386/2024 - Art. 6º)",
+    "Noções de Informática",
+    "Noções de Direito Constitucional",
+    "Noções de Direito Administrativo",
+    "Noções de Administração Pública",
+    "Noções de Direito do Trabalho",
+    "Noções de Direito Processual do Trabalho"
+   ],
+   "renomear": {
+    "Noções de Direito Processual de Trabalho": "Noções de Direito Processual do Trabalho"
+   },
+   "observacao": "O edital escreve \"Noções de Direito Processual de Trabalho\" (p. 73), erro de digitação do próprio edital: vai em \"renomear\". Três defeitos do importador: (1) \"Noções sobre direitos das pessoas com deficiência (…Art. 6º)\" some e seus tópicos caem em \"Noções de Direitos Humanos\"; (2) \"Sítios de busca e pesquisa na internet:\" vira disciplina falsa; (3) a linha que começa com \"Execução: Procedimentos; Embargos à execução…\" (tópico de Processual do Trabalho) vira a disciplina falsa \"Execução\" com 3 tópicos."
+  },
+  {
+   "id": "tjceAnalista",
+   "nome": "Analista Judiciário · TJ-CE",
+   "sub": "área judiciária · FCC · 2026",
+   "orgao": "Tribunal de Justiça do Estado do Ceará",
+   "cargo": "Analista Judiciário – Área Judiciária (G07)",
+   "banca": "FCC",
+   "publicado": "2026-05-18",
+   "url": "https://www.concursosfcc.com.br/concursos/tjuce125/tjuce125_edital_de_abertura_final_20260515153002950.pdf",
+   "paginas": "Anexo III: conhecimentos gerais (p. 31) e específicos do cargo G07 (p. 37–40)",
+   "areas": [
+    "juridica",
+    "administrativa"
+   ],
+   "fontes": [
+    "tjce-analista-judiciaria.txt"
+   ],
+   "disciplinas": [
+    "Língua Portuguesa",
+    "Raciocínio Lógico-Matemático",
+    "Noções sobre Direitos das Pessoas com Deficiência (Resolução CSJT nº 386/2024 - Art. 6º)",
+    "Legislação",
+    "Direito Constitucional",
+    "Direito Administrativo",
+    "Direito Civil",
+    "Direito Processual Civil",
+    "Direito Penal",
+    "Direito Processual Penal"
+   ],
+   "renomear": {
+    "Noções sobre Direitos das Pessoas com Deficiência (resolução Csjt Nº 386/2024 - Art. 6º)": "Noções sobre Direitos das Pessoas com Deficiência (Resolução CSJT nº 386/2024 - Art. 6º)"
+   },
+   "observacao": "Data: o edital é assinado \"Fortaleza/CE, 18 de maio de 2026\" (p. 28), embora o arquivo da FCC seja de 15/05/2026. Três problemas: (1) importador — \"NOÇÕES SOBRE DIREITOS DAS PESSOAS COM DEFICIÊNCIA (RESOLUÇÃO CSJT Nº 386/2024 - ART. 6º):\" some e os tópicos caem em \"Raciocínio Lógico-Matemático\"; (2) importador — a linha que começa com \"Pessoas: Pessoas naturais: Personalidade…\" (tópico de Direito Civil) vira a disciplina falsa \"Pessoas\" e leva quase todo o Direito Civil (151 tópicos); (3) erro do próprio edital — \"DIREITO PENAL Princípios aplicáveis…\" veio SEM dois-pontos (p. 39), então Direito Penal não vira disciplina e seus tópicos caem no fim de \"Direito Processual Civil\". Não mexi no texto: a dona decide se autoriza inserir os dois-pontos."
+  },
+  {
+   "id": "tjceTecnico",
+   "nome": "Técnico Judiciário · TJ-CE",
+   "sub": "área judiciária · FCC · 2026",
+   "orgao": "Tribunal de Justiça do Estado do Ceará",
+   "cargo": "Técnico Judiciário – Área Judiciária (I09)",
+   "banca": "FCC",
+   "publicado": "2026-05-18",
+   "url": "https://www.concursosfcc.com.br/concursos/tjuce125/tjuce125_edital_de_abertura_final_20260515153002950.pdf",
+   "paginas": "Anexo III: conhecimentos gerais (p. 31) e específicos do cargo I09 (p. 43–46)",
+   "areas": [
+    "administrativa"
+   ],
+   "fontes": [
+    "tjce-tecnico-judiciaria.txt"
+   ],
+   "disciplinas": [
+    "Língua Portuguesa",
+    "Raciocínio Lógico-Matemático",
+    "Noções sobre Direitos das Pessoas com Deficiência (Resolução CSJT nº 386/2024 - Art. 6º)",
+    "Legislação",
+    "Noções de Direito Constitucional",
+    "Noções de Direito Administrativo",
+    "Noções de Direito Civil",
+    "Noções de Direito Processual Civil",
+    "Noções de Direito Penal",
+    "Noções de Direito Processual Penal"
+   ],
+   "renomear": {
+    "Noções sobre Direitos das Pessoas com Deficiência (resolução Csjt Nº 386/2024 - Art. 6º)": "Noções sobre Direitos das Pessoas com Deficiência (Resolução CSJT nº 386/2024 - Art. 6º)"
+   },
+   "observacao": "O edital só tem um cargo de Técnico (Área Judiciária); não há Técnico da área administrativa. Data: assinado em 18/05/2026 (p. 28). Dois problemas: (1) importador — \"NOÇÕES SOBRE DIREITOS DAS PESSOAS COM DEFICIÊNCIA (…ART. 6º):\" some e os tópicos caem em \"Raciocínio Lógico-Matemático\"; (2) erro do próprio edital — \"NOÇÕES DE DIREITO PENAL Princípios aplicáveis…\" sem dois-pontos (p. 45): a disciplina some e os tópicos caem em \"Noções de Direito Processual Civil\"."
+  },
+  {
+   "id": "tjscAnalistaJuridico",
+   "nome": "Analista Jurídico · TJ-SC",
+   "sub": "nível superior · FGV · 2026",
+   "orgao": "Tribunal de Justiça do Estado de Santa Catarina",
+   "cargo": "Analista Jurídico",
+   "banca": "FGV",
+   "publicado": "2026-03-27",
+   "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-retificado.pdf",
+   "paginas": "Anexo I: conhecimentos gerais de nível superior (p. 18) e específicos do cargo (p. 20–21)",
+   "areas": [
+    "juridica",
+    "administrativa"
+   ],
+   "fontes": [
+    "tjsc-analista-juridico.txt"
+   ],
+   "disciplinas": [
+    "Língua Portuguesa",
+    "Legislação Institucional do PJSC",
+    "Ética e Gestão no Serviço Público",
+    "Noções de Informática e Proteção de Dados",
+    "Direitos Humanos e acesso à Justiça",
+    "Direito Constitucional",
+    "Direito Administrativo",
+    "Direito Civil e Direito do Consumidor",
+    "Direito Processual Civil",
+    "Direito Penal",
+    "Direito Processual Penal",
+    "Direitos Humanos e Tutela Coletiva"
+   ],
+   "observacao": "DEFEITO DO IMPORTADOR (bloqueia o modelo): o edital escreve \"Disciplina - 1 Tópico. 2 Tópico\" (hífen ou travessão, sem dois-pontos) e o importador não reconhece nenhuma disciplina — tudo cai em \"Nova disciplina\". O .txt está fiel ao PDF; \"disciplinasNoEdital\" traz a lista que deveria sair. Edital nº 10/2026 assinado em 27/03/2026; a versão usada é a retificada em 10/04/2026. Ligaduras tipográficas do PDF (fi, fl, ff) foram normalizadas para letras comuns."
+  },
+  {
+   "id": "tjscAnalistaAdministrativo",
+   "nome": "Analista Administrativo · TJ-SC",
+   "sub": "nível superior · FGV · 2026",
+   "orgao": "Tribunal de Justiça do Estado de Santa Catarina",
+   "cargo": "Analista Administrativo",
+   "banca": "FGV",
+   "publicado": "2026-03-27",
+   "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-retificado.pdf",
+   "paginas": "Anexo I: conhecimentos gerais de nível superior (p. 18) e específicos do cargo (p. 18–19)",
+   "areas": [
+    "administrativa"
+   ],
+   "fontes": [
+    "tjsc-analista-administrativo.txt"
+   ],
+   "disciplinas": [
+    "Língua Portuguesa",
+    "Legislação Institucional do PJSC",
+    "Ética e Gestão no Serviço Público",
+    "Noções de Informática e Proteção de Dados",
+    "Direitos Humanos e acesso à Justiça",
+    "Administração Geral",
+    "Gestão de Pessoas e Comportamento Organizacional",
+    "Administração de Materiais e Logística",
+    "Administração Pública",
+    "Administração Financeira e Orçamentária",
+    "Transparência e Controle na Administração Pública"
+   ],
+   "observacao": "DEFEITO DO IMPORTADOR (bloqueia o modelo): o edital escreve \"Disciplina - 1 Tópico. 2 Tópico\" (hífen ou travessão, sem dois-pontos) e o importador não reconhece nenhuma disciplina — tudo cai em \"Nova disciplina\". O .txt está fiel ao PDF; \"disciplinasNoEdital\" traz a lista que deveria sair. Edital nº 10/2026 assinado em 27/03/2026; a versão usada é a retificada em 10/04/2026. Ligaduras tipográficas do PDF (fi, fl, ff) foram normalizadas para letras comuns."
+  },
+  {
+   "id": "tjscOficialJustica",
+   "nome": "Oficial de Justiça e Avaliador · TJ-SC",
+   "sub": "nível superior · FGV · 2026",
+   "orgao": "Tribunal de Justiça do Estado de Santa Catarina",
+   "cargo": "Oficial de Justiça e Avaliador",
+   "banca": "FGV",
+   "publicado": "2026-03-27",
+   "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-retificado.pdf",
+   "paginas": "Anexo I: conhecimentos gerais de nível superior (p. 18) e específicos do cargo (p. 25–26)",
+   "areas": [
+    "juridica",
+    "administrativa"
+   ],
+   "fontes": [
+    "tjsc-oficial-justica.txt"
+   ],
+   "disciplinas": [
+    "Língua Portuguesa",
+    "Legislação Institucional do PJSC",
+    "Ética e Gestão no Serviço Público",
+    "Noções de Informática e Proteção de Dados",
+    "Direitos Humanos e acesso à Justiça",
+    "Direito Constitucional",
+    "Direito Administrativo",
+    "Direito Civil e Direito do Consumidor",
+    "Direito Processual Civil",
+    "Direito Penal",
+    "Direito Processual Penal",
+    "Direitos Humanos e Tutela Coletiva"
+   ],
+   "observacao": "DEFEITO DO IMPORTADOR (bloqueia o modelo): o edital escreve \"Disciplina - 1 Tópico. 2 Tópico\" (hífen ou travessão, sem dois-pontos) e o importador não reconhece nenhuma disciplina — tudo cai em \"Nova disciplina\". O .txt está fiel ao PDF; \"disciplinasNoEdital\" traz a lista que deveria sair. Edital nº 10/2026 assinado em 27/03/2026; a versão usada é a retificada em 10/04/2026. Ligaduras tipográficas do PDF (fi, fl, ff) foram normalizadas para letras comuns. O programa do Oficial é próprio: mesmas sete disciplinas do Analista Jurídico, com tópicos diferentes."
+  },
+  {
+   "id": "mpesAgenteApoio",
+   "nome": "Agente de Apoio · MP-ES",
+   "sub": "função administrativa · nível médio · FGV · 2026",
+   "orgao": "Ministério Público do Estado do Espírito Santo",
+   "cargo": "Agente de Apoio – Função Administrativa (nível médio)",
+   "banca": "FGV",
+   "publicado": "2026-03-11",
+   "url": "https://conhecimento.fgv.br/sites/default/files/concursos/mpes-edital-atualizado-26.05.2026.pdf",
+   "paginas": "Anexo II (p. 38–39)",
+   "areas": [
+    "administrativa"
+   ],
+   "fontes": [
+    "mpes-agente-apoio-administrativa.txt"
+   ],
+   "disciplinas": [
+    "Língua Portuguesa",
+    "Raciocínio Lógico-Matemático",
+    "Legislação e Código de Ética do Ministério Público do Estado do Espírito Santo",
+    "Noções de Direito Constitucional e de Direito Administrativo",
+    "Noções de Administração e de Administração Pública"
+   ],
+   "observacao": "Edital nº 01/2026 assinado em 11/03/2026 (p. 32); a versão usada é a atualizada em 26/05/2026. DEFEITO DO IMPORTADOR: cabeçalho em caixa-alta com 60+ caracteres e sem pontuação final é colado na linha seguinte — somem \"LEGISLAÇÃO E CÓDIGO DE ÉTICA DO MINISTÉRIO PÚBLICO DO ESTADO DO ESPÍRITO SANTO\" e \"NOÇÕES DE DIREITO CONSTITUCIONAL E DE DIREITO ADMINISTRATIVO\", e os tópicos das duas caem em \"Raciocínio Lógico-Matemático\". ESTE EDITAL NÃO TEM CARGO DA ÁREA DE DIREITO: as funções de nível superior são Administrador, Contador, engenharias, TI, saúde etc. (quadro de vagas, p. 2–3). Além disso, o bloco específico de cada função de nível superior vem sem nome de disciplina (só \"1. Administrador\" e itens numerados), por isso nenhum modelo de nível superior foi montado."
+  },
+  {
+   "id": "dpepbAnalista",
+   "nome": "Analista da Defensoria · DPE-PB",
+   "sub": "Assistente Jurídico · FCC · 2026",
+   "orgao": "Defensoria Pública do Estado da Paraíba",
+   "cargo": "Analista da Defensoria – Assistente Jurídico (B02)",
+   "banca": "FCC",
+   "publicado": "2026-09-16",
+   "url": "https://www.concursosfcc.com.br/concursos/dpepb126/edital_de_abertura_dpepb_16_09_2026.pdf",
+   "paginas": "Anexo II: conhecimentos gerais (p. 29) e específicos do cargo B02 (p. 30–34)",
+   "areas": [
+    "juridica",
+    "administrativa"
+   ],
+   "fontes": [
+    "dpepb-analista-assistente-juridico.txt"
+   ],
+   "disciplinas": [
+    "Língua Portuguesa",
+    "Legislação da Defensoria",
+    "Conhecimentos Jurídicos e Institucionais",
+    "Direito do Consumidor",
+    "Direito Constitucional",
+    "Direito Administrativo",
+    "Direito Civil",
+    "Direito Processual Civil",
+    "Direito Penal",
+    "Direito Processual Penal",
+    "Direitos Humanos",
+    "Direito da Criança e do Adolescente, do Idoso, da Pessoa com Deficiência, da Mulher e da Pessoa em Situação de Rua"
+   ],
+   "observacao": "A última disciplina, \"DIREITO DA CRIANÇA E DO ADOLESCENTE, DO IDOSO, DA PESSOA COM DEFICIÊNCIA, DA MULHER E DA PESSOA EM SITUAÇÃO DE RUA. 1. …\", vem no edital em duas linhas, fechada com ponto em vez de dois-pontos: o importador não a reconhece e os tópicos caem no fim de \"Direitos Humanos\"."
+  },
+  {
+   "id": "dpepbTecnico",
+   "nome": "Técnico da Defensoria · DPE-PB",
+   "sub": "sem especialidade · FCC · 2026",
+   "orgao": "Defensoria Pública do Estado da Paraíba",
+   "cargo": "Técnico da Defensoria – Sem Especialidade (A01)",
+   "banca": "FCC",
+   "publicado": "2026-09-16",
+   "url": "https://www.concursosfcc.com.br/concursos/dpepb126/edital_de_abertura_dpepb_16_09_2026.pdf",
+   "paginas": "Anexo II: conhecimentos gerais (p. 29) e específicos do cargo A01 (p. 29–30)",
+   "areas": [
+    "administrativa"
+   ],
+   "fontes": [
+    "dpepb-tecnico-sem-especialidade.txt"
+   ],
+   "disciplinas": [
+    "Língua Portuguesa",
+    "Legislação da Defensoria",
+    "Conhecimentos Jurídicos e Institucionais",
+    "Noções de Administração Pública Aplicada às Defensorias",
+    "Noções de Direito do Consumidor",
+    "Noções de Direito Constitucional",
+    "Noções de Direito Administrativo",
+    "Noções de Direitos Humanos",
+    "Noções de Direito da Criança e do Adolescente, do Idoso, da Pessoa com Deficiência, da Mulher e da Pessoa em Situação de Rua"
+   ],
+   "observacao": "É o único cargo de Técnico do edital (área administrativa, \"Sem Especialidade\"). A última disciplina, \"NOÇÕES DE DIREITO DA CRIANÇA E DO ADOLESCENTE, DO IDOSO, DA PESSOA COM DEFICIÊNCIA, DA MULHER E DA PESSOA EM SITUAÇÃO DE RUA. 1. …\", vem em duas linhas e fechada com ponto: o importador não a reconhece e os tópicos caem no fim de \"Noções de Direitos Humanos\"."
+  },
+  {
+   "id": "pcprDelegado",
+   "nome": "Delegado de Polícia · PC-PR",
+   "sub": "edital 01/2026 · FGV",
+   "orgao": "Polícia Civil do Estado do Paraná",
+   "cargo": "Delegado de Polícia",
+   "banca": "FGV",
+   "publicado": "2026-07-03",
+   "url": "https://conhecimento.fgv.br/sites/default/files/concursos/copia-1-de-edital-01-2026-pcpr-publicacao.docx.pdf",
+   "paginas": "Anexo I (p. 65–69)",
+   "areas": [
+    "policial"
+   ],
+   "fontes": [
+    "pcpr-delegado.txt"
+   ],
+   "disciplinas": [
+    "Direito Penal",
+    "Direito Processual Penal",
+    "Legislação Penal e Legislação Processual Penal Extravagante",
+    "Direito Constitucional",
+    "Direito Administrativo e Gestão Pública",
+    "Legislação Estadual e Institucional",
+    "Direitos Humanos",
+    "Ciências Forenses"
+   ],
+   "observacao": "NÃO BATE COM O EDITAL: o edital tem 8 disciplinas e o importador devolve 7. \"8. CIÊNCIAS FORENSES\" (Medicina Legal, Criminalística e Criminologia, itens 8.1 a 8.16) não é reconhecida como disciplina e os 16 tópicos dela caem dentro de \"Direitos Humanos\". Defeito do importador (nome fora da lista de matérias conhecidas), não do texto. O edital não divide o programa do Delegado em gerais/específicos."
+  },
+  {
+   "id": "pcprInvestigador",
+   "nome": "Agente de Polícia Judiciária · PC-PR",
+   "sub": "edital 01/2026 · FGV",
+   "orgao": "Polícia Civil do Estado do Paraná",
+   "cargo": "Agente de Polícia Judiciária",
+   "banca": "FGV",
+   "publicado": "2026-07-03",
+   "url": "https://conhecimento.fgv.br/sites/default/files/concursos/copia-1-de-edital-01-2026-pcpr-publicacao.docx.pdf",
+   "paginas": "Anexo I (p. 69–73)",
+   "areas": [
+    "policial"
+   ],
+   "fontes": [
+    "pcpr-investigador.txt"
+   ],
+   "disciplinas": [
+    "Língua Portuguesa",
+    "Raciocínio Lógico-Matemático",
+    "Realidade Étnica, Social, Histórica, Geográfica, Cultural, Política e Econômica do Estado do Paraná",
+    "Tecnologia e Sistemas de Informação e de Comunicação, Segurança Cibernética e Crimes Digitais",
+    "Ciências Forenses",
+    "Contabilidade Geral",
+    "Estatística",
+    "Legislação Estadual e Institucional",
+    "Direito Penal e Legislação Penal Extravagante",
+    "Direito Processual Penal e Legislação Processual Penal Extravagante",
+    "Direito Constitucional",
+    "Direito Administrativo",
+    "Direitos Humanos"
+   ],
+   "observacao": "O cargo de \"investigador\" neste edital chama-se Agente de Polícia Judiciária. NÃO BATE COM O EDITAL: são 13 disciplinas (3 de Conhecimentos Gerais, comuns ao Papiloscopista, + 10 de Conhecimentos Específicos) e o importador devolve 10. Três não são reconhecidas e caem TODAS dentro de \"Raciocínio Lógico-Matemático\" (que fica com 33 tópicos em vez de 13): \"3. REALIDADE ÉTNICA, SOCIAL, HISTÓRICA, GEOGRÁFICA, CULTURAL, POLÍTICA E ECONÔMICA DO ESTADO DO PARANÁ\", \"1. TECNOLOGIA E SISTEMAS DE INFORMAÇÃO E DE COMUNICAÇÃO, SEGURANÇA CIBERNÉTICA E CRIMES DIGITAIS\" e \"2. CIÊNCIAS FORENSES\". Defeito do importador. A numeração do edital recomeça em 1 nos Conhecimentos Específicos. O importador também grafa \"Lógico-matemático\" (minúscula depois do hífen)."
+  },
+  {
+   "id": "pcmaInvestigador",
+   "nome": "Oficial Investigador de Polícia · PC-MA",
+   "sub": "edital nº 1/2026 · Cebraspe",
+   "orgao": "Polícia Civil do Estado do Maranhão",
+   "cargo": "Oficial Investigador de Polícia",
+   "banca": "Cebraspe",
+   "publicado": "2026-07-13",
+   "url": "https://cdn.cebraspe.org.br/concursos/pc_ma_26_investigador/arquivos/38200FCDA341E52A4B5E097905117D05D883EACE39D88CDA9FFF72F4287EBA65.html",
+   "paginas": "item 20.2 (Conhecimentos): 20.2.2 Conhecimentos Gerais (Grupo I) e 20.2.3 Conhecimentos Específicos (Grupo II) — edital em HTML, sem paginação",
+   "areas": [
+    "policial"
+   ],
+   "fontes": [
+    "pcma-investigador.txt"
+   ],
+   "disciplinas": [
+    "Língua Portuguesa",
+    "Informática",
+    "Raciocínio Lógico",
+    "Contabilidade",
+    "Estatística",
+    "Administração",
+    "História do Maranhão",
+    "Geografia do Maranhão",
+    "Atualidades (somente para a prova discursiva)",
+    "Direito Penal",
+    "Direito Processual Penal",
+    "Direito Administrativo",
+    "Direito Constitucional",
+    "Legislação Especial",
+    "Direitos Humanos",
+    "Medicina Legal",
+    "Criminologia"
+   ],
+   "renomear": {
+    "Atualidades (somente para a Prova Discursiva)": "Atualidades (somente para a prova discursiva)"
+   },
+   "observacao": "Quase bate: 17 disciplinas no edital, 16 no importador. Falta \"ATUALIDADES (SOMENTE PARA A PROVA DISCURSIVA)\", que é um parágrafo sem numeração e vira subtópico do último item de \"Geografia do Maranhão\" (15 A cultura maranhense). Defeito do importador. Erros de numeração do próprio edital em Direito Processual Penal (\"1 … 1.2 Sistemas\", sem 1.1; dois itens \"4\") ficam como vieram: \"1.2 Sistemas de processo penal\" e \"4 Prisão preventiva\" não são separados em itens próprios. O edital também traz \"Lei nº 9.455/1965\" para a Lei de Tortura (o ano certo é 1997) — mantido como está. O número do edital (\"nº 1\") foi lido do título do arquivo HTML, não conferido no corpo."
+  },
+  {
+   "id": "pcapDelegado",
+   "nome": "Delegado de Polícia Civil · PC-AP",
+   "sub": "edital 001/2026 · Cesgranrio",
+   "orgao": "Polícia Civil do Estado do Amapá",
+   "cargo": "Delegado de Polícia Civil",
+   "banca": "Cesgranrio",
+   "publicado": "2026-09-16",
+   "url": "https://concursos.cesgranrio.org.br/media/gpoweb-prd-hibrido3/eventos/29/conteudos/fcf32af1-773e-4fbf-878f-23ae5b4a2b6e.pdf",
+   "paginas": "Anexo I (p. 45–49)",
+   "areas": [
+    "policial"
+   ],
+   "fontes": [
+    "pcap-delegado.txt"
+   ],
+   "disciplinas": [
+    "Direito Administrativo e Legislação Complementar",
+    "Direito Constitucional e Legislação Complementar",
+    "Direito Penal e Legislação Complementar",
+    "Direito Processual Penal e Legislação Complementar",
+    "Direito Civil / Empresarial e Legislação Complementar",
+    "Direito Tributário e Legislação Complementar",
+    "Direito Ambiental e Legislação Complementar",
+    "Medicina Legal",
+    "Criminologia",
+    "História do Amapá",
+    "Geografia do Amapá",
+    "Legislação Institucional"
+   ],
+   "observacao": "Fonte OFICIAL confirmada: o PDF publicado pela Cesgranrio no portal do concurso (https://concursos.cesgranrio.org.br/portal/avaliacoes/29, item \"EDITAL Nº. 01/2026\") é byte a byte idêntico ao espelho do cursinho (mesmo SHA-256 82c79317…2287d4e). NÃO BATE COM O EDITAL: 12 disciplinas no edital, 10 no importador. \"História do Amapá\" e \"Geografia do Amapá\" não são reconhecidas como disciplina e os 35 tópicos delas caem dentro de \"Criminologia\" (64 tópicos em vez de 29). Defeito do importador."
+  },
+  {
+   "id": "pcapInvestigador",
+   "nome": "Oficial Investigador de Polícia Civil · PC-AP",
+   "sub": "edital 001/2026 · Cesgranrio",
+   "orgao": "Polícia Civil do Estado do Amapá",
+   "cargo": "Oficial Investigador de Polícia Civil",
+   "banca": "Cesgranrio",
+   "publicado": "2026-09-16",
+   "url": "https://concursos.cesgranrio.org.br/media/gpoweb-prd-hibrido3/eventos/29/conteudos/fcf32af1-773e-4fbf-878f-23ae5b4a2b6e.pdf",
+   "paginas": "Anexo I (p. 49–52)",
+   "areas": [
+    "policial"
+   ],
+   "fontes": [
+    "pcap-investigador.txt"
+   ],
+   "disciplinas": [
+    "Língua Portuguesa",
+    "Raciocínio Lógico-Matemático",
+    "Noções de Estatística e Análise de Dados",
+    "Noções de Contabilidade e Análise Financeira",
+    "Noções de Informática",
+    "Direito Penal e Legislação Penal Especial",
+    "Direito Processual Penal e Legislação Processual Penal Especial",
+    "Direito Constitucional",
+    "Direito Administrativo",
+    "Direitos Humanos",
+    "História do Amapá",
+    "Geografia do Amapá",
+    "Legislação Institucional"
+   ],
+   "renomear": {
+    "Direito Humanos": "Direitos Humanos"
+   },
+   "observacao": "Fonte OFICIAL confirmada: o PDF publicado pela Cesgranrio no portal do concurso (https://concursos.cesgranrio.org.br/portal/avaliacoes/29, item \"EDITAL Nº. 01/2026\") é byte a byte idêntico ao espelho do cursinho (mesmo SHA-256 82c79317…2287d4e). NÃO BATE COM O EDITAL: 13 disciplinas no edital, 10 no importador. \"Direito Processual Penal e Legislação Processual Penal Especial\" (nome com mais de 60 caracteres) cai dentro de \"Direito Penal e Legislação Penal Especial\"; \"História do Amapá\" e \"Geografia do Amapá\" caem dentro de \"Direito Humanos\". Defeitos do importador. O edital escreve \"Direito Humanos\" (sem o s) — corrigido só pelo \"renomear\". O edital cita \"Lei nº 12.727/2012 – Tipificação criminal de delitos informáticos\" (a lei dos delitos informáticos é a 12.737/2012) — mantido como está."
+  },
+  {
+   "id": "sefazCEAuditor",
+   "nome": "Auditor-Fiscal · Sefaz-CE",
+   "sub": "Gestão Fazendária · FCC · 2026",
+   "orgao": "Secretaria da Fazenda do Estado do Ceará (Sefaz-CE)",
+   "cargo": "Auditor-Fiscal da Fazenda Estadual — área A01, Gestão Fazendária",
+   "banca": "FCC",
+   "publicado": "2026-04-24",
+   "url": "https://www.concursosfcc.com.br/concursos/sface125/sface125_edital_de_abertura_final-publicar_-_docx.pdf",
+   "paginas": "Anexo VI, p. 34–39",
+   "areas": [
+    "fiscal"
+   ],
+   "fontes": [
+    "sefaz-ce-auditor.txt"
+   ],
+   "disciplinas": [
+    "Língua Portuguesa",
+    "Matemática Financeira/Estatística e Raciocínio Lógico",
+    "Administração Pública e Governança Pública",
+    "Economia",
+    "Direito Constitucional",
+    "Direito Administrativo",
+    "Direito Civil",
+    "Direito Penal",
+    "Direito Financeiro",
+    "Contabilidade Geral e Pública",
+    "Direito Tributário",
+    "Legislação Tributária Estadual",
+    "Contabilidade Avançada e de Custos",
+    "Fluência de Dados",
+    "Finanças Públicas"
+   ],
+   "observacao": "Entraram os Conhecimentos Gerais (comuns às áreas A01 e B02) e os Específicos da área A01 – Gestão Fazendária; a área B02 – Tecnologia da Informação ficou de fora. Data: a do fecho do edital (24/04/2026). O IMPORTADOR NÃO LÊ ESTE EDITAL DIREITO: saem 13 disciplinas em vez de 15 — \"Administração Pública e Governança Pública\" sai como \"Administração Pública\"; \"Direito Financeiro\" cai dentro de Direito Penal; \"Contabilidade de Custos\" (subtítulo) vira disciplina e engole \"Fluência de Dados\" e \"Finanças Públicas\". Não publicar antes do conserto do importador. O próprio edital traz, em Direito Constitucional, \"12. Constituição do Estado de Goiás\" (erro da banca num edital do Ceará): ficou como está. \"Legislação Tributária Nacional\" (parte de Direito Tributário) e \"Contabilidade de Custos\" (parte de Contabilidade Avançada e de Custos) entram como tópicos da matéria a que pertencem, como no edital.",
+   "juntar": {
+    "Direito Tributário": [
+     "Legislação Tributária Nacional"
+    ],
+    "Contabilidade Avançada e de Custos": [
+     "Contabilidade de Custos"
+    ]
+   }
+  },
+  {
+   "id": "sefazSCContabeis",
+   "nome": "Auditor de Finanças Públicas · Sefaz-SC · Ciências Contábeis",
+   "sub": "FCC · 2026",
+   "orgao": "Secretaria de Estado da Fazenda de Santa Catarina (Sefaz-SC)",
+   "cargo": "Auditor Estadual de Finanças Públicas — Ciências Contábeis (C03)",
+   "banca": "FCC",
+   "publicado": "2026-08-31",
+   "url": "https://www.concursosfcc.com.br/concursos/sefsc126/sefsc126_edital_de_abertura_final_publicar.pdf",
+   "paginas": "Anexo III, p. 24–25 e 27–28",
+   "areas": [
+    "fiscal"
+   ],
+   "fontes": [
+    "sefaz-sc-auditor-contabeis.txt"
+   ],
+   "disciplinas": [
+    "Língua Portuguesa",
+    "Matemática Financeira/Estatística e Raciocínio Lógico",
+    "Noções de Direito Constitucional",
+    "Noções de Direito Administrativo",
+    "Ciência e Análise de Dados",
+    "Ética, Integridade e Prevenção ao Assédio e Discriminação",
+    "Conhecimentos Regionais de Santa Catarina",
+    "Contabilidade Aplicada ao Setor Público (CASP) e (NBC TSP)",
+    "Contabilidade Geral",
+    "Responsabilidade Fiscal",
+    "Tecnologia Aplicada à Contabilidade",
+    "Custos no Setor Público"
+   ],
+   "renomear": {
+    "Contabilidade Aplicada ao Setor Público (Casp) e (Nbc Tsp)": "Contabilidade Aplicada ao Setor Público (CASP) e (NBC TSP)"
+   },
+   "observacao": "O concurso é de Auditor Estadual de Finanças Públicas (não é auditor-fiscal da receita), com cinco áreas de formação: Administração e Engenharias (6 vagas), Ciências da Computação (12), Ciências Contábeis (20), Ciências Econômicas (4) e Direito (8). Este modelo é o da área com mais vagas: Conhecimentos Gerais comuns a quatro áreas + Específicos de Ciências Contábeis. As 12 disciplinas batem com o edital."
+  },
+  {
+   "id": "sefazSCDireito",
+   "nome": "Auditor de Finanças Públicas · Sefaz-SC · Direito",
+   "sub": "FCC · 2026",
+   "orgao": "Secretaria de Estado da Fazenda de Santa Catarina (Sefaz-SC)",
+   "cargo": "Auditor Estadual de Finanças Públicas — Direito (E05)",
+   "banca": "FCC",
+   "publicado": "2026-08-31",
+   "url": "https://www.concursosfcc.com.br/concursos/sefsc126/sefsc126_edital_de_abertura_final_publicar.pdf",
+   "paginas": "Anexo III, p. 25–26 e 31–32",
+   "areas": [
+    "fiscal"
+   ],
+   "fontes": [
+    "sefaz-sc-auditor-direito.txt"
+   ],
+   "disciplinas": [
+    "Língua Portuguesa",
+    "Matemática Financeira/Estatística e Raciocínio Lógico",
+    "Ciência e Análise de Dados",
+    "Ética, Integridade e Prevenção ao Assédio e Discriminação",
+    "Conhecimentos Regionais de Santa Catarina",
+    "Direito Constitucional",
+    "Direito Administrativo",
+    "Direito Financeiro e Orçamentário",
+    "Direito Previdenciário",
+    "Direito Civil",
+    "Direito Penal"
+   ],
+   "observacao": "Conhecimentos Gerais próprios da área Direito + Específicos de Direito (8 vagas). O IMPORTADOR PERDE UMA DISCIPLINA: \"Ciência e Análise de Dados\" vem, no próprio PDF, na mesma linha do conteúdo (\"Ciência e Análise de Dados: Conceitos fundamentais…\") e cai dentro de Matemática Financeira/Estatística e Raciocínio Lógico — saem 10 disciplinas em vez de 11."
+  },
+  {
+   "id": "sefazSPApofp",
+   "nome": "APOFP · Sefaz-SP · Orçamento e Finanças Públicas",
+   "sub": "FCC · 2026",
+   "orgao": "Secretaria da Fazenda e Planejamento do Estado de São Paulo (Sefaz-SP)",
+   "cargo": "Analista em Planejamento, Orçamento e Finanças Públicas (APOFP) — área A01, Orçamento e Finanças Públicas",
+   "banca": "FCC",
+   "publicado": "2026-10-02",
+   "url": "https://www.concursosfcc.com.br/concursos/fazsp126/edital_n0_01-2026_-_abertura_das_incricoes_apofp.pdf",
+   "paginas": "Anexo II, p. 31–35",
+   "areas": [
+    "fiscal"
+   ],
+   "fontes": [
+    "sefaz-sp-apofp.txt"
+   ],
+   "disciplinas": [
+    "Administração Geral, Administração Pública e Auditoria Governamental",
+    "Direito Administrativo",
+    "Direito Constitucional",
+    "Economia",
+    "Língua Portuguesa",
+    "Matemática Financeira / Estatística",
+    "Administração Financeira e Orçamentária",
+    "Contabilidade Geral e Pública",
+    "Direito Financeiro e Finanças Públicas",
+    "Fluência de Dados",
+    "Conhecimentos Específicos"
+   ],
+   "observacao": "O cargo é um só, mas a Prova 2 (específicos) é por área de conhecimento, com 20 vagas cada: A01 Orçamento e Finanças Públicas, B02 Contabilidade Pública, C03 Ciências de Dados e TI. Entraram os Conhecimentos Básicos (Provas 1 e 3, comuns) + os Específicos da A01; B02 e C03 ficaram de fora — a dona decide se quer modelos para elas. Os específicos não têm disciplinas nomeadas: o edital traz só o rótulo da área e dois parágrafos. Publicado no DOE-SP em 02/10/2026 (edital datado de 01/10/2026). O IMPORTADOR NÃO LÊ ESTE EDITAL DIREITO (os nomes de disciplina vêm sem dois-pontos): a 1ª disciplina sai como \"Nova disciplina\"; \"Matemática Financeira / Estatística\" vira duas; \"Fluência de Dados\" e todo o bloco específico caem dentro de Direito Financeiro e Finanças Públicas. Não publicar antes do conserto. O bloco específico da área A01 (Orçamento e Finanças Públicas) vem no edital sem nome de matéria; entra como \"Conhecimentos Específicos\"."
+  },
+  {
+   "id": "sefazALAuditor",
+   "nome": "Auditor Fiscal · Sefaz-AL",
+   "sub": "Cebraspe · 2026",
+   "orgao": "Secretaria de Estado da Fazenda de Alagoas (Sefaz-AL)",
+   "cargo": "Auditor Fiscal da Administração Tributária Estadual (AFTE)",
+   "banca": "Cebraspe",
+   "publicado": "2026-08-24",
+   "url": "https://cdn.cebraspe.org.br/concursos/SEFAZ_AL_26/arquivos/DD4C3A2730B25BBF2A25E18515B454A52ECF7512DFB31A68C1D03E512779123F.html",
+   "paginas": "item 14.2.3 (conhecimentos básicos) e 14.2.4 (conhecimentos específicos)",
+   "areas": [
+    "fiscal"
+   ],
+   "fontes": [
+    "sefaz-al-auditor-fiscal.txt"
+   ],
+   "disciplinas": [
+    "Matemática Financeira",
+    "Direito Constitucional",
+    "Direito Administrativo",
+    "Contabilidade Geral",
+    "Direito Tributário",
+    "Estatística e Probabilidade",
+    "Contabilidade Pública",
+    "Economia",
+    "Finanças Públicas",
+    "Legislação Tributária Estadual",
+    "Inteligência Artificial",
+    "Desenvolvimento de Sistemas",
+    "Infraestrutura de TIC e Segurança da Informação",
+    "Reforma Tributária",
+    "Auditoria Fiscal",
+    "Ciência de Dados"
+   ],
+   "renomear": {
+    "Infraestrutura de Tic e Segurança da Informação": "Infraestrutura de TIC e Segurança da Informação"
+   },
+   "observacao": "O edital tem UM cargo só (AFTE, 40 vagas + 60 de cadastro), sem áreas: não existe Auditor de Finanças e Controle nem área de TI separada. As disciplinas de tecnologia (Inteligência Artificial, Desenvolvimento de Sistemas, Infraestrutura de TIC, Ciência de Dados) fazem parte da prova P2 de todos os candidatos, por isso ficaram. Não há Língua Portuguesa no programa. As 16 disciplinas batem com o quadro do item 7.1; única diferença: o importador escreve \"Infraestrutura de Tic e Segurança da Informação\" (a sigla TIC perde a caixa-alta). Não usei \"renomear\" porque não é erro de digitação do edital; se a dona quiser: {\"Infraestrutura de Tic e Segurança da Informação\": \"Infraestrutura de TIC e Segurança da Informação\"}. Data: a do edital (24/08/2026)."
+  },
+  {
+   "id": "tceSCDireito",
+   "nome": "Auditor Fiscal de Controle Externo · TCE-SC · Direito",
+   "sub": "FGV · 2026",
+   "orgao": "Tribunal de Contas do Estado de Santa Catarina (TCE-SC)",
+   "cargo": "Auditor Fiscal de Controle Externo — área de habilitação Direito",
+   "banca": "FGV",
+   "publicado": "2026-02-24",
+   "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-fgv-13.04.retificado.pdf",
+   "paginas": "Anexo I, p. 43–45 e 54–57",
+   "areas": [
+    "contas"
+   ],
+   "fontes": [
+    "tce-sc-auditor-direito.txt"
+   ],
+   "disciplinas": [
+    "Língua Portuguesa",
+    "Raciocínio Lógico Matemático",
+    "Ética no Serviço Público",
+    "Informática e Análise de Dados",
+    "Auditoria Governamental, Compliance, Gestão de Risco e Governança",
+    "Controle Externo da Administração Pública",
+    "Legislação Aplicável ao Tribunal de Contas do Estado de Santa Catarina",
+    "Direito Administrativo",
+    "Direito Constitucional",
+    "Direito Tributário",
+    "Direito Penal",
+    "Direito Financeiro",
+    "Direito Civil",
+    "Direito Processual Civil",
+    "Direito Previdenciário"
+   ],
+   "renomear": {
+    "Auditoria Governamental, Compliance, Gestão de Risco e Governança (comum a Todas as Áreas de Habilitação)": "Auditoria Governamental, Compliance, Gestão de Risco e Governança",
+    "Controle Externo da Administração Pública (comum a Todas as Áreas de Habilitação)": "Controle Externo da Administração Pública",
+    "Legislação Aplicável ao Tribunal de Contas do Estado de Santa Catarina (comum a Todas as Áreas de Habilitação)": "Legislação Aplicável ao Tribunal de Contas do Estado de Santa Catarina"
+   },
+   "observacao": "Módulo I (conhecimentos gerais da área Direito) + Módulo II comum a todas as áreas (3 disciplinas) + Módulo II da área de habilitação Direito (8 matérias). Edital de 24/02/2026, texto consolidado com a retificação de 13/04/2026. O IMPORTADOR NÃO LÊ ESTE EDITAL DIREITO: saem 11 disciplinas em vez de 15. As três disciplinas comuns do Módulo II (Auditoria Governamental…, Controle Externo…, Legislação Aplicável ao TCE-SC) caem dentro de \"Informática\"; \"Informática e Análise de Dados\" sai como \"Informática\"; \"Direito Financeiro\" cai dentro de Direito Penal. Não publicar antes do conserto. \"Informática e Análise de Dados\" é uma matéria só no edital, com duas partes; cada parte entra como tópico dela.",
+   "juntar": {
+    "Informática e Análise de Dados": [
+     "Informática",
+     "Análise de Dados"
+    ]
+   }
+  },
+  {
+   "id": "tceSCContabilidade",
+   "nome": "Auditor Fiscal de Controle Externo · TCE-SC · Ciências Contábeis",
+   "sub": "FGV · 2026",
+   "orgao": "Tribunal de Contas do Estado de Santa Catarina (TCE-SC)",
+   "cargo": "Auditor Fiscal de Controle Externo — área de habilitação Ciências Contábeis",
+   "banca": "FGV",
+   "publicado": "2026-02-24",
+   "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital-fgv-13.04.retificado.pdf",
+   "paginas": "Anexo I, p. 40–43, 44–45 e 46–48",
+   "areas": [
+    "contas"
+   ],
+   "fontes": [
+    "tce-sc-auditor-contabilidade.txt"
+   ],
+   "disciplinas": [
+    "Língua Portuguesa",
+    "Raciocínio Lógico Matemático",
+    "Ética no Serviço Público",
+    "Direito",
+    "Informática e Análise de Dados",
+    "Auditoria Governamental, Compliance, Gestão de Risco e Governança",
+    "Controle Externo da Administração Pública",
+    "Legislação Aplicável ao Tribunal de Contas do Estado de Santa Catarina",
+    "Ciências Contábeis"
+   ],
+   "renomear": {
+    "Auditoria Governamental, Compliance, Gestão de Risco e Governança (comum a Todas as Áreas de Habilitação)": "Auditoria Governamental, Compliance, Gestão de Risco e Governança",
+    "Controle Externo da Administração Pública (comum a Todas as Áreas de Habilitação)": "Controle Externo da Administração Pública",
+    "Legislação Aplicável ao Tribunal de Contas do Estado de Santa Catarina (comum a Todas as Áreas de Habilitação)": "Legislação Aplicável ao Tribunal de Contas do Estado de Santa Catarina"
+   },
+   "observacao": "Módulo I (conhecimentos gerais das áreas Administração, Ciências Contábeis, Economia, Engenharias e Ciências Atuariais) + Módulo II comum a todas as áreas (3 disciplinas) + Módulo II da área de habilitação Ciências Contábeis (bloco único, sem nome de disciplina além do rótulo da área). Edital de 24/02/2026, texto consolidado com a retificação de 13/04/2026. O IMPORTADOR NÃO LÊ ESTE EDITAL DIREITO: saem 7 disciplinas; as três comuns do Módulo II e TODO o bloco de Ciências Contábeis caem dentro de \"Informática\" (57 tópicos, 208 subtópicos). A disciplina \"Direito\" do edital sai repartida em Direito Administrativo, Constitucional e Financeiro (o que é aceitável); \"Informática e Análise de Dados\" sai como \"Informática\". Não publicar antes do conserto. \"Informática e Análise de Dados\" e \"Direito\" são matérias com partes no edital; cada parte entra como tópico da matéria. O bloco específico vem no edital como \"Área de habilitação: Ciências Contábeis\" e entra com esse nome.",
+   "juntar": {
+    "Informática e Análise de Dados": [
+     "Informática",
+     "Análise de Dados"
+    ],
+    "Direito": [
+     "Direito Administrativo",
+     "Direito Constitucional",
+     "Direito Financeiro"
+    ]
+   }
+  }
+ ]
+}

@@ -40,6 +40,7 @@ import { testarBackupDriveErros } from './backup-drive-erros.mjs';
 import { testarSelectHost } from './select-host.mjs';
 import { testarAjustesRitmo } from './ajustes-ritmo.mjs';
 import { testarCicloMagistratura } from './ciclo-magistratura.mjs';
+import { testarCicloNivelEstrategia } from './ciclo-nivel-estrategia.mjs';
 import { testarSemAnotacoesNavegador } from './sem-anotacoes.mjs';
 import { testarAvisosOficiaisNavegador } from './avisos-oficiais.mjs';
 import { testarPrioridadeErrosResolvidos } from './prioridade-erros-resolvidos.mjs';
@@ -201,6 +202,7 @@ for (const [base, origem, arquivo] of ORIGENS) {
     // backup na nuvem pessoal: o aviso do Drive e a faixa vermelha no motor do Safari (só http: semeia por /__semente)
     if (origem === 'http') { try { await testarBackupDriveErros(browser, base, ok); } catch (e) { ok(false, 'BACKUP/Drive [' + motor + '] exceção: ' + e.message); } }
     // Ajustes · Ritmo e metas (só http: semeia por /__semente)
+    if (origem === 'http') { try { await testarCicloNivelEstrategia(page, base, ok, { motor, origem, voltaDeReferencia: JSON.parse(fs.readFileSync(new URL('./fixtures/volta-fabrica.json', import.meta.url), 'utf8')) }); } catch (e) { ok(false, 'CICLO-NÍVEL [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); } }
     if (origem === 'http') { try { await testarAjustesRitmo(page, base, ok, { motor, origem }); } catch (e) { ok(false, 'RITMO [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); } }
     // Ciclo Magistratura (só http: semeia por /__semente)
     if (origem === 'http') { try { await testarCicloMagistratura(page, base, ok, { motor, origem }); } catch (e) { ok(false, 'CICLO MAGISTRATURA [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); } }

@@ -1,0 +1,116 @@
+Língua Portuguesa
+1. Domínio da ortografia oficial. 2. Emprego da acentuação gráfica. 3. Emprego dos sinais de pontuação. 4. Flexão nominal
+e verbal. 5. Pronomes: emprego, formas de tratamento e colocação. 6. Domínio dos mecanismos de coesão textual.
+7. Emprego de tempos e modos verbais. 8. Vozes do verbo. 9. Concordância nominal e verbal. 10. Regência nominal e
+verbal. 11. Sintaxe. 12. Redação (confronto e reconhecimento de frases corretas e incorretas). 13. Compreensão de textos
+de gêneros variados. 14. Adequação da linguagem ao tipo de documento.
+Raciocínio Lógico-Matemático
+1. Estruturas lógicas. 2. Lógica de argumentação: analogias, inferências, deduções e conclusões. 3. Lógica proposicional.
+3.1. Proposições simples e compostas. 3.2. Valores lógicos das proposições. 3.3. Conectivos lógicos. 3.4. Tabelas-
+verdade. 3.5. Equivalências lógicas. 3.6. Leis de De Morgan. 3.7. Negação de proposições. 4. Diagramas lógicos. 5. Regra
+de três simples e composta. 6. Porcentagem e variações percentuais. 7. Grandezas direta e inversamente proporcionais.
+8. Análise combinatória. 8.1. Princípio fundamental da contagem. 8.2. Permutações, arranjos e combinações.
+Noções de Estatística e Análise de Dados
+1. Estatística descritiva. 1.1. População e amostra. 1.2. Variáveis qualitativas e quantitativas. 1.3. Variáveis discretas e
+contínuas. 2. Distribuição de frequências: Frequências absoluta, relativa e acumulada. 3. Medidas de posição: média
+aritmética, mediana, moda, quartis, decis e percentis. 4. Medidas de dispersão: amplitude, variância, desvio-padrão e
+coeficiente de variação. 5. Probabilidade. 5.1. Espaço amostral e eventos. 5.2. Probabilidade da união e da interseção de
+eventos. 5.3. Probabilidade condicional. 5.4. Independência de eventos. 5.5. Teorema de Bayes. 6. Análise exploratória
+de dados. 6.1. Distribuição e comportamento dos dados. 6.2. Identificação de valores atípicos (outliers). 7. Correlação.
+7.1. Coeficiente de correlação. 7.2. Correlação e causalidade. 8. Regressão linear. 9. Taxas, razões, proporções e
+indicadores. 10. Análise e interpretação de tabelas, gráficos e conjuntos de dados. 11. Qualidade de dados. 11.1. Dados
+ausentes, duplicados, inconsistentes e discrepantes. 12. Noções de análise espacial de dados. 13. Visualização de dados.
+Noções de Contabilidade e Análise Financeira
+1. Conceitos, objetivos e finalidades da contabilidade. 2. Patrimônio. 2.1. Componentes patrimoniais: ativo, passivo e
+patrimônio líquido. 2.2. Equação fundamental do patrimônio. 2.3. Situação líquida patrimonial. 3. Atos e fatos
+administrativos. 3.1. Fatos permutativos, modificativos e mistos. 4. Contas. 4.1. Conceito e classificação. 4.2. Débito,
+crédito e saldo. 5. Escrituração contábil: 5.1. Regime de competência. 5.2. Regime de caixa. 6. Balanço patrimonial.
+6.1. Conceito, estrutura e composição. 7. Demonstração do Resultado do Exercício (DRE). 7.1. Conceito, estrutura e
+composição. 8. Demonstração dos Fluxos de Caixa (DFC). 9. Análise das demonstrações contábeis. 9.1. Análise vertical
+e horizontal. 9.2. Indicadores de liquidez e endividamento. 10. Análise financeira e patrimonial. 10.1. Fluxos financeiros.
+10.2.  Movimentação bancária. 10.3. Evolução patrimonial. 10.4. Compatibilidade entre renda, patrimônio e movimentação
+financeira. 11. Análise de extratos e movimentações financeiras. 12. Identificação de operações atípicas.
+13. Fracionamento de operações financeiras. 14. Circularidade de recursos. 15. Interposição de pessoas. 16. Ocultação
+e dissimulação de bens, direitos e valores. 17. Relações patrimoniais, societárias e financeiras entre pessoas físicas e
+jurídicas. 18. Noções de inteligência financeira. 19. Relatório de Inteligência Financeira (RIF): conceito e finalidade.
+Noções de Informática
+1. Noções de sistemas operacionais – Windows 11. 2. Conceitos de organização e de gerenciamento de informações,
+arquivos, pastas e programas. 3. Edição de textos, planilhas e apresentações (ambientes Microsoft Office – Word, Excel
+e PowerPoint - versão 365). 4. Navegador Web: Microsoft Edge e Google Chrome; busca e pesquisa na Web.
+5. Programas de correio eletrônico (Microsoft Outlook e similares). 6. Procedimentos de backup. 7. Armazenamento de
+dados na nuvem. 8. Redes de computadores: Conceitos de protocolos de comunicação, TCP/IP, tipos e topologias de
+redes, Internet e Intranet. 9. Segurança em redes. 10. Ferramentas de produtividade (Microsoft Teams, Google Meet e
+Google Drive). 11. Segurança da informação e segurança cibernética: confidencialidade, integridade, disponibilidade,
+autenticidade e rastreabilidade das informações; controle de acesso; autenticação; logs; auditoria; criptografia; certificados
+digitais; backup; recuperação de dados; vulnerabilidades; malware; ransomware; phishing; proteção de dados pessoais;
+prevenção e resposta a incidentes de segurança. 12. Aplicativos para segurança (antivírus, firewall, antispyware, entre
+outros).
+Direito Penal e Legislação Penal Especial
+1. Princípios fundamentais do Direito Penal. 2. Aplicação da lei penal. 2.1. Lei penal no tempo. 2.2. Lei penal no espaço.
+3. Crime. 3.1. Fato típico, ilicitude e culpabilidade: noções gerais. 3.2. Dolo e culpa. 3.3. Consumação e tentativa.
+3.4. Concurso de pessoas. 4. Crimes contra a pessoa. 5. Crimes contra o patrimônio. 6. Crimes contra a dignidade sexual.
+7. Crimes contra a fé pública. 8. Crimes contra a Administração Pública. 9. Crimes praticados por meios informáticos.
+10. Crimes cibernéticos. 11. Lei nº 11.343/2006 — Lei de Drogas. 12. Lei nº 10.826/2003 — Estatuto do Desarmamento.
+13. Lei nº 12.850/2013 — Organizações Criminosas. 14. Lei nº 9.613/1998 — Lavagem ou ocultação de bens, direitos e
+valores. 15. Lei nº 11.340/2006 — Lei Maria da Penha. 16. Lei nº 8.072/1990 — Crimes Hediondos. 17. Lei nº 13.869/2019
+— Abuso de Autoridade. 18. Lei nº 9.455/1997 — Crimes de Tortura. 19. Lei nº 7.716/1989 — Crimes resultantes de
+preconceito de raça ou de cor. 20. Lei nº 8.069/1990 — Estatuto da Criança e do Adolescente: crimes. 21. Lei
+nº 10.741/2003 — Estatuto da Pessoa Idosa: crimes. 22. Lei nº 9.605/1998 — Crimes ambientais: aspectos penais. 23. Lei
+nº 8.137/1990 — Crimes contra a ordem tributária, econômica e contra as relações de consumo. 24. Lei nº 12.727/2012
+– Tipificação criminal de delitos informáticos.
+Direito Processual Penal e Legislação Processual Penal Especial
+1. Aplicação da lei processual penal. 2. Inquérito policial. 2.1. Conceito, finalidade e características. 2.2. Instauração.
+2.3. Diligências investigatórias. 2.4. Indiciamento. 2.5. Conclusão e prazos. 3. Prova. 3.1. Disposições gerais. 3.2. Prova
+ilícita. 3.3. Exame de corpo de delito e perícias. 3.4. Interrogatório. 3.5. Confissão. 3.6. Ofendido. 3.7. Prova testemunhal.
+3.8. Reconhecimento de pessoas e coisas. 3.9. Acareação. 3.10. Documentos. 3.11. Indícios. 3.12. Busca e apreensão.
+4. Cadeia de custódia da prova. 4.1. Vestígios. 4.2. Preservação do local de crime. 4.3. Etapas da cadeia de custódia.
+5. Prisão e medidas cautelares. 5.1. Prisão em flagrante. 5.2. Prisão preventiva. 5.3. Prisão temporária. 5.4. Medidas
+cautelares diversas da prisão. 5.5. Liberdade provisória e fiança. 6. Lei nº 9.296/1996 — interceptação de comunicações
+telefônicas, de informática e telemática. 7. Lei nº 12.850/2013 — meios de obtenção da prova. 7.1. Colaboração premiada.
+7.2. Ação controlada. 7.3. Infiltração de agentes. 8. Captação ambiental: disposições legais pertinentes. 9. Afastamento
+dos sigilos bancário e fiscal: disposições pertinentes à investigação criminal. 10. Lei nº 12.965/2014 — Marco Civil da
+Internet: registros, preservação e disponibilização de dados no âmbito da investigação criminal.
+Direito Constitucional
+1. Constituição da República Federativa do Brasil de 1988. 2. Princípios fundamentais. 3. Direitos e garantias
+fundamentais. 3.1. Direitos e deveres individuais e coletivos. 3.2. Direito à vida, à liberdade, à igualdade, à segurança e à
+propriedade. 3.3. Princípio da legalidade. 3.4. Inviolabilidade da intimidade, da vida privada, da honra e da imagem.
+3.5. Inviolabilidade domiciliar. 3.6. Sigilo da correspondência e das comunicações. 3.7. Liberdade de manifestação do
+pensamento, reunião e associação. 3.8. Direito ao silêncio e princípio da não autoincriminação. 3.9. Garantias
+constitucionais relativas à prisão. 4. Remédios constitucionais. 4.1. Habeas corpus. 4.2. Mandado de segurança.
+5. Administração Pública. 5.1. Disposições gerais. 5.2. Servidores públicos. 6. Segurança Pública. 6.1. Art. 144 da
+Constituição Federal. 6.2. Organização e atribuições constitucionais dos órgãos de segurança pública. 6.3. Polícias Civis.
+Direito Administrativo
+1. Administração Pública: conceito e princípios. 2. Administração direta e indireta. 3. Órgãos públicos. 4. Agentes públicos.
+5. Poderes administrativos. 5.1. Poder hierárquico. 5.2. Poder disciplinar. 5.3. Poder regulamentar. 5.4. Poder de polícia.
+5.5. Uso e abuso do poder. 6. Atos administrativos. 6.1. Conceito. 6.2. Requisitos ou elementos. 6.3. Atributos.
+6.4. Classificação. 6.5. Anulação e revogação. 7. Agentes públicos. 7.1. Direitos, deveres e responsabilidades.
+8. Responsabilidade civil do Estado. 9. Controle da Administração Pública: noções. 10. Processo administrativo:
+princípios. 11. Improbidade administrativa: noções gerais. 12. Lei de Acesso à Informação (Lei nº 12.527/2011). 13. Lei
+Geral de Proteção de Dados Pessoais (Lei nº 13.709/2018): princípios, tratamento de dados pessoais pelo Poder Público
+e disposições pertinentes à segurança pública e investigação criminal.
+Direito Humanos
+1. Teoria geral dos direitos humanos. 1.1. Conceito, características e fundamentos. 2. Direitos humanos na Constituição
+Federal. 3. Declaração Universal dos Direitos Humanos. 4. Pacto Internacional sobre Direitos Civis e Políticos.
+5. Convenção Americana sobre Direitos Humanos (Pacto de São José da Costa Rica). 6. Convenção contra a Tortura e
+Outros Tratamentos ou Penas Cruéis, Desumanos ou Degradantes. 7. Sistema Interamericano de Direitos Humanos:
+noções gerais. 8. Direitos das pessoas privadas de liberdade. 9. Igualdade e não discriminação. 10. Proteção de grupos
+vulneráveis. 11. Direitos humanos aplicados à atividade policial. 12. Uso da força pelos agentes responsáveis pela
+aplicação da lei. 12.1. Legalidade, necessidade, proporcionalidade e responsabilização. 13. Proteção da integridade física
+e moral das pessoas sob custódia do Estado.
+História do Amapá
+1. Formação histórica do território amapaense. 2. Povos indígenas e ocupação do território. 3. Disputas territoriais e
+formação das fronteiras. 4. Contestado franco-brasileiro. 5. Laudo Suíço. 6. Criação do Território Federal do Amapá.
+7. Transformação do Amapá em Estado. 8. Formação política, econômica e social do Amapá. 9. Principais ciclos e
+atividades econômicas. 10. Aspectos relevantes da história contemporânea do Amapá.
+Geografia do Amapá
+1. Localização geográfica e limites territoriais. 2. Divisão político-administrativa e municípios. 3. Aspectos físicos.
+3.1. Relevo. 3.2. Clima. 3.3. Vegetação. 3.4. Hidrografia. 4. Biomas e ecossistemas. 5. População e dinâmica demográfica.
+6. Urbanização e organização do espaço. 7. Atividades econômicas. 8. Recursos naturais e mineração. 9. Unidades de
+conservação e terras indígenas. 10. Infraestrutura e integração regional. 11. Fronteira internacional e faixa de fronteira.
+12. Questões socioambientais contemporâneas. 13. Amapá no contexto amazônico e da Amazônia Legal.
+Legislação Institucional
+1. Lei nº 14.735/2023 — Lei Orgânica Nacional das Polícias Civis. 1.1. Princípios, diretrizes e competências.
+1.2. Organização básica das Polícias Civis. 1.3. Cargos e atribuições. 1.4. Direitos, garantias, prerrogativas, deveres e
+vedações. 1.5. Atribuições do Oficial Investigador de Polícia. 2. Lei Orgânica da Polícia Civil do Estado do Amapá:
+organização, estrutura, competências, cargos, atribuições, direitos e deveres. 3. Regime jurídico dos servidores públicos
+civis do Estado do Amapá: direitos, deveres, proibições, responsabilidades e regime disciplinar.

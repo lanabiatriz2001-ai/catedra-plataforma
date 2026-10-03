@@ -1,0 +1,106 @@
+Língua Portuguesa:
+Redação Oficial. Ortografia e acentuação. Emprego do sinal indicativo de crase. Compreensão e interpretação de textos de
+gêneros variados. Relação do texto com seu contexto histórico. Denotação e conotação. Discurso direto, discurso indireto
+e discurso indireto livre. Intertextualidade. Figuras de linguagem. Morfossintaxe. Elementos estruturais e processos de
+formação de palavras. Sinonímia e antonímia. Pontuação. Pronomes. Concordância nominal e concordância verbal. Flexão
+nominal e flexão verbal. Vozes do verbo. Correlação de tempos e modos verbais. Regência nominal e regência verbal.
+Coordenação e subordinação. Conectivos. Redação (confronto e reconhecimento de frases corretas e incorretas;
+organização e reorganização de orações e períodos; equivalência e transformação de estruturas).
+
+Matemática Financeira/Estatística e Raciocínio Lógico:
+Juros simples. Montante e juros. Taxa real e taxa efetiva. Taxas equivalentes. Capitais equivalentes. Juros compostos.
+Montante e juros. Taxa real e taxa efetiva. Taxas equivalentes. Capitais equivalentes. Capitalização contínua. Descontos:
+simples, composto. Desconto racional e desconto comercial. Amortizações. Sistema francês. Sistema de amortização
+constante. Sistema misto. Fluxo de caixa. Valor atual. Taxa interna de retorno. Estatística Descritiva: gráficos, tabelas,
+medidas de posição (média, moda, mediana, quartis, mínimo e máximo) e de variabilidade (variância, desvio-padrão,
+amplitude). Técnicas de Contagem e Análise Combinatória: Combinações Simples, Arranjos e Permutação com e sem
+repetição. Probabilidades: conceito, espaço amostral, axiomas e distribuições de probabilidades discretas e contínuas
+(Bernoulli, binomial, geométrica, uniforme, discreta, contínua, normal, Poisson, qui-quadrado, t de Student e F-Snedecor).
+Inferência estatística. Amostragem: amostras casuais e não casuais. Processos de amostragem, incluindo estimativa pontual
+de parâmetros. Intervalos de confiança. Testes de hipóteses para médias e proporções. Correlação e regressão linear
+simples. Raciocínio Lógico: Estrutura lógica de relações arbitrárias entre pessoas, lugares, objetos ou eventos fictícios;
+dedução de novas informações das relações fornecidas e avaliação das condições usadas para estabelecer a estrutura
+daquelas relações. Compreensão e elaboração da lógica das situações por meio de: raciocínio verbal; raciocínio
+matemático; raciocínio sequencial; orientação espacial e temporal; formação de conceitos; discriminação de elementos.
+Compreensão do processo lógico que, a partir de um conjunto de hipóteses, conduz, de forma válida, a conclusões
+determinadas.
+
+Noções de Direito Constitucional:
+Constituição da República Federativa do Brasil de 1988. Princípios fundamentais. Direitos e garantias fundamentais: Direitos
+e deveres individuais e coletivos, direitos sociais, nacionalidade, direitos políticos. Organização político‐administrativa do
+Estado: Estado federal brasileiro, União, estados, Distrito Federal, municípios e territórios. Administração pública:
+Disposições gerais, servidores públicos. Poder Executivo: atribuições do Presidente da República. Poder Legislativo:
+estrutura; funcionamento e atribuições; fiscalização contábil, financeira e orçamentária. Finanças Públicas. Ordem
+econômica e financeira: Princípios gerais da atividade econômica. Ordem social: Seguridade social; Mínimos constitucionais
+federais e estaduais; disposições gerais. Constituição do Estado de Santa Catarina.
+
+Noções de Direito Administrativo:
+Poderes da Administração Pública, Responsabilidade Civil do Estado e Controle da Administração Pública. Lei
+Complementar nº 741/2019 (Estrutura organizacional do Estado). Lei nº 6.745/1985 (Estatuto do servidor público SC). Lei
+nº 12.527/2011 (LAI). Lei nº 8.429/1992 (Lei improbidade administrativa). Lei nº 14.133/2021 (Nova lei de licitações e
+contratos).
+Ciência e Análise de Dados:
+Conceitos fundamentais de Ciência de Dados e Análise de Dados aplicados à Administração Pública, controle e finanças.
+Dados estruturados, semiestruturados e não estruturados. Coleta, qualidade, tratamento, análise e interpretação de dados.
+Identificação de padrões, tendências, correlações e anomalias. Business Intelligence e Visualização de Dados: Conceitos
+de Business Intelligence (BI), analytics, data mining e web scraping. Indicadores, métricas, relatórios gerenciais, dashboards
+e visualização de dados. Uso de ferramentas analíticas para extração, cruzamento, interpretação e comunicação de
+informações. Governo Digital e Inteligência Artificial: Governo Digital, transformação digital, serviços públicos digitais,
+interoperabilidade, automação e Administração Pública orientada por dados. Conceitos fundamentais de Inteligência
+Artificial, aprendizado de máquina, IA generativa e modelos de linguagem de grande porte (LLMs). Proteção de Dados
+Pessoais: Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais (LGPD) e alterações posteriores. Princípios,
+conceitos, bases legais, direitos dos titulares, agentes de tratamento e tratamento de dados pelo Poder Público.
+Compartilhamento, segurança, boas práticas e incidentes envolvendo dados pessoais.
+
+Ética, Integridade e Prevenção ao Assédio e Discriminação:
+Ética no setor público: princípios, deveres e vedações institucionais.
+Programas de integridade e compliance na administração pública: gestão de riscos de fraude e corrupção.
+Prevenção e combate ao assédio moral, assédio sexual e a todas as formas de discriminação (gênero, raça, orientação
+sexual, idade e PCD) no ambiente de trabalho e nas políticas públicas.
+Lei nº 12.846/2013 (Lei anticorrupção)
+
+Conhecimentos Regionais de Santa Catarina:
+História, Geografia, Cultura, Política e Economia do Estado de Santa Catarina.
+Contabilidade Aplicada ao Setor Público (Casp) e (Nbc Tsp):
+Estrutura Conceitual e Normas Brasileiras de Contabilidade Aplicadas ao Setor Público (NBC TSP) vigentes. Manual de
+Contabilidade Aplicada ao Setor Público (MCASP) vigente: Plano de Contas Aplicado ao Setor Público (PCASP): estrutura,
+natureza da informação, classes, atributos, registros, controles e consolidação. Demonstrações Contábeis Aplicadas ao
+Setor Público (DCASP). Notas Explicativas. Reconhecimento, mensuração, registro, apresentação e evidenciação de ativos,
+passivos, receitas, despesas e variações patrimoniais. Procedimentos Contábeis Orçamentários, Patrimoniais e Específicos.
+Lei Federal nº 4.320/1964. Planejamento e orçamento público: PPA, LDO e LOA; princípios orçamentários; receita e despesa
+orçamentária; classificações; estágios; créditos adicionais; restos a pagar; despesas de exercícios anteriores; fontes ou
+destinações de recursos. Portaria STN nº 710/2021. Portaria Conjunta STN/SOF nº 163/2001. Execução orçamentária e
+financeira. Reforma tributária na Constituição Federal. Conciliação bancária. Análise das Demonstrações Contábeis e das
+informações orçamentárias, financeiras e patrimoniais. Siconfi: Matriz de Saldos Contábeis (MSC), Declaração das Contas
+Anuais (DCA), envio, validação e consistência das informações do RREO e RGF no Siconfi; regras de consistência e validação;
+consolidação das contas públicas e qualidade da informação contábil e fiscal. Procedimentos Contábeis Aplicados aos RPPS:
+ativos garantidores, provisões matemáticas previdenciárias, passivo atuarial, resultado atuarial, déficit e superávit atuarial,
+déficit financeiro, aportes e segregação da massa.
+
+Contabilidade Geral:
+Participações societárias. Investimentos em controladas, coligadas e empreendimentos controlados em conjunto. Método
+da equivalência patrimonial e método de custos. Dividendos e resultados de participações. Consolidação de demonstrações
+contábeis. Operações entre entidades. Redução ao valor recuperável de investimentos.
+
+Responsabilidade Fiscal:
+Lei Complementar Federal nº 101/2000 e alterações: Anexo de Metas Fiscais, Anexo de Riscos Fiscais, resultados primário
+e nominal, programação financeira, cronograma de execução mensal de desembolso e limitação de empenho. Receita.
+Previsão e arrecadação. Renúncia de receita. Receita Corrente Líquida. Geração de despesas. Despesa obrigatória de caráter
+continuado. Despesa Total com Pessoal: apuração, limites e medidas de recondução. Transferências voluntárias. Destinação
+de recursos ao setor privado. Dívida e endividamento. Operações de crédito. Garantias e contragarantias. Disponibilidade
+de caixa e restos a pagar. Transparência da gestão fiscal. Controle e fiscalização. Relatório de Gestão Fiscal – RGF e Relatório
+Resumido da Execução Orçamentária – RREO.
+
+Tecnologia Aplicada à Contabilidade:
+Integração com sistemas estruturantes. Requisitos dos procedimentos contábeis, de transparência da informação,
+tecnológicos e de segurança. Qualidade, integridade, consistência, completude e rastreabilidade das informações
+contábeis, orçamentárias e financeiras. Conciliações e controles automatizados. Análise e visualização de dados aplicadas
+à contabilidade e às finanças públicas. Uso de ferramentas de Business Intelligence – BI para análise de consistência contábil,
+conciliação e apuração de custos no setor público.
+
+Custos no Setor Público:
+NBC TSP 34 – Custos no Setor Público. Conceitos e padrões. Objetos de custos. Centros de responsabilidade. Direcionadores
+de custos. Custos diretos e indiretos. Custos fixos e variáveis. Métodos de custeio. Sistema de Custos. Funções e
+responsabilidades. Modelo de gerenciamento de custos. Sistema de Informação de Custos. Implantação do Sistema de
+Custos. Integração das informações orçamentárias, patrimoniais, financeiras e de custos. Utilização da informação de custos
+para avaliação de serviços públicos, eficiência, planejamento e tomada de decisão.
