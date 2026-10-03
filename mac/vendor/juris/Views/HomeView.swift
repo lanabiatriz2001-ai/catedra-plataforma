@@ -266,7 +266,7 @@ struct JurisHojeView: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(due == 0 ? "Nenhum cartão vencido" : "\(due) cartão\(due == 1 ? "" : "ões") para revisar")
                     .font(DS.interface(15, .bold)).foregroundStyle(Palette.titleInk)
-                Text(deck == 0 ? "Gere flashcards pelo roteiro de um verbete ou pelo quiz do julgado do dia."
+                Text(deck == 0 ? "Crie flashcards pelo menu ⋯ de um verbete."
                                : "\(deck) no baralho · SM-2, estilo Anki")
                     .font(DS.interface(12)).foregroundStyle(Palette.secondaryInk)
             }

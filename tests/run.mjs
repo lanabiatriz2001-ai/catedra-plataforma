@@ -54,7 +54,7 @@ import { testarWidgetResumo } from './widget-resumo.mjs';
 import { testarCarregamentoInicial, testarAberturaEmbutida } from './carregamento-inicial.mjs';
 import { testarSelectHost } from './select-host.mjs';
 import { testarEditalSubtopicos } from './edital-subtopicos.mjs';
-import { testarJurisQuadro } from './juris-quadro.mjs';
+import { testarSemAnotacoesEstatico, testarSemAnotacoesNavegador } from './sem-anotacoes.mjs';
 import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 import { testarRevisaoOficial } from './revisao-oficial.mjs';
@@ -1397,36 +1397,21 @@ ok(a4b, 'ACERVO sem volta=1 não há pílula');
   const carrega = (f, g) => { const e = {}; new Function('window', fs.readFileSync(path.join(RAIZ, f), 'utf8')).call(null, e); return e[g]; };
   const TXT = carrega('juris-text.js', '__JURIS_TXT__');
   const IDX = {}; for (const r of carrega('juris-index.js', '__JURIS_IDX__')) IDX[r[0]] = r;
-  const PREFIXO = 'Nota do Cátedra (auditoria de set/2026, conferida em fonte oficial): ';
   const t = id => TXT[id] || {};
 
-  // 1. guardas gerais sobre TODO o acervo
-  const notas = Object.entries(TXT).filter(([, v]) => v && typeof v.co === 'string' && v.co.includes('Nota do Cátedra'));
-  ok(notas.length >= 58, 'CONTEÚDO há notas de atualização da auditoria no acervo (' + notas.length + ')');
-  ok(notas.every(([, v]) => v.co.startsWith(PREFIXO)),
-    'CONTEÚDO toda nota da auditoria começa com o prefixo exato (o leitor sabe que a nota é do Cátedra)');
-  // a última frase da nota nomeia a fonte: rótulo "Fonte:", tribunal, informativo, número de
-  // processo ou endereço oficial — em qualquer das formas em que as notas a citam
-  const FONTE = /Fonte:|Informativos?\b|\bSTF\b|\bSTJ\b|stf\.jus\.br|\bRISTF\b|\b(Lei|Decreto)\s+[\d.]+|\b(ADI|ADC|ADPF|ADO|RE|ARE|HC|RHC|Rcl|REsp|MS|Pet)\s*\d/;
-  ok(notas.every(([, v]) => /\]\s*\.?$/.test(v.co.trim()) || FONTE.test(v.co.slice(-220))),
-    'CONTEÚDO toda nota da auditoria termina nomeando a fonte oficial que a sustenta');
-  ok(!Object.values(TXT).some(v => v && typeof v.ob === 'string' && v.ob.includes('Nota do Cátedra')),
-    'CONTEÚDO nenhuma nota nossa entrou em ob ("observação DA FONTE" — fingiria ser do STF)');
+  // 1. guarda geral sobre TODO o acervo. As notas de atualização que a auditoria tinha posto em
+  // co saíram em 03/10/2026 (decisão da dona: no verbete fica o texto oficial e o que a pessoa
+  // anota) — tests/sem-anotacoes.mjs cuida de que não voltem, em co nem em ob.
+  ok(!Object.values(TXT).some(v => v && /Nota do C[áa]tedra/.test((v.co || '') + (v.ob || ''))),
+    'CONTEÚDO nenhuma nota da plataforma no acervo: nem em co, nem em ob');
 
-  // 2. voto do relator: a web mostra a citação de origem, e a nota diz o que o Plenário fez
-  ok(/voto do rel\. min\. Gilmar Mendes/.test(t('CTRLCONST-0056').fp || '')
-    && /n[ãa]o fixada|n[ãa]o foi adotada|voto do relator/.test(t('CTRLCONST-0056').co || ''),
+  // 2. voto do relator: a web mostra a citação de origem, que é o que diz que o trecho é voto
+  ok(/voto do rel\. min\. Gilmar Mendes/.test(t('CTRLCONST-0056').fp || ''),
     'CONTEÚDO CTRLCONST-0056: mutação do art. 52, X, aparece como voto (Rcl 4.335), não como tese do STF');
-  ok(/n[ãa]o adota a transcend[êe]ncia dos motivos determinantes/.test(t('CTRLCONST-0062').co || ''),
-    'CONTEÚDO CTRLCONST-0062: avisa que o STF NÃO adota a transcendência dos motivos determinantes');
   // a citação restaurada é cópia literal do nativo: sempre "[…]"
   const cit = ['CTRLCONST-0002', 'CTRLCONST-0006', 'CTRLCONST-0056', 'CTRLCONST-0062', 'CTRLCONST-0109'];
   ok(cit.every(id => /^\[[^\[\]]{15,}\]\.?$/.test(t(id).fp || '')),
     'CONTEÚDO os trechos do controle de constitucionalidade voltam a trazer a citação de origem na web');
-
-  // 3. orientação superada, com ressalva
-  ok(/ADI 145/.test(t('CTRLCONST-0006').co || '') && /Informativo STF 907/.test(t('CTRLCONST-0006').co || ''),
-    'CONTEÚDO CTRLCONST-0006: ressalva que o Plenário superou a prejudicialidade (ADI 145, Info 907)');
 
   // 4. lixo do parser que aparecia como "Observação" saiu
   ok(!/Confedera[çc][ãa]o sindical ou entidade de classe/.test(t('CTRLCONST-0109').ob || ''),
@@ -1443,8 +1428,8 @@ ok(a4b, 'ACERVO sem volta=1 não há pílula');
   ok(IDX['SELTJGO-0124'][7] === '06/02/2026' && IDX['INF2026-STF-1204-01'][7] === '06/02/2026'
     && /06[./]02[./]2026/.test(t('INF2026-STF-1204-01').fp || '') && /06[./]02[./]2026/.test(t('SELTJGO-0124').fp || ''),
     'CONTEÚDO ARE 1.314.490: data e citação dizem 06/02/2026 nos dois verbetes (o Info 1204 erra o ano)');
-  ok(IDX['INF2026-STF-1205-02'][7] === '13/02/2026' && /erro material/.test(t('INF2026-STF-1205-02').co || ''),
-    'CONTEÚDO RE 1.408.525: 13/02/2026, com a nota de que o Info 1205 erra o ano');
+  ok(IDX['INF2026-STF-1205-02'][7] === '13/02/2026',
+    'CONTEÚDO RE 1.408.525: 13/02/2026 (o Info 1205 erra o ano)');
 }
 
 /* === JURIS — STJ CONFERIDO NA FONTE: TESE, JULGADO, TEMA E EDIÇÃO (auditoria 18–21/09/2026) ===
@@ -1525,7 +1510,6 @@ ok(a4b, 'ACERVO sem volta=1 não há pílula');
   const carrega = (f, g) => { const e = {}; new Function('window', fs.readFileSync(path.join(RAIZ, f), 'utf8')).call(null, e); return e[g]; };
   const TXT = carrega('juris-text.js', '__JURIS_TXT__');
   const IDX = {}; for (const r of carrega('juris-index.js', '__JURIS_IDX__')) IDX[r[0]] = r;
-  const PREFIXO = 'Nota do Cátedra (auditoria de set/2026, conferida em fonte oficial): ';
   const t = id => TXT[id] || {};
 
   // 1. termo trocado dentro de comentário didático
@@ -1550,8 +1534,8 @@ ok(a4b, 'ACERVO sem volta=1 não há pílula');
 
   // 4. tema cujo texto era de outro tema
   ok(/^Se o prazo da prescri[çc][ãa]o/.test(t('COORD-REP-1126').en) && !/Stock Option/.test(t('COORD-REP-1126').en)
-    && (t('COORD-REP-1126').co || '').startsWith(PREFIXO) && /Afetado/.test(t('COORD-REP-1126').co) && IDX['COORD-REP-1126'][6] === 'DIREITO PROCESSUAL PENAL',
-    'STJ-2 COORD-REP-1126: sai a tese do Stock Option (Tema 1226); entra a questão oficial do Tema 1126 com a nota de que está afetado, sem tese');
+    && IDX['COORD-REP-1126'][6] === 'DIREITO PROCESSUAL PENAL',
+    'STJ-2 COORD-REP-1126: sai a tese do Stock Option (Tema 1226); entra a questão oficial do Tema 1126');
   // a nota avisava que o texto era o do Tema 130; desde o L4 o verbete É o Tema 130 (tese oficial) e a
   // nota, que perdeu o objeto, saiu (decisão da dona)
   ok(IDX['repgeral-repetitivo-STJ-1300'][3] === 130 && t('repgeral-repetitivo-STJ-1300').co === undefined
@@ -1562,8 +1546,8 @@ ok(a4b, 'ACERVO sem volta=1 não há pílula');
   ok(/^Pedro depositou/.test(t('INF2020-0378').en), 'STJ-2 INF2020-0378: o rótulo "Hipótese 2 :" saiu do enunciado');
   ok(IDX['INF2024-0788'][7] === '14/08/2024' && t('INF2024-0788').og === 'Primeira Seção',
     'STJ-2 INF2024-0788: data e órgão são os da nota oficial (Primeira Seção, 14/08/2024)');
-  ok(t('COORD-REP-1088').og === '1ª Seção' && (t('COORD-REP-1088').co || '').startsWith(PREFIXO) && /Sobrestado/.test(t('COORD-REP-1088').co),
-    'STJ-2 COORD-REP-1088: ganha o órgão da ficha e a nota de que o tema está sobrestado');
+  ok(t('COORD-REP-1088').og === '1ª Seção',
+    'STJ-2 COORD-REP-1088: ganha o órgão da ficha');
   // desde o lote L3 das teses oficiais a citação traz também o relator ("REsp 1110520/SP · Rel. atual: Min. …" desde o L4)
   ok(/^REsp 1110520\/SP( · Rel\. |$)/.test(t('repgeral-repetitivo-STF-581').fp || '') && !/Info/.test(t('repgeral-repetitivo-STF-581').fp || ''),
     'STJ-2 Tema 581: a citação de origem é o processo da ficha, não "Info 835"');
@@ -1596,15 +1580,17 @@ ok(a4b, 'ACERVO sem volta=1 não há pílula');
   // STJ) têm o texto OFICIAL do STJ, que a auditoria conferiu antes da troca: esses provam igualdade
   // exata com a referência versionada. No lote L4 (um verbete por tema) saíram 5: 1093-2, 1149-2 e 905-2
   // (fundidos nos Temas 1093, 1149 e 905) e x1060 (IAC 3) e x641 (julgado de Turma), retirados. Os outros
-  // 24 seguem com o retrato validado (digest 24b098c5… — o mesmo antes e depois do L4; o dos 29, antes do
-  // L4, era 7cc4c4e8…, e o dos 33, antes dos lotes, ae9e557f…).
+  // 24 seguem com o retrato validado (digest 8b5d595d… desde 03/10/2026, quando as Notas do Cátedra
+  // saíram do acervo: a única diferença para o 24b098c5… anterior é o campo co do SELTJRJ-0451, que era
+  // só a nota — conferido passando a limpeza sobre o retrato antigo. O 24b098c5… era o mesmo antes e
+  // depois do L4; o dos 29, antes do L4, era 7cc4c4e8…, e o dos 33, antes dos lotes, ae9e557f…).
   const OFI = lerTesesOficiais();
   const L4 = JSON.parse(fs.readFileSync(path.join(RAIZ, 'docs', 'teses-oficiais', 'l4-referencia.json'), 'utf8'));
   const saiuL4 = ids.filter(id => id in L4.fundir || id in L4.retirar);
   const noLote = ids.filter(id => id in OFI), fora = ids.filter(id => !(id in OFI) && !saiuL4.includes(id));
   const retrato = Object.fromEntries(fora.map(id => [id, IDX[id] ? { indice: IDX[id], texto: TXT[id] || null } : null]));
   const digest = createHash('sha256').update(JSON.stringify(retrato)).digest('hex');
-  ok(fora.length === 24 && digest === '24b098c50aa40848d7848c4288e8ad5093cd49686cbd974caf9587fd30a33da2',
+  ok(fora.length === 24 && digest === '8b5d595de9c0b72fecb3c6b7a9cb30e1fbc264e485915a7cc69083b343f13180',
     'STJ-SALDO os ' + fora.length + ' registros fora da troca oficial mantêm exatamente as correções e exclusões validadas (' + digest.slice(0, 12) + ')');
   ok(saiuL4.length === 5 && saiuL4.every(id => !IDX[id] && !TXT[id]),
     'STJ-SALDO os 5 que o lote L4 fundiu ou retirou saíram das duas tabelas web (' + saiuL4.map(i => i.replace('repgeral-repetitivo-', '')).join(', ') + ')');
@@ -1616,14 +1602,14 @@ ok(a4b, 'ACERVO sem volta=1 não há pílula');
     'STJ-SALDO o híbrido x640 e a duplicata SELTJGO-0438 saíram das duas tabelas web');
   // o IAC 3 (x1060) e o julgado de Turma (x641) não são repetitivos: saíram no L4 (decisão da dona). Os
   // Temas 1093 e 1149 ficam num verbete só cada, com a tese OFICIAL: a do 1093 tem os itens numerados; a
-  // do 1149 fica literal como o STJ publicou ("Lei 9.969/1998") e a Nota do Cátedra diz que é a 9.696/1998.
+  // do 1149 fica literal como o STJ publicou ("Lei 9.969/1998").
   ok(!IDX['repgeral-repetitivo-STJ-x1060'] && !IDX['repgeral-repetitivo-STJ-x641'],
     'STJ-SALDO o IAC 3 e o julgado de Turma x641 não aparecem mais como recurso repetitivo (saíram do acervo)');
   ok(TXT['repgeral-repetitivo-STJ-1093'].en === OFI['repgeral-repetitivo-STJ-1093'].enunciado
     && (TXT['repgeral-repetitivo-STJ-1093'].en.match(/^\d\./gm) || []).length >= 2,
     'STJ-SALDO o Tema 1093 traz a tese oficial, com os itens numerados');
-  ok(/Lei 9\.969\/1998/.test(TXT['repgeral-repetitivo-STJ-1149'].en) && /Lei (?:n\. )?9\.696\/1998/.test(TXT['repgeral-repetitivo-STJ-1149'].co || ''),
-    'STJ-SALDO o Tema 1149 traz a tese oficial literal e a Nota do Cátedra aponta a Lei 9.696/1998');
+  ok(/Lei 9\.969\/1998/.test(TXT['repgeral-repetitivo-STJ-1149'].en),
+    'STJ-SALDO o Tema 1149 traz a tese oficial literal');
   ok(/REsp 2\.029\.719-RJ/.test(TXT['SELTJGO-0163'].fp || '')
     && !/RMS 70\.921/.test(TXT['SELTJGO-0163'].en || ''),
     'STJ-SALDO SELTJGO-0163 preserva o julgado do show artístico e sua citação própria');
@@ -1715,7 +1701,7 @@ const migrado = await page.evaluate(() => ({
   grifos: JSON.parse(localStorage.getItem('catedra:grifosJuris:repgeral-repetitivo-STJ-518') || '[]'),
   grifos1196: JSON.parse(localStorage.getItem('catedra:grifosJuris:repgeral-repetitivo-STJ-1196') || '[]'),
   grifosOrcamento: JSON.parse(localStorage.getItem('catedra:grifosJuris:INF2021-0815') || '[]'),
-  roteiros: JSON.parse(localStorage.getItem('catedraJurisRoteiros') || '{}'),
+  roteiros: localStorage.getItem('catedraJurisRoteiros'),
   copiaGrifos: localStorage.getItem('catedra:grifosJuris:repgeral-repetitivo-STJ-x640')
 }));
 ok(migrado.estudo.fav['repgeral-repetitivo-STJ-518'] === 1
@@ -1732,11 +1718,10 @@ ok(migrado.estudo.fav['repgeral-repetitivo-STJ-518'] === 1
   'STJ-SALDO favoritos e o progresso mais avançado migram aos verbetes sobreviventes');
 ok(migrado.grifos.length === 2 && migrado.copiaGrifos
   && migrado.grifos1196[0]?.t === 'tema 1196'
-  && migrado.grifosOrcamento[0]?.t === 'orçamento'
-  && migrado.roteiros['SELTJGO-0433']?.q === 'roteiro preservado'
-  && migrado.roteiros['repgeral-repercussao_geral-STF-21']?.q === 'tema 21 preservado'
-  && migrado.roteiros['INF2021-0815']?.q === 'orçamento preservado',
-  'STJ-SALDO grifos e roteiro migram sem apagar a cópia antiga nem conteúdo já existente');
+  && migrado.grifosOrcamento[0]?.t === 'orçamento',
+  'STJ-SALDO grifos migram sem apagar a cópia antiga nem conteúdo já existente');
+ok(migrado.roteiros === null,
+  'STJ-SALDO o roteiro de IA que estava guardado no aparelho é apagado quando o JURIS abre (saiu do app em 03/10/2026)');
 
 /* ================ ERRO VIRA REVISÃO (item 2) ================ */
 await page.goto(URL0 + '/tests/harness-erros.html');
@@ -9909,14 +9894,14 @@ catch (e) { ok(false, 'SEM MAPAS MENTAIS [' + motor + '] estático sem exceção
 try { await testarSemMapasMentaisNavegador(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) { ok(false, 'SEM MAPAS MENTAIS [' + motor + '] [http] o roteiro correu sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
 
-// JURIS: o quadro "Não confunda com" no lugar da lista de Relacionados (tests/juris-quadro.mjs).
-// Roteiro em módulo próprio porque o caso precisa de RELOAD com semente — o mapa ROT do
-// satélite é lido uma vez no boot —, de contexto próprio por largura (390 e 1280) e de um
-// terceiro, em que a página de fora faz o papel do app e responde a ponte de IA com o que
-// cada caso fabrica (payload hostil, recusa, falha).
-try { await testarJurisQuadro(page, URL0, ok, { motor, origem: 'http' }); }
+// Sem anotação pronta no JURIS (tests/sem-anotacoes.mjs): decisão da dona de 03/10/2026. O roteiro
+// de IA, o quadro "Não confunda com" e o quiz saíram do leitor; o acervo não traz nota autoral; o
+// verbete pinta o texto da fonte com os rótulos novos, medido.
+try { testarSemAnotacoesEstatico(ok, { motor }); }
+catch (e) { ok(false, 'SEM ANOTAÇÕES [' + motor + '] exceção no estático: ' + String(e && e.message || e).split('\n')[0]); }
+try { await testarSemAnotacoesNavegador(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
-  ok(false, 'JURIS/QUADRO [' + motor + '] [http] o roteiro correu sem exceção ('
+  ok(false, 'SEM ANOTAÇÕES [' + motor + '] [http] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
