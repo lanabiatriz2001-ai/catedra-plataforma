@@ -14,7 +14,7 @@
    "sub": "48º Exame de Ordem Unificado · prova objetiva · FGV",
    "cargo": "Exame de Ordem — 1ª fase",
    "paginas": "item 3 (p. 12–13) e Anexo II (p. 31–37)",
-   "observacao": "O edital não traz programa da prova objetiva nem a divisão das 80 questões por disciplina: só nomeia as áreas (item 3). As dez disciplinas com programa oficial no Anexo II (2ª fase) entram com esses tópicos. Em sete das demais, os tópicos são a ESTRUTURA dos diplomas que formam a disciplina (títulos, capítulos e seções do texto oficial do Planalto e do Conselho Federal da OAB, com as faixas de artigos) — não é programa de edital; as fontes estão em \"fontesComplementares\". Direitos Humanos, Filosofia do Direito e Direito Internacional não têm diploma único nem programa oficial e entram só com o nome. Busca por programa oficial da 1ª fase em 03/10/2026: Provimento 144/2011, edital Cespe 2009.3 e edital do 48º Exame não trazem; editais dos primeiros exames unificados da FGV não puderam ser abertos.",
+   "observacao": "O edital não traz programa da prova objetiva nem a divisão das 80 questões por disciplina: só nomeia as áreas (item 3). As dez disciplinas com programa oficial no Anexo II (2ª fase) entram com esses tópicos. Em sete das demais, os tópicos são a ESTRUTURA dos diplomas que formam a disciplina (títulos, capítulos e seções do texto oficial do Planalto e do Conselho Federal da OAB, com as faixas de artigos) — não é programa de edital; as fontes estão em \"fontesComplementares\". Direitos Humanos, Filosofia do Direito e Direito Internacional não têm diploma único nem programa oficial: entram com os TEMAS das questões dessas disciplinas nas provas objetivas dos exames 45º, 46º e 47º (seis por disciplina, com exame e número da questão, lidos nos cadernos Tipo 1 da FGV). É amostra do que foi cobrado, descrita com palavras nossas — não é programa nem texto oficial. Decisão da dona em 03/10/2026. Busca por programa oficial da 1ª fase em 03/10/2026: Provimento 144/2011, edital Cespe 2009.3 e edital do 48º Exame não trazem; editais dos primeiros exames unificados da FGV não puderam ser abertos.",
    "fontes": [
     "oab-48-administrativo.txt",
     "oab-48-civil.txt",
@@ -32,12 +32,10 @@
     "oab-48-1fase-direito-ambiental.txt",
     "oab-48-1fase-direito-financeiro.txt",
     "oab-48-1fase-direito-previdenciario.txt",
-    "oab-48-1fase-direito-eleitoral.txt"
-   ],
-   "semPrograma": [
-    "Direitos Humanos",
-    "Filosofia do Direito",
-    "Direito Internacional"
+    "oab-48-1fase-direito-eleitoral.txt",
+    "oab-48-1fase-direitos-humanos.txt",
+    "oab-48-1fase-filosofia-do-direito.txt",
+    "oab-48-1fase-direito-internacional.txt"
    ],
    "disciplinas": [
     "Direito Administrativo",
@@ -206,6 +204,174 @@
       {
        "titulo": "Lei Complementar nº 64/1990 (Planalto)",
        "url": "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp64.htm",
+       "acessado_em": "2026-10-03"
+      }
+     ]
+    },
+    {
+     "disciplina": "Direitos Humanos",
+     "tipo": "temas cobrados nas provas objetivas dos exames 45º, 46º e 47º",
+     "fontes": [
+      {
+       "titulo": "47º Exame de Ordem Unificado — Caderno de Prova Tipo 1 (Branca), FGV, prova de 06/09/2026",
+       "url": "https://oab.fgv.br/arq/650/566837_ADVOGADO%20OAB(CNS01)%20Tipo%201.pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "47º Exame de Ordem Unificado — Gabaritos definitivos da prova objetiva (1ª fase)",
+       "url": "https://oab.fgv.br/arq/650/480420_gabarito%20definitivo%20(1).pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Página do 47º Exame de Ordem Unificado no portal da FGV (lista de documentos após escolher a seccional OAB/DF)",
+       "url": "https://oab.fgv.br/home.aspx?key=650",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "46º Exame de Ordem Unificado — Caderno de Prova Tipo 1 (Branca), FGV, prova de 03/05/2026",
+       "url": "https://oab.fgv.br/arq/649/561671_ADVOGADO%20OAB(CNS01)%20Tipo%201.pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "46º Exame de Ordem Unificado — Gabaritos definitivos da prova objetiva (1ª fase)",
+       "url": "https://oab.fgv.br/arq/649/103500_oab261_gabarito_definitivo.pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Página do 46º Exame de Ordem Unificado no portal da FGV (lista de documentos após escolher a seccional OAB/DF)",
+       "url": "https://oab.fgv.br/home.aspx?key=649",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "45º Exame de Ordem Unificado — Caderno de Prova Tipo 1 (Branca), FGV, prova de 21/12/2025",
+       "url": "https://oab.fgv.br/arq/648/405589_ADVOGADO%20OAB(CNS01)%20Tipo%201.pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "45º Exame de Ordem Unificado — Gabaritos definitivos da prova objetiva (1ª fase)",
+       "url": "https://oab.fgv.br/arq/648/85707_OAB45%20Gabaritos%20para%20publica%C3%A7%C3%A3o%20-%20v3.pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Página do 45º Exame de Ordem Unificado no portal da FGV (lista de documentos após escolher a seccional OAB/DF)",
+       "url": "https://oab.fgv.br/home.aspx?key=648",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "47º Exame — Comunicado de anulação da questão 47 (Direito Empresarial) do caderno Tipo 1",
+       "url": "https://oab.fgv.br/arq/650/90523_47%20eou.%20anulacao.%20po.%20questao%2047.%20tipo1.%20(2).pdf",
+       "acessado_em": "2026-10-03"
+      }
+     ]
+    },
+    {
+     "disciplina": "Filosofia do Direito",
+     "tipo": "temas cobrados nas provas objetivas dos exames 45º, 46º e 47º",
+     "fontes": [
+      {
+       "titulo": "47º Exame de Ordem Unificado — Caderno de Prova Tipo 1 (Branca), FGV, prova de 06/09/2026",
+       "url": "https://oab.fgv.br/arq/650/566837_ADVOGADO%20OAB(CNS01)%20Tipo%201.pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "47º Exame de Ordem Unificado — Gabaritos definitivos da prova objetiva (1ª fase)",
+       "url": "https://oab.fgv.br/arq/650/480420_gabarito%20definitivo%20(1).pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Página do 47º Exame de Ordem Unificado no portal da FGV (lista de documentos após escolher a seccional OAB/DF)",
+       "url": "https://oab.fgv.br/home.aspx?key=650",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "46º Exame de Ordem Unificado — Caderno de Prova Tipo 1 (Branca), FGV, prova de 03/05/2026",
+       "url": "https://oab.fgv.br/arq/649/561671_ADVOGADO%20OAB(CNS01)%20Tipo%201.pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "46º Exame de Ordem Unificado — Gabaritos definitivos da prova objetiva (1ª fase)",
+       "url": "https://oab.fgv.br/arq/649/103500_oab261_gabarito_definitivo.pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Página do 46º Exame de Ordem Unificado no portal da FGV (lista de documentos após escolher a seccional OAB/DF)",
+       "url": "https://oab.fgv.br/home.aspx?key=649",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "45º Exame de Ordem Unificado — Caderno de Prova Tipo 1 (Branca), FGV, prova de 21/12/2025",
+       "url": "https://oab.fgv.br/arq/648/405589_ADVOGADO%20OAB(CNS01)%20Tipo%201.pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "45º Exame de Ordem Unificado — Gabaritos definitivos da prova objetiva (1ª fase)",
+       "url": "https://oab.fgv.br/arq/648/85707_OAB45%20Gabaritos%20para%20publica%C3%A7%C3%A3o%20-%20v3.pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Página do 45º Exame de Ordem Unificado no portal da FGV (lista de documentos após escolher a seccional OAB/DF)",
+       "url": "https://oab.fgv.br/home.aspx?key=648",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "47º Exame — Comunicado de anulação da questão 47 (Direito Empresarial) do caderno Tipo 1",
+       "url": "https://oab.fgv.br/arq/650/90523_47%20eou.%20anulacao.%20po.%20questao%2047.%20tipo1.%20(2).pdf",
+       "acessado_em": "2026-10-03"
+      }
+     ]
+    },
+    {
+     "disciplina": "Direito Internacional",
+     "tipo": "temas cobrados nas provas objetivas dos exames 45º, 46º e 47º",
+     "fontes": [
+      {
+       "titulo": "47º Exame de Ordem Unificado — Caderno de Prova Tipo 1 (Branca), FGV, prova de 06/09/2026",
+       "url": "https://oab.fgv.br/arq/650/566837_ADVOGADO%20OAB(CNS01)%20Tipo%201.pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "47º Exame de Ordem Unificado — Gabaritos definitivos da prova objetiva (1ª fase)",
+       "url": "https://oab.fgv.br/arq/650/480420_gabarito%20definitivo%20(1).pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Página do 47º Exame de Ordem Unificado no portal da FGV (lista de documentos após escolher a seccional OAB/DF)",
+       "url": "https://oab.fgv.br/home.aspx?key=650",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "46º Exame de Ordem Unificado — Caderno de Prova Tipo 1 (Branca), FGV, prova de 03/05/2026",
+       "url": "https://oab.fgv.br/arq/649/561671_ADVOGADO%20OAB(CNS01)%20Tipo%201.pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "46º Exame de Ordem Unificado — Gabaritos definitivos da prova objetiva (1ª fase)",
+       "url": "https://oab.fgv.br/arq/649/103500_oab261_gabarito_definitivo.pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Página do 46º Exame de Ordem Unificado no portal da FGV (lista de documentos após escolher a seccional OAB/DF)",
+       "url": "https://oab.fgv.br/home.aspx?key=649",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "45º Exame de Ordem Unificado — Caderno de Prova Tipo 1 (Branca), FGV, prova de 21/12/2025",
+       "url": "https://oab.fgv.br/arq/648/405589_ADVOGADO%20OAB(CNS01)%20Tipo%201.pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "45º Exame de Ordem Unificado — Gabaritos definitivos da prova objetiva (1ª fase)",
+       "url": "https://oab.fgv.br/arq/648/85707_OAB45%20Gabaritos%20para%20publica%C3%A7%C3%A3o%20-%20v3.pdf",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Página do 45º Exame de Ordem Unificado no portal da FGV (lista de documentos após escolher a seccional OAB/DF)",
+       "url": "https://oab.fgv.br/home.aspx?key=648",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "47º Exame — Comunicado de anulação da questão 47 (Direito Empresarial) do caderno Tipo 1",
+       "url": "https://oab.fgv.br/arq/650/90523_47%20eou.%20anulacao.%20po.%20questao%2047.%20tipo1.%20(2).pdf",
        "acessado_em": "2026-10-03"
       }
      ]
