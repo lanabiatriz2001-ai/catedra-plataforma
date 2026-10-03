@@ -959,14 +959,20 @@
     "Direito Financeiro",
     "Contabilidade Geral e Pública",
     "Direito Tributário",
-    "Legislação Tributária Nacional",
     "Legislação Tributária Estadual",
     "Contabilidade Avançada e de Custos",
-    "Contabilidade de Custos",
     "Fluência de Dados",
     "Finanças Públicas"
    ],
-   "observacao": "Entraram os Conhecimentos Gerais (comuns às áreas A01 e B02) e os Específicos da área A01 – Gestão Fazendária; a área B02 – Tecnologia da Informação ficou de fora. Data: a do fecho do edital (24/04/2026). O IMPORTADOR NÃO LÊ ESTE EDITAL DIREITO: saem 13 disciplinas em vez de 15 — \"Administração Pública e Governança Pública\" sai como \"Administração Pública\"; \"Direito Financeiro\" cai dentro de Direito Penal; \"Contabilidade de Custos\" (subtítulo) vira disciplina e engole \"Fluência de Dados\" e \"Finanças Públicas\". Não publicar antes do conserto do importador. O próprio edital traz, em Direito Constitucional, \"12. Constituição do Estado de Goiás\" (erro da banca num edital do Ceará): ficou como está. O edital agrupa algumas matérias em blocos com subpartes; \"Legislação Tributária Nacional\" e \"Contabilidade de Custos\" aparecem aqui como disciplinas próprias porque têm título próprio no texto."
+   "observacao": "Entraram os Conhecimentos Gerais (comuns às áreas A01 e B02) e os Específicos da área A01 – Gestão Fazendária; a área B02 – Tecnologia da Informação ficou de fora. Data: a do fecho do edital (24/04/2026). O IMPORTADOR NÃO LÊ ESTE EDITAL DIREITO: saem 13 disciplinas em vez de 15 — \"Administração Pública e Governança Pública\" sai como \"Administração Pública\"; \"Direito Financeiro\" cai dentro de Direito Penal; \"Contabilidade de Custos\" (subtítulo) vira disciplina e engole \"Fluência de Dados\" e \"Finanças Públicas\". Não publicar antes do conserto do importador. O próprio edital traz, em Direito Constitucional, \"12. Constituição do Estado de Goiás\" (erro da banca num edital do Ceará): ficou como está. \"Legislação Tributária Nacional\" (parte de Direito Tributário) e \"Contabilidade de Custos\" (parte de Contabilidade Avançada e de Custos) entram como tópicos da matéria a que pertencem, como no edital.",
+   "juntar": {
+    "Direito Tributário": [
+     "Legislação Tributária Nacional"
+    ],
+    "Contabilidade Avançada e de Custos": [
+     "Contabilidade de Custos"
+    ]
+   }
   },
   {
    "id": "sefazSCContabeis",
@@ -1124,8 +1130,7 @@
     "Língua Portuguesa",
     "Raciocínio Lógico Matemático",
     "Ética no Serviço Público",
-    "Informática",
-    "Análise de Dados",
+    "Informática e Análise de Dados",
     "Auditoria Governamental, Compliance, Gestão de Risco e Governança",
     "Controle Externo da Administração Pública",
     "Legislação Aplicável ao Tribunal de Contas do Estado de Santa Catarina",
@@ -1143,7 +1148,13 @@
     "Controle Externo da Administração Pública (comum a Todas as Áreas de Habilitação)": "Controle Externo da Administração Pública",
     "Legislação Aplicável ao Tribunal de Contas do Estado de Santa Catarina (comum a Todas as Áreas de Habilitação)": "Legislação Aplicável ao Tribunal de Contas do Estado de Santa Catarina"
    },
-   "observacao": "Módulo I (conhecimentos gerais da área Direito) + Módulo II comum a todas as áreas (3 disciplinas) + Módulo II da área de habilitação Direito (8 matérias). Edital de 24/02/2026, texto consolidado com a retificação de 13/04/2026. O IMPORTADOR NÃO LÊ ESTE EDITAL DIREITO: saem 11 disciplinas em vez de 15. As três disciplinas comuns do Módulo II (Auditoria Governamental…, Controle Externo…, Legislação Aplicável ao TCE-SC) caem dentro de \"Informática\"; \"Informática e Análise de Dados\" sai como \"Informática\"; \"Direito Financeiro\" cai dentro de Direito Penal. Não publicar antes do conserto. \"Informática e Análise de Dados\" entra como duas disciplinas (Informática; Análise de Dados), como o edital as subdivide."
+   "observacao": "Módulo I (conhecimentos gerais da área Direito) + Módulo II comum a todas as áreas (3 disciplinas) + Módulo II da área de habilitação Direito (8 matérias). Edital de 24/02/2026, texto consolidado com a retificação de 13/04/2026. O IMPORTADOR NÃO LÊ ESTE EDITAL DIREITO: saem 11 disciplinas em vez de 15. As três disciplinas comuns do Módulo II (Auditoria Governamental…, Controle Externo…, Legislação Aplicável ao TCE-SC) caem dentro de \"Informática\"; \"Informática e Análise de Dados\" sai como \"Informática\"; \"Direito Financeiro\" cai dentro de Direito Penal. Não publicar antes do conserto. \"Informática e Análise de Dados\" é uma matéria só no edital, com duas partes; cada parte entra como tópico dela.",
+   "juntar": {
+    "Informática e Análise de Dados": [
+     "Informática",
+     "Análise de Dados"
+    ]
+   }
   },
   {
    "id": "tceSCContabilidade",
@@ -1165,11 +1176,8 @@
     "Língua Portuguesa",
     "Raciocínio Lógico Matemático",
     "Ética no Serviço Público",
-    "Direito Administrativo",
-    "Direito Constitucional",
-    "Direito Financeiro",
-    "Informática",
-    "Análise de Dados",
+    "Direito",
+    "Informática e Análise de Dados",
     "Auditoria Governamental, Compliance, Gestão de Risco e Governança",
     "Controle Externo da Administração Pública",
     "Legislação Aplicável ao Tribunal de Contas do Estado de Santa Catarina",
@@ -1180,7 +1188,18 @@
     "Controle Externo da Administração Pública (comum a Todas as Áreas de Habilitação)": "Controle Externo da Administração Pública",
     "Legislação Aplicável ao Tribunal de Contas do Estado de Santa Catarina (comum a Todas as Áreas de Habilitação)": "Legislação Aplicável ao Tribunal de Contas do Estado de Santa Catarina"
    },
-   "observacao": "Módulo I (conhecimentos gerais das áreas Administração, Ciências Contábeis, Economia, Engenharias e Ciências Atuariais) + Módulo II comum a todas as áreas (3 disciplinas) + Módulo II da área de habilitação Ciências Contábeis (bloco único, sem nome de disciplina além do rótulo da área). Edital de 24/02/2026, texto consolidado com a retificação de 13/04/2026. O IMPORTADOR NÃO LÊ ESTE EDITAL DIREITO: saem 7 disciplinas; as três comuns do Módulo II e TODO o bloco de Ciências Contábeis caem dentro de \"Informática\" (57 tópicos, 208 subtópicos). A disciplina \"Direito\" do edital sai repartida em Direito Administrativo, Constitucional e Financeiro (o que é aceitável); \"Informática e Análise de Dados\" sai como \"Informática\". Não publicar antes do conserto. \"Informática e Análise de Dados\" entra como duas disciplinas; o bloco específico vem no edital só como \"Área de habilitação: Ciências Contábeis\" e entra com esse nome."
+   "observacao": "Módulo I (conhecimentos gerais das áreas Administração, Ciências Contábeis, Economia, Engenharias e Ciências Atuariais) + Módulo II comum a todas as áreas (3 disciplinas) + Módulo II da área de habilitação Ciências Contábeis (bloco único, sem nome de disciplina além do rótulo da área). Edital de 24/02/2026, texto consolidado com a retificação de 13/04/2026. O IMPORTADOR NÃO LÊ ESTE EDITAL DIREITO: saem 7 disciplinas; as três comuns do Módulo II e TODO o bloco de Ciências Contábeis caem dentro de \"Informática\" (57 tópicos, 208 subtópicos). A disciplina \"Direito\" do edital sai repartida em Direito Administrativo, Constitucional e Financeiro (o que é aceitável); \"Informática e Análise de Dados\" sai como \"Informática\". Não publicar antes do conserto. \"Informática e Análise de Dados\" e \"Direito\" são matérias com partes no edital; cada parte entra como tópico da matéria. O bloco específico vem no edital como \"Área de habilitação: Ciências Contábeis\" e entra com esse nome.",
+   "juntar": {
+    "Informática e Análise de Dados": [
+     "Informática",
+     "Análise de Dados"
+    ],
+    "Direito": [
+     "Direito Administrativo",
+     "Direito Constitucional",
+     "Direito Financeiro"
+    ]
+   }
   }
  ]
 }

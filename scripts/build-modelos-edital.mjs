@@ -57,7 +57,7 @@ export function montar() {
   const html = fs.readFileSync(APP, 'utf8');
   const imp = importadorDoApp(html);
   const indice = JSON.parse(fs.readFileSync(path.join(FONTES, 'indice.json'), 'utf8'));
-  const modelos = [];
+  const modelos = []; const modeloPerda = {};
   for (const m of indice.modelos) {
     const blocos = (m.fontes || [m.id + '.txt']).map(f => fs.readFileSync(path.join(FONTES, f), 'utf8'));
     const lido = imp.parseEdital(blocos.join('\n'));
@@ -74,12 +74,41 @@ export function montar() {
       vistos.add(nome.toLowerCase());
       discs.push([nome, imp._editalColor(nome.toLowerCase(), discs.length), []]);
     });
+    /* Matéria que o edital divide em partes com título próprio ("INFORMÁTICA E ANÁLISE DE DADOS" =
+       "Informática: …" + "Análise de Dados: …"): o importador devolve as partes como disciplinas;
+       "juntar" as devolve à matéria-mãe — cada parte vira um tópico, e os itens dela, subtópicos. */
+    Object.keys(m.juntar || {}).forEach(pai => {
+      const filhos = m.juntar[pai];
+      const pos = filhos.map(f => discs.findIndex(d => d[0] === f));
+      if (pos.some(i => i < 0)) throw new Error(m.id + ': "juntar" cita parte que o importador não devolveu — ' + filhos.filter((f, k) => pos[k] < 0).join(', '));
+      const partes = filhos.map((f, k) => { const d = discs[pos[k]]; const itens = [];
+        d[2].forEach(([t, subs]) => { itens.push(t); (subs || []).forEach(x => itens.push(x)); });
+        return [f, itens]; });
+      let ip = discs.findIndex(d => d[0] === pai);
+      if (ip < 0) { const primeiro = Math.min(...pos); discs[primeiro] = [pai, imp._editalColor(pai.toLowerCase(), primeiro), partes]; pos.splice(pos.indexOf(primeiro), 1); }
+      else discs[ip][2] = discs[ip][2].concat(partes);
+      pos.sort((x, y) => y - x).forEach(i => discs.splice(i, 1));
+    });
+    /* Nada do texto oficial pode se perder no caminho: toda palavra da fonte tem de estar no modelo
+       (fora os rótulos que o importador descarta de propósito e os nomes das disciplinas). */
+    const palavras = t => String(t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').match(/[a-z0-9]+/g) || [];
+    const conta = {}; palavras(blocos.join('\n')).forEach(w => { conta[w] = (conta[w] || 0) + 1; });
+    const total = Object.values(conta).reduce((x, y) => x + y, 0);
+    lido.forEach(d => palavras(d.disc).forEach(w => { if (conta[w]) conta[w]--; }));
+    discs.forEach(([nome, , tops]) => { const tira = w => { if (conta[w]) conta[w]--; };
+      tops.forEach(([t, subs]) => { palavras(t).forEach(tira); (subs || []).forEach(x => palavras(x).forEach(tira)); }); });
+    const sobra = Object.keys(conta).filter(w => conta[w] > 0 && !/^\d+$/.test(w));
+    const perdidas = sobra.reduce((x, w) => x + conta[w], 0);
+    // o que pode sobrar são só os rótulos de bloco ("NOÇÕES GERAIS DE DIREITO E FORMAÇÃO HUMANÍSTICA",
+    // "A)", "ÁREA DE HABILITAÇÃO") — poucas palavras, cada uma no máximo duas vezes
+    if (perdidas > 20 || sobra.some(w => conta[w] > 2)) throw new Error(m.id + ': o modelo perdeu texto da fonte — ' + sobra.slice(0, 30).map(w => w + '×' + conta[w]).join(' '));
+    modeloPerda[m.id] = { total, perdidas, amostra: sobra.sort((x, y) => conta[y] - conta[x]).slice(0, 40).map(w => w + '×' + conta[w]) };
     if (m.disciplinas) {   // conferência contra o PDF: a lista esperada, na ordem do edital
       const tem = discs.map(d => d[0]).join(' | '), quer = m.disciplinas.join(' | ');
       if (tem !== quer) throw new Error(m.id + ': as disciplinas lidas não batem com as do edital\n  lidas:    ' + tem + '\n  no edital: ' + quer);
     }
     if (!discs.length) throw new Error(m.id + ': nenhuma disciplina reconhecida');
-    modelos.push({ meta: m, discs, ...contar(discs) });
+    modelos.push({ meta: m, discs, ...contar(discs), perda: modeloPerda[m.id] });
   }
   return { html, indice, modelos };
 }
@@ -118,7 +147,8 @@ function aplicar({ html, modelos }) {
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const m = montar();
-  m.modelos.forEach(x => console.log(String(x.meta.id).padEnd(16), String(x.nd).padStart(3) + ' disc', String(x.nt).padStart(4) + ' tóp', String(x.ns).padStart(5) + ' sub', ' ' + x.meta.nome + ' · ' + x.meta.sub));
+  if (process.argv.includes('--perdas')) m.modelos.forEach(x => console.log(x.meta.id.padEnd(28), String(x.perda.perdidas).padStart(4) + ' de ' + x.perda.total, ' ', x.perda.amostra.join(' ')));
+  else m.modelos.forEach(x => console.log(String(x.meta.id).padEnd(16), String(x.nd).padStart(3) + ' disc', String(x.nt).padStart(4) + ' tóp', String(x.ns).padStart(5) + ' sub', ' ' + x.meta.nome + ' · ' + x.meta.sub));
   if (modo !== 'resumo') {
     const r = aplicar(m);
     const mudou = r.dados !== fs.readFileSync(DADOS, 'utf8') || r.html !== m.html;
