@@ -1,5 +1,5 @@
 {
-  "geradoEm": "2026-10-02T16:58:00.156Z",
+  "geradoEm": "2026-10-03T04:56:06.802Z",
   "fontes": {
     "planalto": {
       "rotulo": "Planalto — texto compilado das normas",
@@ -92,13 +92,13 @@
         "Súmulas: situação anotada só no acervo (as súmulas \"Superada\" que o próprio Cátedra registra) não vira item: vale apenas a marca oficial",
         "Súmulas: a data de publicação mostrada é a do portal do STF, que pode diferir da registrada no acervo"
       ],
-      "ultimaTentativa": "2026-10-02T16:58:34.279Z",
-      "ultimoSucesso": null,
-      "ultimaLeituraCompleta": null,
-      "resultado": "falha",
-      "erro": "Informativo: a fonte respondeu HTTP 403 à edição 1230, que já está no acervo — não foi possível conferir a régua; Repercussão geral: a lista oficial de repercussão geral respondeu HTTP 403; Súmulas: súmulas vinculantes: HTTP 403; súmulas: HTTP 403",
-      "detalhe": "",
-      "novidadesNaConsulta": 0,
+      "ultimaTentativa": "2026-10-03T04:56:06.850Z",
+      "ultimoSucesso": "2026-10-03T04:56:06.850Z",
+      "ultimaLeituraCompleta": "2026-10-03T04:56:06.850Z",
+      "resultado": "novidades",
+      "erro": null,
+      "detalhe": "Informativo: a partir da edição 1231; 3 páginas consultadas, contando a conferência da última edição do acervo · Repercussão geral: 1481 temas lidos na lista oficial (até o Tema 1487), comparados com a leitura de 25/09/2026; datas oficiais lidas em 5 de 6 tema(s) · Súmulas: 736 súmulas e 63 vinculantes conferidas nas listas oficiais",
+      "novidadesNaConsulta": 15,
       "colecoes": {
         "informativo": {
           "rotulo": "STF — Informativo de Jurisprudência",
@@ -107,12 +107,12 @@
           "limites": [
             "cobre o Informativo, não o inteiro teor do acórdão"
           ],
-          "resultado": "falha",
-          "ultimaTentativa": "2026-10-02T16:58:34.279Z",
-          "ultimoSucesso": null,
-          "ultimaLeituraCompleta": null,
-          "erro": "a fonte respondeu HTTP 403 à edição 1230, que já está no acervo — não foi possível conferir a régua",
-          "detalhe": "",
+          "resultado": "sem-novidade",
+          "ultimaTentativa": "2026-10-03T04:56:06.850Z",
+          "ultimoSucesso": "2026-10-03T04:56:06.850Z",
+          "ultimaLeituraCompleta": "2026-10-03T04:56:06.850Z",
+          "erro": null,
+          "detalhe": "a partir da edição 1231; 3 páginas consultadas, contando a conferência da última edição do acervo",
           "novidadesNaConsulta": 0
         },
         "rg": {
@@ -126,13 +126,13 @@
             "modulação de efeitos não é detectada: a lista oficial não tem esse campo, e a observação da fonte só aparece junto da tese",
             "relator e título do tema não são comparados: o relator da lista é o atual, não o do julgamento"
           ],
-          "resultado": "falha",
-          "ultimaTentativa": "2026-10-02T16:58:34.279Z",
-          "ultimoSucesso": null,
-          "ultimaLeituraCompleta": null,
-          "erro": "a lista oficial de repercussão geral respondeu HTTP 403",
-          "detalhe": "",
-          "novidadesNaConsulta": 0
+          "resultado": "novidades",
+          "ultimaTentativa": "2026-10-03T04:56:06.850Z",
+          "ultimoSucesso": "2026-10-03T04:56:06.850Z",
+          "ultimaLeituraCompleta": "2026-10-03T04:56:06.850Z",
+          "erro": null,
+          "detalhe": "1481 temas lidos na lista oficial (até o Tema 1487), comparados com a leitura de 25/09/2026; datas oficiais lidas em 5 de 6 tema(s)",
+          "novidadesNaConsulta": 15
         },
         "sumulas": {
           "rotulo": "STF — Súmulas e súmulas vinculantes",
@@ -143,12 +143,12 @@
             "situação anotada só no acervo (as súmulas \"Superada\" que o próprio Cátedra registra) não vira item: vale apenas a marca oficial",
             "a data de publicação mostrada é a do portal do STF, que pode diferir da registrada no acervo"
           ],
-          "resultado": "falha",
-          "ultimaTentativa": "2026-10-02T16:58:34.279Z",
-          "ultimoSucesso": null,
-          "ultimaLeituraCompleta": null,
-          "erro": "súmulas vinculantes: HTTP 403; súmulas: HTTP 403",
-          "detalhe": "",
+          "resultado": "sem-novidade",
+          "ultimaTentativa": "2026-10-03T04:56:06.850Z",
+          "ultimoSucesso": "2026-10-03T04:56:06.850Z",
+          "ultimaLeituraCompleta": "2026-10-03T04:56:06.850Z",
+          "erro": null,
+          "detalhe": "736 súmulas e 63 vinculantes conferidas nas listas oficiais",
           "novidadesNaConsulta": 0
         }
       }
@@ -170,13 +170,13 @@
         "Súmulas: superação de súmula não é detectada: o STJ não a marca, e uma decisão mais recente não significa superação",
         "Súmulas: edição do Informativo incorporada fora da rotina não tem o bloco de súmulas relido; a lista oficial cobre essa falta mais tarde"
       ],
-      "ultimaTentativa": "2026-10-02T16:58:38.108Z",
-      "ultimoSucesso": null,
-      "ultimaLeituraCompleta": null,
-      "resultado": "falha",
-      "erro": "Informativo: a fonte respondeu HTTP 403 à edição 903, que já está no acervo — não foi possível conferir a régua; Repetitivos: nenhuma faixa dos repetitivos pôde ser lida: faixa 1–50: HTTP 403; faixa 51–100: HTTP 403; faixa 101–150: HTTP 403; Súmulas: a lista oficial de súmulas respondeu HTTP 403; bloco \"Súmulas\" do Informativo não lido: a coleção do Informativo não rodou ou falhou",
-      "detalhe": "Repetitivos: 0 temas lidos em 31 faixa(s), 31 com falha; comparados com a leitura de 25/09/2026",
-      "novidadesNaConsulta": 0,
+      "ultimaTentativa": "2026-10-03T04:57:16.138Z",
+      "ultimoSucesso": "2026-10-03T04:57:16.138Z",
+      "ultimaLeituraCompleta": "2026-10-03T04:57:16.138Z",
+      "resultado": "novidades",
+      "erro": null,
+      "detalhe": "Informativo: a partir da edição 904 e da extraordinária 34; 7 páginas consultadas, contando a conferência da última edição do acervo · Repetitivos: 1474 temas lidos em 31 faixa(s); comparados com a leitura de 25/09/2026 · Súmulas: lista oficial lida: 676 súmulas (versão de 05/12/2025) · bloco \"Súmulas\" de 0 edição(ões) nova(s) do Informativo",
+      "novidadesNaConsulta": 4,
       "colecoes": {
         "informativo": {
           "rotulo": "STJ — Informativo de Jurisprudência",
@@ -185,12 +185,12 @@
           "limites": [
             "cobre o Informativo, não o inteiro teor do acórdão nem a Jurisprudência em Teses"
           ],
-          "resultado": "falha",
-          "ultimaTentativa": "2026-10-02T16:58:38.108Z",
-          "ultimoSucesso": null,
-          "ultimaLeituraCompleta": null,
-          "erro": "a fonte respondeu HTTP 403 à edição 903, que já está no acervo — não foi possível conferir a régua",
-          "detalhe": "",
+          "resultado": "sem-novidade",
+          "ultimaTentativa": "2026-10-03T04:57:16.138Z",
+          "ultimoSucesso": "2026-10-03T04:57:16.138Z",
+          "ultimaLeituraCompleta": "2026-10-03T04:57:16.138Z",
+          "erro": null,
+          "detalhe": "a partir da edição 904 e da extraordinária 34; 7 páginas consultadas, contando a conferência da última edição do acervo",
           "novidadesNaConsulta": 0
         },
         "repetitivos": {
@@ -204,13 +204,13 @@
             "o campo \"Tese Firmada\" com o aviso de que se aguarda a publicação do acórdão não é tratado como tese",
             "as datas são as do processo paradigma principal; a \"Última atualização\" da ficha não é usada como sinal de mudança"
           ],
-          "resultado": "falha",
-          "ultimaTentativa": "2026-10-02T16:58:38.108Z",
-          "ultimoSucesso": null,
-          "ultimaLeituraCompleta": null,
-          "erro": "nenhuma faixa dos repetitivos pôde ser lida: faixa 1–50: HTTP 403; faixa 51–100: HTTP 403; faixa 101–150: HTTP 403",
-          "detalhe": "0 temas lidos em 31 faixa(s), 31 com falha; comparados com a leitura de 25/09/2026",
-          "novidadesNaConsulta": 0
+          "resultado": "novidades",
+          "ultimaTentativa": "2026-10-03T04:57:16.138Z",
+          "ultimoSucesso": "2026-10-03T04:57:16.138Z",
+          "ultimaLeituraCompleta": "2026-10-03T04:57:16.138Z",
+          "erro": null,
+          "detalhe": "1474 temas lidos em 31 faixa(s); comparados com a leitura de 25/09/2026",
+          "novidadesNaConsulta": 4
         },
         "sumulas": {
           "rotulo": "STJ — Súmulas",
@@ -223,12 +223,12 @@
             "superação de súmula não é detectada: o STJ não a marca, e uma decisão mais recente não significa superação",
             "edição do Informativo incorporada fora da rotina não tem o bloco de súmulas relido; a lista oficial cobre essa falta mais tarde"
           ],
-          "resultado": "parcial",
-          "ultimaTentativa": "2026-10-02T16:58:38.108Z",
-          "ultimoSucesso": "2026-10-02T16:58:38.108Z",
-          "ultimaLeituraCompleta": null,
-          "erro": "a lista oficial de súmulas respondeu HTTP 403; bloco \"Súmulas\" do Informativo não lido: a coleção do Informativo não rodou ou falhou",
-          "detalhe": "",
+          "resultado": "sem-novidade",
+          "ultimaTentativa": "2026-10-03T04:57:16.138Z",
+          "ultimoSucesso": "2026-10-03T04:57:16.138Z",
+          "ultimaLeituraCompleta": "2026-10-03T04:57:16.138Z",
+          "erro": null,
+          "detalhe": "lista oficial lida: 676 súmulas (versão de 05/12/2025) · bloco \"Súmulas\" de 0 edição(ões) nova(s) do Informativo",
           "novidadesNaConsulta": 0
         }
       }
