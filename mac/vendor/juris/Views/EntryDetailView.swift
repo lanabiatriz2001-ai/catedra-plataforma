@@ -19,7 +19,6 @@ struct EntryDetailView: View {
     @State private var mostrarComparador = false
     @State private var mostrarLinhaTempo = false
     @State private var mostrarRevisao = false
-    @State private var notaEmTexto = false   // alterna a nota entre esquema e prosa
     @State private var editandoEnunciado = false
     @State private var rascunhoEnunciado = ""
     @State private var corPersonalizada = Color(hex: MarkColor.amarelo.rawValue)
@@ -30,13 +29,6 @@ struct EntryDetailView: View {
     @State private var editingMarkComment: EditingMarkComment?
     @State private var focusedMarkID: String?
     @State private var showAnnotationsPanel = false
-    /// O quadro dos julgados vizinhos que o roteiro PINTOU — o roteiro o passa para cá
-    /// (aoMudarQuadro). Antes `store.relacionados(entry)` era chamado DENTRO do corpo, em
-    /// dois lugares, a cada mudança de estado; depois a página montava o quadro de novo num
-    /// .task próprio, na main, além do que o roteiro já montava. Agora é UM cálculo, fora da
-    /// main, e a seção "Do mesmo assunto" nunca discorda do quadro na mesma rolagem — nem
-    /// quando o roteiro vem do cache.
-    @State private var vizinhos: QuadroRelacionados?
     // Entrega 3 — casca do leitor (estado só de tela; nada persistido).
     @State private var modoVerbete: ModoLeitor = .ler
     @State private var gaveta: AlturaGaveta = .fechada
@@ -60,8 +52,9 @@ struct EntryDetailView: View {
                 alertaSituacao
                 enunciadoCard
                 // Ler: só a fonte primária (texto do tribunal, ficha, precedentes, referências
-                // oficiais). Estudar: o roteiro, as suas anotações e a nota de estudo do app.
-                // Comentário e observação (apoio) ficam no ⋯ → "Comentário e observação".
+                // oficiais). Estudar: as suas anotações e a prova oral — quem escreve é a pessoa.
+                // O texto e as informações que a própria fonte publica junto do verbete ficam no
+                // ⋯ → "Texto e informações da fonte".
                 if modoVerbete == .ler {
                     ligacoesVerbete
                     metadata
@@ -73,11 +66,8 @@ struct EntryDetailView: View {
                     }
                     footer
                 } else {
-                    RoteiroEstudoView(entry: entry, autoGerar: true, vizinhosAbaixo: true,
-                                      aoMudarQuadro: { vizinhos = $0 })
                     anotacaoCard
-                    notaAppCard
-                    relacionadosSection
+                    ProvaOralDoVerbete(entry: entry)
                 }
             }
             .padding(.horizontal, 34)
@@ -106,13 +96,13 @@ struct EntryDetailView: View {
         .sheet(isPresented: $mostrarSecundario) {
             ScrollView {
                 VStack(alignment: .leading, spacing: DSEspaco.e4) {
-                    Text("Comentário e observação").font(DS.display(19, .bold)).foregroundStyle(ThemeState.t.ink)
-                    Text("Material de apoio — não é o texto do tribunal.")
-                        .font(DS.interface(13)).foregroundStyle(ThemeState.t.text3)
+                    Text("Texto e informações da fonte").font(DS.display(19, .bold)).foregroundStyle(ThemeState.t.ink)
                     if let c = entry.comentario, !c.isEmpty {
+                        Text("Texto da fonte").font(DS.interface(13, .semibold)).foregroundStyle(ThemeState.t.text3)
                         Text(c).font(DS.display(16, .regular)).foregroundStyle(ThemeState.t.ink).textSelection(.enabled)
                     }
                     if let o = entry.observacao, !o.isEmpty {
+                        Text("Informações da fonte").font(DS.interface(13, .semibold)).foregroundStyle(ThemeState.t.text3)
                         Text(o).font(DS.display(16, .regular)).foregroundStyle(ThemeState.t.ink).textSelection(.enabled)
                     }
                 }
@@ -227,112 +217,6 @@ struct EntryDetailView: View {
         .shadow(color: RamoStyle.color(entry.ramoDireito).opacity(0.3), radius: 16, y: 8)
     }
 
-    /// Nota de estudo ORIGINAL (não oficial) — esquema do que a corte quis dizer.
-    @ViewBuilder private var notaAppCard: some View {
-        if let nota = store.notaApp(for: entry.id) {
-            // mostra prosa se a usuária alternou E há texto; senão, o esquema (se houver)
-            let mostraTexto = (notaEmTexto && nota.texto != nil) || !nota.temEsquema
-            VStack(alignment: .leading, spacing: 13) {
-                HStack(spacing: 7) {
-                    Image(systemName: "brain.head.profile").font(DS.interface(12)).foregroundStyle(Palette.importante)
-                    Text("NOTA DE ESTUDO").font(DS.interface(10.5, .bold)).tracking(1)
-                        .foregroundStyle(Palette.importante)
-                    Text("não oficial").font(DS.interface(9.5)).foregroundStyle(Palette.secondaryInk)
-                        .padding(.horizontal, 6).padding(.vertical, 1)
-                        .background(Palette.secondaryInk.opacity(0.12), in: Capsule())
-                    Spacer()
-                    if nota.temEsquema && nota.texto != nil {
-                        HStack(spacing: 2) {
-                            modoNotaBtn("Esquema", ativo: !notaEmTexto) { notaEmTexto = false }
-                            modoNotaBtn("Texto", ativo: notaEmTexto) { notaEmTexto = true }
-                        }
-                    }
-                }
-                if let t = nota.tese {
-                    Text(t).font(Typo.serifTitle(15.5, .bold)).foregroundStyle(Palette.titleInk)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                if mostraTexto {
-                    if let txt = nota.texto {
-                        Text(txt).font(Typo.serifBody(baseSize * 0.9)).foregroundStyle(Palette.bodyInk)
-                            .lineSpacing(5).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
-                    }
-                } else {
-                    if let fluxo = nota.fluxo, !fluxo.isEmpty { fluxoView(fluxo) }
-                    if let ramos = nota.ramos {
-                        VStack(alignment: .leading, spacing: 9) {
-                            ForEach(Array(ramos.enumerated()), id: \.offset) { _, r in ramoView(r) }
-                        }
-                    }
-                }
-            }
-            .padding(16)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Palette.importante.opacity(0.06), in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
-            .overlay(alignment: .leading) {
-                RoundedRectangle(cornerRadius: 2).fill(Palette.importante).frame(width: 3.5).padding(.vertical, 14)
-            }
-            .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.importante.opacity(0.22), lineWidth: 1))
-        }
-    }
-
-    private func modoNotaBtn(_ titulo: String, ativo: Bool, _ acao: @escaping () -> Void) -> some View {
-        Button(action: acao) {
-            Text(titulo).font(DS.interface(10, .semibold))
-                .foregroundStyle(ativo ? .white : Palette.secondaryInk)
-                .padding(.horizontal, 9).padding(.vertical, 3)
-                .background(ativo ? Palette.importante : Color.clear, in: Capsule())
-        }
-        .buttonStyle(.plain)
-    }
-
-    private func fluxoView(_ passos: [String]) -> some View {
-        VStack(spacing: 4) {
-            ForEach(Array(passos.enumerated()), id: \.offset) { i, passo in
-                Text(passo)
-                    .font(DS.interface(12.5, i == 0 ? .semibold : .regular))
-                    .foregroundStyle(Palette.bodyInk)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, 12).padding(.vertical, 8)
-                    .frame(maxWidth: .infinity)
-                    .background(Palette.accent.opacity(i == 0 ? 0.14 : 0.07), in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).strokeBorder(Palette.accent.opacity(0.25), lineWidth: 1))
-                if i < passos.count - 1 {
-                    Image(systemName: "arrow.down").font(DS.interface(11, .bold)).foregroundStyle(Palette.accent)
-                }
-            }
-        }
-    }
-
-    private func corRamo(_ tipo: String) -> Color {
-        // Delega para a fonte única de verdade (RamoNota.cor), evitando divergência.
-        tipo == "" ? Palette.secondaryInk : RamoNota(tipo: tipo, itens: []).cor
-    }
-
-    private func ramoView(_ r: RamoNota) -> some View {
-        let cor = corRamo(r.tipo)
-        return HStack(alignment: .top, spacing: 10) {
-            Image(systemName: r.simbolo).font(DS.interface(12)).foregroundStyle(cor).frame(width: 18)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(r.titulo.uppercased()).font(DS.interface(10, .bold)).tracking(0.6).foregroundStyle(cor)
-                ForEach(Array(r.itens.enumerated()), id: \.offset) { _, item in
-                    HStack(alignment: .top, spacing: 6) {
-                        Text("•").font(DS.interface(12)).foregroundStyle(cor.opacity(0.7))
-                        Text(item).font(DS.interface(12.5)).foregroundStyle(Palette.bodyInk)
-                            .textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
-                    }
-                }
-            }
-            Spacer(minLength: 0)
-        }
-        .padding(.vertical, 8).padding(.horizontal, 10)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(cor.opacity(0.06), in: RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous))
-        .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 1.5).fill(cor).frame(width: 2.5).padding(.vertical, 8) }
-    }
-
-    /// Alerta forte quando a súmula/tese perdeu validade (cancelada ou superada).
     @ViewBuilder private var alertaSituacao: some View {
         let k = entry.situacaoKind
         if k == .cancelada || k == .superada {
@@ -349,19 +233,6 @@ struct EntryDetailView: View {
                             : "Verifique o entendimento atual — esta tese foi superada."))
                         .font(DS.interface(12)).foregroundStyle(Palette.bodyInk)
                         .fixedSize(horizontal: false, vertical: true)
-                    // Aponta para o que DE FATO vai pintar: a seção do fim da página lista só o
-                    // que ficou fora do quadro, e pode estar vazia quando todos os vizinhos
-                    // viraram colunas. E não promete que ali está "o entendimento vigente" —
-                    // o acervo não marca qual vizinho é o atual.
-                    if let v = vizinhos {
-                        if !v.mesmoAssuntoItens.isEmpty {
-                            Text("Os julgados do mesmo assunto estão no fim da página — confira neles, e no tribunal, qual é o entendimento atual.")
-                                .font(DS.interface(11)).foregroundStyle(Palette.secondaryInk)
-                        } else if v.temQuadro {
-                            Text("Compare com os verbetes do quadro “Não confunda com”, no roteiro logo abaixo.")
-                                .font(DS.interface(11)).foregroundStyle(Palette.secondaryInk)
-                        }
-                    }
                 }
                 Spacer(minLength: 0)
             }
@@ -1102,34 +973,6 @@ struct EntryDetailView: View {
         .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
     }
 
-    /// A ÚNICA lista de vizinhos da página. Antes ela chamava store.relacionados(entry) com
-    /// o limite padrão 6 enquanto o roteiro pedia 5: dois conjuntos diferentes do mesmo
-    /// verbete na mesma rolagem. Agora lista o que ficou de fora do quadro ("Do mesmo
-    /// assunto") — e quando não há quadro, lista todos os vizinhos, como antes.
-    @ViewBuilder
-    private var relacionadosSection: some View {
-        let rel = (vizinhos?.mesmoAssuntoItens ?? []).compactMap { store.byId[$0.id] }
-        if !rel.isEmpty {
-            VStack(alignment: .leading, spacing: 10) {
-                // Sempre "Do mesmo assunto": sem quadro, estes são os vizinhos que NÃO passaram
-                // no piso de confundibilidade — "relacionados" prometia mais do que o
-                // vocabulário em comum sustenta, e o aviso de tese superada lá em cima já os
-                // chama por esse nome.
-                SectionRule(titulo: "Do mesmo assunto")
-                ForEach(rel) { r in
-                    JurisVizinhoLinha(entry: r) {
-                        if store.leituraID != nil { store.lerCheio(r.id) } else { store.selectedID = r.id }
-                    }
-                    if r.id != rel.last?.id { Divider().overlay(Palette.hairline) }
-                }
-            }
-            .padding(16)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Palette.cardBackground.opacity(0.45), in: RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.hairline, lineWidth: 1))
-        }
-    }
-
     @ViewBuilder
     private var footer: some View {
         if let url = entry.fonteOficialURL {
@@ -1200,7 +1043,7 @@ struct EntryDetailView: View {
                 } label: { Label(store.srsHasCard(entry.id) ? "Flashcard (no baralho)" : "Criar flashcard", systemImage: "menucard") }
                 Button { showAnnotationsPanel.toggle() } label: { Label("Minhas anotações", systemImage: "note.text") }
                 if (entry.comentario?.isEmpty == false) || (entry.observacao?.isEmpty == false) {
-                    Button { mostrarSecundario = true } label: { Label("Comentário e observação", systemImage: "text.bubble") }
+                    Button { mostrarSecundario = true } label: { Label("Texto e informações da fonte", systemImage: "text.bubble") }
                 }
             }
             Section("Ferramentas") {

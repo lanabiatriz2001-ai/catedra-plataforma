@@ -61,12 +61,12 @@ enum AIService {
     // MARK: - Comparação STF × STJ (fiel ao texto oficial)
 
     static func compararSTFxSTJ(assunto: String, verbete: String, tribunalVerbete: String,
-                                nota: String?, stf: [String], stj: [String],
+                                stf: [String], stj: [String],
                                 apiKey: String, model: String = defaultModel) async throws -> String {
         let system = """
         Você é um assistente jurídico para concursos de magistratura no Brasil. Analise como o STF e o \
-        STJ tratam um tema, usando SOMENTE o material fornecido (o verbete em análise, a nota de estudo \
-        curada e os enunciados oficiais correlatos).
+        STJ tratam um tema, usando SOMENTE o material fornecido (o verbete em análise e os enunciados \
+        oficiais correlatos).
 
         REGRA SUPREMA: é sempre preferível responder de MENOS a afirmar algo que não está no material. \
         Na dúvida, escreva "sem registro no material fornecido". NUNCA use conhecimento próprio ou externo, \
@@ -85,7 +85,6 @@ enum AIService {
         - CORRELATOS: os enunciados "correlatos" foram selecionados automaticamente por palavras-chave e podem \
         NÃO tratar exatamente do mesmo ponto. Antes de comparar, confirme que versam sobre a mesma questão; se não, diga isso e não force a comparação.
         - Ancore cada afirmação em um enunciado específico do material (pelo título). Não escreva frase que você não consiga apontar num item fornecido.
-        - A nota de estudo é resumo humano: use-a para contexto, mas para NÚMEROS, redação e STATUS prevalece o texto oficial dos enunciados; se a nota contradisser um enunciado, aponte a divergência.
 
         Estrutura da resposta (use exatamente estes rótulos, em negrito markdown):
         **Tema:** (uma linha)
@@ -107,9 +106,6 @@ enum AIService {
         VERBETE EM ANÁLISE (\(tribunalVerbete)):
         \(verbete)
         """
-        if let nota, !nota.isEmpty {
-            prompt += "\n\nNOTA DE ESTUDO (curada, confiável — priorize-a):\n\(nota)"
-        }
         prompt += """
 
 

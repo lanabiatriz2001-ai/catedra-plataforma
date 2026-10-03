@@ -14,7 +14,7 @@ import UniformTypeIdentifiers
 //    resposta" é o espelho publicado pela banca; sem espelho, a tela diz isso.
 //  · Três visões: só enunciados · enunciados + gabarito · relatório completo.
 //  · Resultado (respostas, acertos, tempo) fica em Application Support (SimuladoCache),
-//    no mesmo molde do RoteiroCache — não sobe para a nuvem.
+//    só neste aparelho — não sobe para a nuvem.
 // =====================================================================================
 
 // MARK: - Modelos
@@ -79,7 +79,7 @@ struct SimuladoProva: Codable, Hashable, Identifiable {
     var percentual: Double { itens.isEmpty ? 0 : Double(acertos) / Double(itens.count) * 100 }
 }
 
-// MARK: - Cache (Application Support, como o RoteiroCache)
+// MARK: - Cache (Application Support)
 
 @MainActor
 enum SimuladoCache {

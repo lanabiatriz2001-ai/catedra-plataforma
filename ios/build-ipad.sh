@@ -298,7 +298,9 @@ copiar_asset() {
 }
 
 JURIS_RES="$HOME/App Jurisprudências/VadeMecumJuris/Sources/VadeMecum/Resources"
-for f in corpus.json notas.json indice.json; do
+# notas.json (as "notas de estudo" do Vade Mecum) NÃO vai mais no bundle: o verbete mostra o
+# texto oficial e o que a pessoa anota (decisão da dona, 03/10/2026).
+for f in corpus.json indice.json; do
   copiar_asset "$JURIS_RES/$f" "$APP/$f" opcional \
     "a aba CátedraJURIS abre sem acervo (o repo do Vade Mecum não está nesta máquina)"
 done
@@ -310,7 +312,7 @@ copiar_asset "$ROOT/incidencia-verbetes.json" "$APP/incidencia-verbetes.json" ex
 copiar_asset "$ROOT/discursivas.json" "$APP/discursivas.json" exigido "o Simulado de discursivas abre sem banco"
 # Material oficial de prova oral (scripts/build-oral.mjs -> oral.json).
 copiar_asset "$ROOT/oral.json" "$APP/oral.json" exigido "a tela Oral · bancas reais abre sem concurso nenhum"
-echo "     acervo do JURIS: $(ls -1 "$APP"/corpus*.json "$APP"/notas.json "$APP"/indice.json 2>/dev/null | wc -l | tr -d ' ') arquivo(s)"
+echo "     acervo do JURIS: $(ls -1 "$APP"/corpus*.json "$APP"/indice.json 2>/dev/null | wc -l | tr -d ' ') arquivo(s)"
 
 # Conformidade de exportação. Sem esta chave, cada build fica parado no TestFlight
 # esperando alguém responder um formulário sobre criptografia.

@@ -111,30 +111,18 @@ struct ComparadorView: View {
         defer { iaCarregando = false }
         let textosSTF = stf.map(serializar)
         let textosSTJ = stj.map(serializar)
-        let nota = notaComoTexto(store.notaApp(for: entry.id))
         do {
             iaTexto = try await AIService.compararSTFxSTJ(
                 assunto: entry.tema ?? entry.titulo,
                 verbete: serializar(entry),
                 tribunalVerbete: entry.tribunal,
-                nota: nota, stf: textosSTF, stj: textosSTJ,
+                stf: textosSTF, stj: textosSTJ,
                 apiKey: apiKey, model: aiModel)
         } catch {
             iaErro = (error as? AIService.AIError)?.errorDescription ?? error.localizedDescription
         }
     }
 
-    /// Serializa a nota de estudo curada (tese + ramos) para dar à IA como base confiável.
-    private func notaComoTexto(_ nota: NotaEstudo?) -> String? {
-        guard let nota else { return nil }
-        var linhas: [String] = []
-        if let t = nota.tese { linhas.append("Tese: \(t)") }
-        for r in nota.ramos ?? [] {
-            linhas.append("\(r.titulo): " + r.itens.joined(separator: "; "))
-        }
-        let s = linhas.joined(separator: "\n")
-        return s.isEmpty ? nil : s
-    }
 
     private var cabecalho: some View {
         VStack(alignment: .leading, spacing: 4) {

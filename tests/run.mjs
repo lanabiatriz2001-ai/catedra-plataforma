@@ -1576,15 +1576,17 @@ ok(a4b, 'ACERVO sem volta=1 não há pílula');
   // STJ) têm o texto OFICIAL do STJ, que a auditoria conferiu antes da troca: esses provam igualdade
   // exata com a referência versionada. No lote L4 (um verbete por tema) saíram 5: 1093-2, 1149-2 e 905-2
   // (fundidos nos Temas 1093, 1149 e 905) e x1060 (IAC 3) e x641 (julgado de Turma), retirados. Os outros
-  // 24 seguem com o retrato validado (digest 24b098c5… — o mesmo antes e depois do L4; o dos 29, antes do
-  // L4, era 7cc4c4e8…, e o dos 33, antes dos lotes, ae9e557f…).
+  // 24 seguem com o retrato validado (digest 8b5d595d… desde 03/10/2026, quando as Notas do Cátedra
+  // saíram do acervo: a única diferença para o 24b098c5… anterior é o campo co do SELTJRJ-0451, que era
+  // só a nota — conferido passando a limpeza sobre o retrato antigo. O 24b098c5… era o mesmo antes e
+  // depois do L4; o dos 29, antes do L4, era 7cc4c4e8…, e o dos 33, antes dos lotes, ae9e557f…).
   const OFI = lerTesesOficiais();
   const L4 = JSON.parse(fs.readFileSync(path.join(RAIZ, 'docs', 'teses-oficiais', 'l4-referencia.json'), 'utf8'));
   const saiuL4 = ids.filter(id => id in L4.fundir || id in L4.retirar);
   const noLote = ids.filter(id => id in OFI), fora = ids.filter(id => !(id in OFI) && !saiuL4.includes(id));
   const retrato = Object.fromEntries(fora.map(id => [id, IDX[id] ? { indice: IDX[id], texto: TXT[id] || null } : null]));
   const digest = createHash('sha256').update(JSON.stringify(retrato)).digest('hex');
-  ok(fora.length === 24 && digest === '24b098c50aa40848d7848c4288e8ad5093cd49686cbd974caf9587fd30a33da2',
+  ok(fora.length === 24 && digest === '8b5d595de9c0b72fecb3c6b7a9cb30e1fbc264e485915a7cc69083b343f13180',
     'STJ-SALDO os ' + fora.length + ' registros fora da troca oficial mantêm exatamente as correções e exclusões validadas (' + digest.slice(0, 12) + ')');
   ok(saiuL4.length === 5 && saiuL4.every(id => !IDX[id] && !TXT[id]),
     'STJ-SALDO os 5 que o lote L4 fundiu ou retirou saíram das duas tabelas web (' + saiuL4.map(i => i.replace('repgeral-repetitivo-', '')).join(', ') + ')');
