@@ -37,7 +37,7 @@
     ['dh', 'Direitos Humanos', 'Del Preti e Lépore · Manual de DH', ''],
     ['hum', 'Formação Humanística', 'Lordelo · Noções Gerais e Formação Humanística', ''],
     ['amb', 'Direito Ambiental', 'Livro encomendado (pendente) · por ora Lei 6.938/81', ''],
-    ['elei', 'Direito Eleitoral', 'Livro encomendado (pendente) · por ora Código Eleitoral Anotado (TSE)', '']
+    ['elei', 'Direito Eleitoral', 'José Jairo Gomes · Direito Eleitoral (22ª ed., 2026)', '']
   ];
   var ORDEM = MATS.map(function (m) { return m[0]; });
 
