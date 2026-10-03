@@ -10547,21 +10547,34 @@ class Component extends DCLogic {
     // (é o método: ver, depois fixar) —, lei seca uma vez, e uma revisão geral. Nunca o mesmo
     // TIPO+TÓPICO duas vezes na volta; acabado o conteúdo único, a matéria não recebe mais
     // blocos nesta volta (cota cortada) em vez de repetir.
+    /* NÍVEL (03/10/2026): iniciante vê antes de fazer (nunca abre com questões, questões
+       curtas); intermediário é o método de sempre (a volta de fábrica não muda um bloco);
+       avançado aprende fazendo (questões do ponto antes da teoria, teoria curta, revisão
+       geral antes de lei seca e jurisprudência). */
+    const nivel=(O.nivel==='iniciante'||O.nivel==='avancado')?O.nivel:'intermediario';
+    const mQ=Math.round(base*(nivel==='iniciante'?.6:(nivel==='avancado'?1:.8)));
+    const mT=Math.round(base*(nivel==='avancado'?.7:1));
     const usado={}; const k0=(d,k,t)=>d+'|'+k+'|'+t;
     const proximo=(d, idx)=>{ const p=d.p||{}; const fr=this._fragilDe(d.disc, B);
       const fraco=(p.liqPct!=null && p.liqPct<60) || (p.erros30>0);
       const pega=(kind, tag, min, porque)=>{ usado[k0(d.disc,kind,tag)]=1; return {kind, tag, min, porque}; };
-      if(idx===0 && fraco && fr && !usado[k0(d.disc,'Questões',fr.topico)])
-        return pega('Questões', fr.topico, Math.round(base*.8), (fr.dom<=0?'líquido negativo neste tópico':('domínio de '+Math.round(fr.dom*100)+'% neste tópico')));
+      if(nivel!=='iniciante' && idx===0 && fraco && fr && !usado[k0(d.disc,'Questões',fr.topico)])
+        return pega('Questões', fr.topico, mQ, (fr.dom<=0?'líquido negativo neste tópico':('domínio de '+Math.round(fr.dom*100)+'% neste tópico')));
       const pend=d.pend||[];
       const t1=pend.find(t=>!usado[k0(d.disc,'Teoria',t)]);
-      if(t1) return pega('Teoria', t1, base, (p.diasSem==null?'nunca estudada por aqui':'próximo ponto pendente do edital'));
       const t2=pend.find(t=>!usado[k0(d.disc,'Questões',t)]);
-      if(t2) return pega('Questões', t2, Math.round(base*.8), 'fixar com questões o que já foi visto');
+      if(nivel==='avancado'){
+        if(t2) return pega('Questões', t2, mQ, 'avançado: comece pelas questões do ponto');
+        if(t1) return pega('Teoria', t1, mT, 'fechar na teoria o que as questões mostraram');
+      } else {
+        if(t1) return pega('Teoria', t1, mT, (p.diasSem==null?'nunca estudada por aqui':'próximo ponto pendente do edital'));
+        if(t2) return pega('Questões', t2, mQ, 'fixar com questões o que já foi visto');
+      }
       // sem tópicos (edital não cadastrado) ou tópicos esgotados: a sequência genérica do
       // método — ver, fixar, lei seca, jurisprudência, revisar — uma vez cada por volta
-      const GEN=[['Teoria','ponto seguinte do programa',base,'sem edital: siga o programa da matéria'],['Questões','questões comentadas',Math.round(base*.8),'fixar com questões'],
+      const GEN0=[['Teoria','ponto seguinte do programa',mT,'sem edital: siga o programa da matéria'],['Questões','questões comentadas',mQ,'fixar com questões'],
         ['Lei seca','artigos mais citados',Math.round(base*.7),'reforço na lei seca'],['Jurisprudência','súmulas e teses',Math.round(base*.7),'o que os tribunais firmaram'],['Revisão','revisão geral',Math.round(base*.6),'manter o domínio']];
+      const GEN=(nivel==='avancado') ? [GEN0[1],GEN0[0],GEN0[4],GEN0[2],GEN0[3]] : GEN0;
       for(const g of GEN){ if(pend.length && (g[0]==='Teoria'||g[0]==='Questões')) continue;   // com edital, teoria e questões já vieram dos tópicos
         if(!usado[k0(d.disc,g[0],g[1])]) return pega(g[0], g[1], g[2], g[3]); }
       return null; };
