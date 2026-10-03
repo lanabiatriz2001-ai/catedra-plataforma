@@ -11062,13 +11062,17 @@ class Component extends DCLogic {
      os pulados) ficam com id, conteúdo e data; os pendentes vêm de uma volta nova pela regra
      de agora, sem repetir o que já foi concluído (mesma matéria+tipo+tópico) e com ids que
      não colidem. Modo manual: o ciclo é da pessoa, nada muda. */
-  _refazerPendentes(){ const m=this.state.cycleMode||'sugestao'; if(m==='manual') return;
+  _refazerPendentes(){ const m=this.state.cycleMode||'sugestao'; if(m==='manual'){ this._recomporDia(); return; }   // manual: a volta é da pessoa; só o dia é ressincronizado
     const V=this.state.cicloVolta; if(!V||!(V.blocos||[]).length) return;
     const feitos=V.blocos.filter(b=>b.done||b.pulado); const nPend=V.blocos.length-feitos.length;
     if(nPend<=0) return;
     const chave=(b)=>b.disc+'|'+b.kind+'|'+b.tag; const ja=new Set(feitos.map(chave)); const ids=new Set(feitos.map(b=>b.id));
     let i=0; const novos=this._genVolta(m, V.n||1).blocos.filter(b=>!ja.has(chave(b))).slice(0, nPend)
       .map(b=>{ let id; do{ id='v'+(V.n||1)+'-r'+(i++); }while(ids.has(id)); ids.add(id); return {...b, id}; });
+    // a volta nunca encolhe: o que a volta nova não cobre (bloco que a pessoa acrescentou, ou
+    // ponto que o gerador não repete) continua pendente, do jeito que estava
+    if(novos.length<nPend){ const tem=new Set([...ja, ...novos.map(chave)]);
+      V.blocos.filter(b=>!(b.done||b.pulado)).forEach(b=>{ if(novos.length>=nPend || tem.has(chave(b)) || ids.has(b.id)) return; tem.add(chave(b)); ids.add(b.id); novos.push(b); }); }
     const blocos=[...feitos, ...novos];
     const nova={...V, blocos, totalMin:blocos.reduce((a,b)=>a+(+b.min||0),0)};
     // o dia: fica o que já ocupa hoje (feito, extra, solto); os pendentes antigos saem e a fatia é refeita
@@ -16075,6 +16079,9 @@ class Component extends DCLogic {
     if(!window.confirm('Voltar "'+S.titulo+'" ao padrão? '+fora.length+' ajuste'+(fora.length>1?'s':'')+' volta'+(fora.length>1?'m':'')+' ao valor de fábrica. Os seus dados (edital, sessões, redações) não são tocados.')) return;
     const orient={...this.state.orient}, prefs={...this.state.prefs};
     (S.o||[]).forEach(k=>{ orient[k]=AJ_ORIENT_PADRAO[k]; });
+    // o carimbo da "energia de hoje" não é um ajuste contado na seção, mas volta junto com ela:
+    // sem isto o reset deixava energiaPlano valendo como "de hoje" até a meia-noite
+    if(S.id==='ritmo') orient.energiaDia=AJ_ORIENT_PADRAO.energiaDia;
     (S.p||[]).forEach(k=>{ prefs[k]=AJ_PREFS_PADRAO[k]; });
     const solto={};
     (S.s||[]).forEach(k=>{ solto[k]=AJ_ESTADO_PADRAO[k];
@@ -16115,7 +16122,11 @@ class Component extends DCLogic {
   aplicarPerfil = (e)=>{
     const id=e.currentTarget.dataset.id; const pf=(this.state.ajPerfis||[]).find(x=>x.id===id); if(!pf) return;
     if(!window.confirm('Aplicar o perfil "'+pf.nome+'"? Ritmo, metas, automações e aparência passam a ser os desse perfil. Edital, sessões e redações não mudam.')) return;
-    this.setState(st=>({orient:{...st.orient, ...(pf.cfg&&pf.cfg.o||{})}, prefs:{...st.prefs, ...(pf.cfg&&pf.cfg.p||{})}}),
+    /* Perfil salvo ANTES da "energia de hoje" não tem energiaDia: o energiaPlano dele era a
+       energia permanente de quem salvou — vira a de todo dia (mesma migração do legado), em
+       vez de herdar o carimbo de hoje deste aparelho e valer só até a meia-noite. */
+    const _po=(pf.cfg&&pf.cfg.o)||{};
+    this.setState(st=>({orient:(('energiaDia' in _po) ? {...st.orient, ..._po} : this._rmMigrarEnergia({...st.orient, ..._po, energiaDia:''})), prefs:{...st.prefs, ...(pf.cfg&&pf.cfg.p||{})}}),
       ()=>{ this._persistOrient(); this._toast('Perfil "'+pf.nome+'" aplicado'); });
   };
   apagarPerfil = (e)=>{
