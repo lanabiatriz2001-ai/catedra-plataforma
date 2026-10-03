@@ -40,6 +40,7 @@ import { testarBackupDriveErros } from './backup-drive-erros.mjs';
 import { testarSelectHost } from './select-host.mjs';
 import { testarAjustesRitmo } from './ajustes-ritmo.mjs';
 import { testarSemAnotacoesNavegador } from './sem-anotacoes.mjs';
+import { testarAvisosOficiaisNavegador } from './avisos-oficiais.mjs';
 import { testarPrioridadeErrosResolvidos } from './prioridade-erros-resolvidos.mjs';
 import { testarRevisaoFonte } from './revisao-fonte.mjs';
 import { testarVoltaOrigem } from './volta-origem.mjs';
@@ -47,6 +48,7 @@ import { testarContrasteDestaque } from './contraste-destaque.mjs';
 import { testarIconesAlvos } from './icones-alvos.mjs';
 import { testarFaixaMapaAlvos } from './faixa-mapa-alvos.mjs';
 import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
+import { testarRedacaoMesa } from './redacao-mesa.mjs';
 import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 import { testarRevisaoOficial } from './revisao-oficial.mjs';
@@ -170,6 +172,7 @@ for (const [base, origem, arquivo] of ORIGENS) {
     await testarCarregamentoInicial(page, base, ok);
     await testarAberturaEmbutida(ok);
     try { await testarPrioridadeDiscursiva(page, base, ok); } catch(e) { ok(false, 'DISCURSIVA exceção: '+e.message); }
+    try { await testarRedacaoMesa(page, base, ok, { motor: 'webkit' }); } catch(e) { ok(false, 'MESA exceção: '+e.message); }
     try { await testarRevisaoFonte(page, base, ok, { motor, origem }); }
     catch (e) {
       ok(false, 'REVISÃO/FONTE [' + motor + '] o roteiro correu sem exceção ('
@@ -233,6 +236,8 @@ for (const [base, origem, arquivo] of ORIGENS) {
     // processual no toque — o motor da Apple é o que o iPad pinta
     try { await testarFaixaMapaAlvos(page, base, ok, { motor }); }
     catch (e) { ok(false, 'FAIXA/ALVOS [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
+    try { await testarAvisosOficiaisNavegador(page, base, ok, { motor, origem }); }
+    catch (e) { ok(false, 'AVISOS OFICIAIS [' + motor + '] [' + origem + '] exceção: ' + String(e && e.message || e).split('\n')[0].slice(0, 160)); }
     try { await testarSemAnotacoesNavegador(page, base, ok, { motor, origem }); }
     catch (e) {
       ok(false, 'SEM ANOTAÇÕES [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
