@@ -110,7 +110,7 @@ else
 fi
 rm -rf "$APP"; mkdir -p "$APP"
 swiftc -O -target "$TARGET" -sdk "$SDK" $(find "$HERE/vendor" -name "*.swift") "$HERE/Sources/main.swift" -o "$APP/$EXEC" \
-  -framework UIKit -framework WebKit -framework UserNotifications
+  -framework UIKit -framework WebKit -framework UserNotifications -framework WidgetKit
 
 echo "→ 3/4  Montando $NAME.app (bundle PLANO do iOS)…"
 cp -R "$ROOT/mac/build/web" "$APP/web"
@@ -194,6 +194,13 @@ cat > "$APP/Info.plist" <<PLIST
   <key>CFBundleIcons~ipad</key><dict><key>CFBundlePrimaryIcon</key><dict>
     <key>CFBundleIconFiles</key><array><string>AppIcon60x60</string><string>AppIcon76x76</string><string>AppIcon83.5x83.5</string></array>
   </dict></dict>
+  <!-- catedra:// — o toque nos widgets abre o app na tela certa (ver WidgetLinks.swift). O ios/Info.plist do
+       Xcode Cloud repete esta chave (tests/widget-build.mjs confere). -->
+  <key>CFBundleURLTypes</key>
+  <array><dict>
+    <key>CFBundleURLName</key><string>$BUNDLE_ID</string>
+    <key>CFBundleURLSchemes</key><array><string>catedra</string></array>
+  </dict></array>
 </dict>
 </plist>
 PLIST
@@ -330,6 +337,63 @@ echo "     acervo do JURIS: $(ls -1 "$APP"/corpus*.json "$APP"/notas.json "$APP"
 
 plutil -lint "$APP/Info.plist" >/dev/null && echo "     Info.plist válido"
 
+# ── Widget (WidgetKit): UMA extensão no app universal, que cobre iPad e iPhone ─────────────────────────────────
+echo "→ 3b/4 Montando o widget (CatedraWidget.appex)…"
+WIDGET_EXEC="CatedraWidget"
+APPEX="$APP/PlugIns/$WIDGET_EXEC.appex"
+# A URL e a chave PÚBLICA do Supabase vêm do mesmo lugar que o app web usa (scripts/build-macos.mjs).
+SB_URL="$(sed -n "s/^const SUPABASE_URL = '\(.*\)';$/\1/p" "$ROOT/scripts/build-macos.mjs" 2>/dev/null || true)"
+SB_CHAVE="$(sed -n "s/^const SUPABASE_KEY = '\(.*\)';$/\1/p" "$ROOT/scripts/build-macos.mjs" 2>/dev/null || true)"
+# O widget é acessório (como no Mac): se algo dele falhar, o app sai SEM o .appex em vez de derrubar o build.
+# Cada passo confere o próprio status (dentro de um `if`, o `set -e` não vale para a função).
+WIDGET_MOTIVO=""
+montar_widget() {
+  [ -n "$SB_URL" ] && [ -n "$SB_CHAVE" ] || { WIDGET_MOTIVO="não li SUPABASE_URL/KEY de scripts/build-macos.mjs"; return 1; }
+  [ -f "$ROOT/widget/dodia.json" ] || { WIDGET_MOTIVO="falta widget/dodia.json (rode: node scripts/build-widget-dodia.mjs)"; return 1; }
+  mkdir -p "$APPEX" || { WIDGET_MOTIVO="não criei a pasta do .appex"; return 1; }
+  swiftc -O -target "$TARGET" -sdk "$SDK" -parse-as-library -application-extension \
+    $(find "$HERE/vendor/widget" -name '*.swift') $(find "$ROOT/widget/Sources" -name '*.swift') \
+    -o "$APPEX/$WIDGET_EXEC" -framework WidgetKit -framework SwiftUI -Xlinker -e -Xlinker _NSExtensionMain \
+    2>"$BUILD/widget.log" || { WIDGET_MOTIVO="o swiftc do widget falhou (log: $BUILD/widget.log)"; return 1; }
+  cp "$ROOT/widget/dodia.json" "$APPEX/dodia.json" || { WIDGET_MOTIVO="não copiei o dodia.json"; return 1; }
+  cat > "$APPEX/Info.plist" <<WPLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleName</key><string>$WIDGET_EXEC</string>
+  <key>CFBundleDisplayName</key><string>$NAME</string>
+  <key>CFBundleExecutable</key><string>$WIDGET_EXEC</string>
+  <key>CFBundleIdentifier</key><string>$BUNDLE_ID.widget</string>
+  <key>CFBundlePackageType</key><string>XPC!</string>
+  <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
+  <key>CFBundleShortVersionString</key><string>1.0.0</string>
+  <key>CFBundleVersion</key><string>$BUILD_N</string>
+  <key>MinimumOSVersion</key><string>$MIN_IOS</string>
+  <key>UIDeviceFamily</key><array><integer>1</integer><integer>2</integer></array>
+  <key>CFBundleSupportedPlatforms</key><array><string>$PLATAFORMA</string></array>
+  <key>DTPlatformName</key><string>$DTPLATFORM</string>
+  <key>DTPlatformVersion</key><string>$DT_SDK_VER</string>
+  <key>DTSDKName</key><string>$DTPLATFORM$DT_SDK_VER</string>
+  <key>DTSDKBuild</key><string>$DT_SDK_BUILD</string>
+  <key>DTXcode</key><string>$DT_XCODE</string>
+  <key>DTXcodeBuild</key><string>$DT_XCODE_BUILD</string>
+  <key>NSExtension</key>
+  <dict><key>NSExtensionPointIdentifier</key><string>com.apple.widgetkit-extension</string></dict>
+  <key>CatedraSupabaseURL</key><string>$SB_URL</string>
+  <key>CatedraSupabaseChave</key><string>$SB_CHAVE</string>
+</dict>
+</plist>
+WPLIST
+  plutil -lint "$APPEX/Info.plist" >/dev/null || { WIDGET_MOTIVO="Info.plist do widget inválido"; return 1; }
+}
+if montar_widget; then
+  echo "     widget: $(du -sh "$APPEX" | cut -f1)"
+else
+  rm -rf "$APP/PlugIns"
+  echo "     ⚠ widget não incluído: $WIDGET_MOTIVO — o app segue sem ele."
+fi
+
 if [ "$ALVO" = "device" ]; then
   echo "→ 4/4  Assinando para dispositivo…"
   # O certificado depende do destino: Development instala no iPad registrado;
@@ -405,6 +469,34 @@ if [ "$ALVO" = "device" ]; then
   # daqui para a frente o script cuida de tudo.
   # O perfil também muda: o de desenvolvimento traz a lista de UDIDs; o de loja traz
   # `beta-reports-active`, que é o que o TestFlight exige.
+  # Widget: assinado ANTES do app (o app sela o que tem dentro), com perfil próprio que traz o grupo de apps.
+  # Acessório, como no Mac: perfil sem o grupo ou assinatura recusada tiram o widget e o app segue sem ele.
+  widget_fora() { rm -rf "$APP/PlugIns"; echo "     ⚠ widget não incluído: $1 — o app segue sem ele."; }
+  ios_assinar_widget() {
+    if ct_assinar_limpo "$APPEX" "$BUILD/codesign-widget.log" "$@"; then
+      echo "     ✓ widget assinado (codesign --verify --strict)"
+    else
+      ct_motivo_codesign "$BUILD/codesign-widget.log"
+      widget_fora "a assinatura do widget falhou (log: $BUILD/codesign-widget.log)"
+    fi
+  }
+  PERFIL_WIDGET="$HERE/embedded-widget.mobileprovision"
+  if [ -d "$APPEX" ]; then
+    if [ "$ALVO_REAL" = "testflight" ]; then
+      widget_fora "falta o perfil de DISTRIBUIÇÃO do widget (pendente — spec dos widgets §3.4)"
+    elif [ -f "$PERFIL_WIDGET" ]; then
+      cp "$PERFIL_WIDGET" "$APPEX/embedded.mobileprovision"
+      security cms -D -i "$PERFIL_WIDGET" > "$BUILD/perfil-widget.plist" 2>/dev/null || true
+      /usr/libexec/PlistBuddy -x -c "Print :Entitlements" "$BUILD/perfil-widget.plist" > "$BUILD/widget.entitlements" 2>/dev/null || true
+      if ! grep -q 'group.com.catedra' "$BUILD/widget.entitlements" 2>/dev/null; then
+        widget_fora "o perfil do widget não traz o grupo group.com.catedra (gere de novo — plano dos widgets, Task 15)"
+      else
+        ios_assinar_widget --force --sign "$IOS_ID" --entitlements "$BUILD/widget.entitlements" --timestamp=none
+      fi
+    else
+      widget_fora "falta ios/embedded-widget.mobileprovision (copie do checkout principal) — widget FORA deste build"
+    fi
+  fi
   if [ "$ALVO_REAL" = "testflight" ]; then
     PERFIL="$HERE/appstore.mobileprovision"
     if [ ! -f "$PERFIL" ]; then
@@ -422,6 +514,9 @@ if [ "$ALVO" = "device" ]; then
     security cms -D -i "$PERFIL" > "$BUILD/perfil.plist" 2>/dev/null
     /usr/libexec/PlistBuddy -x -c "Print :Entitlements" "$BUILD/perfil.plist" > "$BUILD/app.entitlements" 2>/dev/null
     if [ -s "$BUILD/app.entitlements" ]; then
+      if [ -d "$APPEX" ] && ! grep -q 'group.com.catedra' "$BUILD/app.entitlements"; then
+        echo "     ⚠ o perfil do APP não traz o grupo group.com.catedra: o widget vai abrir sem dados (plano dos widgets, Task 15)"
+      fi
       ios_assinar --force --sign "$IOS_ID" --entitlements "$BUILD/app.entitlements" --timestamp=none
       echo "     assinado com perfil: $(/usr/libexec/PlistBuddy -c 'Print :Name' "$BUILD/perfil.plist" 2>/dev/null)"
       echo "     expira em: $(/usr/libexec/PlistBuddy -c 'Print :ExpirationDate' "$BUILD/perfil.plist" 2>/dev/null)"
@@ -505,6 +600,19 @@ for v in d.values():
   if [ "$DEV_ESTADO" != "Booted" ]; then
     xcrun simctl boot "$DEV" && sleep 6
   fi
+  # Simulador: o grupo de apps só existe com o entitlement NA assinatura — ad-hoc basta aqui, widget antes do app.
+  cat > "$BUILD/sim-grupo.entitlements" <<'SIMENT'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict><key>com.apple.security.application-groups</key><array><string>group.com.catedra</string></array></dict></plist>
+SIMENT
+  ios_assinar_sim() {
+    if ! ct_assinar_limpo "$1" "$BUILD/codesign-sim.log" --force --sign - --entitlements "$BUILD/sim-grupo.entitlements" --timestamp=none; then
+      echo "     ✗ a assinatura ad-hoc do simulador falhou."; ct_motivo_codesign "$BUILD/codesign-sim.log"; exit 1
+    fi
+  }
+  if [ -d "$APPEX" ]; then ios_assinar_sim "$APPEX"; fi
+  ios_assinar_sim "$APP"
   xcrun simctl install "$DEV" "$APP"
   xcrun simctl launch "$DEV" "$BUNDLE_ID" >/dev/null
   echo "     instalado e aberto em $DEV_NOME ($DEV)"

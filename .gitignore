@@ -32,6 +32,8 @@ ios/Catedra.xcodeproj/xcuserdata/
 ios/Catedra.xcodeproj/project.xcworkspace/xcuserdata/
 # perfil de provisionamento: é credencial de assinatura, não vai para repo PÚBLICO
 ios/embedded.mobileprovision
+ios/embedded-widget.mobileprovision
+ios/build/perfil-widget.plist
 ios/build/perfil.plist
 Catedra.dc.html.bak*
 
