@@ -1,5 +1,5 @@
 {
-  "geradoEm": "2026-10-03T04:56:06.802Z",
+  "geradoEm": "2026-10-03T10:40:05.189Z",
   "fontes": {
     "planalto": {
       "rotulo": "Planalto — texto compilado das normas",
@@ -92,13 +92,13 @@
         "Súmulas: situação anotada só no acervo (as súmulas \"Superada\" que o próprio Cátedra registra) não vira item: vale apenas a marca oficial",
         "Súmulas: a data de publicação mostrada é a do portal do STF, que pode diferir da registrada no acervo"
       ],
-      "ultimaTentativa": "2026-10-03T04:56:06.850Z",
-      "ultimoSucesso": "2026-10-03T04:56:06.850Z",
-      "ultimaLeituraCompleta": "2026-10-03T04:56:06.850Z",
+      "ultimaTentativa": "2026-10-03T10:40:05.191Z",
+      "ultimoSucesso": "2026-10-03T10:40:05.191Z",
+      "ultimaLeituraCompleta": "2026-10-03T10:40:05.191Z",
       "resultado": "novidades",
       "erro": null,
-      "detalhe": "Informativo: a partir da edição 1231; 3 páginas consultadas, contando a conferência da última edição do acervo · Repercussão geral: 1481 temas lidos na lista oficial (até o Tema 1487), comparados com a leitura de 25/09/2026; datas oficiais lidas em 5 de 6 tema(s) · Súmulas: 736 súmulas e 63 vinculantes conferidas nas listas oficiais",
-      "novidadesNaConsulta": 15,
+      "detalhe": "Informativo: a partir da edição 1231; 3 páginas consultadas, contando a conferência da última edição do acervo · planilha oficial: 11617 linhas lidas; 1 edição(ões) recente(s) com nota faltando no acervo (1225) · Repercussão geral: 1481 temas lidos na lista oficial (até o Tema 1487), comparados com a leitura de 03/10/2026; datas oficiais lidas em 0 de 0 tema(s) · Súmulas: 736 súmulas e 63 vinculantes conferidas nas listas oficiais",
+      "novidadesNaConsulta": 1,
       "colecoes": {
         "informativo": {
           "rotulo": "STF — Informativo de Jurisprudência",
@@ -107,13 +107,13 @@
           "limites": [
             "cobre o Informativo, não o inteiro teor do acórdão"
           ],
-          "resultado": "sem-novidade",
-          "ultimaTentativa": "2026-10-03T04:56:06.850Z",
-          "ultimoSucesso": "2026-10-03T04:56:06.850Z",
-          "ultimaLeituraCompleta": "2026-10-03T04:56:06.850Z",
+          "resultado": "novidades",
+          "ultimaTentativa": "2026-10-03T10:40:05.191Z",
+          "ultimoSucesso": "2026-10-03T10:40:05.191Z",
+          "ultimaLeituraCompleta": "2026-10-03T10:40:05.191Z",
           "erro": null,
-          "detalhe": "a partir da edição 1231; 3 páginas consultadas, contando a conferência da última edição do acervo",
-          "novidadesNaConsulta": 0
+          "detalhe": "a partir da edição 1231; 3 páginas consultadas, contando a conferência da última edição do acervo · planilha oficial: 11617 linhas lidas; 1 edição(ões) recente(s) com nota faltando no acervo (1225)",
+          "novidadesNaConsulta": 1
         },
         "rg": {
           "rotulo": "STF — Repercussão geral",
@@ -126,13 +126,13 @@
             "modulação de efeitos não é detectada: a lista oficial não tem esse campo, e a observação da fonte só aparece junto da tese",
             "relator e título do tema não são comparados: o relator da lista é o atual, não o do julgamento"
           ],
-          "resultado": "novidades",
-          "ultimaTentativa": "2026-10-03T04:56:06.850Z",
-          "ultimoSucesso": "2026-10-03T04:56:06.850Z",
-          "ultimaLeituraCompleta": "2026-10-03T04:56:06.850Z",
+          "resultado": "sem-novidade",
+          "ultimaTentativa": "2026-10-03T10:40:05.191Z",
+          "ultimoSucesso": "2026-10-03T10:40:05.191Z",
+          "ultimaLeituraCompleta": "2026-10-03T10:40:05.191Z",
           "erro": null,
-          "detalhe": "1481 temas lidos na lista oficial (até o Tema 1487), comparados com a leitura de 25/09/2026; datas oficiais lidas em 5 de 6 tema(s)",
-          "novidadesNaConsulta": 15
+          "detalhe": "1481 temas lidos na lista oficial (até o Tema 1487), comparados com a leitura de 03/10/2026; datas oficiais lidas em 0 de 0 tema(s)",
+          "novidadesNaConsulta": 0
         },
         "sumulas": {
           "rotulo": "STF — Súmulas e súmulas vinculantes",
@@ -144,9 +144,9 @@
             "a data de publicação mostrada é a do portal do STF, que pode diferir da registrada no acervo"
           ],
           "resultado": "sem-novidade",
-          "ultimaTentativa": "2026-10-03T04:56:06.850Z",
-          "ultimoSucesso": "2026-10-03T04:56:06.850Z",
-          "ultimaLeituraCompleta": "2026-10-03T04:56:06.850Z",
+          "ultimaTentativa": "2026-10-03T10:40:05.191Z",
+          "ultimoSucesso": "2026-10-03T10:40:05.191Z",
+          "ultimaLeituraCompleta": "2026-10-03T10:40:05.191Z",
           "erro": null,
           "detalhe": "736 súmulas e 63 vinculantes conferidas nas listas oficiais",
           "novidadesNaConsulta": 0
@@ -170,13 +170,13 @@
         "Súmulas: superação de súmula não é detectada: o STJ não a marca, e uma decisão mais recente não significa superação",
         "Súmulas: edição do Informativo incorporada fora da rotina não tem o bloco de súmulas relido; a lista oficial cobre essa falta mais tarde"
       ],
-      "ultimaTentativa": "2026-10-03T04:57:16.138Z",
-      "ultimoSucesso": "2026-10-03T04:57:16.138Z",
+      "ultimaTentativa": "2026-10-03T10:40:14.647Z",
+      "ultimoSucesso": "2026-10-03T10:40:14.647Z",
       "ultimaLeituraCompleta": "2026-10-03T04:57:16.138Z",
-      "resultado": "novidades",
+      "resultado": "sem-novidade",
       "erro": null,
-      "detalhe": "Informativo: a partir da edição 904 e da extraordinária 34; 7 páginas consultadas, contando a conferência da última edição do acervo · Repetitivos: 1474 temas lidos em 31 faixa(s); comparados com a leitura de 25/09/2026 · Súmulas: lista oficial lida: 676 súmulas (versão de 05/12/2025) · bloco \"Súmulas\" de 0 edição(ões) nova(s) do Informativo",
-      "novidadesNaConsulta": 4,
+      "detalhe": "Informativo: a partir da edição 904 e da extraordinária 34; 7 páginas consultadas, contando a conferência da última edição do acervo · Repetitivos: 50 temas lidos em 2 faixa(s); comparados com a leitura de 03/10/2026 · filtrada pelo CSV oficial de dados abertos (gravado em 01/10/2026): 2 de 31 faixa(s) lida(s) (Tema 1328: \"Cancelado\" → \"Afetado\") · Súmulas: lista oficial lida: 676 súmulas (versão de 05/12/2025) · bloco \"Súmulas\" de 0 edição(ões) nova(s) do Informativo",
+      "novidadesNaConsulta": 0,
       "colecoes": {
         "informativo": {
           "rotulo": "STJ — Informativo de Jurisprudência",
@@ -186,9 +186,9 @@
             "cobre o Informativo, não o inteiro teor do acórdão nem a Jurisprudência em Teses"
           ],
           "resultado": "sem-novidade",
-          "ultimaTentativa": "2026-10-03T04:57:16.138Z",
-          "ultimoSucesso": "2026-10-03T04:57:16.138Z",
-          "ultimaLeituraCompleta": "2026-10-03T04:57:16.138Z",
+          "ultimaTentativa": "2026-10-03T10:40:14.647Z",
+          "ultimoSucesso": "2026-10-03T10:40:14.647Z",
+          "ultimaLeituraCompleta": "2026-10-03T10:40:14.647Z",
           "erro": null,
           "detalhe": "a partir da edição 904 e da extraordinária 34; 7 páginas consultadas, contando a conferência da última edição do acervo",
           "novidadesNaConsulta": 0
@@ -204,13 +204,13 @@
             "o campo \"Tese Firmada\" com o aviso de que se aguarda a publicação do acórdão não é tratado como tese",
             "as datas são as do processo paradigma principal; a \"Última atualização\" da ficha não é usada como sinal de mudança"
           ],
-          "resultado": "novidades",
-          "ultimaTentativa": "2026-10-03T04:57:16.138Z",
-          "ultimoSucesso": "2026-10-03T04:57:16.138Z",
+          "resultado": "sem-novidade",
+          "ultimaTentativa": "2026-10-03T10:40:14.647Z",
+          "ultimoSucesso": "2026-10-03T10:40:14.647Z",
           "ultimaLeituraCompleta": "2026-10-03T04:57:16.138Z",
           "erro": null,
-          "detalhe": "1474 temas lidos em 31 faixa(s); comparados com a leitura de 25/09/2026",
-          "novidadesNaConsulta": 4
+          "detalhe": "50 temas lidos em 2 faixa(s); comparados com a leitura de 03/10/2026 · filtrada pelo CSV oficial de dados abertos (gravado em 01/10/2026): 2 de 31 faixa(s) lida(s) (Tema 1328: \"Cancelado\" → \"Afetado\")",
+          "novidadesNaConsulta": 0
         },
         "sumulas": {
           "rotulo": "STJ — Súmulas",
@@ -224,9 +224,9 @@
             "edição do Informativo incorporada fora da rotina não tem o bloco de súmulas relido; a lista oficial cobre essa falta mais tarde"
           ],
           "resultado": "sem-novidade",
-          "ultimaTentativa": "2026-10-03T04:57:16.138Z",
-          "ultimoSucesso": "2026-10-03T04:57:16.138Z",
-          "ultimaLeituraCompleta": "2026-10-03T04:57:16.138Z",
+          "ultimaTentativa": "2026-10-03T10:40:14.647Z",
+          "ultimoSucesso": "2026-10-03T10:40:14.647Z",
+          "ultimaLeituraCompleta": "2026-10-03T10:40:14.647Z",
           "erro": null,
           "detalhe": "lista oficial lida: 676 súmulas (versão de 05/12/2025) · bloco \"Súmulas\" de 0 edição(ões) nova(s) do Informativo",
           "novidadesNaConsulta": 0
