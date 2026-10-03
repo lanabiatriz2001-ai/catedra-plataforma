@@ -1729,7 +1729,9 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 .ct-card.ct-mesa-questao, .ct-card.ct-mesa-folha { min-width: 0; padding: 0; overflow: hidden; }
 .ct-mesa-chips { display: flex; gap: var(--ct-e2); flex-wrap: wrap; margin-top: var(--ct-e2); }
 .ct-mesa-chips:empty { display: none; }
-.ct-mesa-chip { font-family: var(--mono); font-size: var(--fs-xs); padding: 2px var(--ct-e2); border-radius: 99px; background: color-mix(in srgb, currentColor 18%, transparent); color: inherit; }
+.ct-mesa-chip { font-family: var(--mono); font-size: var(--fs-xs); padding: 2px var(--ct-e2); border-radius: 99px; background: var(--surface); color: var(--ink); }
+/* superfície e tinta do tema, de propósito: translúcido sobre o gradiente do herói media 4,31:1 no escuro,
+   e --onAccent sobre o acento escurecido media 2,4:1 (no escuro o --onAccent é escuro) */
 .ct-mesa-corpo { padding: var(--ct-e4) var(--ct-e5); }
 .ct-mesa-rodape { border-top: 1px solid var(--border); padding: var(--ct-e3) var(--ct-e5); }
 .ct-mesa-linha { display: flex; align-items: center; gap: var(--ct-e2); flex-wrap: wrap; }

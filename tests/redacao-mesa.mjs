@@ -38,7 +38,7 @@ const caixa = (page, sel) => page.evaluate(s => { const e = document.querySelect
 
 export async function testarRedacaoMesa(pageDaSuite, base, ok, opcoes = {}) {
   const R = 'MESA [' + (opcoes.motor || 'chromium') + '] ';
-  const blocos = [arranjo, papel, folha, espelho, conferencia];
+  const blocos = [arranjo, papel, folha, espelho, conferencia, acessivel];
   for (const b of blocos) {
     try { await b(pageDaSuite, base, ok, R, opcoes); }
     catch (e) { ok(false, R + b.name + ' exceção: ' + e.message); }
@@ -300,5 +300,49 @@ async function conferencia(pageDaSuite, base, ok, R) {
     ok(/Colar ou importar o padrão/.test(await page.textContent('[data-red="terminei"]')), R + 'sem espelho, o botão pede o padrão antes de conferir');
     await page.click('[data-red="terminei"]'); await page.waitForTimeout(200);
     ok(await page.locator('[data-red="espelho"] textarea').count() === 1 && await page.locator('[data-red="conf-registrar"]').count() === 0, R + 'sem espelho, abre o campo para colar e não a conferência');
+  } finally { await ctx.close(); }
+}
+
+async function acessivel(pageDaSuite, base, ok, R) {
+  const medir = () => page.evaluate(() => {
+    // cor em rgb(...) ou color(srgb r g b) (é como o navegador serializa color-mix) → [r,g,b] 0–255
+    const rgb = c => { const m = c.match(/[\d.]+/g).map(Number); return /color\(srgb/.test(c) ? m.slice(0, 3).map(v => v * 255) : m.slice(0, 3); };
+    const lum = c => { const m = rgb(c); const f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(m[0]) + 0.7152 * f(m[1]) + 0.0722 * f(m[2]); };
+    const fundo = el => { let e = el; while (e) { const cs = getComputedStyle(e);
+      // fundo em gradiente (botão primário, herói): vale a cor mais CLARA do gradiente, que é o pior caso para texto claro
+      if (/gradient/.test(cs.backgroundImage)) { const cores = cs.backgroundImage.match(/rgba?\([^)]*\)|color\(srgb[^)]*\)/g) || []; if (cores.length) return cores.sort((x, y) => lum(y) - lum(x))[0]; }
+      const b = cs.backgroundColor; const m = b.match(/[\d.]+/g); if (m && (m.length < 4 || +m[3] >= 0.99)) return b; e = e.parentElement; } return 'rgb(255,255,255)'; };
+    const sels = ['[data-red="crono"]', '[data-red="modo-mao"]', '[data-red="modo-digitar"]', '[data-red="gab-estado"]', '[data-red="terminei"]', '.ct-folha-mao .ct-nota', '[data-red="marcas-toggle"]', '[data-red="chip-limite"]'];
+    return sels.map(s => { const el = document.querySelector(s); if (!el) return { s, falta: true };
+      const a = lum(getComputedStyle(el).color), b = lum(fundo(el)); const r = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+      const bx = el.getBoundingClientRect(); return { s, r: Math.round(r * 100) / 100, h: Math.round(bx.height), w: Math.round(bx.width) }; });
+  });
+  let page;
+  for (const esquema of ['light', 'dark']) {
+    const ctx = await pageDaSuite.context().browser().newContext({ viewport: { width: 820, height: 1180 }, hasTouch: true, colorScheme: esquema });
+    page = await ctx.newPage(); const t = new Date(); t.setHours(14, 0, 0, 0); await page.clock.install({ time: t });
+    try {
+      await semear(page, base);
+      if (esquema === 'dark') await page.evaluate(() => localStorage.setItem('catedra:dark', '1'));   // o app guarda o escuro nesta chave
+      await abrirRedacao(page, base);
+      const m = await medir();
+      for (const x of m) {
+        ok(!x.falta && x.r >= 4.5, R + esquema + ': contraste de ' + x.s + ' ≥ 4,5:1 (mediu ' + (x.falta ? 'ausente' : x.r) + ')');
+      }
+      for (const x of m.filter(x => /modo-|terminei|marcas-toggle/.test(x.s))) ok(x.h >= 44, R + esquema + ': alvo de ' + x.s + ' ≥ 44 px (mediu ' + x.h + ')');
+      await page.click('[data-red="terminei"]'); await page.waitForSelector('[data-red="conf-opcao"]');
+      const alvos = await page.evaluate(() => [...document.querySelectorAll('[data-red="conf-opcao"]')].map(b => Math.round(b.getBoundingClientRect().height)));
+      ok(alvos.every(h => h >= 44), R + esquema + ': degraus da conferência ≥ 44 px (mínimo ' + Math.min(...alvos) + ')');
+      ok(await page.evaluate(() => [...document.querySelectorAll('[data-red="mesa"] button, [data-red="espelho"] button, [data-red="mesa"] input, [data-red="mesa"] textarea, [data-red="espelho"] input')].every(e => (e.textContent || '').trim() || e.getAttribute('aria-label') || e.getAttribute('aria-labelledby') || (e.id && document.querySelector('label[for="' + e.id + '"]')))), R + esquema + ': todo controle da mesa tem nome');
+      ok(await page.evaluate(() => !/[\u{1F300}-\u{1FAFF}☀-➿]/u.test(document.querySelector('[data-red="mesa"]').textContent + document.querySelector('[data-red="espelho"]').textContent)), R + esquema + ': nenhum emoji como ícone');
+    } finally { await ctx.close(); }
+  }
+  // movimento reduzido: a barra de linhas não anima
+  const ctx = await pageDaSuite.context().browser().newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce' });
+  page = await ctx.newPage();
+  try {
+    await semear(page, base, { redText: 'Um texto digitado para a barra existir.', redTextTs: Date.now() }); await abrirRedacao(page, base);
+    await page.waitForSelector('[data-red="barra"]');
+    ok(await page.evaluate(() => { const b = document.querySelector('[data-red="barra"] > div'); return getComputedStyle(b).transitionDuration.split(',').every(d => parseFloat(d) < 0.01); }), R + 'movimento reduzido: a barra não anima');
   } finally { await ctx.close(); }
 }
