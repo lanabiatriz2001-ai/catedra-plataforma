@@ -6,6 +6,9 @@
      · ob       → trecho LITERAL da ficha oficial, do informativo ou do inteiro teor, acrescentado
                   às "Informações da fonte";
      · fp       → citação de origem que faltava;
+     · classificacao → o verbete rotulado como o que não é ("RECURSOS REPETITIVOS" num julgado da
+                  Corte Especial fora do rito; tese do STJ posta como do STF) recebe tribunal, título,
+                  tema, órgão e citação da fonte oficial; texto de OUTRO julgado colado nele sai;
      · sic      → o erro de digitação que está na PRÓPRIA fonte fica como publicado e ganha a marca
                   " [sic]" (dentro de citação entre colchetes, " (sic)").
    Verbetes repgeral-* têm o texto travado nos lotes de docs/teses-oficiais/: ali a mudança entra
@@ -110,6 +113,22 @@ function main() {
     if (v === null) { faltas.push(id + ': "' + trecho + '" não está em ' + campo); continue; }
     if (v !== T[id][campo]) { mudancas.push(id + '.' + campo + ' [sic]'); T[id][campo] = v; }
     anota(id, NAT[campo], { sic: trecho, marca: marca(campo) });
+  }
+
+  const NAT_IDX = { 1: 'tribunal', 4: 'titulo', 6: 'tema' }, NAT_TXT = { en: 'enunciado', fp: 'precedentes', og: 'orgaoJulgador', ob: 'observacao' };
+  for (const [id, c] of Object.entries(D.classificacao || {})) {
+    const r = porId[id];
+    if (!r || !T[id]) { faltas.push(id + ': fora do acervo'); continue; }
+    if (regDoLote(id)) { faltas.push(id + ': verbete travado em lote não se reclassifica aqui'); continue; }
+    for (const [col, v] of Object.entries(c.indice || {})) {
+      if (r[+col] !== v) { mudancas.push(id + '.' + NAT_IDX[col]); r[+col] = v; }
+      anota(id, NAT_IDX[col], v);
+    }
+    for (const [campo, v] of Object.entries(c.texto || {})) {
+      const atual = T[id][campo] === undefined ? null : T[id][campo];
+      if (atual !== v) { mudancas.push(id + '.' + campo); if (v === null) delete T[id][campo]; else T[id][campo] = v; }
+      anota(id, NAT_TXT[campo], v);
+    }
   }
 
   if (faltas.length) { console.error('✗ decisões que não casam com o acervo:\n  ' + faltas.join('\n  ')); process.exit(2); }

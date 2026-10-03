@@ -1,5 +1,5 @@
 {
- "descricao": "Avisos que as Notas do Cátedra carregavam, repostos como FATO OFICIAL em CAMPO OFICIAL (decisão da dona, 03/10/2026). Nada aqui é comentário: \"situacao\" é a situação do tema no portal do tribunal ou o desfecho do julgamento; \"ob\" acrescenta trecho LITERAL da ficha, do informativo ou do inteiro teor; \"fp\" é a citação de origem; \"sic\" marca, sem corrigir, o erro de digitação que está na própria fonte. Aplicado por scripts/aplicar-avisos-oficiais.mjs. O que nas notas era leitura nossa não voltou — a lista está em docs/avisos-oficiais/nao-voltaram.md.",
+ "descricao": "Avisos que as Notas do Cátedra carregavam, repostos como FATO OFICIAL em CAMPO OFICIAL (decisão da dona, 03/10/2026). Nada aqui é comentário: \"situacao\" é a situação do tema no portal do tribunal ou o desfecho do julgamento; \"ob\" acrescenta trecho LITERAL da ficha, do informativo ou do inteiro teor; \"fp\" é a citação de origem; \"sic\" marca, sem corrigir, o erro de digitação que está na própria fonte. \"classificacao\" conserta o verbete que estava rotulado como o que não é (tese de repetitivo que o Informativo publica no bloco da Corte Especial; tese do STJ atribuída ao STF): tribunal, título, tema, órgão e citação passam a ser os da fonte oficial. Aplicado por scripts/aplicar-avisos-oficiais.mjs. O que nas notas era leitura nossa não voltou — a lista está em docs/avisos-oficiais/nao-voltaram.md.",
  "situacao": {
   "CTRLCONST-0105": "Superado",
   "CTRLCONST-0137": "Superado em parte",
@@ -103,5 +103,44 @@
    "fp",
    "j. 18-11-1996"
   ]
- ]
+ ],
+ "classificacao": {
+  "SELTJGO-0383": {
+   "indice": {
+    "4": "Julgamento de temas de Repercussão Geral do STF…",
+    "6": "Julgamento de temas de Repercussão Geral do STF pendentes de trânsito em julgado"
+   },
+   "texto": {}
+  },
+  "SELTJRJ-0346": {
+   "indice": {
+    "4": "Julgamento de temas de Repercussão Geral do STF…",
+    "6": "Julgamento de temas de Repercussão Geral do STF pendentes de trânsito em julgado"
+   },
+   "texto": {
+    "fp": "Processo em segredo de justiça, Rel. Ministro Luis Felipe Salomão, Corte Especial, por unanimidade, julgado em 23/9/2025, DJEN 29/9/2025."
+   }
+  },
+  "SELTJPR-0224": {
+   "indice": {
+    "4": "Julgamento de temas de Repercussão Geral do STF…",
+    "6": "Julgamento de temas de Repercussão Geral do STF pendentes de trânsito em julgado"
+   },
+   "texto": {
+    "en": "Julgamento de temas de Repercussão Geral do STF pendentes de trânsito em julgado. Juízo de retratação pelo STJ. Inconveniência. Não se mostra conveniente o eventual exercício de juízo de retratação pelo STJ antes do trânsito em julgado das teses vinculantes do STF (Temas n. 533 e 987), pois há possibilidade de oposição de embargos de declaração e consequente modificação ou modulação de efeitos.",
+    "fp": "Processo em segredo de justiça, Rel. Ministro Luis Felipe Salomão, Corte Especial, por unanimidade, julgado em 23/9/2025, DJEN 29/9/2025."
+   }
+  },
+  "SELTJPR-0313": {
+   "indice": {
+    "1": "STJ",
+    "4": "Imposto sobre produtos industrializados (IPI) — Tema 1304 (Repetitivo)"
+   },
+   "texto": {
+    "og": "Primeira Seção",
+    "fp": "REsp 2.119.311-SC, relator Ministro Teodoro Silva Santos, Primeira Seção, julgamento em 10/12/2025 (Tema Repetitivo 1304).",
+    "ob": null
+   }
+  }
+ }
 }

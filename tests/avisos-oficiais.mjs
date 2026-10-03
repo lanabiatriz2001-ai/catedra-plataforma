@@ -4,6 +4,9 @@
          juris-index.js, no juris-text.js, nas fatias que o app lê e nos lotes das teses oficiais —
          a Situação, o trecho literal em "Informações da fonte", a citação de origem e a marca
          [sic] no erro que é da própria fonte. O aplicador é idempotente (nada a aplicar);
+   · (a') classificação: os quatro verbetes que estavam rotulados como o que não são ("Recursos
+         repetitivos" num julgado da Corte Especial fora do rito; tese do STJ posta como do STF)
+         trazem tribunal, título, tema, órgão e citação da fonte;
    · (b) régua: a marca não corrige o texto (o trecho errado continua lá, literal), não se repete,
          e nenhuma decisão reintroduz nota da plataforma;
    · (c) nativo, onde existir: o corpus.json traz a mesma Situação e o mesmo [sic];
@@ -38,10 +41,21 @@ export function testarAvisosOficiaisEstatico(ok, opcoes = {}) {
   ok(fpRuim.length === 0, R + '(a) a citação de origem decidida está no verbete' + mostra(fpRuim));
   const sicRuim = D.sic.filter(([id, campo, trecho]) => !TXT[id] || !(TXT[id][campo] || '').includes(trecho + marca(campo))).map(x => x[0]);
   ok(sicRuim.length === 0, R + '(a) todo erro da fonte está no verbete como publicado, seguido da marca' + mostra(sicRuim));
+  const C = D.classificacao || {};
+  const clsRuim = Object.entries(C).filter(([id, c]) => !IDX[id] || !TXT[id]
+    || Object.entries(c.indice || {}).some(([col, v]) => IDX[id][+col] !== v)
+    || Object.entries(c.texto || {}).some(([campo, v]) => (TXT[id][campo] === undefined ? null : TXT[id][campo]) !== v)).map(x => x[0]);
+  ok(Object.keys(C).length >= 4 && clsRuim.length === 0, R + '(a) os ' + Object.keys(C).length + ' verbetes mal classificados trazem tribunal, título, tema, órgão e citação da fonte' + mostra(clsRuim));
+  // só os decididos: o mesmo rótulo é legítimo no vizinho que É repetitivo (SELTJPR-0225, Tema 1309)
+  const rotulo = Object.keys(C).filter(id => /^recursos repetitivos\s*:/i.test(String(IDX[id][4] || '')) || /^recursos repetitivos\s*:/i.test(String(IDX[id][6] || '')));
+  const rotuloEn = Object.keys(C).filter(id => /^RECURSOS REPETITIVOS:/i.test(TXT[id].en || ''));
+  ok(rotulo.length === 0 && rotuloEn.length === 0, R + '(a) o julgado da Corte Especial fora do rito não abre mais título, tema nem enunciado com "Recursos repetitivos:"' + mostra(rotulo.concat(rotuloEn)));
+  ok(IDX['SELTJPR-0313'][1] === 'STJ' && !TXT['SELTJPR-0313'].ob && /Primeira Seção/.test(TXT['SELTJPR-0313'].og || ''),
+    R + '(a) o Tema Repetitivo 1304 é do STJ (Primeira Seção) e não carrega a observação de outro julgado');
   // as fatias são o que o app de fato lê
   const dirF = path.join(RAIZ, 'dados', 'juris-text'); const F = {};
   for (const f of fs.readdirSync(dirF)) if (/^\d+-[0-9a-f]+\.json$/.test(f)) Object.assign(F, JSON.parse(fs.readFileSync(path.join(dirF, f), 'utf8')));
-  const tocados = [...new Set([...Object.keys(D.ob), ...Object.keys(D.fp), ...D.sic.map(x => x[0])])];
+  const tocados = [...new Set([...Object.keys(D.ob), ...Object.keys(D.fp), ...D.sic.map(x => x[0]), ...Object.keys(D.classificacao || {})])];
   const fatiaRuim = tocados.filter(id => JSON.stringify(F[id]) !== JSON.stringify(TXT[id]));
   ok(tocados.length > 20 && fatiaRuim.length === 0, R + '(a) as fatias de dados/juris-text trazem os ' + tocados.length + ' verbetes tocados iguais ao juris-text.js' + mostra(fatiaRuim));
   let saida = '', codigo = 0;
@@ -71,7 +85,9 @@ export function testarAvisosOficiaisEstatico(ok, opcoes = {}) {
     const s = Object.entries(D.situacao).filter(([id, v]) => nat[id] && nat[id].situacao !== v).map(x => x[0]);
     const o = Object.entries(D.ob).filter(([id, t]) => nat[id] && !(nat[id].observacao || '').includes(t)).map(x => x[0]);
     const c = D.sic.filter(([id, , trecho]) => nat[id] && JSON.stringify(nat[id]).includes(JSON.stringify(trecho).slice(1, -1)) && !/\[sic\]|\(sic\)/.test(JSON.stringify(nat[id]))).map(x => x[0]);
-    ok(s.length + o.length + c.length === 0, R + '(c) ' + rotulo + ': Situação, trecho literal e [sic] iguais aos da web' + mostra(s.concat(o, c)));
+    const k = Object.entries(D.classificacao || {}).filter(([id, cl]) => nat[id] && ((cl.indice[1] && nat[id].tribunal !== cl.indice[1]) || (cl.indice[4] && nat[id].titulo !== cl.indice[4])
+      || ('ob' in (cl.texto || {}) && (nat[id].observacao || null) !== cl.texto.ob) || (cl.texto.en && nat[id].enunciado !== cl.texto.en))).map(x => x[0]);
+    ok(s.length + o.length + c.length + k.length === 0, R + '(c) ' + rotulo + ': Situação, trecho literal, [sic] e classificação iguais aos da web' + mostra(s.concat(o, c, k)));
   }
 }
 
