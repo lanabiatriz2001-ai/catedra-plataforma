@@ -198,7 +198,7 @@ ${supabaseTag}
    (GEMINI_API_KEY) e nunca chega ao navegador do aluno. Com isso, Mentor IA e a
    correção de redação passam a usar a IA de verdade — não o fallback local. */
 window.claude = {
-  complete: async function (prompt) {
+  complete: async function (prompt, opts) {
     // A função serverless só atende quem está logado (senão era IA grátis para a
     // internet inteira, na conta da dona do app). Manda o access_token da sessão.
     var token = null;
@@ -211,7 +211,9 @@ window.claude = {
     const r = await fetch('/api/complete', {
       method: 'POST',
       headers: headers,
-      body: JSON.stringify({ prompt: prompt })
+      body: JSON.stringify({ prompt: prompt }),
+      // quem chama pode cancelar a espera (a correção de discursiva faz isso no "Cancelar")
+      signal: (opts && opts.signal) || undefined
     });
     if (r.status === 401 || r.status === 403) {
       var j401 = await r.json().catch(function () { return {}; });

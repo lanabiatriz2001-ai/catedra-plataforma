@@ -3663,7 +3663,7 @@ window.ctPdfLib = (function(){
                   <button class="ct-btn" onclick="{{ submitRed }}" disabled="{{ redBtnDisabled }}" aria-busy="{{ redBusy }}">{{ redBtnLabel }}</button>
                   <sc-if value="{{ redCorrigindo }}" hint-placeholder-val="{{ false }}">
                     <span data-red="corrigindo" class="ct-dado">{{ redCorrTxt }}</span>
-                    <button class="ct-btn-2" data-red="cancelar-correcao" onclick="{{ cancelarCorrecao }}">Cancelar</button>
+                    <button class="ct-btn-2" data-red="cancelar-correcao" onclick="{{ cancelarCorrecao }}" title="A chamada já enviada conta na cota de IA de hoje">Cancelar</button>
                   </sc-if>
                 </div>
               </sc-if>
@@ -3804,9 +3804,10 @@ window.ctPdfLib = (function(){
             <div class="ct-card ct-mesa-linha" data-red="falha-ia" role="status" style="justify-content:space-between;gap:var(--ct-e4);border-color:var(--warn);">
               <div style="flex:1;min-width:14em;">
                 <div class="ct-eb ct-eb-warn">Estimativa local</div>
-                <div style="font-size:var(--fs-base);color:var(--ink);margin-top:var(--ct-e1);line-height:1.5;">{{ redFalhaTxt }}</div>
+                <div data-red="falha-txt" style="font-size:var(--fs-base);color:var(--ink);margin-top:var(--ct-e1);line-height:1.5;">{{ redFalhaTxt }}</div>
               </div>
               <sc-if value="{{ redRecPode }}" hint-placeholder-val="{{ true }}"><button class="ct-btn" data-red="recorrigir-ia" onclick="{{ recorrigirIA }}" disabled="{{ redRecBusy }}" aria-busy="{{ redRecBusy }}">{{ redRecBtnTxt }}</button></sc-if>
+              <sc-if value="{{ redRecBusy }}" hint-placeholder-val="{{ false }}"><button class="ct-btn-2" data-red="cancelar-recorrecao" onclick="{{ cancelarCorrecao }}" title="A chamada já enviada conta na cota de IA de hoje">Cancelar</button></sc-if>
             </div>
           </sc-if>
           <sc-if value="{{ redCortesShow }}" hint-placeholder-val="{{ false }}">
@@ -13395,7 +13396,7 @@ class Component extends DCLogic {
     const c=window.claude; if(!c || typeof c.complete!=='function' || c.__ctPortao) return;
     const original=c.complete.bind(c); c.__ctPortao=true; c.__ctSemPortao=original;
     // P18: a cota do dia estourada chega como erro com a mensagem do servidor — vira toast, e o erro segue para quem chamou
-    c.complete=(prompt)=>this._iaAutorizar().then(()=>original(prompt)).then((r)=>{ this._carregarCotaIA(); return r; }).catch((err)=>{ const m=String(err&&err.message||''); if(/chamadas de IA de hoje/.test(m)) this._toast(m); this._carregarCotaIA(); throw err; });
+    c.complete=(prompt, opts)=>this._iaAutorizar().then(()=>original(prompt, opts)).then((r)=>{ this._carregarCotaIA(); return r; }).catch((err)=>{ const m=String(err&&err.message||''); if(/chamadas de IA de hoje/.test(m)) this._toast(m); this._carregarCotaIA(); throw err; });
   }
   /** Cota de IA do dia, lida da RPC minha_cota_ia. Estado só de tela (não sincroniza). O
       supabase-js NÃO rejeita em erro: sem res.data válido, o contador some — nunca "0 de 0". */
@@ -14820,6 +14821,7 @@ class Component extends DCLogic {
   /** Descarta a correção em curso: quem troca de prova, zera o rascunho ou abre o histórico no meio da
       espera não pode receber depois, por cima da tela nova, a resposta da prova antiga. */
   _redCorrAbortar(){ this._redCorrTok=(this._redCorrTok||0)+1; this._redCorrParar();
+    try{ if(this._redCorrCtl) this._redCorrCtl.abort(); }catch(_){} this._redCorrCtl=null; this._redTardia=null;
     if(this.state.redBusy || this.state.redRecBusy) this.setState({redBusy:false, redRecBusy:false}); }
   /** Pede a correção à IA e CONFERE a resposta. Rejeita com {ctMotivo} quando não serve. */
   async _redCorrigirIA(text, gab, enun, local){
@@ -14829,13 +14831,18 @@ class Component extends DCLogic {
     try{ await this._iaAutorizar(); }catch(_){ throw {ctMotivo:'recusou'}; }
     const qs=this._redQuesitos(gab);
     const ped=M.montarPrompt({enunciado:enun, gabarito:gab, quesitos:qs, resposta:text});
+    // Cancelar ABORTA a chamada (o navegador para de esperar). Tempo esgotado NÃO aborta: a chamada já foi
+    // enviada e já contou na cota do dia, então se a IA responder depois a resposta é aproveitada (_redTardia).
+    let ctl=null; try{ ctl=(typeof AbortController==='function')?new AbortController():null; }catch(_){ ctl=null; }
+    this._redCorrCtl=ctl;
+    const conferir=(bruto)=>{ const c=M.interpretar(this._parseJSON(String(bruto||'')), {quesitos:qs, resposta:text});
+      if(!c) throw {ctMotivo:'invalida'}; return this._redResDaIA(c, ped.cortes, local); };
+    const chamada=Promise.resolve().then(()=>window.claude.complete(ped.prompt, ctl?{signal:ctl.signal}:undefined));
     let relogio=null;
     const limite=new Promise((_,rej)=>{ relogio=setTimeout(()=>rej({ctMotivo:'tempo'}), 90000); });
-    let bruto=null;
-    try{ bruto=await Promise.race([window.claude.complete(ped.prompt), limite]); } finally { clearTimeout(relogio); }
-    const c=M.interpretar(this._parseJSON(String(bruto||'')), {quesitos:qs, resposta:text});
-    if(!c) throw {ctMotivo:'invalida'};
-    return this._redResDaIA(c, ped.cortes, local);
+    try{ return conferir(await Promise.race([chamada, limite])); }
+    catch(e){ if(e && e.ctMotivo==='tempo') this._redTardia=chamada.then(conferir); else chamada.catch(()=>{}); throw e; }
+    finally { clearTimeout(relogio); }
   }
   /** O resultado conferido, no formato que a etapa 3 e a evolução já leem. */
   _redResDaIA(c, cortes, local){
@@ -14913,7 +14920,27 @@ class Component extends DCLogic {
       motor:res.motor||'ia', ...(res.falhaIA?{falhaIA:res.falhaIA}:{}), ...(evo&&evo.id?{evoId:evo.id}:{})};
     const hist=[entry, ...this.state.redHistory].slice(0,12); this._redSave(hist);
     this.setState({redBusy:false, redResult:res, redResultId:entry.id, redHistory:hist}); this._redCronoZerar(); this.flashSync();
+    // tempo esgotado: se a IA ainda responder, a correção dela substitui a estimativa (a chamada já foi paga)
+    const tardia=this._redTardia; this._redTardia=null;
+    if(res.falhaIA==='tempo' && tardia){ const tok2=this._redCorrTok;
+      tardia.then((r2)=>{ if(tok2!==this._redCorrTok || !r2) return;
+        const atual=(this.state.redHistory||[]).find(h=>h.id===entry.id); if(!atual || atual.motor==='ia') return;
+        r2.livre=true; r2.enunciado=enun; r2.aproximada=_aprox; this._redSubstituirPorIA(entry.id, r2); }).catch(()=>{}); }
   };
+  /** Troca a estimativa local pela correção da IA: mesma entrada do histórico, mesmo registro da evolução.
+      Serve ao "Corrigir de novo" e à resposta que chega depois do tempo esgotado. */
+  _redSubstituirPorIA(id, res){
+    let evoId=null, achou=null;
+    const hist=(this.state.redHistory||[]).map(h=>{ if(!id || h.id!==id) return h; evoId=h.evoId||null;
+      achou={...h, up:Date.now(), nota:res.nota, res, motor:'ia'}; delete achou.falhaIA; return achou; });
+    // entrada antiga sem registro de evolução ligado: não cria um novo (seria uma tentativa fantasma)
+    if(achou){ if(evoId) try{ const evo=this._redRegistrar({origem:'redacao', prova:achou.tema, quesitos:this._redEvoQuesitos(res), notaTotal:res.nota, notaMax:10,
+        disc:achou.disc, disciplinaOrigem:achou.disciplinaOrigem, aproximada:!!achou.aproximada}, evoId); if(evo&&evo.id) achou.evoId=evo.id; }catch(_){}
+      this._redSave(hist); }
+    const naTela=!!this.state.redResult && this.state.redResultId===id;
+    this.setState({...(achou?{redHistory:hist}:{}), ...((naTela||!id)?{redResult:res}:{})}); this.flashSync();
+    return !!achou;
+  }
   cancelarCorrecao = ()=>{ const eraEntrega=!!this.state.redBusy; this._redCorrAbortar();
     if(eraEntrega) this.setState({redEspelhoOculto:!!this._redOcultoAntes}); };
   /** A estimativa local está na tela; tenta de novo com a IA e, se der, SUBSTITUI a entrada do histórico. */
@@ -14932,14 +14959,8 @@ class Component extends DCLogic {
     this._redCorrParar();
     if(!res){ this.setState({redRecBusy:false, redResult:{...r0, falhaIA:motivo||'erro'}}); return; }   // falhou de novo: o que estava na tela fica
     res.livre=true; res.enunciado=enun; res.aproximada=!!r0.aproximada;
-    let evoId=null, achou=null;
-    const hist=(this.state.redHistory||[]).map(h=>{ if(!id || h.id!==id) return h; evoId=h.evoId||null;
-      achou={...h, up:Date.now(), nota:res.nota, res, motor:'ia'}; delete achou.falhaIA; return achou; });
-    // entrada antiga sem registro de evolução ligado: não cria um novo (seria uma tentativa fantasma)
-    if(achou){ if(evoId) try{ const evo=this._redRegistrar({origem:'redacao', prova:achou.tema, quesitos:this._redEvoQuesitos(res), notaTotal:res.nota, notaMax:10,
-        disc:achou.disc, disciplinaOrigem:achou.disciplinaOrigem, aproximada:!!achou.aproximada}, evoId); if(evo&&evo.id) achou.evoId=evo.id; }catch(_){}
-      this._redSave(hist); }
-    this.setState({redRecBusy:false, redResult:res, ...(achou?{redHistory:hist}:{})}); this.flashSync();
+    this.setState({redRecBusy:false});
+    this._redSubstituirPorIA(id, res);
   };
   // ---------------------------------------------------------------------------
   // CORRETOR LOCAL (sem IA). Deixou de ser "cobertura de palavras" e passou a corrigir
