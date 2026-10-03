@@ -1,0 +1,226 @@
+import Foundation
+
+// Casos dos arquivos puros do widget (ios/vendor/widget). Rodados por tests/widget-swift.mjs.
+// Saída: uma linha "ok <caso>" ou "FALHA <caso>" por caso, e "FIM <n>" no fim.
+
+var falhas = 0, total = 0
+func caso(_ nome: String, _ cond: Bool) { total += 1; if !cond { falhas += 1 }; print((cond ? "ok " : "FALHA ") + nome) }
+
+var cal = Calendar(identifier: .gregorian)
+cal.timeZone = TimeZone(identifier: "America/Sao_Paulo")!
+func dia(_ s: String, _ h: Int = 14, _ c: Calendar = cal) -> Date {
+    let p = s.split(separator: "-").map { Int($0)! }
+    return c.date(from: DateComponents(year: p[0], month: p[1], day: p[2], hour: h))!
+}
+func resumoBase() -> WidgetResumo {
+    var r = WidgetResumo()
+    r.carimbo = 1_000; r.geradoEm = dia("2026-10-01", 10).timeIntervalSince1970 * 1000
+    r.conta = "u1"; r.sessao = "conta"
+    r.prova = .init(data: "2026-10-31", nome: "TJSP 2026")
+    r.revisoes = .init(atrasadas: 2, porData: ["2026-10-01": 3, "2026-10-02": 1, "2026-10-05": 4])
+    r.ciclo = .init(feitos: 1, total: 4, proximos: [
+        .init(disc: "Direito Constitucional", min: 50, cor: "#2563eb", corD: "#38bdf8"),
+        .init(disc: "Direito Penal", min: 40, cor: "#e11d48", corD: "#fb7185")], volta: .init(n: 3, feitos: 12, total: 20))
+    r.metaDiariaMin = 180; r.metaSemanaMin = 1080; r.diasAtivos = ["seg", "ter", "qua", "qui", "sex", "sab"]
+    r.minPorDia = ["2026-09-27": 500, "2026-09-28": 100, "2026-09-29": 0, "2026-09-30": 200, "2026-10-01": 90]
+    r.ofensiva = .init(n: 6, valeAte: "2026-10-03")
+    return r
+}
+
+// ---- WidgetHoje (01/10/2026 é uma quinta-feira) ----
+do {
+    let r = resumoBase()
+    let h = WidgetHoje.calcular(r, agora: dia("2026-10-01", 14), calendario: cal)
+    caso("hoje: dias até a prova (01/10 → 31/10 = 30)", h.diasProva == 30 && h.nomeProva == "TJSP 2026")
+    caso("hoje: revisões de hoje = atrasadas + as que vencem até hoje (2 + 3 = 5)", h.revisoesHoje == 5)
+    caso("hoje: minutos e meta de hoje (90 de 180 = 50 %)", h.minHoje == 90 && h.metaHojePct == 50)
+    caso("hoje: semana de segunda a domingo, sem o domingo anterior (390 de 1080 = 36 %)", h.semanaMin == 390 && h.semanaPct == 36)
+    caso("hoje: a semana começa em 28/09 e hoje é a quinta", h.semana.count == 7 && h.semana[0].data == "2026-09-28" && h.semana[0].rotulo == "seg" && h.semana[3].ehHoje && h.semana[4].futuro)
+    caso("hoje: a ofensiva vale (6)", h.ofensiva == 6)
+    caso("hoje: próximo bloco e o seguinte", h.proximo?.disc == "Direito Constitucional" && h.seguintes.count == 1 && h.volta?.n == 3)
+    caso("hoje: resumo de 4 h não está envelhecido", h.envelhecidoHa == nil)
+
+    let m = WidgetHoje.calcular(r, agora: dia("2026-10-02", 0).addingTimeInterval(30 * 60), calendario: cal)
+    caso("meia-noite: a prova fica um dia mais perto (29)", m.diasProva == 29)
+    caso("meia-noite: as revisões de ontem passam a contar (2 + 3 + 1 = 6)", m.revisoesHoje == 6)
+    caso("meia-noite: a meta de hoje zera", m.minHoje == 0 && m.metaHojePct == 0)
+    caso("meia-noite: resumo de 14,5 h aparece como envelhecido", m.envelhecidoHa.map(WidgetHoje.rotuloEnvelhecido) == "atualizado há 14 h")
+
+    let dom = WidgetHoje.calcular(r, agora: dia("2026-10-04", 9), calendario: cal)
+    caso("domingo: a ofensiva passou do 'vale até' e zera", dom.ofensiva == 0)
+    caso("domingo: ainda é a mesma semana (começa em 28/09)", dom.semana[0].data == "2026-09-28" && dom.semanaMin == 390 && dom.semana[6].ehHoje)
+    let seg = WidgetHoje.calcular(r, agora: dia("2026-10-05", 9), calendario: cal)
+    caso("segunda: semana nova, zerada", seg.semana[0].data == "2026-10-05" && seg.semanaMin == 0)
+
+    var passada = r; passada.prova = .init(data: "2026-09-01", nome: "")
+    caso("prova que já passou não fica negativa", WidgetHoje.calcular(passada, agora: dia("2026-10-01"), calendario: cal).diasProva == 0)
+    var semProva = r; semProva.prova = nil
+    caso("sem prova, sem número", WidgetHoje.calcular(semProva, agora: dia("2026-10-01"), calendario: cal).diasProva == nil)
+    var semGerado = r; semGerado.geradoEm = 0
+    caso("resumo sem geradoEm não ganha rótulo de 'atualizado há…'", WidgetHoje.calcular(semGerado, agora: dia("2026-10-01"), calendario: cal).envelhecidoHa == nil)
+    caso("rótulo de envelhecido em dias", WidgetHoje.rotuloEnvelhecido(3 * 86400) == "atualizado há 3 dias")
+
+    var ny = Calendar(identifier: .gregorian); ny.timeZone = TimeZone(identifier: "America/New_York")!
+    var viagem = r; viagem.prova = .init(data: "2026-11-02", nome: "")
+    let v1 = WidgetHoje.calcular(viagem, agora: dia("2026-10-31", 23, ny), calendario: ny)
+    let v2 = WidgetHoje.calcular(viagem, agora: dia("2026-11-01", 23, ny).addingTimeInterval(30 * 60), calendario: ny)
+    caso("fuso: em Nova York, no fim do horário de verão, a contagem e o 'hoje' seguem certos", v1.diasProva == 2 && v1.hoje == "2026-10-31" && v2.diasProva == 1 && v2.hoje == "2026-11-01")
+}
+
+// ---- WidgetResumo (leitura tolerante) ----
+do {
+    let vazio = WidgetResumo.ler(Data("{}".utf8))
+    caso("resumo: {} lê com os padrões", vazio != nil && vazio!.conta == "" && vazio!.sessao == "local" && vazio!.metaDiariaMin == 180 && vazio!.prova == nil)
+    let novo = WidgetResumo.ler(Data(#"{"v":2,"conta":"u1","novo":{"x":1},"prova":{"data":"2026-10-31","nome":"X"}}"#.utf8))
+    caso("resumo: versão futura com campo novo lê o que conhece", novo?.v == 2 && novo?.conta == "u1" && novo?.prova?.nome == "X" && novo?.prefs.baixa == false)
+    caso("resumo: campo com tipo errado cai no padrão", WidgetResumo.ler(Data(#"{"metaDiariaMin":"muito","conta":"u1"}"#.utf8))?.metaDiariaMin == 180)
+    caso("resumo: JSON quebrado → nada", WidgetResumo.ler(Data(#"{"conta":"#.utf8)) == nil)
+    caso("resumo: null → nada", WidgetResumo.ler(Data("null".utf8)) == nil)
+    let ciclo = WidgetResumo.ler(Data(##"{"ciclo":{"feitos":1,"total":"x","proximos":[{"disc":"A","min":50,"corD":"#fff"},7,{"disc":"B","min":40,"cor":"#000","corD":"#111"}]}}"##.utf8))
+    caso("resumo: bloco sem cor mantém os outros blocos e o ciclo", ciclo?.ciclo.feitos == 1 && ciclo?.ciclo.total == 0 && ciclo?.ciclo.proximos.map(\.disc) == ["A", "B"] && ciclo?.ciclo.proximos[0].cor == "")
+    let prefs = WidgetResumo.ler(Data(##"{"prefs":{"baixa":true,"tema":{"accent":"#123456","escuro":true}}}"##.utf8))
+    caso("resumo: tema sem grad mantém prefs.baixa e o resto do tema", prefs?.prefs.baixa == true && prefs?.prefs.tema.accent == "#123456" && prefs?.prefs.tema.grad == [] && prefs?.prefs.tema.escuro == true)
+    let rev = WidgetResumo.ler(Data(#"{"revisoes":{"atrasadas":2,"porData":{"2026-10-01":3,"2026-10-02":"muitas","2026-10-03":1}}}"#.utf8))
+    caso("resumo: porData com valor de tipo errado mantém os outros dias", rev?.revisoes.atrasadas == 2 && rev?.revisoes.porData == ["2026-10-01": 3, "2026-10-03": 1])
+    let ofe = WidgetResumo.ler(Data(#"{"ofensiva":{"n":"seis","valeAte":"2026-10-03"}}"#.utf8))
+    caso("resumo: ofensiva com tipo errado cai no padrão só naquele campo", ofe?.ofensiva.n == 0 && ofe?.ofensiva.valeAte == "2026-10-03")
+    let base = resumoBase()
+    let volta = (try? JSONEncoder().encode(base)).flatMap(WidgetResumo.ler)
+    caso("resumo: ida e volta pelo JSON", volta == base)
+    let ex = WidgetResumo.exemplo(dia("2026-10-01"), calendario: cal)
+    caso("resumo: o exemplo tem prova, ciclo e semana", ex.prova != nil && ex.ciclo.proximos.count >= 3 && !ex.minPorDia.isEmpty)
+}
+
+// ---- WidgetSelecao (nuvem × cópia local, por conta) ----
+do {
+    var local = resumoBase(); local.carimbo = 1000; local.geradoEm = 5
+    var nuvem = resumoBase(); nuvem.carimbo = 2000; nuvem.geradoEm = 1
+    caso("seleção: a nuvem com carimbo maior vence", WidgetSelecao.escolher(local: local, nuvem: nuvem, contaDoPasse: "u1")?.carimbo == 2000)
+    nuvem.carimbo = 1000
+    caso("seleção: carimbo igual → o gerado por último (a cópia local, com o que ainda não subiu)", WidgetSelecao.escolher(local: local, nuvem: nuvem, contaDoPasse: "u1")?.geradoEm == 5)
+    var outra = resumoBase(); outra.conta = "u2"; outra.carimbo = 9999
+    caso("seleção: resumo de OUTRA conta nunca aparece (troca 2001 × pessoal)", WidgetSelecao.escolher(local: local, nuvem: outra, contaDoPasse: "u1")?.conta == "u1")
+    caso("seleção: passe de outra conta descarta a cópia local também", WidgetSelecao.escolher(local: local, nuvem: nil, contaDoPasse: "u2") == nil)
+    var solto = resumoBase(); solto.sessao = "local"; solto.conta = ""
+    caso("seleção: sem conta e sem passe, vale a cópia local", WidgetSelecao.escolher(local: solto, nuvem: nil, contaDoPasse: nil) != nil)
+    caso("seleção: cópia local sem conta não vale quando já há passe", WidgetSelecao.escolher(local: solto, nuvem: nuvem, contaDoPasse: "u1")?.conta == "u1")
+    caso("seleção: nada → nada", WidgetSelecao.escolher(local: nil, nuvem: nil, contaDoPasse: nil) == nil)
+}
+
+// ---- WidgetCores (a tabela CORES_RAMO vem do Catedra.dc.html, gerada pelo rodador) ----
+do {
+    let branco = WidgetCores.branco
+    caso("cores: #abc é #aabbcc", WidgetCores.hex("#abc") == WidgetCores.hex("#aabbcc"))
+    caso("cores: ida e volta do hex", WidgetCores.hex("#2563EB").map(WidgetCores.hex) == "#2563eb")
+    caso("cores: contraste branco × preto = 21", abs(WidgetCores.contraste(branco, WidgetCores.preto) - 21) < 0.01)
+    caso("cores (controle): o teal da tabela NÃO passa 4,5 com branco antes do ajuste", WidgetCores.contraste(WidgetCores.hex("#0D9488")!, branco) < 4.5)
+    var ruins: [String] = []
+    for (k, c, d) in CORES_RAMO {
+        let g = WidgetCores.gradienteMateria(c)
+        if g.count != 2 || g.contains(where: { WidgetCores.contraste($0, branco) < 4.5 }) { ruins.append(k + " (gradiente)") }
+        if WidgetCores.contraste(WidgetCores.textoSobreClaro(c), branco) < 4.5 { ruins.append(k + " (texto no claro)") }
+        if WidgetCores.contraste(WidgetCores.textoSobreEscuro(d), WidgetCores.fundoEscuro) < 4.5 { ruins.append(k + " (texto no escuro)") }
+    }
+    caso("cores: as \(CORES_RAMO.count) cores da CT_CORES_RAMO passam 4,5:1 no gradiente e como texto" + (ruins.isEmpty ? "" : " — falham: " + ruins.joined(separator: ", ")), ruins.isEmpty && CORES_RAMO.count >= 20)
+    let ambar = WidgetCores.gradienteTema(["#f8bc52"], accent: "#f8bc52")
+    caso("cores: tema de uma parada clara (âmbar) vira 2 paradas que passam", ambar.count == 2 && ambar.allSatisfy { WidgetCores.contraste($0, branco) >= 4.5 })
+    let vazio = WidgetCores.gradienteTema([], accent: "var(--danger)")
+    caso("cores: tema sem paradas e accent inválido cai no verde padrão e passa", vazio.count == 2 && vazio.allSatisfy { WidgetCores.contraste($0, branco) >= 4.5 })
+    let solido = WidgetCores.gradienteTema(["#1c1d24"], accent: "#4f46e5")
+    caso("cores: fundo sólido escuro (Fibra/Terminal) segue passando", solido.count == 2 && solido.allSatisfy { WidgetCores.contraste($0, branco) >= 4.5 })
+    caso("cores: matéria com hex inválido usa o padrão", WidgetCores.gradienteMateria("azul").count == 2)
+}
+// ---- WidgetLinks ----
+do {
+    let ds: [WidgetDestino] = [.tela("ciclo"), .tela("analise"), .legis(diploma: "Código de Processo Civil", artigo: "1015"), .juris(id: "STJ-SUM-7"), .entrar]
+    caso("links: ida e volta de todos os destinos", ds.allSatisfy { WidgetLinks.destino(WidgetLinks.url($0)) == $0 })
+    caso("links: tela desconhecida vira o Início na ida", WidgetLinks.url(.tela("admin")).absoluteString == "catedra://ver/inicio")
+    caso("links: tela desconhecida na volta é recusada", WidgetLinks.destino(URL(string: "catedra://ver/admin")!) == nil)
+    caso("links: outro esquema é recusado", WidgetLinks.destino(URL(string: "https://ver/ciclo")!) == nil)
+    caso("links: id do JURIS com barra é recusado", WidgetLinks.destino(URL(string: "catedra://juris?id=STJ%2FSUM")!) == nil)
+    caso("links: LEGIS sem artigo é recusado", WidgetLinks.destino(URL(string: "catedra://legis?diploma=CF")!) == nil)
+    caso("links: acento no diploma sobrevive", WidgetLinks.destino(WidgetLinks.url(.legis(diploma: "Constituição Federal", artigo: "5"))) == .legis(diploma: "Constituição Federal", artigo: "5"))
+}
+
+// ---- WidgetDoDia ----
+do {
+    let json = ##"{"v":1,"fontes":{},"itens":[{"tipo":"artigo","id":"cf#5","titulo":"Art. 5º","diploma":"Constituição Federal","artigo":"5","ramo":"Direito Constitucional","cor":"#2563eb","corD":"#38bdf8","texto":"Todos são iguais…","n":12,"rotulo":"caiu em 12 provas","provas":[{"orgao":"TJSP","ano":2023}]},{"tipo":"sumula","id":"STJ-SUM-7","titulo":"Súmula 7 do STJ","diploma":"STJ","ramo":"Direito Processual Civil","cor":"#0d9488","corD":"#2dd4bf","texto":"A pretensão…","n":11,"rotulo":"citada em 11 julgados"},{"tipo":"artigo","id":"l2848_1940#68","titulo":"Art. 68","diploma":"Código Penal","artigo":"68","ramo":"Direito Penal","cor":"#e11d48","corD":"#fb7185","texto":"A pena-base…","n":10,"rotulo":"caiu em 10 provas","provas":[]}]}"##
+    let itens = WidgetDoDia.carregar(Data(json.utf8))
+    caso("do dia: carrega os itens", itens.count == 3)
+    caso("do dia: arquivo quebrado → lista vazia", WidgetDoDia.carregar(Data("{".utf8)).isEmpty)
+    caso("do dia: 01/01/2026 é o item 0", WidgetDoDia.indice(em: dia("2026-01-01", 9), total: 3, calendario: cal) == 0)
+    caso("do dia: o dia seguinte é o item 1", WidgetDoDia.indice(em: dia("2026-01-02", 23), total: 3, calendario: cal) == 1)
+    caso("do dia: a lista dá a volta", WidgetDoDia.indice(em: dia("2026-01-04", 9), total: 3, calendario: cal) == 0)
+    caso("do dia: data antes da época não dá índice negativo", (0..<3).contains(WidgetDoDia.indice(em: dia("2025-12-30", 9), total: 3, calendario: cal)))
+    caso("do dia: mesmo dia, mesmo item, a qualquer hora", WidgetDoDia.item(itens, em: dia("2026-10-01", 0), calendario: cal) == WidgetDoDia.item(itens, em: dia("2026-10-01", 23), calendario: cal))
+    caso("do dia: lista vazia → nada", WidgetDoDia.item([], em: dia("2026-10-01"), calendario: cal) == nil)
+    caso("do dia: artigo abre o LEGIS no artigo", WidgetDoDia.destino(itens[0]) == .legis(diploma: "Constituição Federal", artigo: "5"))
+    caso("do dia: súmula abre o JURIS no verbete", WidgetDoDia.destino(itens[1]) == .juris(id: "STJ-SUM-7"))
+}
+
+do {
+    let json = #"{"v":1,"itens":[{"tipo":"sumula","id":"STJ-SUM-1","titulo":"Súmula 1"},{"id":"semtipo"},{"tipo":"artigo","id":"x#1","titulo":"Art. 1","diploma":"CF","artigo":"1","n":"três"},42]}"#
+    let itens = WidgetDoDia.carregar(Data(json.utf8))
+    caso("do dia: campo faltando não derruba a lista, item ruim é descartado", itens.map(\.id) == ["STJ-SUM-1", "x#1"])
+    caso("do dia: campo de tipo errado vira o padrão", itens.count == 2 && itens[1].n == 0 && itens[0].provas == nil)
+}
+
+// ---- WidgetCores: contraste medido depois de arredondar a 8 bits; hex inválido ----
+do {
+    func q(_ c: WidgetRGB) -> WidgetRGB {
+        func r(_ x: Double) -> Double { (min(1, max(0, x)) * 255).rounded() / 255 }
+        return WidgetRGB(r: r(c.r), g: r(c.g), b: r(c.b))
+    }
+    let branco = WidgetCores.branco
+    var ruins8: [String] = []
+    for (k, c, d) in CORES_RAMO {
+        for x in WidgetCores.gradienteMateria(c) + WidgetCores.gradienteMateria(d) where WidgetCores.contraste(q(x), branco) < 4.5 { ruins8.append(k + " (gradiente)") }
+        if WidgetCores.contraste(q(WidgetCores.textoSobreClaro(c)), branco) < 4.5 { ruins8.append(k + " (texto no claro)") }
+        if WidgetCores.contraste(q(WidgetCores.textoSobreEscuro(d)), WidgetCores.fundoEscuro) < 4.5 { ruins8.append(k + " (texto no escuro)") }
+    }
+    caso("cores: depois de arredondar a 8 bits todas as cores da tabela seguem ≥ 4,5:1" + (ruins8.isEmpty ? "" : " — falham: " + ruins8.joined(separator: ", ")), ruins8.isEmpty)
+    caso("cores: hex inválido vira nil (#ggg, vazio, 4 dígitos, #+12345)", WidgetCores.hex("#ggg") == nil && WidgetCores.hex("") == nil && WidgetCores.hex("#abcd") == nil && WidgetCores.hex("#+12345") == nil)
+}
+do {
+    caso("links: ver com mais de um componente é recusado", WidgetLinks.destino(URL(string: "catedra://ver/ciclo/x")!) == nil)
+    caso("links: id do JURIS com letra não ASCII é recusado", WidgetLinks.destino(URL(string: "catedra://juris?id=STJ-S%C3%A9rie-7")!) == nil)
+    let it = WidgetDoDia.carregar(Data(#"{"v":1,"itens":[{"tipo":"artigo","id":"cf#5","titulo":"Art. 5º","artigo":"5"}]}"#.utf8))
+    caso("do dia: artigo sem diploma abre o Início", it.count == 1 && WidgetDoDia.destino(it[0]) == .tela("inicio"))
+
+}
+
+// ---- WidgetNuvem ----
+do {
+    caso("nuvem: 200 + null = passe inválido (o app pede outro)", WidgetNuvem.interpretar(status: 200, corpo: Data("null".utf8)) == .invalido)
+    caso("nuvem: 200 + resumo nulo = ok sem resumo (conta ainda não publicou)", WidgetNuvem.interpretar(status: 200, corpo: Data(#"{"resumo":null,"carimbo":0}"#.utf8)) == .ok(nil))
+    if case .ok(let r?) = WidgetNuvem.interpretar(status: 200, corpo: Data(#"{"resumo":{"v":1,"conta":"u1","carimbo":5},"carimbo":5}"#.utf8)) {
+        caso("nuvem: 200 + resumo = ok com o resumo", r.conta == "u1" && r.carimbo == 5)
+    } else { caso("nuvem: 200 + resumo = ok com o resumo", false) }
+    caso("nuvem: 503 é falha (o passe NÃO cai)", WidgetNuvem.interpretar(status: 503, corpo: Data()) == .falha)
+    caso("nuvem: HTML no lugar de JSON é falha", WidgetNuvem.interpretar(status: 200, corpo: Data("<html>".utf8)) == .falha)
+    caso("nuvem: a configuração exige https e chave",
+         WidgetNuvem.config(["CatedraSupabaseURL": "http://x", "CatedraSupabaseChave": "k"]) == nil
+         && WidgetNuvem.config(["CatedraSupabaseURL": "https://x.supabase.co", "CatedraSupabaseChave": "k"]) != nil
+         && WidgetNuvem.config(nil) == nil)
+    let req = WidgetNuvem.pedido(passe: "abc", config: .init(url: "https://x.supabase.co", chave: "k"))
+    caso("nuvem: POST em /rest/v1/rpc/widget_ler, com apikey, sem Authorization, limite de 10 s",
+         req?.httpMethod == "POST" && req?.url?.absoluteString == "https://x.supabase.co/rest/v1/rpc/widget_ler"
+         && req?.value(forHTTPHeaderField: "apikey") == "k" && req?.value(forHTTPHeaderField: "Authorization") == nil
+         && req?.timeoutInterval == 10)
+}
+// ---- WidgetNuvem (revisão) ----
+do {
+    caso("nuvem: resumo presente que não decodifica é falha (mantém a cópia boa)",
+         WidgetNuvem.interpretar(status: 200, corpo: Data(#"{"resumo":[1,2],"carimbo":9}"#.utf8)) == .falha
+         && WidgetNuvem.interpretar(status: 200, corpo: Data(#"{"resumo":"x","carimbo":9}"#.utf8)) == .falha)
+    caso("nuvem: 401 é falha", WidgetNuvem.interpretar(status: 401, corpo: Data("null".utf8)) == .falha)
+    caso("nuvem: status 0 (sem resposta) é falha", WidgetNuvem.interpretar(status: 0, corpo: Data()) == .falha)
+    caso("nuvem: URL https sem host é recusada",
+         WidgetNuvem.config(["CatedraSupabaseURL": "https://", "CatedraSupabaseChave": "k"]) == nil)
+    let req = WidgetNuvem.pedido(passe: "abc", config: .init(url: "https://x.supabase.co", chave: "k"))
+    let corpo = req?.httpBody.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: String] }
+    caso("nuvem: o corpo do pedido leva p_passe", corpo == ["p_passe": "abc"])
+}
+// ---- fim dos casos ----
+print("FIM \(total)")
+exit(falhas > 0 ? 1 : 0)

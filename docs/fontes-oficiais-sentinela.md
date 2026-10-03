@@ -768,3 +768,46 @@ carregado pelo host, pelo `legis-web.html` e pelo `juris-web.html`. Ele dá o vo
 Pendências: o LEGIS e o JURIS **nativos** (SwiftUI, Mac/iPad) ainda não têm as abas; lá o painel
 do host abre a busca do item. Os subtipos "possível novo verbete"/"possível atualização de verbete"
 já têm lugar na fila (`subtipo`), mas o sentinela ainda não cruza edição × verbete.
+
+## STF e STJ rodam no Mac (03/10/2026)
+
+No GitHub Actions o STF e o STJ respondem HTTP 403 a qualquer pedido, inclusive às edições que
+já estão no acervo; do Mac da dona, as mesmas requisições respondem 200. É bloqueio por endereço
+de nuvem, e não se contorna (nada de proxy nem rotação de IP). Por isso:
+
+- o workflow consulta só o **Planalto** por padrão (`stf,stj` fica para diagnóstico manual);
+- o **Mac** roda `scripts/sentinela-mac.sh` todo dia às 06:40, por um LaunchAgent
+  (`scripts/launchd/com.catedra.sentinela-stf-stj.plist`), num worktree dedicado. Ele parte do PR
+  aberto, consulta só STF e STJ e envia um commit sobre a ponta do `sentinela/atualizacoes`, sem
+  forçar. A rodada do Planalto preserva o que o Mac gravou, e vice-versa;
+- se o Mac não rodar, o STF e o STJ aparecem com a última tentativa envelhecendo, nunca como
+  "sem novidade". Log em `~/Library/Logs/catedra-sentinela-stf-stj.log`.
+
+Instalar (uma vez):
+
+```bash
+mkdir -p ~/Library/Application\ Support/Catedra && cp scripts/sentinela-mac.sh ~/Library/Application\ Support/Catedra/
+git worktree add --detach .claude/worktrees/sentinela-mac origin/main
+sed "s#__REPO__#$PWD#g; s#__HOME__#$HOME#g" scripts/launchd/com.catedra.sentinela-stf-stj.plist > ~/Library/LaunchAgents/com.catedra.sentinela-stf-stj.plist
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.catedra.sentinela-stf-stj.plist
+```
+
+Para o Mac acordar sozinho antes do horário (opcional, pede senha): `sudo pmset repeat wakeorpoweron MTWRFSU 06:35:00`.
+## Planilhas oficiais (03/10/2026)
+
+- **STF — planilha do Informativo** (`Dados_InformativosSTF.xlsx`, link "dados" da página oficial):
+  conferência cruzada, só na rotina diária. GET condicional (304 sem corpo quando não muda; o ETag
+  fica em `sentinela/retratos.json`, chave `stf.informativo`). Para cada uma das 12 edições mais
+  recentes que o acervo tem, compara o número de notas da planilha (por título) com o do
+  CátedraJURIS; se faltar nota, nasce o item `INF-STF-PLAN-<edição>` ("Conferir"), com os títulos
+  da planilha, que recebe baixa quando o acervo alcançar a contagem. Foi assim que apareceu a
+  ADI 7236 (Informativo 1225), ausente do acervo. A planilha NÃO substitui a sonda por número
+  (que acha a edição no mesmo dia; a planilha sai cerca de 1 dia depois). Se ela não puder ser
+  lida, o STF sai "parcial", com o motivo.
+- **STJ — `Temas.csv` do Portal de Dados Abertos** (conjunto "precedentes-qualificados"): FILTRO
+  das faixas de repetitivos. Nos dias comuns, só se lê a faixa em que o CSV mostra situação
+  diferente da última leitura, tema novo, tema sumido ou repetido com situações diferentes, mais a
+  cauda. Os itens continuam nascendo das fichas oficiais (o CSV como fonte dava 9 alarmes falsos
+  em 12). Varredura completa: toda quarta-feira e sempre que o CSV falhar, vier com menos de
+  1.400 temas ou estiver há mais de 3 dias sem regravação. A varredura filtrada não move o
+  carimbo "última leitura completa".

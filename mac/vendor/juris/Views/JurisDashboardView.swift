@@ -35,7 +35,7 @@ struct JurisDashboardView: View {
             // (DestaquesEstudoView) — dois algoritmos de semente diferentes sorteando
             // verbetes DIFERENTES no mesmo dia, um em cima do outro na mesma tela. Os
             // dois passaram a usar a MESMA fonte (store.verbeteDoDia); o card completo
-            // (com roteiro de estudo automático, prova oral e "marcar como dominado")
+            // (com prova oral e "marcar como dominado")
             // fica só no topo — aqui embaixo seria repetir a mesma coisa duas vezes.
             // Checklist de leitura PRÓPRIA do CátedraJURIS — dados independentes do
             // LEGIS, cada app com o seu, para não misturar metas de leis com as de jurisprudência.

@@ -81,7 +81,10 @@ on:
       fontes:
         description: 'Fontes a consultar (planalto,stf,stj) — a incorporação dos informativos roda sempre'
         required: false
-        default: 'planalto,stf,stj'
+        # STF e STJ respondem 403 a qualquer pedido vindo do GitHub Actions (medido em 02/10/2026,
+        # inclusive às edições já no acervo). Quem os lê é o Mac da dona: scripts/sentinela-mac.sh,
+        # que atualiza este mesmo PR. Aqui fica o Planalto; 'stf,stj' só para diagnóstico.
+        default: 'planalto'
 
 permissions:
   contents: write
@@ -257,7 +260,7 @@ jobs:
         # novo". Com pipefail, o passo falha e o job fica vermelho.
         shell: bash
         env:
-          FONTES: ${{ inputs.fontes || 'planalto,stf,stj' }}
+          FONTES: ${{ inputs.fontes || 'planalto' }}
           PROPOSTOS: ${{ steps.base.outputs.propostos }}
         run: |
           set -o pipefail

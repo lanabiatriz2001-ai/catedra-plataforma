@@ -340,8 +340,8 @@ enum Exporter {
     /// Gera automaticamente uma versão FALSA da afirmação, invertendo um operador
     /// de tese (constitucional↔inconstitucional, incide↔não incide, pode↔não pode…).
     /// Retorna nil quando nenhum operator confiável é encontrado (não força card).
-    /// `nonisolated` (com os pares e a melhor lacuna): texto puro, sem tela — o roteiro de
-    /// estudo o chama fora da main (RoteiroLocal), e o resto do Exporter continua na main.
+    /// `nonisolated` (com os pares e a melhor lacuna): texto puro, sem tela — pode ser
+    /// chamada fora da main, e o resto do Exporter continua na main.
     nonisolated static func afirmacaoFalsaAuto(_ texto: String) -> String? {
         // usa só a 1ª frase/linha — suficiente para um card Certo/Errado.
         let base = texto.split(whereSeparator: { $0 == "\n" }).first.map(String.init) ?? texto

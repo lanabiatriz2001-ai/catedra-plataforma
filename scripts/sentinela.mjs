@@ -52,9 +52,11 @@ import { ROOT, baixarLei } from './lib/planalto.mjs';
 import { buscarFonte } from './lib/tls-fontes.mjs';
 import {
   pior, baseJuris, colecaoNoAcervo, pendenciaColecao, lerRetratos, conteudoRetratos, esperarPadrao, acervoDaColecao, CAMPOS_DATA, ARQ_RETRATOS, LIMIARES,
+  novaSessao,
 } from './lib/colecoes.mjs';
 import { consultarRG, lerExportRG, retratoRG } from './lib/stf-rg.mjs';
 import { consultarRepetitivos, parsePaginaRepetitivos, retratoTemaRep } from './lib/stj-repetitivos.mjs';
+import { URL_PLANILHA_INF, MIN_LINHAS as MIN_LINHAS_PLANILHA, linhasDaPlanilha, notasPorEdicaoNaPlanilha, notasPorEdicaoNoAcervo, faltasNoAcervo, itemFalta } from './lib/stf-planilha.mjs';
 import { consultarSumulasSTJ, consultarSumulasSTF, textoDoPdf, listaVerbetesSTJ } from './lib/sumulas.mjs';
 
 const ARGV = process.argv.slice(2);
@@ -1157,7 +1159,10 @@ export function carimbar(fonte, anterior, r, tentativaEm) {
     // 'parcial' é leitura útil com lacuna NOMEADA (o erro diz o que faltou) e por isso move o
     // último sucesso; quando foi a última leitura SEM lacuna, diz este carimbo, que só anda com
     // 'novidades' ou 'sem-novidade'.
-    ultimaLeituraCompleta: r.estado === 'novidades' || r.estado === 'sem-novidade' ? tentativaEm : (ant.ultimaLeituraCompleta || null),
+    // Varredura filtrada (repetitivos pelo CSV oficial, nos dias comuns) é leitura conclusiva do que
+    // leu, mas NÃO é leitura completa: não move este carimbo.
+    ultimaLeituraCompleta: (r.estado === 'novidades' || r.estado === 'sem-novidade') && !Object.values(r.colecoes || {}).some((c) => c && c.leituraCompleta === false)
+      ? tentativaEm : (ant.ultimaLeituraCompleta || null),
     resultado: r.estado,
     erro: r.erro || null,
     detalhe: r.detalhe || '',
@@ -1172,7 +1177,7 @@ export function carimbar(fonte, anterior, r, tentativaEm) {
         return [id, { ...cob, resultado: a.resultado ?? null, ultimaTentativa: a.ultimaTentativa ?? null, ultimoSucesso: a.ultimoSucesso ?? null,
           ultimaLeituraCompleta: a.ultimaLeituraCompleta ?? null, erro: a.erro ?? null, detalhe: a.detalhe ?? null }];
       }
-      const ok = rc.estado !== 'falha', completo = rc.estado === 'novidades' || rc.estado === 'sem-novidade';
+      const ok = rc.estado !== 'falha', completo = (rc.estado === 'novidades' || rc.estado === 'sem-novidade') && rc.leituraCompleta !== false;
       return [id, { ...cob, resultado: rc.estado, ultimaTentativa: tentativaEm, ultimoSucesso: ok ? tentativaEm : (a.ultimoSucesso || null),
         ultimaLeituraCompleta: completo ? tentativaEm : (a.ultimaLeituraCompleta || null), erro: rc.erro || null, detalhe: rc.detalhe || '',
         novidadesNaConsulta: (rc.itens || []).length }];
@@ -1212,8 +1217,51 @@ function juntarColecoes(f, res) {
     erro: erros.length ? erros.join('; ') : null,
     detalhe: detalhes.join(' · '),
     itens,
-    colecoes: Object.fromEntries(ids.map((id) => [id, { estado: res[id].estado, erro: res[id].erro || null, detalhe: res[id].detalhe || '', itens: res[id].itens || [] }])),
+    colecoes: Object.fromEntries(ids.map((id) => [id, { estado: res[id].estado, erro: res[id].erro || null, detalhe: res[id].detalhe || '', itens: res[id].itens || [],
+      ...(res[id].leituraCompleta === false ? { leituraCompleta: false } : {}) }])),
     retratos,
+  };
+}
+
+// Conferência cruzada pela planilha oficial do Informativo do STF (scripts/lib/stf-planilha.mjs).
+// Só na rotina (9,4 MB quando muda; 304 sem corpo quando não muda). Acha nota de edição recente
+// que falta no CátedraJURIS. Falha aqui não apaga o que a sonda achou: a fonte sai "parcial",
+// com o motivo por extenso, e a linha de base anterior fica.
+async function conferirPlanilhaSTF(ctx, r) {
+  if (!r || r.estado === 'falha') return r;
+  const prev = (ctx.retratos || {})['stf.informativo'] || null;
+  const quando = ctx.quando || agora();
+  const marcarParcial = (msg) => ({ ...r, estado: r.estado === 'falha' ? 'falha' : 'parcial',
+    erro: [r.erro, `planilha oficial do Informativo: ${msg}`].filter(Boolean).join('; ') });
+  let porEdicao = null, origemLeitura = '';
+  let cab = {};
+  try {
+    const pedir = novaSessao(ctx);
+    const condicional = prev && (prev.etag || prev.lastModified)
+      ? { ...(prev.etag ? { 'if-none-match': prev.etag } : {}), ...(prev.lastModified ? { 'if-modified-since': prev.lastModified } : {}) } : null;
+    const lido = await pedir(URL_PLANILHA_INF, { teto: 120000, codificacao: 'binario', ...(condicional ? { cabecalhos: condicional } : {}) });
+    cab = lido.r.cabecalhos || {};
+    if (lido.r.status === 304 && prev && prev.porEdicao) { porEdicao = prev.porEdicao; origemLeitura = 'sem mudança desde a última leitura (304)'; }
+    else if (lido.r.status === 200) {
+      const linhas = linhasDaPlanilha(lido.r.buffer);
+      if (linhas.length < MIN_LINHAS_PLANILHA) return marcarParcial(`só ${linhas.length} linhas — leitura suspeita, nada concluído`);
+      porEdicao = notasPorEdicaoNaPlanilha(linhas);
+      origemLeitura = `${linhas.length} linhas lidas`;
+    } else return marcarParcial(`HTTP ${lido.r.status}`);
+  } catch (e) { return marcarParcial(e.message); }
+  let acervo;
+  try { acervo = notasPorEdicaoNoAcervo(ctx.J().idx); } catch (e) { return marcarParcial(`não foi possível ler o acervo (${e.message})`); }
+  const faltas = faltasNoAcervo(porEdicao, acervo);
+  const itens = faltas.map((x) => itemFalta(x, { quando, rotuloColecao: COLECOES.stf.informativo.rotulo, rotuloFonte: COBERTURA.stf.rotulo }));
+  const recentes = Object.keys(porEdicao).map(Number).sort((a, b) => b - a).slice(0, 40);
+  return {
+    ...r,
+    estado: r.estado === 'sem-novidade' && itens.length ? 'novidades' : r.estado,
+    itens: [...(r.itens || []), ...itens],
+    detalhe: `${r.detalhe} · planilha oficial: ${origemLeitura}; ${faltas.length ? `${faltas.length} edição(ões) recente(s) com nota faltando no acervo (${faltas.map((x) => x.edicao).join(', ')})` : 'as edições recentes do acervo têm todas as notas'}`,
+    retrato: { lidoEm: quando, origem: 'planilha oficial do Informativo do STF (Dados_InformativosSTF.xlsx)',
+      etag: cab.etag || (prev && prev.etag) || null, lastModified: cab['last-modified'] || (prev && prev.lastModified) || null,
+      porEdicao: Object.fromEntries(recentes.map((n) => [n, porEdicao[n]])) },
   };
 }
 
@@ -1221,7 +1269,10 @@ function juntarColecoes(f, res) {
 export async function consultarJuris(f, ctx) {
   const ids = ctx.ids;
   const tarefas = {};
-  if (ids.includes('informativo')) tarefas.informativo = consultarInformativos(f, ctx.ult, ctx.busca.buscar, ctx.prazo);
+  if (ids.includes('informativo')) {
+    tarefas.informativo = consultarInformativos(f, ctx.ult, ctx.busca.buscar, ctx.prazo);
+    if (f === 'stf' && ctx.modo !== 'ao-vivo' && ctx.planilhaSTF !== false) tarefas.informativo = tarefas.informativo.then((r) => conferirPlanilhaSTF(ctx, r));
+  }
   if (f === 'stf' && ids.includes('rg')) tarefas.rg = consultarRG(ctx);
   if (f === 'stf' && ids.includes('sumulas')) tarefas.sumulas = consultarSumulasSTF(ctx);
   if (f === 'stj' && ids.includes('repetitivos')) tarefas.repetitivos = consultarRepetitivos(ctx);
@@ -1348,6 +1399,11 @@ export function mesclarNovidades(atuais, achados, ult, noAcervo) {
       if (!it.parcial && typeof noAcervo === 'function') { try { na = noAcervo(it); } catch (_) { na = null; } }
       if (na === true) final = darBaixa(it);
       else if (na === false && it.incorporado) final = desfazerBaixaColecao(it);
+    } else if (/^INF-STF-PLAN-\d+$/.test(it.id)) {
+      let na = null;
+      if (typeof noAcervo === 'function') { try { na = noAcervo(it); } catch (_) { na = null; } }
+      if (na === true) final = darBaixa(it);
+      else if (na === false && it.incorporado) final = desfazerBaixa(it);
     } else {
       const ed = edicaoNoAcervo(it, ult);
       if (!it.parcial && ed === 'dentro') final = darBaixa(it);
@@ -1404,7 +1460,7 @@ export function lerPropostos(caminho) {
  *  oficial) e, na mesma junção, recebe a baixa contra o acervo de agora (`ultimas`) — o
  *  novidades.js do PR lista "já no JURIS" exatamente o que o juris-index.js do PR traz. */
 export async function rodar({ fontes = ['planalto', 'stf', 'stj'], colecoes, modo, busca = {}, leis, ultimas, ultimasConsulta, anterior, atuais, jaPropostos,
-  silencioso = false, prazo = 0, retratos, juris, limiares } = {}) {
+  silencioso = false, prazo = 0, retratos, juris, limiares, planilhaSTF = true } = {}) {
   const diga = silencioso ? () => {} : log;
   const antes = anterior || lerEstado();
   const estado = { geradoEm: agora(), fontes: { ...(antes.fontes || {}) } };
@@ -1442,7 +1498,7 @@ export async function rodar({ fontes = ['planalto', 'stf', 'stj'], colecoes, mod
         LEIS_RODADA = LEIS;
         r = await consultarPlanalto(LEIS, busca.baixarLei || baixarLei, prazoFonte);
       } else {
-        r = await consultarJuris(f, { modo: MODO, prazo: prazoFonte, busca: BUSCA, retratos: retratosDe(), J: acervoJ,
+        r = await consultarJuris(f, { modo: MODO, prazo: prazoFonte, busca: BUSCA, retratos: retratosDe(), J: acervoJ, planilhaSTF,
           ult: ids.includes('informativo') ? (ultimasConsulta || ultDoAcervo()) : null, ids, limiares: LIM, quando: tentativaEm });
       }
     } catch (e) {
@@ -1472,6 +1528,8 @@ export async function rodar({ fontes = ['planalto', 'stf', 'stj'], colecoes, mod
   const indices = new Map();
   const noAcervo = (it) => {
     // Tema e súmula: a regra da coleção, contra o acervo do JURIS (seção "Baixa" do documento).
+    // Nota faltando segundo a planilha oficial do STF: baixa quando o acervo alcança a contagem.
+    if (/^INF-STF-PLAN-\d+$/.test(it.id)) return (notasPorEdicaoNoAcervo(acervoJ().idx)[it.edicao] || 0) >= (it.notasPlanilha || Infinity);
     if (it.fonte !== 'planalto') return ehColecao(it) ? colecaoNoAcervo(it, acervoJ()) : null;
     if (!conferidas.has(it.norma) || it.depois == null) return false;
     const lei = LEIS_RODADA.find((l) => l.sigla === it.norma);

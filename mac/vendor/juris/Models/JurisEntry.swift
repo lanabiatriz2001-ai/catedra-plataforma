@@ -1,64 +1,6 @@
 import Foundation
 import SwiftUI
 
-/// Nota de estudo ORIGINAL (não oficial): esquema de um julgado, mostrado no próprio verbete.
-/// `tese` = síntese; `fluxo` = passos de uma decisão (fluxograma); `ramos` = ramos temáticos.
-struct NotaEstudo: Codable, Hashable {
-    var tese: String?
-    var fluxo: [String]?
-    var ramos: [RamoNota]?
-    var texto: String?      // versão em prosa explicativa (alternativa ao esquema)
-
-    var temEsquema: Bool { (fluxo?.isEmpty == false) || (ramos?.isEmpty == false) }
-}
-
-struct RamoNota: Codable, Hashable {
-    var tipo: String        // regra | fundamento | excecao | pegadinha | cuidado | vedacao | relacionada
-    var itens: [String]
-
-    var titulo: String {
-        switch tipo {
-        case "regra": return "Regra"
-        case "fundamento": return "Fundamento"
-        case "excecao": return "Exceção"
-        case "pegadinha": return "Pegadinha"
-        case "cuidado": return "Cuidado"
-        case "vedacao": return "Vedação"
-        case "relacionada": return "Súmula/tese relacionada"
-        default: return tipo.capitalized
-        }
-    }
-    var simbolo: String {
-        switch tipo {
-        case "regra": return "checkmark.seal.fill"
-        case "fundamento": return "text.book.closed.fill"
-        case "excecao": return "arrow.triangle.branch"
-        case "pegadinha": return "exclamationmark.triangle.fill"
-        case "cuidado": return "clock.badge.exclamationmark.fill"
-        case "vedacao": return "nosign"
-        case "relacionada": return "link"
-        default: return "circle.fill"
-        }
-    }
-    var cor: Color {
-        // Cores SEMÂNTICAS fixas: os tokens Palette.fonte* resolvem todos para o
-        // acento, então o código de cores dos ramos do esquema se perdia. Aqui cada
-        // tipo tem sua cor própria.
-        switch tipo {
-        case "regra": return Color(hex: "#16A34A")       // verde
-        case "fundamento": return Color(hex: "#2563EB")  // azul
-        case "excecao": return Color(hex: "#7C3AED")     // roxo
-        case "pegadinha": return Color(hex: "#EA580C")   // laranja
-        case "cuidado": return Color(hex: "#EA580C")     // laranja
-        case "vedacao": return .red                      // vermelho
-        case "relacionada": return Color(hex: "#0EA5E9") // azul-céu
-        default: return Palette.secondaryInk
-        }
-    }
-}
-
-/// Um registro de jurisprudência normalizado (súmula, tese de repercussão geral,
-/// recurso repetitivo, tese de "Jurisprudência em Teses" ou julgado de informativo).
 struct JurisEntry: Identifiable, Codable, Hashable {
     let id: String
     let tribunal: String
@@ -460,8 +402,7 @@ enum Fonte: String, CaseIterable, Identifiable {
     }
 
     /// "Informativo", no sentido amplo pedido: os boletins periódicos, STF/STJ/TSE e os
-    /// do TCU. É o que decide se o roteiro de estudo do verbete se gera SOZINHO ao abrir
-    /// (em vez de esperar o clique em "Gerar roteiro de estudo").
+    /// do TCU.
     var ehInformativo: Bool {
         switch self {
         case .informativoSTF, .informativoSTJ, .informativoTSE,

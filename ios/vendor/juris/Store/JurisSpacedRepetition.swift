@@ -190,8 +190,8 @@ enum JurisFlashcards {
         return (JurisFlashKind.certoErrado, texto, "Certo — reproduz a tese firmada.")
     }
 
-    /// Pergunta direta a partir da lacuna operativa. `nonisolated`: o roteiro de estudo a
-    /// monta fora da main (RoteiroLocal).
+    /// Pergunta direta a partir da lacuna operativa. `nonisolated`: pode ser
+    /// montada fora da main.
     nonisolated static func direta(_ e: JurisEntry) -> (kind: String, prompt: String, answer: String?)? {
         let texto = base(e)
         guard let r = Exporter.melhorLacuna(texto) else { return nil }

@@ -39,7 +39,7 @@ import { testarSyncMemoriaVelha } from './sync-memoria-velha.mjs';
 import { testarBackupDriveErros } from './backup-drive-erros.mjs';
 import { testarSelectHost } from './select-host.mjs';
 import { testarAjustesRitmo } from './ajustes-ritmo.mjs';
-import { testarJurisQuadro } from './juris-quadro.mjs';
+import { testarSemAnotacoesNavegador } from './sem-anotacoes.mjs';
 import { testarPrioridadeErrosResolvidos } from './prioridade-erros-resolvidos.mjs';
 import { testarRevisaoFonte } from './revisao-fonte.mjs';
 import { testarVoltaOrigem } from './volta-origem.mjs';
@@ -233,9 +233,9 @@ for (const [base, origem, arquivo] of ORIGENS) {
     // processual no toque — o motor da Apple é o que o iPad pinta
     try { await testarFaixaMapaAlvos(page, base, ok, { motor }); }
     catch (e) { ok(false, 'FAIXA/ALVOS [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
-    try { await testarJurisQuadro(page, base, ok, { motor, origem }); }
+    try { await testarSemAnotacoesNavegador(page, base, ok, { motor, origem }); }
     catch (e) {
-      ok(false, 'JURIS/QUADRO [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
+      ok(false, 'SEM ANOTAÇÕES [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
         + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
     }
     try { await testarPostMessageSeguranca(page, base, ok, { motor, origem, arquivo }); }
