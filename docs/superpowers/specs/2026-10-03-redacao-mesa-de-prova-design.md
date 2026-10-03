@@ -18,13 +18,28 @@ Sucesso desta fatia: responder parece prova de verdade. A pessoa relê o comando
 escreve numa folha pautada que conta as linhas contra o limite da banca, vê o tempo e vê
 que o texto está salvo; e sabe, antes de entregar, se o espelho serve para corrigir.
 
+## Regra da dona: o papel vem primeiro
+
+A prova é manuscrita. A tela **sempre sugere fazer à mão e conferir o padrão de respostas
+por conta própria**; digitar e pedir a correção automática continua existindo, como
+segundo caminho. Por isso a folha tem dois modos, num seletor segmentado no topo:
+
+- **À mão** (padrão em toda questão nova) — a pessoa escreve no papel; a tela dá o
+  comando, o limite, o cronômetro e, ao fim, a conferência quesito a quesito.
+- **Digitar** — a folha pautada na tela e a correção automática (`submitRed`).
+
+O modo é estado de tela (`redModoResposta`), sem chave nova: abre em "Digitar" só quando
+já existe rascunho digitado (`redText` não vazio); em qualquer outro caso, "À mão". No
+modo "Digitar" fica uma linha fixa lembrando que a prova é manuscrita, com o atalho para
+voltar ao papel.
+
 ## O que NÃO muda
 
 - O fluxo em três etapas (`redEtapa1/2/3`) e a regra de que o espelho fica guardado até a
   entrega (`redEspelhoOculto`, "Ver mesmo assim").
 - As chaves salvas: `redText`, `redTextTs`, `redGabarito`, `redEnunciado`, `redMarcas`,
   `redDisciplina`, `redHist`, `catedra:red`. Nada é migrado nem renomeado.
-- `submitRed`, `_corrigeRedacaoLivre`, `_redFallbackLivre`, o prompt e a etapa 3 (fatias 2 e 3).
+- `submitRed`, `_corrigeRedacaoLivre`, `_redFallbackLivre` e o prompt (fatia 2). A etapa 3 só aprende a esconder os blocos que não se aplicam à conferência própria (fatia 3 faz o resto).
   Única exceção: a entrada do histórico ganha o campo `tempoMs`.
 - Os selos "Sem espelho oficial" e "Sugerido — não oficial" e o fluxo do espelho sugerido (C3).
 - A faixa "Rascunho salvo" (U4) e seus testes. Só o emoji ✍️ dá lugar a um SVG Lucide.
@@ -57,7 +72,21 @@ por aparelho: iPad deitado fica lado a lado, iPad em pé empilha.
 - "Editar questão": só quando `!redModoProva` (enunciado colado pela pessoa). Alterna o
   corpo para um `textarea` ligado a `onRedEnun`. Questão do banco não é editável.
 
-## Campo da resposta (a folha)
+## Campo da resposta — modo "À mão"
+
+- Painel no lugar da folha: orientação curta ("Escreva na sua folha, como na prova"), o
+  limite de linhas da banca em destaque e o cronômetro.
+- Cronômetro com botão explícito "Começar" / "Pausar" (não há tecla para disparar).
+  Mesmo `redTempoMs`, mesmas regras de pausa e de zerar do modo digitado.
+- Botão principal "Terminei — conferir pelo padrão". Ao tocar:
+  - o cronômetro para;
+  - a tela pergunta "Quantas linhas você usou?" (campo numérico, opcional). Com limite
+    da banca, mostra "dentro do limite" ou "passou N linhas";
+  - o espelho abre em modo de conferência (ver "Conferência própria").
+- Sem espelho (vazio): o botão principal vira "Colar ou importar o padrão para conferir",
+  e os caminhos do espelho sugerido (C3) continuam valendo.
+
+## Campo da resposta — modo "Digitar" (a folha)
 
 - Continua sendo o mesmo `<textarea>` (`value="{{ redText }}"`, `onRedText`,
   `readonly="{{ redBusy }}"`). É o que preserva autosave, rascunho, ditado e teclado do iPad.
@@ -101,14 +130,43 @@ por aparelho: iPad deitado fica lado a lado, iPad em pé empilha.
   arquivo.pdf…", "arquivo.pdf importado" e "Não consegui ler arquivo.pdf", este com
   `role="alert"`. Estado de tela `redGabErro`. Os toasts dessa função saem.
 
+## Conferência própria (modo "À mão")
+
+O espelho abre na vista Quesitos com um controle de nota em cada item:
+
+- Quesito com escala da banca: um botão por degrau (0,00 / 0,10 / 0,20 / 0,30). Nota fora
+  da escala não existe.
+- Quesito só com pontuação máxima: zero, metade e cheio.
+- Espelho em prosa (nenhum quesito reconhecido): o texto do padrão para leitura e um único
+  campo de nota de 0 a 10.
+- Soma ao vivo "obtido / total" e quantos quesitos faltam marcar. "Registrar conferência"
+  só habilita com todos marcados.
+
+Ao registrar (função nova `registrarConferencia`; `submitRed` não é tocado):
+
+- monta um resultado no formato que a etapa 3 já lê: `nota` (0 a 10, proporcional à soma),
+  `cobertura`, `conceito`, `topicos` (um por quesito, status pelo quanto da pontuação foi
+  marcado, comentário "Nota X de Y"), `quesitos`, e a marca `propria:true`;
+- grava a entrada no histórico (`catedra:red`) com `origem:'conferencia-propria'`,
+  `tempoMs`, `linhas`, `texto:''`, e chama `_redRegistrar` para a curva de evolução;
+- se o espelho em uso é o sugerido, vale a regra atual: `aproximada:true`;
+- abre a etapa 3 com esse resultado. Blocos que dependem do texto digitado (comparativo
+  lado a lado) ou da IA (critérios, fortes, melhorar) não aparecem quando `propria`; o
+  herói diz "Conferência própria" no lugar da origem da correção.
+
+As notas em andamento são estado de tela (`redConf`): fechar o app no meio da conferência
+perde as marcações, não o tempo nem o espelho.
+
 ## Dados e sincronização
 
 - Estado novo persistido: `redTempoMs` (número). Entra em `_autosaveKeys()` e na lista de
   chaves de `_rehydrateFromLocal` ao lado de `redTextTs`, e sincroniza como `redTextTs`.
   As duas listas são conferidas juntas.
 - Estado só de tela, fora do autosave: `redFoco`, `redLinhasN`, `redGabVista`,
-  `redGabErro`, `redMarcasAberto`, `redQuestaoAberta`, `redEditandoEnun`.
-- `tempoMs` na entrada de `catedra:red` é opcional: entradas antigas não o têm e nada o exige.
+  `redGabErro`, `redMarcasAberto`, `redQuestaoAberta`, `redEditandoEnun`, `redModoResposta`,
+  `redConf`, `redLinhasMao`.
+- `tempoMs`, `linhas` e `origem:'conferencia-propria'` na entrada de `catedra:red` são
+  opcionais: entradas antigas não os têm e nada os exige.
 - Nenhum arquivo novo no app, logo `scripts/build.mjs` e `scripts/build-macos.mjs` não mudam.
 
 ## Regras de design aplicadas
@@ -144,7 +202,15 @@ contexto próprio para o cronômetro.
 7. Questão colada mostra "Editar questão"; questão do banco não.
 8. Contraste calculado ≥ 4,5:1 nos rótulos novos (claro e escuro) e alvos ≥ 44 px em
    viewport de toque.
-9. Regressão: os casos U4 do rascunho e o seletor de disciplina seguem verdes; captura de
+9. Papel primeiro: questão nova abre em "À mão"; com rascunho digitado semeado abre em
+   "Digitar" e mostra a linha que sugere o papel.
+10. Cronômetro à mão: "Começar" anda, "Pausar" para, "Terminei" congela o valor.
+11. Conferência: com espelho de 3 quesitos com escala, só os degraus da escala aparecem;
+    a soma acompanha; "Registrar" só habilita com os 3 marcados; depois de registrar, o
+    histórico tem a entrada `conferencia-propria` com nota, `tempoMs` e `linhas`, a etapa 3
+    abre com a nota certa e sem o comparativo; linhas informadas acima do limite mostram
+    "passou N linhas".
+12. Regressão: os casos U4 do rascunho e o seletor de disciplina seguem verdes; captura de
    tela conferida em 1280 e 768.
 
 ## Entrega
