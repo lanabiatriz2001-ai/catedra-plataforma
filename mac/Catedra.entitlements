@@ -2,7 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+  <!-- O app do Mac (sem sandbox) divide com o widget o grupo do time: resumo.json e passe.json. app-groups é
+       "validation-required", não "restricted": não derruba o processo nem a notarização. -->
   <key>com.apple.security.application-groups</key>
-  <array><string>group.com.catedra.desktop</string></array>
+  <array><string>2ZT3GWTS9Z.com.catedra</string></array>
 </dict>
 </plist>

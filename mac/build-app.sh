@@ -8,12 +8,9 @@
 #   CATEDRA_AI_ENDPOINT="https://SEU-DEPLOY.vercel.app/api/complete" bash mac/build-app.sh
 # (sem isso o app funciona normalmente, usando o fallback heurístico local.)
 #
-# NOTA sobre o widget (WidgetKit): os fontes vivem em mac/Widget/ mas NÃO são
-# montados por este build. Um widget de macOS é uma extensão (.appex) que só
-# aparece na galeria quando o app é assinado com um perfil de provisionamento
-# Developer (App Group). Sob assinatura ad-hoc o pkd recusa registrar a extensão.
-# Para ativar o widget é preciso um build assinado (Xcode/Developer ID) — ver
-# mac/Widget/README-widget.md.
+# Widgets (WidgetKit): o app leva Contents/PlugIns/CatedraWidget.appex, compilado de widget/Sources + o código
+# compartilhado de ios/vendor/widget. Com Developer ID o widget é assinado primeiro (scripts/assinar-app.sh); no
+# ad-hoc ele sai do app. Spec: docs/superpowers/specs/2026-10-01-widgets-design.md.
 set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -79,6 +76,9 @@ JURIS_SOURCES=$(find "$HERE/vendor/juris" -name '*.swift')
 # Base visual comum (tema, cor, tipografia): mora em ios/vendor/design porque o iPad e o
 # Xcode Cloud compilam ios/vendor inteiro. Um arquivo só para os dois alvos.
 DESIGN_SOURCES=$(find "$ROOT/ios/vendor/design" -name '*.swift')
+# código do widget que o APP também usa (grupo de apps, resumo, links): mora em ios/vendor/widget por causa do
+# Xcode Cloud, que só compila ios/vendor
+WIDGET_COMUM=$(find "$ROOT/ios/vendor/widget" -name '*.swift')
 # Macros do SwiftUI (@State, @Environment… viraram macros nos SDKs novos): o plugin
 # libSwiftUIMacros.dylib mora na PLATAFORMA, não na toolchain. O Xcode passa esse
 # caminho sozinho; o swiftc na linha de comando não — sem isto o build morre com
@@ -114,9 +114,9 @@ else echo "     aviso: plugins de macro não encontrados em $PLUGIN_DIR — se o
 # Se a fatia Intel falhar (SDK sem suporte na máquina), seguimos só com arm64 avisando,
 # em vez de derrubar o build inteiro.
 compilar_fatia() {
-  swiftc -O -target "$1" "${SDK_FLAGS[@]}" "${PLUGIN_FLAGS[@]}" $LEGIS_SOURCES $JURIS_SOURCES $DESIGN_SOURCES "$HERE/Sources/main.swift" -o "$2" \
+  swiftc -O -target "$1" "${SDK_FLAGS[@]}" "${PLUGIN_FLAGS[@]}" $LEGIS_SOURCES $JURIS_SOURCES $DESIGN_SOURCES $WIDGET_COMUM "$HERE/Sources/main.swift" -o "$2" \
     -framework Cocoa -framework WebKit -framework UserNotifications -framework SwiftUI \
-    -framework Network -framework PDFKit
+    -framework Network -framework PDFKit -framework WidgetKit
 }
 
 echo "     · fatia arm64 (Apple Silicon)…"
@@ -214,9 +214,75 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>CatedraAIEndpoint</key><string>$AI_ENDPOINT</string>
   <key>CatedraGeminiKey</key><string>$GEMINI_KEY</string>
   <key>LSApplicationCategoryType</key><string>public.app-category.education</string>
+  <!-- catedra:// — o toque nos widgets abre o app na tela certa (ver WidgetLinks.swift) -->
+  <key>CFBundleURLTypes</key>
+  <array><dict>
+    <key>CFBundleURLName</key><string>$BUNDLE_ID</string>
+    <key>CFBundleURLSchemes</key><array><string>catedra</string></array>
+  </dict></array>
 </dict>
 </plist>
 PLIST
+
+# ── Widget (WidgetKit) ─────────────────────────────────────────────────────────────────────────────────────────
+echo "→ 4b/5 Montando o widget (CatedraWidget.appex)…"
+WIDGET_EXEC="CatedraWidget"
+APPEX="$APP/Contents/PlugIns/$WIDGET_EXEC.appex"
+# A URL e a chave PÚBLICA do Supabase vêm do mesmo lugar que o app web usa (scripts/build-macos.mjs).
+SB_URL="$(sed -n "s/^const SUPABASE_URL = '\(.*\)';$/\1/p" "$ROOT/scripts/build-macos.mjs" 2>/dev/null || true)"
+SB_CHAVE="$(sed -n "s/^const SUPABASE_KEY = '\(.*\)';$/\1/p" "$ROOT/scripts/build-macos.mjs" 2>/dev/null || true)"
+# O widget é acessório: se algo dele falhar (chave ilegível, dodia.json ausente, swiftc), o app sai SEM o .appex,
+# como no ad-hoc, em vez de derrubar o build inteiro. Cada passo confere o próprio status (dentro de um `if`, o
+# `set -e` não vale para a função).
+compilar_widget() {
+  swiftc -O -target "$1" "${SDK_FLAGS[@]}" -parse-as-library -application-extension \
+    $WIDGET_COMUM $(find "$ROOT/widget/Sources" -name '*.swift') -o "$2" -framework WidgetKit -framework SwiftUI \
+    -Xlinker -e -Xlinker _NSExtensionMain
+}
+WIDGET_MOTIVO=""
+montar_widget() {
+  [ -n "$SB_URL" ] && [ -n "$SB_CHAVE" ] || { WIDGET_MOTIVO="não li SUPABASE_URL/KEY de scripts/build-macos.mjs"; return 1; }
+  [ -f "$ROOT/widget/dodia.json" ] || { WIDGET_MOTIVO="falta widget/dodia.json (rode: node scripts/build-widget-dodia.mjs)"; return 1; }
+  mkdir -p "$APPEX/Contents/MacOS" "$APPEX/Contents/Resources" || { WIDGET_MOTIVO="não criei a pasta do .appex"; return 1; }
+  compilar_widget "arm64-apple-macos14.0" "$BUILD/$WIDGET_EXEC.arm64" 2>"$BUILD/widget.log" || { WIDGET_MOTIVO="o swiftc do widget falhou (arm64; log: $BUILD/widget.log)"; return 1; }
+  if [ "$(lipo -archs "$APP/Contents/MacOS/$EXEC")" = "arm64" ]; then
+    cp "$BUILD/$WIDGET_EXEC.arm64" "$APPEX/Contents/MacOS/$WIDGET_EXEC" || { WIDGET_MOTIVO="não copiei o binário"; return 1; }
+  else
+    compilar_widget "x86_64-apple-macos14.0" "$BUILD/$WIDGET_EXEC.x86_64" 2>>"$BUILD/widget.log" || { WIDGET_MOTIVO="o swiftc do widget falhou (x86_64; log: $BUILD/widget.log)"; return 1; }
+    lipo -create "$BUILD/$WIDGET_EXEC.arm64" "$BUILD/$WIDGET_EXEC.x86_64" -output "$APPEX/Contents/MacOS/$WIDGET_EXEC" || { WIDGET_MOTIVO="o lipo do widget falhou"; return 1; }
+  fi
+  cp "$ROOT/widget/dodia.json" "$APPEX/Contents/Resources/dodia.json" || { WIDGET_MOTIVO="não copiei o dodia.json"; return 1; }
+  printf 'XPC!????' > "$APPEX/Contents/PkgInfo"
+  cat > "$APPEX/Contents/Info.plist" <<WPLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleName</key><string>$WIDGET_EXEC</string>
+  <key>CFBundleDisplayName</key><string>$NAME</string>
+  <key>CFBundleExecutable</key><string>$WIDGET_EXEC</string>
+  <key>CFBundleIdentifier</key><string>$BUNDLE_ID.widget</string>
+  <key>CFBundlePackageType</key><string>XPC!</string>
+  <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
+  <key>CFBundleShortVersionString</key><string>1.0.0</string>
+  <key>CFBundleVersion</key><string>1</string>
+  <key>LSMinimumSystemVersion</key><string>14.0</string>
+  <key>NSExtension</key>
+  <dict><key>NSExtensionPointIdentifier</key><string>com.apple.widgetkit-extension</string></dict>
+  <key>CatedraSupabaseURL</key><string>$SB_URL</string>
+  <key>CatedraSupabaseChave</key><string>$SB_CHAVE</string>
+</dict>
+</plist>
+WPLIST
+  plutil -lint "$APPEX/Contents/Info.plist" >/dev/null || { WIDGET_MOTIVO="Info.plist do widget inválido"; return 1; }
+}
+if montar_widget; then
+  echo "     widget: $(lipo -archs "$APPEX/Contents/MacOS/$WIDGET_EXEC") · $(du -sh "$APPEX" | cut -f1)"
+else
+  rm -rf "$APPEX"
+  echo "     ⚠ widget não incluído: $WIDGET_MOTIVO — o app segue sem ele."
+fi
+rm -f "$BUILD/$WIDGET_EXEC.arm64" "$BUILD/$WIDGET_EXEC.x86_64"
 
 echo "→ 5/5  Assinando…"
 # A política (Developer ID com hardened runtime + carimbo; ad-hoc se falhar) e o porquê de
@@ -232,7 +298,7 @@ if [ -z "$SIGN_ID" ]; then
              | grep 'Developer ID Application' | head -1 \
              | sed -E 's/.*"(.*)"/\1/' || true)"
 fi
-ct_assinar_mac "$APP" "$BUILD" "$SIGN_ID" || exit 1
+ct_assinar_mac "$APP" "$BUILD" "$SIGN_ID" "$HERE/Catedra.entitlements" "$APPEX" "$ROOT/widget/mac.entitlements" || exit 1
 
 echo
 echo "✓ Pronto:  $APP"

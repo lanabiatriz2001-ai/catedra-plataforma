@@ -42,5 +42,17 @@
   <!-- Deixa os arquivos exportados aparecerem no app Arquivos. -->
   <key>UIFileSharingEnabled</key><true/>
   <key>LSSupportsOpeningDocumentsInPlace</key><true/>
+  <!-- catedra:// — o toque nos widgets abre o app na tela certa (paridade com ios/build-ipad.sh). -->
+  <key>CFBundleURLTypes</key>
+  <array>
+    <dict>
+      <key>CFBundleURLName</key>
+      <string>com.catedra.ipad</string>
+      <key>CFBundleURLSchemes</key>
+      <array>
+        <string>catedra</string>
+      </array>
+    </dict>
+  </array>
 </dict>
 </plist>
