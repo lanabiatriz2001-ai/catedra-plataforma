@@ -9151,7 +9151,7 @@ class Component extends DCLogic {
   titleCase(s){ const S=String(s||'').trim(); if(S!==S.toUpperCase()) return S;
     const MIN={de:1,da:1,do:1,das:1,dos:1,e:1,em:1,no:1,na:1,nos:1,nas:1,a:1,o:1,as:1,os:1,ao:1,aos:1,'à':1,'às':1,com:1,para:1,por:1,sobre:1,ou:1,'não':1};
     return S.toLowerCase().split(/(\s+)/).map((w,i)=> /^\s*$/.test(w) ? w
-      : ((i>0 && MIN[w]) ? w : w.replace(/^([a-zà-ú(])/,(m,c)=>c.toUpperCase()))).join('');
+      : ((i>0 && MIN[w]) ? w : w.replace(/(^|-)([a-zà-ú(])(?=[a-zà-ú]{2})|^([a-zà-ú(])/g,(m)=>m.toUpperCase()))).join('');
   }
 
   // ===== IMPORTADOR DE EDITAL =====
@@ -9160,12 +9160,40 @@ class Component extends DCLogic {
   // na mesma linha. A ordem é: limpar ruído → RECOSTURAR linhas partidas → detectar o
   // esquema de numeração → montar disciplina · tópico · subtópico.
   _edLimpa(raw){
+    const linhas=this._edLimpaLinhas(raw);
+    // Cabeçalho e rodapé de PÁGINA voltam a cada folha ("TRIBUNAL DE JUSTIÇA … | CONCURSO
+    // PÚBLICO 2026"): em caixa-alta, viravam uma "disciplina" que engolia o edital inteiro.
+    // Linha idêntica 3+ vezes sai — menos nome de matéria, que pode repetir de verdade.
+    const vezes={}; linhas.forEach(l=>{ vezes[l]=(vezes[l]||0)+1; });
+    // …e que não seja frase do conteúdo ("Tribunal de Justiça do Estado do Rio Grande do Sul."
+    // fecha o último item de três matérias do TJ-RS): frase termina em ponto, cabeçalho não.
+    const limpas=linhas.filter(l=> vezes[l]<3 || l.length<12 || this._EDNOMES.test(l) || /[.;,]$/.test(l));
+    // tabela de duas colunas chega com o número numa linha e o texto na outra ("1." + "Direito
+    // Constitucional: conceito…"): o número volta para a frente do texto dele
+    const out=[];
+    for(const l of limpas){ const ant=out[out.length-1];
+      if(ant!=null && /^\d{1,3}(?:\.\d{1,3}){0,4}[.)]$/.test(ant) && !/^\d/.test(l)) out[out.length-1]=ant+' '+l; else out.push(l); }
+    return out;
+  }
+  _edLimpaLinhas(raw){
     return String(raw||'').replace(/\r/g,'').replace(/­/g,'')
+      // marcador desenhado com fonte de símbolo chega como caractere de uso privado (U+F034…),
+      // invisível na caixa de colar — e "DIREITO CIVIL" saía "direito Civil"
+      .replace(/[\uE000-\uF8FF\u200B-\u200D\uFEFF]/g,'').replace(/\u00A0/g,' ')
       .replace(/[“”]/g,'"').replace(/[‘’]/g,"'")
       .split('\n').map(l=>l.replace(/\t/g,' ').replace(/\s+/g,' ').trim())
       // "8.1.1 8.1.2 Domicílio eleitoral": o PDF perdeu o título do 1º item e colou os
       // dois números — o texto pertence ao SEGUNDO, então o número órfão sai.
       .map(l=>l.replace(/^\d{1,3}(?:\.\d{1,3}){0,4}\s+(?=\d{1,3}(?:\.\d{1,3}){1,4}\s+\S)/,''))
+      .map(l=>l.replace(/^(\d{1,3}[.)])(?=[A-ZÀ-Ý][a-zà-ú])/,'$1 '))          // "1.Fontes" → "1. Fontes"
+      // "DIREITO PENAL Princípios aplicáveis ao Direito Penal…": o edital esqueceu os dois-pontos
+      // entre o nome da matéria (caixa-alta) e o conteúdo (caixa mista)
+      .map(l=>{ const m=l.match(/^((?:[A-ZÀ-Ý]{2,}\s+){1,7}[A-ZÀ-Ý]{2,})\s+(?=[A-ZÀ-Ý][a-zà-ú]{2})/);
+        return (m && this._EDNOMES.test(m[1]) && l.length>m[1].length+20) ? (m[1]+': '+l.slice(m[0].length)) : l; })
+      // "Direito Constitucional - Constituição Federal de 1988. 1. Aplicabilidade…": nome de
+      // matéria separado do conteúdo por travessão em vez de dois-pontos
+      .map(l=>{ const m=l.match(/^([^.:;]{3,90}?)\s[-–]\s(?=[A-ZÀ-Ý0-9])/);
+        return (m && this._EDNOMES.test(m[1]) && !/\d/.test(m[1])) ? (m[1]+': '+l.slice(m[0].length)) : l; })
       .filter(l=> l
         && !/^={2,}\s*P[ÁA]GINA/i.test(l)          // marcador de página
         && !/^p[áa]g(ina)?\.?\s*\d+/i.test(l)
@@ -9196,30 +9224,153 @@ class Component extends DCLogic {
   // rabo de um título que quebrou de linha, e promovê-los picotava o livro inteiro.
   _edPareceCabecalho(l, forte){
     const t=String(l||"").replace(/[:.]+$/,"").trim();
+    if(forte){
+      // "ATUALIDADES (SOMENTE PARA A PROVA DISCURSIVA): Tópicos relevantes…" e "Direito
+      // Constitucional: Constituição Federal de 1988.": cabeçalho com o conteúdo na mesma linha
+      // — caixa-alta, ou nome de matéria conhecido, antes dos dois-pontos
+      const L=String(l||""), c=L.indexOf(":");
+      if(c>=3 && c<=90 && c<L.length-1 && !this._edNum(L)){
+        const cab=L.slice(0,c).trim(), h=cab.replace(/[^a-zA-ZÀ-ÿ]/g,"");
+        if(h.length>4 && h===h.toUpperCase()) return true;
+        if(this._EDNOMES.test(cab) && !/\.\s+\S/.test(cab) && /^\s*[A-ZÀ-Ý0-9"(]/.test(L.slice(c+1))) return true;
+      }
+    }
     if(t.length<3 || t.length>150) return false;
-    const seco=!/\.\s+\S/.test(t) && t.length<=60 && (t.match(/,/g)||[]).length<=1;
-    if(forte) return seco && this._EDNOMES.test(t);
+    // "legislação." e "Processo coletivo passivo." são o rabo de um item que quebrou de linha:
+    // cabeçalho não começa em minúscula nem fecha com ponto final
+    const seco=!/\.\s+\S/.test(t) && t.length<=60 && (t.match(/,/g)||[]).length<=1 && !/^[a-zà-ú]/.test(t) && !/\.\s*$/.test(String(l||""));
     const letras=t.replace(/[^a-zA-ZÀ-ÿ]/g,"");
     const caps=letras.length>2 && letras===letras.toUpperCase();
+    // "CRIMINALÍSTICA:" — caixa-alta fechada em dois-pontos é cabeçalho mesmo sem nome conhecido
+    if(forte) return seco && (this._EDNOMES.test(t) || (caps && /:\s*$/.test(String(l||""))));
     return caps || (seco && this._EDNOMES.test(t));
   }
+  // Cebraspe e companhia escrevem a disciplina inteira num parágrafo só:
+  // "DIREITO CIVIL: 1 Lei de introdução. 1.1 Vigência. 2 Pessoas naturais." — sem isto,
+  // tudo virava UM tópico com os números dentro. Cada marcador vira uma linha própria,
+  // mas só quando CONTINUA a numeração (1 → 1.1 → 1.2 → 2): "Constituição de 1988. 5
+  // Direitos" só parte se o item anterior era o 4, e "art. 5 Direitos" nunca parte.
+  _edDesdobra(linhas){
+    // abreviação segura o número mesmo com ponto ("art. 5", "n. 8.112"); palavra inteira só sem
+    // ponto ("Lei 8.112", "Título 2") — "…de que o Brasil seja parte. 12. Lei" é item novo
+    const ABREV=/(?:^|[\s(])(?:arts?|n|nº|no|inc|incs|dec|cap|p|pp|§)\.?\s*$/i;
+    const PALAVRA=/(?:^|[\s(])(?:lei|leis|decreto|cap[íi]tulo|t[íi]tulo|se[çc][ãa]o|livro|parte|anexo|s[úu]mula|tema|item|itens)\s*$/i;
+    // folga = quantos números pode pular. O edital também erra: esquece o ponto antes do
+    // número ("…teletrabalho 21 Repousos") ou põe minúscula depois ("19 legislação
+    // extravagante"). Nesses casos só parte se for EXATAMENTE o item seguinte (folga 0).
+    const segue=(c,p,folga)=>{
+      if(!p) return c.length===1 && c[0]===1;
+      if(c.length===p.length+1 && c[c.length-1]<=1 && p.every((v,i)=>v===c[i])) return true;      // filho
+      const k=c.length-1; if(k>=p.length) return false;
+      for(let i=0;i<k;i++) if(c[i]!==p[i]) return false;
+      return c[k]>p[k] && c[k]<=p[k]+1+folga;                                                    // irmão ou tio
+    };
+    const soCaps=t=>{ const x=String(t||'').replace(/[^a-zA-ZÀ-ÿ]/g,''); return x.length>2 && x===x.toUpperCase(); };
+    // Largura da página: linha que chega perto dela é linha que o PDF quebrou (não acabou ali).
+    const tam=linhas.map(l=>l.length).sort((x,y)=>x-y);
+    const larg=tam.length>=8 ? tam[Math.floor(tam.length*0.9)] : 0;
+    const cheiaDe=l=> larg>=60 && l.length>=Math.max(60, larg*0.82);
+    const NUM=/^\d{1,3}(?:\.\d{1,3}){0,4}$/;
+    const L=linhas.slice(), out=[], cheia=[]; let prev=null;
+    for(let i=0;i<L.length;i++){
+      let l=L[i]; const eraCheia=cheiaDe(linhas[i]);
+      // o que vem DEPOIS do número fica em lookahead: consumido, ele esconderia o marcador seguinte
+      const re=/(^|[.;:]?\s+)(\d{1,3}(?:\.\d{1,3}){0,4})(?=[.)]?\s+(\S))/g;
+      const cortes=[]; let m, travessao=-1;
+      while((m=re.exec(l))){
+        const c=m[2].split('.').map(Number), ini=m.index+m[1].length;
+        const maiuscula=/[A-ZÀ-Ý"(]/.test(m[3]);
+        const um=c.every(v=>v===1) && c.length<=2;                                               // "1" ou "1.1"
+        if(ini===0){ if(maiuscula || um) prev=c; continue; }
+        const antes=l.slice(0,m.index);
+        const pontuado=/^[.;:]/.test(m[1]);
+        if(ABREV.test(antes) || (!pontuado && PALAVRA.test(antes))) continue;
+        const limpo=pontuado && maiuscula;                                                        // "…frase. 2 Título"
+        // "DISCIPLINA: 1 Tema", "NOME EM CAIXA-ALTA. 1. Tema", "Língua Portuguesa - 1 Tema":
+        // a numeração recomeça porque o que veio antes, nesta linha, é o cabeçalho da matéria
+        const tr=!cortes.length && /\s[-–]$/.test(antes) && antes.length<=90 && !/\.\s+\S/.test(antes);
+        const aposCabecalho=um && !cortes.length && ((pontuado && (/^:/.test(m[1]) || soCaps(antes))) || tr);
+        if(aposCabecalho || (prev && segue(c,prev,limpo?1:0)) || (!prev && limpo && segue(c,prev,0))){
+          if(aposCabecalho && tr) travessao=ini; cortes.push(ini); prev=c; }
+      }
+      // o PDF quebra a linha em qualquer lugar, inclusive entre o número e o título:
+      // "…extinção. 5" + "Licitações e contratos." — o número desce para a linha dele. Só quando
+      // continua a numeração: "…artigos 305; 307; 308." antes de um cabeçalho fica onde está.
+      const prox=L[i+1];
+      const mt=prev && prox!=null && /^[A-ZÀ-Ý"(]/.test(prox) && l.match(/^(.*?)([.;:]?)\s+(\S+?)[.)]?$/);
+      if(mt && NUM.test(mt[3]) && !ABREV.test(mt[1]) && !(!mt[2] && PALAVRA.test(mt[1])) && segue(mt[3].split('.').map(Number), prev, mt[2]?1:0)){
+        l=mt[1]+mt[2]; L[i+1]=mt[3]+' '+prox; }
+      let a=0; cortes.forEach(b=>{ let t=l.slice(a,b).trim();
+        if(b===travessao) t=t.replace(/\s*[-–]$/,':');                                          // "Língua Portuguesa -" → cabeçalho
+        if(t){ out.push(t); cheia.push(false); } a=b; });
+      const t=l.slice(a).trim(); if(t){ out.push(t); cheia.push(eraCheia); }
+    }
+    out._cheia=cheia;
+    return out;
+  }
+  // Título de matéria numa linha só dela ("História do Amapá", "Fluência de Dados"): curto, sem
+  // pontuação no fim, DEPOIS de uma frase encerrada e ANTES de um "1 …" ou de um parágrafo.
+  // Numa lista simples (um tópico por linha, sem ponto final) nada disso acontece.
+  _edTituloSolto(ant, l, prox){
+    if(prox==null || this._edNum(l)) return false;
+    if(ant!=null && !/[.;]$/.test(ant)) return false;
+    if(l.length<4 || l.length>70 || !/^[A-ZÀ-Ý]/.test(l) || /[.;:,]$/.test(l) || /\.\s+\S/.test(l) || (l.match(/,/g)||[]).length>1) return false;
+    const p=this._edNum(prox);
+    if(p) return p.tipo==='num' && /^1(?:\.1)?$/.test(p.num);
+    return prox.length>=60 || /[.;]$/.test(prox);
+  }
   _edRecostura(linhas, modoLivro){
-    const out=[]; let jaNumerou=false;
-    for(const l of linhas){
+    const cheia=linhas._cheia||[];
+    const out=[], aposCheia=[]; let jaNumerou=false, antCrua='', antCheia=false, antCab=false;
+    const soCaps=t=>{ const x=String(t||'').replace(/[^a-zA-ZÀ-ÿ]/g,''); return x.length>2 && x===x.toUpperCase(); };
+    for(let i=0;i<linhas.length;i++){
+      const l=linhas[i], prox=linhas[i+1];
       const ant=out[out.length-1];
+      const veioDeCheia=antCheia;
+      // "…à luz da Constituição" + "Federal.", "16. Ações" + "Constitucionais: tutela…": a linha
+      // de cima encheu a largura da página e não fechou frase — a de baixo é o resto dela,
+      // comece como começar (lista curta não entra aqui; cabeçalho de matéria também não)
+      const quebrada=antCheia && !/[.;:!?]$/.test(antCrua) && !this._edNum(l) && !this._edPareceCabecalho(l) && !soCaps(antCrua);
+      antCrua=l; antCheia=!!cheia[i];
+      // linha que termina em preposição, artigo, vírgula ou hífen, ou com parêntese aberto, NÃO
+      // acabou ("Do Juiz, do" + "Ministério Público", "(Título VIII do Livro I -" + "CPP).",
+      // "(COMUM A TODAS AS ÁREAS" + "DE HABILITAÇÃO)"): a seguinte é o resto dela, ainda que
+      // venha em caixa-alta ou comece por número ("…Costa Rica, de" + "22 de novembro de 1969")
+      // (só o ÚLTIMO parêntese conta, e frase encerrada em ponto não está aberta: o edital também
+      // esquece de fechar — "(Lei Complementar nº 101/2000." antes de "DIREITO AMBIENTAL")
+      const aberta=!!ant && ant.lastIndexOf('(')>ant.lastIndexOf(')') && ant.length-ant.lastIndexOf('(')<120 && !/[.;]$/.test(ant);
+      const pendurada=!!ant && (!this._edNum(l) || /^\d+\s+[a-zà-ú]/.test(l))
+        && (aberta || /(?:[,(\-–]|(?:^|\s)(?:d[aeo]s?|e|em|n[ao]s?|[ao]s?|à|às|aos?|para|com|por|ou|que|sobre|entre|lei|nº|n\.))$/i.test(ant));
+      // alínea no começo da linha, no meio de uma enumeração ("…a) objetivo;" + "b) legitimidade
+      // ativa; c) requisitos"): continua o item, não abre subtópico
+      const alinea=!!ant && /^[a-z]\)\s/.test(l) && /[;,:]$/.test(ant);
+      if(pendurada || alinea){ out[out.length-1]=ant+' '+l; continue; }
+      // nome de matéria comprido demais para uma linha ("PRAGMATISMO, ANÁLISE ECONÔMICA DO DIREITO
+      // E ECONOMIA" + "COMPORTAMENTAL"): duas linhas de caixa-alta seguidas, a 1ª cheia e a 2ª curta
+      if(ant && ant.length>=45 && l.length<=30 && soCaps(ant) && soCaps(l) && !this._edNum(l) && !this._EDNOMES.test(l) && !/^(?:[A-Z]|[IVXLC]{1,6})\s*[)\-–.]\s/.test(l)){ out[out.length-1]=ant+' '+l; continue; }
       if(ant && /[a-zà-ú]-$/.test(ant) && /^[a-zà-ú]/.test(l)){ out[out.length-1]=ant.slice(0,-1)+l; continue; }
       const novoItem = !!this._edNum(l);
       // Livro: depois do 1º item numerado, linha sem numeração é rabo de título partido
       // — siglas em caixa-alta ("(AIRC)", "RRCI") e trechos que começam em maiúscula
       // ("…Inelegibilidade de" + "Magistrado e membro do MP"). EXCETO quando a linha
       // tem cara de cabeçalho: senão, num edital numerado, a 2ª disciplina em diante
-      // virava subtópico e o edital inteiro caía numa "Nova disciplina" só.
+      // virava subtópico e o edital inteiro caía numa "Nova disciplina" só. Cabeçalho, aqui:
+      // nome de matéria conhecido; caixa-alta de pelo menos duas palavras depois de uma frase
+      // encerrada; ou título solto antes de um "1 …"/parágrafo.
+      const cabecalho = this._edPareceCabecalho(l, true)
+        || (!!ant && /[.;]$/.test(ant) && soCaps(l) && l.length>=12 && /\s/.test(l))
+        || (!!ant && /[.;]$/.test(ant) && /^[A-ZÀ-Ý][^.;]{3,88}:$/.test(l))             // "Gestão de Pessoas e Comportamento Organizacional:"
+        || this._edTituloSolto(ant, l, prox);
+      // …e o parágrafo logo abaixo de um cabeçalho solto ("Direito Financeiro" + "Orçamento na
+      // Constituição de 1988. …") é o conteúdo da matéria, não o resto do nome dela
+      const soCab=antCab && /^[A-ZÀ-Ý]/.test(l);
       const contin = ant && !novoItem && (modoLivro
-        ? (jaNumerou && !this._edPareceCabecalho(l, true))
-        : (!/[.;:!?]$/.test(ant) && /^[a-zà-ú("]/.test(l)));         // edital: minúscula depois de linha inacabada
-      if(contin) out[out.length-1]=ant+' '+l; else out.push(l);
+        ? (jaNumerou && !cabecalho && !soCab)
+        : (quebrada || (!/[.;:!?]$/.test(ant) && /^[a-zà-ú("]/.test(l))));   // edital: minúscula depois de linha inacabada
+      if(contin) out[out.length-1]=ant+' '+l; else { out.push(l); aposCheia.push(veioDeCheia); antCab=cabecalho && !novoItem && (l.indexOf(':')<0 || l.indexOf(':')===l.length-1); }
       if(novoItem) jaNumerou=true;
     }
+    out._aposCheia=aposCheia;
     return out;
   }
   // Quebra "Estado Democrático. Cidadania. Soberania popular." em frases — SEM cair nas
@@ -9233,13 +9384,14 @@ class Component extends DCLogic {
       const fim = i===partes.length-1;
       const ult=((partes[i].match(/([\wÀ-ÿ§º°]+)\s*$/)||[])[1]||'').toLowerCase();
       const prox=partes[i+1]||'';
-      const quebra = !fim && !ABREV[ult] && !/^\d+$/.test(ult) && /^[A-ZÀ-Ý"(]/.test(prox);
+      // número curto no fim ("art. 5.", "item 2.") não fecha frase; ANO fecha ("Lei nº 8.112/1990. Lei…")
+      const quebra = !fim && !ABREV[ult] && !/^\d{1,3}$/.test(ult) && !/^\d{5,}$/.test(ult) && /^[A-ZÀ-Ý"(]/.test(prox);
       if(fim || quebra){ const s=buf.replace(/\s*[.;,]+\s*$/,'').trim(); if(s.length>1) out.push(s); buf=''; }
     }
     return out.length?out:[String(txt||'').trim()].filter(x=>x.length>1);
   }
   parseEdital(raw){
-    const cruas=this._edLimpa(raw);
+    const cruas=this._edDesdobra(this._edLimpa(raw));
     if(!cruas.length) return [];
     // Estatísticas ANTES de recosturar (a recostura depende delas): edital TODO em
     // caixa-alta não pode usar "está em maiúscula" como sinal de disciplina; sumário
@@ -9257,55 +9409,128 @@ class Component extends DCLogic {
     const qOf=l=>{ const m=l.match(/(\d{1,3})\s*quest/i); return m?Math.max(0,+m[1]):''; };
     const pOf=l=>{ const m=l.match(/peso\s*:?\s*(\d{1,2})/i); return m?+m[1]:''; };
     const stripQ=s=>String(s||'').replace(/[(\-—:]*\s*\d{1,3}\s*quest\w*.*$/i,'').replace(/peso\s*:?\s*\d{1,2}/i,'').replace(/[(\-—:,\s]+$/,'').trim();
+    // "I - DIREITO PENAL", "A) DIREITO CIVIL", "1. DIREITO CIVIL": a numeração do BLOCO
+    // não faz do cabeçalho um tópico. Romano e letra pedem caixa-alta OU nome de matéria;
+    // número pede os dois (num sumário de livro, capítulo em caixa-alta é só capítulo).
+    const discNumerada=(n)=>{ if(!n || n.depth!==1 || n.tipo==='bullet') return '';
+      const t=stripQ(n.resto).replace(/[:.]+$/,'').trim();
+      const s=t.replace(/[^a-zA-ZÀ-ÿ]/g,''); const caps=s.length>2 && s===s.toUpperCase() && !capsDemais;
+      // "8. CIÊNCIAS FORENSES:" e "3. REALIDADE ÉTNICA, SOCIAL, HISTÓRICA, … DO ESTADO DO PARANÁ:"
+      // — caixa-alta fechada em dois-pontos é cabeçalho, com o nome e as vírgulas que tiver
+      const fechada=caps && /:\s*$/.test(n.resto) && t.length<=150 && !/\.\s+\S/.test(t);
+      if(fechada) return t;
+      if(t.length<3 || t.length>72 || /\.\s+\S/.test(t) || (t.match(/,/g)||[]).length>1) return '';
+      const nome=NOMES.test(t);
+      return (n.tipo==='num' ? (caps && nome) : (caps || nome)) ? t : ''; };
+    // "História do Amapá" numa linha só dela, depois de uma frase encerrada e antes de um
+    // "1. …": é a matéria seguinte, mesmo sem caixa-alta e sem nome conhecido
+    const abreLista=(i)=> this._edTituloSolto(linhas[i-1], linhas[i], linhas[i+1]);
     const ehDisc=(l,n)=>{ if(n) return false;
-      const t=stripQ(l).replace(/[:.]+$/,'').trim();
+      const t0=stripQ(l).replace(/[:.]+$/,'').trim();
+      // o que vai entre parênteses não conta para o tamanho nem para "tem frase no meio":
+      // "Noções sobre direitos das pessoas com deficiência (Resolução CSJT nº 386/2024 - Art. 6º)"
+      const t=t0.replace(/\s*\([^)]*\)/g,'').trim() || t0;
       // linha em CAIXA-ALTA é sinal forte de cabeçalho e pode ser longa ("CONHECIMENTOS
       // DO DISTRITO FEDERAL, POLÍTICA PARA MULHERES, LEGISLAÇÃO E NOÇÕES DE PRIMEIROS
       // SOCORROS" é uma disciplina de verdade); as demais heurísticas seguem curtas.
       if(t.length<3 || t.length>150) return false;
       const caps=(()=>{ const s=t.replace(/[^a-zA-ZÀ-ÿ]/g,''); return s.length>2 && s===s.toUpperCase(); })();
-      if(!caps && t.length>72) return false;
+      if(!caps && t.length>90) return false;
       // No sumário de livro TUDO é numerado: só CAIXA-ALTA abre disciplina (o resto
       // já virou continuação na recostura) — senão cada título quebrado viraria uma.
       // Em sumário de livro TUDO é numerado: linha nua, curta e com cara de nome de
       // matéria também abre disciplina — senão, com nomes em Title Case, o edital
       // inteiro caía numa única "Nova disciplina".
-      if(modoLivro) return this._edPareceCabecalho(l);
+      if(modoLivro) return this._edPareceCabecalho(l) || /^[A-ZÀ-Ý][^.;:]{3,88}:$/.test(l) || this._edPareceCabecalho(l, true);
       // Cabeçalho é um TÍTULO seco ("DIREITO TRIBUTÁRIO"), não uma frase. Sem esta
       // guarda, tópicos que começam com o nome da matéria ("Direito Tributário.
       // Conceito, definições…", "Direitos do consumidor. Disposições gerais…")
       // viravam disciplinas novas e picotavam o edital.
-      const ehTitulo = !/\.\s+\S/.test(t) && t.length<=60 && (t.match(/,/g)||[]).length<=1;
+      const ehTitulo = !/\.\s+\S/.test(t) && t.length<=90 && (t.match(/,/g)||[]).length<=1 && !/^[a-zà-ú]/.test(t) && !/\.\s*$/.test(stripQ(l));
       if(NOMES.test(t) && ehTitulo) return true;
       if(/:\s*$/.test(l) && ehTitulo) return true;
       if(!capsDemais) return caps;
       return false; };
-    const out=[]; let cur=null, lastTop=null, ci=0;
-    const novaDisc=(nome, linha)=>{ const nm=this.titleCase(stripQ(nome)||nome);
+    // "CARGO: JUIZ SUBSTITUTO", "ANEXO I – CONTEÚDO PROGRAMÁTICO", "BLOCO II", "OBSERVAÇÕES:" —
+    // rótulos do edital, não matérias. O que vem embaixo deles (preâmbulo, avisos) é descartado
+    // até a próxima disciplina de verdade, em vez de virar tópico de uma "disciplina" falsa.
+    const ROTULO=/^(?:cargos?|anexo|bloco|grupo|m[óo]dulo|etapa|observa[çc][õo]es|obs|conte[úu]dos? program[áa]ticos?|programa|prova \d)\b/i;
+    let ignorando=false;
+    // "1. DIREITO PENAL" + "1.1 Princípios" + "1.2 Teoria do crime": quando a disciplina é o
+    // nível 1, os tópicos dela são o nível 2 — a profundidade conta a partir do 1º item da matéria
+    const out=[]; let cur=null, lastTop=null, ci=0, topNumerado=false, base=0;
+    const novaDisc=(nome, linha)=>{ ignorando=false; topNumerado=false; base=0;
+      // "A) DIREITO CIVIL", "II – DIREITO PENAL": a letra/romano do bloco não faz parte do nome
+      const limpo=String(nome||'').replace(/^(?:[A-Z]|[IVXLC]{1,6})\s*[)\-–.]\s+(?=\S{3})/,'').replace(/[.:\s]+$/,'');
+      const nm=this.titleCase(stripQ(limpo)||limpo);
       const ja=out.find(d=>d.disc.toLowerCase()===nm.toLowerCase());
       if(ja){ cur=ja; lastTop=null; return; }
       cur={disc:nm, color:this._editalColor(nm.toLowerCase(), ci++), peso:pOf(linha||''), questoes:qOf(linha||''), topics:[]};
       lastTop=null; out.push(cur); };
+    // FGV põe a matéria numa linha e, embaixo, parágrafos "Semântica: sentido e emprego…".
+    // Quando o texto TEM cabeçalho em linha própria, "Título: resto" só abre disciplina se o
+    // título for caixa-alta ou nome de matéria; senão é tópico da disciplina de cima — antes
+    // ele tomava o lugar dela, e "Língua Portuguesa" sumia do edital.
+    // "Matemática Financeira / Estatística" + "Estatística: Estatística descritiva…", ou
+    // "Administração Pública e Governança Pública:" + "Administração Pública: Reformas…": o
+    // "Título:" que só repete palavras da matéria aberta — ou que vem logo abaixo do cabeçalho
+    // dela, antes de qualquer tópico — é uma PARTE dela, não outra matéria
+    const pal=x=>String(x||'').toLowerCase().split(/[^a-zà-ÿ]+/).filter(w=>w.length>2);
+    // (matéria que COMEÇA assim segue assim: "Economia" + "Teoria Microeconômica: …" + "Teoria
+    // Macroeconômica: …" são duas partes de Economia, até o próximo cabeçalho em linha própria)
+    const parteDaAtual=(cab)=>{ if(!cur || /^conhecimentos\b/i.test(cur.disc)) return false;
+      const s=cab.replace(/[^a-zA-ZÀ-ÿ]/g,''); const caps=s.length>2 && s===s.toUpperCase();
+      if(caps && !capsDemais) return false;
+      if(!cur.topics.length && cur._solto){ cur._partes=true; return true; }
+      if(cur._partes && !NOMES.test(cab)) return true;
+      const da=pal(cur.disc), de=pal(cab);
+      return de.length>0 && da.length>de.length && de.every(w=>da.indexOf(w)>=0); };
+    const fortes=(t)=>{ const s=t.replace(/[^a-zA-ZÀ-ÿ]/g,''); return (s.length>2 && s===s.toUpperCase() && !capsDemais) || NOMES.test(t); };
+    const cabecalhoSolto=linhas.some((l,i)=>{ if(nums[i]) return !!discNumerada(nums[i]);
+      const c=l.indexOf(':'); return (c<0 || c===l.length-1) && ehDisc(l,null); });
     linhas.forEach((l,i)=>{
       const n=nums[i];
+      if(!n && ROTULO.test(l) && (ehDisc(l,null) || /^[^:]{2,60}:/.test(l))){ ignorando=true; return; }
+      // "ÁREA DE HABILITAÇÃO: CIÊNCIAS CONTÁBEIS": o nome da matéria é o que vem DEPOIS do rótulo
+      // (se embaixo vierem matérias com nome próprio, esta fica vazia e some sozinha)
+      const ar=!n && l.match(/^[áa]reas? de (?:habilita[çc][ãa]o|conhecimento|forma[çc][ãa]o|atua[çc][ãa]o)\s*[:\-–]\s*(\S.{2,80})$/i);
+      if(ar){ novaDisc(ar[1], l); return; }
+      const dn=discNumerada(n);
+      if(dn){ novaDisc(dn, l); return; }
       // "DIREITO CIVIL: Lei de Introdução. Pessoas naturais." → cabeçalho + itens na mesma linha
       const c=l.indexOf(':');
-      if(!n && c>2 && c<66 && ehDisc(l.slice(0,c+1), null)){
+      // "Direitos fundamentais: conceito, evolução…" (minúscula depois dos dois-pontos) é a
+      // definição de um tópico; disciplina é "Direito Penal: Código Penal…"
+      // …e "Sítios de busca e pesquisa na internet: Utilização…" no MEIO de um parágrafo (a
+      // linha de cima encheu a página) é tópico; só nome de matéria ou caixa-alta abre disciplina ali
+      const cc=(()=>{ let k=-1, prof=0; for(let j=0;j<l.length;j++){ const ch=l[j]; if(ch==='(') prof++; else if(ch===')') prof=Math.max(0,prof-1); else if(ch===':' && !prof){ k=j; break; } } return k; })();
+      const cabeca=cc>2 ? l.slice(0,cc).trim() : '';
+      if(!n && cc>2 && cc<130 && cc<l.length-1 && /^\s*[A-ZÀ-Ý0-9"(]/.test(l.slice(cc+1)) && ehDisc(l.slice(0,cc+1), null)
+         && (fortes(cabeca) || !(linhas._aposCheia||[])[i]) && !parteDaAtual(cabeca)){ const c=cc;
         novaDisc(l.slice(0,c), l);
         const resto=l.slice(c+1).trim();
         if(resto) this._edFrases(resto).forEach(f=>{ const tp={name:f, subs:[]}; cur.topics.push(tp); lastTop=tp; });
         return;
       }
-      if(ehDisc(l,n)){ novaDisc(l, l); return; }
+      if(ehDisc(l,n) || abreLista(i)){ novaDisc(l, l); if(cur) cur._solto=true; return; }
+      if(ignorando) return;
       if(!cur) novaDisc('Nova disciplina','');
       const texto=n?n.resto:l;
       const pref=(modoLivro && n && n.tipo==='num')?(n.num+' '):'';
-      const frases=this._edFrases(texto);
+      // tópico inteiro em CAIXA-ALTA vira Title Case (sigla solta, "ECA", fica como veio)
+      const frases=this._edFrases(texto).map(f=> (f.length>12 && /\s/.test(f)) ? this.titleCase(f) : f);
       if(!frases.length) return;
-      if((n?n.depth:1)>=2 && lastTop){ frases.forEach((f,k)=> lastTop.subs.push((k===0?pref:'')+f)); }
-      else { const tp={name:pref+frases[0], subs:frases.slice(1)}; cur.topics.push(tp); lastTop=tp; }
+      if(n && n.tipo==='num' && !base) base=n.depth;
+      const prof=!n ? 1 : (n.tipo==='num' ? Math.max(1, n.depth-base+1) : n.depth);
+      if(prof>=2 && lastTop){ frases.forEach((f,k)=> lastTop.subs.push((k===0?pref:'')+f)); }
+      // linha sem número DEPOIS de um item numerado é a continuação dele ("2. Sistema do Código
+      // Civil." + "Unidade sistemática e pluralidade de fontes."): entra como subtópico do item
+      else if(!n && topNumerado && lastTop){ frases.forEach(f=> lastTop.subs.push(f)); }
+      // parágrafo corrido, sem numeração: as frases são tópicos irmãos — a 1ª não é "mãe" das outras
+      else if(!n){ frases.forEach(f=>{ const tp={name:f, subs:[]}; cur.topics.push(tp); lastTop=tp; }); }
+      else { topNumerado=(n.tipo==='num'); const tp={name:pref+frases[0], subs:frases.slice(1)}; cur.topics.push(tp); lastTop=tp; }
     });
-    return out.filter(d=>d.topics.length>0);
+    return out.filter(d=>d.topics.length>0).map(d=>{ delete d._solto; delete d._partes; return d; });
   }  edSetRaw = (e)=> this.setState({edRaw:e.currentTarget.value});
   edRecognize = ()=>{ if(!String(this.state.edRaw||'').trim()){ this._toast('Cole o texto do edital antes de reconhecer'); return; } const p=this.parseEdital(this.state.edRaw); this.setState({edParsed:(p&&p.length)?p:null}); if(!p||!p.length) this._toast('Não reconhecemos disciplinas nesse texto — tente a estruturação com IA'); };
   _editalColor(disc, idx){
@@ -9570,7 +9795,7 @@ class Component extends DCLogic {
     this.setState({edital:ed}); this.flashSync();
   };
   // ===== modelos de edital pré-cadastrados (CT_MODELOS) =====
-  // O conteúdo dos 12 modelos (~430 KB) mora em modelos-edital.js e só é buscado
+  // O conteúdo dos modelos (centenas de KB) mora em modelos-edital.js e só é buscado
   // quando ela abre "Começar com um modelo" — quem só registra sessão nunca baixa.
   // Via <script> (e não fetch) porque no app do Mac a página roda em file://.
   _modeloDiscs(id){ const D=(typeof window!=='undefined'&&window.CT_MODELOS_DATA)||null; if(!D) return [];
@@ -9616,7 +9841,11 @@ class Component extends DCLogic {
       const m=_discs[i]; if(!m) return;
       const [nome, cor, tops]=m;
       let di=ed.findIndex(d=>norm(d.disc)===norm(nome));
-      if(di<0){ ed.push({disc:nome, color:cor||this._editalColor(norm(nome), ed.length), open:false, topics:[], peso:'', questoes:''}); di=ed.length-1; nd++; }
+      if(di<0){ ed.push({disc:nome, color:cor||this._editalColor(norm(nome), ed.length), open:false, topics:[], peso:'', questoes:'', foraDoConcurso:false, _esp:this._espAtivo()}); di=ed.length-1; nd++; }
+      // aplicar o modelo = estas disciplinas caem no concurso ATIVO. Num concurso novo, as que já
+      // existiam no acervo nascem "fora" — sem isto o modelo trazia os tópicos e elas seguiam fora.
+      else if(ed[di].foraDoConcurso){ const g=((this._concursoAtivo()||{}).discs||{})[String(ed[di].disc||'').trim()]||{};
+        ed[di]={...ed[di], foraDoConcurso:false, peso:(g.peso!=null?g.peso:''), questoes:(g.questoes!=null?g.questoes:''), _esp:this._espAtivo()}; nd++; }
       const D=ed[di];
       (tops||[]).forEach(([tnome, subs])=>{
         let ti=D.topics.findIndex(t=>norm(t.name)===norm(tnome));
