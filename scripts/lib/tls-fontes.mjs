@@ -31,6 +31,19 @@ const CAS = CAS_EXTRAS.length ? [...tls.rootCertificates, ...CAS_EXTRAS] : undef
 
 export const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120 Safari/537.36';
 
+/** Identificação por fonte (medido do Mac em 03/10/2026, mesma rede e TLS verificado):
+ *  · STJ aceita um identificador honesto: 200 no Informativo e nos repetitivos. Então o STJ
+ *    é lido dizendo o que é.
+ *  · STF responde 403 no balanceador da AWS (awselb/2.0) a qualquer identificador que não seja
+ *    de navegador, inclusive a este honesto; o Planalto derruba a conexão (ECONNRESET). Por
+ *    decisão da dona (03/10/2026), os dois seguem lidos com o identificador de Chrome: páginas
+ *    públicas oficiais, da rede dela, em volume baixo (dezenas de pedidos por dia). É uma
+ *    escolha consciente, não um descuido: o filtro do STF existe para barrar robôs, e este
+ *    vigia passa por ele se apresentando como navegador. Se o STF abrir rota de dados abertos
+ *    ou acesso formal, trocar aqui. */
+export const UA_HONESTO = 'Catedra/1.0 (+https://github.com/lanabiatriz2001-ai/catedra-plataforma; leitura de dados oficiais)';
+export const uaPara = (host) => (/(^|\.)stj\.jus\.br$/i.test(String(host)) ? UA_HONESTO : UA);
+
 /** Hosts oficiais que este vigia pode ler. Lista fechada: sem ela a função serverless
  *  viraria proxy aberto (SSRF), do mesmo jeito que api/law.js já se protege.
  *  Fase 2 (01/10/2026): portal.stf.jus.br (repercussão geral e súmulas do STF) e
@@ -92,7 +105,7 @@ export function buscarFonte(url, { timeoutMs = 40000, saltos = 4, prazo = 0, cab
     const fim = () => { if (teto) { clearTimeout(teto); teto = null; } };
     const req = https.request(u, {
       method: 'GET',
-      headers: { 'user-agent': UA, accept: 'text/html,*/*', ...cabecalhosPermitidos(cabecalhos) },
+      headers: { 'user-agent': uaPara(u.hostname), accept: 'text/html,*/*', ...cabecalhosPermitidos(cabecalhos) },
       // Sem extras: as raízes de fábrica do Node. Com extras, ACRESCENTA ao depósito (passar
       // só o intermediário SUBSTITUIRIA o depósito inteiro, e aí quem quebraria seria o Planalto).
       ca: CAS,

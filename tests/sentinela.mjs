@@ -1301,6 +1301,17 @@ export async function testarSentinela(ok) {
     ok(cp.ultimoSucesso === '2026-10-02T10:00:00.000Z' && cp.ultimaLeituraCompleta === ANT && cs.ultimaLeituraCompleta === '2026-10-03T10:00:00.000Z',
       'S30d leitura parcial anda o último sucesso (lacuna nomeada) mas não a última leitura completa');
   }
+  // ── Identificação por fonte (03/10/2026): STJ com identificador honesto; STF e Planalto
+  //    recusam identificador que não seja de navegador e seguem como Chrome, por decisão da dona.
+  {
+    const { uaPara, UA_HONESTO, UA } = await import('../scripts/lib/tls-fontes.mjs');
+    ok(uaPara('processo.stj.jus.br') === UA_HONESTO && uaPara('www.stj.jus.br') === UA_HONESTO && /^Catedra\//.test(UA_HONESTO),
+      'UA1 o STJ é lido com o identificador honesto do Cátedra');
+    ok(uaPara('www.stf.jus.br') === UA && uaPara('portal.stf.jus.br') === UA && uaPara('www.planalto.gov.br') === UA,
+      'UA2 STF e Planalto seguem com o identificador de navegador (decisão registrada em tls-fontes.mjs)');
+    ok(uaPara('stj.jus.br.exemplo.com') === UA, 'UA3 host que só contém "stj.jus.br" no meio não ganha a regra do STJ');
+  }
+
   // ── Planilhas oficiais (03/10/2026): CSV do STJ como FILTRO das faixas; xlsx do STF como
   //    CONFERÊNCIA CRUZADA de notas faltando no acervo. Sem rede.
   {
