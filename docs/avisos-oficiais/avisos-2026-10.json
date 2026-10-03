@@ -1,0 +1,107 @@
+{
+ "descricao": "Avisos que as Notas do Cátedra carregavam, repostos como FATO OFICIAL em CAMPO OFICIAL (decisão da dona, 03/10/2026). Nada aqui é comentário: \"situacao\" é a situação do tema no portal do tribunal ou o desfecho do julgamento; \"ob\" acrescenta trecho LITERAL da ficha, do informativo ou do inteiro teor; \"fp\" é a citação de origem; \"sic\" marca, sem corrigir, o erro de digitação que está na própria fonte. Aplicado por scripts/aplicar-avisos-oficiais.mjs. O que nas notas era leitura nossa não voltou — a lista está em docs/avisos-oficiais/nao-voltaram.md.",
+ "situacao": {
+  "CTRLCONST-0105": "Superado",
+  "CTRLCONST-0137": "Superado em parte",
+  "CTRLCONST-0140": "Superado",
+  "CTRLCONST-0172": "Superado",
+  "CTRLCONST-0188": "Superado",
+  "CTRLCONST-0195": "Superado em parte",
+  "CTRLCONST-0416": "Superado em parte",
+  "CTRLCONST-0228": "Superado",
+  "CTRLCONST-0017": "Voto vencido",
+  "CTRLCONST-0406": "Voto vencido",
+  "CTRLCONST-0367": "Voto parcialmente vencido",
+  "CTRLCONST-0056": "Tese não adotada pelo Plenário",
+  "CTRLCONST-0062": "Tese não adotada pelo Plenário",
+  "CTRLCONST-0283": "Tese não adotada pelo Plenário",
+  "CTRLCONST-0285": "Tese não adotada pelo Plenário",
+  "CTRLCONST-0410": "Tese não adotada pelo Plenário",
+  "COORD-REP-1088": "Sobrestado",
+  "COORD-REP-1196": "Sobrestado",
+  "COORD-REP-1126": "Afetado",
+  "COORD-REP-1076": "Acórdão Publicado - RE Pendente",
+  "COORD-REP-1071": "Trânsito em Julgado",
+  "COORD-REP-674": "Trânsito em Julgado",
+  "COORD-REP-50": "Acórdão tornado sem efeito (13/11/2024)",
+  "INF2021-0685": "Nota retirada do Informativo pelo STJ",
+  "INF2022-0562": "Nota excluída do Informativo pelo STJ"
+ },
+ "ob": {
+  "repgeral-repetitivo-STJ-988": "Anotações NUGEPNAC: modulação dos efeitos, \"a fim de que a tese jurídica apenas seja aplicável às decisões interlocutórias proferidas após a publicação do presente acórdão\" (acórdão publicado no DJe de 19/12/2018).",
+  "repgeral-repetitivo-STJ-1143": "Anotações NUGEPNAC: modulação de efeitos — \"a tese deve ser aplicada apenas aos feitos ainda em curso na data em que encerrado o presente julgamento, sendo inaplicáveis aos processos transitados em julgado\".",
+  "repgeral-repetitivo-STJ-880": "Modulação de efeitos (embargos de declaração, acórdão publicado no DJe de 22/06/2018): \"para as decisões transitadas em julgado até 17/3/2016 (quando ainda em vigor o CPC/1973) e que estejam dependendo, para ingressar com o pedido de cumprimento de sentença, do fornecimento pelo executado de documentos ou fichas financeiras (tenha tal providência sido deferida, ou não, pelo juiz ou esteja, ou não, completa a documentação), o prazo prescricional de 5 anos para propositura da execução ou cumprimento de sentença conta-se a partir de 30/6/2017.\"",
+  "repgeral-repetitivo-STJ-982": "Anotações NUGEPNAC: Tema 1095/STF (RE 1.221.446/RJ) — \"No âmbito do Regime Geral de Previdência Social (RGPS), somente lei pode criar ou ampliar benefícios e vantagens previdenciárias, não sendo possível, por ora, a extensão do auxílio da grande invalidez (art. 45 da Lei n. 8.213/91) a todas às espécies de aposentadoria\" (acórdão publicado no DJe de 4/8/2021, trânsito em julgado em 13/8/2021).",
+  "repgeral-repetitivo-STJ-598": "Anotações NUGEPNAC: \"Não é possível a inscrição em dívida ativa de valor correspondente a benefício previdenciário indevidamente recebido e não devolvido ao INSS.\"",
+  "COORD-REP-886": "Anotações NUGEPNAC: Tema 1349/STJ — \"Proposta de revisão do Tema Repetitivo nº 886/STJ para definir se há legitimidade concorrente entre o promitente vendedor, titular do direito de propriedade, e o promitente comprador para figurar no polo passivo da ação de cobrança de débitos condominiais posteriores à imissão do comprador na posse, independentemente de haver ciência inequívoca da transação pelo condomínio\".",
+  "INF2020-0360": "Destaque do Informativo: \"A sucumbência recíproca, por si só, não afasta a condenação em honorários advocatícios sucumbenciais nem impede a sua majoração em sede recursal.\" (Informativo STJ n. 681, AgInt no AREsp 1.495.369-MS, Quarta Turma, julgado em 01/09/2020).",
+  "INF2020-0459": "Destaque do Informativo: \"A omissão injustificada da Administração em providenciar a disponibilização de banho quente nos estabelecimentos prisionais fere a dignidade de presos sob sua custódia.\" (Informativo STJ n. 666, REsp 1.537.530-SP, Segunda Turma, julgado em 27/04/2017).",
+  "INF2021-0373": "Destaque do Informativo: \"Na vigência do CPC/2015, remanesce o interesse de agir do inventariante na ação de prestação de contas, mantido o caráter dúplice da demanda.\" (Informativo STJ n. 687, REsp 1.707.014/MT).",
+  "INF2021-0381": "Destaque do Informativo: \"Para a proteção da impenhorabilidade da pequena propriedade rural é ônus do executado comprovar que o imóvel é explorado pela família, prevalecendo a proteção mesmo que tenha sido dado em garantia hipotecária ou não se tratando de único bem do devedor.\" (Informativo STJ n. 689, REsp 1.913.236-MT).",
+  "INF2021-0388": "Destaque do Informativo: \"Sob a égide do CPC de 1973, não responde por honorários sucumbenciais o credor que desiste da execução antes da citação e da apresentação dos embargos, se não houver prévia constituição de advogados nos autos.\" (Informativo STJ n. 692, REsp 1.682.215/MG).",
+  "INF2024-0324": "Do inteiro teor do REsp 1.756.277-CE: \"Todavia, dessa irregularidade não resulta vício insanável, sendo certo que o registro precoce pode ser convalidado na hipótese de a prenotação que o obstava perder seus efeitos.\" (Informativo STJ n. 834, de 26 de novembro de 2024).",
+  "SELTJRJ-0219": "Tese firmada no Tema 1368 (Corte Especial, REsp 2.199.164-PR e REsp 2.070.882-RS, julgados em 15/10/2025): \"O art. 406 do Código Civil de 2002, antes da entrada em vigor da Lei n. 14.905/2024, deve ser interpretado no sentido de que é a SELIC a taxa de juros de mora aplicável às dívidas de natureza civil, por ser esta a taxa em vigor para a atualização monetária e a mora no pagamento de impostos devidos à Fazenda Nacional.\"",
+  "SELTJRJ-0451": "Tese firmada no Tema 1367 (Terceira Seção, REsp 2.205.262-RJ, REsp 2.200.477-RJ e REsp 2.201.422-RJ, julgados em 7/5/2026, DJEN 12/5/2026): \"O cumprimento de pena relativa a delito praticado no curso de livramento condicional terá como seu termo inicial o dia subsequente ao fim do período de prova, dada a impossibilidade de cumprimento simultâneo de duas penas não unificadas.\"",
+  "SELTJGO-0432": "Tese firmada no Tema 1374 (Terceira Seção, julgado em 12/8/2026): \"Em atenção aos princípios da legalidade, da taxatividade e do favor rei , a interpretação do art. 112, § 3°, V, da LEP deve se dar de modo restritivo. Portanto, organização criminosa é somente a hipótese de condenação nos termos da Lei n. 12.850/2013, não abrangendo apenada que tenha participado de associação criminosa (art. 288 do CP) ou associação para o tráfico (art. 35 da Lei n. 11.343/2006).\""
+ },
+ "fp": {
+  "SELTJRJ-0345": "REsp 2.145.391-PB , Rel. Ministro Antonio Carlos Ferreira, Segunda Seção, por maioria, julgado em 10/9/2025. ( Tema 1268 )."
+ },
+ "sic": [
+  [
+   "repgeral-repetitivo-STJ-1149",
+   "en",
+   "Lei 9.969/1998"
+  ],
+  [
+   "repgeral-repercussao_geral-STF-x454",
+   "en",
+   "Lei nº 10.599/02"
+  ],
+  [
+   "repgeral-repetitivo-STJ-1123",
+   "en",
+   "Taxa e Saúde Suplementar"
+  ],
+  [
+   "repgeral-repetitivo-STJ-x1251",
+   "en",
+   "persiste?ncia"
+  ],
+  [
+   "CTRLCONST-0144",
+   "en",
+   "29-9-1972"
+  ],
+  [
+   "CTRLCONST-0208",
+   "en",
+   "DJ de 26-4-2000"
+  ],
+  [
+   "CTRLCONST-0406",
+   "en",
+   "HC 70.154/RS"
+  ],
+  [
+   "CTRLCONST-0155",
+   "ob",
+   "j. 18-11-1996"
+  ],
+  [
+   "CTRLCONST-0087",
+   "fp",
+   "j. 24-5-2002"
+  ],
+  [
+   "CTRLCONST-0117",
+   "fp",
+   "j. 17-1-2010"
+  ],
+  [
+   "CTRLCONST-0192",
+   "fp",
+   "j. 18-11-1996"
+  ]
+ ]
+}

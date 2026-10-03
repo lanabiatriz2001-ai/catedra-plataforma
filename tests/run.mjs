@@ -55,6 +55,7 @@ import { testarCarregamentoInicial, testarAberturaEmbutida } from './carregament
 import { testarSelectHost } from './select-host.mjs';
 import { testarEditalSubtopicos } from './edital-subtopicos.mjs';
 import { testarSemAnotacoesEstatico, testarSemAnotacoesNavegador } from './sem-anotacoes.mjs';
+import { testarAvisosOficiaisEstatico, testarAvisosOficiaisNavegador } from './avisos-oficiais.mjs';
 import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 import { testarRevisaoOficial } from './revisao-oficial.mjs';
@@ -1580,9 +1581,10 @@ ok(a4b, 'ACERVO sem volta=1 não há pílula');
   // STJ) têm o texto OFICIAL do STJ, que a auditoria conferiu antes da troca: esses provam igualdade
   // exata com a referência versionada. No lote L4 (um verbete por tema) saíram 5: 1093-2, 1149-2 e 905-2
   // (fundidos nos Temas 1093, 1149 e 905) e x1060 (IAC 3) e x641 (julgado de Turma), retirados. Os outros
-  // 24 seguem com o retrato validado (digest 8b5d595d… desde 03/10/2026, quando as Notas do Cátedra
-  // saíram do acervo: a única diferença para o 24b098c5… anterior é o campo co do SELTJRJ-0451, que era
-  // só a nota — conferido passando a limpeza sobre o retrato antigo. O 24b098c5… era o mesmo antes e
+  // 24 seguem com o retrato validado (digest 9d8cda91… desde os avisos oficiais de 03/10/2026: a única
+  // diferença para o 8b5d595d… é o campo ob do SELTJRJ-0451, que ganhou a tese firmada no Tema 1367,
+  // literal. O 8b5d595d… veio da saída das Notas do Cátedra: a única diferença para o 24b098c5… anterior
+  // era o campo co desse mesmo verbete, que era só a nota. O 24b098c5… era o mesmo antes e
   // depois do L4; o dos 29, antes do L4, era 7cc4c4e8…, e o dos 33, antes dos lotes, ae9e557f…).
   const OFI = lerTesesOficiais();
   const L4 = JSON.parse(fs.readFileSync(path.join(RAIZ, 'docs', 'teses-oficiais', 'l4-referencia.json'), 'utf8'));
@@ -1590,7 +1592,7 @@ ok(a4b, 'ACERVO sem volta=1 não há pílula');
   const noLote = ids.filter(id => id in OFI), fora = ids.filter(id => !(id in OFI) && !saiuL4.includes(id));
   const retrato = Object.fromEntries(fora.map(id => [id, IDX[id] ? { indice: IDX[id], texto: TXT[id] || null } : null]));
   const digest = createHash('sha256').update(JSON.stringify(retrato)).digest('hex');
-  ok(fora.length === 24 && digest === '8b5d595de9c0b72fecb3c6b7a9cb30e1fbc264e485915a7cc69083b343f13180',
+  ok(fora.length === 24 && digest === '9d8cda91cfa573fbede06ee3333e69ab6ff5f83ded7ccb9809eb9ac2e351c196',
     'STJ-SALDO os ' + fora.length + ' registros fora da troca oficial mantêm exatamente as correções e exclusões validadas (' + digest.slice(0, 12) + ')');
   ok(saiuL4.length === 5 && saiuL4.every(id => !IDX[id] && !TXT[id]),
     'STJ-SALDO os 5 que o lote L4 fundiu ou retirou saíram das duas tabelas web (' + saiuL4.map(i => i.replace('repgeral-repetitivo-', '')).join(', ') + ')');
@@ -9902,6 +9904,15 @@ catch (e) { ok(false, 'SEM ANOTAÇÕES [' + motor + '] exceção no estático: '
 try { await testarSemAnotacoesNavegador(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'SEM ANOTAÇÕES [' + motor + '] [http] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+// Avisos oficiais (tests/avisos-oficiais.mjs): o que as Notas do Cátedra avisavam voltou como fato oficial
+// em campo oficial — Situação, trecho literal em "Informações da fonte" e [sic] no erro da própria fonte.
+try { testarAvisosOficiaisEstatico(ok, { motor }); }
+catch (e) { ok(false, 'AVISOS OFICIAIS [' + motor + '] exceção no estático: ' + String(e && e.message || e).split('\n')[0]); }
+try { await testarAvisosOficiaisNavegador(page, URL0, ok, { motor, origem: 'http' }); }
+catch (e) {
+  ok(false, 'AVISOS OFICIAIS [' + motor + '] [http] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
