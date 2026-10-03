@@ -42,6 +42,7 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;mostr
 <script src="./plataformas-questoes.js"></script>
 <!-- C3: miolo do espelho sugerido (fundamento obrigatório + rotulagem), puro e testável -->
 <script src="./espelho-sugerido.js"></script>
+<script src="./redacao-motor.js"></script>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -3660,6 +3661,10 @@ window.ctPdfLib = (function(){
                   <span class="ct-folha-salvo" data-red="salvo">{{ redSalvoTxt }}</span>
                   <span style="font-size:var(--fs-sm);color:var(--text3);line-height:1.5;flex:1;min-width:200px;">{{ redDicaEtapa2 }}</span>
                   <button class="ct-btn" onclick="{{ submitRed }}" disabled="{{ redBtnDisabled }}" aria-busy="{{ redBusy }}">{{ redBtnLabel }}</button>
+                  <sc-if value="{{ redCorrigindo }}" hint-placeholder-val="{{ false }}">
+                    <span data-red="corrigindo" role="status" class="ct-dado">{{ redCorrTxt }}</span>
+                    <button class="ct-btn-2" data-red="cancelar-correcao" onclick="{{ cancelarCorrecao }}">Cancelar</button>
+                  </sc-if>
                 </div>
               </sc-if>
             </section>
@@ -3793,6 +3798,20 @@ window.ctPdfLib = (function(){
             <p class="ct-hero-sub" style="max-width:760px;">{{ redResult.geral }}</p>
           </div>
 
+          <!-- A IA não corrigiu: sai a estimativa local, com o MOTIVO dito e a saída para tentar de novo.
+               Antes o app caía calado no corretor local e só um rótulo pequeno avisava. -->
+          <sc-if value="{{ redFalhaShow }}" hint-placeholder-val="{{ false }}">
+            <div class="ct-card ct-mesa-linha" data-red="falha-ia" role="status" style="justify-content:space-between;gap:var(--ct-e4);border-color:var(--warn);">
+              <div style="flex:1;min-width:220px;">
+                <div class="ct-eb ct-eb-warn">Estimativa local</div>
+                <div style="font-size:var(--fs-base);color:var(--ink);margin-top:var(--ct-e1);line-height:1.5;">{{ redFalhaTxt }}</div>
+              </div>
+              <button class="ct-btn" data-red="recorrigir-ia" onclick="{{ recorrigirIA }}" disabled="{{ redRecBusy }}" aria-busy="{{ redRecBusy }}">{{ redRecBtnTxt }}</button>
+            </div>
+          </sc-if>
+          <sc-if value="{{ redCortesShow }}" hint-placeholder-val="{{ false }}">
+            <div class="ct-card" data-red="cortes-ia" role="status"><div class="ct-eb ct-eb-warn">Texto acima do limite</div><div class="ct-nota" style="margin-top:var(--ct-e1);">{{ redCortesTxt }}.</div></div>
+          </sc-if>
           <sc-if value="{{ redTemPlano }}" hint-placeholder-val="{{ false }}">
             <div class="ct-card">
               <div style="font-family:var(--display);font-size:var(--fs-2xl);font-weight:600;color:var(--ink);">Como corrigir esta resposta</div>
@@ -7476,7 +7495,7 @@ class Component extends DCLogic {
       redRascunhoOculto:false,
       redQuestaoAberta:true, redMarcasAberto:false, redEditandoEnun:false,   // mesa de prova: só de tela
       redModoResposta:(String(this._load('redText','')||'').trim()?'digitar':'mao'), redCronoOn:false, redCronoTick:0,
-      redLinhasN:null, redFoco:false, redGabVista:'', redGabErro:'', redGabOk:'', redConferindo:false, redConf:{}, redLinhasMao:'',    // U4: a faixa do rascunho da redação, depois de dispensada
+      redLinhasN:null, redFoco:false, redGabVista:'', redGabErro:'', redGabOk:'', redConferindo:false, redConf:{}, redLinhasMao:'', redResultId:'', redRecBusy:false, redCorrDesde:0, redCorrTick:0,    // U4: a faixa do rascunho da redação, depois de dispensada
       // 'video' e 'mapa' (este em 25/09/2026) saíram dos formatos; quem tivesse essa
       // preferência salva ficaria numa aba sem botão para sair dela. Cai para texto; o
       // mfGen antigo continua guardado, só não é mais lido.
@@ -8615,7 +8634,7 @@ class Component extends DCLogic {
       try{ localStorage.setItem('catedra:schemaVersion', String(V)); }catch(_){}
     }catch(_){ }
   }
-  componentWillUnmount(){ if(this._redCronoT) clearInterval(this._redCronoT); try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onSelChange){ document.removeEventListener('selectionchange', this._onSelChange); clearTimeout(this._selChangeT); } ['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev, this._acDespertar)); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._areaMsg) window.removeEventListener('message', this._areaMsg); if(this._acervoMsg) window.removeEventListener('message', this._acervoMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._revT) clearInterval(this._revT);
+  componentWillUnmount(){ if(this._redCronoT) clearInterval(this._redCronoT); if(this._redCorrT) clearInterval(this._redCorrT); try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onSelChange){ document.removeEventListener('selectionchange', this._onSelChange); clearTimeout(this._selChangeT); } ['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev, this._acDespertar)); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._areaMsg) window.removeEventListener('message', this._areaMsg); if(this._acervoMsg) window.removeEventListener('message', this._acervoMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._revT) clearInterval(this._revT);
     try{ if(this._mqDark && this._onMqDark){ if(this._mqDark.removeEventListener) this._mqDark.removeEventListener('change', this._onMqDark); else if(this._mqDark.removeListener) this._mqDark.removeListener(this._onMqDark); } }catch(_){}
     if(this._pipMsgT) clearTimeout(this._pipMsgT); if(this._bkpAutoT) clearInterval(this._bkpAutoT); if(this._salaT) clearTimeout(this._salaT); this._pipStop(); this._closeDocPiP();  }
   componentDidUpdate(){ if(this.state.view==='redacao'){ this._redVigiarFolha();
@@ -14021,7 +14040,7 @@ class Component extends DCLogic {
   /**
    * @param reg {origem:'redacao'|'segunda-fase', prova, quesitos:[{titulo,nota,max}], notaTotal}
    */
-  _redRegistrar(reg){
+  _redRegistrar(reg, substituirId){
     if(!reg || !Array.isArray(reg.quesitos) || !reg.quesitos.length) return null;
     const agora=Date.now();
     const item={ id:'rh'+agora+'-'+Math.random().toString(36).slice(2,8), up:agora, quando:new Date(agora).toISOString().slice(0,10), ts:agora,
@@ -14035,7 +14054,11 @@ class Component extends DCLogic {
         nota:Math.round((+q.nota||0)*100)/100, max:Math.round((+q.max||1)*100)/100 })),
       notaTotal:(reg.notaTotal!=null?Math.round((+reg.notaTotal)*100)/100:null) };
     // Nome do estado igual à chave: redHist2 não era visto pelo autosave de redHist.
-    const hist=[item, ...(this.state.redHist||[])].slice(0,this.RED_HIST_MAX);
+    // corrigir de novo: o registro antigo é atualizado no lugar (mesmo id, carimbo novo), não duplicado
+    const antes=this.state.redHist||[];
+    const troca=!!substituirId && antes.some(x=>x&&x.id===substituirId);
+    if(troca) item.id=substituirId;
+    const hist=troca ? antes.map(x=>(x&&x.id===substituirId)?item:x) : [item, ...antes].slice(0,this.RED_HIST_MAX);
     this.setState({redHist:hist}, ()=>this.flashSync());
     return item;
   }
@@ -14737,7 +14760,7 @@ class Component extends DCLogic {
   redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.')) return; this._redBoot=''; this._redCronoZerar(); this.setState({redResult:null, redText:'', redTextTs:0, redRascunhoOculto:false, redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false, redModoProva:false, redEditandoEnun:false, redQuestaoAberta:true, redModoResposta:'mao', redGabVista:'', redGabErro:'', redGabOk:'', redConferindo:false, redConf:{}, redLinhasMao:'', redProvaId:'', redDisciplina:{}, espSugAtual:null}); try{ localStorage.setItem(this._chave('redText'),JSON.stringify('')); localStorage.setItem(this._chave('redGabarito'),JSON.stringify('')); localStorage.setItem(this._chave('redEnunciado'),JSON.stringify('')); }catch(_){} };
   redOpenHist = (e)=>{ const id=e.currentTarget.dataset.id; const h=(this.state.redHistory||[]).find(x=>x.id===id);
     if(!h||!h.res){ this._toast('Correção completa não disponível para este item'); return; }
-    this.setState({redResult:h.res, redDisciplina:{disc:h.disc||'',origem:h.disciplinaOrigem||''}, redText:h.texto||this.state.redText, redGabarito:h.gabarito||this.state.redGabarito, redSubText:h.texto||'', redSubGab:h.gabarito||''}); };
+    this.setState({redResult:h.res, redResultId:h.id, redDisciplina:{disc:h.disc||'',origem:h.disciplinaOrigem||''}, redText:h.texto||this.state.redText, redGabarito:h.gabarito||this.state.redGabarito, redSubText:h.texto||'', redSubGab:h.gabarito||''}); };
   // ===== C3: ESPELHO SUGERIDO (nunca oficial) =====
   // Onde a banca não publicou espelho, o aviso honesto do C1 continua e ganha ao lado uma
   // saída útil: um espelho SUGERIDO pelo Cátedra, gerado por IA a partir do enunciado. O
@@ -14786,42 +14809,125 @@ class Component extends DCLogic {
         this.setState({redGabarito:String(txt).trim(), redGabBusy:false, redGabOk:f.name+' importado', redGabVista:'', redConf:{}});
       }catch(err){ this.setState({redGabBusy:false, redGabErro:'Não consegui ler '+f.name}); } };
     inp.click(); }catch(e){} };
+  /* ===== MOTOR DA CORREÇÃO (fatia 2, 03/10/2026) =====
+     O miolo puro mora em redacao-motor.js (pedido, escala, soma, trecho, motivo da falha). Aqui fica
+     o que é da tela: a espera com tempo e cancelamento, a queda para o corretor local COM o motivo
+     dito (antes caía calada), e o "corrigir de novo com IA" que substitui a entrada do histórico. */
+  _redCorrTique(){ this._redCorrParar(); this._redCorrT=setInterval(()=>this.setState({redCorrTick:Date.now()}),1000); }
+  _redCorrParar(){ if(this._redCorrT){ clearInterval(this._redCorrT); this._redCorrT=null; } }
+  /** Pede a correção à IA e CONFERE a resposta. Rejeita com {ctMotivo} quando não serve. */
+  async _redCorrigirIA(text, gab, enun, local){
+    const M=window.CT_REDACAO_MOTOR; if(!M) throw {ctMotivo:'erro'};
+    if(!(window.claude && typeof window.claude.complete==='function')) throw {ctMotivo:'sem-ia'};
+    const qs=this._redQuesitos(gab);
+    const ped=M.montarPrompt({enunciado:enun, gabarito:gab, quesitos:qs, resposta:text});
+    let relogio=null;
+    const limite=new Promise((_,rej)=>{ relogio=setTimeout(()=>rej({ctMotivo:'tempo'}), 90000); });
+    let bruto=null;
+    try{ bruto=await Promise.race([window.claude.complete(ped.prompt), limite]); } finally { clearTimeout(relogio); }
+    const c=M.interpretar(this._parseJSON(String(bruto||'')), {quesitos:qs, resposta:text});
+    if(!c) throw {ctMotivo:'invalida'};
+    return this._redResDaIA(c, ped.cortes, local);
+  }
+  /** O resultado conferido, no formato que a etapa 3 e a evolução já leem. */
+  _redResDaIA(c, cortes, local){
+    const temQ=c.quesitos.length>0;
+    if(temQ && c.pulados.length){            // quesito que a IA pulou: o corretor local preenche, e o item sai marcado
+      let L=null; try{ L=local(); }catch(_){}
+      c.pulados.forEach(i=>{ const lq=L && L.quesitos && L.quesitos[i]; if(lq) c.quesitos[i].obtido=lq.obtido; });
+      const soma=c.quesitos.reduce((a,q)=>a+q.obtido,0), total=c.quesitos.reduce((a,q)=>a+q.pontos,0);
+      c.soma=Math.round(soma*100)/100; c.total=Math.round(total*100)/100;
+      c.cobertura=total?Math.round(soma/total*100):0; c.nota=total?Math.round(soma/total*100)/10:0;
+    }
+    const nota=c.nota;
+    const topicos = temQ
+      ? c.quesitos.map(q=>{ const p=q.pontos?q.obtido/q.pontos:0;
+          return { ponto:'Quesito '+q.n+' — '+String(q.texto||'').slice(0,150)+(String(q.texto||'').length>150?'…':''),
+            status:p>=0.99?'coberto':(p>0?'parcial':'faltou'),
+            comentario:'Nota '+this._redNum(q.obtido)+' de '+this._redNum(q.pontos)+(q.estimado?' (estimado pelo corretor local)':'')
+              +(q.faltou?' — faltou: '+q.faltou:'')+(q.trecho?' · trecho: “'+q.trecho+'”':'') }; })
+      : c.pontos.map(x=>({ ponto:x.ponto, status:x.status,
+            comentario:[x.faltou?('Faltou: '+x.faltou):'', x.trecho?('Trecho: “'+x.trecho+'”'):''].filter(Boolean).join(' · ') }));
+    const criterios=[{ nome:temQ?'Quesitos do espelho':'Cobertura do espelho', nota, max:10, pct:Math.round(nota*10),
+        comentario:temQ?('Soma '+this._redNum(c.soma)+' de '+this._redNum(c.total)+' nos '+c.quesitos.length+' quesitos.'):(c.cobertura+'% dos pontos esperados.') }]
+      .concat(c.forma.map(f=>({ nome:f.nome+' · fora do espelho', nota:f.nota, max:10, pct:Math.round(f.nota*10), comentario:f.comentario })));
+    let fortes = temQ ? c.quesitos.filter(q=>q.pontos && q.obtido>=q.pontos*0.99).slice(0,4).map(q=>'Quesito '+q.n+': valor cheio')
+                      : c.pontos.filter(x=>x.status==='coberto').slice(0,4).map(x=>x.ponto);
+    if(!fortes.length) fortes=['Nenhum ponto do espelho com valor cheio ainda.'];
+    let melhorar=c.prioridades.slice();
+    if(!melhorar.length) melhorar=(temQ?c.quesitos.filter(q=>q.faltou).map(q=>'Quesito '+q.n+': '+q.faltou):c.pontos.filter(x=>x.faltou).map(x=>x.faltou)).slice(0,3);
+    if(!melhorar.length) melhorar=['Refine a profundidade dos argumentos e a precisão das citações.'];
+    return { nota, notaStr:nota.toFixed(1), notaColor:nota>=8?'var(--ok)':nota>=6?'var(--warn)':'var(--danger)',
+      conceito:this._redConceito(nota), cobertura:c.cobertura, topicos, criterios, fortes, melhorar, geral:c.geral,
+      aiUsed:true, motor:'ia', cortes:(cortes||[]).slice(0,4),
+      quesitos:c.quesitos.map(q=>({quesito:'Quesito '+q.n, obtido:q.obtido, pontos:q.pontos, trecho:q.trecho, faltou:q.faltou, estimado:!!q.estimado})) };
+  }
+  /** Sempre devolve um resultado: o da IA, ou a estimativa local com o motivo da falha. */
+  async _redCorrigir(text, gab, enun){
+    const local=()=>this._redFallbackLivre(text, gab, enun);
+    let res=null, motivo='';
+    try{ res=await this._redCorrigirIA(text, gab, enun, local); }
+    catch(e){ try{ motivo=window.CT_REDACAO_MOTOR.motivoDaFalha(e); }catch(_){ motivo='erro'; } }
+    if(!res){ res=local(); res.motor='local'; res.falhaIA=motivo||'erro'; }
+    return res;
+  }
+  _redEvoQuesitos(res){ return (res.quesitos&&res.quesitos.length? res.quesitos.map((q,i)=>({titulo:q.quesito||q.titulo||('Quesito '+(i+1)), nota:+q.obtido||0, max:+q.pontos||1}))
+      : (res.criterios||[]).map(c=>({titulo:c.nome, nota:+c.nota||0, max:+c.max||10}))); }
   submitRed = async ()=>{
     const text=(this.state.redText||'').trim(); const words=(text.match(/\S+/g)||[]).length;
-    if(words<40){ this._toast('Escreva ao menos ~40 palavras para corrigir'); return; }
-    if(this.state.redBusy) return;
-    if(!(this.state.redGabarito||'').trim()){ this._toast('Cole ou importe o gabarito para comparar'); return; }
+    // o que falta para poder corrigir fica escrito junto do botão (redDicaEtapa2), não em toast
+    if(words<40 || this.state.redBusy || !(this.state.redGabarito||'').trim()) return;
     const _disc={...(this.state.redDisciplina||{})};
     this._redCronoPausar(); const _tempoMs=this._redTempoAgora(); if(this.state.redFoco) this._redFocoPor(false);
-    this.setState({redBusy:true, redResult:null, redSubText:text, redSubGab:this.state.redGabarito, redEspelhoOculto:false});
-    const enun=(this.state.redEnunciado||'').trim();
+    const gab=this.state.redGabarito; const enun=(this.state.redEnunciado||'').trim();
+    const tok=(this._redCorrTok=(this._redCorrTok||0)+1); this._redOcultoAntes=!!this.state.redEspelhoOculto;
+    this.setState({redBusy:true, redCorrDesde:Date.now(), redResult:null, redSubText:text, redSubGab:gab, redEspelhoOculto:false});
+    this._redCorrTique();
     const _titulo=(enun? enun.replace(/\s+/g,' ').slice(0,80) : (text.replace(/\s+/g,' ').slice(0,60)||'Questão discursiva'));
-    let res=null; try{ res= await this._corrigeRedacaoLivre(_titulo, text, this.state.redGabarito, enun); }catch(_){}
-    if(!res){ this.setState({redBusy:false}); this._toast('Não consegui corrigir agora — tente de novo'); return; }
+    let res=null; try{ res=await this._redCorrigir(text, gab, enun); }catch(_){}
+    if(tok!==this._redCorrTok) return;       // cancelada no meio: a resposta que chegou depois não vale
+    this._redCorrParar();
+    if(!res){ this.setState({redBusy:false, redEspelhoOculto:this._redOcultoAntes}); this._toast('Não consegui corrigir agora — tente de novo'); return; }
     res.livre=true; res.enunciado=enun;
     // C3: corrigido contra espelho SUGERIDO → a nota é aproximada, e o histórico registra
     // isso. Uma nota tirada de um espelho que a banca nunca publicou não pode entrar na
     // evolução com o mesmo peso de uma tirada do espelho oficial.
     const _aprox=!!this.state.espSugAtual;
-    try{ if(res && typeof res==='object') res.aproximada=_aprox; }catch(_){}
-    const entry={id:'rd'+Date.now(), up:Date.now(), tema:_titulo, words, nota:res.nota, ts:Date.now(), disc:_disc.disc||'', disciplinaOrigem:_disc.origem||'', res, texto:text, gabarito:this.state.redGabarito, aproximada:_aprox, origem:(_aprox?'espelho-sugerido':'espelho-oficial'), tempoMs:_tempoMs};
+    res.aproximada=_aprox;
+    // registro por quesito para a curva de evolução (item 4) — agora com os quesitos reais da banca
+    let evo=null; try{ evo=this._redRegistrar({origem:'redacao', prova:_titulo, quesitos:this._redEvoQuesitos(res), notaTotal:res.nota, notaMax:10,
+        disc:_disc.disc, disciplinaOrigem:_disc.origem, aproximada:_aprox}); }catch(_){}
+    const agora=Date.now();
+    const entry={id:'rd'+agora, up:agora, tema:_titulo, words, nota:res.nota, ts:agora, disc:_disc.disc||'', disciplinaOrigem:_disc.origem||'', res, texto:text, gabarito:gab, aproximada:_aprox, origem:(_aprox?'espelho-sugerido':'espelho-oficial'), tempoMs:_tempoMs,
+      motor:res.motor||'ia', ...(res.falhaIA?{falhaIA:res.falhaIA}:{}), ...(evo&&evo.id?{evoId:evo.id}:{})};
     const hist=[entry, ...this.state.redHistory].slice(0,12); this._redSave(hist);
-    this.setState({redBusy:false, redResult:res, redHistory:hist}); this._redCronoZerar(); this.flashSync();
-    // registro por quesito para a curva de evolução (item 4)
-    try{
-      const qs=(res.quesitos&&res.quesitos.length? res.quesitos.map((q,i)=>({titulo:q.quesito||q.titulo||('Quesito '+(i+1)), nota:+q.obtido||0, max:+q.pontos||1}))
-              : (res.criterios||[]).map(c=>({titulo:c.nome, nota:+c.nota||0, max:+c.max||10})));
-      this._redRegistrar({origem:'redacao', prova:_titulo, quesitos:qs, notaTotal:res.nota, notaMax:10,
-        disc:_disc.disc, disciplinaOrigem:_disc.origem, aproximada:_aprox});
-    }catch(_){}
+    this.setState({redBusy:false, redResult:res, redResultId:entry.id, redHistory:hist}); this._redCronoZerar(); this.flashSync();
   };
-  async _corrigeRedacaoLivre(tema, text, gabarito, enun){
-    const g=(gabarito||'').trim().slice(0,6000);
-    const _en=(enun||'').trim().slice(0,3000);
-    const prompt='Você é corretor de provas discursivas de concursos públicos no Brasil e vai produzir um RAIO-X detalhado da resposta. Considere o ENUNCIADO da questão, o GABARITO/ESPELHO oficial e a RESPOSTA DO CANDIDATO. REGRAS QUANDO O GABARITO FOR UM ESPELHO POR QUESITO (linhas numeradas com pontuação ou [escala: …]): corrija QUESITO A QUESITO, na ordem da banca; a nota de cada quesito fica DENTRO da escala informada (escala 0,00/0,10/0,20/0,30 não admite 0,15); fundamento exigido pelo espelho e não citado na resposta não pontua; respeite as "Instruções gerais da banca" (desconto por forma, item residual). No campo "topicos" cada item é UM QUESITO, com "comentario" no formato "Nota X de Y — o que faltou para o valor cheio, com o dispositivo". Em "geral": soma obtida/total, e depois, nesta ordem e sem elogio de abertura: o que faltou (quesitos zerados, por peso), o que está errado, o que custaria ponto fora do espelho (português, estrutura, extensão), e os 3 pontos prioritários para a próxima peça. Compare a resposta com o gabarito e atribua uma nota realista de 0 a 10 conforme o quanto a resposta cobre e adere ao gabarito. Avalie quatro critérios (0-10): "Cobertura do gabarito", "Aderência aos pontos esperados", "Estrutura e coesão", "Norma culta e clareza". Extraia do gabarito de 4 a 8 PONTOS ESPERADOS (o que a resposta deveria conter) e, para cada um, marque o status conforme a resposta do candidato: "coberto", "parcial" ou "faltou", com um comentário curto. Devolva SOMENTE um JSON válido: {"nota":<0-10 com 1 casa>,"cobertura":<inteiro 0-100>,"conceito":"<Excelente|Bom|Regular|Insuficiente>","criterios":[{"nome":"...","nota":<0-10>,"comentario":"<uma frase>"}],"topicos":[{"ponto":"<ponto do gabarito>","status":"coberto|parcial|faltou","comentario":"<curto>"}],"fortes":["pontos do gabarito que o candidato contemplou"],"melhorar":["pontos do gabarito que faltaram ou divergiram"],"geral":"<2 a 3 frases>"} com exatamente 4 critérios; topicos: um por quesito do espelho quando houver espelho (até 40), senão de 4 a 8. Tema: "'+tema+'".'+(_en?('\nENUNCIADO:\n"""\n'+_en+'\n"""'):'')+'\nGABARITO/ESPELHO:\n"""\n'+g+'\n"""\nRESPOSTA DO CANDIDATO:\n"""\n'+text+'\n"""';
-    try{ if(window.claude && window.claude.complete){ const r=await window.claude.complete(prompt); const j=this._parseJSON(r); if(j && j.criterios) return this._normRed(j); } }catch(e){}
-    return this._redFallbackLivre(text, gabarito, _en);
-  }
+  cancelarCorrecao = ()=>{ this._redCorrTok=(this._redCorrTok||0)+1; this._redCorrParar();
+    if(this.state.redBusy) this.setState({redBusy:false, redEspelhoOculto:!!this._redOcultoAntes});
+    if(this.state.redRecBusy) this.setState({redRecBusy:false}); };
+  /** A estimativa local está na tela; tenta de novo com a IA e, se der, SUBSTITUI a entrada do histórico. */
+  recorrigirIA = async ()=>{
+    const r0=this.state.redResult; if(!r0 || r0.propria || this.state.redRecBusy) return;
+    const text=String(this.state.redSubText||''), gab=String(this.state.redSubGab||''), enun=String(r0.enunciado||'');
+    if(!text.trim() || !gab.trim()) return;
+    const tok=(this._redCorrTok=(this._redCorrTok||0)+1);
+    this.setState({redRecBusy:true, redCorrDesde:Date.now()}); this._redCorrTique();
+    let res=null, motivo='';
+    try{ res=await this._redCorrigirIA(text, gab, enun, ()=>this._redFallbackLivre(text, gab, enun)); }
+    catch(e){ try{ motivo=window.CT_REDACAO_MOTOR.motivoDaFalha(e); }catch(_){ motivo='erro'; } }
+    if(tok!==this._redCorrTok) return;
+    this._redCorrParar();
+    if(!res){ this.setState({redRecBusy:false, redResult:{...r0, falhaIA:motivo||'erro'}}); return; }   // falhou de novo: o que estava na tela fica
+    res.livre=true; res.enunciado=enun; res.aproximada=!!r0.aproximada;
+    const id=this.state.redResultId; let evoId=null, achou=null;
+    const hist=(this.state.redHistory||[]).map(h=>{ if(!id || h.id!==id) return h; evoId=h.evoId||null;
+      achou={...h, up:Date.now(), nota:res.nota, res, motor:'ia'}; delete achou.falhaIA; return achou; });
+    if(achou){ try{ const evo=this._redRegistrar({origem:'redacao', prova:achou.tema, quesitos:this._redEvoQuesitos(res), notaTotal:res.nota, notaMax:10,
+        disc:achou.disc, disciplinaOrigem:achou.disciplinaOrigem, aproximada:!!achou.aproximada}, evoId); if(evo&&evo.id) achou.evoId=evo.id; }catch(_){}
+      this._redSave(hist); }
+    this.setState({redRecBusy:false, redResult:res, ...(achou?{redHistory:hist}:{})}); this.flashSync();
+  };
   // ---------------------------------------------------------------------------
   // CORRETOR LOCAL (sem IA). Deixou de ser "cobertura de palavras" e passou a corrigir
   // como uma banca corrige, com o que dá para verificar sem modelo de linguagem:
@@ -14885,7 +14991,7 @@ class Component extends DCLogic {
     const bate=(termos)=>{ const t=[...new Set(termos)]; if(!t.length) return 0; return t.filter(w=>eSet.has(w)).length/t.length; };
 
     const quesitos=this._redQuesitos(gabarito);
-    const topicos=[]; let notaFinal=null, somaObtida=0, somaTotal=0;
+    const topicos=[]; const quesLocal=[]; let notaFinal=null, somaObtida=0, somaTotal=0;
 
     if(quesitos.length){
       // ---- correção QUESITO A QUESITO, na escala da banca
@@ -14898,7 +15004,7 @@ class Component extends DCLogic {
         const prop2 = prop*0.65 + penal*0.35;
         const nota=this._redNaEscala(prop2, q);
         const max=q.max!=null?q.max:1;
-        somaObtida+=nota; somaTotal+=max;
+        somaObtida+=nota; somaTotal+=max; quesLocal.push({quesito:'Quesito '+q.n, obtido:nota, pontos:max});
         const status = prop2>=0.7?'coberto' : prop2>=0.35?'parcial':'faltou';
         const falta = fundQ.filter(f=>!fundOk.includes(f));
         topicos.push({ ponto:'Quesito '+q.n+' — '+q.texto.slice(0,150)+(q.texto.length>150?'…':''), status,
@@ -14983,7 +15089,7 @@ class Component extends DCLogic {
 
     return {nota, notaStr:nota.toFixed(1), notaColor:nota>=8?'var(--ok)':nota>=6?'var(--warn)':'var(--danger)',
       conceito:this._redConceito(nota), cobertura: quesitos.length? Math.round((somaObtida/(somaTotal||1))*100) : cov,
-      topicos, criterios, fortes, melhorar, geral, aiUsed:false};
+      topicos, criterios, fortes, melhorar, geral, aiUsed:false, quesitos:quesLocal};
   }
   _parseJSON(s){ try{ const a=s.indexOf('{'), b=s.lastIndexOf('}'); if(a<0||b<0) return null; return JSON.parse(s.slice(a,b+1)); }catch(e){ return null; } }
   _redConceito(n){ return n>=8?'Excelente':n>=6.5?'Bom':n>=5?'Regular':'Insuficiente'; }
@@ -18950,7 +19056,7 @@ class Component extends DCLogic {
     const redGabWords=((this.state.redGabarito||'').match(/\S+/g)||[]).length;
     const redCanSubmit=redWords>=40 && !!(this.state.redGabarito||'').trim() && !this.state.redBusy;
     const redBtnDisabled=!redCanSubmit;
-    const redBtnLabel=this.state.redBusy?'Corrigindo com IA — pode levar cerca de 30 segundos':'Comparar com o gabarito';
+    const redBtnLabel=this.state.redBusy?'Corrigindo…':'Comparar com o gabarito';
     // evolução por quesito (item 4): tentativas da mesma prova e o delta do primeiro ao último
     const redEvo=this._redEvolucao().map(p=>({
       chave:p.chave, prova:p.prova||'(sem título)', tentativas:String(p.tentativas)+(p.tentativas>1?' tentativas':' tentativa'),
@@ -20396,9 +20502,20 @@ class Component extends DCLogic {
         if(!m) return '';
         const linhas=Math.ceil(((this.state.redText||'').match(/\S+/g)||[]).length/11);
         return ' · ~'+linhas+' de '+m[1]+' linhas';})(),
-      redDicaEtapa2:(()=>{const g=(this.state.redGabarito||'').trim();
-        return g? 'A correção sai contra o espelho oficial desta prova: quesito a quesito, na escala da banca.'
-                : 'Sem espelho cadastrado, a correção sai por critérios gerais — cole o espelho acima para a nota por quesito.';})(),
+      // o que falta para poder corrigir fica escrito aqui, junto do botão (antes era toast, que some)
+      redDicaEtapa2:(()=>{ const g=(this.state.redGabarito||'').trim(); const c=this.state.cotaIA;
+        if(redWords<40) return 'Faltam '+(40-redWords)+(40-redWords===1?' palavra':' palavras')+' para poder corrigir (mínimo de 40).';
+        if(!g) return 'Falta o espelho: cole ou importe o padrão de respostas para corrigir.';
+        if(c && c.restante===0) return 'As chamadas de IA de hoje acabaram: a correção sairá pela estimativa do corretor local.';
+        return 'A correção sai contra o espelho desta prova: quesito a quesito, na escala da banca.'; })(),
+      ...(()=>{ const r=this.state.redResult; const M=window.CT_REDACAO_MOTOR;
+        const espera=(this.state.redBusy||this.state.redRecBusy)?('Corrigindo com IA · '+this._redFmtTempo(Date.now()-(+this.state.redCorrDesde||Date.now()))):'';
+        const local=!!r && !r.propria && r.aiUsed===false;
+        const motivo=local ? ((M && M.MOTIVOS[r.falhaIA]) || 'Esta correção não passou pela IA.') : '';
+        return { redCorrTxt:espera, redCorrigindo:!!this.state.redBusy, cancelarCorrecao:this.cancelarCorrecao,
+          redFalhaShow:local, redFalhaTxt:motivo+' O que você vê é a estimativa do corretor local.',
+          redRecBusy:!!this.state.redRecBusy, redRecBtnTxt:this.state.redRecBusy?espera:'Corrigir de novo com IA', recorrigirIA:this.recorrigirIA,
+          redCortesShow:!!(r && r.cortes && r.cortes.length), redCortesTxt:(r && r.cortes ? r.cortes.join('; ') : '') }; })(),
       redKpiProvas:String(_bancoTodas.length||'—'),
       redKpiEspelho:String(_bancoTodas.filter(q=>(q.espelho&&q.espelho.length)||_temEspTxt(q)||q.fonte_espelho).length||'—'),
       redKpiFeitas:String((this.state.redHistory||[]).length),

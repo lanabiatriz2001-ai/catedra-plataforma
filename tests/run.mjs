@@ -43,6 +43,7 @@ import { testarIconesAlvos } from './icones-alvos.mjs';
 import { testarFaixaMapaAlvos } from './faixa-mapa-alvos.mjs';
 import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
 import { testarRedacaoMesa } from './redacao-mesa.mjs';
+import { testarRedacaoMotorEstatico, testarRedacaoMotor } from './redacao-motor.mjs';
 import { testarOnboardingImportar } from './onboarding-importar.mjs';
 import { testarCotaIA } from './cota-ia.mjs';
 import { testarIphoneSatelites390 } from './iphone-satelites-390.mjs';
@@ -99,6 +100,13 @@ const ok = (cond, label) => { console.log((cond ? '✓ ' : '✗ ') + label); if 
 page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
 
 // CT_SO=redacao-mesa roda só o módulo pedido — para o ciclo curto de uma tela.
+if (process.env.CT_SO === 'redacao-motor') {
+  testarRedacaoMotorEstatico(ok);
+  await testarRedacaoMotor(page, URL0, ok, { motor });
+  await browser.close(); srv.close();
+  console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
+  process.exit(falhas.length ? 1 : 0);
+}
 if (process.env.CT_SO === 'redacao-mesa') {
   await testarRedacaoMesa(page, URL0, ok, { motor });
   await browser.close(); srv.close();
@@ -9728,6 +9736,7 @@ catch (e) {
 // Erro de simulado → revisão → material de origem (LEGIS/JURIS)
 try { await testarPrioridadeDiscursiva(page, URL0, ok); } catch(e) { ok(false, 'DISCURSIVA exceção: '+e.message); }
 try { await testarRedacaoMesa(page, URL0, ok, { motor }); } catch(e) { ok(false, 'MESA exceção: '+e.message); }
+try { testarRedacaoMotorEstatico(ok); await testarRedacaoMotor(page, URL0, ok, { motor }); } catch(e) { ok(false, 'MOTOR exceção: '+e.message); }
 try { await testarRevisaoFonte(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'REVISÃO/FONTE [' + motor + '] o roteiro correu sem exceção ('
