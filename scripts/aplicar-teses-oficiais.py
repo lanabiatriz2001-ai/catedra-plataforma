@@ -55,6 +55,12 @@ def corta(s, n=CORTE_LISTA):
     return c + '…'
 
 
+def sem_nota(v):
+    """Nota da plataforma não entra no acervo (03/10/2026: no verbete fica o texto oficial e o que a
+    pessoa anota). A referência ainda guarda o campo 'co'; daqui ele não sai mais para lugar nenhum."""
+    return None if (v and 'Nota do C' in v) else v
+
+
 def le_js(caminho, glob):
     s = open(caminho, encoding='utf-8').read()
     pre = 'window.' + glob + '='
@@ -120,7 +126,7 @@ def aplica_web(ref, sai=frozenset()):
         idx[k] = [r[0], o['tribunal'], o['fonte'], o['numero'], o['titulo'], r[5], tema, o['data'], o['situacao']] + r[9:]
         antigo = txt.get(r[0]) or {}
         novo = {'en': o['enunciado'], 'ur': o['url'], 'og': o['orgaoJulgador'], 'fp': o['fp'],
-                'co': o['co'] if 'co' in o else antigo.get('co'), 'ob': o['observacao'], 'tm': o['tema'] if tema != o['tema'] else None}
+                'co': sem_nota(antigo.get('co')), 'ob': o['observacao'], 'tm': o['tema'] if tema != o['tema'] else None}
         txt[r[0]] = {c: v for c, v in novo.items() if v}   # juris-text é um objeto: a ordem das chaves se mantém
     faltam = set(ref) - vistos
     assert not faltam, f'ids da referência ausentes da web: {sorted(faltam)[:5]}'
@@ -184,7 +190,7 @@ def aplica_nativo(ref, dir_nat, l4=None):
                  'tema': o['tema'], 'orgaoJulgador': o['orgaoJulgador'], 'data': o['data'],
                  'situacao': o['situacao'], 'fontePublicacao': None, 'referencias': None,
                  'precedentes': o['precedentes'], 'observacao': o['observacao'], 'url': o['url'],
-                 'comentario': o['co'] if 'co' in o else r.get('comentario')}
+                 'comentario': sem_nota(r.get('comentario'))}
     # ids que a auditoria criou por patch "add" (não estão no repercussao_geral.json): o registro
     # oficial deles entra pela trava, por cima do patch, no build_corpus.py
     por_patch = set()
@@ -201,8 +207,6 @@ def aplica_nativo(ref, dir_nat, l4=None):
     def campos(o):
         c = {k: o[k] for k in CAMPOS}
         c.update({'fontePublicacao': None, 'referencias': None})
-        if 'co' in o:
-            c['comentario'] = o['co']
         return c
     trava = {i: campos(o) for i, o in sorted(ref.items())}
     with open(os.path.join(dir_nat, 'scripts', 'teses_oficiais.json'), 'w', encoding='utf-8') as f:

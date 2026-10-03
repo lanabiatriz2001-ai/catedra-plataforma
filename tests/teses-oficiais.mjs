@@ -10,8 +10,8 @@
          no índice nem no texto; link da página oficial (portal.stf.jus.br / processo.stj.jus.br);
          título com o número do tema; tribunal, fonte, número, data, situação, órgão, observação e
          citação da fonte oficial; o tema é o título oficial (STF) ou a questão submetida (STJ) —
-         cortado só na coluna da lista, inteiro no campo tm do verbete; Nota do Cátedra que existia
-         fica (reler_nota) e a do L3 (erro de digitação na fonte oficial) é a da referência;
+         cortado só na coluna da lista, inteiro no campo tm do verbete; nenhuma Nota do Cátedra
+         (saíram do acervo em 03/10/2026): onde a fonte oficial tem erro de digitação, ele fica literal;
    · (a') relator do STF é o do julgamento (andamentos oficiais), não o atual da exportação;
    · (a'') cada id em um lote só, um tema por verbete, e nada do que ficou pendente ou foi para o L4
          (fusão/retirada) foi trocado;
@@ -116,8 +116,9 @@ export function testarTesesOficiaisEstatico(ok, opcoes = {}) {
     if (t.en !== o.enunciado) ruins.texto.push(i);
     if (r[1] !== o.tribunal || r[2] !== o.fonte || r[7] !== o.data || r[8] !== o.situacao
       || (t.og || null) !== o.orgaoJulgador || (t.ob || null) !== o.observacao || (t.fp || null) !== o.fp) ruins.campos.push(i);
-    // Nota do Cátedra: a da referência (L3, caso d) é a que pinta; a que existia fica (reler_nota)
-    if ('co' in o ? (t.co || null) !== o.co : (o.reler_nota ? !/^Nota do Cátedra/.test(t.co || '') : false)) ruins.nota.push(i);
+    // Nota do Cátedra: saiu do acervo em 03/10/2026 (decisão da dona — no verbete fica o texto oficial
+    // e o que a pessoa anota). A referência ainda guarda o texto das notas; o aplicador não o leva mais.
+    if (/Nota do C[áa]tedra/.test((t.co || '') + (t.ob || ''))) ruins.nota.push(i);
     const inteiro = t.tm || r[6];
     const cortado = (o.tema || '').length > CORTE;
     if (inteiro !== o.tema || (cortado
@@ -131,15 +132,14 @@ export function testarTesesOficiaisEstatico(ok, opcoes = {}) {
   ok(ruins.texto.length === 0, R + '(a) enunciado idêntico ao texto oficial guardado na referência' + mostra(ruins.texto));
   ok(ruins.campos.length === 0, R + '(a) tribunal, fonte, data, situação, órgão, observação e citação são os oficiais' + mostra(ruins.campos));
   ok(ruins.tema.length === 0, R + '(a) tema oficial inteiro no verbete e cortado (≤ ' + CORTE + ' + "…") só na coluna da lista' + mostra(ruins.tema));
-  ok(ruins.nota.length === 0, R + '(a) Nota do Cátedra que existia continua no verbete e a nota nova do L3 é a da referência' + mostra(ruins.nota));
+  ok(ruins.nota.length === 0, R + '(a) nenhum verbete dos lotes traz Nota do Cátedra: só o texto oficial' + mostra(ruins.nota));
   const comNotaNova = ids.filter(i => ref[i].caso === 'd');
-  // caso d: o enunciado fica LITERAL (com o erro) e a nota aponta o erro — as duas coisas juntas
-  ok(comNotaNova.length > 0 && comNotaNova.every(i => 'co' in ref[i] && /Nota do Cátedra[^]*tese oficial/.test(TXT[i].co || '')
-      && TXT[i].en === ref[i].enunciado),
-    R + '(a) caso d: o texto oficial fica literal e a Nota do Cátedra que aponta o erro de digitação está no verbete (' + comNotaNova.length + ')');
+  // caso d: o enunciado fica LITERAL (com o erro de digitação da fonte) e sem nota por cima
+  ok(comNotaNova.length > 0 && comNotaNova.every(i => !TXT[i].co && TXT[i].en === ref[i].enunciado),
+    R + '(a) caso d: o texto oficial fica literal, sem nota da plataforma (' + comNotaNova.length + ')');
   const t1149 = ids.find(i => ref[i].tribunal === 'STJ' && ref[i].numero === 1149);
-  ok(!!t1149 && /Lei 9\.969\/1998/.test(TXT[t1149].en) && /9\.696\/1998/.test(TXT[t1149].co || ''),
-    R + '(a) caso d: STJ Tema 1149 mantém "Lei 9.969/1998" como o STJ publicou e a nota diz que é a Lei 9.696/1998');
+  ok(!!t1149 && /Lei 9\.969\/1998/.test(TXT[t1149].en),
+    R + '(a) caso d: STJ Tema 1149 mantém "Lei 9.969/1998" como o STJ publicou');
   // (a') relator do julgamento no STF, não o atual da exportação
   const achaTema = (trib, n) => ids.find(i => ref[i].tribunal === trib && ref[i].numero === n);
   const REL = [[457, /Rel\. Min\. Celso de Mello$/, 'Celso de Mello (a exportação diz Nunes Marques, que herdou o acervo)'],

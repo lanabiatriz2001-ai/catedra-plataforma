@@ -56,128 +56,18 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 .oralNota.m{background:#eab3081f;color:#a16207}
 .oralNota.r{background:#dc26261f;color:#b91c1c}
 .estWrap{margin-top:18px;border-top:1px dashed var(--border,#e6e1d4);padding-top:14px}
-.estBtn{border:1.5px solid var(--accent,#0f7a57);background:none;color:var(--accent,#0f7a57);border-radius:10px;padding:9px 15px;font:700 12.5px inherit;cursor:pointer}
-.estBtn[disabled]{opacity:.55;cursor:default}
 .estBlk{margin-top:13px}
 .estBlk h4{margin-bottom:5px}
-.estBlk p,.estBlk li,.estBlk .qdVal{font-size:14px;line-height:1.6}
+.estBlk p,.estBlk li{font-size:14px;line-height:1.6}
 .estBlk ul{padding-left:19px}
 .estBlk li{margin-bottom:5px}
-.estFrase p{background:color-mix(in srgb,var(--accent,#0f7a57) 10%,transparent);border:1px solid color-mix(in srgb,var(--accent,#0f7a57) 34%,transparent);padding:11px 13px;border-radius:8px;font-weight:600}
-/* A caixa é do CONTAINER, não do miolo. Enquanto ela era ".estFund p, .estJur ul", trocar a
-   lista de "Relacionados" por uma grade deixava três seletores órfãos de uma vez: o bloco
-   nascia sem fundo e, no modo imersão, claro dentro do escuro. Agora quem quer caixa ganha
-   a classe, seja <p>, <ul> ou <div>. */
-.estCaixa{background:color-mix(in srgb,var(--ink,#1f1c17) 4%,transparent);border:1px solid var(--border,#e6e1d4);padding:11px 13px;border-radius:8px}
-.estJur ul.estCaixa{padding-left:30px}
 .estAt p{background:#fff7ed;border:1px solid color-mix(in srgb,#ea580c 34%,transparent);background-image:linear-gradient(90deg,color-mix(in srgb,#ea580c 18%,transparent),transparent 46%);padding:11px 13px;border-radius:8px;color:#7c2d12}
 .estHoje p{background:#f0fdf4;border:1px solid color-mix(in srgb,#16a34a 34%,transparent);background-image:linear-gradient(90deg,color-mix(in srgb,#16a34a 18%,transparent),transparent 46%);padding:11px 13px;border-radius:8px;color:#14532d}
 .estPeg p{background:#fef2f2;border:1px solid color-mix(in srgb,#dc2626 34%,transparent);background-image:linear-gradient(90deg,color-mix(in srgb,#dc2626 18%,transparent),transparent 46%);padding:11px 13px;border-radius:8px;color:#7f1d1d;font-weight:500}
-.rdr.dark .estCaixa{background:#ffffff0a;border-color:#ffffff1f}
 .rdr.dark .estAt p{background:#7c2d1233;color:#fed7aa}
 .rdr.dark .estHoje p{background:#14532d33;color:#bbf7d0}
 .rdr.dark .estPeg p{background:#7f1d1d33;color:#fecaca}
-.estFonte{font-size:11px;color:var(--text2,#5c564a);margin-top:10px;font-style:italic}
 
-/* ===== "Não confunda com" — o quadro comparativo dos vizinhos =====
-   Uma lista de rótulos opacos ("STF · Tema 1282") não ensina a diferença; o que engana na
-   prova é justamente a semelhança. O quadro põe os vizinhos lado a lado pelos elementos
-   que a banca cobra e só mostra as linhas em que eles DIFEREM.
-   Empilhado por padrão: a matriz só vale quando cada coluna passa de ~190px, e dentro do
-   leitor o mapa lateral leva 270px — a 700px sobrariam 115px por coluna. É a mesma conta
-   que o Histórico do app fez para virar cartão no celular.
-   minmax(0,1fr) e não 1fr também no empilhado: 1fr é minmax(auto,1fr), e o "auto" deixa
-   o trilho crescer até a palavra mais comprida da coluna — a 390px ela passava da borda. */
-.qdCtx+.qdCtx{margin-top:6px}
-.qdGrade{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;margin-top:12px}
-.qdCol{border:1px solid var(--rline,var(--border,#e6e1d4));border-radius:10px;padding:11px 13px;background:var(--rcard,var(--surface,#fffdf8))}
-/* A coluna do verbete aberto: borda INTEIRA tingida + lavagem (o padrão .ct-item da casa),
-   nunca faixa lateral. E nunca só a cor — o cabeçalho também diz por escrito que é ela. */
-.qdCol.aberta{border-color:color-mix(in srgb,var(--rc,var(--accent,#0f7a57)) 38%,transparent);
-  background-image:linear-gradient(90deg,color-mix(in srgb,var(--rc,var(--accent,#0f7a57)) 18%,transparent),transparent 46%)}
-/* Coluna em flex, e não em bloco: o cabeçalho que ABRE o vizinho é um <button>, e o navegador
-   centraliza na vertical o conteúdo de botão esticado. Lado a lado, a linha de cabeçalho tem a
-   altura do mais alto ("o verbete aberto" ocupa uma linha a mais), e o título do vizinho descia
-   para o meio dela, desalinhado do título ao lado. */
-.qdCab{display:flex;flex-direction:column;justify-content:flex-start;width:100%;text-align:left;border:0;border-bottom:1px solid var(--rline,var(--border,#e6e1d4));background:none;padding:0 0 8px;margin:0 0 9px;font:inherit;color:inherit}
-.qdCab b{display:block;font-size:var(--fs-sm,12.5px);font-weight:800;line-height:1.3;color:var(--rink,var(--ink,#1f1c17))}
-.qdCab small,.qdCab em{display:block;margin-top:2px;font-size:var(--fs-3xs,10.5px);font-style:normal;font-weight:700;letter-spacing:.03em;color:var(--rdim,var(--text2,#5c564a))}
-/* Cabeçalho que ABRE o verbete precisa parecer que abre: sublinhado, a mesma linguagem do
-   vizinho em "Do mesmo assunto". Sem ele, coluna clicável e coluna morta ficam idênticas. */
-button.qdCab{cursor:pointer}
-button.qdCab b{text-decoration:underline;text-underline-offset:2px}
-button.qdCab:hover b{text-decoration-thickness:2px}
-button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#0f7a57)) 55%,transparent)}
-.qdCel{margin-bottom:9px}
-.qdCel:last-child{margin-bottom:0}
-.qdRot{display:block;margin-bottom:2px}
-.qdVal{display:block;color:var(--rctext,var(--ink,#1f1c17))}
-/* "inconstitucionalidade" tem 21 letras e aparece 628 vezes no acervo. Numa coluna estreita
-   (leitor com o mapa aberto e o texto no A+) ela é mais larga que o cartão, e sem quebrar
-   dentro da palavra o texto sai por fora — inclusive o "nº 1282" do cabeçalho, justamente o
-   número que este bloco existe para não deixar confundir. */
-/* O bloco inteiro, não só a célula: a frase "Não confunda", o rodapé com os "Confira:" e a
-   lista do mesmo assunto também vêm de texto que ninguém revisou, e uma palavra de 170 letras
-   na trava fazia o documento do leitor rolar de lado a 390px (medido: 786px de sobra). */
-.estQd,.estQdOferta,.qdVal,.qdCab b,.qdCab small,.qdLink{overflow-wrap:anywhere}
-.qdTrava{margin-top:13px;padding-top:11px;border-top:1px dashed var(--rline,var(--border,#e6e1d4))}
-.qdTrava p{font-weight:500}
-.qdTrava p+p{margin-top:7px}
-.qdMais{margin-top:11px}
-.qdMais ul{margin-top:4px}
-/* A cor do ramo reprova como texto em vários ramos (medido: 3,19:1 no trabalhista claro,
-   2,29:1 no eleitoral escuro). O link do vizinho é tinta de corpo com sublinhado — cor
-   nunca sozinha, e contraste garantido nos dois modos. */
-.qdLink{border:0;background:none;padding:0;font:inherit;color:var(--rctext,var(--ink,#1f1c17));text-align:left;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
-.qdLink:hover{text-decoration-thickness:2px}
-.estQdOferta{margin-top:13px}
-/* O ponto de virada é a largura DA GRADE, não a da janela. A conta que a media query fazia
-   (janela − 270 do mapa − 64 do .doc − 28 da caixa) só vale com o mapa aberto e com o texto
-   solto — e MEDIDO no navegador ela erra dos dois lados:
-     · de 641 a 700px (o número do contrato) a grade tem 279–338px: duas colunas dariam 134–164px,
-       ficha empilhada fingindo ser quadro — aqui o contrato não vale, e a media query já sabia;
-     · abaixo de 641 o mapa some e a grade SOBE para 542px, mas a media query continuava
-       empilhando um quadro de duas colunas que cabia com folga (266px cada);
-     · no modo leitura o .docwrap trava em 65ch: a 980px a grade tem 587px, e a media query
-       abria três colunas de 189px com corpo de 17px serifado — umas 20 letras por linha.
-   O piso em que a matriz ainda se lê é ~190px por coluna com o corpo de 14px, ou seja 13,5em
-   do corpo da célula. A caixa do quadro é o container e leva o MESMO corpo da célula (logo
-   abaixo), então o "em" da condição acompanha o modo leitura sozinho:
-     duas colunas:  2 × 13,5em + 1 vão de 10px ≈ 27,7em  (388px no corpo de 14 · 471px no de 17)
-     três colunas:  3 × 13,5em + 2 vãos        ≈ 42em    (588px no corpo de 14 · 714px no de 17)
-   Motor sem container query (Safari < 16, que também não tem color-mix) fica no empilhado,
-   que é legível em qualquer largura. --qdn é o total de colunas e vira data-qd-n porque a
-   condição do container não lê variável CSS. */
-.qdCaixa{container:qd/inline-size;font-size:14px}
-/* mesmo valor do corpo da célula no modo leitura (.rdr.leitura .estBlk .qdVal, mais abaixo) */
-.rdr.leitura .qdCaixa{font-size:max(17px,calc(var(--rfs,15px) + 2px))}
-@container qd (min-width:27.7em){
-  .qdGrade[data-qd-n="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
-  @supports (grid-template-rows:subgrid){
-    .qdGrade[data-qd-n="2"]{grid-template-rows:auto repeat(var(--qdl,1),auto)}
-    .qdGrade[data-qd-n="2"] .qdCol{display:grid;grid-row:1/-1;grid-template-rows:subgrid;grid-template-columns:minmax(0,1fr)}
-    .qdGrade[data-qd-n="2"] .qdCel{margin-bottom:0;padding-bottom:9px}
-  }
-}
-@container qd (min-width:42em){
-  .qdGrade{grid-template-columns:repeat(var(--qdn,3),minmax(0,1fr))}
-  /* Subgrid alinha o rótulo da mesma linha nas três colunas; sem ele os cartões apenas
-     ficam lado a lado, que continua legível.
-     grid-template-columns é OBRIGATÓRIO aqui: sem ele a coluna implícita do subgrid é
-     "auto", cujo mínimo automático é o min-content — a palavra mais comprida da coluna
-     inteira. Bastava um "inconstitucionalidade" numa célula para o trilho crescer, e TODOS
-     os itens da coluna (o cabeçalho junto) serem dispostos nessa largura e saírem por cima
-     do cartão vizinho, que é opaco e come o número do tema. */
-  @supports (grid-template-rows:subgrid){
-    .qdGrade{grid-template-rows:auto repeat(var(--qdl,1),auto)}
-    .qdCol{display:grid;grid-row:1/-1;grid-template-rows:subgrid;grid-template-columns:minmax(0,1fr)}
-    .qdCel{margin-bottom:0;padding-bottom:9px}
-  }
-}
-/* O foco volta para o bloco quando o quadro chega e troca o botão que tinha o foco: sem isso
-   quem navega por teclado cai no topo da página. O bloco não é alvo de Tab (tabindex=-1),
-   então o anel dele seria só ruído. */
-#estQdSlot:focus{outline:none}
 .avEd{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:color-mix(in srgb,var(--accent,#0f7a57) 9%,transparent);border:1.5px solid var(--accent,#0f7a57);border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:12.5px;font-weight:600;color:var(--text2,#5c564a)}
 .avEd button{border:0;background:var(--accentSolid,var(--accent,#0f7a57));color:var(--onAccent,#fff);border-radius:8px;padding:6px 12px;font:700 12px inherit;cursor:pointer}
 .gmais{border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);border-radius:10px;padding:7px 14px;font:700 12px inherit;color:var(--text2,#5c564a);cursor:pointer;margin-top:8px}
@@ -332,15 +222,14 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
    destaca. Nível forte só para o que organiza a leitura; nível fraco para metadado.
    Os dois níveis moram SÓ aqui: mudar de nível é trocar a classe, não reescrever fonte. */
 .mlF,.block .lbl,.oral h4,.estBlk h4,.rdr .venun .lbl{font-weight:800;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--rc,var(--accent,#0f7a57))}
-.mlW,.reg,.qdRot,.rdr .vblk .lbl{font-weight:700;font-size:9.5px;letter-spacing:.02em;text-transform:uppercase;color:var(--text2,#5c564a)}
+.mlW,.reg,.rdr .vblk .lbl{font-weight:700;font-size:9.5px;letter-spacing:.02em;text-transform:uppercase;color:var(--text2,#5c564a)}
 /* Dentro do leitor a paleta é própria e vira do claro para o escuro no modo imersão:
    puxar --text2 do host apagaria o rótulo justamente no escuro. */
 .rdr .mlF,.rdr .venun .lbl{font-family:var(--rbody);color:var(--rc)}
-.rdr .mlW,.rdr .qdRot,.rdr .vblk .lbl{font-family:var(--rbody);color:var(--rdim)}
+.rdr .mlW,.rdr .vblk .lbl{font-family:var(--rbody);color:var(--rdim)}
 /* Mesma razão para o rodapé de honestidade: --text2 é tinta do host e, sobre o palco escuro
    do modo imersão, media 2,56:1 — justamente a linha que manda conferir os números antes de
    decorar. Com --rdim dá 6,03:1 no escuro e ~6,5:1 no claro. */
-.rdr .estFonte{color:var(--rdim)}
 
 /* ===== D4 — zero absoluto vira convite =====
    "0 DOMINADOS · 0 FAVORITOS" é contabilidade do nada: quem nunca marcou nada não
@@ -370,8 +259,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
    Medida de linha curta (~68ch), corpo serifado e entrelinha larga: o mesmo texto,
    lido sem a vista escorregar de linha. Só CSS; a escolha fica no aparelho. */
 .rdr.leitura .docwrap{max-width:65ch}
-.rdr.leitura .venun .bd,.rdr.leitura .vblk .bd,.rdr.leitura .estBlk p,.rdr.leitura .estBlk li,
-.rdr.leitura .estBlk .qdVal{
+.rdr.leitura .venun .bd,.rdr.leitura .vblk .bd,.rdr.leitura .estBlk p,.rdr.leitura .estBlk li{
   font-family:var(--rdisplay);font-size:max(17px,calc(var(--rfs,15px) + 2px));line-height:1.7}
 .rdr .toolset{display:flex;gap:6px}
 .rdr .tool.mais{display:none}
@@ -381,20 +269,10 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
    Chips e pílulas eram operáveis pelo teclado e não mostravam onde o foco estava. */
 .chip:focus-visible,.tab:focus-visible,.fbtn:focus-visible,.edic:focus-visible,.st:focus-visible,
 .fav:focus-visible,.acv:focus-visible,.gmais:focus-visible,.diaAcoes button:focus-visible,
-.estBtn:focus-visible,.tccard .lks a:focus-visible,.foot a:focus-visible,
-.qdCab:focus-visible,.qdLink:focus-visible{
+.tccard .lks a:focus-visible,.foot a:focus-visible{
   outline:2px solid var(--accent,#0f7a57);outline-offset:2px}
 .rdr .tool:focus-visible,.rdr .nav:focus-visible,.rdr .back:focus-visible,.rdr .mnode:focus-visible{
   outline:2px solid var(--rc);outline-offset:2px}
-/* Os alvos do quadro são os maiores da tela e os únicos que TROCAM de verbete: quem navega
-   só por teclado precisa enxergar onde o foco está. A cor crua do ramo reprova (medido: pior
-   caso 1,95:1, o eleitoral #4338CA do modo imersão sobre a lavagem da coluna aberta). Puxada
-   28% para a tinta do leitor, a identidade do ramo continua lá e o pior caso — as 21 cores
-   de ramoColor × claro/imersão × cartão, lavagem da coluna aberta e palco (onde mora o link
-   de "Do mesmo assunto") — sobe para 3,56:1, o mesmo eleitoral na lavagem: acima dos 3:1 de
-   elemento não textual. A conta antiga (3,95:1) deixava a lavagem de fora. */
-.rdr .qdCab:focus-visible,.rdr .qdLink:focus-visible{
-  outline:2px solid color-mix(in srgb,var(--rc) 72%,var(--rink));outline-offset:2px}
 
 /* ===== D8 — celular =====
    Alvo de toque de 44px, fileiras que rolam com encaixe em vez de quebrar a pílula no
@@ -405,7 +283,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   .tabs,#trib{flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-left:-14px;margin-right:-14px;padding:2px 14px}
   .tabs::-webkit-scrollbar,#trib::-webkit-scrollbar{display:none}
   .tab,#trib .chip{flex:none;scroll-snap-align:start}
-  .tab,.chip,.fbtn,.gmais,.estBtn,.diaAcoes button,.tccard .acv,button.qdCab{min-height:44px}
+  .tab,.chip,.fbtn,.gmais,.diaAcoes button,.tccard .acv{min-height:44px}
   .tab,.chip{display:inline-flex;align-items:center}
   .pop{width:calc(100vw - 28px);max-height:58vh}
   .pop .chips{flex-wrap:wrap;overflow:visible;margin-left:0;margin-right:0;padding:0}
@@ -435,7 +313,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
    virando gaveta, ferramentas no "⋯") continua preso à largura, senão o iPad ganharia
    desenho de telefone. */
 @media (pointer:coarse){
-  .tab,.chip,.fbtn,.gmais,.estBtn,.diaAcoes button,.tccard .acv{min-height:44px}
+  .tab,.chip,.fbtn,.gmais,.diaAcoes button,.tccard .acv{min-height:44px}
   .tab,.chip{display:inline-flex;align-items:center}
   .edic{min-height:56px}
   .st{width:44px;height:44px;font-size:16px}
@@ -581,8 +459,7 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
      aqui, geradas por scripts/aplicar-teses-oficiais.py a partir de
      docs/teses-oficiais/l4-referencia.json — não edite o bloco gerado à mão.
      REGRA DE UNIÃO (os dois ids com estado): favorito = OU; status = o mais avançado
-     (dominado > em revisão > nada); grifos = união sem repetir; roteiro de IA = o do
-     canônico, e o do antigo só se o canônico não tiver. Roda UMA vez por id antigo que
+     (dominado > em revisão > nada); grifos = união sem repetir. Roda UMA vez por id antigo que
      tinha estado (marca em est.mig, que viaja com o estudo): o que a pessoa desfizer
      depois no canônico não volta. */
   var JURIS_ID_MIGRACOES={
@@ -764,8 +641,6 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
   function migraEstadoJuris(){
     var peso={'':0,rev:1,dom:2};
     var mig=(est.mig&&typeof est.mig==='object')?est.mig:{}, mudou=false;
-    var kr='catedraJurisRoteiros', rots={}, mr=false;
-    try{ rots=JSON.parse(localStorage.getItem(kr)||'{}')||{}; }catch(e){ rots={}; }
     Object.keys(JURIS_ID_MIGRACOES).forEach(function(antigo){
       if(mig[antigo])return;                    // já unido uma vez
       var novo=JURIS_ID_MIGRACOES[antigo], teve=false;
@@ -783,11 +658,9 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
           localStorage.setItem(kn,JSON.stringify(an));
         }
       }catch(e){}
-      if(rots[antigo]){ teve=true; if(!rots[novo]){rots[novo]=rots[antigo];mr=true;} }
       if(teve){ mig[antigo]=1; mudou=true; }   // sem estado nenhum não marca: se chegar depois (outro aparelho), une
     });
     if(mudou){ est.mig=mig; try{localStorage.setItem(LK,JSON.stringify(est))}catch(e){} }
-    if(mr){ try{localStorage.setItem(kr,JSON.stringify(rots))}catch(e){} }
   }
   migraEstadoJuris();
   function saveEst(){try{localStorage.setItem(LK,JSON.stringify(est))}catch(e){}}
@@ -1062,8 +935,8 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
     }
     var html='';
     html+='<div class="enun">'+(t.en?hl(t.en):'<span class="loading">Sem enunciado.</span>')+'</div>';
-    if(t.co)html+='<div class="block"><div class="lbl">Comentário</div><div class="txt">'+esc(t.co)+'</div></div>';
-    if(t.ob)html+='<div class="block"><div class="lbl">Observação</div><div class="txt">'+esc(t.ob)+'</div></div>';
+    if(t.co)html+='<div class="block"><div class="lbl">Texto da fonte</div><div class="txt">'+esc(t.co)+'</div></div>';
+    if(t.ob)html+='<div class="block"><div class="lbl">Informações da fonte</div><div class="txt">'+esc(t.ob)+'</div></div>';
     var foot='';
     if(t.fp)foot+='<span class="fp">'+esc(t.fp)+'</span>';
     else if(t.og)foot+='<span class="fp">'+esc(t.og)+'</span>';
@@ -1756,27 +1629,9 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
     _jtree.querySelectorAll('.mnode').forEach(function(n){ n.onclick=function(){ openVerbete(+n.dataset.idx); }; });
     var on=_jtree.querySelector('.mnode.on'); if(on)on.scrollIntoView({block:'nearest'});
   }
-  // ================= ROTEIRO DE ESTUDO (IA sob demanda) =================
-  // O acervo traz o enunciado OFICIAL. O que falta para estudar é a leitura: a tese em
-  // uma frase, o fundamento, o que mudou depois e a pegadinha de prova. Isso não existe
-  // nos 25 mil verbetes e não daria para escrever à mão — então é gerado pela IA do app
-  // na hora em que você abre o verbete e pede, e fica guardado.
-  //
-  // A chave NÃO começa com 'catedra:' de propósito: esse prefixo sobe para a nuvem no
-  // auth.js, e texto de IA de centenas de verbetes engordaria o sync sem necessidade.
-  // O preço é ser por aparelho; o roteiro é regerável a qualquer momento.
-  var RK='catedraJurisRoteiros', ROT={};
-  try{ ROT=JSON.parse(localStorage.getItem(RK))||{}; }catch(e){ ROT={}; }
-  function rotSave(){
-    try{
-      var ks=Object.keys(ROT);
-      if(ks.length>400){                       // teto: mantém os 400 mais recentes
-        ks.sort(function(a,b){return (ROT[a].ts||0)-(ROT[b].ts||0)});
-        ks.slice(0,ks.length-400).forEach(function(k){delete ROT[k]});
-      }
-      localStorage.setItem(RK,JSON.stringify(ROT));
-    }catch(e){}
-  }
+  // O roteiro de estudo escrito pela IA saiu do leitor (decisão da dona, 03/10/2026): o verbete
+  // mostra o texto oficial e o que a pessoa marca. O que ficou guardado no aparelho sai junto.
+  try{ localStorage.removeItem('catedraJurisRoteiros'); }catch(e){}
 
   // Ponte de IA: o frame não tem window.claude (a ponte nativa é só do frame principal),
   // então o pedido vai para o app por postMessage e a resposta volta pelo mesmo canal.
@@ -1797,682 +1652,10 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
     });
   }
 
-  function promptRoteiro(r,t){
-    return 'Você prepara material de estudo para concursos jurídicos brasileiros de alto nível '
-      +'(magistratura, MP, procuradorias). Abaixo vai um verbete OFICIAL do acervo.\n\n'
-      +'TRIBUNAL: '+(r[I.tr]||'')+'\nCOLEÇÃO: '+nomeColecao(r[I.fo])+(r[I.nu]?'\nNÚMERO: '+r[I.nu]:'')
-      +'\nTÍTULO: '+(r[I.ti]||'')+(r[I.ra]?'\nRAMO: '+r[I.ra]:'')+(r[I.da]?'\nDATA: '+r[I.da]:'')
-      +(r[I.si]?'\nSITUAÇÃO: '+r[I.si]:'')
-      +'\n\nENUNCIADO:\n'+((t&&t.en)||'(sem enunciado)')
-      +((t&&t.ob)?'\n\nOBSERVAÇÃO DA FONTE:\n'+t.ob:'')
-      +'\n\nDevolva SOMENTE um objeto JSON, sem cercas de código e sem texto fora dele, com estas chaves:\n'
-      +'{"nivel": 1 | 2 | 3,   // 1 = todo mundo tem de saber; 2 = separa quem passa; 3 = detalhe fino\n'
-      +' "segundaFase": true | false,   // tem cara de discursiva/sentença, não só de objetiva\n'
-      +' "frase": "o que o verbete decide, em UMA frase de no máximo 40 palavras, em português claro",\n'
-      +' "fundamento": "os dispositivos legais e constitucionais que sustentam o verbete, citados por artigo",\n'
-      +' "comoEra": "o entendimento ANTERIOR, se este verbete mudou alguma coisa; string vazia se não mudou nada",\n'
-      +' "decidiu": "o que exatamente ficou decidido e por qual razão de decidir",\n'
-      +' "chave": ["3 a 5 pontos que a prova cobra deste verbete, cada um em uma linha curta"],\n'
-      +' "jurisprudencia": ["julgados ou súmulas relacionados, com tribunal e identificação; lista vazia se você não tiver certeza"],\n'
-      +' "atencao": "o que costuma ser mal compreendido; string vazia se não houver",\n'
-      +' "hoje": "se o verbete estiver cancelado, superado ou alterado, o que vale hoje; string vazia se ele estiver íntegro",\n'
-      +' "pegadinha": "a troca exata que a banca faz para transformar este verbete em alternativa errada",\n'
-      +' "quiz": [   // 3 questões no estilo da banca, sobre ESTE verbete\n'
-      +'   {"en": "enunciado da questão", "alts": ["alternativa A","alternativa B", "..."], "ok": 0,\n'
-      +'    "fb": "por que essa é a correta e onde as outras erram, com o fundamento",\n'
-      +'    "fcF": "frente do flashcard — a pergunta seca", "fcV": "verso — a resposta curta"}\n'
-      +' ]}\n\n'
-      +'REGRAS: não invente número de julgado, de súmula, de tema repetitivo nem de artigo — se não tiver certeza, '
-      +'deixe a lista vazia ou descreva sem numerar. Não repita o enunciado. Escreva em português do Brasil.';
-  }
-
-  /* ================= "NÃO CONFUNDA COM" — o quadro comparativo =================
-     "Relacionados" listava rótulos opacos ("STF · Tema 1282 (RG)") e fingia comparar:
-     quem lê não descobre por que dois temas vizinhos NÃO são a mesma coisa — e é
-     exatamente aí que a banca troca um pelo outro. O quadro põe os vizinhos lado a lado
-     pelos elementos que a prova cobra e só mostra as linhas em que eles DIFEREM.
-
-     Duas travas contra número inventado, que é o risco de um quadro escrito por IA:
-     (1) os candidatos saem do ÍNDICE em memória — a IA escolhe entre verbetes que existem,
-         não do nada, e devolve o id de cada um;
-     (2) tribunal, espécie, número, data e link são recompostos AQUI a partir do índice,
-         nunca do que a IA escreveu.
-     O quadro vem numa chamada PRÓPRIA, encadeada depois do roteiro: junto no mesmo JSON
-     ele estouraria os 4096 tokens de saída de /api/complete e a resposta truncada quebraria
-     o roteiro inteiro no JSON.parse. */
-
-  // Mesma stoplist do comparador nativo (LibraryStore.swift): sem ela "súmula", "tribunal"
-  // e "competência" casariam qualquer verbete com qualquer outro.
-  var QDSTOP={};
-  ('sumula vinculante tese teses tema temas tribunal supremo superior justica federal '
-  +'constitucional constituicao artigo processo leis decreto pelo pela pelos pelas como '
-  +'quando onde seus suas este esta esse essa aquele aquela serao serem sera sendo seja '
-  +'sejam seguinte mediante conforme inciso alinea paragrafo todos todas cada qualquer '
-  +'outro outra mesmo mesma ainda apos antes desde deve devem pode podem cabe cabem aplica '
-  +'aplicam recurso acao instancia instancias competente competencia julgar processar '
-  +'numero enunciado disposto previsto prevista efeito efeitos publico publica publicos '
-  +'publicas direito direitos sobre entre uma nao para que com').split(' ')
-    .forEach(function(w){ QDSTOP[w]=1; });
-
-  function qdTermos(s){
-    var p=norm(s).split(/[^a-z0-9]+/), out=[], i, w;
-    for(i=0;i<p.length;i++){ w=p[i]; if(w.length>=4 && !QDSTOP[w])out.push(w); }
-    return out;
-  }
-  /* Ramo normalizado para pareamento: "Direito Tributário" e "Direito Tributário,
-     Financeiro e Empresarial" são o MESMO ramo. "Processual" sai da conta — senão
-     processual civil casaria com processual penal só pela palavra do meio. */
-  var QDRAMOSTOP={direito:1,direitos:1,processual:1,processo:1,outras:1,materias:1,estatuto:1};
-  function qdRamo(ra){
-    var p=norm(ra).split(/[^a-z0-9]+/), out=[], i, w;
-    for(i=0;i<p.length;i++){ w=p[i]; if(w.length>=4 && !QDRAMOSTOP[w])out.push(w); }
-    return out;
-  }
-  function qdRamoCasa(a,b){ for(var i=0;i<a.length;i++)if(b.indexOf(a[i])>=0)return true; return false; }
-
-  /* Como este verbete seria CITADO ("sv:11", "sum:STJ:362", "tema:STF:941"). É a identidade
-     oficial, e serve para descartar o registro DUPLICADO do acervo (…-1282 e …-1282-2).
-     Porte de chaveCitavel de ios/vendor/juris/Views/QuadroRelacionados.swift:332 — a web
-     usava tribunal+número cru, e aí engolia famílias inteiras: em informativo e em
-     Jurisprudência em Teses "número" é a EDIÇÃO, não o verbete, então Ed. 33 · Teses 1 a 16
-     colapsavam numa só e os vizinhos MAIS confundíveis que existem sumiam da lista. Medido:
-     884 chaves tribunal#número com 3 ou mais registros, cobrindo 10.124 dos 12.617 registros
-     numerados. Chave VAZIA = não deduplica (é o nil do Swift).
-     Repercussão geral e repetitivo dividem a chave "tema:": o acervo classifica registros na
-     espécie errada e o mesmo tema não pode virar duas colunas.
-     Sem número próprio, a citação está no TÍTULO (o nativo faz o mesmo): os Precedentes
-     Obrigatórios são "Tema 1.234 · Eixo I", "Tema 1.234 · Eixo II"…, e as seleções de TJ
-     republicam o repetitivo como "RECURSOS REPETITIVOS (Tema 1178)". Sem ler dali, os eixos do
-     Tema 1.234 eram verbetes distintos para a trava e o quadro ensinava a não confundir o tema
-     com ele mesmo. Aqui a web é MAIS estrita que o nativo, e de propósito: só vale a citação
-     que ABRE o título, porque é ela que diz o que o registro é. Medido no acervo: das 66
-     citações em título, as que ficam no meio são julgados SOBRE a súmula — "Alienação
-     fiduciária. Súmula n. 308 do STJ. Inaplicabilidade.", "Alegação de contrariedade à Súmula
-     Vinculante 10" — e são justamente os vizinhos mais confundíveis que existem; tratá-los
-     como duplicata da própria súmula os apagava da lista. */
-  var QDTRIBCIT='STF|STJ|TSE|TJRO|TST|TNU|CNJ|TCU|STM|TRF\\d?|TRT\\d*|TRE[A-Z]{2}|TJ[A-Z]{2}';
-  var QDTRIBDEPOIS=new RegExp('^[^.;]{0,12}?\\b('+QDTRIBCIT+')\\b','i');
-  // Só estes têm acervo aqui. "Súmula 331 do TST" não tem verbete e não pode virar chave de
-  // outra Súmula 331 — a do STF é sobre ITCMD.
-  var QDCOMCORPUS={STF:1,STJ:1,TSE:1,TJRO:1};
-  function qdChaveDoTitulo(ti,trib){
-    var s=String(ti||'').replace(/^\s*recursos?\s+repetitivos?\s*\(\s*/i,''), m, t, f;
-    m=/^s[úu]mula\s+vinculante\s+n?[ºo.]?\s*(\d+)|^sv\s*n?[ºo.]?\s*(\d+)\b/i.exec(s);
-    if(m)return 'sv:'+parseInt(m[1]||m[2],10);
-    m=/^s[úu]mula\s+n?[ºo.]?\s*(\d+)/i.exec(s);
-    if(m){
-      t=QDTRIBDEPOIS.exec(s.slice(m[0].length,m[0].length+20));
-      t=t?t[1].toUpperCase():'';
-      // Exceção: o tribunal do próprio registro. "Súmula 1 do TCU" na Central de Contas é o
-      // verbete dela mesma, não uma citação para fora do acervo.
-      if(t&&!QDCOMCORPUS[t]&&t!==trib)return '';
-      return 'sum:'+(t||trib)+':'+parseInt(m[1],10);
-    }
-    m=/^tema\s+n?[ºo.]?\s*(\d[\d.]*)/i.exec(s);
-    if(m){
-      // O número do tema não identifica nada sozinho (624 números existem nos dois
-      // tribunais): o título costuma dizer qual é; quando não diz, é o do próprio registro.
-      f=norm(ti);
-      var stf=f.indexOf('stf')>=0||f.indexOf(' rg')>=0||f.indexOf('(rg')>=0||f.indexOf('repercuss')>=0,
-          stj=f.indexOf('stj')>=0||f.indexOf('repetitiv')>=0||f.indexOf('resp ')>=0;
-      t=(stf&&!stj)?'STF':(stj&&!stf)?'STJ':trib;
-      // parseInt tira o ponto de milhar e o zero à esquerda: "Tema 06" e o Tema 6 são um só.
-      return 'tema:'+t+':'+parseInt(m[1].replace(/\./g,''),10);
-    }
-    return '';
-  }
-  function qdChave(rec){
-    if(!rec)return '';
-    var fo=rec[I.fo]||'', n=rec[I.nu];
-    if(n!=null){
-      if(fo==='sumula_vinculante')return 'sv:'+n;
-      if(fo==='sumula_stf')return 'sum:STF:'+n;
-      if(fo==='sumula_stj')return 'sum:STJ:'+n;
-      if(fo==='sumula_tse')return 'sum:TSE:'+n;
-      if(fo==='tjro')return 'sum:TJRO:'+n;
-      if(fo==='repercussao_geral'||fo==='repetitivo')return 'tema:'+(rec[I.tr]||'')+':'+n;
-    }
-    return qdChaveDoTitulo(rec[I.ti],rec[I.tr]||'');
-  }
-
-  /* A segunda identidade, para quem não tem citação: o mesmo julgado republicado. As seleções
-     de TJ trazem o MESMO acórdão do STF em sel_tjgo, sel_tjrj e sel_tjpr — mesmo tribunal, mesmo
-     título, mesma data, e o assunto ora preenchido, ora "DIREITO ADMINISTRATIVO", ora vazio (por
-     isso o assunto fica FORA desta chave); e os boletins de contas repetem a mesma tese em
-     edições diferentes (ali o campo de assunto É o começo da tese, ver renderVerbete).
-     Ela substitui a trava antiga, que descartava qualquer vizinho com o ASSUNTO igual ao do
-     aberto. No acervo de jurisprudência o assunto é um cabeçalho, não a tese — "Contrato
-     Bancário" é o assunto das Súmulas 30, 176, 294 e 296 do STJ, justamente as que a banca
-     troca entre si; e todas as teses de uma edição de Jurisprudência em Teses dividem o assunto
-     da edição. Medido numa amostra de 1.524 verbetes (um a cada dez): a trava do assunto tirava
-     vizinhos de 704 deles, 3.876 no total (1.031 quando o aberto era uma tese de Jurisprudência
-     em Teses). A Súmula 30 do STJ ficava sem vizinho NENHUM, e a tela dizia "o acervo não tem
-     vizinho deste verbete" — uma frase falsa sobre o acervo; com esta chave ela volta a ter as
-     Súmulas 16, 93, 176, 233, 283, 285, 286 e 287. Título genérico ("Info 662 · STJ") não
-     identifica julgado nenhum: sem chave. */
-  function qdChaveTexto(rec){
-    var te=norm(rec[I.te]||'').replace(/\s+/g,' ').replace(/^ | $/g,''), ti;
-    if(rec[I.src]==='c'&&rec[I.fo]!=='Súmula')return te?'tx:'+te:'';
-    ti=norm(rec[I.ti]||'').replace(/\s+/g,' ').replace(/^ | $/g,'');
-    if(!ti||/^(?:(?:stf|stj|tse) · )?info \d+(?: · (?:stf|stj|tse))?$/.test(ti))return '';
-    return 'tx:'+(rec[I.tr]||'')+'|'+ti+'|'+(rec[I.da]||'');
-  }
-  /* true quando o registro repete uma identidade já vista; senão, marca as dele em vistas. */
-  function qdDuplicata(rec,vistas){
-    var k=qdChave(rec), kt=qdChaveTexto(rec);
-    if((k&&vistas[k])||(kt&&vistas[kt]))return true;
-    if(k)vistas[k]=1;
-    if(kt)vistas[kt]=1;
-    return false;
-  }
-
-  // Frequência de documento por termo (IDF): termo raro pesa mais que termo de rodapé.
-  // Refeita quando o acervo muda de tamanho — o de contas funde depois do boot.
-  var qdDF=null, qdDFn=-1;
-  function qdPrepara(){
-    if(qdDF && qdDFn===IDX.length)return;
-    qdDF={}; qdDFn=IDX.length;
-    for(var i=0;i<IDX.length;i++){
-      var ts=qdTermos((IDX[i][I.ti]||'')+' '+(IDX[i][I.te]||'')), visto={}, j;
-      for(j=0;j<ts.length;j++){ if(visto[ts[j]])continue; visto[ts[j]]=1; qdDF[ts[j]]=(qdDF[ts[j]]||0)+1; }
-    }
-  }
-
-  /* Até 8 vizinhos REAIS do acervo, por ramo + termos raros em comum. Só o índice em
-     memória: nada de rede, nada de abrir o acervo de textos inteiro. */
-  /* Quantos termos a última chamada de qdCandidatos conseguiu montar. Lido logo depois da
-     chamada (que é síncrona) só para a tela saber DIZER a verdade: "este verbete não tem
-     assunto indexado" é outra coisa que "o acervo não tem vizinho para ele". */
-  var qdUltBase=0;
-  function qdCandidatos(r,t){
-    qdPrepara();
-    var base=qdTermos((r[I.ti]||'')+' '+(r[I.te]||'')), tem={}, i, j;
-    for(i=0;i<base.length;i++)tem[base[i]]=1;
-    /* Súmula antiga não tem assunto indexado: ti="Súmula Vinculante 10" e te vazio deixam a
-       base em 0 termos. São 2.897 dos 15.236 verbetes (19%) — as 63 vinculantes, 736 súmulas
-       do STF, 240 do STJ e 711 temas —, e é justamente o material de maior incidência em
-       magistratura. O nativo não sofre disso porque soma o enunciado (LibraryStore, termos
-       chave). Aqui o enunciado entra só como SOCORRO, quando título+assunto não dão 2 termos:
-       para os outros 81% o pareamento por ti+te é mais preciso e fica como está. O texto já
-       está em memória neste ponto — nada de rede, nada do caminho monolítico de 10 MB. */
-    if(Object.keys(tem).length<2 && t && t.en){
-      var ext=qdTermos(String(t.en).slice(0,600));
-      for(i=0;i<ext.length;i++)tem[ext[i]]=1;
-    }
-    var nb=Object.keys(tem).length;
-    qdUltBase=nb;
-    if(nb<2)return [];            // sem base de termos não há como procurar vizinho
-    var ram=qdRamo(r[I.ra]), meuId=r[I.id], meuTr=r[I.tr]||'', meuRa=norm(r[I.ra]||''),
-        meuSrc=r[I.src]||'', n=Math.max(IDX.length,1), pont=[];
-    for(i=0;i<IDX.length;i++){
-      var c=IDX[i];
-      if(c[I.id]===meuId)continue;
-      if((c[I.src]||'')!==meuSrc)continue;                 // jurisprudência e contas não se comparam
-      var cr=qdRamo(c[I.ra]);
-      if(ram.length ? !qdRamoCasa(ram,cr) : (c[I.fo]!==r[I.fo]))continue;
-      var ct=qdTermos((c[I.ti]||'')+' '+(c[I.te]||'')), vc={}, comum=0, s=0, w;
-      for(j=0;j<ct.length;j++){ w=ct[j]; if(vc[w]||!tem[w])continue; vc[w]=1; comum++; s+=Math.log(n/(1+(qdDF[w]||0))); }
-      if(comum<2)continue;
-      if(norm(c[I.ra]||'')===meuRa)s+=1;
-      if((c[I.tr]||'')!==meuTr)s+=0.8;                     // o que confunde na prova é o vizinho de OUTRO tribunal
-      pont.push({r:c,s:s});
-    }
-    pont.sort(function(a,b){ return b.s-a.s; });
-    // O acervo tem duplicata REAL: …-1282 e …-1282-2 são o mesmo tema em dois registros.
-    // Semear a trava com o próprio verbete evita a pior das colunas — a que se compara consigo.
-    // A trava é a chave CITÁVEL e a de TEXTO (qdDuplicata), nunca tribunal+número nem o assunto.
-    var out=[], dup={};
-    qdDuplicata(r,dup);
-    for(i=0;i<pont.length && out.length<8;i++){
-      if(qdDuplicata(pont[i].r,dup))continue;
-      out.push(pont[i].r);
-    }
-    return out;
-  }
-
-  /* O mesmo julgado REPUBLICADO: as coletâneas de informativo de 2020 e de 2021 trazem os
-     mesmos acórdãos com ids diferentes e título genérico ("Info 684 · STJ"), que nenhuma chave
-     de índice separa sem risco — dois julgados da mesma edição dividem tribunal, data e assunto.
-     O que denuncia a cópia é o ENUNCIADO. Mas texto quase igual, sozinho, não basta: é
-     exatamente o par que o quadro existe para mostrar (duas súmulas que só trocam "estaduais"
-     por "municipal"). Por isso só é eco quando tribunal E data também coincidem — aí é o mesmo
-     julgado publicado duas vezes. Régua: 90% das palavras em comum, texto com 8 ou mais. */
-  function qdPalavras(s){
-    var p=norm(s).split(/[^a-z0-9]+/), w={}, n=0, i;
-    for(i=0;i<p.length;i++)if(p[i].length>3&&!w[p[i]]){ w[p[i]]=1; n++; }
-    return {w:w, n:n};
-  }
-  function qdEco(a,b){
-    if(a.n<8||b.n<8||a.tr!==b.tr||!a.da||a.da!==b.da)return false;
-    var comum=0, k;
-    for(k in a.w)if(b.w[k])comum++;
-    return comum/Math.min(a.n,b.n)>=0.9;
-  }
-  /* Roda depois de qdTrechos, quando os textos já chegaram; candidato sem texto em memória
-     passa como está (a trava de índice, qdDuplicata, já rodou antes). */
-  function qdSemEco(r,t,cands){
-    var alvo=cands.length?fonteDe(cands[0]):null, vistos=[], out=[], i, j, pw, tm, eco;
-    if(t&&t.en){ pw=qdPalavras(t.en); pw.tr=r[I.tr]||''; pw.da=r[I.da]||''; vistos.push(pw); }
-    for(i=0;i<cands.length;i++){
-      tm=alvo&&alvo.txt&&alvo.txt[cands[i][I.id]];
-      if(!(tm&&tm.en)){ out.push(cands[i]); continue; }
-      pw=qdPalavras(tm.en); pw.tr=cands[i][I.tr]||''; pw.da=cands[i][I.da]||''; eco=false;
-      for(j=0;j<vistos.length&&!eco;j++)if(qdEco(pw,vistos[j]))eco=true;
-      if(eco)continue;
-      vistos.push(pw); out.push(cands[i]);
-    }
-    return out;
-  }
-
-  /* Só o texto barato: o que já está em memória e, quando o acervo está fatiado, os blocos
-     dos poucos candidatos escolhidos (CTDados agrupa por bloco e guarda no IndexedDB).
-     O caminho monolítico de 10 MB NUNCA é disparado por causa do quadro. */
-  function qdTrechos(cands,cb){
-    var alvo=cands.length?fonteDe(cands[0]):null;
-    if(!alvo || !porFatia(alvo) || !window.CTDados || !window.CTDados.varios){ cb(); return; }
-    var faltam=[], i, id;
-    for(i=0;i<cands.length;i++){ id=cands[i][I.id]; if(!(alvo.txt&&alvo.txt[id]))faltam.push(id); }
-    if(!faltam.length){ cb(); return; }
-    var feito=false;
-    var t=setTimeout(function(){ if(!feito){ feito=true; cb(); } },6000);
-    function fim(){ if(feito)return; feito=true; clearTimeout(t); cb(); }
-    window.CTDados.varios(alvo.fatia,faltam).then(function(m){
-      alvo.txt=alvo.txt||{};
-      if(m)Object.keys(m).forEach(function(k){ if(!alvo.txt[k])alvo.txt[k]=m[k]; });
-      fim();
-    }).catch(fim);
-  }
-
-  // Ordem canônica das linhas e os rótulos da tela. Não inventar outros, não reordenar.
-  var QDLIN=[['quandoIncide','Quando incide'],['quemAlcanca','Quem alcança'],['teseFixada','Tese fixada'],
-             ['efeitoPratico','Efeito prático'],['excecoes','Exceções'],['desdeQuando','Desde quando'],
-             ['situacaoHoje','Situação hoje'],['fundamento','Fundamento'],['separa','O que separa']];
-  var QDMAXCOL=3, QDMAXLIN=6;
-  /* O ícone do botão fica numa constante porque o botão troca de rótulo três vezes (montando,
-     erro, de volta ao normal). Trocar por textContent apagava o <svg> Lucide junto, e depois
-     do primeiro erro o botão voltava pelado — o caso do teste só olha o estado inicial. */
-  var QDICONE='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="M15 3v18"/><path d="M3 12h18"/></svg>';
-
-  function promptQuadro(r,t,cands){
-    var alvo=cands.length?fonteDe(cands[0]):null, lista='', i;
-    for(i=0;i<cands.length;i++){
-      var c=cands[i], tm=alvo&&alvo.txt&&alvo.txt[c[I.id]], en=(tm&&tm.en)||'';
-      lista+=(i+1)+') id: '+c[I.id]
-        +' | tribunal: '+(c[I.tr]||'')
-        +' | coleção: '+nomeColecao(c[I.fo])
-        // em informativo e Teses o número é a EDIÇÃO: chamá-lo de número convida a IA a citá-lo
-        // como se identificasse o julgado
-        +(c[I.nu]!=null?(QDEDICAO[c[I.fo]]?' | edição: ':' | número: ')+c[I.nu]:'')
-        +' | título: '+(c[I.ti]||'')
-        +(c[I.ra]?' | ramo: '+c[I.ra]:'')
-        +(c[I.te]?' | assunto: '+c[I.te]:'')
-        +(c[I.da]?' | data: '+c[I.da]:'')
-        +(en?'\n   enunciado: '+String(en).replace(/\s+/g,' ').slice(0,400):'')
-        +'\n';
-    }
-    return 'Você prepara material de estudo para concursos jurídicos brasileiros de alto nível '
-      +'(magistratura, MP, procuradorias). O objetivo desta tarefa é UM só: impedir que quem '
-      +'estuda confunda o verbete aberto com os vizinhos que se parecem com ele.\n\n'
-      +'VERBETE ABERTO\nid: '+r[I.id]+'\nTRIBUNAL: '+(r[I.tr]||'')+'\nCOLEÇÃO: '+nomeColecao(r[I.fo])
-      +(r[I.nu]!=null?(QDEDICAO[r[I.fo]]?'\nEDIÇÃO: ':'\nNÚMERO: ')+r[I.nu]:'')+'\nTÍTULO: '+(r[I.ti]||'')
-      +(r[I.ra]?'\nRAMO: '+r[I.ra]:'')+(r[I.da]?'\nDATA: '+r[I.da]:'')+(r[I.si]?'\nSITUAÇÃO: '+r[I.si]:'')
-      +'\nENUNCIADO:\n'+((t&&t.en)||'(sem enunciado)')+'\n\n'
-      +'CANDIDATOS DO ACERVO (escolha entre estes; não existe outro):\n'+lista+'\n'
-      +'Escolha NO MÁXIMO 2 candidatos CONFUNDÍVEIS com o verbete aberto: mesmo objeto de '
-      +'discussão, gatilho de incidência DIFERENTE. Candidato que só é do mesmo assunto, sem '
-      +'risco real de troca, não entra. Se nenhum for confundível, devolva "colunas": [].\n\n'
-      +'Devolva SOMENTE um objeto JSON, sem cercas de código e sem texto fora dele:\n'
-      +'{"objeto": "o que se discute nos dois/três, em no máximo 12 palavras",\n'
-      +' "eixo": "a ÚNICA variável que separa as colunas, de 2 a 6 palavras",\n'
-      +' "colunas": [   // a PRIMEIRA é sempre o verbete aberto; no máximo 3 no total\n'
-      +'   {"id": "o id EXATO, copiado do verbete aberto ou da lista de candidatos",\n'
-      +'    "celulas": {\n'
-      +'      "quandoIncide": "o gatilho de fato que aparece no enunciado de uma questão, nunca um conceito",\n'
-      +'      "quemAlcanca": "a quem se aplica, terminando por quem NÃO alcança",\n'
-      +'      "teseFixada": "o núcleo operativo em até 30 palavras, preservando a palavra que muda entre as colunas",\n'
-      +'      "efeitoPratico": "o verbo que o juiz escreve (devolve / é inconstitucional / compete a…)",\n'
-      +'      "excecoes": "a ressalva, começando por salvo",\n'
-      +'      "desdeQuando": "marco temporal ou modulação",\n'
-      +'      "situacaoHoje": "vigente, superado, tese complementada ou revisto",\n'
-      +'      "fundamento": "os dispositivos citados"\n'
-      +'    }}\n'
-      +' ],\n'
-      +' "naoConfunda": ["1 ou 2 frases de até 45 palavras, uma variável por frase, no molde: '
-      +'Se <variável> = <valor A>, é o <tema A> → <efeito A>. Se = <valor B>, é o <tema B> → '
-      +'<efeito B>. O que decide é <variável>, não <a semelhança que engana>."],\n'
-      +' "semCerteza": ["cada item começa por \\"Confira: \\" e diz o que você não pôde conferir"]}\n\n'
-      +'REGRAS, todas obrigatórias:\n'
-      +'1. NÃO invente número de tema, súmula, recurso, informativo ou artigo. Só pode aparecer '
-      +'número que esteja ESCRITO no material acima. Na dúvida, escreva sem numerar.\n'
-      +'2. Devolva o "id" exato de cada coluna, copiado da lista. Coluna sem id que exista na '
-      +'lista é descartada aqui do lado.\n'
-      +'3. Chave que você não souber NÃO EXISTE: omita. Nada de "", "—", "não informado", "n/a".\n'
-      +'4. Use só as chaves de célula acima, com esses nomes, nessa ordem.\n'
-      +'5. Teste do cabeçalho tapado: se, escondendo o cabeçalho das colunas, as células de uma '
-      +'linha dizem a mesma coisa, aquela linha não separa nada — omita-a.\n'
-      +'6. Nunca comece uma frase de "naoConfunda" por "ambos" nem por "a diferença é sutil".\n'
-      +'7. Escreva em português do Brasil, com acentuação completa.';
-  }
-
-  /* Texto de célula: string vazia, traço e "não informado" são ausência (defesa contra IA
-     desobediente — o contrato diz que campo que não se sabe não existe). */
-  function qdTxt(s,max){
-    // true/false não são texto: "situacaoHoje": true pintaria a palavra "true" na célula
-    if(s==null||typeof s==='object'||typeof s==='boolean')return '';
-    s=String(s).replace(/\s+/g,' ').replace(/^[\s—–-]+/,'').replace(/[\s—–-]+$/,'');
-    var n=norm(s);
-    if(!n||n==='n/a'||n==='na'||n==='nao informado'||n==='nao informada'||n==='nao se aplica'
-      ||n==='sem informacao'||n==='desconhecido'||n==='?')return '';
-    if(max&&s.length>max)s=s.slice(0,max-1).replace(/\s+\S*$/,'')+'…';
-    return s;
-  }
-  function qdComp(s){ return norm(s).replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').replace(/^ | $/g,''); }
-
-  /* Campo de LISTA vindo da IA. "typeof v.length==='number'" não prova array: string também
-     tem .length, e o desvio mais comum do modelo é devolver "naoConfunda": "Se o ente é o
-     Município…" em vez de ["Se o ente…"]. Com o teste antigo o laço iterava os CARACTERES e
-     a tela pintava <p>S</p><p>e</p> — o bloco que dá nome à funcionalidade virava duas letras
-     soltas, e ficava gravado. Aqui a string não some: vira uma frase única, que é o que a IA
-     quis dizer. Object.prototype.toString é o teste de array que roda em qualquer motor. */
-  function qdArr(v){
-    if(Object.prototype.toString.call(v)==='[object Array]')return v;
-    if(typeof v==='string'&&v)return [v];
-    return [];
-  }
-
-  /* A frase de travamento é uma FRASE (o molde tem duas orações e até 45 palavras). Item de
-     uma a três palavras é sobra do modelo — um número solto, um "ambos", um pedaço de string
-     que virou item — e pintar isso como parágrafo do bloco que dá nome à funcionalidade é
-     pior do que não pintar nada. Roda na validação E no render: registro gravado antes desta
-     régua (ou semeado à mão) passa pelo mesmo filtro antes de chegar à tela. */
-  function qdTravas(v){
-    var a=qdArr(v), out=[], i, f;
-    for(i=0;i<a.length&&out.length<2;i++){
-      f=qdTxt(a[i],320);
-      if(f&&f.split(' ').length>=4)out.push(f);
-    }
-    return out;
-  }
-  /* O rodapé de honestidade: cada item diz o que NÃO foi conferido. "Confira: 42" não avisa
-     nada (mesma régua, duas palavras no mínimo), e o prefixo não se repete quando a IA já o
-     escreveu. Idempotente, para o render poder passar o registro gravado por aqui de novo. */
-  function qdConfiras(v,lim){
-    var a=qdArr(v), out=[], i, f;
-    for(i=0;i<a.length&&out.length<lim;i++){
-      f=qdTxt(a[i],160);
-      if(f&&f.split(' ').length>=2)out.push(norm(f).indexOf('confira')===0?f:'Confira: '+f);
-    }
-    return out;
-  }
-
-  /* Linha constante NÃO entra: se as colunas dizem a mesma coisa, aquela linha não separa
-     nada e só engorda o quadro. Filtro de CÓDIGO, rodado também no render — a IA não é
-     confiável para obedecer, e um registro gravado antes desta regra também não é. */
-  function qdLinhas(q){
-    var cols=qdArr(q&&q.colunas), out=[], i, j, k;
-    for(i=0;i<QDLIN.length&&out.length<QDMAXLIN;i++){
-      var ch=QDLIN[i][0], vals=[], dif=false;
-      for(j=0;j<cols.length;j++){
-        var v=qdTxt(cols[j]&&cols[j].celulas&&cols[j].celulas[ch]);
-        if(v)vals.push(qdComp(v));
-      }
-      if(vals.length<2)continue;
-      for(j=0;j<vals.length&&!dif;j++)for(k=j+1;k<vals.length;k++)if(vals[j]!==vals[k]){dif=true;break;}
-      if(dif)out.push(QDLIN[i]);
-    }
-    return out;
-  }
-
-  /* O rótulo da coluna, relido do índice. "nº N" só onde N IDENTIFICA o verbete (súmula, tema).
-     Em informativo, Jurisprudência em Teses e boletim de contas o número é a EDIÇÃO: depois
-     que a trava de duplicata parou de engolir essas famílias, dois julgados do mesmo Info 662
-     podiam ser colunas — e os dois cabeçalhos diziam "STJ · Informativos do STJ · nº 662",
-     idênticos na tela e no leitor de tela. E coleção sem número (seleções de TJ, controle de
-     constitucionalidade) dava "STF · Seleção TJGO" para qualquer julgado dela. Nesses casos quem
-     identifica é o título; e quando o título é só "Info 662 · STJ", é o assunto. */
-  var QDNUMERO={sumula_vinculante:1,sumula_stf:1,sumula_stj:1,sumula_tse:1,tjro:1,
-                repercussao_geral:1,repetitivo:1,'Súmula':1};
-  var QDEDICAO={informativo_stf:1,informativo_stj:1,informativo_tse:1,juris_em_teses:1,
-                'Boletim de Jurisprudência':1,'Boletim de Pessoal':1,'Informativo de Licitações e Contratos':1};
-  function qdRef(rec){
-    var fo=rec[I.fo]||'', tr=rec[I.tr]||'', esp=nomeColecao(fo), nu=rec[I.nu], p=[], ti;
-    if(tr)p.push(tr);
-    if(esp)p.push(esp);
-    if(nu!=null&&QDNUMERO[fo]){ p.push('nº '+nu); return p.join(' · '); }
-    // o título dos informativos do STF repete o tribunal ("STF · ADI 2259")
-    ti=String(rec[I.ti]||'');
-    if(tr&&ti.indexOf(tr+' · ')===0)ti=ti.slice(tr.length+3);
-    if(/^info\s+\d/i.test(ti))ti='';
-    if(nu!=null&&QDEDICAO[fo]&&norm(ti).indexOf(String(nu))<0)p.push('ed. '+nu);
-    ti=qdTxt(ti,70)||qdTxt(rec[I.te],56);
-    if(ti)p.push(ti);
-    else if(nu!=null&&!QDEDICAO[fo])p.push('nº '+nu);
-    return p.join(' · ')||'Verbete';
-  }
-
-  // Coluna montada a partir do ÍNDICE: é aqui que número inventado morre.
-  function qdCol(rec,aberto,celulas){
-    var tm=txtDe(rec), t=(tm&&tm[rec[I.id]])||{}, esp=nomeColecao(rec[I.fo]);
-    var c={id:rec[I.id], ref:qdRef(rec), aberto:!!aberto, celulas:celulas||{}};
-    if(rec[I.tr])c.tribunal=rec[I.tr];
-    if(esp)c.especie=esp;
-    if(rec[I.nu]!=null)c.numero=rec[I.nu];
-    if(rec[I.da])c.data=rec[I.da];
-    if(t.ur&&/^https?:\/\//i.test(t.ur))c.url=t.ur;
-    return c;
-  }
-  function qdCelulas(o){
-    var out={}, i;
-    if(!o||typeof o!=='object')return out;
-    for(i=0;i<QDLIN.length;i++){ var k=QDLIN[i][0], v=qdTxt(o[k],180); if(v)out[k]=v; }
-    return out;
-  }
-
-  /* Validação depois do JSON.parse. Nada do que a IA escreveu sobre identificação sobrevive:
-     tribunal, espécie, número, data e link são relidos do índice pelo id. */
-  /* "Do mesmo assunto" sai do ACERVO, não da IA: são os candidatos que sobraram depois das
-     colunas. Lista de acervo não tem número para inventar. Extraída porque ela também é o
-     que a tela mostra quando a IA recusa o quadro — os vizinhos reais não podem ser jogados
-     fora para dar lugar à lista de rótulos que a IA escreveu no roteiro. */
-  function qdMais(cands,vistos){
-    var ma=[], cd=qdArr(cands), vi=vistos||{}, i;
-    for(i=0;i<cd.length&&ma.length<6;i++){
-      var m=cd[i], mid=m&&m[I.id];
-      if(!mid||vi[mid])continue;
-      ma.push({id:mid, ref:qdRef(m)});
-    }
-    return ma;
-  }
-
-  /* Por que a última validação recusou — lido logo depois da chamada (síncrona), só para a tela
-     dizer QUAL foi a falha da IA, em vez de um "formato inesperado" para tudo. */
-  var qdMotivo='';
-  function qdValida(j,r,cands){
-    qdMotivo='formato';
-    if(!j||typeof j!=='object')return null;
-    var cru=qdArr(j.colunas);
-    if(!cru.length)return null;
-    var meu=r[I.id], rec0=byId[meu], cols=[], vistos={}, dup={}, ofertado={}, cd=qdArr(cands), i, c, id;
-    if(!rec0)return null;
-    /* Só vira coluna quem foi OFERTADO na lista de candidatos. Um id que existe no índice mas
-       não estava na lista é um verbete que a IA adivinhou pelo formato do id ("STF-SUM-736"):
-       as células dele foram escritas sem o texto dele na frente, e o índice só garante que o
-       rótulo existe — não que a comparação é verdadeira. */
-    for(i=0;i<cd.length;i++)if(cd[i])ofertado[cd[i][I.id]]=1;
-    /* A 1ª coluna é SEMPRE o verbete aberto — é ele que está na tela, e comparar sem ele não
-       é comparar. Só ele pode vir sem id que exista no índice, e só ele é imune às travas de
-       duplicata abaixo (a duplicata do acervo tem a mesma chave citável que ele). */
-    var cel0=null;
-    for(i=0;i<cru.length;i++){
-      c=cru[i]; if(!c||typeof c!=='object')continue;
-      id=c.id==null?'':String(c.id);
-      if(id===meu||(c.aberto===true&&!byId[id])){ cel0=qdCelulas(c.celulas); break; }
-    }
-    qdMotivo='semAberto';
-    if(!cel0)return null;                       // sem o verbete aberto não há com o que comparar
-    cols.push(qdCol(rec0,true,cel0));
-    vistos[meu]=1;
-    qdDuplicata(rec0,dup);
-    for(i=0;i<cru.length&&cols.length<QDMAXCOL;i++){
-      c=cru[i]; if(!c||typeof c!=='object')continue;
-      id=c.id==null?'':String(c.id);
-      var rec=byId[id];
-      // id que não existe no índice, ou que não foi ofertado, some: é a defesa contra tema inventado
-      if(!rec||vistos[id]||!ofertado[id])continue;
-      if(qdDuplicata(rec,dup))continue;
-      vistos[id]=1;
-      cols.push(qdCol(rec,false,qdCelulas(c.celulas)));
-    }
-    qdMotivo='semVizinho';
-    if(cols.length<2)return null;               // quadro de uma coluna é pior que a lista
-    var q={colunas:cols, fonte:'ia'};
-    var lin=qdLinhas(q);
-    qdMotivo='raso';
-    if(lin.length<2)return null;                // sem duas linhas que discriminem, não há quadro
-    qdMotivo='';
-    // Guarda só o que vai pintar: o registro fica enxuto e o localStorage demora mais a estourar.
-    var manter={};
-    for(i=0;i<lin.length;i++)manter[lin[i][0]]=1;
-    for(i=0;i<cols.length;i++){
-      var cel=cols[i].celulas, ks=Object.keys(cel), lim={}, z;
-      for(z=0;z<ks.length;z++)if(manter[ks[z]])lim[ks[z]]=cel[ks[z]];
-      cols[i].celulas=lim;
-    }
-    var obj=qdTxt(j.objeto,140); if(obj)q.objeto=obj;
-    var eixo=qdTxt(j.eixo,80); if(eixo)q.eixo=eixo;
-    q.naoConfunda=qdTravas(j.naoConfunda);
-    /* Quando o texto do vizinho não chegou a tempo (qdTrechos desiste em 6 s), a IA escreveu
-       as células dele a partir do título e do assunto — e para um tema o título é literalmente
-       "Tema 457 (RG)". A pessoa precisa saber disso, senão o rodapé diz a mesma coisa nos dois
-       casos. A conta é a mesma do prompt: enunciado presente no txt da fonte. */
-    var semTx=0, sc=[];
-    for(i=1;i<cols.length;i++){
-      var rk=byId[cols[i].id], tmk=rk?txtDe(rk):null, tk=(tmk&&tmk[cols[i].id])||{};
-      if(!tk.en)semTx++;
-    }
-    if(semTx)sc.push('Confira: o texto de '+semTx+(semTx>1?' vizinhos não carregou':' vizinho não carregou')
-      +' a tempo — as células dele saíram do título e do assunto.');
-    q.semCerteza=sc.concat(qdConfiras(j.semCerteza,3-sc.length));
-    q.mesmoAssunto=qdMais(cd,vistos);
-    return q;
-  }
-
-  /* Recusa DECLARADA: o prompt manda devolver "colunas": [] quando nada é confundível — e a
-     IA às vezes devolve só a coluna do próprio verbete aberto, que diz a mesma coisa. Só isso é
-     juízo da IA sobre os vizinhos. Objeto sem a chave, JSON truncado, id inventado e "menos de
-     2 linhas que discriminam" são resposta RUIM, e repetir pode resolver. */
-  function qdRecusou(j,r){
-    if(!j||typeof j!=='object'||Object.prototype.toString.call(j.colunas)!=='[object Array]')return false;
-    for(var i=0;i<j.colunas.length;i++){
-      var c=j.colunas[i];
-      if(!c||typeof c!=='object'||c.id==null||String(c.id)!==r[I.id])return false;
-    }
-    return true;
-  }
-
-  /* Chamadas do quadro em voo, por id. Sem isso a pessoa que sai do verbete e volta durante
-     a espera (são dezenas de segundos) encontra o botão habilitado de novo e dispara uma
-     SEGUNDA chamada para o mesmo verbete: duas cotas de IA gastas e a última a chegar vence,
-     sem relação com qual foi a melhor. */
-  var QDVOO={};
-  function qdEmVoo(id){ return !!QDVOO[id]; }
-  /* O último desfecho que NÃO grava registro (acervo sem vizinho, verbete sem assunto, falha da
-     IA), por id. Estado só de tela, de propósito fora do localStorage: o do acervo se refaz em
-     milissegundos e o da IA não deve sobreviver ao fechamento. Sem ele a tela esquecia o
-     desfecho a cada repintura — voltava a oferecer "Montar o quadro" para um verbete que o app
-     já sabia não ter vizinho, e engolia a falha da IA da chamada automática sem dizer nada. */
-  var QDULT={};
-
-  /* Uma chamada de IA só para o quadro. cb(codigo, porque) — e os três estados têm de ser
-     distintos na tela, porque a pessoa decide coisas diferentes em cada um:
-       1                 montou;
-       0, 'semBase'      (a) o verbete não tem assunto indexado: nem dá para procurar vizinho;
-       0, 'acervo'       (a) procurou e o acervo não tem vizinho deste verbete;
-       0, 'ia'           (b) a IA leu os vizinhos reais e disse que nenhum é confundível;
-      -1, motivo         (c) a IA falhou ou respondeu quebrado — e SÓ aqui "tente de novo" faz
-                         sentido. O motivo diz qual foi a falha (ver qdFalha).
-     Antes tudo isso caía num 0 só, que escrevia "não há vizinho confundível neste acervo":
-     falha de formato do modelo virava afirmação sobre o acervo, com os vizinhos reais na mão.
-     O roteiro continua inteiro em todos os casos. */
-  function qdGerar(r,t,cb){
-    var id=r[I.id];
-    if(QDVOO[id])return;                       // já tem chamada deste verbete em voo
-    var cands=qdCandidatos(r,t);
-    if(!cands.length){
-      var pq=qdUltBase<2?'semBase':'acervo';
-      QDULT[id]={c:0, p:pq};
-      cb(0,pq); return;
-    }
-    QDVOO[id]=1;
-    // Uma vez só: se a repintura do desfecho lançar, o .catch() lá embaixo não pode rebaixar
-    // um quadro que já foi gravado para "a IA falhou".
-    var feito=false;
-    function fim(codigo,porque,msg){
-      if(feito)return; feito=true;
-      delete QDVOO[id];
-      if(codigo===-1)QDULT[id]={c:-1, p:porque, m:msg||''}; else delete QDULT[id];
-      cb(codigo,porque);
-    }
-    qdTrechos(cands,function(){
-      var pedido;
-      cands=qdSemEco(r,t,cands);
-      // Se só havia cópias do próprio verbete, o acervo não tem vizinho — e nenhuma IA é chamada.
-      if(!cands.length){
-        feito=true; delete QDVOO[id];
-        QDULT[id]={c:0, p:'acervo'};
-        cb(0,'acervo'); return;
-      }
-      /* Qualquer exceção daqui para a frente tem de passar por fim(): sem isso QDVOO[id]
-         ficava ligado para sempre e o botão do verbete, desabilitado até recarregar a página. */
-      try{ pedido=iaPede(promptQuadro(r,t,cands)); }
-      catch(e){ fim(-1,'erro',String(e&&e.message||e)); return; }
-      pedido.then(function(txt){
-        var j=null, leu=true, q;
-        try{ j=JSON.parse(String(txt).replace(/^[^{]*/,'').replace(/[^}]*$/,'')); }catch(e){ leu=false; }
-        try{ q=qdValida(j,r,cands); }catch(e){ q=null; qdMotivo='formato'; }
-        if(q){ if(ROT[id]){ ROT[id].q=q; ROT[id].v=2; rotSave(); } fim(1); return; }
-        if(!leu||!qdRecusou(j,r)){ fim(-1,leu?qdMotivo:'formato'); return; }
-        /* A recusa é gravada com os vizinhos REAIS do acervo. Sem isso a tela jogava fora os
-           8 candidatos que o índice achou para mostrar a lista de rótulos que a IA escreveu
-           no roteiro — a única lista do bloco onde número inventado ainda sobrevivia — e o
-           botão voltava a queimar uma chamada de IA para o mesmo "não". */
-        var so={fonte:'acervo', colunas:[], naoConfunda:[], semCerteza:[], mesmoAssunto:qdMais(cands,{})};
-        if(ROT[id]){ ROT[id].q=so; ROT[id].v=2; rotSave(); }
-        fim(0,'ia');
-      }).catch(function(err){ fim(-1,'erro',String(err&&err.message||err||'')); });
-    });
-  }
-
-  /* O texto do estado (c). Cada falha diz o que aconteceu com a IA — nunca algo sobre o acervo,
-     que continua com os vizinhos que o índice achou. */
-  function qdFalha(u){
-    var m=u&&u.p, d=String((u&&u.m)||'').replace(/[.\s]+$/,'');
-    return (m==='erro' ? 'A IA não respondeu'+(d?' ('+d+')':'')+' e o quadro não saiu.'
-      : m==='semAberto' ? 'A resposta da IA deixou de fora o próprio verbete aberto, e o quadro não saiu.'
-      : m==='semVizinho' ? 'A IA escolheu vizinhos que não estavam na lista do acervo, e o quadro não saiu.'
-      : m==='raso' ? 'As colunas que a IA devolveu não se separavam em duas linhas ou mais, e o quadro não saiu.'
-      : 'A IA respondeu fora do formato combinado, e o quadro não saiu.')+' Tente de novo.';
-  }
-
-  /* Pede o quadro e põe a tela em dia com o desfecho. A repintura é do BLOCO do quadro, não do
-     roteiro inteiro: são até 81 s de espera, e quem passou esse tempo respondendo o quiz do
-     verbete perdia as respostas quando o quadro chegava e o renderEstudo refazia tudo. */
-  function qdPedir(r,t){ qdGerar(r,t,function(){ qdRepinta(r); }); }
-  function qdRepinta(r){
-    var id=r[I.id];
-    if(curId!==id)return;                      // a pessoa foi para outro verbete: nada a pintar
-    var slot=document.getElementById('estQdSlot');
-    if(!slot||!ROT[id]){ renderEstudo(r); return; }
-    var focoDentro=slot.contains(document.activeElement);
-    slot.innerHTML=qdBloco(r,ROT[id]);
-    qdLiga(r,slot);
-    if(focoDentro){ try{ slot.focus({preventScroll:true}); }catch(e){ slot.focus(); } }
-  }
-
-  /* Abre o vizinho pelo índice do registro — o mesmo caminho do mapa lateral. Quando ele
+  /* Abre o verbete pelo id — o mesmo caminho do mapa lateral. Quando ele
      está fora do recorte atual dos filtros, limpa o recorte primeiro, como o "Julgado do
      dia" já faz: melhor ir para o verbete do que o clique não fazer nada. */
-  function qdAbrir(id){
+  function abrirPorId(id){
     var rec=byId[id]; if(!rec)return;
     var i=filtered.indexOf(rec);
     if(i<0){
@@ -2483,289 +1666,17 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
     if(i>=0)openVerbete(i);
   }
   // Abrir por id, não por posição: a lista exibida segue a ORDEM DE AUTORIDADE, não a do índice.
-  window.jurisAbrirPorId=qdAbrir;
+  window.jurisAbrirPorId=abrirPorId;
   window.jurisTemId=function(id){ for(var k in byId) return !!byId[id]; return null; };   // null = índice ainda vazio
   window.jurisVerbeteAberto=function(){ return _jr.classList.contains('on') ? curId : null; };
 
-  /* Só objeto vira coluna: um registro gravado com "colunas": "abc" (ou com null no meio)
-     pintava uma coluna por LETRA, e c.id de null derrubava o roteiro inteiro. */
-  function qdColunas(q){
-    var a=qdArr(q&&q.colunas), out=[], i;
-    for(i=0;i<a.length;i++)if(a[i]&&typeof a[i]==='object')out.push(a[i]);
-    return out;
-  }
-
-  function renderQuadro(q,lin){
-    /* Sem duas colunas e duas linhas que discriminem NÃO há quadro — mas o bloco não some:
-       vira a lista "Do mesmo assunto", que é acervo puro. Guardar cols aqui é obrigatório:
-       o registro gravado na recusa tem colunas:[] e a linha de baixo estouraria.
-       Tudo o que vem do registro passa de novo pelas réguas da validação (qdTxt com teto,
-       qdTravas, qdConfiras): registro gravado antes delas, ou mexido à mão, não pinta lixo. */
-    var qq=(q&&typeof q==='object')?q:{}, cols=qdColunas(qq), mais=qdArr(qq.mesmoAssunto), li=lin||[];
-    var grade=cols.length>=2&&li.length>=2, h, i, j;
-    var recusa=!grade&&qq.fonte==='acervo';
-    var nc=grade?qdTravas(qq.naoConfunda):[], sc=qdConfiras(qq.semCerteza,3);
-    h='<div class="estBlk estQd" data-qd="'+(grade?'quadro':'so-lista')+'"'
-      +(grade?'':' data-qd-estado="'+(recusa?'recusado':'sem-linhas')+'"')+'>'
-      +'<h4>'+(grade?'Não confunda com':'Do mesmo assunto')+'</h4>';
-    if(grade){
-      var obj=qdTxt(qq.objeto,140), eixo=qdTxt(qq.eixo,80);
-      h+='<div class="estCaixa qdCaixa">';
-      if(obj)h+='<p class="qdCtx"><span class="qdRot">O que se discute</span><span class="qdVal">'+esc(obj)+'</span></p>';
-      if(eixo)h+='<p class="qdCtx"><span class="qdRot">O que separa</span><span class="qdVal">'+esc(eixo)+'</span></p>';
-      h+='<div class="qdGrade" data-qd-n="'+cols.length+'" style="--qdn:'+cols.length+';--qdl:'+li.length+'">';
-      for(i=0;i<cols.length;i++){
-        var c=cols[i], cid=c.id==null?'':String(c.id), rec=byId[cid], liga=!!rec, tag=liga?'button':'div';
-        var ref=qdTxt(c.ref,120)||(rec?qdRef(rec):'Verbete'), dt=qdTxt(c.data,40);
-        /* O aria-label SUBSTITUI o nome vindo do conteúdo, então "Abrir <ref>" apagava do
-           anúncio a data e o "o verbete aberto" — e para quem usa leitor de tela a coluna de
-           referência da comparação voltava a se distinguir só pela cor. Aqui o nome é
-           COMPOSTO. A coluna 0 não promete "Abrir": ela já está aberta, e aria-current diz
-           isso também na linguagem do leitor de tela, não só na frase. */
-        var rot = (i===0 ? esc(ref)+(dt?', '+esc(dt):'')+', o verbete aberto'
-                         : 'Abrir '+esc(ref)+(dt?', '+esc(dt):''));
-        h+='<div class="qdCol'+(i===0?' aberta':'')+'" data-qd-col="'+i+'"'+(i===0?' data-qd-aberto="1"':'')+'>'
-          +'<'+tag+' class="qdCab"'+(liga?' type="button" data-qd-id="'+esc(cid)+'" aria-label="'+rot+'"'
-            +(i===0?' aria-current="true"':''):'')+'>'
-          +'<b>'+esc(ref)+'</b>'
-          +(dt?'<small>'+esc(dt)+'</small>':'')
-          +(i===0?'<em>o verbete aberto</em>':'')
-          +'</'+tag+'>';
-        for(j=0;j<li.length;j++){
-          var ch=li[j][0], cel=(c.celulas&&typeof c.celulas==='object')?c.celulas:{}, v=qdTxt(cel[ch],180);
-          // Célula sem valor SOME (omitir vence preencher) — o lugar dela fica vazio para os
-          // rótulos continuarem alinhados entre as colunas.
-          h+=v ? '<div class="qdCel" data-qd-lin="'+ch+'"><span class="qdRot">'+esc(li[j][1])+'</span><span class="qdVal">'+esc(v)+'</span></div>'
-               : '<div class="qdCel" data-qd-lin="'+ch+'" aria-hidden="true"></div>';
-        }
-        h+='</div>';
-      }
-      h+='</div>';
-      if(nc.length){
-        h+='<div class="qdTrava">';
-        for(i=0;i<nc.length;i++)h+='<p>'+esc(nc[i])+'</p>';
-        h+='</div>';
-      }
-      h+='</div>';
-    }
-    var itens='';
-    for(i=0;i<mais.length&&i<6;i++){
-      var m=(mais[i]&&typeof mais[i]==='object')?mais[i]:{}, mid=m.id==null?'':String(m.id);
-      var rf=qdTxt(m.ref,120)||(byId[mid]?qdRef(byId[mid]):'');
-      if(!rf)continue;                         // item sem rótulo nem verbete: não há o que mostrar
-      itens+='<li>'+(byId[mid]?'<button type="button" class="qdLink ct-alvo" data-qd-id="'+esc(mid)+'">'+esc(rf)+'</button>':esc(rf))+'</li>';
-    }
-    if(itens)h+='<div class="qdMais">'+(grade?'<div class="mlW">Do mesmo assunto</div>':'')+'<ul>'+itens+'</ul></div>';
-    /* Rodapé de honestidade: dizer o que o app GARANTE e nada além. O app garante a
-       identificação, que é relida do acervo pelo id; ele não conferiu nada no tribunal, e
-       prometer isso seria inventar uma conferência que ninguém fez. E o texto das linhas é
-       da IA — dizer que o quadro "saiu do acervo" seria mentir sobre as células. */
-    h+='<div class="estFonte">'
-      +(grade
-        ? 'Quadro escrito pela IA a partir destes verbetes do acervo; a leitura das linhas é dela, confira antes de decorar. '
-        : recusa
-          ? 'A IA comparou este verbete com estes vizinhos do acervo e não achou nenhum confundível o bastante para um quadro. '
-          : 'Não saiu quadro deste verbete: as colunas não separavam nada. Estes são os vizinhos do mesmo assunto, direto do acervo. ')
-      +'Tribunal, espécie, número e data vêm do acervo do app — não foram conferidos no tribunal.'
-      +(sc.length?' '+esc(sc.join(' ')):'')
-      +'</div></div>';
-    return h;
-  }
-
-  /* O miolo do bloco do quadro, separado de renderEstudo para ser repintado SOZINHO quando a IA
-     responder (qdRepinta). Quatro saídas:
-       · registro com quadro válido     → o quadro;
-       · registro com a recusa da IA    → (b) "Do mesmo assunto", direto do acervo;
-       · roteiro sem quadro             → a lista antiga "Relacionados" + a oferta, que diz em
-                                          qual estado está: montando, (a) sem vizinho, (c) falha
-                                          da IA com "tente de novo", ou o convite inicial. */
-  function qdBloco(r,reg){
-    var id=r[I.id], qv=reg.q, qlin=qv?qdLinhas(qv):[], cols=qdColunas(qv);
-    var temQd=cols.length>=2&&qlin.length>=2;
-    // Quadro recusado pela IA: sobrou a lista do ACERVO, que continua valendo mais que a
-    // lista de rótulos do roteiro (aquela nunca passou por validação contra o índice).
-    var soLista=!temQd&&qdArr(qv&&qv.mesmoAssunto).length>0;
-    if(temQd)return renderQuadro(qv,qlin);
-    if(soLista)return renderQuadro(qv,[]);
-    var h=qdLista('estJur','Relacionados',reg.jurisprudencia,1);
-    if(reg.q)return h;
-    var emVoo=qdEmVoo(id), u=QDULT[id], estado, aviso, botao='';
-    if(emVoo){
-      estado='montando';
-      aviso='O roteiro já está pronto; o quadro comparativo entra aqui quando a IA responder.';
-      botao='<button class="estBtn" id="estQuadro" disabled>'+QDICONE+' Montando o quadro…</button>';
-    }else if(u&&u.c===0){
-      /* (a) Aqui, e SÓ aqui, o app fala pelo acervo: ele mesmo procurou e não achou. Sem botão,
-         porque repetir a busca daria o mesmo resultado — e sem culpar a IA, que nem foi chamada. */
-      estado=u.p==='semBase'?'sem-assunto':'sem-vizinho';
-      aviso=u.p==='semBase'
-        ? 'Este verbete não tem assunto indexado no acervo, então não há como procurar vizinhos para comparar.'
-        : 'O acervo do app não tem vizinho deste verbete para pôr lado a lado — e quadro de uma coluna só não compara nada.';
-    }else if(u&&u.c===-1){
-      // (c) quem falhou foi a IA. Nunca apresentar isso como fato do acervo.
-      estado='falhou';
-      aviso=qdFalha(u);
-      botao='<button class="estBtn" id="estQuadro">'+QDICONE+' Tentar de novo</button>';
-    }else{
-      estado='oferta';
-      aviso='Põe este verbete lado a lado com os vizinhos que a banca troca por ele, elemento por elemento.';
-      botao='<button class="estBtn" id="estQuadro">'+QDICONE+' Montar o quadro comparativo</button>';
-    }
-    return h+'<div class="estBlk estQdOferta" data-qd-estado="'+estado+'">'+botao
-      +'<div class="estFonte" id="estQdAviso" role="status">'+esc(aviso)+'</div></div>';
-  }
-  function qdLista(cls,rot,arr,cx){
-    // Lista que vem da IA pode vir como string: vira um item só, em vez de derrubar o roteiro
-    // inteiro com "arr.map is not a function" (ver qdArr).
-    var a=qdArr(arr), out='', i, x;
-    for(i=0;i<a.length;i++){ x=qdTxt(a[i]); if(x)out+='<li>'+esc(x)+'</li>'; }
-    if(!out)return '';
-    return '<div class="estBlk '+cls+'"><h4>'+rot+'</h4><ul'+(cx?' class="estCaixa"':'')+'>'+out+'</ul></div>';
-  }
-  // Liga os cliques do bloco do quadro. Serve às duas pinturas: a do roteiro inteiro e a do slot.
-  function qdLiga(r,el){
-    var alvos=el.querySelectorAll('[data-qd-id]'), i;
-    for(i=0;i<alvos.length;i++)(function(a){
-      a.onclick=function(){ qdAbrir(a.getAttribute('data-qd-id')); };
-    })(alvos[i]);
-    var bq=el.querySelector('#estQuadro');
-    if(bq&&!bq.disabled)bq.onclick=function(){
-      bq.disabled=true; bq.innerHTML=QDICONE+' Montando o quadro…';
-      var _tq=txtDe(r), tq=(_tq&&_tq[r[I.id]])||{};
-      qdPedir(r,tq);
-      qdRepinta(r);                            // mostra "montando", ou já o desfecho (a) se foi síncrono
-    };
-  }
-
-  /* O ícone do botão do roteiro, pela mesma razão do QDICONE: ele troca de rótulo (escrevendo,
-     erro, de volta) e trocar por textContent levava o <svg> junto. */
-  var ROTICONE='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg>';
-
+  // Abaixo do texto oficial só sobra a prova oral: quem escreve é a pessoa.
   function renderEstudo(r){
     var host=document.getElementById('jrEstudo'); if(!host)return;
-    var id=r[I.id], reg=ROT[id];
-    if(!reg){
-      host.innerHTML='<div class="estWrap"><div class="diaAcoes" style="margin-top:0">'
-        +'<button class="prim" id="estGerar" style="border-color:var(--accent,#0f7a57)">'+ROTICONE+' Gerar roteiro de estudo</button>'
-        +'<button id="estOral">Modo prova oral</button></div>'
-        +'<div class="estFonte">Tese em uma frase, fundamento, pontos-chave e a pegadinha de prova — escritos pela IA a partir do enunciado oficial acima.</div>'
-        +'<div id="estOralHost"></div></div>';
-      document.getElementById('estOral').onclick=function(){ oralIniciar(r, document.getElementById('estOralHost')); };
-      var b=document.getElementById('estGerar');
-      b.onclick=function(){
-        b.disabled=true; b.innerHTML=ROTICONE+' Escrevendo…';
-        var _tm=txtDe(r), t=(_tm&&_tm[r[I.id]])||{};
-        iaPede(promptRoteiro(r,t)).then(function(txt){
-          var j=null;
-          try{ j=JSON.parse(String(txt).replace(/^[^{]*/,'').replace(/[^}]*$/,'')); }catch(e){}
-          if(!j||typeof j!=='object'){ b.disabled=false; b.innerHTML=ROTICONE+' Gerar roteiro de estudo';
-            host.querySelector('.estFonte').textContent='A IA respondeu em formato inesperado. Tente de novo.'; return; }
-          j.ts=Date.now(); j.v=2; ROT[id]=j; rotSave();
-          /* O quadro vem numa chamada PRÓPRIA: junto no mesmo JSON ele estouraria os 4096
-             tokens de saída e a resposta truncada derrubaria o roteiro inteiro.
-             Pintar AGORA, não no callback: o roteiro já está pago e gravado, e esperar a
-             segunda ida e volta da IA deixava a pessoa até 81 s (6 s de qdTrechos + 75 s de
-             teto do iaPede) diante de um botão desabilitado, com o trabalho pronto escondido
-             no localStorage. O quadro entra por cima quando chegar (qdRepinta troca só o bloco
-             dele); se não chegar, a oferta diz por quê.
-             A ordem importa: qdPedir ANTES de pintar, para a tela já nascer sabendo que há
-             chamada em voo (QDVOO) e oferecer "Montando…" desabilitado — com o botão livre, um
-             clique durante a espera gastaria uma terceira chamada de IA. */
-          qdPedir(r,t);
-          qdRepinta(r);
-        }).catch(function(err){
-          b.disabled=false; b.innerHTML=ROTICONE+' Gerar roteiro de estudo';
-          host.querySelector('.estFonte').textContent=String(err&&err.message||err);
-        });
-      };
-      return;
-    }
-    // O sinalizador cx pede a caixa (.estCaixa). Antes ela vinha de ".estFund p" e ".estJur ul", presa ao
-    // elemento de dentro — e trocar a lista por uma grade deixava o seletor órfão.
-    function blk(cls,rot,txt,cx){ return txt?'<div class="estBlk '+cls+'"><h4>'+rot+'</h4><p'+(cx?' class="estCaixa"':'')+'>'+esc(txt)+'</p></div>':''; }
-    var etq='';
-    if(reg.nivel)etq+='<span class="diaTag">Nível '+esc(reg.nivel)+'</span>';
-    if(reg.segundaFase)etq+='<span class="diaTag">2ª fase</span>';
-    host.innerHTML='<div class="estWrap">'
-      +(etq?'<div class="diaTags" style="margin-bottom:10px">'+etq+'</div>':'')
-      +blk('estFrase','Em uma frase',reg.frase)
-      +blk('estFund','Fundamento',reg.fundamento,1)
-      +blk('estAt','Como era',reg.comoEra)
-      +blk('estHoje','O que decidiu',reg.decidiu)
-      +qdLista('estChave','Pontos que a prova cobra',reg.chave)
-      // O bloco do quadro mora num slot próprio: é o único pedaço que a resposta da IA repinta.
-      +'<div id="estQdSlot" tabindex="-1">'+qdBloco(r,reg)+'</div>'
-      +blk('estAt','Atenção',reg.atencao)
-      +blk('estHoje','O que vale hoje',reg.hoje)
-      +blk('estPeg','Pegadinha de prova',reg.pegadinha)
-      +'<div id="estQuiz"></div>'
-      +'<div class="diaAcoes"><button id="estOral">Modo prova oral</button></div>'
-      +'<div id="estOralHost"></div>'
-      +'<div class="estFonte">Roteiro escrito pela IA a partir do enunciado oficial — confira os números antes de decorar. '
-      +'<a href="#" id="estRefazer">Refazer</a></div></div>';
-    var bo=document.getElementById('estOral');
-    if(bo)bo.onclick=function(){ oralIniciar(r, document.getElementById('estOralHost')); };
-    qdLiga(r,host);
-    montaQuiz(reg, id);
-    var rf=document.getElementById('estRefazer');
-    if(rf)rf.onclick=function(ev){ ev.preventDefault(); delete ROT[id]; delete QDULT[id]; rotSave(); renderEstudo(r); };
-  }
-
-  // ---- quiz do verbete: correção na hora e flashcard do que errou
-  // O flashcard vai para a MESMA chave que o app usa (catedra:flashcards), então o que
-  // você errar aqui entra no baralho do Cátedra, não num baralho paralelo.
-  function montaQuiz(reg, id){
-    var host=document.getElementById('estQuiz'); if(!host)return;
-    // O quiz também é lista vinda da IA: string ou item que não é objeto não vira questão.
-    var qs=[], _q=qdArr(reg&&reg.quiz), _i;
-    for(_i=0;_i<_q.length;_i++)if(_q[_i]&&typeof _q[_i]==='object')qs.push(_q[_i]);
-    if(!qs.length){ host.innerHTML=''; return; }
-    var respondidas={}, errou=[];
-    function pinta(){
-      host.innerHTML='<div class="estBlk"><h4>Quiz — '+qs.length+' questões</h4>'
-        +qs.map(function(q,i){
-          var esc0=respondidas[i];
-          return '<div style="margin-bottom:14px"><div style="font-size:13.5px;line-height:1.55;margin-bottom:7px">'
-            +(i+1)+'. '+esc(q.en)+'</div>'
-            +qdArr(q.alts).map(function(a,j){
-              var cls='', extra='';
-              if(esc0!=null){
-                if(j===q.ok){cls='background:#16a34a1f;border-color:#16a34a;color:#15803d';}
-                else if(j===esc0){cls='background:#dc26261f;border-color:#dc2626;color:#b91c1c';}
-              }
-              return '<button class="qalt" data-q="'+i+'" data-a="'+j+'" '+(esc0!=null?'disabled':'')
-                +' style="display:block;width:100%;text-align:left;border:1.5px solid var(--border,#e6e1d4);background:var(--surface,#fffdf8);border-radius:9px;padding:9px 12px;margin-bottom:5px;font:13px inherit;cursor:'+(esc0!=null?'default':'pointer')+';'+cls+'">'
-                +String.fromCharCode(65+j)+') '+esc(a)+'</button>';
-            }).join('')
-            +(esc0!=null?'<div class="estBlk '+(esc0===q.ok?'estHoje':'estPeg')+'" style="margin-top:6px"><p>'
-              +(esc0===q.ok?'✓ ':'✗ ')+esc(q.fb||'')+'</p></div>':'')
-            +'</div>';
-        }).join('')
-        +(errou.length?'<button class="estBtn" id="estFc">'+(errou.length===1
-            ?'Gerar flashcard da que errei'
-            :'Gerar flashcards das '+errou.length+' que errei')+'</button>':'')
-        +'</div>';
-      host.querySelectorAll('.qalt').forEach(function(b){
-        b.onclick=function(){
-          var qi=+b.dataset.q, ai=+b.dataset.a;
-          if(respondidas[qi]!=null)return;
-          respondidas[qi]=ai;
-          if(ai!==qs[qi].ok && errou.indexOf(qi)<0)errou.push(qi);
-          pinta();
-        };
-      });
-      var fc=document.getElementById('estFc');
-      if(fc)fc.onclick=function(){
-        var novos=errou.map(function(i){ return {front:qs[i].fcF||qs[i].en, back:qs[i].fcV||qs[i].fb||''}; })
-          .filter(function(c){ return c.front&&c.back; });
-        if(!novos.length)return;
-        try{
-          window.ctEnviarAoHost({type:'ctFlashcards', cards:novos, origem:id});
-          fc.disabled=true; fc.textContent=novos.length===1?'✓ flashcard no seu baralho':('✓ '+novos.length+' flashcards no seu baralho');
-        }catch(e){ fc.textContent='Não consegui enviar os flashcards.'; }
-      };
-    }
-    pinta();
+    host.innerHTML='<div class="estWrap"><div class="diaAcoes" style="margin-top:0">'
+      +'<button id="estOral">Modo prova oral</button></div>'
+      +'<div id="estOralHost"></div></div>';
+    document.getElementById('estOral').onclick=function(){ oralIniciar(r, document.getElementById('estOralHost')); };
   }
 
   function renderVerbete(r){
@@ -2782,8 +1693,8 @@ button.qdCab:hover{border-bottom-color:color-mix(in srgb,var(--rc,var(--accent,#
       // repetitivos) vem cortado no índice, para a lista; o inteiro está em t.tm.
       +(_te&&!(t.en&&norm(t.en).indexOf(norm(String(_te).replace(/…$/,'')))===0)?'<span class="tema">'+esc(_te)+'</span>':'')+'</div></div>';
     h+='<div class="venun"><div class="lbl">Enunciado</div><div class="bd">'+(t.en?jGr(t.en):'<span style="color:var(--rdim)">Sem enunciado.</span>')+'</div></div>';
-    if(t.co)h+='<div class="vblk"><div class="lbl">Comentário</div><div class="bd">'+jGr(t.co)+'</div></div>';
-    if(t.ob)h+='<div class="vblk"><div class="lbl">Observação</div><div class="bd">'+jGr(t.ob)+'</div></div>';
+    if(t.co)h+='<div class="vblk"><div class="lbl">Texto da fonte</div><div class="bd">'+jGr(t.co)+'</div></div>';
+    if(t.ob)h+='<div class="vblk"><div class="lbl">Informações da fonte</div><div class="bd">'+jGr(t.ob)+'</div></div>';
     var foot='';
     if(t.fp)foot+='<span class="fp">'+esc(t.fp)+'</span>'; else if(t.og)foot+='<span class="fp">'+esc(t.og)+'</span>';
     if(t.ur && /^https?:\/\//i.test(t.ur))foot+='<a href="'+esc(t.ur)+'" target="_blank" rel="noopener">Ver no tribunal ↗</a>';
