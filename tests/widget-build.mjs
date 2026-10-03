@@ -67,6 +67,11 @@ export async function testarWidgetBuild(ok) {
   const irTela = iosMain.slice(iosMain.indexOf('func irParaTelaWeb('), iosMain.indexOf('func irParaTelaWeb(') + 900);
   ok(/arguments: \["v": v\]/.test(irTela) && !/evaluateJavaScript/.test(irTela), R + 'iOS: o id da tela vai como argumento do callAsyncJavaScript, nunca colado no JavaScript');
   ok(/geracaoWidget \+= 1/.test(iosMain) && /self\.geracaoWidget == geracao/.test(iosMain), R + 'iOS: passe em voo quando a conta sai não é regravado');
+  // Com o "á" composto no nome da pasta, o runningboardd não acha o registro do widget e ele some da galeria.
+  const inst = ler('mac/instalar.sh');
+  ok(inst.includes("printf 'Ca\\xcc\\x81tedra.app'") && /DESTINO="\/Applications\/\$NOME"/.test(inst) && /ditto --norsrc --noextattr --noacl "\$ORIGEM" "\$DESTINO"/.test(inst),
+    R + 'Mac: mac/instalar.sh instala com o acento decomposto no nome da pasta');
+  ok(/bash mac\/instalar\.sh/.test(ler('CLAUDE.md')), R + 'o CLAUDE.md manda instalar no Mac pelo mac/instalar.sh');
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

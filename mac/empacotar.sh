@@ -83,7 +83,7 @@ else
       # O app de /Applications continua sem tíquete até ser trocado por este (o spctl de lá
       # segue "Unnotarized" e engana quem confere depois).
       echo "   Para o app instalado neste Mac também passar no spctl, instale o grampeado (feche o app antes):"
-      echo "     rm -rf \"/Applications/Cátedra.app\" && ditto --norsrc --noextattr --noacl \"$APP\" \"/Applications/Cátedra.app\""
+      echo "     bash \"$HERE/instalar.sh\" \"$APP\""
     else
       echo "   ✗ A Apple APROVOU, mas o STAPLE falhou (rc=$ST_RC)."
       echo "     Sem o grampo o app depende de consultar a Apple: offline o testador leva bloqueio."
