@@ -14,7 +14,7 @@
    "sub": "48º Exame de Ordem Unificado · prova objetiva · FGV",
    "cargo": "Exame de Ordem — 1ª fase",
    "paginas": "item 3 (p. 12–13) e Anexo II (p. 31–37)",
-   "observacao": "O edital não traz programa da prova objetiva nem a divisão das 80 questões por disciplina: só nomeia as áreas (item 3). As disciplinas com programa oficial no Anexo II (2ª fase) entram com esses tópicos; as demais entram só com o nome. Decisão da dona em 03/10/2026.",
+   "observacao": "O edital não traz programa da prova objetiva nem a divisão das 80 questões por disciplina: só nomeia as áreas (item 3). As dez disciplinas com programa oficial no Anexo II (2ª fase) entram com esses tópicos. Em sete das demais, os tópicos são a ESTRUTURA dos diplomas que formam a disciplina (títulos, capítulos e seções do texto oficial do Planalto e do Conselho Federal da OAB, com as faixas de artigos) — não é programa de edital; as fontes estão em \"fontesComplementares\". Direitos Humanos, Filosofia do Direito e Direito Internacional não têm diploma único nem programa oficial e entram só com o nome. Busca por programa oficial da 1ª fase em 03/10/2026: Provimento 144/2011, edital Cespe 2009.3 e edital do 48º Exame não trazem; editais dos primeiros exames unificados da FGV não puderam ser abertos.",
    "fontes": [
     "oab-48-administrativo.txt",
     "oab-48-civil.txt",
@@ -25,19 +25,19 @@
     "oab-48-empresarial.txt",
     "oab-48-penal.txt",
     "oab-48-processual-penal.txt",
-    "oab-48-tributario.txt"
+    "oab-48-tributario.txt",
+    "oab-48-1fase-estatuto-da-advocacia-e-etica.txt",
+    "oab-48-1fase-direito-do-consumidor.txt",
+    "oab-48-1fase-direito-da-crianca-e-do-adolescente.txt",
+    "oab-48-1fase-direito-ambiental.txt",
+    "oab-48-1fase-direito-financeiro.txt",
+    "oab-48-1fase-direito-previdenciario.txt",
+    "oab-48-1fase-direito-eleitoral.txt"
    ],
    "semPrograma": [
-    "Estatuto da Advocacia e da OAB, Regulamento Geral e Código de Ética e Disciplina",
     "Direitos Humanos",
     "Filosofia do Direito",
-    "Direito do Consumidor",
-    "Direito da Criança e do Adolescente",
-    "Direito Ambiental",
-    "Direito Internacional",
-    "Direito Financeiro",
-    "Direito Previdenciário",
-    "Direito Eleitoral"
+    "Direito Internacional"
    ],
    "disciplinas": [
     "Direito Administrativo",
@@ -51,15 +51,165 @@
     "Direito Processual Penal",
     "Direito Tributário e Processual Tributário",
     "Estatuto da Advocacia e da OAB, Regulamento Geral e Código de Ética e Disciplina",
-    "Direitos Humanos",
-    "Filosofia do Direito",
     "Direito do Consumidor",
     "Direito da Criança e do Adolescente",
     "Direito Ambiental",
-    "Direito Internacional",
     "Direito Financeiro",
     "Direito Previdenciário",
-    "Direito Eleitoral"
+    "Direito Eleitoral",
+    "Direitos Humanos",
+    "Filosofia do Direito",
+    "Direito Internacional"
+   ],
+   "renomear": {
+    "Estatuto da Advocacia e da Oab, Regulamento Geral e Código de Ética e Disciplina": "Estatuto da Advocacia e da OAB, Regulamento Geral e Código de Ética e Disciplina"
+   },
+   "fontesComplementares": [
+    {
+     "disciplina": "Estatuto da Advocacia e da OAB, Regulamento Geral e Código de Ética e Disciplina",
+     "fontes": [
+      {
+       "titulo": "Lei nº 8.906/1994 (Planalto)",
+       "url": "https://www.planalto.gov.br/ccivil_03/leis/l8906.htm",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Regulamento Geral do Estatuto da Advocacia e da OAB (PDF do Conselho Federal)",
+       "url": "https://www.oab.org.br/publicacoes/AbrirPDF?LivroId=0000004095",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Código de Ética e Disciplina da OAB – Resolução nº 02/2015 do CFOAB (PDF do Conselho Federal)",
+       "url": "https://www.oab.org.br/publicacoes/AbrirPDF?LivroId=0000004085",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Página Legislação do portal da OAB (onde estão os dois links acima)",
+       "url": "https://www.oab.org.br/leisnormas/legislacao",
+       "acessado_em": "2026-10-03"
+      }
+     ]
+    },
+    {
+     "disciplina": "Direito do Consumidor",
+     "fontes": [
+      {
+       "titulo": "Lei nº 8.078/1990 – Código de Defesa do Consumidor (Planalto, compilado)",
+       "url": "https://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm",
+       "acessado_em": "2026-10-03"
+      }
+     ]
+    },
+    {
+     "disciplina": "Direito da Criança e do Adolescente",
+     "fontes": [
+      {
+       "titulo": "Lei nº 8.069/1990 – Estatuto da Criança e do Adolescente (Planalto)",
+       "url": "https://www.planalto.gov.br/ccivil_03/leis/l8069.htm",
+       "acessado_em": "2026-10-03"
+      }
+     ]
+    },
+    {
+     "disciplina": "Direito Ambiental",
+     "fontes": [
+      {
+       "titulo": "Constituição da República Federativa do Brasil de 1988 (texto compilado, Planalto)",
+       "url": "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Lei nº 6.938/1981 (Planalto)",
+       "url": "https://www.planalto.gov.br/ccivil_03/leis/l6938.htm",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Lei nº 9.605/1998 (Planalto)",
+       "url": "https://www.planalto.gov.br/ccivil_03/leis/l9605.htm",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Lei nº 12.651/2012 (Planalto)",
+       "url": "https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2012/lei/l12651.htm",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Lei nº 9.985/2000 (Planalto)",
+       "url": "https://www.planalto.gov.br/ccivil_03/leis/l9985.htm",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Lei Complementar nº 140/2011 (Planalto)",
+       "url": "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp140.htm",
+       "acessado_em": "2026-10-03"
+      }
+     ]
+    },
+    {
+     "disciplina": "Direito Financeiro",
+     "fontes": [
+      {
+       "titulo": "Constituição da República Federativa do Brasil de 1988 (texto compilado, Planalto)",
+       "url": "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Lei nº 4.320/1964 (Planalto)",
+       "url": "https://www.planalto.gov.br/ccivil_03/leis/l4320.htm",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Lei Complementar nº 101/2000 (Planalto)",
+       "url": "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm",
+       "acessado_em": "2026-10-03"
+      }
+     ]
+    },
+    {
+     "disciplina": "Direito Previdenciário",
+     "fontes": [
+      {
+       "titulo": "Constituição da República Federativa do Brasil de 1988 (texto compilado, Planalto)",
+       "url": "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Lei nº 8.212/1991 (Planalto, consolidada)",
+       "url": "https://www.planalto.gov.br/ccivil_03/leis/l8212cons.htm",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Lei nº 8.213/1991 (Planalto, consolidada)",
+       "url": "https://www.planalto.gov.br/ccivil_03/leis/l8213cons.htm",
+       "acessado_em": "2026-10-03"
+      }
+     ]
+    },
+    {
+     "disciplina": "Direito Eleitoral",
+     "fontes": [
+      {
+       "titulo": "Lei nº 4.737/1965 – Código Eleitoral (Planalto, compilado)",
+       "url": "https://www.planalto.gov.br/ccivil_03/leis/l4737compilado.htm",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Lei nº 9.504/1997 (Planalto)",
+       "url": "https://www.planalto.gov.br/ccivil_03/leis/l9504.htm",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Lei nº 9.096/1995 (Planalto)",
+       "url": "https://www.planalto.gov.br/ccivil_03/leis/l9096.htm",
+       "acessado_em": "2026-10-03"
+      },
+      {
+       "titulo": "Lei Complementar nº 64/1990 (Planalto)",
+       "url": "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp64.htm",
+       "acessado_em": "2026-10-03"
+      }
+     ]
+    }
    ]
   },
   {
