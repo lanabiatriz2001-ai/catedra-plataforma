@@ -156,6 +156,10 @@ DIREITO AMBIENTAL
 1. Meio Ambiente. 2. Súmulas do Supremo Tribunal Federal e do
 Tribunal de Justiça do Estado.
 DIREITO PENAL Princípios aplicáveis ao Direito Penal. Aplicação da lei penal.`,
+  // o edital repete "Disposições gerais" e "Conceito" a cada assunto; e repete o título em itens seguidos
+  repetidos: `Direito Civil: Pessoas jurídicas. Disposições gerais. Associações. Negócio jurídico. Disposições gerais. Prescrição. Disposições gerais.
+DIREITO DE FAMÍLIA
+1. Direito das famílias. Direitos pessoais. Casamento. 2. Direito das famílias. Direitos patrimoniais. Alimentos. 3. Sucessões.`,
   caps: `DIREITO CIVIL
 LEI DE INTRODUÇÃO
 PESSOAS NATURAIS
@@ -273,6 +277,12 @@ async function formatos(page, ok, R) {
   ok(/Tribunal de Justiça do Estado$/.test(tops('miudezas', 2)[1] || ''),
     R + 'linha quebrada que termina em "do" emenda na de baixo (' + (tops('miudezas', 2)[1] || '') + ')');
 
+  // nome de tópico é identidade: repetido, a 2ª ocorrência sumia ao entrar no edital
+  ok(tops('repetidos', 0).join(' | ') === 'Pessoas jurídicas | Pessoas jurídicas — Disposições gerais | Associações | Negócio jurídico | Negócio jurídico — Disposições gerais | Prescrição | Prescrição — Disposições gerais',
+    R + 'tópico repetido sem subtópicos ganha o assunto a que pertence (' + tops('repetidos', 0).join(' | ') + ')');
+  ok(tops('repetidos', 1).join(' | ') === 'Direito das famílias | Sucessões' && subs('repetidos', 1, 0).join(' | ') === 'Direitos pessoais | Casamento | Direitos patrimoniais | Alimentos',
+    R + 'título repetido em itens seguidos é o mesmo tópico: os subtópicos se juntam no primeiro (' + subs('repetidos', 1, 0).join(' | ') + ')');
+
   // o que já funcionava continua funcionando
   ok(nomes('livro') === 'Direito Eleitoral | Direito Civil' && subs('livro', 0, 0).length === 3
     && subs('livro', 0, 0)[1] === '1.2 Inelegibilidade de Magistrado e membro do MP',
@@ -367,10 +377,11 @@ async function integridadeDosModelos(page, ok, R) {
   const r = await page.evaluate(async () => {
     const app = window.__catedraApp; await app._carregarModelos();
     const D = window.CT_MODELOS_DATA || {};
-    return { cont: Object.keys(D).map(id => { let nt = 0, ns = 0, ruim = 0; const vazias = [];
+    return { cont: Object.keys(D).map(id => { let nt = 0, ns = 0, ruim = 0, repetidos = 0; const vazias = [];
       (D[id] || []).forEach(([n, c, t]) => { if (!n || !/^#[0-9a-f]{6}$/i.test(c || '')) ruim++; if (!(t || []).length) vazias.push(n);
+        const vistos = {}; (t || []).forEach(([x]) => { const k = String(x).trim().toLowerCase(); if (vistos[k]) repetidos++; vistos[k] = 1; });
         (t || []).forEach(([x, s]) => { nt++; ns += (s || []).length; if (!String(x || '').trim()) ruim++; (s || []).forEach(y => { if (!String(y || '').trim()) ruim++; }); }); });
-      return { id, nd: (D[id] || []).length, nt, ns, ruim, vazias }; }) };
+      return { id, nd: (D[id] || []).length, nt, ns, ruim, vazias, repetidos }; }) };
   });
   // o índice (cartões) é lido do arquivo que o app carrega, não copiado para cá
   const m = fs.readFileSync(path.join(RAIZ, 'Catedra.dc.html'), 'utf8').match(/^const CT_MODELOS = (\[.*\]);$/m);
@@ -385,6 +396,8 @@ async function integridadeDosModelos(page, ok, R) {
   ok(!errados.length, R + 'modelos: disciplinas, tópicos e subtópicos do cartão batem com o arquivo' + (errados.length ? ' — divergem: ' + errados.join(', ') : ''));
   ok(!orfaos.length, R + 'modelos: nenhum conteúdo sem cartão' + (orfaos.length ? ' — ' + orfaos.join(', ') : ''));
   ok(!ruins.length, R + 'modelos: nenhuma disciplina sem nome ou sem cor, nem tópico em branco' + (ruins.length ? ' — ' + ruins.join(', ') : ''));
+  const comRepetido = r.cont.filter(c => c.repetidos).map(c => c.id + '(' + c.repetidos + ')');
+  ok(!comRepetido.length, R + 'modelos: nenhum tópico de nome repetido dentro da mesma disciplina — o repetido sumia ao aplicar' + (comRepetido.length ? ' — ' + comRepetido.join(', ') : ''));
   /* Disciplina SEM tópicos só existe onde o edital nomeia a matéria e não dá programa — hoje, a
      1ª fase da OAB — e tem de estar declarada em "semPrograma" no índice das fontes. */
   const indice = JSON.parse(fs.readFileSync(path.join(RAIZ, 'scripts', 'fontes', 'editais', 'indice.json'), 'utf8'));

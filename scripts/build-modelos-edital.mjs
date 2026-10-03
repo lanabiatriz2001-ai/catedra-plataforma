@@ -97,7 +97,10 @@ export function montar() {
     lido.forEach(d => palavras(d.disc).forEach(w => { if (conta[w]) conta[w]--; }));
     discs.forEach(([nome, , tops]) => { const tira = w => { if (conta[w]) conta[w]--; };
       tops.forEach(([t, subs]) => { palavras(t).forEach(tira); (subs || []).forEach(x => palavras(x).forEach(tira)); }); });
-    const sobra = Object.keys(conta).filter(w => conta[w] > 0 && !/^\d+$/.test(w));
+    // título que o edital repete em itens seguidos ("Direito das famílias" três vezes) vira UM
+    // tópico: as palavras do título repetido não são perda — já estão no nome do tópico
+    const titulos = new Set(); discs.forEach(([, , tops]) => tops.forEach(([t]) => palavras(t).forEach(w => titulos.add(w))));
+    const sobra = Object.keys(conta).filter(w => conta[w] > 0 && !/^\d+$/.test(w) && !titulos.has(w));
     const perdidas = sobra.reduce((x, w) => x + conta[w], 0);
     // o que pode sobrar são só os rótulos de bloco ("NOÇÕES GERAIS DE DIREITO E FORMAÇÃO HUMANÍSTICA",
     // "A)", "ÁREA DE HABILITAÇÃO") — poucas palavras, cada uma no máximo duas vezes
@@ -119,6 +122,12 @@ function aplicar({ html, modelos }) {
   vm.runInNewContext(fs.readFileSync(DADOS, 'utf8'), ctx);
   const D = ctx.window.CT_MODELOS_DATA;
   modelos.forEach(m => { D[m.meta.id] = m.discs; });
+  /* Tópico de nome repetido dentro da disciplina some ao aplicar o modelo (o edital junta por
+     nome). Todos os modelos — os antigos também, que não têm fonte aqui — passam pela mesma
+     desambiguação do importador. Rodar de novo não muda nada. */
+  const imp = importadorDoApp(html);
+  Object.keys(D).forEach(id => { D[id] = D[id].map(([nome, cor, tops]) =>
+    [nome, cor, imp._edDesambigua(tops.map(([t, subs]) => ({ name: t, subs: subs || [] }))).map(t => (t.subs.length ? [t.name, t.subs] : [t.name]))]); });
   // 2) cartões
   const reIdx = /^const CT_MODELOS = (\[.*\]);$/m;
   const idx = JSON.parse(html.match(reIdx)[1]);
@@ -127,6 +136,7 @@ function aplicar({ html, modelos }) {
     const i = idx.findIndex(x => x.id === m.meta.id);
     if (i < 0) idx.push(cartao); else idx[i] = cartao;
   });
+  idx.forEach(c => { if (D[c.id]) Object.assign(c, contar(D[c.id])); });   // as contagens saem do conteúdo final
   let novoHtml = html.replace(reIdx, () => 'const CT_MODELOS = ' + serial(idx) + ';');
   // 3) áreas: cada modelo entra na lista das áreas dele (uma vez)
   modelos.forEach(m => (m.meta.areas || []).forEach(area => {
