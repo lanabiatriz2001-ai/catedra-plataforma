@@ -31,8 +31,8 @@ Regras (decisões da dona, 25/09/2026):
 - relator (STF): o do julgamento de mérito, lido dos andamentos oficiais, com o redator do acórdão
   quando o relator ficou vencido — a exportação do STF traz o relator ATUAL;
 - nativo: reescreve os registros em build/data/repercussao_geral.json (opção B: fonte nova, o
-  build_corpus.py regenera o corpus.json), grava a trava literal em scripts/teses_oficiais.json
-  e retira as notas de estudo (notas.json) desses verbetes. A trava leva o registro oficial
+  build_corpus.py regenera o corpus.json) e grava a trava literal em scripts/teses_oficiais.json.
+  A trava leva o registro oficial
   inteiro: o build_corpus.py o põe por cima dos patches da auditoria (cuja correção o L2 conferiu
   campo a campo contra o oficial) e dos 4 ids que a auditoria criou por patch "add".
 """
@@ -53,6 +53,12 @@ def corta(s, n=CORTE_LISTA):
         return s
     c = s[:n].rsplit(' ', 1)[0].rstrip(' ,;:.—–-')
     return c + '…'
+
+
+def sem_nota(v):
+    """Nota da plataforma não entra no acervo (03/10/2026: no verbete fica o texto oficial e o que a
+    pessoa anota). A referência ainda guarda o campo 'co'; daqui ele não sai mais para lugar nenhum."""
+    return None if (v and 'Nota do C' in v) else v
 
 
 def le_js(caminho, glob):
@@ -120,7 +126,7 @@ def aplica_web(ref, sai=frozenset()):
         idx[k] = [r[0], o['tribunal'], o['fonte'], o['numero'], o['titulo'], r[5], tema, o['data'], o['situacao']] + r[9:]
         antigo = txt.get(r[0]) or {}
         novo = {'en': o['enunciado'], 'ur': o['url'], 'og': o['orgaoJulgador'], 'fp': o['fp'],
-                'co': o['co'] if 'co' in o else antigo.get('co'), 'ob': o['observacao'], 'tm': o['tema'] if tema != o['tema'] else None}
+                'co': sem_nota(antigo.get('co')), 'ob': o['observacao'], 'tm': o['tema'] if tema != o['tema'] else None}
         txt[r[0]] = {c: v for c, v in novo.items() if v}   # juris-text é um objeto: a ordem das chaves se mantém
     faltam = set(ref) - vistos
     assert not faltam, f'ids da referência ausentes da web: {sorted(faltam)[:5]}'
@@ -184,7 +190,7 @@ def aplica_nativo(ref, dir_nat, l4=None):
                  'tema': o['tema'], 'orgaoJulgador': o['orgaoJulgador'], 'data': o['data'],
                  'situacao': o['situacao'], 'fontePublicacao': None, 'referencias': None,
                  'precedentes': o['precedentes'], 'observacao': o['observacao'], 'url': o['url'],
-                 'comentario': o['co'] if 'co' in o else r.get('comentario')}
+                 'comentario': sem_nota(r.get('comentario'))}
     # ids que a auditoria criou por patch "add" (não estão no repercussao_geral.json): o registro
     # oficial deles entra pela trava, por cima do patch, no build_corpus.py
     por_patch = set()
@@ -201,8 +207,6 @@ def aplica_nativo(ref, dir_nat, l4=None):
     def campos(o):
         c = {k: o[k] for k in CAMPOS}
         c.update({'fontePublicacao': None, 'referencias': None})
-        if 'co' in o:
-            c['comentario'] = o['co']
         return c
     trava = {i: campos(o) for i, o in sorted(ref.items())}
     with open(os.path.join(dir_nat, 'scripts', 'teses_oficiais.json'), 'w', encoding='utf-8') as f:
@@ -214,16 +218,10 @@ def aplica_nativo(ref, dir_nat, l4=None):
                    # L4: um verbete por tema. Nenhum destes ids pode voltar ao corpus (o build falha).
                    'fundidos': dict(sorted(fundir.items())), 'retirados': dict(sorted(retirar.items()))},
                   f, ensure_ascii=False, indent=1)
-    # notas de estudo do nativo desses verbetes: retiradas (decisão da dona)
-    p_notas = os.path.join(dir_nat, 'Sources', 'VadeMecum', 'Resources', 'notas.json')
-    notas = json.load(open(p_notas, encoding='utf-8'))
-    antes = len(notas)
-    notas = {k: v for k, v in notas.items() if k not in ref and k not in sai}
-    with open(p_notas, 'w', encoding='utf-8') as f:
-        f.write(json.dumps(notas, ensure_ascii=False))
+    # As notas de estudo do nativo (notas.json) foram apagadas em 03/10/2026 (decisão da dona): não há
+    # mais o que retirar desses verbetes.
     print(f'nativo: {len(vistos)} registros trocados em repercussao_geral.json, {len(set(ref) - vistos)} pela trava '
-          f'(criados por patch da auditoria); trava com {len(trava)}; '
-          f'notas de estudo retiradas: {antes - len(notas)} ({antes} → {len(notas)})')
+          f'(criados por patch da auditoria); trava com {len(trava)}')
 
 
 if __name__ == '__main__':

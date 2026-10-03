@@ -3,7 +3,7 @@
 #
 #   source "$ROOT/scripts/assinar-app.sh"
 #   ct_assinar_limpo "$APP" "$BUILD/codesign.log" --force --sign "$ID" …   # qualquer alvo
-#   ct_assinar_mac   "$APP" "$BUILD" "$SIGN_ID" || exit 1                  # política do Mac
+#   ct_assinar_mac   "$APP" "$BUILD" "$SIGN_ID" [ent_app] [appex] [ent_appex] || exit 1   # política do Mac
 #
 # POR QUE EXISTE (11/09/2026): com o repositório em ~/Desktop ou ~/Documents, que o iCloud
 # ("Mesa e Documentos") sincroniza, o File Provider grava com.apple.FinderInfo (e
@@ -188,7 +188,7 @@ ct_veredito_gatekeeper() {
   return 1
 }
 
-# ct_assinar_mac <app> <pasta dos logs> <identidade Developer ID ou vazio>
+# ct_assinar_mac <app> <pasta dos logs> <identidade Developer ID ou vazio> [entitlements do app] [.appex] [entitlements do .appex]
 # Política do Mac: Developer ID com hardened runtime e carimbo de tempo; se falhar, ad-hoc.
 # 0 = o app saiu assinado (um dos dois). 1 = NEM o ad-hoc assinou, ou o Developer ID assinou
 # mas o Gatekeeper o recusa por motivo de assinatura (ver ct_veredito_gatekeeper). Quem chama
@@ -204,22 +204,31 @@ ct_veredito_gatekeeper() {
 # avisa nesta máquina, porque o app abre normalmente aqui. O erro só aparece quando o
 # testador tenta abrir. Por isso as duas flags são obrigatórias e conferidas abaixo.
 #
-# `--deep` saiu: está DEPRECADO para assinar desde o macOS 13 (man codesign) e aplica as
-# mesmas opções a todo conteúdo aninhado — quase nunca o que se quer. O bundle é plano
-# (nenhum .appex/.framework/.dylib/.xpc dentro), então uma assinatura no .app basta. No dia
-# em que o widget entrar, a ordem inverte: assina o .appex ANTES do .app.
+# `--deep` saiu: está DEPRECADO para assinar desde o macOS 13 (man codesign) e aplica as mesmas opções a todo
+# conteúdo aninhado — quase nunca o que se quer. Desde os widgets (01/10/2026) o bundle tem UM aninhado, o
+# Contents/PlugIns/CatedraWidget.appex: ele é assinado ANTES, com os entitlements DELE (sandbox + grupo + rede), e o
+# app depois, com os dele (só o grupo do time). Sem Developer ID o widget SAI do app: o macOS não registra widget
+# ad-hoc, e um app-groups em assinatura ad-hoc já impediu o app de abrir pelo LaunchServices.
 #
-# `--entitlements` também não: o app NÃO é sandboxed e não precisa de nenhum entitlement.
-# Em especial NÃO usar `disable-library-validation` — a doc da Apple avisa que o Gatekeeper
-# roda checagens extras em quem o desliga e pode BLOQUEAR o app. E o WKWebView não exige
-# `allow-jit`: o JavaScript roda no processo com.apple.WebKit.WebContent da própria Apple,
-# que já tem esse entitlement. (mac/Catedra.entitlements pede app-groups, resquício do
-# widget que nem é montado; passá-lo aqui seria peso morto.)
+# Nada de `disable-library-validation` — a doc da Apple avisa que o Gatekeeper roda checagens extras em quem o
+# desliga e pode BLOQUEAR o app. E o WKWebView não exige `allow-jit`: o JavaScript roda no processo
+# com.apple.WebKit.WebContent da própria Apple, que já tem esse entitlement.
 ct_assinar_mac() {
-  local app="$1" logs="$2" id="$3" cs
+  local app="$1" logs="$2" id="$3" ent_app="${4:-}" appex="${5:-}" ent_appex="${6:-}" cs
+  local com_ent=()
+  [ -n "$ent_app" ] && com_ent=(--entitlements "$ent_app")
   if [ -n "$id" ]; then
     echo "     identidade: $id"
-    if ct_assinar_limpo "$app" "$logs/codesign.log" --force --options runtime --timestamp --sign "$id"; then
+    if [ -n "$appex" ] && [ -d "$appex" ]; then
+      if ct_assinar_limpo "$appex" "$logs/codesign-widget.log" --force --options runtime --timestamp --sign "$id" --entitlements "$ent_appex"; then
+        echo "     ✓ widget assinado primeiro (sandbox + grupo de apps)"
+      else
+        echo "     ⚠ o widget não assinou — ele sai do app neste build."
+        ct_motivo_codesign "$logs/codesign-widget.log"
+        rm -rf "$appex"
+      fi
+    fi
+    if ct_assinar_limpo "$app" "$logs/codesign.log" --force --options runtime --timestamp --sign "$id" ${com_ent[@]+"${com_ent[@]}"}; then
       cs="$(codesign -dvv "$app" 2>&1)"
       case "$cs" in *runtime*) echo "     ✓ hardened runtime";; *) echo "     ⚠ SEM hardened runtime — a notarização vai reprovar";; esac
       case "$cs" in *Timestamp=*) echo "     ✓ carimbo de tempo";; *) echo "     ⚠ SEM carimbo de tempo — a notarização vai reprovar";; esac
@@ -236,6 +245,10 @@ ct_assinar_mac() {
     echo "     ⚠ sem certificado 'Developer ID Application' no chaveiro."
   fi
 
+  if [ -n "$appex" ] && [ -d "$appex" ]; then
+    rm -rf "$appex"
+    echo "     ⚠ o widget fica de fora no ad-hoc (o macOS não registra widget sem Developer ID)."
+  fi
   if ct_assinar_limpo "$app" "$logs/codesign-adhoc.log" --force --sign -; then
     echo "     assinado (ad-hoc — serve para usar aqui, não para distribuir; --verify --strict conferido)"
     echo "       O testador vai precisar do ritual \"Abrir Mesmo Assim\"."

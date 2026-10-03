@@ -230,6 +230,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     private var statusClockItem: NSMenuItem?
     private var statusTimer: Timer?
     private var widgetTimer: Timer?
+    private var pedindoPasseWidget = false
+    /// Sobe a cada saída de conta: um pedido de passe que estava em voo quando a conta saiu não regrava passe.json.
+    private var geracaoWidget = 0
     private var nativeRevTimer: Timer?           // agenda única: LEGIS/JURIS → Revisões do Cátedra
     private var autoBackupTimer: Timer?          // backup semanal automático (checa de 6 em 6h)
     // "Widget" desenhado pelo app (sem WidgetKit): painel flutuante + números no menu.
@@ -650,6 +653,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         DispatchQueue.main.asyncAfter(deadline: .now() + 4) { [weak self] in self?.pushWidgetData() }
     }
     func pushWidgetData() {
+        gravarResumoWidget()          // o widget (WidgetKit) a cada vez que a barra de menu e o cartão releem
         guard let wv = webView else { return }
         wv.evaluateJavaScript("(window.catedraWidgetPayload && JSON.stringify(window.catedraWidgetPayload())) || ''") { [weak self] result, _ in
             guard let self = self,
@@ -666,13 +670,84 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
             WidgetModel.shared.stats = st           // atualiza o painel flutuante (SwiftUI)
             self.refreshWidgetStatItems()           // atualiza os números no menu
             self.refreshMenuBar()                   // atualiza o rótulo glanceável na barra
-            // Espelha no App Group para o dia em que houver um widget WidgetKit assinado.
-            if let d = UserDefaults(suiteName: "group.com.catedra.desktop") {
-                d.set(st.diasProva, forKey: "diasProva"); d.set(st.revisoes, forKey: "revisoes")
-                d.set(st.metaPct, forKey: "metaPct");     d.set(st.streak, forKey: "streak")
-                d.set(st.proximo, forKey: "proximo")
-            }
         }
+    }
+    // ===== Widgets (WidgetKit): resumo e passe no grupo de apps; links catedra:// =====
+    /// Lê o resumo do app web e grava no grupo de apps; garante o passe da nuvem; pede ao sistema para redesenhar os
+    /// widgets. Com o portão de login à mostra ("nenhuma"), não mexe no que o widget tem.
+    func gravarResumoWidget(_ feito: (() -> Void)? = nil) {
+        guard let wv = webView else { feito?(); return }
+        wv.evaluateJavaScript("(window.catedraWidgetResumo && JSON.stringify(window.catedraWidgetResumo())) || ''") { [weak self] result, _ in
+            defer { feito?() }
+            guard let self, let s = result as? String, !s.isEmpty, let dados = s.data(using: .utf8),
+                  let r = WidgetResumo.ler(dados), r.sessao != "nenhuma" else { return }
+            WidgetGrupo.gravar(dados, WidgetGrupo.resumo)
+            if r.sessao == "conta" { self.garantirPasseWidget(conta: r.conta) }
+            else { WidgetGrupo.apagar(WidgetGrupo.passe); WidgetGrupo.apagar(WidgetGrupo.resumoNuvem) }
+            WidgetCenter.shared.reloadAllTimelines()
+        }
+    }
+    /// Passe de leitura da nuvem para este Mac: pede à web (window.catedraWidgetPasse) quando falta, quando é de outra
+    /// conta ou quando o widget marcou que a nuvem o recusou.
+    func garantirPasseWidget(conta: String) {
+        if WidgetGrupo.existe(WidgetGrupo.passeInvalido) {
+            WidgetGrupo.apagar(WidgetGrupo.passe); WidgetGrupo.apagar(WidgetGrupo.passeInvalido)
+        }
+        if let d = WidgetGrupo.ler(WidgetGrupo.passe), let p = try? JSONDecoder().decode(WidgetPasse.self, from: d), p.conta == conta { return }
+        guard !pedindoPasseWidget, let wv = webView else { return }
+        pedindoPasseWidget = true
+        let geracao = geracaoWidget
+        let aparelho = Host.current().localizedName ?? "Mac"
+        wv.callAsyncJavaScript("return window.catedraWidgetPasse ? await window.catedraWidgetPasse(aparelho) : null",
+                               arguments: ["aparelho": aparelho], in: nil, in: .page) { [weak self] res in
+            guard let self else { return }
+            self.pedindoPasseWidget = false
+            guard self.geracaoWidget == geracao else { return }   // a conta saiu com o pedido em voo
+            guard case .success(let v) = res, let s = v as? String, let d = s.data(using: .utf8),
+                  let p = try? JSONDecoder().decode(WidgetPasse.self, from: d), !p.passe.isEmpty, p.conta == conta else { return }
+            WidgetGrupo.gravar(d, WidgetGrupo.passe)
+            WidgetGrupo.apagar(WidgetGrupo.resumoNuvem)   // o cache da nuvem era do passe/conta anterior
+            WidgetCenter.shared.reloadAllTimelines()
+        }
+    }
+    /// A conta saiu (auth.js manda {saiu:true} antes do reload): o widget esquece resumo e passe.
+    func apagarWidgetAoSair() {
+        geracaoWidget += 1
+        for n in [WidgetGrupo.resumo, WidgetGrupo.resumoNuvem, WidgetGrupo.passe, WidgetGrupo.passeInvalido] { WidgetGrupo.apagar(n) }
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+    /// catedra:// (toque no widget). Abertura a frio também chega aqui, depois de applicationDidFinishLaunching.
+    func application(_ application: NSApplication, open urls: [URL]) {
+        for u in urls { abrirLinkWidget(u) }
+    }
+    func abrirLinkWidget(_ url: URL) {
+        guard let d = WidgetLinks.destino(url) else { return }
+        mbBringUp()
+        switch d {
+        case .tela(let v): switchTo(0); irParaTelaWeb(v)
+        case .entrar: switchTo(0)
+        case .legis(let diploma, let artigo): JurisPorArtigo.abrirNoLegis(ArtigoCitado(diploma: diploma, artigo: artigo))
+        case .juris(let id):
+            guard jurisDisponivel else { switchTo(0); return }
+            switchTo(2); abrirVerbeteQuandoCarregado(id)
+        }
+    }
+    /// A página pode estar carregando (abertura a frio): tenta até ela expor __catedraGoView, a mesma porta das
+    /// notificações, com a trava de área.
+    func irParaTelaWeb(_ v: String, tentativa: Int = 0) {
+        // o id da tela vem do link (dado de fora): vai como ARGUMENTO, nunca colado no texto do JavaScript
+        guard let wv = webView else { return }
+        wv.callAsyncJavaScript("if (typeof window.__catedraGoView !== 'function') return false; window.__catedraGoView(v); return true",
+                               arguments: ["v": v], in: nil, in: .page) { [weak self] res in
+            if case .success(let r) = res, (r as? Bool) == true { return }
+            if tentativa >= 40 { return }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { self?.irParaTelaWeb(v, tentativa: tentativa + 1) }
+        }
+    }
+    func abrirVerbeteQuandoCarregado(_ id: String, tentativa: Int = 0) {
+        if let store = jurisStore, !store.entries.isEmpty { store.abrirVerbete(id); return }
+        guard tentativa < 60 else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in self?.abrirVerbeteQuandoCarregado(id, tentativa: tentativa + 1) }
     }
     @objc func mbOpen(_ s: Any?) { mbBringUp() }
     @objc func mbFoco(_ s: Any?) { mbBringUp(); switchTo(0) }
@@ -1762,8 +1837,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
             reply(nil, nil)
         case "catedraBackup":    handleBackup(message, reply)
         case "catedraWidget":
-            // O corpo não importa: é só o aviso de que o payload mudou (ver _baixaRaiz no host).
-            DispatchQueue.main.async { self.pushWidgetData() }
+            // {saiu:true} = a conta saiu (auth.js, antes do reload): o widget esquece passe e resumo.
+            // Qualquer outro corpo = o payload/resumo mudou: relê menu, cartão flutuante e widget.
+            let saiu = ((message.body as? [String: Any])?["saiu"] as? Bool) ?? false
+            DispatchQueue.main.async { if saiu { self.apagarWidgetAoSair() } else { self.pushWidgetData() } }
             reply(nil, nil)
         case "catedraPrint":
             // Relatório → Imprimir/Salvar PDF: WKWebView não implementa window.print(),

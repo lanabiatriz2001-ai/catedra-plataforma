@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Sentinela STF + STJ no Mac (ver scripts/sentinela-mac.sh). Instalar copiando o script para ~/Library/Application Support/Catedra/ e este arquivo para
+     ~/Library/LaunchAgents/ e carregando com `launchctl bootstrap gui/$(id -u) <arquivo>`.
+     Às 06:40; se o Mac estiver dormindo, o launchd roda quando ele acordar. -->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.catedra.sentinela-stf-stj</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>__HOME__/Library/Application Support/Catedra/sentinela-mac.sh</string>
+    <string>__REPO__/.claude/worktrees/sentinela-mac</string>
+  </array>
+  <key>StartCalendarInterval</key>
+  <dict><key>Hour</key><integer>6</integer><key>Minute</key><integer>40</integer></dict>
+  <key>StandardOutPath</key><string>__HOME__/Library/Logs/catedra-sentinela-stf-stj.log</string>
+  <key>StandardErrorPath</key><string>__HOME__/Library/Logs/catedra-sentinela-stf-stj.log</string>
+  <key>ProcessType</key><string>Background</string>
+</dict>
+</plist>

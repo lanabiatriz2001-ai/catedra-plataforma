@@ -72,8 +72,8 @@ mac/build-app.sh · ios/build-ipad.sh                                           
    numa frase que diz o que mudou para a pessoa (veja o `git log`).
 2. `npm test` e `npm run test:webkit` verdes antes do commit. A CI roda os dois em cada PR.
 3. Build e instalação, UM de cada vez (dois builds juntos se atropelam) e sem editar `.swift` durante o
-   build: `bash mac/build-app.sh` e copiar `mac/build/Cátedra.app` para `/Applications` (feche o app
-   antes); depois `bash ios/build-ipad.sh device` e `xcrun devicectl device install app --device <UDID>
+   build: `bash mac/build-app.sh` e `bash mac/instalar.sh` (fecha o app e instala em `/Applications` com o
+   acento DECOMPOSTO no nome da pasta: com o "á" composto o widget some da galeria); depois `bash ios/build-ipad.sh device` e `xcrun devicectl device install app --device <UDID>
    "ios/build/Cátedra.app"` — o UDID é o do iPad da dona: em `xcrun devicectl list devices`, a linha do modelo `iPad13,16` (iPad Air de 5ª geração) com Reality `physical` — há outro aparelho físico pareado (iPhone).
    Mudança só em HTML/JS também exige o build: o bundle web vai embutido nos apps. Erro 4016 no install
    = iPad bloqueado ou fora da rede; tente de novo quando ele voltar, não é defeito do build.

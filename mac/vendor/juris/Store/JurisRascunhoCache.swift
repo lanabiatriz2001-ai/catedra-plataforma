@@ -2,7 +2,7 @@ import Foundation
 
 /// Rascunhos de texto que NÃO podem sumir ao trocar de aba ou de verbete: a resposta
 /// da prova oral (por verbete) e as anotações da arguição em Oral·bancas (por concurso).
-/// Vive em Application Support, no mesmo molde de RoteiroCache/SimuladoCache — não
+/// Vive em Application Support, no mesmo molde do SimuladoCache — não
 /// sobe para a nuvem (é rascunho de treino, não acervo pessoal).
 ///
 /// Chave = "\(namespace)/\(id)". Teto de 400 rascunhos; os mais antigos caem primeiro.

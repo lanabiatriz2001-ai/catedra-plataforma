@@ -75,15 +75,20 @@ enum JurisPorArtigo {
     static var modoUmaVez: String?
 
     static func abrirNoLegis(_ a: ArtigoCitado) {
-        pedidoLegis = a
+        // "1.015" → "1015": o mesmo formato de articleNumberKey (o widget e o JURIS podem mandar com ponto)
+        pedidoLegis = ArtigoCitado(diploma: a.diploma, artigo: a.artigo.replacingOccurrences(of: ".", with: ""))
         pedidoEm = Date()
         NotificationCenter.default.post(name: notificacaoAbrirLegis, object: nil)
     }
 
     /// Diploma do índice → norma do catálogo (mesma normalização de `verbetes(lei:label:)`).
     static func lei(doDiploma nome: String, em leis: [LawEntry]) -> LawEntry? {
+        // título exato; senão o apelido curto; senão o título que contém o nome — os mesmos recuos de
+        // IncidenciaView.abrirNaLei, para o "Do dia" do widget (diplomas do incidencia.json) achar a norma
         let alvo = norm(nome)
         return leis.first { norm($0.title) == alvo }
+            ?? leis.first { $0.isRegularLaw && norm(RemissiveIndex.shortName($0)) == alvo }
+            ?? leis.first { $0.isRegularLaw && norm($0.title).contains(alvo) }
     }
 
     /// Número do artigo → quantos verbetes o citam, para o sinal na margem do leitor.
