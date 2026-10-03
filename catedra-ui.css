@@ -1966,3 +1966,4 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
   padding: var(--ct-e1) var(--ct-e3); min-height: 34px; cursor: pointer; }
 .cm-seg button[aria-pressed="true"] { background: var(--accentSolid, var(--accent)); border-color: var(--accentSolid, var(--accent)); color: var(--onAccent, #fff); }
 [data-toque] .cm-seg button { min-height: var(--ct-alvo-toque); }
+.cm-pr { margin-top: var(--ct-e1); max-width: 240px; font-family: var(--mono, monospace); }

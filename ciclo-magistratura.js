@@ -2,11 +2,13 @@
 
    O método, em uma frase: quatro matérias ativas em ordem, uma por dia; cada matéria trabalha
    dois assuntos por volta; cada assunto tem um Turno A (primeiro contato) e um Turno B (reteste,
-   4–6 dias depois, travado até o A terminar); fechar o assunto agenda revisões em D+7, D+30 e
+   na próxima vez da matéria depois do A, travado até ele terminar). O assunto só troca quando os
+   dois cadernos de questões (a1 clássicas e b2 inéditas) chegam ao fim, o que pode levar vários
+   dias; cada caderno tem um progresso livre ("34/80"), zerado ao fechar; fechar o assunto agenda revisões em D+7, D+30 e
    D+90; depois do 2º assunto fechado a matéria vai para o fim da fila e a primeira da fila entra.
 
    Estado (chave `cmag`, objeto, sincronizado pelo carimbo da chave — ver auth.js mergeAll):
-     { v, seed, up, vez, ordem:[id], mats:{id:{n,o,s}}, st:{id:{n,ass,nota,d:{a1:true…}}},
+     { v, seed, up, vez, ordem:[id], mats:{id:{n,o,s}}, st:{id:{n,ass,nota,d:{a1:true…},p:{a1:'34/80',b2}}},
        links:{'<id>-<bloco>':'https://…'}, sab:{s1:true…} }
    Revisões ficam FORA, na chave `cmagRevs` (array com id e `up`, em ARRAY_ID do auth.js): assim
    duas revisões criadas em aparelhos diferentes se somam no merge por id, em vez de uma apagar
@@ -72,7 +74,7 @@
 
   function blocosA(m) {
     return [
-      { k: 'a1', b: 'Clássicas objetivas', s: 'Caderno TEC · marque a certeza de cada questão', tec: true },
+      { k: 'a1', b: 'Clássicas objetivas · até o fim do caderno', s: 'Caderno TEC · marque a certeza · não acabou no dia: continua quando a matéria voltar', tec: true, pr: true },
       { k: 'a2', b: 'Obra principal no trecho dos erros + lei seca', s: (m.o ? m.o + ' · ' : '') + 'Vade Mecum · ' + DOD },
       { k: 'a3', b: 'Conversa com a IA + ficha de memória', s: 'Você explica primeiro; a ficha sai com o livro fechado' },
       { k: 'a4', b: 'Cards dos erros', s: 'Erro, chute certo e erro confiante viram card' }
@@ -81,7 +83,7 @@
   function blocosB(m) {
     return [
       { k: 'b1', b: 'Lembrança livre · 3 min', s: 'Tudo o que lembra do assunto, sem consulta' },
-      { k: 'b2', b: 'Inéditas', s: 'Caderno TEC · marque a certeza de cada questão', tec: true },
+      { k: 'b2', b: 'Inéditas · até o fim do caderno', s: 'Caderno TEC · marque a certeza · continua na próxima vez da matéria', tec: true, pr: true },
       m.s ? { k: 'b3', b: 'Segunda obra nos dispositivos errados', s: m.s + ' · só os artigos ligados aos erros' }
           : { k: 'b3', b: 'Jurisprudência dos erros', s: DOD + ' · só o que os erros pediram' },
       { k: 'b4', b: 'Discursiva', s: 'Uma questão à mão, depois a correção', tec: true },
@@ -106,7 +108,8 @@
     ordem.forEach(function (id) {
       var x = obj(s0[id]), d = {};
       Object.keys(obj(x.d)).forEach(function (k) { if (/^[ab][1-5]$/.test(k) && x.d[k]) d[k] = true; });
-      st[id] = { n: Math.max(0, Math.min(POR_VOLTA - 1, parseInt(x.n, 10) || 0)), ass: txt(x.ass), nota: txt(x.nota), d: d };
+      var pr = {}; ['a1', 'b2'].forEach(function (k) { var v = obj(x.p)[k]; if (v != null && String(v).trim()) pr[k] = txt(v, 40); });
+      st[id] = { n: Math.max(0, Math.min(POR_VOLTA - 1, parseInt(x.n, 10) || 0)), ass: txt(x.ass), nota: txt(x.nota), d: d, p: pr };
     });
     var links = {};
     Object.keys(obj(c.links)).forEach(function (k) { if (/^[a-z]+-[ab][1-5]$/.test(k) && linkValido(c.links[k])) links[k] = c.links[k]; });
@@ -127,7 +130,7 @@
     var n = normalizar(c);
     if (n.seed) return true;
     if (Object.keys(n.links).length || Object.keys(n.sab).length) return true;
-    return n.ordem.some(function (id) { var s = n.st[id]; return s.n || s.ass || s.nota || Object.keys(s.d).length; });
+    return n.ordem.some(function (id) { var s = n.st[id]; return s.n || s.ass || s.nota || Object.keys(s.d).length || Object.keys(s.p).length; });
   }
 
   /* O seed da conta: as 14 matérias com as obras, Constitucional no assunto 1/2 com Teoria da
@@ -137,7 +140,7 @@
     var c = vazio(false);
     c.seed = tag; c.up = agora || 0;
     c.st.const = { n: 0, ass: 'Teoria da Constituição: constitucionalismo, conceito e classificação das constituições',
-      nota: 'Próximo assunto: Poder constituinte e direito constitucional no tempo', d: {} };
+      nota: 'Próximo assunto: Poder constituinte e direito constitucional no tempo', d: {}, p: {} };
     return c;
   }
 
@@ -159,6 +162,8 @@
     var n = normalizar(c);
     if (!n.st[id]) return n;
     if (campo === 'ass' || campo === 'nota') return com(n, function (x) { var o = {}; o[campo] = txt(valor); x.st[id] = Object.assign({}, x.st[id], o); }, agora);
+    // progresso livre do caderno (ex.: 34/80): só nos dois blocos de questões, a1 e b2
+    if (campo === 'p:a1' || campo === 'p:b2') return com(n, function (x) { var k = campo.slice(2), pr = Object.assign({}, x.st[id].p); if (String(valor || '').trim()) pr[k] = txt(valor, 40); else delete pr[k]; x.st[id] = Object.assign({}, x.st[id], { p: pr }); }, agora);
     if (campo === 'o' || campo === 's') return com(n, function (x) { var o = {}; o[campo] = txt(valor); x.mats[id] = Object.assign({}, x.mats[id], o); }, agora);
     return n;
   }
@@ -184,7 +189,7 @@
     var rev = { id: 'cm-' + id + '-' + agora, mat: id, ass: n.mats[id].n + ' · ' + (s.ass || ('assunto ' + (s.n + 1))), dt: hojeISO, f7: false, f30: false, f90: false, up: agora };
     var out = com(n, function (x) {
       var nn = s.n + 1;
-      x.st[id] = Object.assign({}, s, { n: nn >= POR_VOLTA ? 0 : nn, ass: '', d: {} });
+      x.st[id] = Object.assign({}, s, { n: nn >= POR_VOLTA ? 0 : nn, ass: '', d: {}, p: {} });
       if (nn >= POR_VOLTA) {
         var o = x.ordem.slice(); o.splice(i, 1); o.push(id); x.ordem = o;
         // a vez aponta para a mesma matéria de antes quando quem saiu estava antes dela

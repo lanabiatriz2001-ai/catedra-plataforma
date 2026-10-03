@@ -70,14 +70,18 @@ export async function testarCicloMagistratura(page, base, ok, opcoes = {}) {
     bTravado: Array.from(document.querySelectorAll('.cm-mat')[0].querySelectorAll('.cm-chk[data-k^="b"]')).every(b => b.disabled) }));
   ok(t0.mats === 4 && t0.bTravado, R + 'quatro cartões e Turno B travado (' + JSON.stringify(t0) + ')');
   const marcar = async (id, ks) => { for (const k of ks) { await page.click(`.cm-chk[data-id="${id}"][data-k="${k}"]`); await w(60); } };
+  await page.fill('input.cm-pr[data-id="const"][data-campo="p:a1"]', '34/80'); await page.press('input.cm-pr[data-id="const"][data-campo="p:a1"]', 'Tab'); await w(200);
+  const pr = await page.evaluate(() => ({ a1: window.__catedraApp.state.cmag.st.const.p.a1, n: document.querySelectorAll('.cm-mat')[0].querySelectorAll('input.cm-pr').length,
+    rotB: Array.from(document.querySelectorAll('.cm-turno span')).some(x => /próxima vez da matéria/.test(x.textContent)) }));
+  ok(pr.a1 === '34/80' && pr.n === 2 && pr.rotB, R + 'progresso do caderno só em a1 e b2, e o Turno B fala da próxima vez da matéria (' + JSON.stringify(pr) + ')');
   await marcar('const', ['a1', 'a2', 'a3', 'a4']);
   const bLivre = await page.evaluate(() => Array.from(document.querySelectorAll('.cm-chk[data-id="const"][data-k^="b"]')).every(b => !b.disabled));
   ok(bLivre, R + 'Turno A completo libera o Turno B');
   await marcar('const', ['b1', 'b2', 'b3', 'b4', 'b5']);
   await page.click('.cm-fechar[data-id="const"]'); await w(1400);
   const f1 = await page.evaluate(() => ({ revs: JSON.parse(localStorage.getItem('catedra:cmagRevs') || '[]').length, n: window.__catedraApp.state.cmag.st.const.n,
-    prazos: document.querySelectorAll('.cm-prazo').length, primeira: document.querySelector('.cm-mat .cm-mat-n').textContent }));
-  ok(f1.revs === 1 && f1.n === 1 && f1.prazos === 3 && f1.primeira === 'Direito Constitucional', R + '1º assunto fechado: revisão gravada e checks zerados (' + JSON.stringify(f1) + ')');
+    prazos: document.querySelectorAll('.cm-prazo').length, pr: Object.keys(window.__catedraApp.state.cmag.st.const.p || {}).length, primeira: document.querySelector('.cm-mat .cm-mat-n').textContent }));
+  ok(f1.revs === 1 && f1.n === 1 && f1.pr === 0 && f1.prazos === 3 && f1.primeira === 'Direito Constitucional', R + '1º assunto fechado: revisão gravada e checks zerados (' + JSON.stringify(f1) + ')');
   await marcar('const', ['a1', 'a2', 'a3', 'a4', 'b1', 'b2', 'b3', 'b4', 'b5']);
   await page.click('.cm-fechar[data-id="const"]'); await w(500);
   const f2 = await page.evaluate(() => ({ ativas: Array.from(document.querySelectorAll('.cm-mat .cm-mat-n')).map(x => x.textContent), ultimaFila: Array.from(document.querySelectorAll('.cm-fila li')).pop().textContent }));

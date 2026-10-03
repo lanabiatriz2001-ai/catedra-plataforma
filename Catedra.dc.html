@@ -2296,18 +2296,20 @@ window.ctPdfLib = (function(){
                     <button class="cm-chk" data-id="{{ b.id }}" data-k="{{ b.k }}" onclick="{{ cmToggle }}" aria-pressed="{{ b.feitoStr }}" aria-label="{{ b.aria }}" disabled="{{ b.travado }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
                     <div class="cm-blk-t">
                       <b>{{ b.b }}</b><small>{{ b.s }}</small>
+                      <sc-if value="{{ b.pr }}" hint-placeholder-val="{{ false }}"><input class="cm-in cm-pr" type="text" data-id="{{ b.id }}" data-campo="{{ b.prCampo }}" value="{{ b.prVal }}" placeholder="Progresso do caderno (ex.: 34/80)" aria-label="{{ b.prAria }}" onchange="{{ cmCampo }}"></sc-if>
                       <sc-if value="{{ b.temLink }}" hint-placeholder-val="{{ false }}"><span class="cm-lk-linha"><a class="cm-lk" href="{{ b.link }}" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" stroke-linecap="round" stroke-linejoin="round"></path></svg>Abrir caderno do TEC</a><button class="cm-lk-x" data-l="{{ b.key }}" onclick="{{ cmLinkApagar }}" aria-label="Apagar o link do TEC">Trocar</button></span></sc-if>
                       <sc-if value="{{ b.podeColar }}" hint-placeholder-val="{{ false }}"><button class="cm-lk" data-l="{{ b.key }}" onclick="{{ cmLinkAbrir }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" stroke-linecap="round" stroke-linejoin="round"></path></svg>Colar link do TEC</button></sc-if>
                       <sc-if value="{{ b.editando }}" hint-placeholder-val="{{ false }}"><input class="cm-in" type="url" inputmode="url" autofocus data-l="{{ b.key }}" placeholder="https://www.tecconcursos.com.br/…" aria-label="Link do caderno do TEC (Enter grava)" onkeydown="{{ cmLinkSalvar }}" onblur="{{ cmLinkSalvar }}"></sc-if>
                     </div>
                   </div>
                 </sc-for>
-                <div class="cm-turno" data-aberto="{{ a.bAberto }}"><span>Turno B · reteste, 4 a 6 dias depois</span><span>{{ a.bTxt }}</span></div>
+                <div class="cm-turno" data-aberto="{{ a.bAberto }}"><span>Turno B · reteste, na próxima vez da matéria após o Turno A</span><span>{{ a.bTxt }}</span></div>
                 <sc-for list="{{ a.B }}" as="b" hint-placeholder-count="4">
                   <div class="cm-blk" data-feito="{{ b.feitoStr }}">
                     <button class="cm-chk" data-id="{{ b.id }}" data-k="{{ b.k }}" onclick="{{ cmToggle }}" aria-pressed="{{ b.feitoStr }}" aria-label="{{ b.aria }}" disabled="{{ b.travado }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
                     <div class="cm-blk-t">
                       <b>{{ b.b }}</b><small>{{ b.s }}</small>
+                      <sc-if value="{{ b.pr }}" hint-placeholder-val="{{ false }}"><input class="cm-in cm-pr" type="text" data-id="{{ b.id }}" data-campo="{{ b.prCampo }}" value="{{ b.prVal }}" placeholder="Progresso do caderno (ex.: 34/80)" aria-label="{{ b.prAria }}" onchange="{{ cmCampo }}"></sc-if>
                       <sc-if value="{{ b.temLink }}" hint-placeholder-val="{{ false }}"><span class="cm-lk-linha"><a class="cm-lk" href="{{ b.link }}" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" stroke-linecap="round" stroke-linejoin="round"></path></svg>Abrir caderno do TEC</a><button class="cm-lk-x" data-l="{{ b.key }}" onclick="{{ cmLinkApagar }}" aria-label="Apagar o link do TEC">Trocar</button></span></sc-if>
                       <sc-if value="{{ b.podeColar }}" hint-placeholder-val="{{ false }}"><button class="cm-lk" data-l="{{ b.key }}" onclick="{{ cmLinkAbrir }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" stroke-linecap="round" stroke-linejoin="round"></path></svg>Colar link do TEC</button></sc-if>
                       <sc-if value="{{ b.editando }}" hint-placeholder-val="{{ false }}"><input class="cm-in" type="url" inputmode="url" autofocus data-l="{{ b.key }}" placeholder="https://www.tecconcursos.com.br/…" aria-label="Link do caderno do TEC (Enter grava)" onkeydown="{{ cmLinkSalvar }}" onblur="{{ cmLinkSalvar }}"></sc-if>
@@ -11413,7 +11415,7 @@ class Component extends DCLogic {
     const dow=new Date().getDay();
     const cor=n=>{ const id=this._corDisc(n); return {cor:id, tx:this._corTx(id)}; };
     const bloco=(id, b, on, s)=>{ const key=id+'-'+b.k, l=c.links[key]||'';
-      return {...b, id, key, feito:!!s.d[b.k], feitoStr:s.d[b.k]?'true':'false', travado:!on, link:l, temLink:!!l, editando:edit===key, podeColar:b.tec&&!l&&edit!==key,
+      return {...b, id, key, pr:!!b.pr, prCampo:'p:'+b.k, prVal:(s.p||{})[b.k]||'', prAria:'Progresso do caderno: '+b.b, feito:!!s.d[b.k], feitoStr:s.d[b.k]?'true':'false', travado:!on, link:l, temLink:!!l, editando:edit===key, podeColar:b.tec&&!l&&edit!==key,
         aria:(s.d[b.k]?'Desmarcar ':'Marcar como feito: ')+b.b}; };
     const ativas=c.ordem.slice(0, M.ATIVAS).map((id, i)=>{
       const m=c.mats[id], s=c.st[id], aOk=M.turnoAFeito(c, id), bOk=M.turnoBFeito(c, id), k=cor(m.n);
