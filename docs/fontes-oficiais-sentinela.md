@@ -793,3 +793,21 @@ launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.catedra.sentinela-st
 ```
 
 Para o Mac acordar sozinho antes do horário (opcional, pede senha): `sudo pmset repeat wakeorpoweron MTWRFSU 06:35:00`.
+## Planilhas oficiais (03/10/2026)
+
+- **STF — planilha do Informativo** (`Dados_InformativosSTF.xlsx`, link "dados" da página oficial):
+  conferência cruzada, só na rotina diária. GET condicional (304 sem corpo quando não muda; o ETag
+  fica em `sentinela/retratos.json`, chave `stf.informativo`). Para cada uma das 12 edições mais
+  recentes que o acervo tem, compara o número de notas da planilha (por título) com o do
+  CátedraJURIS; se faltar nota, nasce o item `INF-STF-PLAN-<edição>` ("Conferir"), com os títulos
+  da planilha, que recebe baixa quando o acervo alcançar a contagem. Foi assim que apareceu a
+  ADI 7236 (Informativo 1225), ausente do acervo. A planilha NÃO substitui a sonda por número
+  (que acha a edição no mesmo dia; a planilha sai cerca de 1 dia depois). Se ela não puder ser
+  lida, o STF sai "parcial", com o motivo.
+- **STJ — `Temas.csv` do Portal de Dados Abertos** (conjunto "precedentes-qualificados"): FILTRO
+  das faixas de repetitivos. Nos dias comuns, só se lê a faixa em que o CSV mostra situação
+  diferente da última leitura, tema novo, tema sumido ou repetido com situações diferentes, mais a
+  cauda. Os itens continuam nascendo das fichas oficiais (o CSV como fonte dava 9 alarmes falsos
+  em 12). Varredura completa: toda quarta-feira e sempre que o CSV falhar, vier com menos de
+  1.400 temas ou estiver há mais de 3 dias sem regravação. A varredura filtrada não move o
+  carimbo "última leitura completa".
