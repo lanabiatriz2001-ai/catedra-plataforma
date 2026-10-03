@@ -1743,8 +1743,9 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 .ct-seg > button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px color-mix(in srgb, var(--ink) 16%, transparent); }
 .ct-seg > button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .ct-folha-mao-tit { font-family: var(--display); font-size: var(--fs-2xl); font-weight: 600; color: var(--ink); margin: var(--ct-e2) 0 var(--ct-e2); line-height: 1.2; }
-/* A folha: mesma medida para a linha do texto e para o passo da pauta (um token só). */
-.ct-folha { --ct-folha-linha: calc(var(--fs-lg) * 1.9); --ct-folha-medida: 62ch; display: flex; gap: var(--ct-e2); align-items: flex-start; margin-top: var(--ct-e3); }
+/* A folha: mesma medida para a linha do texto e para o passo da pauta (um token só).
+   56ch na serifa do tema dão ~62 caracteres, isto é, ~11 palavras por linha: a linha manuscrita. */
+.ct-folha { --ct-folha-linha: calc(var(--fs-lg) * 1.9); --ct-folha-medida: 56ch; display: flex; gap: var(--ct-e2); align-items: flex-start; margin-top: var(--ct-e3); }
 .ct-folha-pauta { flex: none; width: 2.2em; padding-top: var(--ct-e3); text-align: right; font-family: var(--mono); font-size: var(--fs-2xs); color: var(--text3); user-select: none; -webkit-user-select: none; }
 .ct-folha-pauta > span { display: block; height: var(--ct-folha-linha); line-height: var(--ct-folha-linha); }
 .ct-folha-campo { position: relative; flex: 1; min-width: 0; max-width: var(--ct-folha-medida); font-family: var(--display); font-size: var(--fs-lg); }

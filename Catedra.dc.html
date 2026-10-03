@@ -12426,8 +12426,11 @@ class Component extends DCLogic {
       med.textContent = txt + (/\n$/.test(txt)?'\u200b':'');
       const linhas = txt.trim()? Math.max(1, Math.round((med.offsetHeight-pad)/lh)) : 0;
       ta.style.height = med.offsetHeight+'px';      // a folha cresce com o texto: sem rolagem interna, a numeração acompanha
+      // "Cheia" se decide pela largura da FOLHA inteira, descontada a coluna da numeração — medir a
+      // caixa do texto dava laço: a numeração aparecia, estreitava a caixa, sumia, alargava, voltava.
       const caixa=ta.parentElement; const max=parseFloat(getComputedStyle(caixa).maxWidth);
-      const cheia = !(max>0) || caixa.offsetWidth >= max-1;
+      const folha=caixa.parentElement; const reserva=40;
+      const cheia = !(max>0) || (folha.clientWidth-reserva) >= max-1;
       const n = cheia? linhas : null;
       if(n!==this.state.redLinhasN) this.setState({redLinhasN:n});
     }catch(_){}
@@ -12437,7 +12440,9 @@ class Component extends DCLogic {
       if(caixa===this._redFolhaVista) return;
       if(this._redFolhaRO){ this._redFolhaRO.disconnect(); this._redFolhaRO=null; }
       this._redFolhaVista=caixa; if(!caixa) return;
-      if(typeof ResizeObserver==='function'){ this._redFolhaRO=new ResizeObserver(()=>this._redMedirFolha()); this._redFolhaRO.observe(caixa); }
+      if(typeof ResizeObserver==='function'){ this._redFolhaRO=new ResizeObserver(()=>this._redMedirFolha()); this._redFolhaRO.observe(caixa); if(caixa.parentElement) this._redFolhaRO.observe(caixa.parentElement); }
+      // a medida é em ch: quando a serifa do tema termina de carregar, o ch muda e a folha não muda de tamanho
+      try{ if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>this._redMedirFolha()); }catch(_){}
       this._redMedirFolha();
     }catch(_){} }
   toggleRedFoco = ()=> this._redFocoPor(!this.state.redFoco);
