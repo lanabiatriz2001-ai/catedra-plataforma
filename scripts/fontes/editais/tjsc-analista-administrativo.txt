@@ -1,0 +1,70 @@
+Língua Portuguesa - 1 Compreensão e interpretação de textos de gêneros variados. 2 Reconhecimento de tipos e gêneros textuais. 3 Domínio da
+ortografia oficial: 3.1 Emprego das letras. 3.2 Emprego da acentuação gráfica. 4 Domínio dos mecanismos de coesão textual: 4.1 Emprego de
+elementos de referenciação, substituição e repetição, de conectores e outros elementos de sequenciação textual. 4.2 Emprego/correlação de
+tempos e modos verbais. 5 Domínio da estrutura morfossintática do período: 5.1 Relações de coordenação entre orações e entre termos da oração.
+5.2 Relações de subordinação entre orações e entre termos da oração. 5.3 Emprego dos sinais de pontuação. 5.4 Concordância verbal e nominal.
+5.5 Emprego do sinal indicativo de crase. 5.6 Colocação dos pronomes átonos. 6 Reescritura de frases e parágrafos do texto: 6.1 Substituição de
+palavras ou de trechos de texto. 6.2 Retextualização de diferentes gêneros e níveis de formalidade.
+Legislação Institucional do PJSC - 1. Estrutura, competências e funcionamento do Poder Judiciário estadual. 2. Organização judiciária: divisão,
+composição, competências e funcionamento dos órgãos jurisdicionais e administrativos. 3. Regimento interno do Tribunal de Justiça: organização,
+competências e funcionamento dos órgãos do TJSC. 4. Normas da Corregedoria-Geral da Justiça. 5. Regime jurídico e disciplinar dos servidores. 6.
+Lei nº 5.624/1979 (Código de Divisão e Organização Judiciárias do Estado de Santa Catarina, com alterações), Regimento Interno do Tribunal de
+Justiça de Santa Catarina, Código de Normas da Corregedoria-Geral da Justiça do PJSC no âmbito judicial (serviços do primeiro grau de jurisdição),
+atualizado pelo Provimento CGJ nº 22/2025, Lei nº 6.745/1985 (Estatuto dos Servidores Públicos Civis do Estado de Santa Catarina) e Lei
+Complementar nº 639/2015 (define o regime disciplinar aplicável aos servidores do quadro do Poder Judiciário do Estado de Santa Catarina).
+Ética e Gestão no Serviço Público - 1. Princípios e ética na Administração Pública: 1.1 Princípios constitucionais. 1.2 Moralidade administrativa e
+interesse público. 1.3 Probidade e integridade. 1.4 Conflito de interesses. 2. Responsabilidade e regime funcional do servidor: 2.1 Deveres e
+vedações. 2.2 Responsabilização administrativa, civil e penal. 2.3 Processo disciplinar e sanções. 3. Improbidade administrativa: 3.1 Atos de
+improbidade. 3.2 Aplicação em casos concretos. 4. Responsabilização de pessoas jurídicas: 4.1 Responsabilidade objetiva. 4.2 Atos lesivos contra a
+Administração Pública. 4.3 Acordo de leniência e programas de integridade. 5. Gestão de pessoas e comportamento organizacional: 5.1 Motivação,
+liderança e desempenho. 5.2 Trabalho em equipe e comunicação. 5.3 Cultura organizacional. 6. Integridade institucional no Poder Judiciário: 6.1
+Padrões éticos. 6.2 Transparência e controle. 6.3 Prevenção de irregularidades. 6.4 Código de Ética e Conduta do PJSC. 7. Lei nº 8.429/1992 (Lei de
+Improbidade Administrativa, com alterações), Lei nº 12.846/2013 (Lei Anticorrupção, com alterações) e Resolução TJ nº 22/2021 (Código de Ética e
+Conduta do Poder Judiciário do Estado de Santa Catarina).
+Noções de Informática e Proteção de Dados - 1. Fundamentos de informática: 1.1 Conceitos básicos de hardware e software. 1.2 Sistemas
+operacionais e aplicativos. 1.3 Redes de computadores e internet. 1.4 Segurança da informação: princípios, ameaças e boas práticas. 2. Proteção de
+dados pessoais: 2.1 Conceitos fundamentais e princípios. 2.2 Direitos do titular e bases legais de tratamento. 2.3 Agentes de tratamento e
+responsabilidades. 2.4 Segurança e boas práticas no tratamento de dados. 3. Proteção de dados no âmbito do Poder Judiciário: 3.1 Políticas
+institucionais de privacidade e proteção de dados. 3.2 Tratamento de dados pessoais em atividades judiciais e administrativas. 3.3 Medidas de
+segurança, governança e conformidade. 4. Lei nº 13.709/2018 (Lei Geral de Proteção de Dados Pessoais - LGPD) e Resolução TJ nº 3/2021 (Política
+Geral de Privacidade e Proteção de Dados Pessoais do PJSC).
+Direitos Humanos e acesso à Justiça - 1. Princípios e fundamentos dos direitos humanos: 1.1 Dignidade da pessoa humana, universalidade e
+indivisibilidade. 2. Proteção internacional e constitucional dos direitos fundamentais: 2.1 Incorporação e aplicação no ordenamento jurídico
+brasileiro. 3. Acesso à justiça e garantias processuais: 3.1 Devido processo legal, contraditório e ampla defesa. 3.2 Efetividade da prestação
+jurisdicional. 4. Igualdade, não discriminação e grupos vulneráveis: 4.1 Tratamento isonômico e proteção de pessoas em situação de
+vulnerabilidade. 5. Políticas judiciárias de inclusão e cidadania: 5.1 Atuação do Poder Judiciário na promoção de direitos e acesso à justiça.
+Administração Geral - 1. Teoria geral da administração e das organizações. Evolução do pensamento administrativo. 2. Conceitos fundamentais.
+Eficiência. Eficácia. Efetividade. Qualidade. Papéis e competências do administrador. 3. Funções administrativas. Planejamento. Organização.
+Direção. Controle. 4. Organização e estrutura. 4.1 Princípios de organização. 4.2 Estruturas organizacionais. Tipos. Características. Aplicações. 4.3
+Departamentalização. Critérios e formas. 4.4 Centralização e descentralização. 5. Planejamento e controle. 5.1 Planejamento estratégico, tático e
+operacional. Conceitos. Etapas. Ferramentas e metodologias. 5.2 Controle organizacional. Conceitos. Tipos. Sistemas. Indicadores de desempenho.
+6. Gestão da qualidade e processos. 6.1 Fundamentos da gestão da qualidade. 6.2 Ferramentas da qualidade. 6.3 Gestão por processos. BPM. 7.
+Gestão de projetos. 7.1 Conceitos e fundamentos. 7.2 Ciclo de vida. 7.3 Planejamento. Execução. Monitoramento. Encerramento. 7.4 Indicadores de
+desempenho. Análise de resultados.
+Gestão de Pessoas e Comportamento Organizacional - 1. Gestão de pessoas. 1.1 Função estratégica de recursos humanos. 1.2 Processos de gestão
+de pessoas. Recrutamento. Seleção. Integração. Desenvolvimento. Avaliação. Retenção. 1.3 Indicadores de gestão de pessoas. 2. Desenvolvimento e
+desempenho. 2.1 Treinamento e desenvolvimento. Métodos. Avaliação. Mensuração de resultados. 2.2 Gestão de desempenho. Conceitos.
+Métodos. Instrumentos. 3. Comportamento organizacional. 3.1 Cultura e clima organizacional. 3.2 Motivação e engajamento. 3.3 Liderança. 3.4
+Trabalho em equipe. Dinâmica de grupos.
+Administração de Materiais e Logística - 1. Gestão de materiais. Conceitos. Objetivos. Funções. 2. Classificação e controle de estoques. Curva ABC.
+3. Políticas de estoque. Máximo. Mínimo. Médio. Segurança. 4. Indicadores de desempenho logístico. 5. Modelos e cálculos de estoques. 5.1 Tempo
+de reposição. 5.2 Ponto de pedido. 5.3 Giro de estoque. 5.4 Lote econômico de compra. LEC. 5.5 Custos de armazenagem e manutenção. 5.6
+Número de pedidos.
+Administração Pública - 1. Modelos de administração pública. Patrimonialista. Burocrático. Gerencial. Reformas administrativas. Evolução do
+Estado. 2. Princípios da Administração Pública. 3. Políticas públicas. 3.1 Estado. Governo. Políticas públicas. 3.2 Ciclo de políticas públicas.
+Formulação. Implementação. Avaliação. 3.3 Arranjos institucionais. 4. Planejamento e gestão pública. 4.1 Planejamento governamental. Planos.
+Programas. Projetos. 4.2 Governança pública. Conceitos. Princípios. Mecanismos. 4.3 Governabilidade. Accountability. 4.4 Gestão por resultados.
+4.5 Avaliação de políticas. Programas. Projetos. 5. Parcerias e instrumentos de gestão. 5.1 Parcerias público-privadas. 5.2 Terceirização. Contratos
+administrativos. 5.3 Consórcios públicos. 5.4 Relações com organizações da sociedade civil.
+Administração Financeira e Orçamentária - 1. Orçamento público. Conceitos. Funções. Princípios. Evolução do orçamento. Orçamento-programa. 2.
+Orçamento público no Brasil. Plano Plurianual. PPA. Lei de Diretrizes Orçamentárias. LDO. Lei Orçamentária Anual. LOA. 3. Instrumentos
+orçamentários. 3.1 Créditos adicionais. 3.2 Emendas parlamentares. 3.3 Estrutura e conteúdo do PPA. LDO. LOA. 3.4 Metas fiscais. Riscos fiscais. 4.
+Classificações orçamentárias. 4.1 Receita pública. Categorias econômicas. Fontes. 4.2 Despesa pública. Natureza. Função. Programa. Classificações
+do MTO. 5. Execução orçamentária e financeira. 5.1 Ciclo orçamentário. 5.2 Estágios da receita e da despesa. 5.3 Programação financeira.
+Desembolso. 5.4 Restos a pagar. Mecanismos de ajuste. 6. Responsabilidade fiscal. 6.1 Princípios. Planejamento. Renúncia de receita. Geração de
+despesa. Transferências voluntárias. Transparência. Controle. Fiscalização. 7. Lei nº 4.320/1964 (Normas Gerais de Direito Financeiro para
+Elaboração e Controle dos Orçamentos e Balanços da União, dos Estados, dos Municípios e do Distrito Federal); Constituição Federal de 1988 (art.
+165 a 169 - Sistema Orçamentário); Lei Complementar nº 101/2000 (Lei de Responsabilidade Fiscal).
+Transparência e Controle na Administração Pública - 1. Transparência pública. Conceitos. Princípios. Boas práticas. 2. Instrumentos de controle
+social. 3. Accountability. Mecanismos de fiscalização e controle. 4. Lei Complementar nº 131/2009 (Lei da Transparência); Lei nº 12.527/2011 (Lei de
+Acesso à Informação).
