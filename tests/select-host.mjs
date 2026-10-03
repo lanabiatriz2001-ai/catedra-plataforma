@@ -52,7 +52,7 @@ const TELAS = [
    o que diz (uma varredura que não acha nada passaria de graça). */
 const OBRIGATORIOS = ['Disciplina', 'Tópico', 'Subtópico', 'Qual lei', 'Qual fonte',
   'Disciplina do bloco', 'Filtrar por disciplina do edital', 'Carreira', 'Forma de análise',
-  'Tipo do evento', 'aj-f-cobranca', 'Filtrar o histórico', 'Ativar reta final com'];
+  'Tipo do evento', 'aj-f-modoPadrao', 'Filtrar o histórico', 'Ativar reta final com'];
 
 export async function testarSelectHost(pageDaSuite, base, ok, opcoes = {}) {
   const motor = opcoes.motor || 'chromium';
