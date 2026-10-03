@@ -8087,7 +8087,13 @@ class Component extends DCLogic {
     patch.redHistory=this._redLoad();
     patch.escudos=this._load('escudos', this.state.escudos);
     patch.streakFreezeUsados=this._load('streakFreezeUsados', this.state.streakFreezeUsados);
-    try{ const _o=localStorage.getItem('catedra:orient'); if(_o){ const p=JSON.parse(_o); if(p&&typeof p==='object') patch.orient=this._rmMigrarEnergia({...this.state.orient, ...p, energiaDia:p.energiaDia||''}); } }catch(_){}
+    try{ const _o=localStorage.getItem('catedra:orient'); if(_o){ const p=JSON.parse(_o); if(p&&typeof p==='object'){ const loc=this.state.orient||{}; let o={...loc, ...p};
+        /* orient que chega SEM energiaDia veio de aparelho na versão antiga. A migração do legado
+           é só do que ESTE aparelho guardava: se ele já está no esquema novo, a energia base, a de
+           hoje e o carimbo daqui ficam como estão (senão o iPad antigo trocaria a base do Mac). */
+        if(!p.energiaDia){ if(loc.energiaDia){ o.energia=loc.energia; o.energiaPlano=loc.energiaPlano; o.energiaDia=loc.energiaDia; }
+          else o=this._rmMigrarEnergia({...o, energiaDia:''}); }
+        patch.orient=o; } } }catch(_){}
     try{ const _h=localStorage.getItem('catedra:habitos'); if(_h){ const p=JSON.parse(_h); if(p&&typeof p==='object') patch.habitos={...this.state.habitos, ...p}; } }catch(_){}
     try{ const _pv=localStorage.getItem('catedra:prova'); patch.provaData=_pv||null; }catch(_){}
     try{ const _cm=localStorage.getItem('catedra:cycleMode'); if(_cm) patch.cycleMode=_cm; }catch(_){}
@@ -15959,7 +15965,11 @@ class Component extends DCLogic {
     const v=Math.max(LIM[0], Math.min(LIM[1], this._rmNum(O[k])+d));
     let o={...O, [k]:String(v)}; if(k!=='blocoPadrao') o=this._rmOrdenar(o, k);
     this._rmGravar(o, {rmDesfazer:null}); };
-  rmOrdenarMetas = (e)=>{ this._rmGravar(this._rmOrdenar(this.state.orient||{}, e.currentTarget.dataset.k), {rmDesfazer:null}); };
+  rmOrdenarMetas = (e)=>{ const o={...(this.state.orient||{})};
+    // campo deixado vazio ou com texto: volta o último valor gravado (nunca vira "sem meta" por acidente)
+    let salvo={}; try{ salvo=JSON.parse(localStorage.getItem('catedra:orient')||'{}')||{}; }catch(_){}
+    ['metaMin','metaIdeal','metaForte'].forEach(k=>{ if(!/^\d+$/.test(String(o[k]).trim())) o[k]=/^\d+$/.test(String(salvo[k]))?String(salvo[k]):AJ_ORIENT_PADRAO[k]; });
+    this._rmGravar(this._rmOrdenar(o, e.currentTarget.dataset.k), {rmDesfazer:null}); };
   /* Energia: orient.energia é a BASE de todo dia; energiaPlano só vale no dia carimbado em
      energiaDia. Legado (orient guardado sem energiaDia): o que estava em energiaPlano era, na
      prática, a energia permanente da pessoa — vira a base, uma vez só ('0' marca "já migrado"). */
@@ -15969,7 +15979,11 @@ class Component extends DCLogic {
   _enHoje(){ const O=this.state.orient||{};
     return (O.energiaDia===this._hoje() && O.energiaPlano) ? O.energiaPlano : (O.energia||'normal'); }
   _persistOrient(){ try{ localStorage.setItem('catedra:orient', JSON.stringify(this.state.orient)); }catch(_){} this._cloudPush(); }
-  setOrient = (e)=>{ const k=e.currentTarget.dataset.k; const v=e.currentTarget.value; this.setState(s=>{ const orient={...s.orient,[k]:v}; const patch={orient}; if(k==='metaIdeal'){ patch.orient=this._rmEspelhar(orient); patch.prefs={...s.prefs, metaDiaria:Math.max(1, Math.round((parseInt(v,10)||0)/60))}; } return patch; }, ()=>{ this._persistOrient(); if(['estrategia','nivel','blocoPadrao','energia','metaIdeal','dias'].indexOf(k)>=0){ this._recomporDia(); } }); };
+  setOrient = (e)=>{ const k=e.currentTarget.dataset.k; const v=e.currentTarget.value;
+    // meta pela metade (campo vazio enquanto a pessoa troca o número): é rascunho de tela —
+    // não vai ao storage, não zera tempoDia, não recompõe o dia. O blur (rmOrdenarMetas) fecha.
+    if(['metaMin','metaIdeal','metaForte'].indexOf(k)>=0 && !/^\d+$/.test(String(v).trim())){ this.setState(s=>({orient:{...s.orient,[k]:v}})); return; }
+    this.setState(s=>{ const orient={...s.orient,[k]:v}; const patch={orient}; if(k==='metaIdeal'){ patch.orient=this._rmEspelhar(orient); patch.prefs={...s.prefs, metaDiaria:Math.max(1, Math.round((parseInt(v,10)||0)/60))}; } return patch; }, ()=>{ this._persistOrient(); if(['estrategia','nivel','blocoPadrao','energia','metaIdeal','dias'].indexOf(k)>=0){ this._recomporDia(); } }); };
   /* Os dias disponíveis eram um campo de texto cru ("Seg,ter,qua…") — hostil e fácil de
      quebrar. Viram chips; o valor guardado continua o MESMO CSV, então nada muda para o
      gerador de sugestão nem para contas antigas. */

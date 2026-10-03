@@ -66,7 +66,8 @@ export async function testarAjustesRitmo(pageDaSuite, base, ok, opcoes = {}) {
         a.rmOrdenarMetas({ currentTarget: { dataset: { k: 'metaMin' } } }); });
       await page.waitForTimeout(1400);
       o = await orientSalvo(page);
-      ok(+o.metaMin === 300 && +o.metaIdeal === 300 && +o.metaForte === 300, R + 'ordenar preserva o campo editado e conserta os outros (' + [o.metaMin, o.metaIdeal, o.metaForte] + ')');
+      // o forte ficou vazio: volta o último gravado (360) e a ordem se conserta em volta do mínimo editado
+      ok(+o.metaMin === 300 && +o.metaIdeal === 300 && +o.metaForte === 360, R + 'ordenar preserva o campo editado, conserta o ideal e devolve o forte vazio ao último gravado (' + [o.metaMin, o.metaIdeal, o.metaForte] + ')');
       ok([o.metaMin, o.metaIdeal, o.metaForte, o.tempoDia].every(v => /^\d+$/.test(String(v))), R + 'nenhum NaN nem vazio no storage');
     } finally { await ctx.close(); }
   }
@@ -209,6 +210,44 @@ export async function testarAjustesRitmo(pageDaSuite, base, ok, opcoes = {}) {
       await page.evaluate(() => window.__catedraApp.setState(s => ({ orient: { ...s.orient, dias: '' } }))); await page.waitForTimeout(400);
       const txt = await page.locator('[data-rm="previa"]').innerText();
       ok(/nenhum dia marcado/i.test(txt) && !/NaN|Infinity/.test(txt), R + 'zero dias: a prévia avisa, sem NaN');
+    } finally { await ctx.close(); }
+  }
+
+  // ── achados da revisão independente (03/10/2026) ───────────────────────────────
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    const page = await ctx.newPage();
+    page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
+    const t = new Date(); t.setHours(14, 0, 0, 0); await page.clock.install({ time: t });
+    try {
+      await semear(page, base); await abrir(page, base, arquivo);
+      // I1 — aparelho na versão ANTIGA sobe o orient inteiro sem energiaDia: a energia base e a
+      // de hoje deste aparelho não podem mudar por causa disso (a migração é do legado LOCAL)
+      await page.evaluate(() => { const a = window.__catedraApp;
+        a.setOrientVal({ currentTarget: { dataset: { k: 'energia', v: 'baixa' } } });
+        a.setOrientRadio({ currentTarget: { dataset: { v: 'alta' } } }); });
+      await page.waitForTimeout(1400);
+      const r1 = await page.evaluate(() => { const a = window.__catedraApp;
+        const velho = JSON.parse(localStorage.getItem('catedra:orient')); delete velho.energiaDia; velho.energia = 'normal'; velho.energiaPlano = 'normal'; velho.aoAbrir = 'ciclo';
+        localStorage.setItem('catedra:orient', JSON.stringify(velho)); a._rehydrateFromLocal();
+        return new Promise(res => setTimeout(() => res({ base: a.state.orient.energia, hoje: a._enHoje(), dia: a.state.orient.energiaDia, veio: a.state.orient.aoAbrir }), 300)); });
+      ok(r1.veio === 'ciclo', R + 'reidratação: os outros ajustes do aparelho antigo chegam (' + r1.veio + ')');
+      ok(r1.base === 'baixa' && r1.hoje === 'alta' && /^\d{4}-/.test(r1.dia), R + 'reidratação de orient sem energiaDia não mexe na energia base nem na de hoje (' + JSON.stringify(r1) + ')');
+
+      // I2 — apagar o número para digitar outro não grava vazio nem zera tempoDia
+      await page.evaluate(() => { const a = window.__catedraApp; a.setOrient({ currentTarget: { dataset: { k: 'metaIdeal' }, value: '' } }); });
+      await page.waitForTimeout(1400);
+      let o = await orientSalvo(page);
+      ok(/^\d+$/.test(String(o.metaIdeal)) && +o.metaIdeal > 0 && o.tempoDia !== '0', R + 'campo de meta vazio não chega ao storage (metaIdeal ' + JSON.stringify(o.metaIdeal) + ', tempoDia ' + JSON.stringify(o.tempoDia) + ')');
+      ok(await page.evaluate(() => window.__catedraApp.state.orient.metaIdeal) === '', R + 'o campo continua vazio na tela enquanto a pessoa digita');
+      await page.evaluate(() => { const a = window.__catedraApp; a.setOrient({ currentTarget: { dataset: { k: 'metaIdeal' }, value: '240' } }); });
+      await page.waitForTimeout(1400);
+      o = await orientSalvo(page);
+      ok(o.metaIdeal === '240' && o.tempoDia === '240', R + 'valor válido digitado é gravado (240)');
+      // saiu do campo vazio: volta ao último valor gravado, não vira "sem meta"
+      const r2 = await page.evaluate(() => { const a = window.__catedraApp; a.setOrient({ currentTarget: { dataset: { k: 'metaIdeal' }, value: '' } });
+        a.rmOrdenarMetas({ currentTarget: { dataset: { k: 'metaIdeal' } } }); return new Promise(res => setTimeout(() => res(a.state.orient.metaIdeal), 200)); });
+      ok(r2 === '240', R + 'sair do campo vazio devolve o último valor gravado (' + r2 + ')');
     } finally { await ctx.close(); }
   }
 }
