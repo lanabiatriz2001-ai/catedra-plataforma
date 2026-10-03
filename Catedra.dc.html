@@ -10902,21 +10902,41 @@ class Component extends DCLogic {
     // (é o método: ver, depois fixar) —, lei seca uma vez, e uma revisão geral. Nunca o mesmo
     // TIPO+TÓPICO duas vezes na volta; acabado o conteúdo único, a matéria não recebe mais
     // blocos nesta volta (cota cortada) em vez de repetir.
+    /* NÍVEL (03/10/2026): iniciante vê antes de fazer (nunca abre com questões, questões
+       curtas); intermediário é o método de sempre (a volta de fábrica não muda um bloco);
+       avançado aprende fazendo (questões do ponto antes da teoria, teoria curta, revisão
+       geral antes de lei seca e jurisprudência). */
+    const nivel=(O.nivel==='iniciante'||O.nivel==='avancado')?O.nivel:'intermediario';
+    const mQ=Math.round(base*(nivel==='iniciante'?.6:(nivel==='avancado'?1:.8)));
+    const mT=Math.round(base*(nivel==='avancado'?.7:1));
+    /* ESTRATÉGIA (03/10/2026): 'ciclo' intercala as matérias (o de sempre); 'sequencial' fecha
+       a cota de uma matéria antes de abrir a seguinte; 'revisao' abre com revisão geral toda
+       matéria que já tem sessão registrada (e ganha mais extras de revisão em _extrasDoDia). */
+    const estrategia=(O.estrategia==='sequencial'||O.estrategia==='revisao')?O.estrategia:'ciclo';
+    const estudada={}; (this.state.sessions||[]).forEach(x=>{ if(x&&x.disc) estudada[String(x.disc).trim()]=1; });
     const usado={}; const k0=(d,k,t)=>d+'|'+k+'|'+t;
     const proximo=(d, idx)=>{ const p=d.p||{}; const fr=this._fragilDe(d.disc, B);
       const fraco=(p.liqPct!=null && p.liqPct<60) || (p.erros30>0);
       const pega=(kind, tag, min, porque)=>{ usado[k0(d.disc,kind,tag)]=1; return {kind, tag, min, porque}; };
-      if(idx===0 && fraco && fr && !usado[k0(d.disc,'Questões',fr.topico)])
-        return pega('Questões', fr.topico, Math.round(base*.8), (fr.dom<=0?'líquido negativo neste tópico':('domínio de '+Math.round(fr.dom*100)+'% neste tópico')));
+      if(estrategia==='revisao' && idx===0 && estudada[d.disc] && !usado[k0(d.disc,'Revisão','revisão geral')])
+        return pega('Revisão', 'revisão geral', Math.round(base*.6), 'foco em revisão: abrir revisando o que já foi visto');
+      if(nivel!=='iniciante' && idx===0 && fraco && fr && !usado[k0(d.disc,'Questões',fr.topico)])
+        return pega('Questões', fr.topico, mQ, (fr.dom<=0?'líquido negativo neste tópico':('domínio de '+Math.round(fr.dom*100)+'% neste tópico')));
       const pend=d.pend||[];
       const t1=pend.find(t=>!usado[k0(d.disc,'Teoria',t)]);
-      if(t1) return pega('Teoria', t1, base, (p.diasSem==null?'nunca estudada por aqui':'próximo ponto pendente do edital'));
       const t2=pend.find(t=>!usado[k0(d.disc,'Questões',t)]);
-      if(t2) return pega('Questões', t2, Math.round(base*.8), 'fixar com questões o que já foi visto');
+      if(nivel==='avancado'){
+        if(t2) return pega('Questões', t2, mQ, 'avançado: comece pelas questões do ponto');
+        if(t1) return pega('Teoria', t1, mT, 'fechar na teoria o que as questões mostraram');
+      } else {
+        if(t1) return pega('Teoria', t1, mT, (p.diasSem==null?'nunca estudada por aqui':'próximo ponto pendente do edital'));
+        if(t2) return pega('Questões', t2, mQ, 'fixar com questões o que já foi visto');
+      }
       // sem tópicos (edital não cadastrado) ou tópicos esgotados: a sequência genérica do
       // método — ver, fixar, lei seca, jurisprudência, revisar — uma vez cada por volta
-      const GEN=[['Teoria','ponto seguinte do programa',base,'sem edital: siga o programa da matéria'],['Questões','questões comentadas',Math.round(base*.8),'fixar com questões'],
+      const GEN0=[['Teoria','ponto seguinte do programa',mT,'sem edital: siga o programa da matéria'],['Questões','questões comentadas',mQ,'fixar com questões'],
         ['Lei seca','artigos mais citados',Math.round(base*.7),'reforço na lei seca'],['Jurisprudência','súmulas e teses',Math.round(base*.7),'o que os tribunais firmaram'],['Revisão','revisão geral',Math.round(base*.6),'manter o domínio']];
+      const GEN=(nivel==='avancado') ? [GEN0[1],GEN0[0],GEN0[4],GEN0[2],GEN0[3]] : GEN0;
       for(const g of GEN){ if(pend.length && (g[0]==='Teoria'||g[0]==='Questões')) continue;   // com edital, teoria e questões já vieram dos tópicos
         if(!usado[k0(d.disc,g[0],g[1])]) return pega(g[0], g[1], g[2], g[3]); }
       return null; };
@@ -10926,7 +10946,9 @@ class Component extends DCLogic {
     while(blocos.length<nBl && g++<400){
       const cands=discs.filter(d=>d.rest>0); if(!cands.length) break;
       cands.sort((a,b)=>((b.rest/b.cota)-(a.rest/a.cota)) || (b.w-a.w));
-      const d=cands.find(c=>c.disc!==last)||cands[0];
+      const d=(estrategia==='sequencial')
+        ? (cands.find(c=>c.disc===last) || cands.slice().sort((a,b)=>b.w-a.w)[0])   // termina a matéria antes de abrir outra
+        : (cands.find(c=>c.disc!==last)||cands[0]);
       const i=idxDe[d.disc]||0; idxDe[d.disc]=i+1; d.rest--; last=d.disc;
       const c=proximo(d, i); if(!c){ d.rest=0; continue; }   // sem conteúdo único: a matéria sai desta volta
       const motivo=[c.porque].concat(((d.p&&d.p.motivos)||[]).filter(m=>m!==c.porque)).slice(0,3).join(' · ');
@@ -10940,9 +10962,14 @@ class Component extends DCLogic {
     const out=[]; const O=this.state.orient||{}; const base=Math.max(20, Math.round((parseInt(O.blocoPadrao,10)||50)*this._enMult()));
     const hoje=this._hoje(); const fora=this.state.cicloExtrasFora; const foraIds=new Set((fora&&fora.date===hoje)?(fora.ids||[]):[]);
     const revs=(this.state.reviews||[]).filter(r=>(+r.due||0)<=0);
-    if(revs.length){ const por={}; revs.forEach(r=>{ por[r.disc||'—']=(por[r.disc||'—']||0)+1; }); const d=Object.keys(por).sort((a,b)=>por[b]-por[a])[0]; const n=revs.length;
-      const _rv=revs.find(r=>(r.disc||'—')===d)||{}; out.push({id:'x-rev', disc:d, kind:'Revisão', tag:_rv.topic||'revisões vencidas', topico:_rv.topic||'', discEdital:(this.state.edital||[]).some(e=>String(e.disc||'').trim()===d)?d:'',
-        min:Math.max(15, Math.min(45, n*8)), done:false, extra:true, motivo:(n>1?(n+' revisões vencidas'):'revisão vencida')+' — antes da volta'}); }
+    // um extra de revisão (a matéria com mais vencidas); no 'foco em revisão', até três — um
+    // por matéria. O primeiro mantém o id 'x-rev': quem já marcou a revisão de hoje não a vê voltar.
+    if(revs.length){ const por={}; revs.forEach(r=>{ por[r.disc||'—']=(por[r.disc||'—']||0)+1; });
+      const ordem=Object.keys(por).sort((a,b)=>por[b]-por[a]); const foco=(O.estrategia==='revisao');
+      (foco?ordem.slice(0,3):ordem.slice(0,1)).forEach((d,i)=>{ const n=foco?por[d]:revs.length;
+        const _rv=revs.find(r=>(r.disc||'—')===d)||{};
+        out.push({id:(i===0?'x-rev':'x-rev-'+i), disc:d, kind:'Revisão', tag:_rv.topic||'revisões vencidas', topico:_rv.topic||'', discEdital:(this.state.edital||[]).some(e=>String(e.disc||'').trim()===d)?d:'',
+          min:Math.max(15, Math.min(45, n*8)), done:false, extra:true, motivo:(n>1?(n+' revisões vencidas'):'revisão vencida')+' — antes da volta'}); }); }
     let dp=null; try{ if(this.state.provaData) dp=Math.ceil((new Date(this.state.provaData+'T00:00:00')-Date.now())/864e5); }catch(_){}
     const reta=!!(this.state.profile||{}).retaFinal || (dp!=null && dp>=0 && dp<=30);
     if(reta){ const ss=(this.state.sessions||[]).filter(x=>x.disc==='Simulado'||((x.categorias||[]).indexOf('Simulado')>=0)||x.categoria==='Simulado');
@@ -10988,6 +11015,22 @@ class Component extends DCLogic {
   // Meta/energia mudaram: a fatia do dia segue a nova régua; a volta em si não é refeita.
   _recomporDia(){ if(this.state.cycleMode==='manual'){ this.syncManual({}); return; }
     const V=this.state.cicloVolta; if(!V||!(V.blocos||[]).length) return; this.setState({blocks:this._comporDia(V, this.state.blocks)}); }
+  /* Nível/estratégia mudaram: refaz só o que AINDA NÃO foi feito na volta. Os concluídos (e
+     os pulados) ficam com id, conteúdo e data; os pendentes vêm de uma volta nova pela regra
+     de agora, sem repetir o que já foi concluído (mesma matéria+tipo+tópico) e com ids que
+     não colidem. Modo manual: o ciclo é da pessoa, nada muda. */
+  _refazerPendentes(){ const m=this.state.cycleMode||'sugestao'; if(m==='manual') return;
+    const V=this.state.cicloVolta; if(!V||!(V.blocos||[]).length) return;
+    const feitos=V.blocos.filter(b=>b.done||b.pulado); const nPend=V.blocos.length-feitos.length;
+    if(nPend<=0) return;
+    const chave=(b)=>b.disc+'|'+b.kind+'|'+b.tag; const ja=new Set(feitos.map(chave)); const ids=new Set(feitos.map(b=>b.id));
+    let i=0; const novos=this._genVolta(m, V.n||1).blocos.filter(b=>!ja.has(chave(b))).slice(0, nPend)
+      .map(b=>{ let id; do{ id='v'+(V.n||1)+'-r'+(i++); }while(ids.has(id)); ids.add(id); return {...b, id}; });
+    const blocos=[...feitos, ...novos];
+    const nova={...V, blocos, totalMin:blocos.reduce((a,b)=>a+(+b.min||0),0)};
+    // o dia: fica o que já ocupa hoje (feito, extra, solto); os pendentes antigos saem e a fatia é refeita
+    const fica=(this.state.blocks||[]).filter(b=>b && (b.done||b.extra||(!b.voltaId&&!b.rotId)));
+    this.setState({cicloVolta:nova, blocks:this._comporDia(nova, fica)}); }
   /* Refaz a VOLTA pela prioridade de agora. O que foi feito hoje continua contando no dia;
      os extras feitos ficam; os pendentes são substituídos pela volta nova. */
   regerarCiclo = ()=>{ const m=this.state.cycleMode||'sugestao'; if(m==='manual') return;
@@ -15990,7 +16033,7 @@ class Component extends DCLogic {
   // chips do perfil: mesmo destino do setOrient, mas por clique (selects não funcionam bem no toque)
   setOrientVal = (e)=>{ const k=e.currentTarget.dataset.k, v=e.currentTarget.dataset.v;
     this.setState(s=>({orient:{...s.orient,[k]:v}, rmDesfazer:(k==='cobranca'?null:s.rmDesfazer)}), ()=>{ this._persistOrient();
-      if(['nivel','estrategia','energia'].indexOf(k)>=0) this._recomporDia(); }); };
+      if(k==='nivel'||k==='estrategia') this._refazerPendentes(); else if(k==='energia') this._recomporDia(); }); };
   // rolagem para uma seção dos Ajustes — os chips do topo apontam para os ids aj-*
   ajIr = (e)=>{ const el=document.getElementById('aj-'+(e.currentTarget.dataset.s||'')); if(!el) return; el.scrollIntoView({behavior:this._rolagem(),block:'start'}); };
   /* Trocar de área deixou de ser um clique só. Desde que cada área ganhou o seu caderno,
@@ -16487,7 +16530,7 @@ class Component extends DCLogic {
     // meta pela metade (campo vazio enquanto a pessoa troca o número): é rascunho de tela —
     // não vai ao storage, não zera tempoDia, não recompõe o dia. O blur (rmOrdenarMetas) fecha.
     if(['metaMin','metaIdeal','metaForte'].indexOf(k)>=0 && !/^\d+$/.test(String(v).trim())){ this.setState(s=>({orient:{...s.orient,[k]:v}})); return; }
-    this.setState(s=>{ const orient={...s.orient,[k]:v}; const patch={orient}; if(k==='metaIdeal'){ patch.orient=this._rmEspelhar(orient); patch.prefs={...s.prefs, metaDiaria:Math.max(1, Math.round((parseInt(v,10)||0)/60))}; } return patch; }, ()=>{ this._persistOrient(); if(['estrategia','nivel','blocoPadrao','energia','metaIdeal','dias'].indexOf(k)>=0){ this._recomporDia(); } }); };
+    this.setState(s=>{ const orient={...s.orient,[k]:v}; const patch={orient}; if(k==='metaIdeal'){ patch.orient=this._rmEspelhar(orient); patch.prefs={...s.prefs, metaDiaria:Math.max(1, Math.round((parseInt(v,10)||0)/60))}; } return patch; }, ()=>{ this._persistOrient(); if(k==='estrategia'||k==='nivel'){ this._refazerPendentes(); return; } if(['estrategia','nivel','blocoPadrao','energia','metaIdeal','dias'].indexOf(k)>=0){ this._recomporDia(); } }); };
   /* Os dias disponíveis eram um campo de texto cru ("Seg,ter,qua…") — hostil e fácil de
      quebrar. Viram chips; o valor guardado continua o MESMO CSV, então nada muda para o
      gerador de sugestão nem para contas antigas. */
