@@ -161,6 +161,9 @@ async function papel(pageDaSuite, base, ok, R) {
   } finally { await ctx.close(); }
 }
 
+// A medição da folha vem um quadro depois da tecla, e a pintura depois dela: espera o rótulo mudar, não um
+// tempo fixo (300 ms não bastaram no WebKit da CI — PR #210).
+const esperaLinhas = (page, re) => page.waitForFunction(src => new RegExp(src).test(((document.querySelector('[data-red="linhas"]') || {}).textContent || '').replace(/\s+/g, ' ')), re.source, { timeout: 8000 }).catch(() => {}).then(() => page.waitForTimeout(450));   // + a transição de cor da barra (.2s)
 async function folha(pageDaSuite, base, ok, R) {
   const linha = 'uma linha de prova com onze palavras bem curtas aqui sim';   // 11 palavras, cabe na medida de 62ch
   const texto = n => Array.from({ length: n }, () => linha).join('\n');
@@ -179,9 +182,9 @@ async function folha(pageDaSuite, base, ok, R) {
     const cor = () => page.evaluate(() => getComputedStyle(document.querySelector('[data-red="barra"] > div')).backgroundColor);
     const tok = n => page.evaluate(n => { const d = document.createElement('div'); d.style.background = 'var(' + n + ')'; document.querySelector('[data-red="folha"]').appendChild(d); const c = getComputedStyle(d).backgroundColor; d.remove(); return c; }, n);
     ok(await cor() === await tok('--accent'), R + 'barra na cor do tema dentro do limite');
-    await page.fill('[data-red="folha"] textarea', texto(28)); await page.waitForTimeout(300);
+    await page.fill('[data-red="folha"] textarea', texto(28)); await esperaLinhas(page, /faltam 2/);
     ok(await cor() === await tok('--warn') && /faltam 2/.test(await page.textContent('[data-red="linhas"]')), R + 'perto do limite a barra avisa e o rótulo diz quantas faltam');
-    await page.fill('[data-red="folha"] textarea', texto(32)); await page.waitForTimeout(300);
+    await page.fill('[data-red="folha"] textarea', texto(32)); await esperaLinhas(page, /passou 2/);
     ok(await cor() === await tok('--danger') && /passou 2/.test(await page.textContent('[data-red="linhas"]')), R + 'acima do limite a barra e o rótulo dizem quanto passou');
     ok(/Salvo às \d{2}:\d{2}/.test(await page.textContent('[data-red="salvo"]')), R + 'a folha diz a hora em que salvou');
     // modo foco
@@ -193,7 +196,7 @@ async function folha(pageDaSuite, base, ok, R) {
     ok(await nav() > 0, R + 'Esc sai do foco');
     // folha estreita: estimativa por palavras, sem numeração
     await page.setViewportSize({ width: 390, height: 844 }); await page.waitForTimeout(400);
-    await page.fill('[data-red="folha"] textarea', texto(4)); await page.waitForTimeout(300);
+    await page.fill('[data-red="folha"] textarea', texto(4)); await esperaLinhas(page, /4 \/ 30 linhas/);
     ok(/4 \/ 30 linhas/.test((await page.textContent('[data-red="linhas"]')).replace(/\s+/g, ' ')) && await page.locator('[data-red="pauta"]').count() === 0, R + 'em tela estreita vale a estimativa e a numeração some');
   } finally { await ctx.close(); }
 
