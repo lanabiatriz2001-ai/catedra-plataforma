@@ -35,7 +35,7 @@ struct JurisSettingsView: View {
                     Text("Claude Opus 4.8 (máxima precisão)").tag("claude-opus-4-8")
                     Text("Claude Haiku 4.5 (rápido/barato)").tag("claude-haiku-4-5-20251001")
                 }
-                Text("Sua chave da API da Anthropic fica só neste aparelho e é usada para a análise por IA (ex.: Comparar STF × STJ). A IA trabalha apenas com o texto oficial dos enunciados, para ser fiel. Obtenha a chave em console.anthropic.com.")
+                Text("Sua chave da API da Anthropic fica só neste aparelho e é usada pela leitura ativa do LEGIS. A IA trabalha apenas com o texto oficial, para ser fiel. Obtenha a chave em console.anthropic.com.")
                     .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             } header: {
                 Label("Inteligência Artificial", systemImage: "sparkles")

@@ -1,13 +1,13 @@
 {
   "mac": {
-    "cores": 54,
-    "pretoBranco": 111,
+    "cores": 48,
+    "pretoBranco": 107,
     "tamanhos": 0,
     "emoji": 0
   },
   "ios": {
-    "cores": 55,
-    "pretoBranco": 116,
+    "cores": 49,
+    "pretoBranco": 112,
     "tamanhos": 0,
     "emoji": 0
   }

@@ -26,6 +26,94 @@ export const urlFaixaRep = (a, b) => `${PESQUISA}&cod_tema_inicial=${a}&cod_tema
 export const urlTemaRep = (n) => `${PESQUISA}&cod_tema_inicial=${n}&cod_tema_final=${n}`;
 const ORIGEM = 'fichas oficiais do Portal de Precedentes Qualificados do STJ (pesquisa.jsp, varredura completa)';
 
+// ── Filtro pelo CSV oficial (03/10/2026) ────────────────────────────────────
+// O Portal de Dados Abertos do STJ publica o conjunto "precedentes-qualificados" (Temas.csv,
+// CC-BY, UTF-8, ~2,6 MB). Ele NÃO substitui as fichas: medido contra a leitura de 25/09, o
+// CSV como fonte daria 9 alarmes falsos em 12 (a tese perde caracteres na página ISO-8859-1 e
+// a modulação vem com os parágrafos colados), já ficou 13 dias sem ser regravado e não pegou
+// um cancelamento no mesmo dia. Por isso ele só ESCOLHE AS FAIXAS: nos dias comuns, lê-se
+// apenas a faixa em que o CSV mostra situação diferente da última leitura, tema novo ou tema
+// sumido, mais a cauda; os itens continuam nascendo das fichas oficiais (pesquisa.jsp), com
+// as mesmas regras. A varredura completa segue semanal (quarta-feira) e também roda sempre
+// que o CSV falhar, vier curto ou estiver velho — atraso do CSV nunca vira ponto cego.
+export const CSV_TEMAS_REP = 'https://dadosabertos.web.stj.jus.br/dataset/precedentes-qualificados/resource/df29da13-7d6b-41ba-ad96-cd1a5bbd191c/download/temas.csv';
+export const CSV_DIAS_MAX = 3;          // CSV mais velho que isto não serve de filtro
+export const CSV_MIN_TEMAS = 1400;      // menos temas que isto = leitura suspeita
+export const DIA_VARREDURA_COMPLETA = 3; // quarta-feira (Date#getDay)
+
+/** CSV (RFC 4180): vírgula, aspas dobradas, quebra de linha dentro de campo entre aspas. */
+export function lerCsv(txt) {
+  const linhas = []; let campo = '', linha = [], aspas = false;
+  const t = String(txt || '').replace(/^﻿/, '');
+  for (let i = 0; i < t.length; i++) {
+    const c = t[i];
+    if (aspas) {
+      if (c === '"') { if (t[i + 1] === '"') { campo += '"'; i++; } else aspas = false; }
+      else campo += c;
+    } else if (c === '"') aspas = true;
+    else if (c === ',') { linha.push(campo); campo = ''; }
+    else if (c === '\n' || c === '\r') {
+      if (c === '\r' && t[i + 1] === '\n') i++;
+      linha.push(campo); campo = ''; linhas.push(linha); linha = [];
+    } else campo += c;
+  }
+  if (campo !== '' || linha.length) { linha.push(campo); linhas.push(linha); }
+  return linhas.filter((l) => l.length > 1 || (l[0] || '') !== '');
+}
+
+/** Map(número do tema → situação) das linhas "Tema" do Temas.csv. Tema repetido com situações
+ *  diferentes vira null (ambíguo: a faixa dele é lida). */
+export function situacoesDoCsv(txt) {
+  const [cab, ...linhas] = lerCsv(txt);
+  if (!cab) throw new Error('CSV vazio');
+  const iTipo = cab.indexOf('tipoPrecedente'), iNum = cab.indexOf('numeroPrecedente'), iSit = cab.indexOf('situacao');
+  if (iTipo < 0 || iNum < 0 || iSit < 0) throw new Error('o CSV mudou de formato: faltam as colunas tipoPrecedente/numeroPrecedente/situacao');
+  const m = new Map();
+  for (const l of linhas) {
+    if ((l[iTipo] || '').trim() !== 'Tema') continue;
+    const n = Number(String(l[iNum] || '').trim());
+    if (!Number.isInteger(n) || n <= 0) continue;
+    const sit = (l[iSit] || '').trim();
+    if (m.has(n) && m.get(n) !== null && normForte(m.get(n)) !== normForte(sit)) m.set(n, null);
+    else if (!m.has(n)) m.set(n, sit);
+  }
+  return m;
+}
+
+/** As faixas que precisam ser lidas, dado o CSV. Pura. Sempre inclui a última (a cauda, onde
+ *  nascem os temas novos). Devolve também os motivos, para o detalhe ser honesto. */
+export function faixasComMudanca(faixas, prevTemas, csv) {
+  const escolhidas = [], motivos = [];
+  faixas.forEach(([A, B], i) => {
+    const razoes = [];
+    for (let n = A; n <= B; n++) {
+      const prev = prevTemas[n], noCsv = csv.has(n);
+      if (!prev && noCsv) { razoes.push(`Tema ${n} novo no CSV`); continue; }
+      if (prev && !noCsv) { razoes.push(`Tema ${n} ausente do CSV`); continue; }
+      if (!prev) continue;
+      const s = csv.get(n);
+      if (s === null) razoes.push(`Tema ${n} repetido no CSV com situações diferentes`);
+      else if (normForte(s) !== normForte(prev.s || '')) razoes.push(`Tema ${n}: "${prev.s}" → "${s}"`);
+    }
+    if (razoes.length || i === faixas.length - 1) { escolhidas.push([A, B]); if (razoes.length) motivos.push(...razoes); }
+  });
+  return { escolhidas, motivos };
+}
+
+/** Varredura completa ou filtrada? Pura. `csv` = { mapa, lastModified } ou { erro }. */
+export function decidirVarredura({ quando, csv, forcar = false } = {}) {
+  if (forcar) return { completa: true, porque: 'varredura completa pedida' };
+  const d = new Date(quando || Date.now());
+  if (d.getDay() === DIA_VARREDURA_COMPLETA) return { completa: true, porque: 'varredura completa semanal (quarta-feira)' };
+  if (!csv || csv.erro) return { completa: true, porque: `o CSV oficial não pôde ser lido (${(csv && csv.erro) || 'sem leitura'}); varredura completa` };
+  if (csv.mapa.size < CSV_MIN_TEMAS) return { completa: true, porque: `o CSV oficial trouxe só ${csv.mapa.size} temas; varredura completa` };
+  const lm = csv.lastModified ? new Date(csv.lastModified) : null;
+  if (!lm || isNaN(lm)) return { completa: true, porque: 'o CSV oficial não informa a data de gravação; varredura completa' };
+  const dias = (d - lm) / 864e5;
+  if (dias > CSV_DIAS_MAX) return { completa: true, porque: `o CSV oficial está sem regravação há ${Math.floor(dias)} dias; varredura completa` };
+  return { completa: false, porque: `filtrada pelo CSV oficial de dados abertos (gravado em ${dataDeISO(lm.toISOString())})` };
+}
+
 export function texto(s) {
   if (s == null) return null;
   let t = String(s).replace(/<br\s*\/?>/gi, '\n').replace(/<\/p>/gi, '\n').replace(/<[^>]+>/g, '');
@@ -235,8 +323,21 @@ export async function consultarRepetitivos(ctx) {
     return { estado: 'parcial', erro: erros.join('; '), detalhe: `cauda a partir do Tema ${u}: ${temas.length} tema(s) lido(s); varredura completa só na rotina diária`, itens };
   }
 
-  // Rotina: a varredura completa.
-  const faixas = faixasDaVarredura(u);
+  // Rotina: varredura completa (semanal, ou sem CSV confiável) ou filtrada pelo CSV oficial.
+  let csv = null;
+  try {
+    // Uma tentativa só: o CSV é filtro; se falhar, a varredura é completa (nada fica sem ler).
+    const lido = await novaSessao(ctx)(CSV_TEMAS_REP, { teto: 60000, codificacao: 'utf8', repetir: false, ler: (r) => situacoesDoCsv(r.texto) });
+    if (lido.r.status !== 200) throw new Error(`HTTP ${lido.r.status}`);
+    csv = { mapa: lido.valor, lastModified: (lido.r.cabecalhos || {})['last-modified'] || null };
+  } catch (e) { csv = { erro: e.message }; }
+  const decisao = decidirVarredura({ quando, csv, forcar: !!ctx.varreduraCompleta });
+  const todas = faixasDaVarredura(u);
+  let faixas = todas, motivosCsv = [];
+  if (!decisao.completa) {
+    const f = faixasComMudanca(todas, R.temas, csv.mapa);
+    faixas = f.escolhidas; motivosCsv = f.motivos;
+  }
   const novos = { ...R.temas };
   const itens = [];
   const falhas = [], sumidosTodos = [];
@@ -262,7 +363,9 @@ export async function consultarRepetitivos(ctx) {
     // A última faixa voltou cheia: há temas além dela.
     if (i === faixas.length - 1 && temas.length >= 50) faixas.push([B + 1, B + 50]);
   }
-  const detalhe = `${temasLidos} temas lidos em ${lidas + falhas.length} faixa(s)${falhas.length ? `, ${falhas.length} com falha` : ''}; comparados com a leitura de ${dataDeISO(R.lidoEm)}`;
+  const filtro = decisao.completa ? decisao.porque
+    : `${decisao.porque}: ${faixas.length} de ${todas.length} faixa(s) lida(s)${motivosCsv.length ? ` (${motivosCsv.slice(0, 4).join('; ')}${motivosCsv.length > 4 ? '…' : ''})` : ' (só a cauda)'}`;
+  const detalhe = `${temasLidos} temas lidos em ${lidas + falhas.length} faixa(s)${falhas.length ? `, ${falhas.length} com falha` : ''}; comparados com a leitura de ${dataDeISO(R.lidoEm)} · ${filtro}`;
   if (!lidas) return falha('nenhuma faixa dos repetitivos pôde ser lida: ' + falhas.slice(0, 3).join('; '), detalhe);
   const erros = [...falhas];
   if (sumidosTodos.length) erros.push(`${sumidosTodos.length === 1 ? 'Tema' : 'Temas'} ${sumidosTodos.join(', ')} da leitura anterior não ${sumidosTodos.length === 1 ? 'veio' : 'vieram'} na pesquisa; ${sumidosTodos.length === 1 ? 'a entrada foi mantida' : 'as entradas foram mantidas'}`);
@@ -274,6 +377,7 @@ export async function consultarRepetitivos(ctx) {
     erro: erros.length ? erros.join('; ') : null,
     detalhe,
     itens,
-    retrato: { lidoEm: quando, origem: ORIGEM, ultimoTema: Math.max(...nums), total: nums.length, temas: novos },
+    retrato: { lidoEm: quando, origem: decisao.completa ? ORIGEM : `${ORIGEM.replace(', varredura completa', '')}, faixas escolhidas pelo CSV de dados abertos`, ultimoTema: Math.max(...nums), total: nums.length, temas: novos },
+    ...(decisao.completa ? {} : { leituraCompleta: false }),
   };
 }

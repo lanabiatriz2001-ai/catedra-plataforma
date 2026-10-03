@@ -48,9 +48,10 @@ export const uaPara = (host) => (/(^|\.)stj\.jus\.br$/i.test(String(host)) ? UA_
  *  viraria proxy aberto (SSRF), do mesmo jeito que api/law.js já se protege.
  *  Fase 2 (01/10/2026): portal.stf.jus.br (repercussão geral e súmulas do STF) e
  *  www.stj.jus.br (o PDF de súmulas do STJ). Seguem FORA, de propósito: scon.stj.jus.br e
- *  jurisprudencia.stf.jus.br (desafio anti-robô, não se contorna), bdjur.stj.jus.br e
- *  dadosabertos.web.stj.jus.br (sem rota útil). */
-export const HOSTS = [/^(www\.)?planalto\.gov\.br$/i, /^(www\.|portal\.)?stf\.jus\.br$/i, /^(processo|www)\.stj\.jus\.br$/i];
+ *  jurisprudencia.stf.jus.br (desafio anti-robô, não se contorna) e bdjur.stj.jus.br.
+ *  03/10/2026: entra dadosabertos.web.stj.jus.br, o Portal de Dados Abertos do STJ (Temas.csv dos
+ *  precedentes qualificados, usado como filtro das faixas de repetitivos). */
+export const HOSTS = [/^(www\.)?planalto\.gov\.br$/i, /^(www\.|portal\.)?stf\.jus\.br$/i, /^(processo|www|dadosabertos\.web)\.stj\.jus\.br$/i];
 export const hostPermitido = (h) => HOSTS.some((re) => re.test(h));
 
 /** Só os cabeçalhos do GET condicional passam (o PDF de súmulas do STJ: 304 = nada mudou).
