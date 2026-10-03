@@ -1736,3 +1736,10 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 .ct-mesa-acao { display: inline-flex; align-items: center; gap: var(--ct-e2); min-height: var(--ct-alvo-toque); padding: 0 var(--ct-e2); background: transparent; border: none; color: var(--text2); font: inherit; font-size: var(--fs-sm); cursor: pointer; border-radius: var(--r-md); }
 .ct-mesa-acao:hover { color: var(--ink); background: var(--surface2); }
 .ct-mesa-acao:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ct-folha-barra { display: flex; align-items: center; gap: var(--ct-e3); flex-wrap: wrap; padding: var(--ct-e3) var(--ct-e5); border-bottom: 1px solid var(--border); }
+.ct-folha-crono { margin-left: auto; font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: var(--fs-md); color: var(--ink); }
+.ct-seg { display: inline-flex; padding: 2px; border-radius: var(--radius); background: var(--surface2); border: 1px solid var(--border); }
+.ct-seg > button { min-height: var(--ct-alvo-toque); padding: 0 var(--ct-e4); border: none; background: transparent; color: var(--text2); font: inherit; font-size: var(--fs-sm); font-weight: 600; border-radius: calc(var(--radius) - 2px); cursor: pointer; }
+.ct-seg > button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px color-mix(in srgb, var(--ink) 16%, transparent); }
+.ct-seg > button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ct-folha-mao-tit { font-family: var(--display); font-size: var(--fs-2xl); font-weight: 600; color: var(--ink); margin: var(--ct-e2) 0 var(--ct-e2); line-height: 1.2; }

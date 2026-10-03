@@ -38,7 +38,7 @@ const caixa = (page, sel) => page.evaluate(s => { const e = document.querySelect
 
 export async function testarRedacaoMesa(pageDaSuite, base, ok, opcoes = {}) {
   const R = 'MESA [' + (opcoes.motor || 'chromium') + '] ';
-  const blocos = [arranjo];
+  const blocos = [arranjo, papel];
   for (const b of blocos) {
     try { await b(pageDaSuite, base, ok, R, opcoes); }
     catch (e) { ok(false, R + b.name + ' exceção: ' + e.message); }
@@ -81,4 +81,70 @@ async function arranjo(pageDaSuite, base, ok, R) {
     await b.page.waitForTimeout(200);
     ok(await b.page.locator('[data-red="editar-questao"]').count() === 0, R + 'questão do banco não mostra "Editar questão"');
   } finally { await b.ctx.close(); }
+}
+
+const lerStore = (page, k) => page.evaluate(k => { try { return JSON.parse(localStorage.getItem('catedra:' + k)); } catch (_) { return null; } }, k);
+
+async function papel(pageDaSuite, base, ok, R) {
+  let { ctx, page } = await novoContexto(pageDaSuite);
+  try {
+    await semear(page, base); await abrirRedacao(page, base);
+    ok(await page.getAttribute('[data-red="modo-mao"]', 'aria-pressed') === 'true', R + 'questão nova abre em "À mão"');
+    ok(await page.locator('[data-red="folha"] textarea').count() === 0, R + 'à mão não mostra campo de digitar');
+    ok((await page.textContent('[data-red="crono"]')).trim() === '00:00', R + 'cronômetro parado em 00:00 antes de começar');
+    await page.clock.runFor(5000);
+    ok((await page.textContent('[data-red="crono"]')).trim() === '00:00', R + 'cronômetro à mão não anda sozinho');
+    await page.click('[data-red="crono-btn"]'); await page.clock.runFor(65000);
+    // o relógio instalado continua correndo em tempo real entre os passos: 01:05 ou 01:06
+    ok(/^01:0[56]$/.test((await page.textContent('[data-red="crono"]')).trim()), R + '"Começar" faz o tempo andar com o relógio');
+    await page.click('[data-red="crono-btn"]');
+    const pausado = (await page.textContent('[data-red="crono"]')).trim();
+    await page.clock.runFor(30000);
+    ok((await page.textContent('[data-red="crono"]')).trim() === pausado, R + '"Pausar" congela o tempo');
+    await page.clock.runFor(1500);
+    ok(Math.abs((await lerStore(page, 'redTempoMs')) - 65000) < 3000, R + 'tempo pausado é salvo');
+    // Review Focus 1: fechar com o cronômetro andando não perde o que passou
+    await page.click('[data-red="crono-btn"]'); await page.clock.runFor(40000);
+    await page.evaluate(() => { Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true }); document.dispatchEvent(new Event('visibilitychange')); });
+    await page.clock.runFor(1500);
+    ok((await lerStore(page, 'redTempoMs')) >= 100000, R + 'tempo em curso é salvo quando a janela some');
+    await page.evaluate(() => { Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true }); });
+    await abrirRedacao(page, base);
+    ok(/^01:4\d$/.test((await page.textContent('[data-red="crono"]')).trim()), R + 'tempo volta depois de recarregar');
+    // sair da view pausa
+    await page.click('[data-red="crono-btn"]'); await page.clock.runFor(2000);
+    const antes = (await page.textContent('[data-red="crono"]')).trim();
+    await page.evaluate(() => window.__catedraGoView('inicio')); await page.clock.runFor(20000);
+    await page.evaluate(() => window.__catedraGoView('redacao')); await page.waitForSelector('[data-red="crono"]');
+    const seg = t => t.split(':').reduce((a, x) => a * 60 + (+x), 0);
+    const depois = (await page.textContent('[data-red="crono"]')).trim();
+    ok(seg(depois) - seg(antes) <= 2, R + 'sair da Redação pausa o cronômetro (' + antes + ' → ' + depois + ')');
+  } finally { await ctx.close(); }
+
+  ({ ctx, page } = await novoContexto(pageDaSuite));
+  try {
+    await semear(page, base, { redText: 'Rascunho digitado em outra sessão.', redTextTs: Date.now() - 3600e3, redTempoMs: 120000 });
+    await abrirRedacao(page, base);
+    ok(await page.getAttribute('[data-red="modo-digitar"]', 'aria-pressed') === 'true', R + 'com rascunho digitado abre em "Digitar"');
+    ok(/manuscrita/i.test(await page.textContent('[data-red="sugestao-papel"]')), R + 'digitando, a tela sugere o papel');
+    ok((await page.textContent('[data-red="crono"]')).trim() === '02:00', R + 'tempo do rascunho volta com ele');
+    // Review Focus 3: trocar de modo não apaga nem envia o rascunho
+    await page.click('[data-red="modo-mao"]'); await page.click('[data-red="modo-digitar"]');
+    ok((await page.inputValue('[data-red="folha"] textarea')) === 'Rascunho digitado em outra sessão.', R + 'trocar de modo preserva o texto digitado');
+    await page.clock.runFor(1500);
+    ok((await lerStore(page, 'redText')) === 'Rascunho digitado em outra sessão.', R + 'trocar de modo não mexe no rascunho salvo');
+    // digitando, o cronômetro começa na primeira tecla
+    await page.locator('[data-red="folha"] textarea').pressSequentially(' x'); await page.clock.runFor(10000);
+    ok((await page.textContent('[data-red="crono"]')).trim() !== '02:00' && /^02:1[012]$/.test((await page.textContent('[data-red="crono"]')).trim()), R + 'digitar a primeira tecla dispara o cronômetro');
+  } finally { await ctx.close(); }
+
+  // a faixa do rascunho só existe enquanto o texto é o que veio do disco: contexto próprio
+  ({ ctx, page } = await novoContexto(pageDaSuite));
+  try {
+    await semear(page, base, { redText: 'Rascunho digitado em outra sessão.', redTextTs: Date.now() - 3600e3, redTempoMs: 120000 });
+    await abrirRedacao(page, base);
+    page.once('dialog', d => d.accept());
+    await page.click('button:has-text("Começar do zero")'); await page.clock.runFor(1500);
+    ok((await lerStore(page, 'redTempoMs')) === 0 && (await page.textContent('[data-red="crono"]')).trim() === '00:00', R + '"Começar do zero" zera o tempo junto com o rascunho');
+  } finally { await ctx.close(); }
 }
