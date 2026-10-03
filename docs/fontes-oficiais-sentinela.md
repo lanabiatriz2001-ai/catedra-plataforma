@@ -768,3 +768,13 @@ carregado pelo host, pelo `legis-web.html` e pelo `juris-web.html`. Ele dá o vo
 Pendências: o LEGIS e o JURIS **nativos** (SwiftUI, Mac/iPad) ainda não têm as abas; lá o painel
 do host abre a busca do item. Os subtipos "possível novo verbete"/"possível atualização de verbete"
 já têm lugar na fila (`subtipo`), mas o sentinela ainda não cruza edição × verbete.
+
+## Como o sentinela se identifica (03/10/2026)
+
+- **STJ:** identificador honesto (`Catedra/1.0 (+repositório; leitura de dados oficiais)`). Medido: o
+  Informativo, os repetitivos e o PDF de súmulas respondem 200.
+- **STF e Planalto:** identificador de navegador (Chrome). Com o honesto, o STF responde 403 no
+  balanceador da AWS e o Planalto derruba a conexão. Por decisão da dona, os dois seguem lidos
+  assim: páginas públicas oficiais, da rede dela, em volume baixo. O filtro do STF existe para
+  barrar robôs, e esta é uma escolha consciente, registrada em `scripts/lib/tls-fontes.mjs`
+  (`uaPara`). Se houver rota de dados abertos ou acesso formal, trocar.
