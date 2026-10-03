@@ -24,6 +24,7 @@ import { testarPiiVerificador, testarPiiBuildSemTrecho } from './pii-verificador
 import { testarLegisGuiado } from './legis-guiado.mjs';
 import { testarLeitorWeb } from './leitor-web.mjs';
 import { testarCicloInteligente } from './ciclo-inteligente.mjs';
+import { testarCicloMagistratura } from './ciclo-magistratura.mjs';
 import { testarRegistroSessao } from './registro-sessao.mjs';
 import { testarIntegracaoModulos } from './integracao-modulos.mjs';
 import { testarIntegracaoFase2 } from './integracao-fase2.mjs';
@@ -9715,6 +9716,13 @@ catch (e) {
 try { await testarCicloInteligente(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'CICLO INTELIGENTE [' + motor + '] [http] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+// Ciclo Magistratura: método opcional, seed idempotente, rotação, D+7/30/90 (tests/ciclo-magistratura.mjs)
+try { await testarCicloMagistratura(page, URL0, ok, { motor, origem: 'http' }); }
+catch (e) {
+  ok(false, 'CICLO MAGISTRATURA [' + motor + '] [http] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 

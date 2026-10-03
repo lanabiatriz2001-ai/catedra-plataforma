@@ -297,7 +297,7 @@
 
   // ---------- merge por chave/id (fim do last-write-wins) ----------
   // chaves que são ARRAYS de objetos com id: união por id; em colisão vence o de maior up/ts
-  var ARRAY_ID = { 'catedra:sessions': 1, 'catedra:sessionsLixeira': 1, 'catedra:reviews': 1, 'catedra:casos': 1, 'catedra:fc': 1, 'catedra:lib': 1, 'catedra:errors': 1, 'catedra:eventos': 1, 'catedra:metas': 1, 'catedra:red': 1, 'catedra:redHist': 1, 'catedra:meusGrupos': 1, 'catedra:espelhosSugeridos': 1, 'catedra:leituras': 1, 'catedra:enamSim': 1, 'catedra:editais': 1, 'catedra:novidLidas': 1 };
+  var ARRAY_ID = { 'catedra:sessions': 1, 'catedra:sessionsLixeira': 1, 'catedra:reviews': 1, 'catedra:casos': 1, 'catedra:fc': 1, 'catedra:lib': 1, 'catedra:errors': 1, 'catedra:eventos': 1, 'catedra:metas': 1, 'catedra:red': 1, 'catedra:redHist': 1, 'catedra:meusGrupos': 1, 'catedra:espelhosSugeridos': 1, 'catedra:leituras': 1, 'catedra:enamSim': 1, 'catedra:editais': 1, 'catedra:novidLidas': 1, 'catedra:cmagRevs': 1 };
   /* O app passou a guardar o caderno de cada área de estudo em `catedra:<chave>@<area>`.
      Consultar ARRAY_ID pelo nome cru fazia essas chaves caírem fora do merge por id — ou
      seja, FORA da jurídica a sincronização voltava a ser last-write-wins de blob inteiro,
@@ -632,6 +632,8 @@
      que precisa do carimbo para vencer no merge. */
   gravarDerivado: function (k, v) { try { _si(k, v); } catch (_) {} },
   get status() { return syncStatus; },
+  // e-mail da sessão (só para o seed do Ciclo Magistratura reconhecer a conta; nunca sai daqui)
+  get email() { return (user && user.email) || ''; },
   // o primeiro acerto com a nuvem desta abertura terminou (ver marcarSincronizado)
   get pronto() { return sincronizado; },
   // carimbo (ms) do último acerto com a nuvem — o resumo do widget nasce com ele (0 = nunca acertou)
