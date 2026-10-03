@@ -38,7 +38,7 @@ const caixa = (page, sel) => page.evaluate(s => { const e = document.querySelect
 
 export async function testarRedacaoMesa(pageDaSuite, base, ok, opcoes = {}) {
   const R = 'MESA [' + (opcoes.motor || 'chromium') + '] ';
-  const blocos = [arranjo, papel];
+  const blocos = [arranjo, papel, folha];
   for (const b of blocos) {
     try { await b(pageDaSuite, base, ok, R, opcoes); }
     catch (e) { ok(false, R + b.name + ' exceção: ' + e.message); }
@@ -147,4 +147,48 @@ async function papel(pageDaSuite, base, ok, R) {
     await page.click('button:has-text("Começar do zero")'); await page.clock.runFor(1500);
     ok((await lerStore(page, 'redTempoMs')) === 0 && (await page.textContent('[data-red="crono"]')).trim() === '00:00', R + '"Começar do zero" zera o tempo junto com o rascunho');
   } finally { await ctx.close(); }
+}
+
+async function folha(pageDaSuite, base, ok, R) {
+  const linha = 'uma linha de prova com onze palavras bem curtas aqui sim';   // 11 palavras, cabe na medida de 62ch
+  const texto = n => Array.from({ length: n }, () => linha).join('\n');
+  const { ctx, page } = await novoContexto(pageDaSuite);
+  try {
+    await semear(page, base, { redText: texto(5), redTextTs: Date.now() - 60e3 }); await abrirRedacao(page, base);
+    await page.waitForSelector('[data-red="pauta"]', { timeout: 4000 }).catch(() => {});   // a medição vem depois da pintura
+    const m = await page.evaluate(() => { const t = document.querySelector('[data-red="folha"] textarea'); const cs = getComputedStyle(t);
+      const passo = /(\d+(?:\.\d+)?)px\)?\s*$/.exec(cs.backgroundSize) || /(\d+(?:\.\d+)?)px/.exec(cs.backgroundSize.split(' ').pop());
+      return { lh: parseFloat(cs.lineHeight), bg: cs.backgroundImage, passo: passo ? parseFloat(passo[1]) : null }; });
+    ok(/gradient/.test(m.bg) && m.passo != null && Math.abs(m.passo - m.lh) < 0.6, R + 'pauta desenhada no passo exato da linha do texto');
+    const lt = (await page.textContent('[data-red="linhas"]')).replace(/\s+/g, ' ');
+    ok(lt.includes('5 / 30 linhas'), R + 'contador mostra as linhas escritas contra o limite (' + lt.trim() + ')');
+    ok(await page.locator('[data-red="pauta"] > *').count() >= 30, R + 'numeração cobre pelo menos o limite da banca');
+    await page.screenshot({ path: 'tests/_capturas/mesa-folha.png', fullPage: true }).catch(() => {});
+    const cor = () => page.evaluate(() => getComputedStyle(document.querySelector('[data-red="barra"] > div')).backgroundColor);
+    const tok = n => page.evaluate(n => { const d = document.createElement('div'); d.style.background = 'var(' + n + ')'; document.querySelector('[data-red="folha"]').appendChild(d); const c = getComputedStyle(d).backgroundColor; d.remove(); return c; }, n);
+    ok(await cor() === await tok('--accent'), R + 'barra na cor do tema dentro do limite');
+    await page.fill('[data-red="folha"] textarea', texto(28)); await page.waitForTimeout(300);
+    ok(await cor() === await tok('--warn') && /faltam 2/.test(await page.textContent('[data-red="linhas"]')), R + 'perto do limite a barra avisa e o rótulo diz quantas faltam');
+    await page.fill('[data-red="folha"] textarea', texto(32)); await page.waitForTimeout(300);
+    ok(await cor() === await tok('--danger') && /passou 2/.test(await page.textContent('[data-red="linhas"]')), R + 'acima do limite a barra e o rótulo dizem quanto passou');
+    ok(/Salvo às \d{2}:\d{2}/.test(await page.textContent('[data-red="salvo"]')), R + 'a folha diz a hora em que salvou');
+    // modo foco
+    const nav = () => page.evaluate(() => { const a = document.querySelector('aside'); const r = a.getBoundingClientRect(); return r.width * r.height; });
+    ok(await nav() > 0, R + 'navegação visível fora do foco');
+    await page.click('[data-red="foco"]'); await page.waitForTimeout(200);
+    ok(await nav() === 0 && await page.locator('[data-red="questao"]').isVisible() && await page.locator('[data-red="folha"]').isVisible(), R + 'foco esconde a navegação e mantém questão e folha');
+    await page.keyboard.press('Escape'); await page.waitForTimeout(200);
+    ok(await nav() > 0, R + 'Esc sai do foco');
+    // folha estreita: estimativa por palavras, sem numeração
+    await page.setViewportSize({ width: 390, height: 844 }); await page.waitForTimeout(400);
+    await page.fill('[data-red="folha"] textarea', texto(4)); await page.waitForTimeout(300);
+    ok(/4 \/ 30 linhas/.test((await page.textContent('[data-red="linhas"]')).replace(/\s+/g, ' ')) && await page.locator('[data-red="pauta"]').count() === 0, R + 'em tela estreita vale a estimativa e a numeração some');
+  } finally { await ctx.close(); }
+
+  const s = await novoContexto(pageDaSuite);
+  try {
+    await semear(s.page, base, { redEnunciado: 'Disserte sobre tutela provisória.', redText: 'Um texto qualquer.', redTextTs: Date.now() });
+    await abrirRedacao(s.page, base);
+    ok(await s.page.locator('[data-red="barra"]').count() === 0 && /^\s*\d+ linhas?/.test(await s.page.textContent('[data-red="linhas"]')), R + 'sem limite no enunciado: sem barra e sem "/ L"');
+  } finally { await s.ctx.close(); }
 }

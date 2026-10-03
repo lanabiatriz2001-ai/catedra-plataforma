@@ -3368,7 +3368,7 @@ window.ctPdfLib = (function(){
        <div style="display:flex;flex-direction:column;gap:20px;">
 
         <!-- trilho das etapas -->
-        <div class="ct-trilho">
+        <div data-red-fora-do-foco class="ct-trilho">
           <span class="ct-trilho-passo" aria-current="{{ redPasso1 }}" data-feito="{{ redFeito1 }}">1 · Escolher</span>
           <span class="ct-trilho-sep" aria-hidden="true">›</span>
           <span class="ct-trilho-passo" aria-current="{{ redPasso2 }}" data-feito="{{ redFeito2 }}">2 · Responder</span>
@@ -3514,7 +3514,7 @@ window.ctPdfLib = (function(){
                em silêncio: nada dizia de quando era nem oferecia recomeçar sem perder a
                prova carregada. "Começar do zero" pergunta antes — é destruição de texto. -->
           <sc-if value="{{ redRascunhoTem }}" hint-placeholder-val="{{ false }}">
-            <div style="background:var(--surface);border:1px solid var(--accent);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;box-shadow:0 6px 20px -12px var(--accent);">
+            <div data-red-fora-do-foco style="background:var(--surface);border:1px solid var(--accent);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;box-shadow:0 6px 20px -12px var(--accent);">
               <span class="ct-ladrilho ct-ladrilho-g" aria-hidden="true"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="pen-line"><use href="#ct-i-pen-line"></use></svg></span>
               <div style="flex:1;min-width:190px;">
                 <div class="ct-eb">Rascunho salvo</div>
@@ -3618,8 +3618,20 @@ window.ctPdfLib = (function(){
                   <button data-red="modo-mao" data-m="mao" onclick="{{ setRedModo }}" aria-pressed="{{ redModoMao }}">À mão</button>
                   <button data-red="modo-digitar" data-m="digitar" onclick="{{ setRedModo }}" aria-pressed="{{ redModoDigitar }}">Digitar</button>
                 </div>
+                <sc-if value="{{ redModoDigitar }}" hint-placeholder-val="{{ false }}">
+                  <span data-red="linhas" class="ct-dado ct-folha-linhas" aria-live="polite">{{ redLinhasTxt }} <span style="color:var(--text3);">· {{ redWords }} palavras</span></span>
+                </sc-if>
                 <span class="ct-folha-crono" data-red="crono" role="timer" aria-label="Tempo de prova">{{ redCronoTxt }}</span>
+                <sc-if value="{{ redModoDigitar }}" hint-placeholder-val="{{ false }}">
+                  <button class="ct-mesa-acao" data-red="foco" onclick="{{ toggleRedFoco }}" aria-pressed="{{ redFoco }}" aria-label="Modo foco" title="Modo foco">
+                    <sc-if value="{{ redFocoOff }}" hint-placeholder-val="{{ true }}"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="maximize-2"><use href="#ct-i-maximize-2"></use></svg></sc-if>
+                    <sc-if value="{{ redFoco }}" hint-placeholder-val="{{ false }}"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="minimize-2"><use href="#ct-i-minimize-2"></use></svg></sc-if>
+                  </button>
+                </sc-if>
               </div>
+              <sc-if value="{{ redBarraShow }}" hint-placeholder-val="{{ false }}">
+                <div class="ct-folha-progresso" data-red="barra" role="progressbar" aria-label="Linhas usadas" aria-valuemin="0" aria-valuemax="{{ redLimiteN }}" aria-valuenow="{{ redLinhasAgora }}"><div style="{{ redBarraStyle }}"></div></div>
+              </sc-if>
               <sc-if value="{{ redModoMao }}" hint-placeholder-val="{{ true }}">
                 <div class="ct-mesa-corpo ct-folha-mao">
                   <div class="ct-eb">Faça à mão</div>
@@ -3633,16 +3645,20 @@ window.ctPdfLib = (function(){
               <sc-if value="{{ redModoDigitar }}" hint-placeholder-val="{{ false }}">
                 <div class="ct-mesa-corpo">
                   <p class="ct-nota" data-red="sugestao-papel">A prova é manuscrita: treinar à mão rende mais. <button class="ct-mesa-acao" data-m="mao" onclick="{{ setRedModo }}">Fazer à mão</button></p>
-            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:14px;">
-              <div class="ct-eb">Sua resposta</div>
-              <div style="font-size:var(--fs-sm);color:var(--text3);font-family:var(--mono);">{{ redWords }} palavras{{ redLimiteTxt }}</div>
-            </div>
-            <textarea value="{{ redText }}" oninput="{{ onRedText }}" readonly="{{ redBusy }}" rows="18" placeholder="Escreva como escreveria na prova: enfrente o comando na ordem em que ele foi feito, fundamente com o dispositivo e conclua de forma expressa." style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface2);border-radius:var(--radius);padding:20px;color:var(--ink);font-family:var(--body);font-size:var(--fs-lg);line-height:1.85;resize:vertical;outline:none;"></textarea>
-            <div style="display:flex;gap:12px;margin-top:18px;flex-wrap:wrap;align-items:center;">
-              <button class="ct-btn" onclick="{{ submitRed }}" disabled="{{ redBtnDisabled }}" aria-busy="{{ redBusy }}">{{ redBtnLabel }}</button>
-              <span style="font-size:var(--fs-sm);color:var(--text3);line-height:1.5;flex:1;min-width:200px;">{{ redDicaEtapa2 }}</span>
-            </div>
-                
+                  <div class="ct-folha" style="{{ redFolhaStyle }}">
+                    <sc-if value="{{ redPautaShow }}" hint-placeholder-val="{{ false }}">
+                      <div class="ct-folha-pauta" data-red="pauta" aria-hidden="true"><sc-for list="{{ redPautaNums }}" as="n"><span>{{ n }}</span></sc-for></div>
+                    </sc-if>
+                    <div class="ct-folha-campo">
+                      <textarea value="{{ redText }}" oninput="{{ onRedText }}" readonly="{{ redBusy }}" aria-label="Sua resposta" placeholder="Escreva como escreveria na prova: enfrente o comando na ordem em que ele foi feito, fundamente com o dispositivo e conclua de forma expressa."></textarea>
+                      <div class="ct-folha-medidor" aria-hidden="true"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="ct-folha-rodape">
+                  <span class="ct-folha-salvo" data-red="salvo">{{ redSalvoTxt }}</span>
+                  <span style="font-size:var(--fs-sm);color:var(--text3);line-height:1.5;flex:1;min-width:200px;">{{ redDicaEtapa2 }}</span>
+                  <button class="ct-btn" onclick="{{ submitRed }}" disabled="{{ redBtnDisabled }}" aria-busy="{{ redBusy }}">{{ redBtnLabel }}</button>
                 </div>
               </sc-if>
             </section>
@@ -7370,7 +7386,8 @@ class Component extends DCLogic {
       atalhosOpen:false,          // U8: modal da tecla ?
       redRascunhoOculto:false,
       redQuestaoAberta:true, redMarcasAberto:false, redEditandoEnun:false,   // mesa de prova: só de tela
-      redModoResposta:(String(this._load('redText','')||'').trim()?'digitar':'mao'), redCronoOn:false, redCronoTick:0,    // U4: a faixa do rascunho da redação, depois de dispensada
+      redModoResposta:(String(this._load('redText','')||'').trim()?'digitar':'mao'), redCronoOn:false, redCronoTick:0,
+      redLinhasN:null, redFoco:false,    // U4: a faixa do rascunho da redação, depois de dispensada
       // 'video' e 'mapa' (este em 25/09/2026) saíram dos formatos; quem tivesse essa
       // preferência salva ficaria numa aba sem botão para sair dela. Cai para texto; o
       // mfGen antigo continua guardado, só não é mais lido.
@@ -8506,7 +8523,7 @@ class Component extends DCLogic {
   componentWillUnmount(){ if(this._redCronoT) clearInterval(this._redCronoT); try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onSelChange){ document.removeEventListener('selectionchange', this._onSelChange); clearTimeout(this._selChangeT); } ['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev, this._acDespertar)); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._areaMsg) window.removeEventListener('message', this._areaMsg); if(this._acervoMsg) window.removeEventListener('message', this._acervoMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._revT) clearInterval(this._revT);
     try{ if(this._mqDark && this._onMqDark){ if(this._mqDark.removeEventListener) this._mqDark.removeEventListener('change', this._onMqDark); else if(this._mqDark.removeListener) this._mqDark.removeListener(this._onMqDark); } }catch(_){}
     if(this._pipMsgT) clearTimeout(this._pipMsgT); if(this._bkpAutoT) clearInterval(this._bkpAutoT); if(this._salaT) clearTimeout(this._salaT); this._pipStop(); this._closeDocPiP();  }
-  componentDidUpdate(){ this._baixaRaiz(); this._widgetAvisar(); this._syncModalFocus(); try{ const ta=this._toastAcaoEl; if(ta && ta.style.pointerEvents==='auto') this._toastAcaoPos(); }catch(_){} try{ this._edSincronizarConcurso(); }catch(_){} this._autosave(); this._montarFrames(); this._marcasEnunSync(); }
+  componentDidUpdate(){ if(this.state.view==='redacao') this._redVigiarFolha(); this._baixaRaiz(); this._widgetAvisar(); this._syncModalFocus(); try{ const ta=this._toastAcaoEl; if(ta && ta.style.pointerEvents==='auto') this._toastAcaoPos(); }catch(_){} try{ this._edSincronizarConcurso(); }catch(_){} this._autosave(); this._montarFrames(); this._marcasEnunSync(); }
   // LEGIS e JURIS ficam em <iframe> com data-ct-frame (e não src=) de propósito: com
   // src no HTML cru o navegador baixava as duas páginas durante o parse — antes do
   // runtime existir — e jogava fora ao montar o app. Aqui o src entra só quando a
@@ -10009,6 +10026,7 @@ class Component extends DCLogic {
   _irPara(v, extra){
     // sair da Redação pausa o cronômetro da resposta na hora (o tique é só a rede de segurança)
     if(v!=='redacao' && this._redCronoDesde){ try{ this._redCronoPausar(); }catch(_){} }
+    if(v!=='redacao' && this.state.redFoco){ try{ this._redFocoPor(false); }catch(_){} }
     if(v==='dashboards') v='inicio';
     if(!this._podeAbrir(v)){
       // não redireciona em silêncio: a tela diz por que não abre e oferece a saída
@@ -12134,7 +12152,8 @@ class Component extends DCLogic {
   // e é a data que responde a única pergunta que importa ao reabrir — isto aqui é de hoje
   // ou é de três semanas atrás? É escalar, então o carimbo por chave do sync já resolve.
   onRedText = (e)=>{ if(!this._redCronoDesde && !this.state.redBusy) this._redCronoIniciar();
-    this.setState({redText:e.currentTarget.value, redTextTs:Date.now()}); };
+    this.setState({redText:e.currentTarget.value, redTextTs:Date.now()});
+    try{ requestAnimationFrame(this._redMedirFolha); }catch(_){} };
   // ===== U4: RETOMADA EXPLÍCITA DA REDAÇÃO =============================================
   // O rascunho voltava para a tela em silêncio: o texto estava lá, sem dizer de quando era
   // nem oferecer recomeço. Quem voltava depois de duas semanas achava que era da prova de
@@ -12394,6 +12413,37 @@ class Component extends DCLogic {
   _redCronoZerar(){ if(this._redCronoT){ clearInterval(this._redCronoT); this._redCronoT=null; } this._redCronoDesde=0;
     this.setState({redTempoMs:0, redCronoOn:false});
     try{ localStorage.setItem(this._chave('redTempoMs'),JSON.stringify(0)); }catch(_){} }
+  // Mede a folha. Com a folha na medida cheia, conta as linhas RENDERIZADAS (medidor
+  // invisível com a mesma tipografia); mais estreita que a medida, devolve null e quem
+  // mostra o número cai na estimativa por palavras — nunca dois números ao mesmo tempo.
+  _redMedirFolha = ()=>{
+    try{
+      const ta=document.querySelector('[data-red="folha"] textarea'); const med=document.querySelector('.ct-folha-medidor');
+      if(!ta||!med){ if(this.state.redLinhasN!=null) this.setState({redLinhasN:null}); return; }
+      const cs=getComputedStyle(ta); const lh=parseFloat(cs.lineHeight)||1;
+      const pad=(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
+      const txt=String(ta.value||'');
+      med.textContent = txt + (/\n$/.test(txt)?'\u200b':'');
+      const linhas = txt.trim()? Math.max(1, Math.round((med.offsetHeight-pad)/lh)) : 0;
+      ta.style.height = med.offsetHeight+'px';      // a folha cresce com o texto: sem rolagem interna, a numeração acompanha
+      const caixa=ta.parentElement; const max=parseFloat(getComputedStyle(caixa).maxWidth);
+      const cheia = !(max>0) || caixa.offsetWidth >= max-1;
+      const n = cheia? linhas : null;
+      if(n!==this.state.redLinhasN) this.setState({redLinhasN:n});
+    }catch(_){}
+  };
+  _redVigiarFolha(){ try{
+      const caixa=document.querySelector('.ct-folha-campo');
+      if(caixa===this._redFolhaVista) return;
+      if(this._redFolhaRO){ this._redFolhaRO.disconnect(); this._redFolhaRO=null; }
+      this._redFolhaVista=caixa; if(!caixa) return;
+      if(typeof ResizeObserver==='function'){ this._redFolhaRO=new ResizeObserver(()=>this._redMedirFolha()); this._redFolhaRO.observe(caixa); }
+      this._redMedirFolha();
+    }catch(_){} }
+  toggleRedFoco = ()=> this._redFocoPor(!this.state.redFoco);
+  _redFocoPor(on){ this.setState({redFoco:!!on});
+    try{ if(on) document.documentElement.setAttribute('data-red-foco',''); else document.documentElement.removeAttribute('data-red-foco'); }catch(_){}
+    if(on && !this._redFocoEsc){ this._redFocoEsc=(e)=>{ if(e.key==='Escape' && this.state.redFoco) this._redFocoPor(false); }; document.addEventListener('keydown', this._redFocoEsc); } }
   toggleRedCrono = ()=>{ if(this.state.redBusy) return; if(this._redCronoDesde) this._redCronoPausar(); else this._redCronoIniciar(); };
   setRedModo = (e)=>{ const m=e.currentTarget.dataset.m==='digitar'?'digitar':'mao';
     if(m===this.state.redModoResposta || this.state.redBusy) return;
@@ -14335,7 +14385,7 @@ class Component extends DCLogic {
     if(this.state.redBusy) return;
     if(!(this.state.redGabarito||'').trim()){ this._toast('Cole ou importe o gabarito para comparar'); return; }
     const _disc={...(this.state.redDisciplina||{})};
-    this._redCronoPausar(); const _tempoMs=this._redTempoAgora();
+    this._redCronoPausar(); const _tempoMs=this._redTempoAgora(); if(this.state.redFoco) this._redFocoPor(false);
     this.setState({redBusy:true, redResult:null, redSubText:text, redSubGab:this.state.redGabarito, redEspelhoOculto:false});
     const enun=(this.state.redEnunciado||'').trim();
     const _titulo=(enun? enun.replace(/\s+/g,' ').slice(0,80) : (text.replace(/\s+/g,' ').slice(0,60)||'Questão discursiva'));
@@ -19776,6 +19826,20 @@ class Component extends DCLogic {
       redEditandoEnun:!this.state.redModoProva && this.state.redEditandoEnun, toggleRedEditarEnun:this.toggleRedEditarEnun,
       redLendoEnun:!!this.state.redModoProva || !this.state.redEditandoEnun,
       redEditarEnunTxt:this.state.redEditandoEnun?'Concluir edição':'Editar questão',
+      ...(()=>{ const lim=this._redLimiteLinhas(this.state.redEnunciado);
+        const est=Math.ceil(redWords/11);
+        const med=this.state.redLinhasN; const n=(med!=null?med:est);
+        const base=lim?(n+' / '+lim+' linhas'):(n+(n===1?' linha':' linhas'));
+        const extra=!lim?'':(n>lim?(' · passou '+(n-lim)):(n>=lim*0.9?(' · faltam '+(lim-n)):''));
+        const cor=!lim?'var(--accent)':(n>lim?'var(--danger)':(n>=lim*0.9?'var(--warn)':'var(--accent)'));
+        const ts=+this.state.redTextTs||0;
+        const tot=Math.max(18, n+1, lim||0);
+        return { redLinhasTxt:base+extra, redLinhasAgora:String(n), redLimiteN:String(lim||0),
+          redBarraShow:!!lim && this.state.redModoResposta==='digitar', redBarraStyle:'width:'+(lim?Math.min(100,Math.round(n/lim*100)):0)+'%;background-color:'+cor+';',
+          redFolhaStyle:'--ct-folha-min:'+tot+';',   // a pauta vai até onde a numeração vai
+          redPautaShow:med!=null, redPautaNums:Array.from({length:tot},(_,i)=>String(i+1)),
+          redSalvoTxt:ts?('Salvo às '+new Date(ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})):'Ainda não salvo' }; })(),
+      redFoco:!!this.state.redFoco, redFocoOff:!this.state.redFoco, toggleRedFoco:this.toggleRedFoco,
       redModoMao:this.state.redModoResposta!=='digitar', redModoDigitar:this.state.redModoResposta==='digitar', setRedModo:this.setRedModo,
       redCronoTxt:this._redFmtTempo(this._redTempoAgora()), redCronoOn:!!this.state.redCronoOn, toggleRedCrono:this.toggleRedCrono,
       redCronoBtnTxt:this.state.redCronoOn?'Pausar':((+this.state.redTempoMs||0)>0?'Continuar':'Começar'),
