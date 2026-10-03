@@ -997,14 +997,7 @@ final class LibraryStore {
         termos.total == entries.count ? termos.termosChave(e) : IndiceTermos.termosChave(e)
     }
 
-    /// Verbetes de um tribunal que tratam do mesmo assunto do `entry` (Comparador STF × STJ).
-    /// Pontua por termos raros em comum no ENUNCIADO (IDF), com filtro de fonte/tribunal.
-    func comparaveis(_ entry: JurisEntry, tribunal: String, limite: Int = 8) -> [JurisEntry] {
-        prepararKW()
-        return termos.comparaveis(entry, tribunal: tribunal, limite: limite, em: entries)
-    }
-
-    /// O retrato do acervo que os Relacionados e o Comparador leem numa tarefa destacada, com
+    /// O retrato do acervo que os Relacionados leem numa tarefa destacada, com
     /// o índice de termos já montado. nil enquanto o acervo carrega (o `reload` zera `entries`
     /// por um instante).
     func acervoParaQuadro() -> AcervoQuadro? {
@@ -1019,19 +1012,6 @@ final class LibraryStore {
         let p = d.split(separator: "/")
         guard p.count == 3, let dd = Int(p[0]), let mm = Int(p[1]), let yy = Int(p[2]) else { return Int.max }
         return yy * 10000 + mm * 100 + dd
-    }
-
-    /// Linha do tempo do assunto: verbetes relacionados + o próprio, do mais antigo ao mais recente.
-    func linhaDoTempo(_ entry: JurisEntry, limite: Int = 24) -> [JurisEntry] {
-        prepararKW()
-        let base = termosChave(entry)
-        guard !base.isEmpty else { return [entry] }
-        var pool = entries.filter { c in
-            c.id == entry.id || (base.intersection(termosChave(c)).count >= 2 &&
-                (c.ramoDireito == entry.ramoDireito || c.tema == entry.tema))
-        }
-        pool.sort { Self.chaveData($0) < Self.chaveData($1) }
-        return Array(pool.prefix(limite))
     }
 
     /// Abre um verbete em LEITURA TELA CHEIA (a partir da home).
@@ -1400,10 +1380,6 @@ struct IndiceTermos: Sendable {
         ruidoDeQuadro.contains(t) || t.allSatisfy { $0.isNumber }
     }
 
-    /// Fontes que NÃO entram no comparador STF × STJ (seleções de TJ, TSE, TJRO).
-    static let foraComparador: Set<String> =
-        ["sel_tjgo","sel_tjpr","sel_tjrj","sumula_tse","informativo_tse","tjro","tjro_prec"]
-
     /// As palavras de um campo: dobradas (sem acento, minúsculas), com 4 letras ou mais,
     /// fora da `stop`.
     static func termos(_ s: String?) -> [String] {
@@ -1461,25 +1437,6 @@ struct IndiceTermos: Sendable {
     /// Termo que aparece em mais de 5% do acervo é vocabulário comum: não distingue nada e
     /// não pode virar "o que se discute" ("contra" 1.369, "decisão" 1.595).
     var corteTermoPopular: Int { max(1, total / 20) }
-
-    /// Verbetes de um tribunal que tratam do mesmo assunto do `entry`: termos raros em comum
-    /// no ENUNCIADO (IDF), com filtro de fonte/tribunal. `entries` é o acervo com que o
-    /// índice foi montado.
-    func comparaveis(_ entry: JurisEntry, tribunal: String, limite: Int, em entries: [JurisEntry]) -> [JurisEntry] {
-        let base = termosChave(entry)
-        guard base.count >= 2 else { return [] }
-        let n = Double(max(entries.count, 1))
-        let pont = entries.compactMap { c -> (JurisEntry, Double)? in
-            guard c.id != entry.id, c.tribunal == tribunal,
-                  !Self.foraComparador.contains(c.fonte) else { return nil }
-            let comum = base.intersection(kw[c.id] ?? [])
-            guard comum.count >= 2 else { return nil }
-            var s = comum.reduce(0.0) { $0 + log(n / Double(1 + (docFreq[$1] ?? 0))) }
-            if c.ramoDireito == entry.ramoDireito { s += 1 }
-            return (c, s)
-        }
-        return pont.sorted { $0.1 > $1.1 }.prefix(limite).map(\.0)
-    }
 
     /// Semelhança de VOCABULÁRIO entre dois verbetes, de 0 a 1: Jaccard dos termos-chave
     /// PONDERADO pelo IDF, sem o ruído de calendário e de notícia. É o sinal mais fraco do
@@ -1544,7 +1501,7 @@ struct IndiceTermos: Sendable {
     }
 }
 
-/// O que os Relacionados e o Comparador leem do acervo, por VALOR: a varredura roda numa
+/// O que os Relacionados leem do acervo, por VALOR: a varredura roda numa
 /// tarefa destacada e não pode tocar no store, que é da main. Tirar o retrato na main não
 /// copia nada — array e dicionário do Swift são cópia-na-escrita.
 struct AcervoQuadro: Sendable {
@@ -1559,9 +1516,6 @@ struct AcervoQuadro: Sendable {
         termos.termosExclusivos(outro, fora: base, limite: limite)
     }
     func termosComuns(_ es: [JurisEntry], limite: Int = 5) -> [String] { termos.termosComuns(es, limite: limite) }
-    func comparaveis(_ entry: JurisEntry, tribunal: String, limite: Int = 8) -> [JurisEntry] {
-        termos.comparaveis(entry, tribunal: tribunal, limite: limite, em: entries)
-    }
 
     /// Os verbetes que dividem com `e` um tema ESPECÍFICO (no máximo
     /// `tetoTemaCompartilhado` verbetes no acervo), na ordem do acervo, sem o próprio.

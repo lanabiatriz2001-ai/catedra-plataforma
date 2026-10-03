@@ -16,8 +16,6 @@ struct EntryDetailView: View {
     @State private var mostrarNovaColecao = false
     @State private var novaColecaoNome = ""
     @State private var mostrarAnki = false
-    @State private var mostrarComparador = false
-    @State private var mostrarLinhaTempo = false
     @State private var mostrarRevisao = false
     @State private var editandoEnunciado = false
     @State private var rascunhoEnunciado = ""
@@ -139,8 +137,6 @@ struct EntryDetailView: View {
         .sheet(isPresented: $mostrarAnki) {
             ExportAnkiSheet(entries: [entry], titulo: entry.titulo)
         }
-        .sheet(isPresented: $mostrarComparador) { ComparadorView(entry: entry) }
-        .sheet(isPresented: $mostrarLinhaTempo) { LinhaTempoView(entry: entry) }
         .sheet(isPresented: $mostrarRevisao) { RevisaoEspacadaView(escopo: [entry.id]) }
         .sheet(item: $editingMarkComment) { ec in
             MarkCommentEditorSheet(initial: ec.text, isEditing: ec.markID != nil,
@@ -1045,10 +1041,6 @@ struct EntryDetailView: View {
                 if (entry.comentario?.isEmpty == false) || (entry.observacao?.isEmpty == false) {
                     Button { mostrarSecundario = true } label: { Label("Texto e informações da fonte", systemImage: "text.bubble") }
                 }
-            }
-            Section("Ferramentas") {
-                Button { mostrarComparador = true } label: { Label("Comparar STF × STJ (com IA)", systemImage: "sparkles") }
-                Button { mostrarLinhaTempo = true } label: { Label("Linha do tempo do tema", systemImage: "clock.arrow.circlepath") }
             }
             Section("Compartilhar") {
                 Button { copiar(entry.enunciado) } label: { Label("Copiar enunciado", systemImage: "doc.on.doc") }

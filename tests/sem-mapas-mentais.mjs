@@ -99,8 +99,9 @@ export function testarSemMapasMentaisEstatico(ok, opcoes = {}) {
     + (achados.length ? ' — ' + achados.slice(0, 6).join('; ') : ''));
   for (const plat of ['mac', 'ios']) {
     const ed = ler(plat + '/vendor/juris/Views/EntryDetailView.swift');
-    ok(/Comparar STF × STJ \(com IA\)/.test(ed) && /Linha do tempo do tema/.test(ed),
-      R + '(a) ' + plat + ': as outras ferramentas do verbete (comparador, linha do tempo) continuam');
+    // o comparador STF × STJ e a linha do tempo saíram depois, em 03/10/2026 (tests/sem-anotacoes.mjs)
+    ok(/Label\("Minhas anotações"/.test(ed) && /Criar flashcard/.test(ed),
+      R + '(a) ' + plat + ': as outras ferramentas do verbete (anotações, flashcard) continuam');
   }
 
   // (d) LEGIS: o "Mapa do artigo" saiu

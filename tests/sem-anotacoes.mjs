@@ -11,10 +11,14 @@
          O que é texto da fonte (inteiro teor do informativo, questão submetida) continua lá;
    · (c) Swift, Mac e iPad: o JURIS nativo não tem mais o roteiro de estudo (modelo, cache, tela e
          gerador local), o quadro comparativo, a "nota de estudo" não oficial (modelo, carga do
-         notas.json e cartão) nem o resumo semanal; o modo Estudar do verbete fica com as
+         notas.json e cartão), o resumo semanal, o comparador STF × STJ com IA nem a linha do
+         tempo do tema; o modo Estudar do verbete fica com as
          anotações da pessoa e a prova oral; o que a fonte publica junto do verbete abre como
          "Texto e informações da fonte"; os builds não copiam o notas.json e nenhum .app de
          mac/build o carrega;
+   · (e) navegador: o campo "Minhas anotações" do verbete pinta (caixa e contraste medidos), grava
+         sozinho por verbete em catedra:notaJuris:<id>, volta depois de recarregar, some da
+         memória quando esvaziado, e as setas dentro dele não trocam de verbete;
    · (d) navegador: um verbete com os dois campos abre mostrando "Texto da fonte" e
          "Informações da fonte" PINTADOS (caixa, cor e contraste medidos), com o conteúdo do
          acervo; não há botão de roteiro, quadro nem quiz; a prova oral está lá; e o roteiro
@@ -29,6 +33,7 @@ const ler = (f) => { try { return fs.readFileSync(path.join(RAIZ, f), 'utf8'); }
 const carrega = (f, g) => { const e = {}; new Function('window', ler(f)).call(null, e); return e[g] || {}; };
 
 const FONTE_PROIBIDA = [
+  ['(guarda) campo de anotação ausente', /^(?![\s\S]*id="jrNota")/],
   ['prompt do roteiro', /promptRoteiro|Gerar roteiro de estudo/],
   ['cache do roteiro regravado', /setItem\(\s*(RK|kr|'catedraJurisRoteiros')/],
   ['botão e blocos do roteiro', /estGerar|estRefazer|estQuiz|estChave|estFrase/],
@@ -43,6 +48,7 @@ const SWIFT_PROIBIDO = [
   ['quadro comparativo', /\bQuadroRelacionados(Calc|View)?\b|\bJurisVizinhoLinha\b|"N[ãa]o confunda com"/],
   ['nota de estudo não oficial', /\bNotaEstudo\b|\bRamoNota\b|\bnotaApp(Card)?\b|\bnotasApp\b|NOTA DE ESTUDO|carregarNotas/],
   ['resumo semanal', /\bResumoSemanal(IA|Cache|Card)?\b/],
+  ['comparador STF × STJ com IA e linha do tempo do tema', /\b(Comparador|LinhaTempo)View\b|compararSTFxSTJ|\blinhaDoTempo\b|Comparar STF × STJ|"Linha do tempo do tema"/],
   ['rótulo "Comentário e observação"', /"Coment[áa]rio e observa[çc][ãa]o"/],
 ];
 
@@ -126,7 +132,7 @@ export function testarSemAnotacoesEstatico(ok, opcoes = {}) {
   }
   for (const p of ['mac', 'ios']) {
     const j = p + '/vendor/juris/';
-    for (const f of ['Views/QuadroRelacionados.swift', 'Views/RoteiroLocal.swift', 'Views/ResumoSemanalView.swift'])
+    for (const f of ['Views/QuadroRelacionados.swift', 'Views/RoteiroLocal.swift', 'Views/ResumoSemanalView.swift', 'Views/AnaliseViews.swift'])
       ok(!fs.existsSync(path.join(RAIZ, j + f)), R + '(c) ' + j + f + ' saiu');
     const det = ler(j + 'Views/EntryDetailView.swift'), est = ler(j + 'Views/JurisEstudoViews.swift');
     ok(/anotacaoCard\n\s*ProvaOralDoVerbete\(entry: entry\)/.test(det) && /struct ProvaOralDoVerbete: View/.test(est) && /struct ProvaOralView: View/.test(est),
@@ -199,9 +205,43 @@ export async function testarSemAnotacoesNavegador(page, base, ok, opcoes = {}) {
       R + '(d) nenhum rótulo de anotação pronta na tela (' + r.rotulosNaTela.join(' | ') + ')');
     ok(r.sobras.length === 0, R + '(d) sem botão de roteiro, quadro nem quiz (' + (r.sobras.join(', ') || 'nada') + ')');
     ok(r.oral, R + '(d) o botão "Modo prova oral" continua e pinta');
+
+    // (e) o campo em que quem escreve é a pessoa: pinta, grava por verbete, sobrevive ao recarregar
+    const chave = 'catedra:notaJuris:' + id, TEXTO = 'Cai em prova: conferir o prazo.\nSegunda linha.';
+    const campo = await page.evaluate(() => {
+      const el = document.getElementById('jrNota'), lb = document.querySelector('label[for="jrNota"]');
+      if (!el || !lb) return null;
+      const cx = el.getBoundingClientRect(), cs = getComputedStyle(el);
+      const lum = (c) => { const m = String(c).match(/[\d.]+/g).map(Number); if (/^color\(/.test(String(c))) { m[0] *= 255; m[1] *= 255; m[2] *= 255; } const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+        return { l: 0.2126 * f(m[0]) + 0.7152 * f(m[1]) + 0.0722 * f(m[2]), a: m.length > 3 ? m[3] : 1 }; };
+      const fundo = (e0) => { for (let e = e0; e; e = e.parentElement) { const g = getComputedStyle(e).backgroundColor; if (lum(g).a >= 0.99) return g; } return 'rgb(255,255,255)'; };
+      const ct = (e0) => { const a = lum(getComputedStyle(e0).color).l, g = lum(fundo(e0)).l; return +((Math.max(a, g) + 0.05) / (Math.min(a, g) + 0.05)).toFixed(2); };
+      return { rotulo: lb.textContent.trim(), largura: Math.round(cx.width), altura: Math.round(cx.height), visivel: cs.display !== 'none' && cs.visibility !== 'hidden',
+        vazio: el.value === '', contraste: ct(el), contrasteRotulo: ct(lb), antesDaOral: !!(el.compareDocumentPosition(document.getElementById('estOral')) & Node.DOCUMENT_POSITION_FOLLOWING) };
+    });
+    ok(!!campo && campo.rotulo === 'Minhas anotações' && campo.visivel && campo.largura > 200 && campo.altura >= 96 && campo.contraste >= 4.5 && campo.contrasteRotulo >= 4.5 && campo.vazio && campo.antesDaOral,
+      R + '(e) o campo "Minhas anotações" PINTA vazio, antes da prova oral: ' + (campo ? campo.largura + '×' + campo.altura + ' px, contraste ' + campo.contraste + ':1 (rótulo ' + campo.contrasteRotulo + ':1)' : 'ausente'));
+    await page.click('#jrNota');
+    await page.keyboard.type('Cai em prova: conferir o prazo.');
+    await page.keyboard.press('Shift+Enter').catch(() => {});
+    await page.evaluate((v) => { const el = document.getElementById('jrNota'); el.value = v; el.dispatchEvent(new Event('input', { bubbles: true })); }, TEXTO);
+    await page.keyboard.press('ArrowLeft'); await page.keyboard.press('ArrowRight');
+    ok(await page.evaluate(() => window.jurisVerbeteAberto()) === id, R + '(e) seta dentro do campo anda no texto, não troca de verbete');
+    await page.waitForTimeout(1300);
+    const gravou = await page.evaluate((k) => ({ v: localStorage.getItem(k), st: document.getElementById('jrNotaSt').textContent }), chave);
+    ok(gravou.v === TEXTO && /salva/.test(gravou.st), R + '(e) a anotação é gravada sozinha em ' + chave + ' e a tela avisa ("' + gravou.st + '")');
+    await page.reload();
+    await page.waitForFunction(() => typeof window.jurisAbrirPorId === 'function' && window.jurisTemId('x') !== null, null, { timeout: 20000 });
+    await page.evaluate((i) => window.jurisAbrirPorId(i), id);
+    await page.waitForFunction(() => !!document.getElementById('jrNota'), null, { timeout: 20000 });
+    ok(await page.evaluate(() => document.getElementById('jrNota').value) === TEXTO, R + '(e) depois de recarregar, o verbete reabre com a anotação no campo');
+    await page.evaluate(() => { const el = document.getElementById('jrNota'); el.value = ''; el.dispatchEvent(new Event('input', { bubbles: true })); el.blur(); el.dispatchEvent(new Event('blur')); });
+    await page.waitForTimeout(300);
+    ok(await page.evaluate((k) => localStorage.getItem(k), chave) === null, R + '(e) apagar o texto tira a chave: nota vazia não fica gravada');
     ok(!erros.length, R + '(d) sem erro de página (' + erros.slice(0, 1).join('').slice(0, 140) + ')');
   } finally {
     page.off('pageerror', pegaErro);
+    try { await page.evaluate((k) => localStorage.removeItem(k), 'catedra:notaJuris:' + id); } catch (_) {}
   }
 }
 

@@ -31,8 +31,8 @@ Regras (decisões da dona, 25/09/2026):
 - relator (STF): o do julgamento de mérito, lido dos andamentos oficiais, com o redator do acórdão
   quando o relator ficou vencido — a exportação do STF traz o relator ATUAL;
 - nativo: reescreve os registros em build/data/repercussao_geral.json (opção B: fonte nova, o
-  build_corpus.py regenera o corpus.json), grava a trava literal em scripts/teses_oficiais.json
-  e retira as notas de estudo (notas.json) desses verbetes. A trava leva o registro oficial
+  build_corpus.py regenera o corpus.json) e grava a trava literal em scripts/teses_oficiais.json.
+  A trava leva o registro oficial
   inteiro: o build_corpus.py o põe por cima dos patches da auditoria (cuja correção o L2 conferiu
   campo a campo contra o oficial) e dos 4 ids que a auditoria criou por patch "add".
 """
@@ -218,16 +218,10 @@ def aplica_nativo(ref, dir_nat, l4=None):
                    # L4: um verbete por tema. Nenhum destes ids pode voltar ao corpus (o build falha).
                    'fundidos': dict(sorted(fundir.items())), 'retirados': dict(sorted(retirar.items()))},
                   f, ensure_ascii=False, indent=1)
-    # notas de estudo do nativo desses verbetes: retiradas (decisão da dona)
-    p_notas = os.path.join(dir_nat, 'Sources', 'VadeMecum', 'Resources', 'notas.json')
-    notas = json.load(open(p_notas, encoding='utf-8'))
-    antes = len(notas)
-    notas = {k: v for k, v in notas.items() if k not in ref and k not in sai}
-    with open(p_notas, 'w', encoding='utf-8') as f:
-        f.write(json.dumps(notas, ensure_ascii=False))
+    # As notas de estudo do nativo (notas.json) foram apagadas em 03/10/2026 (decisão da dona): não há
+    # mais o que retirar desses verbetes.
     print(f'nativo: {len(vistos)} registros trocados em repercussao_geral.json, {len(set(ref) - vistos)} pela trava '
-          f'(criados por patch da auditoria); trava com {len(trava)}; '
-          f'notas de estudo retiradas: {antes - len(notas)} ({antes} → {len(notas)})')
+          f'(criados por patch da auditoria); trava com {len(trava)}')
 
 
 if __name__ == '__main__':

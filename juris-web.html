@@ -205,6 +205,14 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 .rdr .venun .bd{font-family:var(--rbody);font-size:calc(var(--rfs,15px) + 1px);line-height:1.68;color:var(--rctext);white-space:pre-wrap}
 .rdr .vblk{margin-top:13px;background:color-mix(in srgb,var(--rc) 5%,var(--rcard));border:1px solid var(--rline);border-radius:14px;padding:15px 18px}
 .rdr .vblk .lbl{margin-bottom:6px}
+/* Minhas anotações: o único campo do verbete em que quem escreve é a pessoa. Mesma caixa dos
+   blocos do leitor, com os tokens dele (claro e imersão saem dos mesmos --r*). */
+.rdr .vnota{margin-top:13px;background:var(--rcard);border:1px solid var(--rline);border-radius:14px;padding:15px 18px}
+.rdr .vnota label.lbl{display:block;margin-bottom:8px;font-weight:700;font-size:9.5px;letter-spacing:.02em;text-transform:uppercase;font-family:var(--rbody);color:var(--rdim)}
+.rdr .vnota textarea{display:block;width:100%;min-height:96px;border:1px solid var(--rline);background:color-mix(in srgb,var(--rc) 4%,var(--rcard));border-radius:10px;padding:11px 13px;font-family:var(--rbody);font-size:14px;line-height:1.6;color:var(--rctext);resize:vertical}
+.rdr .vnota textarea::placeholder{color:var(--rdim);opacity:1}
+.rdr .vnota textarea:focus-visible{outline:2px solid color-mix(in srgb,var(--rc) 72%,var(--rink));outline-offset:2px}
+.rdr .vnota .notaSt{min-height:16px;margin-top:6px;font-family:var(--rbody);font-size:11px;color:var(--rdim)}
 .rdr .vblk .bd{font-family:var(--rbody);font-size:13.5px;line-height:1.6;color:var(--rpar);white-space:pre-wrap}
 .rdr .vfoot{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:16px}
 .rdr .vfoot .fp{font:600 11.5px var(--rbody);color:var(--rdim2)}
@@ -459,7 +467,8 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
      aqui, geradas por scripts/aplicar-teses-oficiais.py a partir de
      docs/teses-oficiais/l4-referencia.json — não edite o bloco gerado à mão.
      REGRA DE UNIÃO (os dois ids com estado): favorito = OU; status = o mais avançado
-     (dominado > em revisão > nada); grifos = união sem repetir. Roda UMA vez por id antigo que
+     (dominado > em revisão > nada); grifos = união sem repetir; anotação = a do canônico
+     seguida da do antigo. Roda UMA vez por id antigo que
      tinha estado (marca em est.mig, que viaja com o estudo): o que a pessoa desfizer
      depois no canônico não volta. */
   var JURIS_ID_MIGRACOES={
@@ -648,6 +657,9 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
       var sa=est.stat[antigo]||'', sn=est.stat[novo]||'';
       if(sa){ teve=true; if((peso[sa]||0)>(peso[sn]||0))est.stat[novo]=sa; }
       try{
+        var na=localStorage.getItem('catedra:notaJuris:'+antigo);
+        if(na){ teve=true; var nn=localStorage.getItem('catedra:notaJuris:'+novo)||'';
+          if(nn.indexOf(na)<0)localStorage.setItem('catedra:notaJuris:'+novo, nn?nn+'\n\n'+na:na); }
         var ka='catedra:grifosJuris:'+antigo, kn='catedra:grifosJuris:'+novo;
         var aa=JSON.parse(localStorage.getItem(ka)||'[]');
         if(Array.isArray(aa)&&aa.length){
@@ -1699,12 +1711,17 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
     if(t.fp)foot+='<span class="fp">'+esc(t.fp)+'</span>'; else if(t.og)foot+='<span class="fp">'+esc(t.og)+'</span>';
     if(t.ur && /^https?:\/\//i.test(t.ur))foot+='<a href="'+esc(t.ur)+'" target="_blank" rel="noopener">Ver no tribunal ↗</a>';
     if(foot)h+='<div class="vfoot">'+foot+'</div>';
+    h+='<div class="vnota"><label class="lbl" for="jrNota">Minhas anotações</label>'
+      +'<textarea id="jrNota" rows="4" placeholder="Escreva aqui o que você quer lembrar deste verbete."></textarea>'
+      +'<div class="notaSt" id="jrNotaSt" role="status" aria-live="polite"></div></div>';
     h+='<div id="jrEstudo"></div>';
     _jsc.innerHTML='<div class="docwrap" id="jrDoc" style="--rfs:'+_jfs+'px">'+h+'</div>'; _jdoc=document.getElementById('jrDoc');
     jgrifos=jLoad(); var seen={}; jgrifos.forEach(function(g){ if(!seen[g.gi]){ jRenderGr(g.gi); seen[g.gi]=1; } });
+    notaLiga(r[I.id]);
     renderEstudo(r);
   }
   window.openVerbete=function(idx){
+    notaGuarda();
     if(idx<0||idx>=filtered.length)return; curIdx=idx; jdisp=[];
     var r=filtered[idx]; curId=r[I.id];
     var rc=corFaceta(r[I.ra]); _jr.style.setProperty('--rc',rc); _jr.style.setProperty('--rc2',toRc2(rc));
@@ -1718,6 +1735,29 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
     else renderVerbete(r);
   };
   // grifos
+  // ---- Minhas anotações: uma chave por verbete, como os grifos ('catedra:' sobe para a nuvem
+  // pelo auth.js, que vê a escrita do satélite pelo evento 'storage'). Nota vazia não fica
+  // gravada como "": a chave sai. O valor entra por .value — atributo value não pinta textarea.
+  var notaId=null, notaT=null;
+  function notaKey(id){ return 'catedra:notaJuris:'+id; }
+  function notaGuarda(){
+    clearTimeout(notaT); notaT=null;
+    var el=document.getElementById('jrNota'); if(!el||!notaId)return;
+    var v=el.value.replace(/\s+$/,''), k=notaKey(notaId), antes=null;
+    try{ antes=localStorage.getItem(k); }catch(e){}
+    if(v===(antes||''))return;
+    var st=document.getElementById('jrNotaSt');
+    try{ if(v)localStorage.setItem(k,v); else localStorage.removeItem(k); if(st)st.textContent=v?'Anotação salva.':'Anotação apagada.'; }
+    catch(e){ if(st)st.textContent='Não consegui salvar a anotação neste aparelho.'; }
+  }
+  function notaLiga(id){
+    notaId=id;
+    var el=document.getElementById('jrNota'); if(!el)return;
+    try{ el.value=localStorage.getItem(notaKey(id))||''; }catch(e){ el.value=''; }
+    el.oninput=function(){ clearTimeout(notaT); notaT=setTimeout(notaGuarda,600); var st=document.getElementById('jrNotaSt'); if(st)st.textContent=''; };
+    el.onblur=notaGuarda;
+  }
+  window.addEventListener('pagehide',notaGuarda);
   function jKey(){ return 'catedra:grifosJuris:'+curId; }
   function jLoad(){ try{return JSON.parse(localStorage.getItem(jKey()))||[];}catch(e){return[];} }
   function jSave(){ try{localStorage.setItem(jKey(),JSON.stringify(jgrifos));}catch(e){} }
@@ -1738,7 +1778,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
     var gi=+gr.dataset.gi, t=mk.getAttribute('data-t'), sv=mk.getAttribute('data-s');
     jgrifos=jgrifos.filter(function(g){return !(g.gi===gi&&g.t===t&&(g.s==null?'':String(g.s))===sv);}); jSave(); jRenderGr(gi); });
   // controles
-  function jClose(){ _jr.classList.remove('on'); document.body.style.overflow=''; _jgrif.classList.remove('on'); }
+  function jClose(){ notaGuarda(); _jr.classList.remove('on'); document.body.style.overflow=''; _jgrif.classList.remove('on'); }
   function jFS(v){ _jfs=Math.max(13,Math.min(22,v)); if(_jdoc)_jdoc.style.setProperty('--rfs',_jfs+'px'); }
   document.getElementById('jrClose').onclick=jClose;
   document.getElementById('jrPrev').onclick=function(){ if(curIdx>0)openVerbete(curIdx-1); };
@@ -1765,6 +1805,8 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
      são atalhos do sistema) — antes o mesmo Alt+← voltava ao app E trocava o verbete. */
   document.addEventListener('keydown',function(e){ if(!_jr.classList.contains('on'))return; if(e.key==='Escape'){ jClose(); return; }
     if(e.altKey||e.metaKey||e.ctrlKey) return;
+    // quem está escrevendo (anotação, resposta da prova oral) usa as setas para andar no texto
+    var tg=e.target; if(tg && (tg.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(tg.tagName||''))) return;
     if(e.key==='ArrowLeft'&&curIdx>0)openVerbete(curIdx-1); else if(e.key==='ArrowRight'&&curIdx<filtered.length-1)openVerbete(curIdx+1); });
 
 })();
