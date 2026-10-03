@@ -83,3 +83,4 @@ AGENTS.md
 # marca d'água pessoal de PDF e caminhos desta máquina. Ficam no disco; só os relatórios entram.
 docs/auditoria-juris/*.json
 docs/auditoria-juris/inventario.mjs
+tests/_capturas/

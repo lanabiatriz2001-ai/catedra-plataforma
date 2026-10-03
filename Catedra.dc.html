@@ -205,9 +205,6 @@ aside nav button{ transition:background .15s, transform .15s, box-shadow .15s; }
    cresce por um pseudo-elemento invisível e o desenho fica do mesmo tamanho. */
 /* Enunciado da Redação: leitura + marcações lado a lado. Abaixo de 1080px a coluna
      de marcação desce (no celular ela viraria uma tira de 200px inútil). */
-.ct-enun-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,320px);gap:26px;align-items:start;}
-  @media (max-width:1080px){ .ct-enun-grid{grid-template-columns:minmax(0,1fr);} }
-.ct-enun-lado{min-width:0;}
   #ct-enun mark{ -webkit-user-select:text; user-select:text; }
 @media (max-width:900px){
   .ct-alvo{position:relative;}
@@ -702,6 +699,10 @@ window.ctPdfLib = (function(){
     <symbol id="ct-i-library" viewBox="0 0 24 24"><path d="m16 6 4 14"></path><path d="M12 6v14"></path><path d="M8 8v12"></path><path d="M4 4v16"></path></symbol>
     <symbol id="ct-i-book-open" viewBox="0 0 24 24"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></symbol>
     <symbol id="ct-i-scale" viewBox="0 0 24 24"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path></symbol>
+    <symbol id="ct-i-lock" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></symbol>
+    <symbol id="ct-i-highlighter" viewBox="0 0 24 24"><path d="m9 11-6 6v3h9l3-3"></path><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"></path></symbol>
+    <symbol id="ct-i-maximize-2" viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" x2="14" y1="3" y2="10"></line><line x1="3" x2="10" y1="21" y2="14"></line></symbol>
+    <symbol id="ct-i-minimize-2" viewBox="0 0 24 24"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" x2="21" y1="10" y2="3"></line><line x1="3" x2="10" y1="21" y2="14"></line></symbol>
     <symbol id="ct-i-pen-line" viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"></path></symbol>
     <symbol id="ct-i-flame" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></symbol>
     <symbol id="ct-i-calendar" viewBox="0 0 24 24"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path></symbol>
@@ -3527,15 +3528,29 @@ window.ctPdfLib = (function(){
               </div>
             </div>
           </sc-if>
-          <div class="ct-card" style="padding:0;overflow:hidden;">
-            <div class="ct-hero" style="border-radius:0;">
-              <div class="ct-hero-eb">Enunciado da prova</div>
-              <h2 class="ct-hero-tit" style="font-size:21px;">{{ redProvaTitulo }}</h2>
-            </div>
-            <!-- Proporção: o enunciado ocupava 72ch (a medida de leitura) e deixava METADE
-                 da tela vazia à direita. A medida continua — texto de prova se lê em coluna
-                 estreita —, mas o espaço que sobrava passa a ser a coluna de marcações. -->
-            <div class="ct-enun-grid" style="padding:24px 26px;">
+          <!-- MESA DE PROVA (03/10/2026): a questão fica ao lado da folha. Antes o enunciado vinha
+               em cima e a resposta embaixo, e reler o comando era rolar a tela no meio da escrita.
+               A decisão de empilhar é pela largura do contêiner (catedra-ui.css, .ct-mesa). -->
+          <div class="ct-mesa-caixa">
+            <div class="ct-mesa" data-red="mesa">
+              <section class="ct-card ct-mesa-questao" data-red="questao" aria-label="Questão">
+                <div class="ct-hero" style="border-radius:0;">
+                  <div class="ct-mesa-linha" style="justify-content:space-between;">
+                    <div class="ct-hero-eb">Questão</div>
+                    <button class="ct-mesa-acao ct-mesa-recolher" data-red="questao-toggle" onclick="{{ toggleRedQuestao }}" aria-expanded="{{ redQuestaoAberta }}" style="color:inherit;">{{ redQuestaoToggleTxt }}</button>
+                  </div>
+                  <h2 class="ct-hero-tit" style="font-size:var(--fs-2xl);">{{ redProvaTitulo }}</h2>
+                  <div class="ct-mesa-chips">
+                    <sc-if value="{{ redChipLimite }}" hint-placeholder-val="{{ false }}"><span class="ct-mesa-chip" data-red="chip-limite">{{ redChipLimite }}</span></sc-if>
+                    <sc-if value="{{ redChipComandos }}" hint-placeholder-val="{{ false }}"><span class="ct-mesa-chip" data-red="chip-comandos">{{ redChipComandos }}</span></sc-if>
+                  </div>
+                </div>
+                <sc-if value="{{ redQuestaoAberta }}" hint-placeholder-val="{{ true }}">
+                  <div class="ct-mesa-corpo">
+                    <sc-if value="{{ redEditandoEnun }}" hint-placeholder-val="{{ false }}">
+                      <textarea class="ct-campo" value="{{ redEnunciado }}" oninput="{{ onRedEnun }}" rows="12" aria-label="Enunciado da questão" style="width:100%;box-sizing:border-box;"></textarea>
+                    </sc-if>
+                    <sc-if value="{{ redLendoEnun }}" hint-placeholder-val="{{ true }}">
               <div id="ct-enun" onmouseup="{{ onSelEnunciado }}" onkeyup="{{ onSelEnunciado }}" class="ct-leitura" style="font-size:var(--fs-lg);color:var(--ink);">
                 <sc-for list="{{ redBlocos }}" as="b" hint-placeholder-count="6">
                   <sc-if value="{{ b.ehTitulo }}" hint-placeholder-val="{{ false }}">
@@ -3552,22 +3567,23 @@ window.ctPdfLib = (function(){
                   <a href="{{ redLinkProva }}" target="_blank" rel="noopener" style="display:inline-block;margin-top:16px;font-size:var(--fs-base);font-weight:700;color:var(--accent);text-decoration:none;">Abrir o PDF oficial da prova →</a>
                 </sc-if>
               </div>
-
-              <!-- coluna de marcação: as cores agem sobre o trecho selecionado no enunciado -->
-              <aside class="ct-enun-lado">
-                <div style="position:sticky;top:12px;display:flex;flex-direction:column;gap:12px;">
-                  <div style="border:1px solid var(--border);background:var(--surface2);border-radius:var(--radius);padding:14px;">
+                      <!-- as cores agem sobre o trecho selecionado no enunciado -->
+                      <div style="border:1px solid var(--border);background:var(--surface2);border-radius:var(--radius);padding:var(--ct-e3);margin-top:var(--ct-e4);">
                     <div class="ct-eb">Marcar trecho</div>
                     <div style="font-size:var(--fs-sm);color:var(--text2);margin-top:6px;line-height:1.5;">{{ redSelDica }}</div>
                     <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:11px;">
                       <sc-for list="{{ redCores }}" as="c" hint-placeholder-count="7"><button class="ct-alvo ct-miudo" data-cor="{{ c.c }}" onclick="{{ marcarEnunciado }}" title="{{ c.label }}" aria-label="Marcar de {{ c.label }}" style="{{ c.style }}"></button></sc-for>
                     </div>
-                  </div>
-                  <div style="border:1px solid var(--border);background:var(--surface);border-radius:var(--radius);padding:14px;">
-                    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;">
-                      <div class="ct-eb">Marcações e notas</div>
-                      <span class="ct-dado">{{ redMarcasN }}</span>
+                      </div>
+                    </sc-if>
+                    <div class="ct-mesa-linha" style="margin-top:var(--ct-e3);">
+                      <button class="ct-mesa-acao" data-red="marcas-toggle" onclick="{{ toggleRedMarcas }}" aria-expanded="{{ redMarcasAberto }}"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="highlighter"><use href="#ct-i-highlighter"></use></svg>Marcações e notas <span class="ct-dado">{{ redMarcasN }}</span></button>
+                      <sc-if value="{{ redPodeEditarEnun }}" hint-placeholder-val="{{ false }}">
+                        <button class="ct-mesa-acao" data-red="editar-questao" onclick="{{ toggleRedEditarEnun }}" aria-pressed="{{ redEditandoEnun }}" style="margin-left:auto;"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="pen-line"><use href="#ct-i-pen-line"></use></svg>{{ redEditarEnunTxt }}</button>
+                      </sc-if>
                     </div>
+                    <sc-if value="{{ redMarcasAberto }}" hint-placeholder-val="{{ false }}">
+                      <div>
                     <sc-if value="{{ redSemMarcas }}" hint-placeholder-val="{{ true }}">
                       <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:9px;line-height:1.55;">Nada marcado ainda. O que você grifar aqui fica salvo com a prova e volta na próxima vez que abrir.</div>
                     </sc-if>
@@ -3582,32 +3598,36 @@ window.ctPdfLib = (function(){
                         </div>
                       </sc-for>
                     </div>
+                      </div>
+                    </sc-if>
                   </div>
-                </div>
-              </aside>
-            </div>
-          </div>
-
-          <div class="ct-card">
-            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:14px;">
-              <div class="ct-eb">Sua resposta</div>
-              <div style="font-size:var(--fs-sm);color:var(--text3);font-family:var(--mono);">{{ redWords }} palavras{{ redLimiteTxt }}</div>
-            </div>
-            <textarea value="{{ redText }}" oninput="{{ onRedText }}" readonly="{{ redBusy }}" rows="18" placeholder="Escreva como escreveria na prova: enfrente o comando na ordem em que ele foi feito, fundamente com o dispositivo e conclua de forma expressa." style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface2);border-radius:var(--radius);padding:20px;color:var(--ink);font-family:var(--body);font-size:var(--fs-lg);line-height:1.85;resize:vertical;outline:none;"></textarea>
-            <div style="margin-top:var(--ct-e4);">
+                  <div class="ct-mesa-rodape">
               <label for="red-disciplina" class="ct-eb">Disciplina desta correção</label>
               <select id="red-disciplina" class="ct-campo" value="{{ redDiscValor }}" onchange="{{ onRedDisciplina }}" disabled="{{ redBusy }}" aria-describedby="red-disciplina-ajuda" style="min-height:var(--ct-alvo-toque);margin-top:var(--ct-e2);">
                 <option value="">Sem vínculo — não altera a prioridade</option>
                 <sc-for list="{{ redDiscOpcoes }}" as="d"><option value="{{ d.v }}">{{ d.l }}</option></sc-for>
               </select>
               <p id="red-disciplina-ajuda" class="ct-nota" style="margin-top:var(--ct-e2);">{{ redDiscAjuda }}</p>
+                  </div>
+                </sc-if>
+              </section>
+
+              <section class="ct-card ct-mesa-folha" data-red="folha" aria-label="Sua resposta">
+                <div class="ct-mesa-corpo">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:14px;">
+              <div class="ct-eb">Sua resposta</div>
+              <div style="font-size:var(--fs-sm);color:var(--text3);font-family:var(--mono);">{{ redWords }} palavras{{ redLimiteTxt }}</div>
             </div>
+            <textarea value="{{ redText }}" oninput="{{ onRedText }}" readonly="{{ redBusy }}" rows="18" placeholder="Escreva como escreveria na prova: enfrente o comando na ordem em que ele foi feito, fundamente com o dispositivo e conclua de forma expressa." style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface2);border-radius:var(--radius);padding:20px;color:var(--ink);font-family:var(--body);font-size:var(--fs-lg);line-height:1.85;resize:vertical;outline:none;"></textarea>
             <div style="display:flex;gap:12px;margin-top:18px;flex-wrap:wrap;align-items:center;">
               <button class="ct-btn" onclick="{{ submitRed }}" disabled="{{ redBtnDisabled }}" aria-busy="{{ redBusy }}">{{ redBtnLabel }}</button>
               <span style="font-size:var(--fs-sm);color:var(--text3);line-height:1.5;flex:1;min-width:200px;">{{ redDicaEtapa2 }}</span>
             </div>
-          </div>
+                </div>
+              </section>
+            </div>
 
+            <div data-red="espelho" style="display:flex;flex-direction:column;gap:var(--ct-e4);">
           <!-- C3: a banca não publicou espelho. O aviso honesto (C1) fica, e ganha uma saída:
                um espelho SUGERIDO pelo Cátedra — gerado por IA, jamais apresentado como oficial. -->
           <sc-if value="{{ redSemEspelho }}" hint-placeholder-val="{{ false }}">
@@ -3649,6 +3669,8 @@ window.ctPdfLib = (function(){
               <div class="ct-eb" style="margin-top:9px;">{{ redGabWords }} palavras no espelho</div>
             </div>
           </sc-if>
+            </div>
+          </div>
         </sc-if>
 
         <!-- ─────────── ETAPA 3 · CORREÇÃO ─────────── -->
@@ -7325,7 +7347,8 @@ class Component extends DCLogic {
       // exatamente o que se quer: esqueleto na PRIMEIRA carga de cada um, nunca depois.
       framesProntos:{},
       atalhosOpen:false,          // U8: modal da tecla ?
-      redRascunhoOculto:false,    // U4: a faixa do rascunho da redação, depois de dispensada
+      redRascunhoOculto:false,
+      redQuestaoAberta:true, redMarcasAberto:false, redEditandoEnun:false,   // mesa de prova: só de tela    // U4: a faixa do rascunho da redação, depois de dispensada
       // 'video' e 'mapa' (este em 25/09/2026) saíram dos formatos; quem tivesse essa
       // preferência salva ficaria numa aba sem botão para sair dela. Cai para texto; o
       // mfGen antigo continua guardado, só não é mais lido.
@@ -12093,7 +12116,7 @@ class Component extends DCLogic {
   // agora e continuava escrevendo por cima do que já não servia. A faixa aparece só quando
   // o rascunho é de OUTRA sessão (o texto ainda é igual ao que veio do disco no boot) e
   // some assim que a pessoa escreve — não fica pedindo passagem enquanto se trabalha.
-  redRascunhoOk = ()=>{ this.setState({redRascunhoOculto:true}); try{ const t=document.querySelector('main textarea'); if(t){ t.focus(); t.setSelectionRange(t.value.length, t.value.length); } }catch(_){} };
+  redRascunhoOk = ()=>{ this.setState({redRascunhoOculto:true}); try{ const t=document.querySelector('[data-red="folha"] textarea')||document.querySelector('main textarea'); if(t){ t.focus(); t.setSelectionRange(t.value.length, t.value.length); } }catch(_){} };
   redZerarRascunho = ()=>{
     if(!window.confirm('Apagar o rascunho e começar do zero? A prova e o espelho continuam carregados — só a sua resposta sai da tela.')) return;
     this._redBoot='';
@@ -12297,7 +12320,7 @@ class Component extends DCLogic {
       redEspelhoOculto: !!_gab,       // esconde o que houver de gabarito — oficial ou sugerido
       // Prova cadastrada: a pessoa só RESPONDE — enunciado e espelho são os oficiais e não se editam.
       redModoProva: true,
-      redText:'', redTextTs:0, redResult:null, bancoOpen:false, redRascunhoOculto:false, bancoAbrindo:''
+      redText:'', redTextTs:0, redResult:null, bancoOpen:false, redRascunhoOculto:false, bancoAbrindo:'', redEditandoEnun:false, redQuestaoAberta:true
     });
     try{ localStorage.setItem(this._chave('redEnunciado'),JSON.stringify(cab+'\n\n'+(q.enunciado||'')));
       localStorage.setItem(this._chave('redGabarito'),JSON.stringify(_gab));
@@ -12316,6 +12339,10 @@ class Component extends DCLogic {
   };
 
   onRedEnun = (e)=> this.setState({redEnunciado:e.currentTarget.value, redResult:null});
+  // ===== MESA DE PROVA (03/10/2026): a etapa de responder =====
+  toggleRedQuestao = ()=> this.setState({redQuestaoAberta:!this.state.redQuestaoAberta});
+  toggleRedMarcas = ()=> this.setState({redMarcasAberto:!this.state.redMarcasAberto});
+  toggleRedEditarEnun = ()=>{ if(this.state.redModoProva) return; this.setState({redEditandoEnun:!this.state.redEditandoEnun}); };
   // Dados derivados da Prova oral (só calculados quando a view está aberta).
   _oralVM(){
     const st=this.state, T=window.CT_TREINO, w=window;
@@ -14197,7 +14224,7 @@ class Component extends DCLogic {
     if(disc && !this._redDiscOpcoes().some(d=>d.v===disc)) return;
     this.setState({redDisciplina:{...(this.state.redDisciplina||{}),disc,origem:'manual'}});
   };
-  redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.')) return; this._redBoot=''; this.setState({redResult:null, redText:'', redTextTs:0, redRascunhoOculto:false, redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false, redModoProva:false, redProvaId:'', redDisciplina:{}, espSugAtual:null}); try{ localStorage.setItem(this._chave('redText'),JSON.stringify('')); localStorage.setItem(this._chave('redGabarito'),JSON.stringify('')); localStorage.setItem(this._chave('redEnunciado'),JSON.stringify('')); }catch(_){} };
+  redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.')) return; this._redBoot=''; this.setState({redResult:null, redText:'', redTextTs:0, redRascunhoOculto:false, redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false, redModoProva:false, redEditandoEnun:false, redQuestaoAberta:true, redProvaId:'', redDisciplina:{}, espSugAtual:null}); try{ localStorage.setItem(this._chave('redText'),JSON.stringify('')); localStorage.setItem(this._chave('redGabarito'),JSON.stringify('')); localStorage.setItem(this._chave('redEnunciado'),JSON.stringify('')); }catch(_){} };
   redOpenHist = (e)=>{ const id=e.currentTarget.dataset.id; const h=(this.state.redHistory||[]).find(x=>x.id===id);
     if(!h||!h.res){ this._toast('Correção completa não disponível para este item'); return; }
     this.setState({redResult:h.res, redDisciplina:{disc:h.disc||'',origem:h.disciplinaOrigem||''}, redText:h.texto||this.state.redText, redGabarito:h.gabarito||this.state.redGabarito, redSubText:h.texto||'', redSubGab:h.gabarito||''}); };
@@ -19686,6 +19713,16 @@ class Component extends DCLogic {
       redMarcasN:(()=>{ const n=this._marcasDaProva().length; return n?(n+(n===1?' trecho':' trechos')):''; })(),
       redSemMarcas:this._marcasDaProva().length===0,
       redRascunhoOk:this.redRascunhoOk, redZerarRascunho:this.redZerarRascunho,
+      redQuestaoAberta:this.state.redQuestaoAberta, toggleRedQuestao:this.toggleRedQuestao,
+      redQuestaoToggleTxt:this.state.redQuestaoAberta?'Recolher':'Mostrar questão',
+      redMarcasAberto:this.state.redMarcasAberto, toggleRedMarcas:this.toggleRedMarcas,
+      redPodeEditarEnun:!this.state.redModoProva,
+      redEditandoEnun:!this.state.redModoProva && this.state.redEditandoEnun, toggleRedEditarEnun:this.toggleRedEditarEnun,
+      redLendoEnun:!!this.state.redModoProva || !this.state.redEditandoEnun,
+      redEditarEnunTxt:this.state.redEditandoEnun?'Concluir edição':'Editar questão',
+      redChipLimite:(()=>{ const l=this._redLimiteLinhas(this.state.redEnunciado); return l?('até '+l+' linhas'):''; })(),
+      redChipComandos:(()=>{ const n=this._redBlocos(this._desquebrar(String(this.state.redEnunciado||''))).filter(b=>b.tipo==='item').length;
+        return n>1?(n+' comandos'):''; })(),
       redPasso1:this._passo(!this.state.redResult && !((this.state.redEnunciado||'').trim())),
       redPasso2:this._passo(!this.state.redResult && !!((this.state.redEnunciado||'').trim())),
       redPasso3:this._passo(!!this.state.redResult),

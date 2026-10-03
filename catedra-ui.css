@@ -1708,3 +1708,31 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 .ct-of-del { background:color-mix(in srgb, var(--danger, #c0392f) 12%, transparent); color:inherit; text-decoration:line-through; text-decoration-color:var(--danger, #c0392f); }
 .ct-of-ins { background:color-mix(in srgb, var(--ok, #0e7f58) 14%, transparent); color:inherit; text-decoration:underline; text-decoration-color:var(--ok, #0e7f58); text-underline-offset:2px; }
 .ct-sr { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+
+/* ===== Redação · mesa de prova (03/10/2026) =====
+   Questão à esquerda, folha à direita; empilha quando o conteúdo tem menos de 880px (janela de ~1180px com o menu aberto).
+   A decisão é pela largura do CONTÊINER (iPad deitado fica lado a lado, em pé empilha). */
+.ct-mesa-caixa { container-type: inline-size; container-name: mesa; display: flex; flex-direction: column; gap: var(--ct-e4); }
+.ct-mesa { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ct-e4); align-items: start; }
+@container mesa (min-width: 880px) {
+  .ct-mesa { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+  .ct-mesa-questao { position: sticky; top: var(--ct-e3); max-height: calc(100vh - var(--ct-e5)); overflow: auto; }
+  .ct-mesa-acao.ct-mesa-recolher { display: none; }
+}
+@supports not (container-type: inline-size) {
+  @media (min-width: 1280px) {
+    .ct-mesa { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+    .ct-mesa-questao { position: sticky; top: var(--ct-e3); max-height: calc(100vh - var(--ct-e5)); overflow: auto; }
+    .ct-mesa-acao.ct-mesa-recolher { display: none; }
+  }
+}
+.ct-card.ct-mesa-questao, .ct-card.ct-mesa-folha { min-width: 0; padding: 0; overflow: hidden; }
+.ct-mesa-chips { display: flex; gap: var(--ct-e2); flex-wrap: wrap; margin-top: var(--ct-e2); }
+.ct-mesa-chips:empty { display: none; }
+.ct-mesa-chip { font-family: var(--mono); font-size: var(--fs-xs); padding: 2px var(--ct-e2); border-radius: 99px; background: color-mix(in srgb, currentColor 18%, transparent); color: inherit; }
+.ct-mesa-corpo { padding: var(--ct-e4) var(--ct-e5); }
+.ct-mesa-rodape { border-top: 1px solid var(--border); padding: var(--ct-e3) var(--ct-e5); }
+.ct-mesa-linha { display: flex; align-items: center; gap: var(--ct-e2); flex-wrap: wrap; }
+.ct-mesa-acao { display: inline-flex; align-items: center; gap: var(--ct-e2); min-height: var(--ct-alvo-toque); padding: 0 var(--ct-e2); background: transparent; border: none; color: var(--text2); font: inherit; font-size: var(--fs-sm); cursor: pointer; border-radius: var(--r-md); }
+.ct-mesa-acao:hover { color: var(--ink); background: var(--surface2); }
+.ct-mesa-acao:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
