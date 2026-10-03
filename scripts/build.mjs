@@ -53,7 +53,7 @@ const pub = join(ROOT, 'public');
    a conferência acontece ANTES de qualquer escrita e de qualquer rede. Antes o laço de
    cópia pulava em silêncio o que faltava: um arquivo renomeado ou apagado saía do deploy
    sem ninguém ver, e o satélite que dependia dele abria quebrado só em produção. */
-const COPIAR = ['support.js', 'icon.svg', 'auth.js', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'discursivas-textos.js', 'espelhos.js', 'segunda-fase-web.html', 'prioridade-dados.js', 'prioridade-web.html', 'oral.js', 'oral-conteudo.js', 'treino.js', 'tema-satelite.js', 'satellite-base.css', 'leis-catalogo.js', 'busca-unica.js', 'prioridade-calc.js', 'ct-dados.js', 'leis-seca.js', 'leis-seca-areas.js', 'questoes-prova.js', 'area-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'mapa-grafo.js', 'mapa-processual.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'area-modulos.js', 'semana-juris.js', 'novidades.js', 'revisao-oficial.js', 'plataformas-questoes.js', 'espelho-sugerido.js', 'area-registry.js', 'casos.js', 'leitura-ativa.js', 'enam.js', 'questoes-enam.js', 'catedra-ui.css', 'juridico.js', 'termos.html', 'privacidade.html', 'sobre.html', 'incidencia-verbetes.js'];
+const COPIAR = ['support.js', 'icon.svg', 'auth.js', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'discursivas-textos.js', 'espelhos.js', 'segunda-fase-web.html', 'prioridade-dados.js', 'prioridade-web.html', 'oral.js', 'oral-conteudo.js', 'treino.js', 'tema-satelite.js', 'satellite-base.css', 'leis-catalogo.js', 'busca-unica.js', 'prioridade-calc.js', 'ct-dados.js', 'leis-seca.js', 'leis-seca-areas.js', 'questoes-prova.js', 'area-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'mapa-grafo.js', 'mapa-processual.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'area-modulos.js', 'semana-juris.js', 'novidades.js', 'revisao-oficial.js', 'plataformas-questoes.js', 'espelho-sugerido.js', 'redacao-motor.js', 'area-registry.js', 'casos.js', 'leitura-ativa.js', 'enam.js', 'questoes-enam.js', 'catedra-ui.css', 'juridico.js', 'termos.html', 'privacidade.html', 'sobre.html', 'incidencia-verbetes.js'];
 {
   const faltam = COPIAR.filter((f) => !existsSync(join(ROOT, f)));
   if (!existsSync(join(ROOT, 'dados'))) faltam.push('dados/');
@@ -198,7 +198,7 @@ ${supabaseTag}
    (GEMINI_API_KEY) e nunca chega ao navegador do aluno. Com isso, Mentor IA e a
    correção de redação passam a usar a IA de verdade — não o fallback local. */
 window.claude = {
-  complete: async function (prompt) {
+  complete: async function (prompt, opts) {
     // A função serverless só atende quem está logado (senão era IA grátis para a
     // internet inteira, na conta da dona do app). Manda o access_token da sessão.
     var token = null;
@@ -211,7 +211,9 @@ window.claude = {
     const r = await fetch('/api/complete', {
       method: 'POST',
       headers: headers,
-      body: JSON.stringify({ prompt: prompt })
+      body: JSON.stringify({ prompt: prompt }),
+      // quem chama pode cancelar a espera (a correção de discursiva faz isso no "Cancelar")
+      signal: (opts && opts.signal) || undefined
     });
     if (r.status === 401 || r.status === 403) {
       var j401 = await r.json().catch(function () { return {}; });
@@ -361,7 +363,7 @@ const casca = [...vendorados, './prioridade-calc.js', './busca-unica.js', './sem
   './novidades.js',
   // C2 e C3 tambem sao <script> do <head>: fora da casca, o app instalado abriria sem
   // o mapa das plataformas e sem o miolo do espelho sugerido.
-  './plataformas-questoes.js', './espelho-sugerido.js', './area-registry.js', './casos.js',
+  './plataformas-questoes.js', './espelho-sugerido.js', './redacao-motor.js', './area-registry.js', './casos.js',
   // leitura ativa (LA1): <script> do <head> do host e do LEGIS — sem ele o app instalado abriria sem CT_LA
   './leitura-ativa.js', './enam.js', './juridico.js', './catedra-ui.css', './icon-180.png',
   // revisão oficial: <script> do <head> do host, do LEGIS e do JURIS (pacote do sentinela + vocabulário)
