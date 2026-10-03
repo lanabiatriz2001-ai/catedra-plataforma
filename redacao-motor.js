@@ -40,24 +40,32 @@
   }
   function maxDe(q) { return q && q.max != null ? +q.max : 1; }
 
-  /** A nota que RESPEITA a banca: degrau mais próximo da escala, ou o intervalo [0, máximo]. */
+  /** A nota que RESPEITA a banca: degrau mais próximo da escala, ou o intervalo [0, máximo].
+      No empate entre dois degraus vale o de BAIXO: na dúvida, a banca não dá o ponto. */
   function naEscala(valor, q) {
     var v = Math.max(0, lerNota(valor));
     if (q && q.escala && q.escala.length) {
-      return q.escala.reduce(function (a, b) { return Math.abs(b - v) < Math.abs(a - v) ? b : a; });
+      var esc = q.escala.slice().sort(function (a, b) { return a - b; });
+      return esc.reduce(function (a, b) { return (Math.abs(b - v) < Math.abs(a - v) - 1e-9) ? b : a; });
     }
     return Math.round(Math.min(v, maxDe(q)) * 100) / 100;
   }
+  /** Nota muito acima do máximo do quesito é sinal de que a IA usou outra régua (0 a 10): não é nota cheia. */
+  function foraDaRegua(valor, q) { var max = maxDe(q); return lerNota(valor) > max * 1.5 + 0.05; }
 
-  function achatar(t) { return String(t || '').toLowerCase().replace(/\s+/g, ' ').trim(); }
+  function achatar(t) { var x = String(t || ''); try { x = x.normalize('NFC'); } catch (_) {} return x.toLowerCase().replace(/\s+/g, ' ').trim(); }
   /** O trecho existe na resposta? Sem diferenciar caixa nem espaços; vazio nunca vale. */
   function temTrecho(resposta, trecho) {
-    var t = achatar(trecho).replace(/^["“”'«]+|["“”'»]+$/g, '').replace(/…$|\.\.\.$/, '').trim();
+    var t = limparTrecho(achatar(trecho));
     if (t.length < 4) return false;
     return achatar(resposta).indexOf(t) >= 0;
   }
+  /** Tira o que a IA costuma pôr em volta da citação: aspas, reticências e o ponto final a mais. */
+  function limparTrecho(t) {
+    return String(t || '').trim().replace(/^["“”'«\s]*(…|\.\.\.)?\s*/, '').replace(/\s*(…|\.\.\.)?["“”'»\s]*$/, '').replace(/[.;,:]+$/, '').trim();
+  }
   function trechoOuVazio(resposta, trecho) {
-    var t = String(trecho || '').trim();
+    var t = limparTrecho(trecho);
     return temTrecho(resposta, t) ? t.slice(0, 400) : '';
   }
 
@@ -113,7 +121,7 @@
 
   function lerForma(f) {
     var nomes = [['portugues', 'Português e norma culta'], ['estrutura', 'Estrutura e coesão'], ['extensao', 'Extensão']];
-    return nomes.map(function (par) {
+    return nomes.filter(function (par) { return f && f[par[0]] != null && f[par[0]] !== ''; }).map(function (par) {
       var v = f && f[par[0]];
       var nota = v && typeof v === 'object' ? lerNota(v.nota) : 0;
       var com = v && typeof v === 'object' ? String(v.comentario || '') : String(v || '');
@@ -137,12 +145,18 @@
     if (qs.length) {
       if (!Array.isArray(json.quesitos)) return null;
       var porI = {};
-      json.quesitos.forEach(function (x) { if (x && x.i != null && porI[+x.i] === undefined) porI[+x.i] = x; });
+      var lerI = function (v) { var m = /\d+/.exec(String(v == null ? '' : v)); return m ? +m[0] : NaN; };
+      var comI = json.quesitos.filter(function (x) { return x && !isNaN(lerI(x.i)); });
+      if (!comI.length && json.quesitos.length === qs.length) {       // sem "i" nenhum e mesma quantidade: vale a posição
+        json.quesitos.forEach(function (x, k) { if (x) porI[k + 1] = x; });
+      } else {
+        comI.forEach(function (x) { var k = lerI(x.i); if (porI[k] === undefined) porI[k] = x; });
+      }
       var pulados = [], soma = 0, total = 0;
       var itens = qs.map(function (q, idx) {
         var x = porI[idx + 1], max = maxDe(q);
         total += max;
-        if (!x) { pulados.push(idx); return { n: q.n, texto: q.texto, obtido: 0, pontos: max, trecho: '', faltou: '', estimado: true }; }
+        if (!x || foraDaRegua(x.nota, q)) { pulados.push(idx); return { n: q.n, texto: q.texto, obtido: 0, pontos: max, trecho: '', faltou: '', estimado: true }; }
         var obtido = naEscala(x.nota, q);
         soma += obtido;
         return { n: q.n, texto: q.texto, obtido: obtido, pontos: max, trecho: trechoOuVazio(resposta, x.trecho),
@@ -158,11 +172,11 @@
     if (!Array.isArray(json.pontos)) return null;
     var pontos = json.pontos.filter(function (x) { return x && String(x.ponto || '').trim(); }).slice(0, 8).map(function (x) {
       var st = String(x.status || '').toLowerCase();
-      var status = /cobert|contempl/.test(st) ? 'coberto' : /parc|incompl/.test(st) ? 'parcial' : 'faltou';
+      var status = /parc|incompl/.test(st) ? 'parcial' : /n[ãa]o|falt|ausen/.test(st) ? 'faltou' : /cobert|contempl/.test(st) ? 'coberto' : 'faltou';
       return { ponto: String(x.ponto).trim().slice(0, 180), status: status, trecho: trechoOuVazio(resposta, x.trecho),
         faltou: String(x.faltou || '').slice(0, 400) };
     });
-    if (!pontos.length) return null;
+    if (pontos.length < 3) return null;      // um ponto coberto não pode valer nota 10
     var pts = pontos.reduce(function (a, x) { return a + (x.status === 'coberto' ? 1 : x.status === 'parcial' ? 0.5 : 0); }, 0);
     base.quesitos = []; base.pontos = pontos; base.pulados = [];
     base.cobertura = Math.round(pts / pontos.length * 100);
@@ -173,9 +187,9 @@
   function motivoDaFalha(err) {
     if (err && err.ctMotivo && MOTIVOS[err.ctMotivo]) return err.ctMotivo;
     var m = String((err && err.message) || err || '');
-    if (/chamadas de IA de hoje|\b429\b|cota/i.test(m)) return 'cota';
+    if (/chamadas de IA de hoje|\b429\b|\bcota\b/i.test(m)) return 'cota';
     if (/recus|consent|não autoriz/i.test(m)) return 'recusou';
-    if (/failed to fetch|load failed|network|offline|sem conex|rede/i.test(m)) return 'rede';
+    if (/failed to fetch|load failed|network|offline|sem conex|\brede\b/i.test(m)) return 'rede';
     return 'erro';
   }
 

@@ -42,11 +42,11 @@ export function testarRedacaoMotorEstatico(ok) {
     forma: { portugues: { nota: 8, comentario: 'ok' }, estrutura: { nota: 6, comentario: 'sem conclusão' }, extensao: { nota: 7, comentario: 'curto' } },
     prioridades: ['a', 'b', 'c', 'd'], geral: 'g' }, { quesitos: QS, resposta: RESP });
   ok(!!r && r.quesitos.length === 3, R + 'resposta válida vira um resultado com um item por quesito');
-  ok(r.quesitos[0].obtido === 0.2 || r.quesitos[0].obtido === 0.3, R + 'nota fora da escala (0,25) é encaixada num degrau da banca (' + r.quesitos[0].obtido + ')');
-  ok(r.quesitos[2].obtido === 0.4, R + 'nota acima do máximo é cortada no máximo do espelho (' + r.quesitos[2].obtido + ')');
+  ok(r.quesitos[0].obtido === 0.2, R + 'nota fora da escala (0,25) é encaixada no degrau de baixo: na dúvida, a banca não dá o ponto (' + r.quesitos[0].obtido + ')');
+  ok(r.quesitos[2].estimado === true && r.pulados.length === 1 && r.pulados[0] === 2, R + 'nota muito acima do máximo (9 num quesito de 0,40) não vira nota cheia: o quesito vai para o corretor local');
   ok(r.quesitos[0].trecho === 'torna-se estável quando não há recurso', R + 'trecho que existe na resposta é mantido');
   ok(r.quesitos[1].trecho === '', R + 'trecho inventado (não está na resposta) é descartado');
-  const soma = r.quesitos.reduce((a, q) => a + q.obtido, 0);
+  r.quesitos[2].obtido = 0; const soma = r.quesitos.reduce((a, q) => a + q.obtido, 0);
   ok(Math.abs(r.nota - Math.round(soma / 1.0 * 100) / 10) < 0.001 && r.cobertura === Math.round(soma * 100), R + 'nota final é a soma dos quesitos calculada pelo app (' + r.nota + ')');
   ok(r.prioridades.length === 3 && r.forma.length === 3 && r.forma.every(f => f.foraDoEspelho), R + 'forma vem marcada como fora do espelho; prioridades são três');
   ok(M.temTrecho('A  tutela\nantecipada', 'a tutela antecipada') && !M.temTrecho('abc', ''), R + 'trecho confere sem diferenciar caixa nem espaços; vazio não vale');
@@ -58,11 +58,24 @@ export function testarRedacaoMotorEstatico(ok) {
   ok(M.interpretar(null, { quesitos: QS, resposta: RESP }) === null && M.interpretar({ x: 1 }, { quesitos: QS, resposta: RESP }) === null, R + 'resposta sem a forma combinada é falha');
   ok(M.interpretar({ quesitos: [{ i: 1, nota: 'abc' }, { i: 2, nota: null }, { i: 3, nota: '0,40' }] }, { quesitos: QS, resposta: RESP }).quesitos[2].obtido === 0.4, R + 'nota com vírgula é lida; nota ilegível vale zero');
 
+  // IA que responde na escala 0–10 em vez da escala da banca: falha, não nota 10
+  ok(M.interpretar({ quesitos: [{ i: 1, nota: 7 }, { i: 2, nota: 6 }, { i: 3, nota: 0.4 }] }, { quesitos: QS, resposta: RESP }) === null, R + 'IA que dá notas de 0 a 10 a quesitos de 0,30 é tratada como falha, não como nota cheia');
+  const rotulo = M.interpretar({ quesitos: [{ i: 'Q1', nota: 0.3 }, { i: 'Q2', nota: 0.1 }, { i: 'Q3', nota: 0.4 }] }, { quesitos: QS, resposta: RESP });
+  ok(!!rotulo && rotulo.pulados.length === 0 && rotulo.quesitos[1].obtido === 0.1, R + '"i" escrito como "Q2" é lido');
+  const semI = M.interpretar({ quesitos: [{ nota: 0.3 }, { nota: 0.1 }, { nota: 0.4 }] }, { quesitos: QS, resposta: RESP });
+  ok(!!semI && semI.pulados.length === 0 && semI.quesitos[2].obtido === 0.4, R + 'sem "i" e com a mesma quantidade de itens, vale a posição');
+  ok(M.interpretar({ quesitos: [{ i: 1, nota: 0.3 }, { i: 2, nota: 0.1 }, { i: 3, nota: 0.4 }] }, { quesitos: QS, resposta: RESP }).forma.length === 0, R + 'forma que a IA não mandou não vira três critérios zerados');
+  ok(M.temTrecho(RESP, 'torna-se estável quando não há recurso.') && M.temTrecho(RESP, '…o prazo para a ação de revisão') && M.temTrecho('ac\u0327a\u0303o de revisa\u0303o', 'ação de revisão'), R + 'citação com ponto final a mais, reticências ou acento decomposto (PDF) é reconhecida');
+  ok(M.motivoDaFalha(new Error('Erro de credenciais')) === 'erro', R + '"rede" e "cota" só casam como palavra inteira');
+
   // espelho em prosa: pontos
   const prosa = M.interpretar({ pontos: [
     { ponto: 'Estabilização', status: 'coberto', trecho: 'torna-se estável', faltou: '' },
-    { ponto: 'Coisa julgada', status: 'faltou', trecho: 'xyz', faltou: 'não tratou' } ], geral: 'g' }, { quesitos: [], resposta: RESP });
-  ok(!!prosa && prosa.pontos.length === 2 && prosa.pontos[1].trecho === '' && prosa.nota === 5 && prosa.cobertura === 50, R + 'espelho em prosa: pontos com situação, trecho conferido e nota pela cobertura');
+    { ponto: 'Coisa julgada', status: 'faltou', trecho: 'xyz', faltou: 'não tratou' },
+    { ponto: 'Prazo', status: 'parcialmente coberto', trecho: '', faltou: 'citar o § 5º' },
+    { ponto: 'Recurso', status: 'não coberto', trecho: '', faltou: 'agravo' } ], geral: 'g' }, { quesitos: [], resposta: RESP });
+  ok(!!prosa && prosa.pontos.length === 4 && prosa.pontos[1].trecho === '' && prosa.pontos[2].status === 'parcial' && prosa.pontos[3].status === 'faltou' && prosa.cobertura === 38 && prosa.nota === 3.8, R + 'espelho em prosa: "parcialmente coberto" é parcial, "não coberto" é faltou, e a nota sai da cobertura (' + (prosa && prosa.nota) + ')');
+  ok(M.interpretar({ pontos: [{ ponto: 'Único', status: 'coberto' }] }, { quesitos: [], resposta: RESP }) === null, R + 'prosa com menos de três pontos é falha (um ponto coberto não vale nota 10)');
   ok(M.interpretar({ pontos: [] }, { quesitos: [], resposta: RESP }) === null, R + 'prosa sem nenhum ponto é falha');
   ok(M.motivoDaFalha(new Error('Você usou as 20 chamadas de IA de hoje')) === 'cota' && M.motivoDaFalha(new Error('Failed to fetch')) === 'rede' && M.motivoDaFalha({ ctMotivo: 'tempo' }) === 'tempo' && M.motivoDaFalha(new Error('qualquer')) === 'erro', R + 'o motivo da falha é classificado (cota, rede, tempo, outro)');
   ok(Object.keys(M.MOTIVOS).every(k => M.MOTIVOS[k].length > 12), R + 'cada motivo tem frase própria para a faixa');
@@ -93,14 +106,15 @@ const evo = page => page.evaluate(() => { try { return JSON.parse(localStorage.g
 const entregar = page => page.click('[data-red="folha"] .ct-folha-rodape .ct-btn');
 const abrir = async (pageDaSuite, base, extra) => {
   const c = await novoContexto(pageDaSuite);
-  await semear(c.page, base, Object.assign({ redText: RESPOSTA, redTextTs: Date.now() - 1000 }, extra || {}));
+  // consentimento da IA já dado (versão do termo em IA_CONSENT_VERSAO): sem ele a correção espera o modal
+  await semear(c.page, base, Object.assign({ redText: RESPOSTA, redTextTs: Date.now() - 1000, iaConsentimento: { versao: '2026-09', ts: Date.now() - 1000 } }, extra || {}));
   await abrirRedacao(c.page, base);
   return c;
 };
 
 export async function testarRedacaoMotor(pageDaSuite, base, ok, opcoes = {}) {
   const R = 'MOTOR [' + (opcoes.motor || 'chromium') + '] ';
-  for (const b of [sucesso, cancelar, falhaERecorrigir, outrasFalhas, avisos]) {
+  for (const b of [sucesso, cancelar, falhaERecorrigir, outrasFalhas, avisos, revisao]) {
     try { await b(pageDaSuite, base, ok, R); } catch (e) { ok(false, R + b.name + ' exceção: ' + String(e.message).split('\n')[0]); }
   }
 }
@@ -156,7 +170,6 @@ async function falhaERecorrigir(pageDaSuite, base, ok, R) {
     ok(h.length === 1 && h[0].motor === 'ia' && h[0].nota === 8 && !h[0].falhaIA, R + '"Corrigir de novo com IA" substitui a entrada do histórico (era ' + notaLocal + ', virou ' + h[0].nota + ')');
     const e = await evo(page);
     ok(e.length === 1 && e[0].notaTotal === 8, R + 'a evolução fica com um registro só, atualizado');
-    // corrigir de novo que falha mantém o resultado que estava na tela
   } finally { await ctx.close(); }
 }
 
@@ -189,5 +202,47 @@ async function avisos(pageDaSuite, base, ok, R) {
   try {
     const rod = (await c.page.textContent('[data-red="folha"] .ct-folha-rodape')).replace(/\s+/g, ' ');
     ok(/Faltam 30 palavras/.test(rod), R + 'o que falta para poder corrigir aparece junto do botão (' + rod.trim().slice(0, 80) + ')');
+  } finally { await c.ctx.close(); }
+}
+
+// Achados da revisão independente (03/10/2026)
+async function revisao(pageDaSuite, base, ok, R) {
+  // trocar de prova com a correção em curso: a resposta que chega depois não pode cobrir a prova nova
+  let c = await abrir(pageDaSuite, base);
+  try {
+    await armarIA(c.page, 'pendente', BOA); await entregar(c.page);
+    await c.page.waitForSelector('[data-red="corrigindo"]', { timeout: 5000 });
+    c.page.once('dialog', d => d.accept());
+    await c.page.click('button:has-text("Trocar de prova")'); await c.page.waitForTimeout(200);
+    await c.page.evaluate(() => window.__iaSolta()); await c.page.clock.runFor(1500);
+    const st = await c.page.evaluate(() => ({ busy: window.__catedraApp.state.redBusy, res: !!window.__catedraApp.state.redResult }));
+    ok(!st.busy && !st.res && (await hist(c.page)).length === 0, R + 'trocar de prova durante a espera descarta a correção em curso (nada preso, nada gravado)');
+  } finally { await c.ctx.close(); }
+
+  // corrigir de novo que falha de novo: o resultado que estava na tela fica, e nada duplica
+  c = await abrir(pageDaSuite, base);
+  try {
+    await armarIA(c.page, 'rede', BOA); await entregar(c.page);
+    await c.page.waitForSelector('[data-red="falha-ia"]', { timeout: 15000 });
+    await armarIA(c.page, 'lixo', BOA);
+    await c.page.click('[data-red="recorrigir-ia"]');
+    await c.page.waitForFunction(() => /fora do formato/.test((document.querySelector('[data-red="falha-ia"]') || {}).textContent || ''), null, { timeout: 15000 });
+    await c.page.clock.runFor(1500);
+    const h = await hist(c.page);
+    ok(h.length === 1 && h[0].motor === 'local' && (await evo(c.page)).length === 1, R + 'corrigir de novo que falha mantém a estimativa na tela, atualiza o motivo e não duplica nada');
+  } finally { await c.ctx.close(); }
+
+  // o relógio de 90 s não corre enquanto a pessoa lê o termo de consentimento; recusar tem motivo próprio
+  c = await abrir(pageDaSuite, base);
+  try {
+    await armarIA(c.page, 'boa', BOA);
+    await c.page.evaluate(() => { window.__catedraApp._iaAutorizar = () => new Promise((res, rej) => { window.__recusa = () => rej(new Error('ia_sem_consentimento')); }); });
+    await entregar(c.page);
+    await c.page.waitForSelector('[data-red="corrigindo"]', { timeout: 5000 });
+    await c.page.clock.runFor(95000);
+    ok(await c.page.locator('[data-red="falha-ia"]').count() === 0 && await c.page.evaluate(() => window.__iaChamadas) === 0, R + 'com o termo de consentimento aberto, os 90 segundos não contam e a IA não é chamada');
+    await c.page.evaluate(() => window.__recusa());
+    await c.page.waitForSelector('[data-red="falha-ia"]', { timeout: 15000 });
+    ok(/não autorizou/.test(await c.page.textContent('[data-red="falha-ia"]')), R + 'recusar o consentimento vira estimativa local com esse motivo');
   } finally { await c.ctx.close(); }
 }
