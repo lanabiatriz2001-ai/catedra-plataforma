@@ -1772,3 +1772,7 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 .ct-gab-p { white-space: nowrap; }
 .ct-gab-erro { color: color-mix(in srgb, var(--danger) 72%, var(--ink)); }
 @container mesa (max-width: 560px) { .ct-gab-lista > li { grid-template-columns: 2em minmax(0, 1fr); } .ct-gab-p { grid-column: 2; } }
+.ct-gab-lista > li.ct-conf-item { grid-template-columns: 2em minmax(0, 1fr); }
+.ct-conf-ops { grid-column: 2; justify-self: start; flex-wrap: wrap; }
+.ct-conf-ops > button { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.ct-conf-ops > button[aria-pressed="true"] { background: var(--accentSolid, var(--accent)); color: var(--onAccent); box-shadow: none; }

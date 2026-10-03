@@ -3638,7 +3638,8 @@ window.ctPdfLib = (function(){
                   <p class="ct-folha-mao-tit">Escreva na sua folha, como na prova.</p>
                   <p class="ct-nota">{{ redMaoDica }}</p>
                   <div class="ct-mesa-linha" style="margin-top:var(--ct-e4);">
-                    <button class="ct-btn-2" data-red="crono-btn" onclick="{{ toggleRedCrono }}" aria-pressed="{{ redCronoOn }}">{{ redCronoBtnTxt }}</button>
+                    <button class="ct-btn-2" data-red="crono-btn" onclick="{{ toggleRedCrono }}" aria-pressed="{{ redCronoOn }}" disabled="{{ redConferindo }}">{{ redCronoBtnTxt }}</button>
+                    <button class="ct-btn" data-red="terminei" onclick="{{ terminarMao }}" disabled="{{ redConferindo }}">{{ redTermineiTxt }}</button>
                   </div>
                 </div>
               </sc-if>
@@ -3696,6 +3697,40 @@ window.ctPdfLib = (function(){
                 <div class="ct-nota" style="margin-top:var(--ct-e1);max-width:520px;">O conteúdo aparece depois que você entregar. Saber que existe um quesito de preclusão já entrega a resposta.</div>
               </div>
               <button onclick="{{ revelarEspelho }}" class="ct-btn-2">Ver mesmo assim</button>
+            </div>
+          </sc-if>
+          <!-- CONFERÊNCIA PRÓPRIA: fez à mão, confere o padrão por conta, quesito a quesito, na escala da banca -->
+          <sc-if value="{{ redConferindo }}" hint-placeholder-val="{{ false }}">
+            <div class="ct-card">
+              <div class="ct-eb">Conferência pelo padrão</div>
+              <p class="ct-nota" style="margin-top:var(--ct-e1);">Leia cada quesito, procure na sua folha e dê a nota dentro da escala da banca.</p>
+              <div class="ct-mesa-linha" style="margin-top:var(--ct-e3);">
+                <label for="red-linhas-mao" class="ct-eb">Quantas linhas você usou?</label>
+                <input id="red-linhas-mao" data-red="linhas-mao" class="ct-campo ct-campo-num" inputmode="numeric" value="{{ redLinhasMao }}" oninput="{{ onLinhasMao }}" style="width:6em;min-height:var(--ct-alvo-toque);" aria-describedby="red-linhas-mao-msg">
+                <span id="red-linhas-mao-msg" data-red="linhas-mao-msg" class="ct-nota">{{ redLinhasMaoMsg }}</span>
+              </div>
+              <sc-if value="{{ redConfListaShow }}" hint-placeholder-val="{{ true }}">
+                <ol class="ct-gab-lista">
+                  <sc-for list="{{ redConfItens }}" as="q">
+                    <li data-red="conf-item" class="ct-conf-item">
+                      <span class="ct-gab-n">{{ q.n }}</span>
+                      <span class="ct-gab-t">{{ q.texto }}</span>
+                      <span class="ct-seg ct-conf-ops" role="group" aria-label="Nota do quesito {{ q.n }}"><sc-for list="{{ q.opcoes }}" as="o"><button data-red="conf-opcao" data-i="{{ o.i }}" data-v="{{ o.v }}" onclick="{{ marcarConf }}" aria-pressed="{{ o.on }}">{{ o.l }}</button></sc-for></span>
+                    </li>
+                  </sc-for>
+                </ol>
+              </sc-if>
+              <sc-if value="{{ redConfProsa }}" hint-placeholder-val="{{ false }}">
+                <div class="ct-leitura" style="margin-top:var(--ct-e3);white-space:pre-wrap;color:var(--ink);line-height:1.7;">{{ redGabarito }}</div>
+                <div class="ct-mesa-linha" style="margin-top:var(--ct-e3);">
+                  <label for="red-conf-unica" class="ct-eb">Sua nota, de 0 a 10</label>
+                  <input id="red-conf-unica" data-red="conf-unica" class="ct-campo ct-campo-num" inputmode="decimal" value="{{ redConfUnica }}" oninput="{{ onConfUnica }}" style="width:6em;min-height:var(--ct-alvo-toque);">
+                </div>
+              </sc-if>
+              <div class="ct-mesa-linha" style="margin-top:var(--ct-e4);justify-content:space-between;">
+                <span data-red="conf-soma" class="ct-dado" aria-live="polite">{{ redConfSomaTxt }}</span>
+                <button class="ct-btn" data-red="conf-registrar" onclick="{{ registrarConferencia }}" disabled="{{ redConfNaoPode }}">Registrar conferência</button>
+              </div>
             </div>
           </sc-if>
           <sc-if value="{{ redEspelhoAberto }}" hint-placeholder-val="{{ false }}">
@@ -3800,6 +3835,7 @@ window.ctPdfLib = (function(){
             </div>
           </sc-if>
 
+          <sc-if value="{{ redResultIA }}" hint-placeholder-val="{{ true }}">
           <div class="ct-grade-larga">
             <div class="ct-card">
               <div class="ct-eb ct-eb-ok">Pontos fortes</div>
@@ -3821,6 +3857,7 @@ window.ctPdfLib = (function(){
               </div>
             </sc-for>
           </div>
+          </sc-if>
 
           <sc-if value="{{ redResultLivre }}" hint-placeholder-val="{{ false }}">
             <div class="ct-card">
@@ -7409,7 +7446,7 @@ class Component extends DCLogic {
       redRascunhoOculto:false,
       redQuestaoAberta:true, redMarcasAberto:false, redEditandoEnun:false,   // mesa de prova: só de tela
       redModoResposta:(String(this._load('redText','')||'').trim()?'digitar':'mao'), redCronoOn:false, redCronoTick:0,
-      redLinhasN:null, redFoco:false, redGabVista:'', redGabErro:'', redGabOk:'',    // U4: a faixa do rascunho da redação, depois de dispensada
+      redLinhasN:null, redFoco:false, redGabVista:'', redGabErro:'', redGabOk:'', redConferindo:false, redConf:{}, redLinhasMao:'',    // U4: a faixa do rascunho da redação, depois de dispensada
       // 'video' e 'mapa' (este em 25/09/2026) saíram dos formatos; quem tivesse essa
       // preferência salva ficaria numa aba sem botão para sair dela. Cai para texto; o
       // mfGen antigo continua guardado, só não é mais lido.
@@ -12387,7 +12424,7 @@ class Component extends DCLogic {
       redEspelhoOculto: !!_gab,       // esconde o que houver de gabarito — oficial ou sugerido
       // Prova cadastrada: a pessoa só RESPONDE — enunciado e espelho são os oficiais e não se editam.
       redModoProva: true,
-      redText:'', redTextTs:0, redResult:null, bancoOpen:false, redRascunhoOculto:false, bancoAbrindo:'', redEditandoEnun:false, redQuestaoAberta:true, redModoResposta:'mao', redGabVista:'', redGabErro:'', redGabOk:''
+      redText:'', redTextTs:0, redResult:null, bancoOpen:false, redRascunhoOculto:false, bancoAbrindo:'', redEditandoEnun:false, redQuestaoAberta:true, redModoResposta:'mao', redGabVista:'', redGabErro:'', redGabOk:'', redConferindo:false, redConf:{}, redLinhasMao:''
     });
     try{ localStorage.setItem(this._chave('redEnunciado'),JSON.stringify(cab+'\n\n'+(q.enunciado||'')));
       localStorage.setItem(this._chave('redGabarito'),JSON.stringify(_gab));
@@ -12481,10 +12518,62 @@ class Component extends DCLogic {
     return {qs, total, estado:'quesitos',
       txt:qs.length+(qs.length===1?' quesito':' quesitos')+' · '+this._redNum(total)+(total===1?' ponto':' pontos')+' · pronto para corrigir'}; }
   setRedGabVista = (e)=> this.setState({redGabVista:e.currentTarget.dataset.v==='texto'?'texto':'quesitos'});
+  // ===== CONFERÊNCIA PRÓPRIA: fez à mão, confere o padrão por conta =====
+  // Os degraus que a pessoa pode se dar num quesito: a escala da banca quando há; senão
+  // zero, metade e cheio. Nota fora da escala não existe (mesma regra do corretor local).
+  _redConfOpcoes(q){ if(q.escala&&q.escala.length) return q.escala.slice();
+    const max=q.max!=null?q.max:1; return [0, Math.round(max*50)/100, max]; }
+  terminarMao = ()=>{
+    this._redCronoPausar();
+    const r=this._redEspelhoResumo();
+    if(r.estado==='vazio'){ this.setState({redEspelhoOculto:false, redGabVista:'texto'}); return; }
+    this.setState({redConferindo:true, redEspelhoOculto:false, redGabVista:'quesitos', redConf:{}});
+  };
+  marcarConf = (e)=>{ const i=e.currentTarget.dataset.i, v=parseFloat(e.currentTarget.dataset.v);
+    if(i==null || isNaN(v)) return; this.setState({redConf:{...(this.state.redConf||{}), [i]:v}}); };
+  onConfUnica = (e)=> this.setState({redConf:{...(this.state.redConf||{}), unica:e.currentTarget.value}});
+  onLinhasMao = (e)=> this.setState({redLinhasMao:String(e.currentTarget.value||'').replace(/[^\d]/g,'').slice(0,3)});
+  _redConfUnica(){ const s=String((this.state.redConf||{}).unica==null?'':(this.state.redConf||{}).unica).trim().replace(',','.');
+    if(!/^\d{1,2}(\.\d{1,2})?$/.test(s)) return null; const u=parseFloat(s); return (u>=0&&u<=10)?u:null; }
+  registrarConferencia = ()=>{
+    const r=this._redEspelhoResumo(); const conf=this.state.redConf||{};
+    if(r.estado==='vazio' || !this.state.redConferindo) return;
+    let nota=0, cobertura=0; const topicos=[], quesitos=[];
+    if(r.estado==='quesitos'){
+      if(r.qs.some((q,i)=>conf[i]==null)) return;
+      let obt=0;
+      r.qs.forEach((q,i)=>{ const max=q.max!=null?q.max:1; const n=+conf[i]||0; obt+=n; const p=max?n/max:0;
+        topicos.push({ponto:'Quesito '+q.n+' — '+q.texto.slice(0,150)+(q.texto.length>150?'…':''),
+          status:p>=0.99?'coberto':(p>0?'parcial':'faltou'), comentario:'Nota '+this._redNum(n)+' de '+this._redNum(max)});
+        quesitos.push({quesito:'Quesito '+q.n, obtido:n, pontos:max}); });
+      nota=r.total?Math.round(obt/r.total*100)/10:0; cobertura=r.total?Math.round(obt/r.total*100):0;
+    } else {
+      const u=this._redConfUnica(); if(u==null) return;
+      nota=Math.round(u*10)/10; cobertura=Math.round(nota*10);
+      quesitos.push({quesito:'Nota geral', obtido:nota, pontos:10});
+    }
+    const enun=(this.state.redEnunciado||'').trim();
+    const titulo=enun? enun.replace(/\s+/g,' ').slice(0,80) : 'Questão discursiva';
+    const aprox=!!this.state.espSugAtual; const disc={...(this.state.redDisciplina||{})};
+    const tempoMs=this._redTempoAgora(); const linhas=this.state.redLinhasMao?+this.state.redLinhasMao:null;
+    const res={ nota, notaStr:nota.toFixed(1), notaColor:nota>=8?'var(--ok)':nota>=6?'var(--warn)':'var(--danger)',
+      conceito:this._redConceito(nota), cobertura, topicos:this._normTopicos(topicos), criterios:[], fortes:[], melhorar:[],
+      geral:'Você respondeu à mão e conferiu o padrão de respostas por conta própria'
+        +(tempoMs?(', em '+this._redFmtTempo(tempoMs)):'')+(linhas?(', usando '+linhas+' linhas'):'')+'.',
+      aiUsed:false, propria:true, livre:false, enunciado:enun, aproximada:aprox, quesitos };
+    const agora=Date.now();
+    const entry={ id:'rd'+agora, up:agora, tema:titulo, words:0, nota, ts:agora, disc:disc.disc||'', disciplinaOrigem:disc.origem||'',
+      res, texto:'', gabarito:this.state.redGabarito, aproximada:aprox, origem:'conferencia-propria', tempoMs, ...(linhas!=null?{linhas}:{}) };
+    const hist=[entry, ...this.state.redHistory].slice(0,12); this._redSave(hist);
+    this.setState({redResult:res, redHistory:hist, redConferindo:false, redConf:{}, redLinhasMao:'', redSubText:'', redSubGab:this.state.redGabarito});
+    this._redCronoZerar(); this.flashSync();
+    try{ this._redRegistrar({origem:'redacao', prova:titulo, notaTotal:nota, notaMax:10, disc:disc.disc, disciplinaOrigem:disc.origem, aproximada:aprox,
+      quesitos:quesitos.map(q=>({titulo:q.quesito, nota:q.obtido, max:q.pontos})) }); }catch(_){}
+  };
   toggleRedCrono = ()=>{ if(this.state.redBusy) return; if(this._redCronoDesde) this._redCronoPausar(); else this._redCronoIniciar(); };
   setRedModo = (e)=>{ const m=e.currentTarget.dataset.m==='digitar'?'digitar':'mao';
     if(m===this.state.redModoResposta || this.state.redBusy) return;
-    this.setState({redModoResposta:m}); };
+    this.setState({redModoResposta:m, redConferindo:false, redConf:{}}); };
   // Dados derivados da Prova oral (só calculados quando a view está aberta).
   _oralVM(){
     const st=this.state, T=window.CT_TREINO, w=window;
@@ -14366,7 +14455,7 @@ class Component extends DCLogic {
     if(disc && !this._redDiscOpcoes().some(d=>d.v===disc)) return;
     this.setState({redDisciplina:{...(this.state.redDisciplina||{}),disc,origem:'manual'}});
   };
-  redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.')) return; this._redBoot=''; this._redCronoZerar(); this.setState({redResult:null, redText:'', redTextTs:0, redRascunhoOculto:false, redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false, redModoProva:false, redEditandoEnun:false, redQuestaoAberta:true, redModoResposta:'mao', redGabVista:'', redGabErro:'', redGabOk:'', redProvaId:'', redDisciplina:{}, espSugAtual:null}); try{ localStorage.setItem(this._chave('redText'),JSON.stringify('')); localStorage.setItem(this._chave('redGabarito'),JSON.stringify('')); localStorage.setItem(this._chave('redEnunciado'),JSON.stringify('')); }catch(_){} };
+  redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.')) return; this._redBoot=''; this._redCronoZerar(); this.setState({redResult:null, redText:'', redTextTs:0, redRascunhoOculto:false, redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false, redModoProva:false, redEditandoEnun:false, redQuestaoAberta:true, redModoResposta:'mao', redGabVista:'', redGabErro:'', redGabOk:'', redConferindo:false, redConf:{}, redLinhasMao:'', redProvaId:'', redDisciplina:{}, espSugAtual:null}); try{ localStorage.setItem(this._chave('redText'),JSON.stringify('')); localStorage.setItem(this._chave('redGabarito'),JSON.stringify('')); localStorage.setItem(this._chave('redEnunciado'),JSON.stringify('')); }catch(_){} };
   redOpenHist = (e)=>{ const id=e.currentTarget.dataset.id; const h=(this.state.redHistory||[]).find(x=>x.id===id);
     if(!h||!h.res){ this._toast('Correção completa não disponível para este item'); return; }
     this.setState({redResult:h.res, redDisciplina:{disc:h.disc||'',origem:h.disciplinaOrigem||''}, redText:h.texto||this.state.redText, redGabarito:h.gabarito||this.state.redGabarito, redSubText:h.texto||'', redSubGab:h.gabarito||''}); };
@@ -14407,7 +14496,7 @@ class Component extends DCLogic {
   };
   onRedGab = (e)=>{ const v=e.currentTarget.value;
     if(this.state.espSugAtual && v!==this.state.redGabarito) this._deixaDeSerSugerido();
-    this.setState({redGabarito:v, redGabErro:'', redGabOk:''}); };
+    this.setState({redGabarito:v, redGabErro:'', redGabOk:'', redConf:{}}); };   // espelho mudou: as notas marcadas não valem mais
   importRedGab = ()=>{ try{ const inp=document.createElement('input'); inp.type='file'; inp.accept='application/pdf,.pdf,text/plain,.txt';
     inp.onchange=async ()=>{ const f=inp.files&&inp.files[0]; if(!f) return; this.setState({redGabBusy:true, redGabFile:f.name, redGabErro:'', redGabOk:''});
       try{ let txt=''; if(f.type==='application/pdf'||/\.pdf$/i.test(f.name)){ txt=await this._extractEditalPdf(f); }
@@ -14415,7 +14504,7 @@ class Component extends DCLogic {
         if(!String(txt||'').trim()) throw new Error('vazio');
         this._deixaDeSerSugerido();   // espelho vindo de fora não é mais o sugerido
         // o estado da importação fica na própria faixa do espelho (antes era toast, que some)
-        this.setState({redGabarito:String(txt).trim(), redGabBusy:false, redGabOk:f.name+' importado', redGabVista:''});
+        this.setState({redGabarito:String(txt).trim(), redGabBusy:false, redGabOk:f.name+' importado', redGabVista:'', redConf:{}});
       }catch(err){ this.setState({redGabBusy:false, redGabErro:'Não consegui ler '+f.name}); } };
     inp.click(); }catch(e){} };
   submitRed = async ()=>{
@@ -19882,8 +19971,23 @@ class Component extends DCLogic {
         const vista=tem?(this.state.redGabVista||'quesitos'):'texto';
         const msg=this.state.redGabBusy?('Lendo '+(this.state.redGabFile||'arquivo')+'…'):(this.state.redGabErro||this.state.redGabOk||'');
         const alerta=!!this.state.redGabErro && !this.state.redGabBusy;
-        return { redGabEstadoTxt:r.txt, redGabTemQuesitos:tem,
-          redGabVistaQuesitos:vista==='quesitos', redGabVistaTexto:vista==='texto', redGabListaShow:vista==='quesitos', setRedGabVista:this.setRedGabVista,
+        const conferindo=!!this.state.redConferindo && r.estado!=='vazio'; const conf=this.state.redConf||{}; const prosa=r.estado==='prosa';
+        const faltam=r.qs.filter((q,i)=>conf[i]==null).length;
+        const obt=r.qs.reduce((a,q,i)=>a+(+conf[i]||0),0);
+        const pode=prosa?(this._redConfUnica()!=null):(tem && faltam===0);
+        const lim=this._redLimiteLinhas(this.state.redEnunciado); const lm=this.state.redLinhasMao?+this.state.redLinhasMao:null;
+        return { redConferindo:conferindo, redConfProsa:conferindo && prosa, redConfListaShow:conferindo && tem && vista==='quesitos',
+          redConfItens:r.qs.map((q,i)=>({ n:String(q.n), texto:q.texto,
+            opcoes:this._redConfOpcoes(q).map(v=>({ i:String(i), v:String(v), l:this._redNum(v), on:conf[i]===v })) })),
+          redConfSomaTxt:prosa?'':(this._redNum(obt)+' / '+this._redNum(r.total)+(faltam?(' · falta'+(faltam===1?'':'m')+' '+faltam):' · tudo marcado')),
+          redConfNaoPode:!pode, redConfUnica:String(conf.unica==null?'':conf.unica),
+          redLinhasMao:this.state.redLinhasMao||'',
+          redLinhasMaoMsg:(lm==null||!lim)?'':(lm>lim?('passou '+(lm-lim)+(lm-lim===1?' linha':' linhas')+' do limite'):('dentro do limite de '+lim+' linhas')),
+          redTermineiTxt:r.estado==='vazio'?'Colar ou importar o padrão para conferir':'Terminei — conferir pelo padrão',
+          marcarConf:this.marcarConf, onConfUnica:this.onConfUnica, onLinhasMao:this.onLinhasMao,
+          terminarMao:this.terminarMao, registrarConferencia:this.registrarConferencia,
+          redGabEstadoTxt:r.txt, redGabTemQuesitos:tem,
+          redGabVistaQuesitos:vista==='quesitos', redGabVistaTexto:vista==='texto' && !(conferindo && prosa), redGabListaShow:vista==='quesitos' && !conferindo, setRedGabVista:this.setRedGabVista,
           redGabQuesitos:r.qs.map((q,i)=>({ i:String(i), n:String(q.n), texto:q.texto,
             pts:(q.escala&&q.escala.length?('escala '+q.escala.map(x=>this._redNum(x)).join(' / ')):('até '+this._redNum(q.max!=null?q.max:1))) })),
           redGabMsg:msg, redGabMsgAlerta:alerta, redGabMsgNormal:!!msg && !alerta }; })(),
@@ -19993,7 +20097,9 @@ class Component extends DCLogic {
       espSugRegerar:(this.state.espSugBusy?'Gerando…':'Regenerar'),
       gerarEspelhoSugerido:this.gerarEspelhoSugerido,
       redHasTopicos, redTopicos, redCobertura:String(redCobertura)+'%', redCobColor, redCobBarW:String(redCobertura)+'%', redConceito, redConceitoStyle, redTopResumo,
-      redOrigemLabel:(this.state.redResult&&this.state.redResult.aiUsed===false)?'estimativa local — conecte a IA':'corrigido por IA',
+      redOrigemLabel:(this.state.redResult&&this.state.redResult.propria)?'conferência própria'
+        :((this.state.redResult&&this.state.redResult.aiUsed===false)?'estimativa local — conecte a IA':'corrigido por IA'),
+      redResultIA:!(this.state.redResult&&this.state.redResult.propria),
       // C3 na tela da nota: o selo vem do resultado (que carrega `aproximada`), não do
       // estado da etapa 2 — reabrir pelo histórico também precisa mostrá-lo.
       redResultAprox:!!((this.state.redResult&&this.state.redResult.aproximada)||(!this.state.redResult&&this.state.espSugAtual)),

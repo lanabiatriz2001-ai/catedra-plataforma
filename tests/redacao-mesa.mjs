@@ -38,7 +38,7 @@ const caixa = (page, sel) => page.evaluate(s => { const e = document.querySelect
 
 export async function testarRedacaoMesa(pageDaSuite, base, ok, opcoes = {}) {
   const R = 'MESA [' + (opcoes.motor || 'chromium') + '] ';
-  const blocos = [arranjo, papel, folha, espelho];
+  const blocos = [arranjo, papel, folha, espelho, conferencia];
   for (const b of blocos) {
     try { await b(pageDaSuite, base, ok, R, opcoes); }
     catch (e) { ok(false, R + b.name + ' exceção: ' + e.message); }
@@ -220,5 +220,85 @@ async function espelho(pageDaSuite, base, ok, R) {
     await fc2.setFiles({ name: 'espelho.txt', mimeType: 'text/plain', buffer: Buffer.from('1. Reconhece a estabilização da tutela (0,50 ponto)\n2. Afasta a coisa julgada material (0,50 ponto)') });
     await page.waitForFunction(() => /espelho\.txt importado/.test((document.querySelector('[data-red="espelho"]') || {}).textContent || ''), null, { timeout: 8000 });
     ok(/2 quesitos/.test(await page.textContent('[data-red="gab-estado"]')), R + 'importação diz o arquivo e atualiza a contagem');
+  } finally { await ctx.close(); }
+}
+
+async function conferencia(pageDaSuite, base, ok, R) {
+  let { ctx, page } = await novoContexto(pageDaSuite);
+  try {
+    await semear(page, base); await abrirRedacao(page, base);
+    await page.evaluate(() => window.__catedraApp.setState({ redEspelhoOculto: true }));
+    await page.click('[data-red="crono-btn"]'); await page.clock.runFor(600000);
+    await page.click('[data-red="terminei"]'); await page.waitForSelector('[data-red="conf-item"]');
+    await page.clock.runFor(30000);
+    ok((await page.textContent('[data-red="crono"]')).trim() === '10:00', R + '"Terminei" congela o tempo');
+    ok(await page.locator('[data-red="conf-item"]').count() === 3, R + 'conferência abre um item por quesito');
+    const ops = await page.locator('[data-red="conf-item"] >> nth=0').locator('[data-red="conf-opcao"]').allTextContents();
+    ok(ops.map(s => s.trim()).join('|') === '0,00|0,10|0,20|0,30', R + 'quesito com escala só oferece os degraus da banca');
+    const ops3 = await page.locator('[data-red="conf-item"] >> nth=2').locator('[data-red="conf-opcao"]').allTextContents();
+    ok(ops3.map(s => s.trim()).join('|') === '0,00|0,20|0,40', R + 'quesito sem escala oferece zero, metade e cheio');
+    ok(await page.isDisabled('[data-red="conf-registrar"]'), R + 'registrar fica desabilitado enquanto falta quesito');
+    const marcar = (i, txt) => page.locator('[data-red="conf-item"] >> nth=' + i).locator('[data-red="conf-opcao"]', { hasText: txt }).click();
+    await marcar(0, '0,30'); await marcar(1, '0,10');
+    ok(/0,40 \/ 1,00/.test(await page.textContent('[data-red="conf-soma"]')) && /falta 1/.test(await page.textContent('[data-red="conf-soma"]')), R + 'soma acompanha e diz quantos faltam');
+    await marcar(2, '0,40');
+    await page.screenshot({ path: 'tests/_capturas/mesa-conferencia.png', fullPage: true }).catch(() => {});
+    await page.fill('[data-red="linhas-mao"]', '33');
+    ok(/passou 3 linhas/.test(await page.textContent('[data-red="linhas-mao-msg"]')), R + 'linhas informadas acima do limite avisam quanto passou');
+    await page.fill('[data-red="linhas-mao"]', '28');
+    ok(/dentro do limite/.test(await page.textContent('[data-red="linhas-mao-msg"]')), R + 'linhas dentro do limite são confirmadas');
+    ok(!(await page.isDisabled('[data-red="conf-registrar"]')), R + 'com tudo marcado, registrar habilita');
+    await page.click('[data-red="conf-registrar"]'); await page.waitForTimeout(400);
+    ok(/8[.,]0/.test(await page.textContent('.ct-hero')), R + 'etapa 3 abre com a nota proporcional (0,80 de 1,00 → 8,0)');
+    ok(/Conferência própria/i.test(await page.textContent('.ct-hero')), R + 'o resultado diz que é conferência própria');
+    const corpo = await page.textContent('main');
+    ok(!/Critérios/.test(corpo) && !/Pontos fortes/.test(corpo) && !/A melhorar/.test(corpo), R + 'blocos que dependem de IA não aparecem');
+    await page.clock.runFor(1500);
+    const h = await page.evaluate(() => JSON.parse(localStorage.getItem('catedra:red') || '[]')[0]);
+    ok(!!h && h.origem === 'conferencia-propria' && h.nota === 8 && Math.abs(h.tempoMs - 600000) < 2000 && h.linhas === 28 && h.texto === '', R + 'histórico guarda nota, tempo e linhas da conferência');
+    const ev = await lerStore(page, 'redHist');
+    ok(Array.isArray(ev) && ev.length === 1 && ev[0].quesitos.length === 3 && ev[0].quesitos[1].nota === 0.1, R + 'a evolução recebe a nota por quesito');
+    ok((await lerStore(page, 'redTempoMs')) === 0, R + 'depois de registrar, o cronômetro zera');
+    await page.screenshot({ path: 'tests/_capturas/mesa-resultado-proprio.png', fullPage: true }).catch(() => {});
+    page.once('dialog', d => d.accept());
+    await page.click('button:has-text("Nova prova")'); await page.waitForTimeout(300);
+    await page.locator('[data-id^="rd"]').first().click(); await page.waitForTimeout(300);
+    ok(/Conferência própria/i.test(await page.textContent('.ct-hero')), R + 'conferência reabre pelo histórico');
+  } finally { await ctx.close(); }
+
+  // Review Focus 2 e 4: números repetidos; espelho trocado no meio
+  ({ ctx, page } = await novoContexto(pageDaSuite));
+  try {
+    await semear(page, base, { redGabarito: '1. Reconhece a estabilização da tutela antecipada (0,50 ponto)\n1. Afasta a formação de coisa julgada (0,50 ponto)' });
+    await abrirRedacao(page, base);
+    await page.click('[data-red="terminei"]'); await page.waitForSelector('[data-red="conf-item"]');
+    await page.locator('[data-red="conf-item"] >> nth=0').locator('[data-red="conf-opcao"]', { hasText: '0,50' }).click();
+    ok(await page.locator('[data-red="conf-item"] >> nth=1').locator('[data-red="conf-opcao"][aria-pressed="true"]').count() === 0, R + 'quesitos com o mesmo número não se marcam juntos');
+    await page.click('[data-red="gab-vista-texto"]');
+    await page.fill('[data-red="espelho"] textarea', '1. Quesito novo com outro conteúdo qualquer (1,00 ponto)'); await page.waitForTimeout(200);
+    await page.click('[data-red="gab-vista-quesitos"]');
+    ok(await page.locator('[data-red="conf-opcao"][aria-pressed="true"]').count() === 0 && await page.isDisabled('[data-red="conf-registrar"]'), R + 'trocar o espelho descarta as notas marcadas');
+  } finally { await ctx.close(); }
+
+  // Review Focus 5: espelho em prosa, nota única
+  ({ ctx, page } = await novoContexto(pageDaSuite));
+  try {
+    await semear(page, base, { redGabarito: 'A resposta deve reconhecer a estabilização da tutela e afastar a coisa julgada.' });
+    await abrirRedacao(page, base);
+    await page.click('[data-red="terminei"]'); await page.waitForSelector('[data-red="conf-unica"]');
+    ok(await page.isDisabled('[data-red="conf-registrar"]'), R + 'nota única vazia não registra');
+    await page.fill('[data-red="conf-unica"]', '12'); ok(await page.isDisabled('[data-red="conf-registrar"]'), R + 'nota única fora de 0 a 10 não registra');
+    await page.fill('[data-red="conf-unica"]', '7,5'); ok(!(await page.isDisabled('[data-red="conf-registrar"]')), R + 'nota única aceita vírgula');
+    await page.click('[data-red="conf-registrar"]'); await page.waitForTimeout(400);
+    ok(/7[.,]5/.test(await page.textContent('.ct-hero')), R + 'nota única vira a nota do resultado');
+  } finally { await ctx.close(); }
+
+  // sem espelho: não há o que conferir
+  ({ ctx, page } = await novoContexto(pageDaSuite));
+  try {
+    await semear(page, base, { redGabarito: '' }); await abrirRedacao(page, base);
+    ok(/Colar ou importar o padrão/.test(await page.textContent('[data-red="terminei"]')), R + 'sem espelho, o botão pede o padrão antes de conferir');
+    await page.click('[data-red="terminei"]'); await page.waitForTimeout(200);
+    ok(await page.locator('[data-red="espelho"] textarea').count() === 1 && await page.locator('[data-red="conf-registrar"]').count() === 0, R + 'sem espelho, abre o campo para colar e não a conferência');
   } finally { await ctx.close(); }
 }
