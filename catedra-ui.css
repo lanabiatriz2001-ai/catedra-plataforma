@@ -1766,3 +1766,9 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 .ct-folha-salvo { font-size: var(--fs-sm); color: var(--text2); display: inline-flex; align-items: center; gap: var(--ct-e1); }
 /* Modo foco: só a mesa. O atributo vai na raiz porque a navegação mora fora da view. */
 [data-red-foco] aside, [data-red-foco] [data-red-fora-do-foco] { display: none !important; }
+.ct-gab-lista { list-style: none; margin: var(--ct-e3) 0 0; padding: 0; display: flex; flex-direction: column; }
+.ct-gab-lista > li { display: grid; grid-template-columns: 2em minmax(0, 1fr) auto; gap: var(--ct-e3); align-items: baseline; padding: var(--ct-e3) 0; border-top: 1px solid var(--border); font-size: var(--fs-base); line-height: 1.55; color: var(--ink); }
+.ct-gab-n { font-family: var(--mono); color: var(--text2); text-align: right; }
+.ct-gab-p { white-space: nowrap; }
+.ct-gab-erro { color: color-mix(in srgb, var(--danger) 72%, var(--ink)); }
+@container mesa (max-width: 560px) { .ct-gab-lista > li { grid-template-columns: 2em minmax(0, 1fr); } .ct-gab-p { grid-column: 2; } }

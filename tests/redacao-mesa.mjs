@@ -38,7 +38,7 @@ const caixa = (page, sel) => page.evaluate(s => { const e = document.querySelect
 
 export async function testarRedacaoMesa(pageDaSuite, base, ok, opcoes = {}) {
   const R = 'MESA [' + (opcoes.motor || 'chromium') + '] ';
-  const blocos = [arranjo, papel, folha];
+  const blocos = [arranjo, papel, folha, espelho];
   for (const b of blocos) {
     try { await b(pageDaSuite, base, ok, R, opcoes); }
     catch (e) { ok(false, R + b.name + ' exceção: ' + e.message); }
@@ -191,4 +191,34 @@ async function folha(pageDaSuite, base, ok, R) {
     await abrirRedacao(s.page, base);
     ok(await s.page.locator('[data-red="barra"]').count() === 0 && /^\s*\d+ linhas?/.test(await s.page.textContent('[data-red="linhas"]')), R + 'sem limite no enunciado: sem barra e sem "/ L"');
   } finally { await s.ctx.close(); }
+}
+
+async function espelho(pageDaSuite, base, ok, R) {
+  const { ctx, page } = await novoContexto(pageDaSuite);
+  try {
+    await semear(page, base, { redText: 'Texto digitado.', redTextTs: Date.now() }); await abrirRedacao(page, base);
+    await page.evaluate(() => { const c = window.__catedraApp; c.setState({ redEspelhoOculto: true }); }); await page.waitForTimeout(200);
+    const est = (await page.textContent('[data-red="gab-estado"]')).replace(/\s+/g, ' ');
+    ok(/3 quesitos/.test(est) && /1,00 ponto/.test(est) && /pronto para corrigir/.test(est), R + 'espelho guardado diz quantos quesitos e pontos reconheceu');
+    ok(!/estabilização/.test(await page.textContent('[data-red="espelho"]')), R + 'espelho guardado não entrega o conteúdo dos quesitos');
+    page.once('dialog', d => d.accept());
+    await page.click('button:has-text("Ver mesmo assim")'); await page.waitForTimeout(200);
+    ok(await page.getAttribute('[data-red="gab-vista-quesitos"]', 'aria-pressed') === 'true' && await page.locator('[data-red="gab-quesito"]').count() === 3, R + 'aberto, o espelho lista os 3 quesitos');
+    ok(/0,30/.test(await page.textContent('[data-red="gab-quesito"] >> nth=0')) && /0,40/.test(await page.textContent('[data-red="gab-quesito"] >> nth=2')), R + 'cada quesito mostra a pontuação máxima');
+    await page.click('[data-red="gab-vista-texto"]');
+    ok(await page.locator('[data-red="espelho"] textarea').count() === 1, R + 'vista Texto mostra o espelho editável');
+    await page.fill('[data-red="espelho"] textarea', 'A resposta deve reconhecer a estabilização da tutela e afastar a coisa julgada.'); await page.waitForTimeout(200);
+    ok(/prosa/i.test(await page.textContent('[data-red="gab-estado"]')) && await page.locator('[data-red="gab-vista-quesitos"]').count() === 0, R + 'espelho em prosa avisa e fica só na vista Texto');
+    await page.fill('[data-red="espelho"] textarea', ''); await page.waitForTimeout(200);
+    ok(/Falta o espelho/.test(await page.textContent('[data-red="gab-estado"]')), R + 'sem espelho, a faixa diz que falta');
+    // importação: erro fica na faixa, com role=alert
+    const [fc] = await Promise.all([page.waitForEvent('filechooser'), page.click('button:has-text("Importar PDF/TXT")')]);
+    await fc.setFiles({ name: 'espelho.pdf', mimeType: 'application/pdf', buffer: Buffer.from('isto não é um pdf') });
+    await page.waitForSelector('[data-red="espelho"] [role="alert"]', { timeout: 8000 });
+    ok(/Não consegui ler espelho\.pdf/.test(await page.textContent('[data-red="espelho"] [role="alert"]')), R + 'falha de importação aparece na faixa do espelho');
+    const [fc2] = await Promise.all([page.waitForEvent('filechooser'), page.click('button:has-text("Importar PDF/TXT")')]);
+    await fc2.setFiles({ name: 'espelho.txt', mimeType: 'text/plain', buffer: Buffer.from('1. Reconhece a estabilização da tutela (0,50 ponto)\n2. Afasta a coisa julgada material (0,50 ponto)') });
+    await page.waitForFunction(() => /espelho\.txt importado/.test((document.querySelector('[data-red="espelho"]') || {}).textContent || ''), null, { timeout: 8000 });
+    ok(/2 quesitos/.test(await page.textContent('[data-red="gab-estado"]')), R + 'importação diz o arquivo e atualiza a contagem');
+  } finally { await ctx.close(); }
 }

@@ -3688,22 +3688,44 @@ window.ctPdfLib = (function(){
           </sc-if>
           <!-- o espelho fica guardado até a entrega; treino de prova é assim -->
           <sc-if value="{{ redEspelhoOculto }}" hint-placeholder-val="{{ false }}">
-            <div class="ct-card" style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;">
-              <div>
+            <div class="ct-card ct-mesa-linha" style="justify-content:space-between;gap:var(--ct-e4);">
+              <span class="ct-ladrilho" aria-hidden="true"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="lock"><use href="#ct-i-lock"></use></svg></span>
+              <div style="flex:1;min-width:200px;">
                 <div class="ct-eb">{{ redEspeloTitulo }}</div>
-                <div style="font-size:var(--fs-sm);color:var(--text2);margin-top:5px;line-height:1.55;max-width:520px;">Os quesitos e a pontuação aparecem depois que você entregar. Saber que existe um quesito de preclusão já entrega a resposta.</div>
+                <div data-red="gab-estado" style="font-size:var(--fs-base);color:var(--ink);font-weight:600;margin-top:var(--ct-e1);">{{ redGabEstadoTxt }}</div>
+                <div class="ct-nota" style="margin-top:var(--ct-e1);max-width:520px;">O conteúdo aparece depois que você entregar. Saber que existe um quesito de preclusão já entrega a resposta.</div>
               </div>
               <button onclick="{{ revelarEspelho }}" class="ct-btn-2">Ver mesmo assim</button>
             </div>
           </sc-if>
           <sc-if value="{{ redEspelhoAberto }}" hint-placeholder-val="{{ false }}">
             <div class="ct-card">
-              <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;">
-                <div class="ct-eb">Espelho / gabarito</div>
-                <button onclick="{{ importRedGab }}" class="ct-btn-2">Importar PDF/TXT</button>
+              <div class="ct-mesa-linha" style="justify-content:space-between;gap:var(--ct-e3);">
+                <div>
+                  <div class="ct-eb">Espelho / padrão de respostas</div>
+                  <div data-red="gab-estado" style="font-size:var(--fs-base);color:var(--ink);font-weight:600;margin-top:var(--ct-e1);">{{ redGabEstadoTxt }}</div>
+                </div>
+                <div class="ct-mesa-linha">
+                  <sc-if value="{{ redGabTemQuesitos }}" hint-placeholder-val="{{ false }}">
+                    <div class="ct-seg" role="group" aria-label="Como ver o espelho">
+                      <button data-red="gab-vista-quesitos" data-v="quesitos" onclick="{{ setRedGabVista }}" aria-pressed="{{ redGabVistaQuesitos }}">Quesitos</button>
+                      <button data-red="gab-vista-texto" data-v="texto" onclick="{{ setRedGabVista }}" aria-pressed="{{ redGabVistaTexto }}">Texto</button>
+                    </div>
+                  </sc-if>
+                  <button onclick="{{ importRedGab }}" class="ct-btn-2" disabled="{{ redGabBusy }}">Importar PDF/TXT</button>
+                </div>
               </div>
-              <textarea value="{{ redGabarito }}" oninput="{{ onRedGab }}" rows="7" placeholder="Cole aqui o espelho oficial ou uma resposta-modelo." style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface2);border-radius:var(--radius);padding:16px;color:var(--ink);font-family:var(--body);font-size:var(--fs-base);line-height:1.7;resize:vertical;outline:none;margin-top:12px;"></textarea>
-              <div class="ct-eb" style="margin-top:9px;">{{ redGabWords }} palavras no espelho</div>
+              <sc-if value="{{ redGabMsgAlerta }}" hint-placeholder-val="{{ false }}"><p role="alert" class="ct-nota ct-gab-erro" style="margin-top:var(--ct-e2);">{{ redGabMsg }}</p></sc-if>
+              <sc-if value="{{ redGabMsgNormal }}" hint-placeholder-val="{{ false }}"><p role="status" class="ct-nota" style="margin-top:var(--ct-e2);">{{ redGabMsg }}</p></sc-if>
+              <sc-if value="{{ redGabListaShow }}" hint-placeholder-val="{{ false }}">
+                <ol class="ct-gab-lista">
+                  <sc-for list="{{ redGabQuesitos }}" as="q"><li data-red="gab-quesito"><span class="ct-gab-n">{{ q.n }}</span><span class="ct-gab-t">{{ q.texto }}</span><span class="ct-dado ct-gab-p">{{ q.pts }}</span></li></sc-for>
+                </ol>
+              </sc-if>
+              <sc-if value="{{ redGabVistaTexto }}" hint-placeholder-val="{{ true }}">
+                <textarea value="{{ redGabarito }}" oninput="{{ onRedGab }}" rows="7" placeholder="Cole aqui o espelho oficial ou uma resposta-modelo." style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface2);border-radius:var(--radius);padding:16px;color:var(--ink);font-family:var(--body);font-size:var(--fs-base);line-height:1.7;resize:vertical;outline:none;margin-top:12px;"></textarea>
+                <div class="ct-eb" style="margin-top:9px;">{{ redGabWords }} palavras no espelho</div>
+              </sc-if>
             </div>
           </sc-if>
             </div>
@@ -7387,7 +7409,7 @@ class Component extends DCLogic {
       redRascunhoOculto:false,
       redQuestaoAberta:true, redMarcasAberto:false, redEditandoEnun:false,   // mesa de prova: só de tela
       redModoResposta:(String(this._load('redText','')||'').trim()?'digitar':'mao'), redCronoOn:false, redCronoTick:0,
-      redLinhasN:null, redFoco:false,    // U4: a faixa do rascunho da redação, depois de dispensada
+      redLinhasN:null, redFoco:false, redGabVista:'', redGabErro:'', redGabOk:'',    // U4: a faixa do rascunho da redação, depois de dispensada
       // 'video' e 'mapa' (este em 25/09/2026) saíram dos formatos; quem tivesse essa
       // preferência salva ficaria numa aba sem botão para sair dela. Cai para texto; o
       // mfGen antigo continua guardado, só não é mais lido.
@@ -12365,7 +12387,7 @@ class Component extends DCLogic {
       redEspelhoOculto: !!_gab,       // esconde o que houver de gabarito — oficial ou sugerido
       // Prova cadastrada: a pessoa só RESPONDE — enunciado e espelho são os oficiais e não se editam.
       redModoProva: true,
-      redText:'', redTextTs:0, redResult:null, bancoOpen:false, redRascunhoOculto:false, bancoAbrindo:'', redEditandoEnun:false, redQuestaoAberta:true, redModoResposta:'mao'
+      redText:'', redTextTs:0, redResult:null, bancoOpen:false, redRascunhoOculto:false, bancoAbrindo:'', redEditandoEnun:false, redQuestaoAberta:true, redModoResposta:'mao', redGabVista:'', redGabErro:'', redGabOk:''
     });
     try{ localStorage.setItem(this._chave('redEnunciado'),JSON.stringify(cab+'\n\n'+(q.enunciado||'')));
       localStorage.setItem(this._chave('redGabarito'),JSON.stringify(_gab));
@@ -12449,6 +12471,16 @@ class Component extends DCLogic {
   _redFocoPor(on){ this.setState({redFoco:!!on});
     try{ if(on) document.documentElement.setAttribute('data-red-foco',''); else document.documentElement.removeAttribute('data-red-foco'); }catch(_){}
     if(on && !this._redFocoEsc){ this._redFocoEsc=(e)=>{ if(e.key==='Escape' && this.state.redFoco) this._redFocoPor(false); }; document.addEventListener('keydown', this._redFocoEsc); } }
+  _redNum(x){ return (Math.round((+x||0)*100)/100).toFixed(2).replace('.',','); }
+  // O que o espelho em uso permite: correção por quesito, por cobertura, ou nada.
+  _redEspelhoResumo(){ const g=String(this.state.redGabarito||'');
+    if(!g.trim()) return {qs:[], total:0, estado:'vazio', txt:'Falta o espelho'};
+    const qs=this._redQuesitos(g);
+    if(!qs.length) return {qs, total:0, estado:'prosa', txt:'Espelho em prosa — a correção será por cobertura'};
+    const total=Math.round(qs.reduce((a,q)=>a+(q.max!=null?q.max:1),0)*100)/100;
+    return {qs, total, estado:'quesitos',
+      txt:qs.length+(qs.length===1?' quesito':' quesitos')+' · '+this._redNum(total)+(total===1?' ponto':' pontos')+' · pronto para corrigir'}; }
+  setRedGabVista = (e)=> this.setState({redGabVista:e.currentTarget.dataset.v==='texto'?'texto':'quesitos'});
   toggleRedCrono = ()=>{ if(this.state.redBusy) return; if(this._redCronoDesde) this._redCronoPausar(); else this._redCronoIniciar(); };
   setRedModo = (e)=>{ const m=e.currentTarget.dataset.m==='digitar'?'digitar':'mao';
     if(m===this.state.redModoResposta || this.state.redBusy) return;
@@ -14334,7 +14366,7 @@ class Component extends DCLogic {
     if(disc && !this._redDiscOpcoes().some(d=>d.v===disc)) return;
     this.setState({redDisciplina:{...(this.state.redDisciplina||{}),disc,origem:'manual'}});
   };
-  redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.')) return; this._redBoot=''; this._redCronoZerar(); this.setState({redResult:null, redText:'', redTextTs:0, redRascunhoOculto:false, redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false, redModoProva:false, redEditandoEnun:false, redQuestaoAberta:true, redModoResposta:'mao', redProvaId:'', redDisciplina:{}, espSugAtual:null}); try{ localStorage.setItem(this._chave('redText'),JSON.stringify('')); localStorage.setItem(this._chave('redGabarito'),JSON.stringify('')); localStorage.setItem(this._chave('redEnunciado'),JSON.stringify('')); }catch(_){} };
+  redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.')) return; this._redBoot=''; this._redCronoZerar(); this.setState({redResult:null, redText:'', redTextTs:0, redRascunhoOculto:false, redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false, redModoProva:false, redEditandoEnun:false, redQuestaoAberta:true, redModoResposta:'mao', redGabVista:'', redGabErro:'', redGabOk:'', redProvaId:'', redDisciplina:{}, espSugAtual:null}); try{ localStorage.setItem(this._chave('redText'),JSON.stringify('')); localStorage.setItem(this._chave('redGabarito'),JSON.stringify('')); localStorage.setItem(this._chave('redEnunciado'),JSON.stringify('')); }catch(_){} };
   redOpenHist = (e)=>{ const id=e.currentTarget.dataset.id; const h=(this.state.redHistory||[]).find(x=>x.id===id);
     if(!h||!h.res){ this._toast('Correção completa não disponível para este item'); return; }
     this.setState({redResult:h.res, redDisciplina:{disc:h.disc||'',origem:h.disciplinaOrigem||''}, redText:h.texto||this.state.redText, redGabarito:h.gabarito||this.state.redGabarito, redSubText:h.texto||'', redSubGab:h.gabarito||''}); };
@@ -14375,14 +14407,16 @@ class Component extends DCLogic {
   };
   onRedGab = (e)=>{ const v=e.currentTarget.value;
     if(this.state.espSugAtual && v!==this.state.redGabarito) this._deixaDeSerSugerido();
-    this.setState({redGabarito:v}); };
+    this.setState({redGabarito:v, redGabErro:'', redGabOk:''}); };
   importRedGab = ()=>{ try{ const inp=document.createElement('input'); inp.type='file'; inp.accept='application/pdf,.pdf,text/plain,.txt';
-    inp.onchange=async ()=>{ const f=inp.files&&inp.files[0]; if(!f) return; this.setState({redGabBusy:true, redGabFile:f.name});
+    inp.onchange=async ()=>{ const f=inp.files&&inp.files[0]; if(!f) return; this.setState({redGabBusy:true, redGabFile:f.name, redGabErro:'', redGabOk:''});
       try{ let txt=''; if(f.type==='application/pdf'||/\.pdf$/i.test(f.name)){ txt=await this._extractEditalPdf(f); }
         else { txt=await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(String(r.result||'')); r.onerror=rej; r.readAsText(f); }); }
+        if(!String(txt||'').trim()) throw new Error('vazio');
         this._deixaDeSerSugerido();   // espelho vindo de fora não é mais o sugerido
-        this.setState({redGabarito:(txt||'').trim(), redGabBusy:false}); this._toast('Gabarito importado ✦');
-      }catch(err){ this.setState({redGabBusy:false}); this._toast('Não consegui ler o arquivo'); } };
+        // o estado da importação fica na própria faixa do espelho (antes era toast, que some)
+        this.setState({redGabarito:String(txt).trim(), redGabBusy:false, redGabOk:f.name+' importado', redGabVista:''});
+      }catch(err){ this.setState({redGabBusy:false, redGabErro:'Não consegui ler '+f.name}); } };
     inp.click(); }catch(e){} };
   submitRed = async ()=>{
     const text=(this.state.redText||'').trim(); const words=(text.match(/\S+/g)||[]).length;
@@ -19844,6 +19878,15 @@ class Component extends DCLogic {
           redFolhaStyle:'--ct-folha-min:'+tot+';',   // a pauta vai até onde a numeração vai
           redPautaShow:med!=null, redPautaNums:Array.from({length:tot},(_,i)=>String(i+1)),
           redSalvoTxt:ts?('Salvo às '+new Date(ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})):'Ainda não salvo' }; })(),
+      ...(()=>{ const r=this._redEspelhoResumo(); const tem=r.estado==='quesitos';
+        const vista=tem?(this.state.redGabVista||'quesitos'):'texto';
+        const msg=this.state.redGabBusy?('Lendo '+(this.state.redGabFile||'arquivo')+'…'):(this.state.redGabErro||this.state.redGabOk||'');
+        const alerta=!!this.state.redGabErro && !this.state.redGabBusy;
+        return { redGabEstadoTxt:r.txt, redGabTemQuesitos:tem,
+          redGabVistaQuesitos:vista==='quesitos', redGabVistaTexto:vista==='texto', redGabListaShow:vista==='quesitos', setRedGabVista:this.setRedGabVista,
+          redGabQuesitos:r.qs.map((q,i)=>({ i:String(i), n:String(q.n), texto:q.texto,
+            pts:(q.escala&&q.escala.length?('escala '+q.escala.map(x=>this._redNum(x)).join(' / ')):('até '+this._redNum(q.max!=null?q.max:1))) })),
+          redGabMsg:msg, redGabMsgAlerta:alerta, redGabMsgNormal:!!msg && !alerta }; })(),
       redFoco:!!this.state.redFoco, redFocoOff:!this.state.redFoco, toggleRedFoco:this.toggleRedFoco,
       redModoMao:this.state.redModoResposta!=='digitar', redModoDigitar:this.state.redModoResposta==='digitar', setRedModo:this.setRedModo,
       redCronoTxt:this._redFmtTempo(this._redTempoAgora()), redCronoOn:!!this.state.redCronoOn, toggleRedCrono:this.toggleRedCrono,
@@ -19861,6 +19904,9 @@ class Component extends DCLogic {
       // ---- dados da Redação em 3 telas
       redSoEspLabel:this.state.bancoSoEsp?'Só com espelho ✓':'Só com espelho',
       redEspelhoAberto:!!(this.state.redEnunciado||'').trim() && !this.state.redEspelhoOculto && !this.state.redResult,
+      // Faltava este binding: o template pergunta por redEspelhoOculto e o render não o devolvia, então
+      // a faixa "espelho guardado" (e o "Ver mesmo assim") nunca pintava em prova do banco.
+      redEspelhoOculto:!!(this.state.redEnunciado||'').trim() && !!this.state.redEspelhoOculto && !this.state.redResult,
       bancoVazio:_bancoTotal===0 && !!this.state.discCarregado,
       // título curto da prova em foco (1ª linha do enunciado carregado)
       // o herói acima já mostra a 1ª linha (órgão · cargo · ano — banca): repetir no corpo
