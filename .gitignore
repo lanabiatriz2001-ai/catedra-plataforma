@@ -32,6 +32,8 @@ ios/Catedra.xcodeproj/xcuserdata/
 ios/Catedra.xcodeproj/project.xcworkspace/xcuserdata/
 # perfil de provisionamento: é credencial de assinatura, não vai para repo PÚBLICO
 ios/embedded.mobileprovision
+ios/embedded-widget.mobileprovision
+ios/build/perfil-widget.plist
 ios/build/perfil.plist
 Catedra.dc.html.bak*
 
@@ -83,3 +85,4 @@ AGENTS.md
 # marca d'água pessoal de PDF e caminhos desta máquina. Ficam no disco; só os relatórios entram.
 docs/auditoria-juris/*.json
 docs/auditoria-juris/inventario.mjs
+tests/_capturas/

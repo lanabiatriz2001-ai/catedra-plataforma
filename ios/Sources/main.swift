@@ -28,6 +28,7 @@ import UIKit
 import SwiftUI
 import WebKit
 import UniformTypeIdentifiers
+import WidgetKit
 import UserNotifications
 
 // Endpoint da IA: Info.plist (CatedraAIEndpoint), com override por UserDefaults para
@@ -47,6 +48,10 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
     private var jurisVC: UIViewController?
     // @Observable, sem .shared: a instância é guardada aqui, como o host do Mac faz.
     private var jurisStore: LibraryStore?
+    private var pedindoPasseWidget = false
+    /// Sobe a cada saída de conta: um pedido de passe que estava em voo quando a conta saiu não regrava passe.json.
+    private var geracaoWidget = 0
+    private var widgetExemploAtivo = false   // simulador com -widgetExemplo: o exemplo não é sobrescrito
     private var jurisUpdater: UpdateService?
     // ===== Paridade com o host do Mac (mac/Sources/main.swift) =====
     // O bundle web depende destas pontes; sem elas botões da web "não faziam nada" no iPad.
@@ -220,6 +225,16 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         carregarApp()
         instalarProvedorIA()   // IA dos módulos nativos passa pelo mesmo /api/complete do app
         trocarAba()   // aplica a aba inicial (normalmente Cátedra)
+        #if targetEnvironment(simulator)
+        // Só no simulador: -widgetExemplo grava o resumo de exemplo no grupo, para ver os widgets cheios sem conta.
+        if ProcessInfo.processInfo.arguments.contains("-widgetExemplo"),
+           let d = try? JSONEncoder().encode(WidgetResumo.exemplo(Date())) {
+            widgetExemploAtivo = true
+            WidgetGrupo.gravar(d, WidgetGrupo.resumo)
+            WidgetCenter.shared.reloadAllTimelines()
+        }
+        #endif
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4) { [weak self] in self?.gravarResumoWidget() }
     }
 
     /// Carrega (ou recarrega) o bundle web — também é a saída da tela branca quando o iPadOS
@@ -340,6 +355,84 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         guard tentativa < 60 else { return }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             self?.abrirVerbeteQuandoCarregado(id, tentativa: tentativa + 1)
+        }
+    }
+
+    // ===== Widgets (WidgetKit): resumo e passe no grupo de apps; links catedra:// =====
+    // Espelho do host do Mac (mac/Sources/main.swift); a duplicação é aceita (Ruling R3 do plano dos widgets).
+    /// Lê o resumo do app web e grava no grupo de apps; garante o passe da nuvem; pede ao sistema para redesenhar os
+    /// widgets. Com o portão de login à mostra ("nenhuma"), não mexe no que o widget tem.
+    func gravarResumoWidget(_ feito: (() -> Void)? = nil) {
+        guard !widgetExemploAtivo, let wv = webView else { feito?(); return }
+        wv.evaluateJavaScript("(window.catedraWidgetResumo && JSON.stringify(window.catedraWidgetResumo())) || ''") { [weak self] result, _ in
+            defer { feito?() }
+            guard let self, let s = result as? String, !s.isEmpty, let dados = s.data(using: .utf8),
+                  let r = WidgetResumo.ler(dados), r.sessao != "nenhuma" else { return }
+            if r.sessao == "conta" { self.garantirPasseWidget(conta: r.conta) }
+            else { WidgetGrupo.apagar(WidgetGrupo.passe); WidgetGrupo.apagar(WidgetGrupo.resumoNuvem) }
+            // resumo igual ao já gravado: nada a regravar nem a redesenhar (o orçamento de recargas do iOS é curto)
+            if WidgetGrupo.ler(WidgetGrupo.resumo) == dados { return }
+            WidgetGrupo.gravar(dados, WidgetGrupo.resumo)
+            WidgetCenter.shared.reloadAllTimelines()
+        }
+    }
+    /// Indo para o fundo: o iOS dá alguns segundos; a gravação pede esse tempo e devolve ao terminar.
+    func gravarResumoWidgetNoFundo() {
+        var tarefa = UIBackgroundTaskIdentifier.invalid
+        let fim = { if tarefa != .invalid { UIApplication.shared.endBackgroundTask(tarefa); tarefa = .invalid } }
+        tarefa = UIApplication.shared.beginBackgroundTask(withName: "widget-resumo") { fim() }
+        gravarResumoWidget { fim() }
+    }
+    /// Passe de leitura da nuvem para este aparelho: pede à web quando falta, quando é de outra conta ou quando o
+    /// widget marcou que a nuvem o recusou.
+    func garantirPasseWidget(conta: String) {
+        if WidgetGrupo.existe(WidgetGrupo.passeInvalido) {
+            WidgetGrupo.apagar(WidgetGrupo.passe); WidgetGrupo.apagar(WidgetGrupo.passeInvalido)
+        }
+        if let d = WidgetGrupo.ler(WidgetGrupo.passe), let p = try? JSONDecoder().decode(WidgetPasse.self, from: d), p.conta == conta { return }
+        guard !pedindoPasseWidget, let wv = webView else { return }
+        pedindoPasseWidget = true
+        let geracao = geracaoWidget
+        wv.callAsyncJavaScript("return window.catedraWidgetPasse ? await window.catedraWidgetPasse(aparelho) : null",
+                               arguments: ["aparelho": UIDevice.current.name], in: nil, in: .page) { [weak self] res in
+            guard let self else { return }
+            self.pedindoPasseWidget = false
+            guard self.geracaoWidget == geracao else { return }   // a conta saiu com o pedido em voo
+            guard case .success(let v) = res, let s = v as? String, let d = s.data(using: .utf8),
+                  let p = try? JSONDecoder().decode(WidgetPasse.self, from: d), !p.passe.isEmpty, p.conta == conta else { return }
+            WidgetGrupo.gravar(d, WidgetGrupo.passe)
+            WidgetGrupo.apagar(WidgetGrupo.resumoNuvem)   // o cache da nuvem era do passe/conta anterior
+            WidgetCenter.shared.reloadAllTimelines()
+        }
+    }
+    /// A conta saiu (auth.js manda {saiu:true} antes do reload): o widget esquece resumo e passe.
+    func apagarWidgetAoSair() {
+        geracaoWidget += 1
+        for n in [WidgetGrupo.resumo, WidgetGrupo.resumoNuvem, WidgetGrupo.passe, WidgetGrupo.passeInvalido] { WidgetGrupo.apagar(n) }
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+    /// catedra:// (toque no widget), a quente pelo SceneDelegate e a frio pelas urlContexts da conexão.
+    /// diploma/artigo/id vêm do link (dado de fora): vão só para o Swift, nunca para texto de JavaScript.
+    func abrirLinkWidget(_ url: URL) {
+        guard let d = WidgetLinks.destino(url) else { return }
+        switch d {
+        case .tela(let v): selecionarAba(0); irParaTelaWeb(v)
+        case .entrar: selecionarAba(0)
+        case .legis(let diploma, let artigo): JurisPorArtigo.abrirNoLegis(ArtigoCitado(diploma: diploma, artigo: artigo))
+        case .juris(let id):
+            guard jurisDisponivel else { selecionarAba(0); return }
+            JurisPorArtigo.abrirNoJuris(id)   // o observador do viewDidLoad troca a aba e espera o acervo carregar
+        }
+    }
+    /// A página pode estar carregando (abertura a frio): tenta até ela expor __catedraGoView (trava de área incluída).
+    func irParaTelaWeb(_ v: String, tentativa: Int = 0) {
+        // o id da tela vem do link (dado de fora): vai como ARGUMENTO, nunca colado no texto do JavaScript
+        guard let wv = webView else { return }
+        wv.callAsyncJavaScript("if (typeof window.__catedraGoView !== 'function') return false; window.__catedraGoView(v); return true",
+                               arguments: ["v": v], in: nil, in: .page) { [weak self] res in
+            if case .success(let r) = res, (r as? Bool) == true { return }
+            if tentativa >= 40 { return }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { self?.irParaTelaWeb(v, tentativa: tentativa + 1) }
         }
     }
 
@@ -853,8 +946,14 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
             DispatchQueue.main.async { self.exportarPDF() }
             replyHandler(nil, nil)
         case "catedraWidget":
-            // O payload mudou (baixa estimulação/tema): a casca relê o tema já.
-            DispatchQueue.main.async { self.espelharTema { [weak self] mudou in if mudou { self?.temaPendenteNativo = true } } }
+            // {saiu:true} = a conta saiu (auth.js, antes do reload): o widget esquece passe e resumo.
+            // Outro corpo = o payload/resumo mudou: a casca relê o tema e o widget é regravado.
+            let saiu = ((message.body as? [String: Any])?["saiu"] as? Bool) ?? false
+            DispatchQueue.main.async {
+                if saiu { self.apagarWidgetAoSair(); return }
+                self.espelharTema { [weak self] mudou in if mudou { self?.temaPendenteNativo = true } }
+                self.gravarResumoWidget()
+            }
             replyHandler(nil, nil)
         case "catedraBackup":    handleBackup(message, replyHandler)
         default:                 replyHandler(nil, nil)
@@ -1123,6 +1222,7 @@ extension RootViewController {
                 guard let self else { return }
                 self.entregarEstudosPendentesSePossivel()
                 self.pushNativeReviews()
+                self.gravarResumoWidget()
             }
         }
         nc.addObserver(forName: UIApplication.willResignActiveNotification, object: nil, queue: .main) { _ in
@@ -1132,7 +1232,7 @@ extension RootViewController {
             }
         }
         nc.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main) { [weak self] _ in
-            MainActor.assumeIsolated { self?.flushLegisStudy(); self?.flushJurisStudy() }
+            MainActor.assumeIsolated { self?.flushLegisStudy(); self?.flushJurisStudy(); self?.gravarResumoWidgetNoFundo() }
         }
         nc.addObserver(forName: UIApplication.willTerminateNotification, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.flushLegisStudy(); self?.flushJurisStudy() }
@@ -1792,6 +1892,14 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         w.rootViewController = RootViewController()
         w.makeKeyAndVisible()
         window = w
+        // aberto a frio por um link catedra:// (toque no widget): o viewDidLoad já rodou no makeKeyAndVisible
+        if let url = options.urlContexts.first?.url {
+            DispatchQueue.main.async { (w.rootViewController as? RootViewController)?.abrirLinkWidget(url) }
+        }
+    }
+    func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+        guard let url = URLContexts.first?.url else { return }
+        (window?.rootViewController as? RootViewController)?.abrirLinkWidget(url)
     }
 }
 

@@ -33,13 +33,12 @@ private struct JurisIndices {
     var indice: [(letra: String, itens: [IndiceItem])] = []
 }
 
-/// Tudo o que o carregamento produz fora da main: verbetes, erro, índices, notas de estudo
-/// e o índice de termos do Comparador e do quadro "Não confunda com" (IndiceTermos).
+/// Tudo o que o carregamento produz fora da main: verbetes, erro, índices e o índice de
+/// termos do Comparador e dos Relacionados (IndiceTermos).
 private struct JurisCarga {
     var items: [JurisEntry]
     var error: String?
     var indices: JurisIndices
-    var notas: [String: NotaEstudo]
     var termos = IndiceTermos()
 }
 
@@ -180,9 +179,8 @@ final class LibraryStore {
 
     func load() async {
         let onlineURL = onlineCorpusURL
-        // O cache dos roteiros de estudo é lido junto, fora da main, enquanto o corpus
-        // decodifica: a primeira tela da aba (o Julgado do dia) já o consulta.
-        RoteiroCache.aquecer()
+        // O roteiro de estudo saiu do app (03/10/2026): o que ele tinha guardado em disco sai junto.
+        Self.apagarRoteirosGuardados()
         // TUDO o que pesa roda fora da main: ler e decodificar ~35 MB de JSON (corpus +
         // Central de Contas), montar os índices (o blob de busca dobra o texto inteiro
         // sem acento — era isso, feito na main depois do decode, que congelava a aba por
@@ -191,7 +189,7 @@ final class LibraryStore {
         let carga: JurisCarga = await Task.detached(priority: .userInitiated) {
             guard let url = Self.corpusURL() else {
                 return JurisCarga(items: [], error: "corpus.json não encontrado no bundle.",
-                                  indices: JurisIndices(), notas: [:])
+                                  indices: JurisIndices())
             }
             do {
                 let data = try Data(contentsOf: url)
@@ -224,34 +222,31 @@ final class LibraryStore {
                 // termina o mais lento, e não na soma dos três.
                 let todos = items
                 async let indices = Self.construirIndices(todos)
-                async let notas = Self.carregarNotas()
                 async let termos = IndiceTermos.montar(todos)
                 return await JurisCarga(items: todos, error: nil,
-                                        indices: indices, notas: notas, termos: termos)
+                                        indices: indices, termos: termos)
             } catch {
                 return JurisCarga(items: [], error: "Falha ao ler corpus.json: \(error.localizedDescription)",
-                                  indices: JurisIndices(), notas: [:])
+                                  indices: JurisIndices())
             }
         }.value
 
         self.entries = carga.items
         self.loadError = carga.error
         aplicar(carga.indices)
-        self.notasApp = carga.notas
         self.termos = carga.termos
         loadNovidades()
         self.isLoading = false
     }
 
-    /// Notas de estudo ORIGINAIS (não oficiais) — esquema a partir do texto público.
-    private(set) var notasApp: [String: NotaEstudo] = [:]
-    func notaApp(for id: String) -> NotaEstudo? { notasApp[id] }
-    /// Lê notas.json (2,5 MB) — chamado fora da main, dentro do `load`.
-    nonisolated private static func carregarNotas() -> [String: NotaEstudo] {
-        guard let url = Self.resourceURL("notas", ext: "json"),
-              let data = try? Data(contentsOf: url),
-              let dict = try? JSONDecoder().decode([String: NotaEstudo].self, from: data) else { return [:] }
-        return dict
+    /// Os dois arquivos em que o roteiro de estudo ficava guardado (o escrito por IA e o
+    /// montado no aparelho). Chamado fora da main, no `load`; arquivo ausente não é erro.
+    nonisolated private static func apagarRoteirosGuardados() {
+        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("VadeMecumJuris", isDirectory: true)
+        for nome in ["roteiros-estudo.json", "roteiros-estudo-local.json"] {
+            try? FileManager.default.removeItem(at: base.appendingPathComponent(nome))
+        }
     }
 
     private func loadNovidades() {
@@ -982,8 +977,8 @@ final class LibraryStore {
     // MARK: - Julgados relacionados
 
     // O índice de termos (palavras-chave, IDF, temas) mora em IndiceTermos, no fim deste
-    // arquivo: é VALOR, montado fora da main no `load` e lido por retrato (AcervoQuadro) pelo
-    // quadro "Não confunda com", que também roda fora da main. O store guarda o índice
+    // arquivo: é VALOR, montado fora da main no `load` e lido por retrato (AcervoQuadro) pelos
+    // Relacionados, que também rodam fora da main. O store guarda o índice
     // publicado e expõe só o que as telas da main usam — o Comparador STF × STJ e a Linha do
     // tempo.
     @ObservationIgnored private var termos = IndiceTermos()
@@ -1002,25 +997,14 @@ final class LibraryStore {
         termos.total == entries.count ? termos.termosChave(e) : IndiceTermos.termosChave(e)
     }
 
-    /// Verbetes de um tribunal que tratam do mesmo assunto do `entry` (Comparador STF × STJ).
-    /// Pontua por termos raros em comum no ENUNCIADO (IDF), com filtro de fonte/tribunal.
-    func comparaveis(_ entry: JurisEntry, tribunal: String, limite: Int = 8) -> [JurisEntry] {
-        prepararKW()
-        return termos.comparaveis(entry, tribunal: tribunal, limite: limite, em: entries)
-    }
-
-    /// O retrato do acervo que o quadro "Não confunda com" lê numa tarefa destacada, com o
-    /// índice de termos já montado. nil enquanto o acervo carrega: montar o quadro sobre um
-    /// acervo vazio (o `reload` zera `entries` por um instante) gravaria no cache um roteiro
-    /// sem vizinhos.
+    /// O retrato do acervo que os Relacionados leem numa tarefa destacada, com
+    /// o índice de termos já montado. nil enquanto o acervo carrega (o `reload` zera `entries`
+    /// por um instante).
     func acervoParaQuadro() -> AcervoQuadro? {
         guard !isLoading, !entries.isEmpty else { return nil }
         prepararKW()
-        return AcervoQuadro(entries: entries, byId: byId, notas: notasApp, termos: termos)
+        return AcervoQuadro(entries: entries, byId: byId, termos: termos)
     }
-
-    /// O acervo de agora, no formato do carimbo que o roteiro grava (RoteiroEstudo.acervo).
-    var carimboAcervo: String { AcervoQuadro.carimbo(verbetes: entries.count, notas: notasApp.count) }
 
     /// Ordena verbetes por data (DD/MM/AAAA); sem data vão para o fim.
     static func chaveData(_ e: JurisEntry) -> Int {
@@ -1028,19 +1012,6 @@ final class LibraryStore {
         let p = d.split(separator: "/")
         guard p.count == 3, let dd = Int(p[0]), let mm = Int(p[1]), let yy = Int(p[2]) else { return Int.max }
         return yy * 10000 + mm * 100 + dd
-    }
-
-    /// Linha do tempo do assunto: verbetes relacionados + o próprio, do mais antigo ao mais recente.
-    func linhaDoTempo(_ entry: JurisEntry, limite: Int = 24) -> [JurisEntry] {
-        prepararKW()
-        let base = termosChave(entry)
-        guard !base.isEmpty else { return [entry] }
-        var pool = entries.filter { c in
-            c.id == entry.id || (base.intersection(termosChave(c)).count >= 2 &&
-                (c.ramoDireito == entry.ramoDireito || c.tema == entry.tema))
-        }
-        pool.sort { Self.chaveData($0) < Self.chaveData($1) }
-        return Array(pool.prefix(limite))
     }
 
     /// Abre um verbete em LEITURA TELA CHEIA (a partir da home).
@@ -1285,8 +1256,8 @@ final class LibraryStore {
 // MARK: - Índice de termos e retrato do acervo (fora da main)
 
 /// O índice de TERMOS do acervo: as palavras-chave de cada verbete, a frequência de
-/// documentos de cada termo (o IDF do Comparador STF × STJ, da Linha do tempo e do quadro
-/// "Não confunda com") e os temas específicos. Montá-lo passa pelo texto inteiro dos 24,6 mil
+/// documentos de cada termo (o IDF do Comparador STF × STJ e da Linha do tempo) e os
+/// temas específicos. Montá-lo passa pelo texto inteiro dos 24,6 mil
 /// verbetes — medido: ~0,93 s numa passada só num Mac Apple Silicon, mais sob carga e no
 /// iPad —, e até aqui ele nascia NA MAIN, na primeira abertura de verbete de cada
 /// lançamento, com a tela parada. Agora nasce no `load`, fora da main, em fatias paralelas
@@ -1408,10 +1379,6 @@ struct IndiceTermos: Sendable {
         ruidoDeQuadro.contains(t) || t.allSatisfy { $0.isNumber }
     }
 
-    /// Fontes que NÃO entram no comparador STF × STJ (seleções de TJ, TSE, TJRO).
-    static let foraComparador: Set<String> =
-        ["sel_tjgo","sel_tjpr","sel_tjrj","sumula_tse","informativo_tse","tjro","tjro_prec"]
-
     /// As palavras de um campo: dobradas (sem acento, minúsculas), com 4 letras ou mais,
     /// fora da `stop`.
     static func termos(_ s: String?) -> [String] {
@@ -1469,25 +1436,6 @@ struct IndiceTermos: Sendable {
     /// Termo que aparece em mais de 5% do acervo é vocabulário comum: não distingue nada e
     /// não pode virar "o que se discute" ("contra" 1.369, "decisão" 1.595).
     var corteTermoPopular: Int { max(1, total / 20) }
-
-    /// Verbetes de um tribunal que tratam do mesmo assunto do `entry`: termos raros em comum
-    /// no ENUNCIADO (IDF), com filtro de fonte/tribunal. `entries` é o acervo com que o
-    /// índice foi montado.
-    func comparaveis(_ entry: JurisEntry, tribunal: String, limite: Int, em entries: [JurisEntry]) -> [JurisEntry] {
-        let base = termosChave(entry)
-        guard base.count >= 2 else { return [] }
-        let n = Double(max(entries.count, 1))
-        let pont = entries.compactMap { c -> (JurisEntry, Double)? in
-            guard c.id != entry.id, c.tribunal == tribunal,
-                  !Self.foraComparador.contains(c.fonte) else { return nil }
-            let comum = base.intersection(kw[c.id] ?? [])
-            guard comum.count >= 2 else { return nil }
-            var s = comum.reduce(0.0) { $0 + log(n / Double(1 + (docFreq[$1] ?? 0))) }
-            if c.ramoDireito == entry.ramoDireito { s += 1 }
-            return (c, s)
-        }
-        return pont.sorted { $0.1 > $1.1 }.prefix(limite).map(\.0)
-    }
 
     /// Semelhança de VOCABULÁRIO entre dois verbetes, de 0 a 1: Jaccard dos termos-chave
     /// PONDERADO pelo IDF, sem o ruído de calendário e de notícia. É o sinal mais fraco do
@@ -1552,22 +1500,14 @@ struct IndiceTermos: Sendable {
     }
 }
 
-/// O que o quadro "Não confunda com" lê do acervo, por VALOR: a montagem roda numa tarefa
-/// destacada (RoteiroEstudoView.gerar) e não pode tocar no store, que é da main. Tirar o
-/// retrato na main não copia nada — array e dicionário do Swift são cópia-na-escrita.
+/// O que os Relacionados leem do acervo, por VALOR: a varredura roda numa
+/// tarefa destacada e não pode tocar no store, que é da main. Tirar o retrato na main não
+/// copia nada — array e dicionário do Swift são cópia-na-escrita.
 struct AcervoQuadro: Sendable {
     let entries: [JurisEntry]
     let byId: [String: JurisEntry]
-    let notas: [String: NotaEstudo]
     let termos: IndiceTermos
 
-    /// O carimbo que o roteiro grava (RoteiroEstudo.acervo): quantos verbetes e quantas notas
-    /// de estudo havia. O quadro depende dos dois — vizinhos e IDF do acervo inteiro, e a
-    /// curadoria das notas —, e os dois só mudam juntos com atualização.
-    static func carimbo(verbetes: Int, notas: Int) -> String { "\(verbetes)/\(notas)" }
-    var carimbo: String { Self.carimbo(verbetes: entries.count, notas: notas.count) }
-
-    func notaApp(for id: String) -> NotaEstudo? { notas[id] }
     func termosChave(_ e: JurisEntry) -> Set<String> { termos.termosChave(e) }
     func similaridade(_ a: JurisEntry, _ b: JurisEntry) -> Double { termos.similaridade(a, b) }
     func mesmoTemaEspecifico(_ a: JurisEntry, _ b: JurisEntry) -> Bool { termos.mesmoTemaEspecifico(a, b) }
@@ -1575,9 +1515,6 @@ struct AcervoQuadro: Sendable {
         termos.termosExclusivos(outro, fora: base, limite: limite)
     }
     func termosComuns(_ es: [JurisEntry], limite: Int = 5) -> [String] { termos.termosComuns(es, limite: limite) }
-    func comparaveis(_ entry: JurisEntry, tribunal: String, limite: Int = 8) -> [JurisEntry] {
-        termos.comparaveis(entry, tribunal: tribunal, limite: limite, em: entries)
-    }
 
     /// Os verbetes que dividem com `e` um tema ESPECÍFICO (no máximo
     /// `tetoTemaCompartilhado` verbetes no acervo), na ordem do acervo, sem o próprio.

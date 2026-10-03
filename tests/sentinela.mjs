@@ -492,11 +492,12 @@ export async function testarSentinela(ok) {
       pendencia: 'edição detectada na fonte oficial', urlOficial: 'https://www.stf.jus.br/arquivo/informativo/documento/informativo1225.htm',
       detectadoEm: '2026-09-20T12:00:00.000Z', lido: false };
     const so1225 = async (url) => (/informativo1225\.htm$/.test(url) ? pagina(PAG['stf-1225']) : { status: 404, tam: 0, texto: '' });
-    const bx = await rodar({ fontes: ['stf'], colecoes: ['informativo'], busca: { buscar: so1225 }, ultimas: { ...ULT, stf: 1225 }, anterior: { fontes: {} }, atuais: [pend], silencioso: true });
+    const bx = await rodar({ fontes: ['stf'], colecoes: ['informativo'], busca: { buscar: so1225 }, ultimas: { ...ULT, stf: 1225 }, anterior: { fontes: {} }, atuais: [pend], silencioso: true,
+      planilhaSTF: false });   // este caso é da baixa; a planilha tem os seus (PL11–PL18)
     ok(bx.novos === 0 && bx.baixas === 1 && bx.itens.length === 1 && bx.itens[0].incorporado === true && bx.itens[0].revisar === false
       && bx.estado.fontes.stf.resultado === 'sem-novidade',
       'S13h rodada só de baixa: nenhum item novo, mas baixas=1 — o workflow grava o novidades.js também por ela');
-    const bx2 = await rodar({ fontes: ['stf'], colecoes: ['informativo'], busca: { buscar: so1225 }, ultimas: { ...ULT, stf: 1225 }, anterior: bx.estado, atuais: bx.itens, silencioso: true });
+    const bx2 = await rodar({ fontes: ['stf'], colecoes: ['informativo'], busca: { buscar: so1225 }, ultimas: { ...ULT, stf: 1225 }, anterior: bx.estado, atuais: bx.itens, silencioso: true, planilhaSTF: false });
     ok(bx2.baixas === 0 && bx2.itens[0].incorporado === true, 'S13h2 a baixa do informativo conta uma vez só: a rodada seguinte não a reconta');
     // Rede de segurança (no workflow, a trava de recuo para o job antes — S21g): o
     // novidades.js de partida diz "já no JURIS" para a 1225, mas o juris-index.js desta
@@ -551,7 +552,8 @@ export async function testarSentinela(ok) {
     ok(['0033E', '0034E', '0035E', '0036E'].every((k) => chamadas.some((u) => u.includes('%27' + k + '%27'))),
       'S17b as extraordinárias são consultadas (a âncora 33 e as três seguintes) — o fim das ordinárias não as pula');
     ok(chamadas[0].includes('%270900%27'), 'S17c a âncora 900, já no acervo, é a primeira consulta — reconhecida antes de qualquer conclusão');
-    const stf = await rodar({ fontes: ['stf'], colecoes: ['informativo'], busca: { buscar: real }, ultimas: A, anterior: { fontes: {} }, atuais: [], silencioso: true });
+    const stf = await rodar({ fontes: ['stf'], colecoes: ['informativo'], busca: { buscar: real }, ultimas: A, anterior: { fontes: {} }, atuais: [], silencioso: true,
+      planilhaSTF: false });   // detecção de edição; a planilha tem os seus casos (PL11–PL18)
     ok(ids(stf) === JSON.stringify([1225, 1226, 1227, 1228, 1229, 1230].map((n) => 'INF-STF-' + n)) && stf.estado.fontes.stf.resultado === 'novidades',
       'S17d STF: 1225 a 1230 são novas, e o 404 da 1231 encerra a busca');
 
@@ -1299,6 +1301,98 @@ export async function testarSentinela(ok) {
     ok(cp.ultimoSucesso === '2026-10-02T10:00:00.000Z' && cp.ultimaLeituraCompleta === ANT && cs.ultimaLeituraCompleta === '2026-10-03T10:00:00.000Z',
       'S30d leitura parcial anda o último sucesso (lacuna nomeada) mas não a última leitura completa');
   }
+  // ── Identificação por fonte (03/10/2026): STJ com identificador honesto; STF e Planalto
+  //    recusam identificador que não seja de navegador e seguem como Chrome, por decisão da dona.
+  {
+    const { uaPara, UA_HONESTO, UA } = await import('../scripts/lib/tls-fontes.mjs');
+    ok(uaPara('processo.stj.jus.br') === UA_HONESTO && uaPara('www.stj.jus.br') === UA_HONESTO && /^Catedra\//.test(UA_HONESTO),
+      'UA1 o STJ é lido com o identificador honesto do Cátedra');
+    ok(uaPara('www.stf.jus.br') === UA && uaPara('portal.stf.jus.br') === UA && uaPara('www.planalto.gov.br') === UA,
+      'UA2 STF e Planalto seguem com o identificador de navegador (decisão registrada em tls-fontes.mjs)');
+    ok(uaPara('stj.jus.br.exemplo.com') === UA, 'UA3 host que só contém "stj.jus.br" no meio não ganha a regra do STJ');
+  }
+
+  // ── Planilhas oficiais (03/10/2026): CSV do STJ como FILTRO das faixas; xlsx do STF como
+  //    CONFERÊNCIA CRUZADA de notas faltando no acervo. Sem rede.
+  {
+    const R = await import('../scripts/lib/stj-repetitivos.mjs');
+    const csv = 'sequencialPrecedente,tipoPrecedente,numeroPrecedente,situacao,teseFirmada\n'
+      + '1,Tema,1,Afetado,"tese com, vírgula"\n'
+      + '2,Controvérsia,1,Vinculada a Tema,x\n'
+      + '3,Tema,2,"Trânsito em Julgado","linha 1\nlinha 2 com ""aspas"""\n'
+      + '4,Tema,51,Afetado,\n'
+      + '5,Tema,51,Cancelado,\n'
+      + '6,Tema,120,Afetado,\n';
+    const linhas = R.lerCsv(csv);
+    ok(linhas.length === 7 && linhas[3][4] === 'linha 1\nlinha 2 com "aspas"' && linhas[1][4] === 'tese com, vírgula',
+      'PL1 o leitor de CSV respeita aspas, vírgula e quebra de linha dentro do campo');
+    const m = R.situacoesDoCsv(csv);
+    ok(m.get(1) === 'Afetado' && m.get(2) === 'Trânsito em Julgado' && m.get(51) === null && !m.has(0),
+      'PL2 só linhas "Tema" contam; tema repetido com situações diferentes fica ambíguo (null)');
+    const prev = { 1: { s: 'Afetado' }, 2: { s: 'Acórdão Publicado' }, 3: { s: 'Afetado' }, 51: { s: 'Afetado' }, 101: { s: 'Afetado' } };
+    const faixas = [[1, 50], [51, 100], [101, 150]];
+    const f = R.faixasComMudanca(faixas, prev, m);
+    ok(f.escolhidas.some(([a]) => a === 1) && f.escolhidas.some(([a]) => a === 51) && f.escolhidas.some(([a]) => a === 101),
+      'PL3 lê a faixa com situação mudada (Tema 2), a com tema ambíguo (51) e sempre a cauda');
+    ok(f.motivos.some((x) => /Tema 2: "Acórdão Publicado" → "Trânsito em Julgado"/.test(x)) && f.motivos.some((x) => /Tema 3 ausente do CSV/.test(x))
+      && f.motivos.some((x) => /Tema 120 novo/.test(x)) && f.motivos.some((x) => /Tema 101 ausente/.test(x)),
+      'PL4 os motivos dizem o que mudou, o que sumiu e o que é novo');
+    const iguais = R.faixasComMudanca(faixas, { 1: { s: 'Afetado' } }, new Map([[1, 'afetado ']]));
+    ok(iguais.escolhidas.length === 1 && iguais.escolhidas[0][0] === 101, 'PL5 sem mudança (caixa e espaço não contam), só a cauda é lida');
+    const csvBom = { mapa: new Map(Array.from({ length: 1474 }, (_, k) => [k + 1, 'Afetado'])), lastModified: 'Thu, 01 Oct 2026 18:39:26 GMT' };
+    const qui = '2026-10-02T09:40:00-04:00', qua = '2026-09-30T09:40:00-04:00';
+    ok(R.decidirVarredura({ quando: qui, csv: csvBom }).completa === false, 'PL6 CSV recente e completo: varredura filtrada');
+    ok(R.decidirVarredura({ quando: qua, csv: csvBom }).completa === true, 'PL7 quarta-feira: varredura completa, haja o que houver no CSV');
+    ok(R.decidirVarredura({ quando: qui, csv: { erro: 'HTTP 403' } }).completa === true, 'PL8 CSV que falhou: varredura completa (falha do CSV nunca vira ponto cego)');
+    ok(R.decidirVarredura({ quando: '2026-10-08T09:40:00-04:00', csv: csvBom }).completa === true, 'PL9 CSV sem regravação há mais de 3 dias: varredura completa');
+    ok(R.decidirVarredura({ quando: qui, csv: { mapa: new Map([[1, 'Afetado']]), lastModified: csvBom.lastModified } }).completa === true, 'PL10 CSV curto demais: varredura completa');
+  }
+  {
+    const P = await import('../scripts/lib/stf-planilha.mjs');
+    const { deflateRawSync } = await import('node:zlib');
+    // xlsx mínimo montado aqui: zip com sharedStrings e sheet1 (deflate), como o Excel grava.
+    const zipar = (arqs) => {
+      const locais = [], centrais = []; let off = 0;
+      for (const [nome, txt] of Object.entries(arqs)) {
+        const dados = deflateRawSync(Buffer.from(txt, 'utf8')); const n = Buffer.from(nome);
+        const loc = Buffer.alloc(30); loc.writeUInt32LE(0x04034b50, 0); loc.writeUInt16LE(8, 8); loc.writeUInt32LE(dados.length, 18); loc.writeUInt16LE(n.length, 26);
+        locais.push(loc, n, dados);
+        const cen = Buffer.alloc(46); cen.writeUInt32LE(0x02014b50, 0); cen.writeUInt16LE(8, 10); cen.writeUInt32LE(dados.length, 20); cen.writeUInt16LE(n.length, 28); cen.writeUInt32LE(off, 42);
+        centrais.push(cen, n); off += 30 + n.length + dados.length;
+      }
+      const c = Buffer.concat(centrais); const fim = Buffer.alloc(22); fim.writeUInt32LE(0x06054b50, 0); fim.writeUInt16LE(Object.keys(arqs).length, 10); fim.writeUInt32LE(c.length, 12); fim.writeUInt32LE(off, 16);
+      return Buffer.concat([...locais, c, fim]);
+    };
+    const ss = ['Informativo', 'Título', 'Nota A', 'Nota B &amp; C', 'Nota D'].map((t) => `<si><t>${t}</t></si>`).join('');
+    const cel = (r, v, s) => (s ? `<c r="${r}" t="s"><v>${v}</v></c>` : `<c r="${r}"><v>${v}</v></c>`);
+    const sheet = '<sheetData>'
+      + `<row r="1">${cel('A1', 0, 1)}${cel('B1', 1, 1)}</row>`
+      + `<row r="2">${cel('A2', 1225)}${cel('B2', 2, 1)}</row>`
+      + `<row r="3">${cel('A3', 1225)}${cel('B3', 2, 1)}</row>`
+      + `<row r="4">${cel('A4', 1225)}${cel('B4', 3, 1)}</row>`
+      + `<row r="5">${cel('A5', 1226)}${cel('B5', 4, 1)}</row>`
+      + '</sheetData>';
+    const xlsx = zipar({ 'xl/sharedStrings.xml': `<sst>${ss}</sst>`, 'xl/worksheets/sheet1.xml': `<worksheet>${sheet}</worksheet>` });
+    const L = P.linhasDaPlanilha(xlsx);
+    ok(L.length === 4 && L[0].Informativo === '1225' && L[2]['Título'] === 'Nota B & C', 'PL11 o xlsx é lido sem dependência (zip + XML), com as strings compartilhadas');
+    const porEd = P.notasPorEdicaoNaPlanilha(L);
+    ok(porEd[1225].n === 2 && porEd[1226].n === 1, 'PL12 nota repetida em várias linhas (processos julgados juntos) conta uma vez só');
+    const acervo = P.notasPorEdicaoNoAcervo([['INF2026-STF-1225-01'], ['INF2026-STF-1225-01'], ['INF2026-STF-1226-01'], ['INF2026-STJ-1225-01']]);
+    ok(acervo[1225] === 1 && acervo[1226] === 1, 'PL13 o acervo conta notas por edição do STF, sem misturar o STJ');
+    const faltas = P.faltasNoAcervo(porEd, acervo);
+    ok(faltas.length === 1 && faltas[0].edicao === 1225 && faltas[0].planilha === 2 && faltas[0].acervo === 1, 'PL14 só a edição com nota faltando vira conferência');
+    const it = P.itemFalta(faltas[0], { quando: '2026-10-03T10:00:00Z', rotuloColecao: 'Informativo', rotuloFonte: 'STF' });
+    ok(it.id === 'INF-STF-PLAN-1225' && it.revisar === true && /lista 2 nota\(s\).*tem 1/.test(it.pendencia) && /Nota A/.test(it.pendencia),
+      'PL15 o item nasce "conferir", diz as contagens e lista os títulos da planilha');
+    const { mesclarNovidades } = await import('../scripts/sentinela.mjs');
+    const ult = { stf: 1230, stj: 903, stjExtra: 33 };
+    const ainda = mesclarNovidades([it], [], ult, () => false).itens.find((x) => x.id === it.id);
+    const resolvido = mesclarNovidades([it], [], ult, (x) => x.id === it.id).itens.find((x) => x.id === it.id);
+    ok(ainda && !ainda.incorporado && ainda.revisar, 'PL16 enquanto o acervo não tem a nota, o item segue para conferir');
+    ok(resolvido && resolvido.incorporado && !resolvido.revisar, 'PL17 quando o acervo alcança a contagem da planilha, o item recebe baixa');
+    ok(!/^INF-(STF|STJ)-(EE)?\d+$/.test(it.id), 'PL18 o id não colide com a baixa por número de edição dos informativos');
+  }
+
 }
 
 if (path.resolve(process.argv[1] || '') === fileURLToPath(import.meta.url)) {

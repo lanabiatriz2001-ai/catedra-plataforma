@@ -30,6 +30,8 @@ import {
 } from '../scripts/lib/stf-rg.mjs';
 import {
   urlFaixaRep, parseBloco, parsePaginaRepetitivos, retratoTemaRep, trechoModulacao, compararRepetitivos, faixasDaVarredura,
+  CSV_TEMAS_REP,
+  consultarRepetitivos,
 } from '../scripts/lib/stj-repetitivos.mjs';
 import {
   URL_VERBETES_STJ, urlListaSTF, urlDetalheSTF, textoDoPdf, listaVerbetesSTJ, sumulasDoInformativo, listaSumulasSTF, detalheSumulaSTF,
@@ -180,10 +182,11 @@ export async function testarColecoes(ok) {
       && /^Repercussão geral: sem linha de base/.test(dois.erro || '') && /; Súmulas: /.test(dois.erro || '') && dois.estado === 'falha',
       'S22e com UMA coleção, erro e detalhe da fonte são os dela, sem prefixo; com duas, cada um vem com o rótulo curto da coleção');
 
-    ok(['portal.stf.jus.br', 'www.stf.jus.br', 'www.stj.jus.br', 'processo.stj.jus.br'].every(hostPermitido)
-      && !['scon.stj.jus.br', 'jurisprudencia.stf.jus.br', 'bdjur.stj.jus.br', 'portal.stf.jus.br.exemplo.com', 'dadosabertos.web.stj.jus.br'].some(hostPermitido)
+    // 03/10/2026: dadosabertos.web.stj.jus.br ENTRA (Temas.csv, filtro das faixas de repetitivos).
+    ok(['portal.stf.jus.br', 'www.stf.jus.br', 'www.stj.jus.br', 'processo.stj.jus.br', 'dadosabertos.web.stj.jus.br'].every(hostPermitido)
+      && !['scon.stj.jus.br', 'jurisprudencia.stf.jus.br', 'bdjur.stj.jus.br', 'portal.stf.jus.br.exemplo.com', 'evil.web.stj.jus.br', 'dadosabertos.web.stj.jus.br.exemplo.com'].some(hostPermitido)
       && JSON.stringify(cabecalhosPermitidos({ 'if-modified-since': 'x', cookie: 'y' })) === JSON.stringify({ 'if-modified-since': 'x' }),
-      'S22f a lista de hosts aceita portal/www do STF e www/processo do STJ e recusa SCON, jurisprudencia.stf, BDJur e imitação; só o cabeçalho condicional passa');
+      'S22f a lista de hosts aceita portal/www do STF, www/processo do STJ e o portal de dados abertos do STJ, e recusa SCON, jurisprudencia.stf, BDJur e imitação; só o cabeçalho condicional passa');
 
     const R = { versao: 1, 'stf.rg': { lidoEm: A, origem: 'o', ultimoTema: 10, total: 3, temas: { 10: { s: 'C', h: 'Há', t: '', tc: 0, dt: '', ob: '' }, 2: { s: 'B', h: 'Há', t: 'x', tc: 0, dt: '', ob: '' }, 1: { s: 'A', h: 'Não há', t: '', tc: 0, dt: '', ob: 'ab12cd34' } } },
       'stj.repetitivos': { lidoEm: A, origem: 'o', ultimoTema: 5, total: 1, temas: { 5: { s: 'Afetado', t: '', m: 0, af: '', jg: '', pb: '', tj: '', md: '', ea: 0 } } },
@@ -364,10 +367,31 @@ export async function testarColecoes(ok) {
       return { r, urls, esp, e: r.estado.fontes.stj };
     };
     const ok1 = await varre(RET2());
-    ok(new Set(ok1.urls).size === 31 && ok1.urls.length === 31 && ok1.urls.at(-1) === urlFaixaRep(1501, 1550) && ok1.e.resultado === 'sem-novidade'
+    // 03/10/2026: antes das faixas vem UMA leitura do Temas.csv (filtro). Aqui o stub não serve o
+    // CSV (devolve a página vazia), então a varredura é completa — falha do CSV nunca é ponto cego.
+    const soFaixas = (urls) => urls.filter((u) => u !== CSV_TEMAS_REP);
+    ok(ok1.urls.filter((u) => u === CSV_TEMAS_REP).length === 1 && ok1.urls[0] === CSV_TEMAS_REP
+      && new Set(soFaixas(ok1.urls)).size === 31 && soFaixas(ok1.urls).length === 31 && ok1.urls.at(-1) === urlFaixaRep(1501, 1550) && ok1.e.resultado === 'sem-novidade'
       && ok1.esp.length === 30 && ok1.esp.every((ms) => ms >= 3000) && ok1.r.retratos['stj.repetitivos'].ultimoTema === 1474
       && ok1.e.colecoes.repetitivos.ultimaLeituraCompleta === ok1.e.ultimaTentativa && faixasDaVarredura(1474).length === 31,
-      'S24h rotina: varredura completa em 31 faixas (até a 1501–1550), pausa de ≥ 3 s entre elas, sem novidade, retrato até o 1474 e a última leitura completa carimbada');
+      'S24h rotina: o CSV oficial é lido uma vez; sem ele, varredura completa em 31 faixas (até a 1501–1550), pausa de ≥ 3 s entre elas, sem novidade, retrato até o 1474 e a última leitura completa carimbada');
+    // 03/10/2026: num dia comum, com o CSV oficial recente e sem mudança, só a cauda é lida — e a
+    // leitura NÃO é marcada como completa (o carimbo só anda na varredura inteira).
+    {
+      const csvTxt = 'sequencialPrecedente,tipoPrecedente,numeroPrecedente,situacao\n'
+        + Array.from({ length: 1474 }, (_, k) => `${k + 1},Tema,${k + 1},${k + 1 === 1455 ? T[1455].situacao : k + 1 === 1474 ? T[1474].situacao : 'Afetado'}`).join('\n') + '\n';
+      const retr = RET2(Object.fromEntries(Array.from({ length: 1474 }, (_, k) => k + 1).filter((n) => n !== 1455 && n !== 1474).map((n) => [n, { s: 'Afetado' }])));
+      const urls = [];
+      const rf = await consultarRepetitivos({ modo: 'rotina', retratos: retr, J: () => JV, quando: '2026-10-01T13:00:00.000Z',
+        busca: { esperar: async () => {}, buscar: async (u) => { urls.push(u);
+          if (u === CSV_TEMAS_REP) return { status: 200, texto: csvTxt, cabecalhos: { 'last-modified': 'Thu, 01 Oct 2026 10:00:00 GMT' } };
+          return { status: 200, texto: u === urlFaixaRep(1451, 1500) ? PAG_SINT : VAZIA }; } } });
+      const est = carimbar('stj', {}, { estado: rf.estado, itens: rf.itens, colecoes: { repetitivos: { estado: rf.estado, itens: rf.itens, leituraCompleta: rf.leituraCompleta } } }, 'T');
+      ok(urls[0] === CSV_TEMAS_REP && urls.length === 2 && urls[1] === urlFaixaRep(1501, 1550) && rf.leituraCompleta === false
+        && /filtrada pelo CSV oficial/.test(rf.detalhe) && est.colecoes.repetitivos.ultimaLeituraCompleta === null && est.ultimaLeituraCompleta === null
+        && est.colecoes.repetitivos.ultimoSucesso === 'T',
+        'S24h1 dia comum com CSV recente e sem mudança: só a cauda é lida, e a última leitura COMPLETA não é carimbada (o último sucesso anda)');
+    }
     const meio = await varre(RET2(), (u) => u === urlFaixaRep(701, 750));
     const tudo = await varre(RET2(), () => true);
     ok(meio.e.resultado === 'parcial' && /faixa 701–750: HTTP 503/.test(meio.e.erro || '') && meio.esp.includes(8000) && meio.esp.includes(16000)

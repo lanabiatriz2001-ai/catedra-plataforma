@@ -638,7 +638,7 @@ enum LegisOralLocal {
     /// (o que a resposta cita que o artigo não traz; o que o artigo traz e a resposta omitiu).
     static func corrigir(base texto: String, resposta: String, lei: LawEntry, unit u: LawUnit) -> ProvaOralLegisView.Correcao {
         var c = corrigir(base: texto, resposta: resposta)
-        let citados = RoteiroLocal.fundamentos(resposta)
+        let citados = TextoVerbete.fundamentos(resposta)
         let numero = ArticleStudyView.articleNumberKey(u.label)
         let nome = RemissiveIndex.shortName(lei).lowercased()
         let proprios = citados.filter { $0.lowercased().contains("art") && $0.replacingOccurrences(of: ".", with: "").contains(numero) }

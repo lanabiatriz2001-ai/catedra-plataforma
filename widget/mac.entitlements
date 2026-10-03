@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Widget do Mac: extensão de WidgetKit é sempre sandboxed. Grupo com o prefixo do time (Developer ID dispensa
+       perfil) e rede de saída para ler o resumo na nuvem (widget_ler). -->
+  <key>com.apple.security.app-sandbox</key><true/>
+  <key>com.apple.security.application-groups</key>
+  <array><string>2ZT3GWTS9Z.com.catedra</string></array>
+  <key>com.apple.security.network.client</key><true/>
+</dict>
+</plist>

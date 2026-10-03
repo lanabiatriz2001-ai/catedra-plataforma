@@ -328,7 +328,7 @@ struct OralBancasView: View {
                 .overlay(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).strokeBorder(Palette.hairline))
                 .onChange(of: anotacoes) { _, novo in JurisRascunhoCache.set("oral-banca", c.id, novo) }
             if !anotacoes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                let fund = RoteiroLocal.fundamentos(anotacoes)
+                let fund = TextoVerbete.fundamentos(anotacoes)
                 Text(fund.isEmpty
                      ? "Você não citou nenhum artigo, súmula ou tema. Na oral, o fundamento é o que sustenta a resposta."
                      : "Fundamentos que você citou: " + fund.joined(separator: "; "))

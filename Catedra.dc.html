@@ -203,11 +203,6 @@ aside nav button{ transition:background .15s, transform .15s, box-shadow .15s; }
    escrito (.ct-nobump, .ct-cal-cel) não existiam em elemento nenhum — a real é .ct-calcell.
    O padrão certo já estava no próprio repositório, em area-web.html: a caixa de toque
    cresce por um pseudo-elemento invisível e o desenho fica do mesmo tamanho. */
-/* Enunciado da Redação: leitura + marcações lado a lado. Abaixo de 1080px a coluna
-     de marcação desce (no celular ela viraria uma tira de 200px inútil). */
-.ct-enun-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,320px);gap:26px;align-items:start;}
-  @media (max-width:1080px){ .ct-enun-grid{grid-template-columns:minmax(0,1fr);} }
-.ct-enun-lado{min-width:0;}
   #ct-enun mark{ -webkit-user-select:text; user-select:text; }
 @media (max-width:900px){
   .ct-alvo{position:relative;}
@@ -702,6 +697,10 @@ window.ctPdfLib = (function(){
     <symbol id="ct-i-library" viewBox="0 0 24 24"><path d="m16 6 4 14"></path><path d="M12 6v14"></path><path d="M8 8v12"></path><path d="M4 4v16"></path></symbol>
     <symbol id="ct-i-book-open" viewBox="0 0 24 24"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></symbol>
     <symbol id="ct-i-scale" viewBox="0 0 24 24"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path></symbol>
+    <symbol id="ct-i-lock" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></symbol>
+    <symbol id="ct-i-highlighter" viewBox="0 0 24 24"><path d="m9 11-6 6v3h9l3-3"></path><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"></path></symbol>
+    <symbol id="ct-i-maximize-2" viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" x2="14" y1="3" y2="10"></line><line x1="3" x2="10" y1="21" y2="14"></line></symbol>
+    <symbol id="ct-i-minimize-2" viewBox="0 0 24 24"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" x2="21" y1="10" y2="3"></line><line x1="3" x2="10" y1="21" y2="14"></line></symbol>
     <symbol id="ct-i-pen-line" viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"></path></symbol>
     <symbol id="ct-i-flame" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></symbol>
     <symbol id="ct-i-calendar" viewBox="0 0 24 24"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path></symbol>
@@ -3369,7 +3368,7 @@ window.ctPdfLib = (function(){
        <div style="display:flex;flex-direction:column;gap:20px;">
 
         <!-- trilho das etapas -->
-        <div class="ct-trilho">
+        <div data-red-fora-do-foco class="ct-trilho">
           <span class="ct-trilho-passo" aria-current="{{ redPasso1 }}" data-feito="{{ redFeito1 }}">1 · Escolher</span>
           <span class="ct-trilho-sep" aria-hidden="true">›</span>
           <span class="ct-trilho-passo" aria-current="{{ redPasso2 }}" data-feito="{{ redFeito2 }}">2 · Responder</span>
@@ -3495,7 +3494,7 @@ window.ctPdfLib = (function(){
                     <span style="font-family:var(--display);font-size:var(--fs-2xl);font-weight:700;color:{{ h.notaColor }};min-width:44px;">{{ h.notaStr }}</span>
                     <span style="flex:1;min-width:0;">
                       <span style="display:block;font-size:var(--fs-base);font-weight:600;color:var(--ink);">{{ h.temaShort }}</span>
-                      <span style="display:block;font-size:var(--fs-xs);color:var(--text3);margin-top:2px;">{{ h.when }} · {{ h.words }} palavras · {{ h.tipo }}</span>
+                      <span style="display:block;font-size:var(--fs-xs);color:var(--text3);margin-top:2px;">{{ h.when }} · {{ h.comoFoi }} · {{ h.tipo }}</span>
                       <sc-if value="{{ h.disc }}" hint-placeholder-val="{{ false }}"><span class="ct-nota">{{ h.disc }}</span></sc-if>
                     </span>
                     <!-- C3: nota tirada de espelho sugerido não se confunde com a oficial -->
@@ -3515,7 +3514,7 @@ window.ctPdfLib = (function(){
                em silêncio: nada dizia de quando era nem oferecia recomeçar sem perder a
                prova carregada. "Começar do zero" pergunta antes — é destruição de texto. -->
           <sc-if value="{{ redRascunhoTem }}" hint-placeholder-val="{{ false }}">
-            <div style="background:var(--surface);border:1px solid var(--accent);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;box-shadow:0 6px 20px -12px var(--accent);">
+            <div data-red-fora-do-foco style="background:var(--surface);border:1px solid var(--accent);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;box-shadow:0 6px 20px -12px var(--accent);">
               <span class="ct-ladrilho ct-ladrilho-g" aria-hidden="true"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="pen-line"><use href="#ct-i-pen-line"></use></svg></span>
               <div style="flex:1;min-width:190px;">
                 <div class="ct-eb">Rascunho salvo</div>
@@ -3527,15 +3526,29 @@ window.ctPdfLib = (function(){
               </div>
             </div>
           </sc-if>
-          <div class="ct-card" style="padding:0;overflow:hidden;">
-            <div class="ct-hero" style="border-radius:0;">
-              <div class="ct-hero-eb">Enunciado da prova</div>
-              <h2 class="ct-hero-tit" style="font-size:21px;">{{ redProvaTitulo }}</h2>
-            </div>
-            <!-- Proporção: o enunciado ocupava 72ch (a medida de leitura) e deixava METADE
-                 da tela vazia à direita. A medida continua — texto de prova se lê em coluna
-                 estreita —, mas o espaço que sobrava passa a ser a coluna de marcações. -->
-            <div class="ct-enun-grid" style="padding:24px 26px;">
+          <!-- MESA DE PROVA (03/10/2026): a questão fica ao lado da folha. Antes o enunciado vinha
+               em cima e a resposta embaixo, e reler o comando era rolar a tela no meio da escrita.
+               A decisão de empilhar é pela largura do contêiner (catedra-ui.css, .ct-mesa). -->
+          <div class="ct-mesa-caixa">
+            <div class="ct-mesa" data-red="mesa">
+              <section class="ct-card ct-mesa-questao" data-red="questao" aria-label="Questão">
+                <div class="ct-hero" style="border-radius:0;">
+                  <div class="ct-mesa-linha" style="justify-content:space-between;">
+                    <div class="ct-hero-eb">Questão</div>
+                    <button class="ct-mesa-acao ct-mesa-recolher" data-red="questao-toggle" onclick="{{ toggleRedQuestao }}" aria-expanded="{{ redQuestaoAberta }}" style="color:inherit;">{{ redQuestaoToggleTxt }}</button>
+                  </div>
+                  <h2 class="ct-hero-tit" style="font-size:var(--fs-2xl);">{{ redProvaTitulo }}</h2>
+                  <div class="ct-mesa-chips">
+                    <sc-if value="{{ redChipLimite }}" hint-placeholder-val="{{ false }}"><span class="ct-mesa-chip" data-red="chip-limite">{{ redChipLimite }}</span></sc-if>
+                    <sc-if value="{{ redChipComandos }}" hint-placeholder-val="{{ false }}"><span class="ct-mesa-chip" data-red="chip-comandos">{{ redChipComandos }}</span></sc-if>
+                  </div>
+                </div>
+                <sc-if value="{{ redQuestaoAberta }}" hint-placeholder-val="{{ true }}">
+                  <div class="ct-mesa-corpo">
+                    <sc-if value="{{ redEditandoEnun }}" hint-placeholder-val="{{ false }}">
+                      <textarea class="ct-campo" value="{{ redEnunciado }}" oninput="{{ onRedEnun }}" rows="12" aria-label="Enunciado da questão" style="width:100%;box-sizing:border-box;"></textarea>
+                    </sc-if>
+                    <sc-if value="{{ redLendoEnun }}" hint-placeholder-val="{{ true }}">
               <div id="ct-enun" onmouseup="{{ onSelEnunciado }}" onkeyup="{{ onSelEnunciado }}" class="ct-leitura" style="font-size:var(--fs-lg);color:var(--ink);">
                 <sc-for list="{{ redBlocos }}" as="b" hint-placeholder-count="6">
                   <sc-if value="{{ b.ehTitulo }}" hint-placeholder-val="{{ false }}">
@@ -3552,22 +3565,23 @@ window.ctPdfLib = (function(){
                   <a href="{{ redLinkProva }}" target="_blank" rel="noopener" style="display:inline-block;margin-top:16px;font-size:var(--fs-base);font-weight:700;color:var(--accent);text-decoration:none;">Abrir o PDF oficial da prova →</a>
                 </sc-if>
               </div>
-
-              <!-- coluna de marcação: as cores agem sobre o trecho selecionado no enunciado -->
-              <aside class="ct-enun-lado">
-                <div style="position:sticky;top:12px;display:flex;flex-direction:column;gap:12px;">
-                  <div style="border:1px solid var(--border);background:var(--surface2);border-radius:var(--radius);padding:14px;">
+                      <!-- as cores agem sobre o trecho selecionado no enunciado -->
+                      <div style="border:1px solid var(--border);background:var(--surface2);border-radius:var(--radius);padding:var(--ct-e3);margin-top:var(--ct-e4);">
                     <div class="ct-eb">Marcar trecho</div>
                     <div style="font-size:var(--fs-sm);color:var(--text2);margin-top:6px;line-height:1.5;">{{ redSelDica }}</div>
                     <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:11px;">
                       <sc-for list="{{ redCores }}" as="c" hint-placeholder-count="7"><button class="ct-alvo ct-miudo" data-cor="{{ c.c }}" onclick="{{ marcarEnunciado }}" title="{{ c.label }}" aria-label="Marcar de {{ c.label }}" style="{{ c.style }}"></button></sc-for>
                     </div>
-                  </div>
-                  <div style="border:1px solid var(--border);background:var(--surface);border-radius:var(--radius);padding:14px;">
-                    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;">
-                      <div class="ct-eb">Marcações e notas</div>
-                      <span class="ct-dado">{{ redMarcasN }}</span>
+                      </div>
+                    </sc-if>
+                    <div class="ct-mesa-linha" style="margin-top:var(--ct-e3);">
+                      <button class="ct-mesa-acao" data-red="marcas-toggle" onclick="{{ toggleRedMarcas }}" aria-expanded="{{ redMarcasAberto }}"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="highlighter"><use href="#ct-i-highlighter"></use></svg>Marcações e notas <span class="ct-dado">{{ redMarcasN }}</span></button>
+                      <sc-if value="{{ redPodeEditarEnun }}" hint-placeholder-val="{{ false }}">
+                        <button class="ct-mesa-acao" data-red="editar-questao" onclick="{{ toggleRedEditarEnun }}" aria-pressed="{{ redEditandoEnun }}" style="margin-left:auto;"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="pen-line"><use href="#ct-i-pen-line"></use></svg>{{ redEditarEnunTxt }}</button>
+                      </sc-if>
                     </div>
+                    <sc-if value="{{ redMarcasAberto }}" hint-placeholder-val="{{ false }}">
+                      <div>
                     <sc-if value="{{ redSemMarcas }}" hint-placeholder-val="{{ true }}">
                       <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:9px;line-height:1.55;">Nada marcado ainda. O que você grifar aqui fica salvo com a prova e volta na próxima vez que abrir.</div>
                     </sc-if>
@@ -3582,32 +3596,76 @@ window.ctPdfLib = (function(){
                         </div>
                       </sc-for>
                     </div>
+                      </div>
+                    </sc-if>
                   </div>
-                </div>
-              </aside>
-            </div>
-          </div>
-
-          <div class="ct-card">
-            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:14px;">
-              <div class="ct-eb">Sua resposta</div>
-              <div style="font-size:var(--fs-sm);color:var(--text3);font-family:var(--mono);">{{ redWords }} palavras{{ redLimiteTxt }}</div>
-            </div>
-            <textarea value="{{ redText }}" oninput="{{ onRedText }}" readonly="{{ redBusy }}" rows="18" placeholder="Escreva como escreveria na prova: enfrente o comando na ordem em que ele foi feito, fundamente com o dispositivo e conclua de forma expressa." style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface2);border-radius:var(--radius);padding:20px;color:var(--ink);font-family:var(--body);font-size:var(--fs-lg);line-height:1.85;resize:vertical;outline:none;"></textarea>
-            <div style="margin-top:var(--ct-e4);">
+                  <div class="ct-mesa-rodape">
               <label for="red-disciplina" class="ct-eb">Disciplina desta correção</label>
               <select id="red-disciplina" class="ct-campo" value="{{ redDiscValor }}" onchange="{{ onRedDisciplina }}" disabled="{{ redBusy }}" aria-describedby="red-disciplina-ajuda" style="min-height:var(--ct-alvo-toque);margin-top:var(--ct-e2);">
                 <option value="">Sem vínculo — não altera a prioridade</option>
                 <sc-for list="{{ redDiscOpcoes }}" as="d"><option value="{{ d.v }}">{{ d.l }}</option></sc-for>
               </select>
               <p id="red-disciplina-ajuda" class="ct-nota" style="margin-top:var(--ct-e2);">{{ redDiscAjuda }}</p>
-            </div>
-            <div style="display:flex;gap:12px;margin-top:18px;flex-wrap:wrap;align-items:center;">
-              <button class="ct-btn" onclick="{{ submitRed }}" disabled="{{ redBtnDisabled }}" aria-busy="{{ redBusy }}">{{ redBtnLabel }}</button>
-              <span style="font-size:var(--fs-sm);color:var(--text3);line-height:1.5;flex:1;min-width:200px;">{{ redDicaEtapa2 }}</span>
-            </div>
-          </div>
+                  </div>
+                </sc-if>
+              </section>
 
+              <section class="ct-card ct-mesa-folha" data-red="folha" aria-label="Sua resposta">
+              <!-- Regra da dona (03/10/2026): a prova é manuscrita — a tela sempre sugere fazer à mão
+                   e conferir o padrão por conta. Digitar e a correção automática são o segundo caminho. -->
+              <div class="ct-folha-barra">
+                <div class="ct-seg" role="group" aria-label="Como você vai responder">
+                  <button data-red="modo-mao" data-m="mao" onclick="{{ setRedModo }}" aria-pressed="{{ redModoMao }}">À mão</button>
+                  <button data-red="modo-digitar" data-m="digitar" onclick="{{ setRedModo }}" aria-pressed="{{ redModoDigitar }}">Digitar</button>
+                </div>
+                <sc-if value="{{ redModoDigitar }}" hint-placeholder-val="{{ false }}">
+                  <span data-red="linhas" class="ct-dado ct-folha-linhas" aria-live="polite">{{ redLinhasTxt }} <span style="color:var(--text3);">· {{ redWords }} palavras</span></span>
+                </sc-if>
+                <span class="ct-folha-crono" data-red="crono" role="timer" aria-label="Tempo de prova">{{ redCronoTxt }}</span>
+                <sc-if value="{{ redModoDigitar }}" hint-placeholder-val="{{ false }}">
+                  <button class="ct-mesa-acao" data-red="foco" onclick="{{ toggleRedFoco }}" aria-pressed="{{ redFoco }}" aria-label="Modo foco" title="Modo foco">
+                    <sc-if value="{{ redFocoOff }}" hint-placeholder-val="{{ true }}"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="maximize-2"><use href="#ct-i-maximize-2"></use></svg></sc-if>
+                    <sc-if value="{{ redFoco }}" hint-placeholder-val="{{ false }}"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="minimize-2"><use href="#ct-i-minimize-2"></use></svg></sc-if>
+                  </button>
+                </sc-if>
+              </div>
+              <sc-if value="{{ redBarraShow }}" hint-placeholder-val="{{ false }}">
+                <div class="ct-folha-progresso" data-red="barra" role="progressbar" aria-label="Linhas usadas" aria-valuemin="0" aria-valuemax="{{ redLimiteN }}" aria-valuenow="{{ redLinhasAgora }}"><div style="{{ redBarraStyle }}"></div></div>
+              </sc-if>
+              <sc-if value="{{ redModoMao }}" hint-placeholder-val="{{ true }}">
+                <div class="ct-mesa-corpo ct-folha-mao">
+                  <div class="ct-eb">Faça à mão</div>
+                  <p class="ct-folha-mao-tit">Escreva na sua folha, como na prova.</p>
+                  <p class="ct-nota">{{ redMaoDica }}</p>
+                  <div class="ct-mesa-linha" style="margin-top:var(--ct-e4);">
+                    <button class="ct-btn-2" data-red="crono-btn" onclick="{{ toggleRedCrono }}" aria-pressed="{{ redCronoOn }}" disabled="{{ redConferindo }}">{{ redCronoBtnTxt }}</button>
+                    <button class="ct-btn" data-red="terminei" onclick="{{ terminarMao }}" disabled="{{ redConferindo }}">{{ redTermineiTxt }}</button>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ redModoDigitar }}" hint-placeholder-val="{{ false }}">
+                <div class="ct-mesa-corpo">
+                  <p class="ct-nota" data-red="sugestao-papel">A prova é manuscrita: treinar à mão rende mais. <button class="ct-mesa-acao" data-m="mao" onclick="{{ setRedModo }}">Fazer à mão</button></p>
+                  <div class="ct-folha" style="{{ redFolhaStyle }}">
+                    <sc-if value="{{ redPautaShow }}" hint-placeholder-val="{{ false }}">
+                      <div class="ct-folha-pauta" data-red="pauta" aria-hidden="true"><sc-for list="{{ redPautaNums }}" as="n"><span>{{ n }}</span></sc-for></div>
+                    </sc-if>
+                    <div class="ct-folha-campo">
+                      <textarea value="{{ redText }}" oninput="{{ onRedText }}" readonly="{{ redBusy }}" aria-label="Sua resposta" placeholder="Escreva como escreveria na prova: enfrente o comando na ordem em que ele foi feito, fundamente com o dispositivo e conclua de forma expressa."></textarea>
+                      <div class="ct-folha-medidor" aria-hidden="true"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="ct-folha-rodape">
+                  <span class="ct-folha-salvo" data-red="salvo">{{ redSalvoTxt }}</span>
+                  <span style="font-size:var(--fs-sm);color:var(--text3);line-height:1.5;flex:1;min-width:200px;">{{ redDicaEtapa2 }}</span>
+                  <button class="ct-btn" onclick="{{ submitRed }}" disabled="{{ redBtnDisabled }}" aria-busy="{{ redBusy }}">{{ redBtnLabel }}</button>
+                </div>
+              </sc-if>
+            </section>
+            </div>
+
+            <div data-red="espelho" style="display:flex;flex-direction:column;gap:var(--ct-e4);">
           <!-- C3: a banca não publicou espelho. O aviso honesto (C1) fica, e ganha uma saída:
                um espelho SUGERIDO pelo Cátedra — gerado por IA, jamais apresentado como oficial. -->
           <sc-if value="{{ redSemEspelho }}" hint-placeholder-val="{{ false }}">
@@ -3631,24 +3689,82 @@ window.ctPdfLib = (function(){
           </sc-if>
           <!-- o espelho fica guardado até a entrega; treino de prova é assim -->
           <sc-if value="{{ redEspelhoOculto }}" hint-placeholder-val="{{ false }}">
-            <div class="ct-card" style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;">
-              <div>
+            <div class="ct-card ct-mesa-linha" style="justify-content:space-between;gap:var(--ct-e4);">
+              <span class="ct-ladrilho" aria-hidden="true"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="lock"><use href="#ct-i-lock"></use></svg></span>
+              <div style="flex:1;min-width:200px;">
                 <div class="ct-eb">{{ redEspeloTitulo }}</div>
-                <div style="font-size:var(--fs-sm);color:var(--text2);margin-top:5px;line-height:1.55;max-width:520px;">Os quesitos e a pontuação aparecem depois que você entregar. Saber que existe um quesito de preclusão já entrega a resposta.</div>
+                <div data-red="gab-estado" style="font-size:var(--fs-base);color:var(--ink);font-weight:600;margin-top:var(--ct-e1);">{{ redGabEstadoTxt }}</div>
+                <div class="ct-nota" style="margin-top:var(--ct-e1);max-width:520px;">O conteúdo aparece depois que você entregar. Saber que existe um quesito de preclusão já entrega a resposta.</div>
               </div>
               <button onclick="{{ revelarEspelho }}" class="ct-btn-2">Ver mesmo assim</button>
             </div>
           </sc-if>
-          <sc-if value="{{ redEspelhoAberto }}" hint-placeholder-val="{{ false }}">
+          <!-- CONFERÊNCIA PRÓPRIA: fez à mão, confere o padrão por conta, quesito a quesito, na escala da banca -->
+          <sc-if value="{{ redConferindo }}" hint-placeholder-val="{{ false }}">
             <div class="ct-card">
-              <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;">
-                <div class="ct-eb">Espelho / gabarito</div>
-                <button onclick="{{ importRedGab }}" class="ct-btn-2">Importar PDF/TXT</button>
+              <div class="ct-eb">Conferência pelo padrão</div>
+              <p class="ct-nota" style="margin-top:var(--ct-e1);">Leia cada quesito, procure na sua folha e dê a nota dentro da escala da banca.</p>
+              <div class="ct-mesa-linha" style="margin-top:var(--ct-e3);">
+                <label for="red-linhas-mao" class="ct-eb">Quantas linhas você usou?</label>
+                <input id="red-linhas-mao" data-red="linhas-mao" class="ct-campo ct-campo-num" inputmode="numeric" value="{{ redLinhasMao }}" oninput="{{ onLinhasMao }}" style="width:6em;min-height:var(--ct-alvo-toque);" aria-describedby="red-linhas-mao-msg">
+                <span id="red-linhas-mao-msg" data-red="linhas-mao-msg" class="ct-nota">{{ redLinhasMaoMsg }}</span>
               </div>
-              <textarea value="{{ redGabarito }}" oninput="{{ onRedGab }}" rows="7" placeholder="Cole aqui o espelho oficial ou uma resposta-modelo." style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface2);border-radius:var(--radius);padding:16px;color:var(--ink);font-family:var(--body);font-size:var(--fs-base);line-height:1.7;resize:vertical;outline:none;margin-top:12px;"></textarea>
-              <div class="ct-eb" style="margin-top:9px;">{{ redGabWords }} palavras no espelho</div>
+              <sc-if value="{{ redConfListaShow }}" hint-placeholder-val="{{ true }}">
+                <ol class="ct-gab-lista">
+                  <sc-for list="{{ redConfItens }}" as="q">
+                    <li data-red="conf-item" class="ct-conf-item">
+                      <span class="ct-gab-n">{{ q.n }}</span>
+                      <span class="ct-gab-t">{{ q.texto }}</span>
+                      <span class="ct-seg ct-conf-ops" role="group" aria-label="Nota do quesito {{ q.n }}"><sc-for list="{{ q.opcoes }}" as="o"><button data-red="conf-opcao" data-i="{{ o.i }}" data-v="{{ o.v }}" onclick="{{ marcarConf }}" aria-pressed="{{ o.on }}">{{ o.l }}</button></sc-for></span>
+                    </li>
+                  </sc-for>
+                </ol>
+              </sc-if>
+              <sc-if value="{{ redConfProsa }}" hint-placeholder-val="{{ false }}">
+                <div class="ct-leitura" style="margin-top:var(--ct-e3);white-space:pre-wrap;color:var(--ink);line-height:1.7;">{{ redGabarito }}</div>
+                <div class="ct-mesa-linha" style="margin-top:var(--ct-e3);">
+                  <label for="red-conf-unica" class="ct-eb">Sua nota, de 0 a 10</label>
+                  <input id="red-conf-unica" data-red="conf-unica" class="ct-campo ct-campo-num" inputmode="decimal" value="{{ redConfUnica }}" oninput="{{ onConfUnica }}" style="width:6em;min-height:var(--ct-alvo-toque);">
+                </div>
+              </sc-if>
+              <div class="ct-mesa-linha" style="margin-top:var(--ct-e4);justify-content:space-between;">
+                <span data-red="conf-soma" class="ct-dado" aria-live="polite">{{ redConfSomaTxt }}</span>
+                <button class="ct-btn" data-red="conf-registrar" onclick="{{ registrarConferencia }}" disabled="{{ redConfNaoPode }}">Registrar conferência</button>
+              </div>
             </div>
           </sc-if>
+          <sc-if value="{{ redEspelhoAberto }}" hint-placeholder-val="{{ false }}">
+            <div class="ct-card">
+              <div class="ct-mesa-linha" style="justify-content:space-between;gap:var(--ct-e3);">
+                <div>
+                  <div class="ct-eb">Espelho / padrão de respostas</div>
+                  <div data-red="gab-estado" style="font-size:var(--fs-base);color:var(--ink);font-weight:600;margin-top:var(--ct-e1);">{{ redGabEstadoTxt }}</div>
+                </div>
+                <div class="ct-mesa-linha">
+                  <sc-if value="{{ redGabTemQuesitos }}" hint-placeholder-val="{{ false }}">
+                    <div class="ct-seg" role="group" aria-label="Como ver o espelho">
+                      <button data-red="gab-vista-quesitos" data-v="quesitos" onclick="{{ setRedGabVista }}" aria-pressed="{{ redGabVistaQuesitos }}">Quesitos</button>
+                      <button data-red="gab-vista-texto" data-v="texto" onclick="{{ setRedGabVista }}" aria-pressed="{{ redGabVistaTexto }}">Texto</button>
+                    </div>
+                  </sc-if>
+                  <button onclick="{{ importRedGab }}" class="ct-btn-2" disabled="{{ redGabBusy }}">Importar PDF/TXT</button>
+                </div>
+              </div>
+              <sc-if value="{{ redGabMsgAlerta }}" hint-placeholder-val="{{ false }}"><p role="alert" class="ct-nota ct-gab-erro" style="margin-top:var(--ct-e2);">{{ redGabMsg }}</p></sc-if>
+              <sc-if value="{{ redGabMsgNormal }}" hint-placeholder-val="{{ false }}"><p role="status" class="ct-nota" style="margin-top:var(--ct-e2);">{{ redGabMsg }}</p></sc-if>
+              <sc-if value="{{ redGabListaShow }}" hint-placeholder-val="{{ false }}">
+                <ol class="ct-gab-lista">
+                  <sc-for list="{{ redGabQuesitos }}" as="q"><li data-red="gab-quesito"><span class="ct-gab-n">{{ q.n }}</span><span class="ct-gab-t">{{ q.texto }}</span><span class="ct-dado ct-gab-p">{{ q.pts }}</span></li></sc-for>
+                </ol>
+              </sc-if>
+              <sc-if value="{{ redGabVistaTexto }}" hint-placeholder-val="{{ true }}">
+                <textarea value="{{ redGabarito }}" oninput="{{ onRedGab }}" rows="7" placeholder="Cole aqui o espelho oficial ou uma resposta-modelo." style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface2);border-radius:var(--radius);padding:16px;color:var(--ink);font-family:var(--body);font-size:var(--fs-base);line-height:1.7;resize:vertical;outline:none;margin-top:12px;"></textarea>
+                <div class="ct-eb" style="margin-top:9px;">{{ redGabWords }} palavras no espelho</div>
+              </sc-if>
+            </div>
+          </sc-if>
+            </div>
+          </div>
         </sc-if>
 
         <!-- ─────────── ETAPA 3 · CORREÇÃO ─────────── -->
@@ -3719,6 +3835,7 @@ window.ctPdfLib = (function(){
             </div>
           </sc-if>
 
+          <sc-if value="{{ redResultIA }}" hint-placeholder-val="{{ true }}">
           <div class="ct-grade-larga">
             <div class="ct-card">
               <div class="ct-eb ct-eb-ok">Pontos fortes</div>
@@ -3740,6 +3857,7 @@ window.ctPdfLib = (function(){
               </div>
             </sc-for>
           </div>
+          </sc-if>
 
           <sc-if value="{{ redResultLivre }}" hint-placeholder-val="{{ false }}">
             <div class="ct-card">
@@ -7312,7 +7430,7 @@ class Component extends DCLogic {
       loggedIn: (typeof localStorage!=='undefined' && localStorage.getItem('catedra:auth')==='1'),
       loginEmail:'', loginPass:'',
       errors:this._load('errors', []),
-      redText:this._load('redText', ''), redTextTs:this._load('redTextTs', 0), redBusy:false, redResult:null, redHistory:this._redLoad(), redHist:this._load('redHist',[]), redDisciplina:this._load('redDisciplina',{}), redEvoOpen:false, redGabarito:this._load('redGabarito', ''), redEspelhoOculto:false, redModoProva:false, redGabBusy:false,
+      redText:this._load('redText', ''), redTextTs:this._load('redTextTs', 0), redTempoMs:this._redTempoBoot(), redBusy:false, redResult:null, redHistory:this._redLoad(), redHist:this._load('redHist',[]), redDisciplina:this._load('redDisciplina',{}), redEvoOpen:false, redGabarito:this._load('redGabarito', ''), redEspelhoOculto:false, redModoProva:false, redGabBusy:false,
       // C3: espelhos SUGERIDOS pela IA (nunca oficiais) — cache por prova, sincronizado
       espelhosSugeridos:this._load('espelhosSugeridos',[]), espSugBusy:false, espSugAtual:null,
       // guarda qual prova está aberta: sem isso, recarregar o app deixava o gabarito
@@ -7355,7 +7473,10 @@ class Component extends DCLogic {
       // exatamente o que se quer: esqueleto na PRIMEIRA carga de cada um, nunca depois.
       framesProntos:{},
       atalhosOpen:false,          // U8: modal da tecla ?
-      redRascunhoOculto:false,    // U4: a faixa do rascunho da redação, depois de dispensada
+      redRascunhoOculto:false,
+      redQuestaoAberta:true, redMarcasAberto:false, redEditandoEnun:false,   // mesa de prova: só de tela
+      redModoResposta:(String(this._load('redText','')||'').trim()?'digitar':'mao'), redCronoOn:false, redCronoTick:0,
+      redLinhasN:null, redFoco:false, redGabVista:'', redGabErro:'', redGabOk:'', redConferindo:false, redConf:{}, redLinhasMao:'',    // U4: a faixa do rascunho da redação, depois de dispensada
       // 'video' e 'mapa' (este em 25/09/2026) saíram dos formatos; quem tivesse essa
       // preferência salva ficaria numa aba sem botão para sair dela. Cai para texto; o
       // mfGen antigo continua guardado, só não é mais lido.
@@ -7755,7 +7876,7 @@ class Component extends DCLogic {
     this._onHide = ()=>{ try{ this._saveTimer(); }catch(_){} };   // salva o cronômetro ao fechar/ocultar
     window.addEventListener('pagehide', this._onHide);
     window.addEventListener('beforeunload', this._onHide);
-    document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden'){ try{ this._saveTimer(); }catch(_){} try{ this._telemetriaEnviar(); }catch(_){} } });
+    document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden'){ try{ if(this.state.redModoResposta==='digitar') this._redCronoPausar(); }catch(_){} try{ this._saveTimer(); }catch(_){} try{ this._telemetriaEnviar(); }catch(_){} } });
     window.addEventListener('online', ()=>{ try{ this._telemetriaEnviar(); }catch(_){} });
     // D11: o backup semanal não pede clique. Passa 8s depois do boot (para não competir
     // com o carregamento) e reconfere de hora em hora, para quem deixa o app aberto.
@@ -8494,10 +8615,12 @@ class Component extends DCLogic {
       try{ localStorage.setItem('catedra:schemaVersion', String(V)); }catch(_){}
     }catch(_){ }
   }
-  componentWillUnmount(){ try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onSelChange){ document.removeEventListener('selectionchange', this._onSelChange); clearTimeout(this._selChangeT); } ['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev, this._acDespertar)); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._areaMsg) window.removeEventListener('message', this._areaMsg); if(this._acervoMsg) window.removeEventListener('message', this._acervoMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._revT) clearInterval(this._revT);
+  componentWillUnmount(){ if(this._redCronoT) clearInterval(this._redCronoT); try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onSelChange){ document.removeEventListener('selectionchange', this._onSelChange); clearTimeout(this._selChangeT); } ['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev, this._acDespertar)); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._areaMsg) window.removeEventListener('message', this._areaMsg); if(this._acervoMsg) window.removeEventListener('message', this._acervoMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._revT) clearInterval(this._revT);
     try{ if(this._mqDark && this._onMqDark){ if(this._mqDark.removeEventListener) this._mqDark.removeEventListener('change', this._onMqDark); else if(this._mqDark.removeListener) this._mqDark.removeListener(this._onMqDark); } }catch(_){}
     if(this._pipMsgT) clearTimeout(this._pipMsgT); if(this._bkpAutoT) clearInterval(this._bkpAutoT); if(this._salaT) clearTimeout(this._salaT); this._pipStop(); this._closeDocPiP();  }
-  componentDidUpdate(){ this._baixaRaiz(); this._widgetAvisar(); this._syncModalFocus(); try{ const ta=this._toastAcaoEl; if(ta && ta.style.pointerEvents==='auto') this._toastAcaoPos(); }catch(_){} try{ this._edSincronizarConcurso(); }catch(_){} this._autosave(); this._montarFrames(); this._marcasEnunSync(); }
+  componentDidUpdate(){ if(this.state.view==='redacao'){ this._redVigiarFolha();
+      // texto que muda sem tecla (zerar o rascunho, chegar da nuvem) também precisa remedir a folha
+      if(this.state.redText!==this._redTextoMedido){ this._redTextoMedido=this.state.redText; try{ requestAnimationFrame(this._redMedirFolha); }catch(_){} } } this._baixaRaiz(); this._widgetAvisar(); this._syncModalFocus(); try{ const ta=this._toastAcaoEl; if(ta && ta.style.pointerEvents==='auto') this._toastAcaoPos(); }catch(_){} try{ this._edSincronizarConcurso(); }catch(_){} this._autosave(); this._montarFrames(); this._marcasEnunSync(); }
   // LEGIS e JURIS ficam em <iframe> com data-ct-frame (e não src=) de propósito: com
   // src no HTML cru o navegador baixava as duas páginas durante o parse — antes do
   // runtime existir — e jogava fora ao montar o app. Aqui o src entra só quando a
@@ -8631,7 +8754,7 @@ class Component extends DCLogic {
      encontra o antigo intacto ao voltar. */
   AREA_PROPRIA = new Set(['edital','reviews','blocks','blocksDate','cicloVolta','manualVoltaN','manualFixed','manualRot',
     'rotPointer','manualFixedRoteiroAtual','agendaFeitas','planoLegis','metas','eventos','errors','sim',
-    'discItems','ankiHist','redText','redTextTs','redGabarito','redEnunciado','redMarcas','redHist','redDisciplina',
+    'discItems','ankiHist','redText','redTextTs','redTempoMs','redGabarito','redEnunciado','redMarcas','redHist','redDisciplina',
     'planHoras','simAnalysis','multiFmt','multiSrc','mfGen','ankiImported','bancaDicas',
     'bancaAreaSel','bancaSel','bancaAreaConc','bancaAssunto','semanaLidos','espelhosSugeridos',
     'redProvaId','ajPerfis','lastPonto','lastPontoDispensado','provaDurationMin','sessions','sessionsLixeira',
@@ -8771,7 +8894,7 @@ class Component extends DCLogic {
   // Chaves que o app salva sozinho. Lista ÚNICA: o _autosave grava a partir dela e
   // o _rehydrateFromLocal recarrega a partir dela — se as duas divergirem, o que vem
   // da nuvem é sobrescrito pela memória velha deste aparelho.
-  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'editais', 'editalAtivo', 'reviews', 'leituras', 'enam', 'enamSim', 'aceite', 'iaConsentimento', 'blocks', 'blocksDate', 'cicloVolta', 'manualVoltaN', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs', 'redGabarito', 'redEnunciado', 'redMarcas', 'redDisciplina', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'novidLidas', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis']; }
+  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'editais', 'editalAtivo', 'reviews', 'leituras', 'enam', 'enamSim', 'aceite', 'iaConsentimento', 'blocks', 'blocksDate', 'cicloVolta', 'manualVoltaN', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs','redTempoMs', 'redGabarito', 'redEnunciado', 'redMarcas', 'redDisciplina', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'novidLidas', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis']; }
   /** Grava JÁ o que está pendente, sem esperar o debounce de 500 ms.
       PENDENTE é só o que a memória mudou desde o último salvamento (a mesma régua do
       _autosave). O resto já está no disco — e o disco pode ter acabado de receber a nuvem:
@@ -9998,6 +10121,9 @@ class Component extends DCLogic {
   }
   /** Troca de view com o guarda aplicado. Devolve a view que REALMENTE abriu. */
   _irPara(v, extra){
+    // sair da Redação pausa o cronômetro da resposta na hora (o tique é só a rede de segurança)
+    if(v!=='redacao' && this._redCronoDesde){ try{ this._redCronoPausar(); }catch(_){} }
+    if(v!=='redacao' && this.state.redFoco){ try{ this._redFocoPor(false); }catch(_){} }
     if(v==='dashboards') v='inicio';
     if(!this._podeAbrir(v)){
       // não redireciona em silêncio: a tela diz por que não abre e oferece a saída
@@ -12165,17 +12291,19 @@ class Component extends DCLogic {
   // O carimbo do rascunho (U4): sem ele a faixa "rascunho de …" não teria data para dizer,
   // e é a data que responde a única pergunta que importa ao reabrir — isto aqui é de hoje
   // ou é de três semanas atrás? É escalar, então o carimbo por chave do sync já resolve.
-  onRedText = (e)=> this.setState({redText:e.currentTarget.value, redTextTs:Date.now()});
+  onRedText = (e)=>{ if(!this._redCronoDesde && !this.state.redBusy) this._redCronoIniciar();
+    this.setState({redText:e.currentTarget.value, redTextTs:Date.now()});
+    try{ requestAnimationFrame(this._redMedirFolha); }catch(_){} };
   // ===== U4: RETOMADA EXPLÍCITA DA REDAÇÃO =============================================
   // O rascunho voltava para a tela em silêncio: o texto estava lá, sem dizer de quando era
   // nem oferecer recomeço. Quem voltava depois de duas semanas achava que era da prova de
   // agora e continuava escrevendo por cima do que já não servia. A faixa aparece só quando
   // o rascunho é de OUTRA sessão (o texto ainda é igual ao que veio do disco no boot) e
   // some assim que a pessoa escreve — não fica pedindo passagem enquanto se trabalha.
-  redRascunhoOk = ()=>{ this.setState({redRascunhoOculto:true}); try{ const t=document.querySelector('main textarea'); if(t){ t.focus(); t.setSelectionRange(t.value.length, t.value.length); } }catch(_){} };
+  redRascunhoOk = ()=>{ this.setState({redRascunhoOculto:true}); try{ const t=document.querySelector('[data-red="folha"] textarea')||document.querySelector('main textarea'); if(t){ t.focus(); t.setSelectionRange(t.value.length, t.value.length); } }catch(_){} };
   redZerarRascunho = ()=>{
     if(!window.confirm('Apagar o rascunho e começar do zero? A prova e o espelho continuam carregados — só a sua resposta sai da tela.')) return;
-    this._redBoot='';
+    this._redBoot=''; this._redCronoZerar();
     this.setState({redText:'', redTextTs:0, redResult:null, redRascunhoOculto:true});
     try{ localStorage.setItem(this._chave('redText'),JSON.stringify('')); localStorage.setItem(this._chave('redTextTs'),JSON.stringify(0)); }catch(_){}
     this._toast('Rascunho apagado — a folha está limpa');
@@ -12364,6 +12492,7 @@ class Component extends DCLogic {
     // (gera uma vez, sincroniza entre aparelhos — nada de gerar as ~570 em lote).
     const _sug = gabTexto ? null : this._espSugDe(q.id);
     const _gab = gabTexto || (_sug ? this._espSugTexto(_sug) : '');
+    this._redCronoZerar();
     this.setState({
       redProvaId: q.id, espSugAtual: _sug,
       redDisciplina:{disc:this._redDiscDoBanco(q.disciplina), origem:'banco', banco:String(q.disciplina||'')},
@@ -12376,7 +12505,7 @@ class Component extends DCLogic {
       redEspelhoOculto: !!_gab,       // esconde o que houver de gabarito — oficial ou sugerido
       // Prova cadastrada: a pessoa só RESPONDE — enunciado e espelho são os oficiais e não se editam.
       redModoProva: true,
-      redText:'', redTextTs:0, redResult:null, bancoOpen:false, redRascunhoOculto:false, bancoAbrindo:''
+      redText:'', redTextTs:0, redResult:null, bancoOpen:false, redRascunhoOculto:false, bancoAbrindo:'', redEditandoEnun:false, redQuestaoAberta:true, redModoResposta:'mao', redGabVista:'', redGabErro:'', redGabOk:'', redConferindo:false, redConf:{}, redLinhasMao:''
     });
     try{ localStorage.setItem(this._chave('redEnunciado'),JSON.stringify(cab+'\n\n'+(q.enunciado||'')));
       localStorage.setItem(this._chave('redGabarito'),JSON.stringify(_gab));
@@ -12395,6 +12524,149 @@ class Component extends DCLogic {
   };
 
   onRedEnun = (e)=> this.setState({redEnunciado:e.currentTarget.value, redResult:null});
+  // ===== MESA DE PROVA (03/10/2026): a etapa de responder =====
+  toggleRedQuestao = ()=> this.setState({redQuestaoAberta:!this.state.redQuestaoAberta});
+  toggleRedMarcas = ()=> this.setState({redMarcasAberto:!this.state.redMarcasAberto});
+  toggleRedEditarEnun = ()=>{ if(this.state.redModoProva) return; this.setState({redEditandoEnun:!this.state.redEditandoEnun}); };
+  // Cronômetro da resposta. `redTempoMs` é o acumulado SALVO e só muda ao pausar, terminar ou
+  // zerar. O trecho em curso é só o seu INÍCIO, numa chave local fora da sincronização
+  // (catedra:_redCronoDesde, no EXCLUDE do auth.js), gravada uma vez ao começar. Antes o trecho era
+  // "dobrado" no estado a cada 15 s: cada dobra regravava a chave e acordava o sync inteiro, e fechar
+  // o app sem aviso perdia até 15 s. Agora nada é gravado enquanto o tempo corre, e o boot recupera
+  // o trecho pela chave (_redTempoBoot).
+  _redFmtTempo(ms){ const s=Math.max(0,Math.floor((+ms||0)/1000)); const p=(n)=>String(n).padStart(2,'0');
+    const h=Math.floor(s/3600), m=Math.floor((s%3600)/60);
+    return h?(h+':'+p(m)+':'+p(s%60)):(p(m)+':'+p(s%60)); }
+  _redTempoAgora(){ return (+this.state.redTempoMs||0) + (this._redCronoDesde?(Date.now()-this._redCronoDesde):0); }
+  // No boot: havia um trecho em curso quando o app fechou? À mão o relógio é de parede (a pessoa
+  // estava no papel): conta até agora. Digitando, conta até a última tecla (redTextTs).
+  _redTempoBoot(){ let ms=+this._load('redTempoMs',0)||0;
+    try{ const d=+localStorage.getItem('catedra:_redCronoDesde')||0;
+      if(d>0){ localStorage.removeItem('catedra:_redCronoDesde');
+        const digitando=!!String(this._load('redText','')||'').trim();
+        const fim=digitando?(+this._load('redTextTs',0)||0):Date.now();
+        if(fim>d){ ms+=fim-d; localStorage.setItem(this._chave('redTempoMs'),JSON.stringify(ms)); } }
+    }catch(_){}
+    return ms; }
+  _redCronoIniciar(){ if(this._redCronoDesde) return; this._redCronoDesde=Date.now();
+    try{ localStorage.setItem('catedra:_redCronoDesde', String(this._redCronoDesde)); }catch(_){}
+    this.setState({redCronoOn:true});
+    if(!this._redCronoT) this._redCronoT=setInterval(()=>{
+      // quem decide se ainda vale contar é o tique: a view muda por vários caminhos
+      if(this.state.view!=='redacao' || this.state.redResult || this.state.redBusy || !(this.state.redEnunciado||'').trim()){ this._redCronoPausar(); return; }
+      this.setState({redCronoTick:Date.now()});
+    },1000); }
+  _redCronoPausar(){ if(this._redCronoT){ clearInterval(this._redCronoT); this._redCronoT=null; }
+    try{ localStorage.removeItem('catedra:_redCronoDesde'); }catch(_){}
+    if(this._redCronoDesde){ const soma=(+this.state.redTempoMs||0)+(Date.now()-this._redCronoDesde); this._redCronoDesde=0;
+      this.setState({redTempoMs:soma, redCronoOn:false}); }
+    else if(this.state.redCronoOn) this.setState({redCronoOn:false}); }
+  _redCronoZerar(){ if(this._redCronoT){ clearInterval(this._redCronoT); this._redCronoT=null; } this._redCronoDesde=0;
+    try{ localStorage.removeItem('catedra:_redCronoDesde'); }catch(_){}
+    this.setState({redTempoMs:0, redCronoOn:false});
+    try{ localStorage.setItem(this._chave('redTempoMs'),JSON.stringify(0)); }catch(_){} }
+  // Mede a folha. Com a folha na medida cheia, conta as linhas RENDERIZADAS (medidor
+  // invisível com a mesma tipografia); mais estreita que a medida, devolve null e quem
+  // mostra o número cai na estimativa por palavras — nunca dois números ao mesmo tempo.
+  _redMedirFolha = ()=>{
+    try{
+      const ta=document.querySelector('[data-red="folha"] textarea'); const med=document.querySelector('.ct-folha-medidor');
+      if(!ta||!med){ if(this.state.redLinhasN!=null) this.setState({redLinhasN:null}); return; }
+      const cs=getComputedStyle(ta); const lh=parseFloat(cs.lineHeight)||1;
+      const pad=(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
+      const txt=String(ta.value||'');
+      med.textContent = txt + (/\n$/.test(txt)?'\u200b':'');
+      const linhas = txt.trim()? Math.max(1, Math.round((med.offsetHeight-pad)/lh)) : 0;
+      ta.style.height = med.offsetHeight+'px';      // a folha cresce com o texto: sem rolagem interna, a numeração acompanha
+      // "Cheia" se decide pela largura da FOLHA inteira, descontada a coluna da numeração — medir a
+      // caixa do texto dava laço: a numeração aparecia, estreitava a caixa, sumia, alargava, voltava.
+      const caixa=ta.parentElement; const max=parseFloat(getComputedStyle(caixa).maxWidth);
+      const folha=caixa.parentElement; const reserva=40;
+      const cheia = !(max>0) || (folha.clientWidth-reserva) >= max-1;
+      const n = cheia? linhas : null;
+      if(n!==this.state.redLinhasN) this.setState({redLinhasN:n});
+    }catch(_){}
+  };
+  _redVigiarFolha(){ try{
+      const caixa=document.querySelector('.ct-folha-campo');
+      if(caixa===this._redFolhaVista) return;
+      if(this._redFolhaRO){ this._redFolhaRO.disconnect(); this._redFolhaRO=null; }
+      this._redFolhaVista=caixa; if(!caixa) return;
+      if(typeof ResizeObserver==='function'){ this._redFolhaRO=new ResizeObserver(()=>this._redMedirFolha()); this._redFolhaRO.observe(caixa); if(caixa.parentElement) this._redFolhaRO.observe(caixa.parentElement); }
+      // a medida é em ch: quando a serifa do tema termina de carregar, o ch muda e a folha não muda de tamanho
+      try{ if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>this._redMedirFolha()); }catch(_){}
+      this._redMedirFolha();
+    }catch(_){} }
+  toggleRedFoco = ()=> this._redFocoPor(!this.state.redFoco);
+  _redFocoPor(on){ this.setState({redFoco:!!on});
+    try{ if(on) document.documentElement.setAttribute('data-red-foco',''); else document.documentElement.removeAttribute('data-red-foco'); }catch(_){}
+    if(on && !this._redFocoEsc){ this._redFocoEsc=(e)=>{ if(e.key==='Escape' && this.state.redFoco) this._redFocoPor(false); }; document.addEventListener('keydown', this._redFocoEsc); } }
+  _redNum(x){ return (Math.round((+x||0)*100)/100).toFixed(2).replace('.',','); }
+  // O que o espelho em uso permite: correção por quesito, por cobertura, ou nada.
+  _redEspelhoResumo(){ const g=String(this.state.redGabarito||'');
+    if(!g.trim()) return {qs:[], total:0, estado:'vazio', txt:'Falta o espelho'};
+    const qs=this._redQuesitos(g);
+    if(!qs.length) return {qs, total:0, estado:'prosa', txt:'Espelho em prosa — a correção será por cobertura'};
+    const total=Math.round(qs.reduce((a,q)=>a+(q.max!=null?q.max:1),0)*100)/100;
+    return {qs, total, estado:'quesitos',
+      txt:qs.length+(qs.length===1?' quesito':' quesitos')+' · '+this._redNum(total)+(total===1?' ponto':' pontos')+' · pronto para corrigir'}; }
+  setRedGabVista = (e)=> this.setState({redGabVista:e.currentTarget.dataset.v==='texto'?'texto':'quesitos'});
+  // ===== CONFERÊNCIA PRÓPRIA: fez à mão, confere o padrão por conta =====
+  // Os degraus que a pessoa pode se dar num quesito: a escala da banca quando há; senão
+  // zero, metade e cheio. Nota fora da escala não existe (mesma regra do corretor local).
+  _redConfOpcoes(q){ if(q.escala&&q.escala.length) return q.escala.slice();
+    const max=q.max!=null?q.max:1; return [0, Math.round(max*50)/100, max]; }
+  terminarMao = ()=>{
+    this._redCronoPausar();
+    const r=this._redEspelhoResumo();
+    if(r.estado==='vazio'){ this.setState({redEspelhoOculto:false, redGabVista:'texto'}); return; }
+    this.setState({redConferindo:true, redEspelhoOculto:false, redGabVista:'quesitos', redConf:{}});
+  };
+  marcarConf = (e)=>{ const i=e.currentTarget.dataset.i, v=parseFloat(e.currentTarget.dataset.v);
+    if(i==null || isNaN(v)) return; this.setState({redConf:{...(this.state.redConf||{}), [i]:v}}); };
+  onConfUnica = (e)=> this.setState({redConf:{...(this.state.redConf||{}), unica:e.currentTarget.value}});
+  onLinhasMao = (e)=> this.setState({redLinhasMao:String(e.currentTarget.value||'').replace(/[^\d]/g,'').slice(0,3)});
+  _redConfUnica(){ const s=String((this.state.redConf||{}).unica==null?'':(this.state.redConf||{}).unica).trim().replace(',','.');
+    if(!/^\d{1,2}(\.\d{1,2})?$/.test(s)) return null; const u=parseFloat(s); return (u>=0&&u<=10)?u:null; }
+  registrarConferencia = ()=>{
+    const r=this._redEspelhoResumo(); const conf=this.state.redConf||{};
+    if(r.estado==='vazio' || !this.state.redConferindo) return;
+    let nota=0, cobertura=0; const topicos=[], quesitos=[];
+    if(r.estado==='quesitos'){
+      if(r.qs.some((q,i)=>conf[i]==null)) return;
+      let obt=0;
+      r.qs.forEach((q,i)=>{ const max=q.max!=null?q.max:1; const n=+conf[i]||0; obt+=n; const p=max?n/max:0;
+        topicos.push({ponto:'Quesito '+q.n+' — '+q.texto.slice(0,150)+(q.texto.length>150?'…':''),
+          status:p>=0.99?'coberto':(p>0?'parcial':'faltou'), comentario:'Nota '+this._redNum(n)+' de '+this._redNum(max)});
+        quesitos.push({quesito:'Quesito '+q.n, obtido:n, pontos:max}); });
+      nota=r.total?Math.round(obt/r.total*100)/10:0; cobertura=r.total?Math.round(obt/r.total*100):0;
+    } else {
+      const u=this._redConfUnica(); if(u==null) return;
+      nota=Math.round(u*10)/10; cobertura=Math.round(nota*10);
+      quesitos.push({quesito:'Nota geral', obtido:nota, pontos:10});
+    }
+    const enun=(this.state.redEnunciado||'').trim();
+    const titulo=enun? enun.replace(/\s+/g,' ').slice(0,80) : 'Questão discursiva';
+    const aprox=!!this.state.espSugAtual; const disc={...(this.state.redDisciplina||{})};
+    const tempoMs=this._redTempoAgora(); const linhas=this.state.redLinhasMao?+this.state.redLinhasMao:null;
+    const res={ nota, notaStr:nota.toFixed(1), notaColor:nota>=8?'var(--ok)':nota>=6?'var(--warn)':'var(--danger)',
+      conceito:this._redConceito(nota), cobertura, topicos:this._normTopicos(topicos), criterios:[], fortes:[], melhorar:[],
+      geral:'Você respondeu à mão e conferiu o padrão de respostas por conta própria'
+        +(tempoMs?(', em '+this._redFmtTempo(tempoMs)):'')+(linhas?(', usando '+linhas+' linhas'):'')+'.',
+      aiUsed:false, propria:true, livre:false, enunciado:enun, aproximada:aprox, quesitos };
+    const agora=Date.now();
+    const entry={ id:'rd'+agora, up:agora, tema:titulo, words:0, nota, ts:agora, disc:disc.disc||'', disciplinaOrigem:disc.origem||'',
+      res, texto:'', gabarito:this.state.redGabarito, aproximada:aprox, origem:'conferencia-propria', tempoMs, ...(linhas!=null?{linhas}:{}) };
+    const hist=[entry, ...this.state.redHistory].slice(0,12); this._redSave(hist);
+    this.setState({redResult:res, redHistory:hist, redConferindo:false, redConf:{}, redLinhasMao:'', redSubText:'', redSubGab:this.state.redGabarito});
+    this._redCronoZerar(); this.flashSync();
+    try{ this._redRegistrar({origem:'redacao', prova:titulo, notaTotal:nota, notaMax:10, disc:disc.disc, disciplinaOrigem:disc.origem, aproximada:aprox,
+      quesitos:quesitos.map(q=>({titulo:q.quesito, nota:q.obtido, max:q.pontos})) }); }catch(_){}
+  };
+  toggleRedCrono = ()=>{ if(this.state.redBusy) return; if(this._redCronoDesde) this._redCronoPausar(); else this._redCronoIniciar(); };
+  setRedModo = (e)=>{ const m=e.currentTarget.dataset.m==='digitar'?'digitar':'mao';
+    if(m===this.state.redModoResposta || this.state.redBusy) return;
+    this.setState({redModoResposta:m, redConferindo:false, redConf:{}}); };
   // Dados derivados da Prova oral (só calculados quando a view está aberta).
   _oralVM(){
     const st=this.state, T=window.CT_TREINO, w=window;
@@ -14276,7 +14548,7 @@ class Component extends DCLogic {
     if(disc && !this._redDiscOpcoes().some(d=>d.v===disc)) return;
     this.setState({redDisciplina:{...(this.state.redDisciplina||{}),disc,origem:'manual'}});
   };
-  redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.')) return; this._redBoot=''; this.setState({redResult:null, redText:'', redTextTs:0, redRascunhoOculto:false, redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false, redModoProva:false, redProvaId:'', redDisciplina:{}, espSugAtual:null}); try{ localStorage.setItem(this._chave('redText'),JSON.stringify('')); localStorage.setItem(this._chave('redGabarito'),JSON.stringify('')); localStorage.setItem(this._chave('redEnunciado'),JSON.stringify('')); }catch(_){} };
+  redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.')) return; this._redBoot=''; this._redCronoZerar(); this.setState({redResult:null, redText:'', redTextTs:0, redRascunhoOculto:false, redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false, redModoProva:false, redEditandoEnun:false, redQuestaoAberta:true, redModoResposta:'mao', redGabVista:'', redGabErro:'', redGabOk:'', redConferindo:false, redConf:{}, redLinhasMao:'', redProvaId:'', redDisciplina:{}, espSugAtual:null}); try{ localStorage.setItem(this._chave('redText'),JSON.stringify('')); localStorage.setItem(this._chave('redGabarito'),JSON.stringify('')); localStorage.setItem(this._chave('redEnunciado'),JSON.stringify('')); }catch(_){} };
   redOpenHist = (e)=>{ const id=e.currentTarget.dataset.id; const h=(this.state.redHistory||[]).find(x=>x.id===id);
     if(!h||!h.res){ this._toast('Correção completa não disponível para este item'); return; }
     this.setState({redResult:h.res, redDisciplina:{disc:h.disc||'',origem:h.disciplinaOrigem||''}, redText:h.texto||this.state.redText, redGabarito:h.gabarito||this.state.redGabarito, redSubText:h.texto||'', redSubGab:h.gabarito||''}); };
@@ -14302,7 +14574,7 @@ class Component extends DCLogic {
     const resto=(this.state.espelhosSugeridos||[]).filter(x=>!x||x.id!==id);
     const texto=M.texto(sug);
     this.setState({ espelhosSugeridos:[...resto, sug], espSugAtual:sug, espSugBusy:false,
-      redGabarito:texto, redEspelhoOculto:true });
+      redGabarito:texto, redEspelhoOculto:true, redConf:{}, redConferindo:false });   // espelho novo: notas marcadas no antigo não valem
     try{ localStorage.setItem(this._chave('redGabarito'),JSON.stringify(texto)); }catch(_){}
     this._toast('Espelho sugerido gerado — confira os fundamentos antes de usar a nota');
   };
@@ -14317,14 +14589,16 @@ class Component extends DCLogic {
   };
   onRedGab = (e)=>{ const v=e.currentTarget.value;
     if(this.state.espSugAtual && v!==this.state.redGabarito) this._deixaDeSerSugerido();
-    this.setState({redGabarito:v}); };
+    this.setState({redGabarito:v, redGabErro:'', redGabOk:'', redConf:{}}); };   // espelho mudou: as notas marcadas não valem mais
   importRedGab = ()=>{ try{ const inp=document.createElement('input'); inp.type='file'; inp.accept='application/pdf,.pdf,text/plain,.txt';
-    inp.onchange=async ()=>{ const f=inp.files&&inp.files[0]; if(!f) return; this.setState({redGabBusy:true, redGabFile:f.name});
+    inp.onchange=async ()=>{ const f=inp.files&&inp.files[0]; if(!f) return; this.setState({redGabBusy:true, redGabFile:f.name, redGabErro:'', redGabOk:''});
       try{ let txt=''; if(f.type==='application/pdf'||/\.pdf$/i.test(f.name)){ txt=await this._extractEditalPdf(f); }
         else { txt=await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(String(r.result||'')); r.onerror=rej; r.readAsText(f); }); }
+        if(!String(txt||'').trim()) throw new Error('vazio');
         this._deixaDeSerSugerido();   // espelho vindo de fora não é mais o sugerido
-        this.setState({redGabarito:(txt||'').trim(), redGabBusy:false}); this._toast('Gabarito importado ✦');
-      }catch(err){ this.setState({redGabBusy:false}); this._toast('Não consegui ler o arquivo'); } };
+        // o estado da importação fica na própria faixa do espelho (antes era toast, que some)
+        this.setState({redGabarito:String(txt).trim(), redGabBusy:false, redGabOk:f.name+' importado', redGabVista:'', redConf:{}});
+      }catch(err){ this.setState({redGabBusy:false, redGabErro:'Não consegui ler '+f.name}); } };
     inp.click(); }catch(e){} };
   submitRed = async ()=>{
     const text=(this.state.redText||'').trim(); const words=(text.match(/\S+/g)||[]).length;
@@ -14332,6 +14606,7 @@ class Component extends DCLogic {
     if(this.state.redBusy) return;
     if(!(this.state.redGabarito||'').trim()){ this._toast('Cole ou importe o gabarito para comparar'); return; }
     const _disc={...(this.state.redDisciplina||{})};
+    this._redCronoPausar(); const _tempoMs=this._redTempoAgora(); if(this.state.redFoco) this._redFocoPor(false);
     this.setState({redBusy:true, redResult:null, redSubText:text, redSubGab:this.state.redGabarito, redEspelhoOculto:false});
     const enun=(this.state.redEnunciado||'').trim();
     const _titulo=(enun? enun.replace(/\s+/g,' ').slice(0,80) : (text.replace(/\s+/g,' ').slice(0,60)||'Questão discursiva'));
@@ -14343,9 +14618,9 @@ class Component extends DCLogic {
     // evolução com o mesmo peso de uma tirada do espelho oficial.
     const _aprox=!!this.state.espSugAtual;
     try{ if(res && typeof res==='object') res.aproximada=_aprox; }catch(_){}
-    const entry={id:'rd'+Date.now(), up:Date.now(), tema:_titulo, words, nota:res.nota, ts:Date.now(), disc:_disc.disc||'', disciplinaOrigem:_disc.origem||'', res, texto:text, gabarito:this.state.redGabarito, aproximada:_aprox, origem:(_aprox?'espelho-sugerido':'espelho-oficial')};
+    const entry={id:'rd'+Date.now(), up:Date.now(), tema:_titulo, words, nota:res.nota, ts:Date.now(), disc:_disc.disc||'', disciplinaOrigem:_disc.origem||'', res, texto:text, gabarito:this.state.redGabarito, aproximada:_aprox, origem:(_aprox?'espelho-sugerido':'espelho-oficial'), tempoMs:_tempoMs};
     const hist=[entry, ...this.state.redHistory].slice(0,12); this._redSave(hist);
-    this.setState({redBusy:false, redResult:res, redHistory:hist}); this.flashSync();
+    this.setState({redBusy:false, redResult:res, redHistory:hist}); this._redCronoZerar(); this.flashSync();
     // registro por quesito para a curva de evolução (item 4)
     try{
       const qs=(res.quesitos&&res.quesitos.length? res.quesitos.map((q,i)=>({titulo:q.quesito||q.titulo||('Quesito '+(i+1)), nota:+q.obtido||0, max:+q.pontos||1}))
@@ -18612,6 +18887,10 @@ class Component extends DCLogic {
     const redHist=this.state.redHistory.map(h=>({...h, notaStr:(+h.nota).toFixed(1),
       when:(()=>{ try{ return new Date(h.ts).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}); }catch(_){ return ''; } })(),
       temaShort:(h.tema||'').replace(/^(Discursiva|Peça)\s—\s/,''), tipo:(h.tema||'').startsWith('Peça')?'Peça':'Discursiva',
+      // conferência própria não tem texto digitado: "0 palavras" seria mentira — diz como foi feita
+      comoFoi:(h.origem==='conferencia-propria'
+        ? ['à mão', h.linhas?(h.linhas+' linhas'):'', h.tempoMs?this._redFmtTempo(h.tempoMs):''].filter(Boolean).join(' · ')
+        : ((h.words||0)+' palavras')),
       // C3: nota tirada de espelho sugerido não pode passar por nota de espelho oficial
       aprox:!!h.aproximada, aproxLabel:(h.aproximada?'aprox.':''),
       notaColor:h.nota>=8?'var(--ok)':h.nota>=6?'var(--warn)':'var(--danger)'}));
@@ -19845,6 +20124,59 @@ class Component extends DCLogic {
       redMarcasN:(()=>{ const n=this._marcasDaProva().length; return n?(n+(n===1?' trecho':' trechos')):''; })(),
       redSemMarcas:this._marcasDaProva().length===0,
       redRascunhoOk:this.redRascunhoOk, redZerarRascunho:this.redZerarRascunho,
+      redQuestaoAberta:this.state.redQuestaoAberta, toggleRedQuestao:this.toggleRedQuestao,
+      redQuestaoToggleTxt:this.state.redQuestaoAberta?'Recolher':'Mostrar questão',
+      redMarcasAberto:this.state.redMarcasAberto, toggleRedMarcas:this.toggleRedMarcas,
+      redPodeEditarEnun:!this.state.redModoProva,
+      redEditandoEnun:!this.state.redModoProva && this.state.redEditandoEnun, toggleRedEditarEnun:this.toggleRedEditarEnun,
+      redLendoEnun:!!this.state.redModoProva || !this.state.redEditandoEnun,
+      redEditarEnunTxt:this.state.redEditandoEnun?'Concluir edição':'Editar questão',
+      ...(()=>{ const lim=this._redLimiteLinhas(this.state.redEnunciado);
+        const est=Math.ceil(redWords/11);
+        const med=this.state.redLinhasN; const n=(med!=null?med:est);
+        const base=lim?(n+' / '+lim+' linhas'):(n+(n===1?' linha':' linhas'));
+        const extra=!lim?'':(n>lim?(' · passou '+(n-lim)):(n>=lim*0.9?(' · faltam '+(lim-n)):''));
+        const cor=!lim?'var(--accent)':(n>lim?'var(--danger)':(n>=lim*0.9?'var(--warn)':'var(--accent)'));
+        const ts=+this.state.redTextTs||0;
+        const tot=Math.max(18, n+1, lim||0);
+        return { redLinhasTxt:base+extra, redLinhasAgora:String(n), redLimiteN:String(lim||0),
+          redBarraShow:!!lim && this.state.redModoResposta==='digitar', redBarraStyle:'width:'+(lim?Math.min(100,Math.round(n/lim*100)):0)+'%;background-color:'+cor+';',
+          redFolhaStyle:'--ct-folha-min:'+tot+';',   // a pauta vai até onde a numeração vai
+          redPautaShow:med!=null, redPautaNums:Array.from({length:tot},(_,i)=>String(i+1)),
+          redSalvoTxt:ts?('Salvo às '+new Date(ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})):'Ainda não salvo' }; })(),
+      ...(()=>{ const r=this._redEspelhoResumo(); const tem=r.estado==='quesitos';
+        const vista=tem?(this.state.redGabVista||'quesitos'):'texto';
+        const msg=this.state.redGabBusy?('Lendo '+(this.state.redGabFile||'arquivo')+'…'):(this.state.redGabErro||this.state.redGabOk||'');
+        const alerta=!!this.state.redGabErro && !this.state.redGabBusy;
+        const conferindo=!!this.state.redConferindo && r.estado!=='vazio'; const conf=this.state.redConf||{}; const prosa=r.estado==='prosa';
+        const faltam=r.qs.filter((q,i)=>conf[i]==null).length;
+        const obt=r.qs.reduce((a,q,i)=>a+(+conf[i]||0),0);
+        const pode=prosa?(this._redConfUnica()!=null):(tem && faltam===0);
+        const lim=this._redLimiteLinhas(this.state.redEnunciado); const lm=this.state.redLinhasMao?+this.state.redLinhasMao:null;
+        return { redConferindo:conferindo, redConfProsa:conferindo && prosa, redConfListaShow:conferindo && tem && vista==='quesitos',
+          redConfItens:r.qs.map((q,i)=>({ n:String(q.n), texto:q.texto,
+            opcoes:this._redConfOpcoes(q).map(v=>({ i:String(i), v:String(v), l:this._redNum(v), on:conf[i]===v })) })),
+          redConfSomaTxt:prosa?'':(this._redNum(obt)+' / '+this._redNum(r.total)+(faltam?(' · falta'+(faltam===1?'':'m')+' '+faltam):' · tudo marcado')),
+          redConfNaoPode:!pode, redConfUnica:String(conf.unica==null?'':conf.unica),
+          redLinhasMao:this.state.redLinhasMao||'',
+          redLinhasMaoMsg:(lm==null||!lim)?'':(lm>lim?('passou '+(lm-lim)+(lm-lim===1?' linha':' linhas')+' do limite'):('dentro do limite de '+lim+' linhas')),
+          redTermineiTxt:r.estado==='vazio'?'Colar ou importar o padrão para conferir':'Terminei — conferir pelo padrão',
+          marcarConf:this.marcarConf, onConfUnica:this.onConfUnica, onLinhasMao:this.onLinhasMao,
+          terminarMao:this.terminarMao, registrarConferencia:this.registrarConferencia,
+          redGabEstadoTxt:r.txt, redGabTemQuesitos:tem,
+          redGabVistaQuesitos:vista==='quesitos', redGabVistaTexto:vista==='texto' && !(conferindo && prosa), redGabListaShow:vista==='quesitos' && !conferindo, setRedGabVista:this.setRedGabVista,
+          redGabQuesitos:r.qs.map((q,i)=>({ i:String(i), n:String(q.n), texto:q.texto,
+            pts:(q.escala&&q.escala.length?('escala '+q.escala.map(x=>this._redNum(x)).join(' / ')):('até '+this._redNum(q.max!=null?q.max:1))) })),
+          redGabMsg:msg, redGabMsgAlerta:alerta, redGabMsgNormal:!!msg && !alerta }; })(),
+      redFoco:!!this.state.redFoco, redFocoOff:!this.state.redFoco, toggleRedFoco:this.toggleRedFoco,
+      redModoMao:this.state.redModoResposta!=='digitar', redModoDigitar:this.state.redModoResposta==='digitar', setRedModo:this.setRedModo,
+      redCronoTxt:this._redFmtTempo(this._redTempoAgora()), redCronoOn:!!this.state.redCronoOn, toggleRedCrono:this.toggleRedCrono,
+      redCronoBtnTxt:this.state.redCronoOn?'Pausar':((+this.state.redTempoMs||0)>0?'Continuar':'Começar'),
+      redMaoDica:(()=>{ const l=this._redLimiteLinhas(this.state.redEnunciado);
+        return (l?('A banca dá até '+l+' linhas. '):'')+'Ligue o cronômetro, responda no papel e, ao terminar, confira o padrão de respostas quesito a quesito.'; })(),
+      redChipLimite:(()=>{ const l=this._redLimiteLinhas(this.state.redEnunciado); return l?('até '+l+' linhas'):''; })(),
+      redChipComandos:(()=>{ const n=this._redBlocos(this._desquebrar(String(this.state.redEnunciado||''))).filter(b=>b.tipo==='item').length;
+        return n>1?(n+' comandos'):''; })(),
       redPasso1:this._passo(!this.state.redResult && !((this.state.redEnunciado||'').trim())),
       redPasso2:this._passo(!this.state.redResult && !!((this.state.redEnunciado||'').trim())),
       redPasso3:this._passo(!!this.state.redResult),
@@ -19853,6 +20185,9 @@ class Component extends DCLogic {
       // ---- dados da Redação em 3 telas
       redSoEspLabel:this.state.bancoSoEsp?'Só com espelho ✓':'Só com espelho',
       redEspelhoAberto:!!(this.state.redEnunciado||'').trim() && !this.state.redEspelhoOculto && !this.state.redResult,
+      // Faltava este binding: o template pergunta por redEspelhoOculto e o render não o devolvia, então
+      // a faixa "espelho guardado" (e o "Ver mesmo assim") nunca pintava em prova do banco.
+      redEspelhoOculto:!!(this.state.redEnunciado||'').trim() && !!this.state.redEspelhoOculto && !this.state.redResult,
       bancoVazio:_bancoTotal===0 && !!this.state.discCarregado,
       // título curto da prova em foco (1ª linha do enunciado carregado)
       // o herói acima já mostra a 1ª linha (órgão · cargo · ano — banca): repetir no corpo
@@ -19939,7 +20274,9 @@ class Component extends DCLogic {
       espSugRegerar:(this.state.espSugBusy?'Gerando…':'Regenerar'),
       gerarEspelhoSugerido:this.gerarEspelhoSugerido,
       redHasTopicos, redTopicos, redCobertura:String(redCobertura)+'%', redCobColor, redCobBarW:String(redCobertura)+'%', redConceito, redConceitoStyle, redTopResumo,
-      redOrigemLabel:(this.state.redResult&&this.state.redResult.aiUsed===false)?'estimativa local — conecte a IA':'corrigido por IA',
+      redOrigemLabel:(this.state.redResult&&this.state.redResult.propria)?'conferência própria'
+        :((this.state.redResult&&this.state.redResult.aiUsed===false)?'estimativa local — conecte a IA':'corrigido por IA'),
+      redResultIA:!(this.state.redResult&&this.state.redResult.propria),
       // C3 na tela da nota: o selo vem do resultado (que carrega `aproximada`), não do
       // estado da etapa 2 — reabrir pelo histórico também precisa mostrá-lo.
       redResultAprox:!!((this.state.redResult&&this.state.redResult.aproximada)||(!this.state.redResult&&this.state.espSugAtual)),
