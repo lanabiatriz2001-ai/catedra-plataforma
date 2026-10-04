@@ -250,4 +250,42 @@ export async function testarAjustesRitmo(pageDaSuite, base, ok, opcoes = {}) {
       ok(r2 === '240', R + 'sair do campo vazio devolve o último valor gravado (' + r2 + ')');
     } finally { await ctx.close(); }
   }
+
+  // ── pendências fechadas depois do redesenho (03/10/2026) ───────────────────────
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    const page = await ctx.newPage();
+    page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
+    const t = new Date(); t.setHours(14, 0, 0, 0); await page.clock.install({ time: t });
+    try {
+      await semear(page, base); await abrir(page, base, arquivo);
+      await page.evaluate(() => { window.confirm = () => true; });
+      // "Voltar ao padrão" é um reset limpo: a energia de hoje e o carimbo dela também voltam
+      const r1 = await page.evaluate(() => { const a = window.__catedraApp;
+        a.setOrientVal({ currentTarget: { dataset: { k: 'energia', v: 'baixa' } } });
+        a.setOrientRadio({ currentTarget: { dataset: { v: 'alta' } } });
+        a.restaurarSecao();
+        return new Promise(res => setTimeout(() => res({ base: a.state.orient.energia, hoje: a._enHoje(), dia: a.state.orient.energiaDia, plano: a.state.orient.energiaPlano }), 300)); });
+      ok(r1.base === 'normal' && r1.hoje === 'normal' && r1.dia === '0', R + '"Voltar ao padrão" limpa a energia de hoje e o carimbo (' + JSON.stringify(r1) + ')');
+      await page.waitForTimeout(1300);
+      ok((await orientSalvo(page)).energiaDia === '0', R + 'o carimbo limpo chega ao storage');
+
+      // perfil de configuração salvo ANTES da energia de hoje: a energia dele é a de todo dia
+      const r2 = await page.evaluate(() => { const a = window.__catedraApp;
+        a.setOrientRadio({ currentTarget: { dataset: { v: 'alta' } } });   // hoje, neste aparelho: alta
+        a.setState({ ajPerfis: [{ id: 'pf-antigo', nome: 'Semana leve', cfg: { o: { energia: 'normal', energiaPlano: 'baixa', metaIdeal: '120' }, p: {} } }] });
+        a.aplicarPerfil({ currentTarget: { dataset: { id: 'pf-antigo' } } });
+        return new Promise(res => setTimeout(() => res({ base: a.state.orient.energia, hoje: a._enHoje(), dia: a.state.orient.energiaDia, meta: a.state.orient.metaIdeal }), 300)); });
+      ok(r2.meta === '120', R + 'perfil salvo antigo é aplicado (meta 120)');
+      ok(r2.base === 'baixa' && r2.hoje === 'baixa' && r2.dia === '0', R + 'perfil salvo antigo: a energia dele vira a de todo dia, não a "de hoje" (' + JSON.stringify(r2) + ')');
+      await page.clock.fastForward(26 * 60 * 60 * 1000);
+      ok(await page.evaluate(() => window.__catedraApp._enHoje()) === 'baixa', R + 'no dia seguinte a energia do perfil continua valendo');
+      // perfil salvo NOVO (com carimbo) segue como foi salvo
+      const r3 = await page.evaluate(() => { const a = window.__catedraApp; const hoje = a._hoje();
+        a.setState({ ajPerfis: [{ id: 'pf-novo', nome: 'Reta', cfg: { o: { energia: 'alta', energiaPlano: 'normal', energiaDia: '0' }, p: {} } }] });
+        a.aplicarPerfil({ currentTarget: { dataset: { id: 'pf-novo' } } });
+        return new Promise(res => setTimeout(() => res({ base: a.state.orient.energia, hoje: a._enHoje(), dia: a.state.orient.energiaDia }), 300)); });
+      ok(r3.base === 'alta' && r3.hoje === 'alta' && r3.dia === '0', R + 'perfil salvo novo mantém a base que guardou (' + JSON.stringify(r3) + ')');
+    } finally { await ctx.close(); }
+  }
 }
