@@ -3511,6 +3511,9 @@ window.ctPdfLib = (function(){
 
         <!-- ─────────── ETAPA 2 · RESPONDER ─────────── -->
         <sc-if value="{{ redEtapa2 }}" hint-placeholder-val="{{ false }}">
+          <sc-if value="{{ redReescrita }}" hint-placeholder-val="{{ false }}">
+            <div class="ct-card" data-red="reescrita" role="status"><div class="ct-eb">Reescrita</div><div style="font-size:var(--fs-base);color:var(--ink);margin-top:var(--ct-e1);line-height:1.5;">{{ redReescritaTxt }}</div></div>
+          </sc-if>
           <!-- U4: retomada explícita do rascunho. O texto sempre voltou para a caixa, mas
                em silêncio: nada dizia de quando era nem oferecia recomeçar sem perder a
                prova carregada. "Começar do zero" pergunta antes — é destruição de texto. -->
@@ -3813,6 +3816,45 @@ window.ctPdfLib = (function(){
           <sc-if value="{{ redCortesShow }}" hint-placeholder-val="{{ false }}">
             <div class="ct-card" data-red="cortes-ia" role="status"><div class="ct-eb ct-eb-warn">Texto acima do limite</div><div class="ct-nota" style="margin-top:var(--ct-e1);">{{ redCortesTxt }}.</div></div>
           </sc-if>
+          <!-- RESULTADO ANOTADO (fatia 3): comparação com a tentativa anterior, nota por quesito e o texto marcado -->
+          <sc-if value="{{ redCmpShow }}" hint-placeholder-val="{{ false }}">
+            <div class="ct-card" data-red="comparacao">
+              <div class="ct-eb">Antes e depois</div>
+              <div class="ct-cmp-topo"><span class="ct-cmp-nota">{{ redCmpAntes }}</span><span class="ct-cmp-seta" aria-hidden="true">→</span><span class="ct-cmp-nota ct-cmp-nova">{{ redCmpDepois }}</span><span class="ct-cmp-delta" style="{{ redCmpDeltaStyle }}">{{ redCmpDelta }}</span></div>
+              <sc-if value="{{ redCmpTemLinhas }}" hint-placeholder-val="{{ false }}">
+                <div class="ct-cmp-linhas"><sc-for list="{{ redCmpLinhas }}" as="l"><div class="ct-cmp-linha" data-red="comparacao-linha" data-d="{{ l.d }}"><span class="ct-quesito-n">{{ l.q }}</span><span class="ct-dado">{{ l.antes }}</span><span aria-hidden="true">→</span><span class="ct-dado">{{ l.depois }}</span><span class="ct-cmp-sinal" style="{{ l.setaStyle }}">{{ l.seta }}</span></div></sc-for></div>
+              </sc-if>
+            </div>
+          </sc-if>
+          <sc-if value="{{ redQuesitosShow }}" hint-placeholder-val="{{ false }}">
+            <div class="ct-card" data-red="quesitos">
+              <div class="ct-esp-cab">Nota por quesito</div>
+              <div class="ct-esp-ex">{{ redTopResumo }}</div>
+              <sc-for list="{{ redQuesitos }}" as="q" hint-placeholder-count="3">
+                <div class="ct-quesito" data-red="quesito" data-st="{{ q.st }}">
+                  <span class="ct-quesito-n">{{ q.q }}</span>
+                  <div class="ct-quesito-corpo">
+                    <div class="ct-quesito-tit">{{ q.texto }}</div>
+                    <div class="ct-quesito-regua"><div class="ct-quesito-barra" data-red="quesito-barra"><div style="{{ q.barStyle }}"></div></div><span class="ct-dado" data-red="quesito-nota">{{ q.nota }}</span><span class="ct-quesito-st">{{ q.stLabel }}</span></div>
+                    <sc-if value="{{ q.temTrecho }}" hint-placeholder-val="{{ false }}"><div class="ct-quesito-trecho">“{{ q.trecho }}”</div></sc-if>
+                    <sc-if value="{{ q.temFaltou }}" hint-placeholder-val="{{ false }}"><div class="ct-quesito-falta" data-red="quesito-falta">{{ q.faltou }}</div></sc-if>
+                    <sc-if value="{{ q.estimado }}" hint-placeholder-val="{{ false }}"><div class="ct-nota">A IA não avaliou este quesito; a nota é a do corretor local.</div></sc-if>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ redAnotShow }}" hint-placeholder-val="{{ false }}">
+            <div class="ct-card" data-red="anotada">
+              <div class="ct-esp-cab">Sua resposta, anotada</div>
+              <div class="ct-nota" style="margin-top:var(--ct-e1);">O que está marcado é o trecho que pontuou em cada quesito. O que não tem marca não foi usado pela correção.</div>
+              <div class="ct-anotada ct-leitura" data-red="anotada-texto"><sc-for list="{{ redAnotSegs }}" as="s"><sc-if value="{{ s.liso }}" hint-placeholder-val="{{ true }}"><span>{{ s.t }}</span></sc-if><sc-if value="{{ s.marca }}" hint-placeholder-val="{{ false }}"><mark class="ct-anot" data-st="{{ s.st }}" data-q="{{ s.q }}">{{ s.t }}</mark></sc-if></sc-for></div>
+            </div>
+          </sc-if>
+          <div class="ct-card ct-mesa-linha" style="justify-content:space-between;gap:var(--ct-e4);">
+            <div style="flex:1;min-width:14em;"><div class="ct-eb">Próxima tentativa</div><div style="font-size:var(--fs-base);color:var(--text2);margin-top:var(--ct-e1);line-height:1.5;">{{ redReescreverDica }}</div></div>
+            <button class="ct-btn" data-red="reescrever" onclick="{{ reescreverRed }}">{{ redReescreverTxt }}</button>
+          </div>
           <sc-if value="{{ redTemPlano }}" hint-placeholder-val="{{ false }}">
             <div class="ct-card">
               <div style="font-family:var(--display);font-size:var(--fs-2xl);font-weight:600;color:var(--ink);">Como corrigir esta resposta</div>
@@ -3836,7 +3878,7 @@ window.ctPdfLib = (function(){
             </div>
           </sc-if>
 
-          <sc-if value="{{ redHasTopicos }}" hint-placeholder-val="{{ false }}">
+          <sc-if value="{{ redTopLista }}" hint-placeholder-val="{{ false }}">
             <div class="ct-card">
               <div class="ct-esp-cab">Quesito a quesito</div>
               <div class="ct-esp-ex">{{ redTopResumo }}</div>
@@ -3879,7 +3921,7 @@ window.ctPdfLib = (function(){
           </div>
           </sc-if>
 
-          <sc-if value="{{ redResultLivre }}" hint-placeholder-val="{{ false }}">
+          <sc-if value="{{ redCompareShow }}" hint-placeholder-val="{{ false }}">
             <div class="ct-card">
               <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:14px;">
                 <div style="font-family:var(--display);font-size:var(--fs-2xl);font-weight:600;color:var(--ink);">Sua resposta × o espelho</div>
@@ -7496,7 +7538,7 @@ class Component extends DCLogic {
       redRascunhoOculto:false,
       redQuestaoAberta:true, redMarcasAberto:false, redEditandoEnun:false,   // mesa de prova: só de tela
       redModoResposta:(String(this._load('redText','')||'').trim()?'digitar':'mao'), redCronoOn:false, redCronoTick:0,
-      redLinhasN:null, redFoco:false, redGabVista:'', redGabErro:'', redGabOk:'', redConferindo:false, redConf:{}, redLinhasMao:'', redResultId:'', redRecBusy:false, redCorrDesde:0, redCorrTick:0,    // U4: a faixa do rascunho da redação, depois de dispensada
+      redLinhasN:null, redFoco:false, redGabVista:'', redGabErro:'', redGabOk:'', redConferindo:false, redConf:{}, redLinhasMao:'', redResultId:'', redReescritaDe:'', redReescritaNota:'', redRecBusy:false, redCorrDesde:0, redCorrTick:0,    // U4: a faixa do rascunho da redação, depois de dispensada
       // 'video' e 'mapa' (este em 25/09/2026) saíram dos formatos; quem tivesse essa
       // preferência salva ficaria numa aba sem botão para sair dela. Cai para texto; o
       // mfGen antigo continua guardado, só não é mais lido.
@@ -12765,7 +12807,7 @@ class Component extends DCLogic {
     const _sug = gabTexto ? null : this._espSugDe(q.id);
     const _gab = gabTexto || (_sug ? this._espSugTexto(_sug) : '');
     this._redCorrAbortar(); this._redCronoZerar();
-    this.setState({
+    this.setState({redReescritaDe:'', redReescritaNota:'', 
       redProvaId: q.id, espSugAtual: _sug,
       redDisciplina:{disc:this._redDiscDoBanco(q.disciplina), origem:'banco', banco:String(q.disciplina||'')},
       // guarda POR QUE não há espelho, para a faixa dizer a verdade em vez de chutar
@@ -12864,7 +12906,9 @@ class Component extends DCLogic {
       if(caixa===this._redFolhaVista) return;
       if(this._redFolhaRO){ this._redFolhaRO.disconnect(); this._redFolhaRO=null; }
       this._redFolhaVista=caixa; if(!caixa) return;
-      if(typeof ResizeObserver==='function'){ this._redFolhaRO=new ResizeObserver(()=>this._redMedirFolha()); this._redFolhaRO.observe(caixa); if(caixa.parentElement) this._redFolhaRO.observe(caixa.parentElement); }
+      if(typeof ResizeObserver==='function'){ // a medição muda a altura da folha: feita dentro do aviso do observador, o navegador acusa "ResizeObserver loop"
+        // e o app mostrava isso como erro na tela. Vai para o próximo quadro.
+        this._redFolhaRO=new ResizeObserver(()=>{ try{ requestAnimationFrame(this._redMedirFolha); }catch(_){ this._redMedirFolha(); } }); this._redFolhaRO.observe(caixa); if(caixa.parentElement) this._redFolhaRO.observe(caixa.parentElement); }
       // a medida é em ch: quando a serifa do tema termina de carregar, o ch muda e a folha não muda de tamanho
       try{ if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>this._redMedirFolha()); }catch(_){}
       this._redMedirFolha();
@@ -12928,9 +12972,10 @@ class Component extends DCLogic {
       aiUsed:false, propria:true, livre:false, enunciado:enun, aproximada:aprox, quesitos };
     const agora=Date.now();
     const entry={ id:'rd'+agora, up:agora, tema:titulo, words:0, nota, ts:agora, disc:disc.disc||'', disciplinaOrigem:disc.origem||'',
-      res, texto:'', gabarito:this.state.redGabarito, aproximada:aprox, origem:'conferencia-propria', tempoMs, ...(linhas!=null?{linhas}:{}) };
+      res, texto:'', gabarito:this.state.redGabarito, aproximada:aprox, origem:'conferencia-propria', tempoMs, ...(linhas!=null?{linhas}:{}),
+      ...(this._redAnteriorId()?{anteriorId:this._redAnteriorId()}:{}) };
     const hist=[entry, ...this.state.redHistory].slice(0,12); this._redSave(hist);
-    this.setState({redResult:res, redHistory:hist, redConferindo:false, redConf:{}, redLinhasMao:'', redSubText:'', redSubGab:this.state.redGabarito});
+    this.setState({redResult:res, redResultId:entry.id, redHistory:hist, redConferindo:false, redConf:{}, redLinhasMao:'', redSubText:'', redSubGab:this.state.redGabarito, redReescritaDe:'', redReescritaNota:''});
     this._redCronoZerar(); this.flashSync();
     try{ this._redRegistrar({origem:'redacao', prova:titulo, notaTotal:nota, notaMax:10, disc:disc.disc, disciplinaOrigem:disc.origem, aproximada:aprox,
       quesitos:quesitos.map(q=>({titulo:q.quesito, nota:q.obtido, max:q.pontos})) }); }catch(_){}
@@ -14825,7 +14870,7 @@ class Component extends DCLogic {
     if(disc && !this._redDiscOpcoes().some(d=>d.v===disc)) return;
     this.setState({redDisciplina:{...(this.state.redDisciplina||{}),disc,origem:'manual'}});
   };
-  redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.')) return; this._redBoot=''; this._redCorrAbortar(); this._redCronoZerar(); this.setState({redResult:null, redText:'', redTextTs:0, redRascunhoOculto:false, redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false, redModoProva:false, redEditandoEnun:false, redQuestaoAberta:true, redModoResposta:'mao', redGabVista:'', redGabErro:'', redGabOk:'', redConferindo:false, redConf:{}, redLinhasMao:'', redProvaId:'', redDisciplina:{}, espSugAtual:null}); try{ localStorage.setItem(this._chave('redText'),JSON.stringify('')); localStorage.setItem(this._chave('redGabarito'),JSON.stringify('')); localStorage.setItem(this._chave('redEnunciado'),JSON.stringify('')); }catch(_){} };
+  redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.')) return; this._redBoot=''; this._redCorrAbortar(); this._redCronoZerar(); this.setState({redReescritaDe:'', redReescritaNota:'', redResult:null, redText:'', redTextTs:0, redRascunhoOculto:false, redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false, redModoProva:false, redEditandoEnun:false, redQuestaoAberta:true, redModoResposta:'mao', redGabVista:'', redGabErro:'', redGabOk:'', redConferindo:false, redConf:{}, redLinhasMao:'', redProvaId:'', redDisciplina:{}, espSugAtual:null}); try{ localStorage.setItem(this._chave('redText'),JSON.stringify('')); localStorage.setItem(this._chave('redGabarito'),JSON.stringify('')); localStorage.setItem(this._chave('redEnunciado'),JSON.stringify('')); }catch(_){} };
   redOpenHist = (e)=>{ const id=e.currentTarget.dataset.id; const h=(this.state.redHistory||[]).find(x=>x.id===id);
     if(!h||!h.res){ this._toast('Correção completa não disponível para este item'); return; }
     this._redCorrAbortar();
@@ -14962,6 +15007,7 @@ class Component extends DCLogic {
     if(words<40 || this.state.redBusy || !(this.state.redGabarito||'').trim()) return;
     this._redCorrAbortar();
     const _aprox=!!this.state.espSugAtual;     // lido ANTES da espera: a prova pode mudar no meio
+    const _anterior=this._redAnteriorId();
     const _disc={...(this.state.redDisciplina||{})};
     this._redCronoPausar(); const _tempoMs=this._redTempoAgora(); if(this.state.redFoco) this._redFocoPor(false);
     const gab=this.state.redGabarito; const enun=(this.state.redEnunciado||'').trim();
@@ -14983,9 +15029,9 @@ class Component extends DCLogic {
         disc:_disc.disc, disciplinaOrigem:_disc.origem, aproximada:_aprox}); }catch(_){}
     const agora=Date.now();
     const entry={id:'rd'+agora, up:agora, tema:_titulo, words, nota:res.nota, ts:agora, disc:_disc.disc||'', disciplinaOrigem:_disc.origem||'', res, texto:text, gabarito:gab, aproximada:_aprox, origem:(_aprox?'espelho-sugerido':'espelho-oficial'), tempoMs:_tempoMs,
-      motor:res.motor||'ia', ...(res.falhaIA?{falhaIA:res.falhaIA}:{}), ...(evo&&evo.id?{evoId:evo.id}:{})};
+      motor:res.motor||'ia', ...(res.falhaIA?{falhaIA:res.falhaIA}:{}), ...(evo&&evo.id?{evoId:evo.id}:{}), ...(_anterior?{anteriorId:_anterior}:{})};
     const hist=[entry, ...this.state.redHistory].slice(0,12); this._redSave(hist);
-    this.setState({redBusy:false, redResult:res, redResultId:entry.id, redHistory:hist}); this._redCronoZerar(); this.flashSync();
+    this.setState({redBusy:false, redResult:res, redResultId:entry.id, redHistory:hist, redReescritaDe:'', redReescritaNota:''}); this._redCronoZerar(); this.flashSync();
     // tempo esgotado: se a IA ainda responder, a correção dela substitui a estimativa (a chamada já foi paga)
     const tardia=this._redTardia; this._redTardia=null;
     if(res.falhaIA==='tempo' && tardia){ const tok2=this._redCorrTok;
@@ -15007,6 +15053,22 @@ class Component extends DCLogic {
     this.setState({...(achou?{redHistory:hist}:{}), ...((naTela||!id)?{redResult:res}:{})}); this.flashSync();
     return !!achou;
   }
+  /* ===== RESULTADO ANOTADO (fatia 3, 03/10/2026): reescrever e comparar =====
+     Da tela da nota, volta para a folha com o mesmo enunciado e o mesmo espelho (guardado de novo). Quem
+     digitou recebe o texto anterior para editar; quem fez à mão refaz no papel. A nova correção guarda
+     `anteriorId`, e a tela da nota compara as duas tentativas quesito a quesito. */
+  reescreverRed = ()=>{
+    const r=this.state.redResult; if(!r) return;
+    const propria=!!r.propria; const texto=propria?'':String(this.state.redSubText||'');
+    this._redCorrAbortar(); this._redCronoZerar(); this._redBoot='';
+    this.setState({ redResult:null, redReescritaDe:this.state.redResultId||'', redReescritaNota:String(r.notaStr||'').replace('.',','),
+      redText:texto, redTextTs:texto?Date.now():0, redModoResposta:propria?'mao':'digitar', redRascunhoOculto:true,
+      redEnunciado:(r.enunciado||this.state.redEnunciado||''), redGabarito:(this.state.redSubGab||this.state.redGabarito||''),
+      redEspelhoOculto:true, redConferindo:false, redConf:{}, redSubText:null, redSubGab:null });
+    try{ window.scrollTo(0,0); }catch(_){}
+  };
+  /** A reescrita só vale como ligação se a tentativa anterior ainda está no histórico. */
+  _redAnteriorId(){ const id=this.state.redReescritaDe; return (id && (this.state.redHistory||[]).some(h=>h.id===id)) ? id : ''; }
   cancelarCorrecao = ()=>{ const eraEntrega=!!this.state.redBusy; this._redCorrAbortar();
     if(eraEntrega) this.setState({redEspelhoOculto:!!this._redOcultoAntes}); };
   /** A estimativa local está na tela; tenta de novo com a IA e, se der, SUBSTITUI a entrada do histórico. */
@@ -19306,6 +19368,32 @@ class Component extends DCLogic {
     const redTopicos=(redHasTopicos?_redRes.topicos:[]).map(t=>{ const m=_topMeta[t.status]||_topMeta.faltou; return {ponto:t.ponto, comentario:t.comentario, hasComent:!!t.comentario, statusLabel:m.label, cor:m.c,
       badgeStyle:`display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:var(--r-sm);background:${m.bg};color:${m.c};font-weight:800;font-size:var(--fs-base);flex:none;line-height:1;`,
       chipStyle:`font-size:var(--fs-2xs);font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:${m.c};background:${m.bg};padding:2px 8px;border-radius:99px;flex:none;`, ic:m.ic}; });
+    // ---- resultado anotado (fatia 3): nota por quesito desenhada, texto marcado e comparação com a tentativa anterior
+    const _rq=(_redRes && Array.isArray(_redRes.quesitos))?_redRes.quesitos:[];
+    const _rqSt=(q)=>{ const p=q.pontos?(+q.obtido||0)/q.pontos:0; return p>=0.99?'coberto':(p>0?'parcial':'faltou'); };
+    const redQuesitosShow=_rq.length>0 && _rq.length===redTopicos.length && _rq.every(q=>q.pontos!=null);
+    const redQuesitos=!redQuesitosShow?[]:_rq.map((q,i)=>{ const st=_rqSt(q); const m=_topMeta[st]; const t=_redRes.topicos[i]||{};
+      const p=q.pontos?Math.max(0,Math.min(1,(+q.obtido||0)/q.pontos)):0;
+      // correção local e conferência própria não trazem "faltou"/"trecho": o comentário do tópico diz o que há a dizer
+      const obs=(!q.faltou && !q.trecho) ? String(t.comentario||'').replace(/^Nota [\d,]+ de [\d,]+(\s*\([^)]*\))?\s*(—\s*)?/,'') : '';
+      return { q:'Q'+(i+1), texto:String(t.ponto||q.quesito||'').replace(/^Quesito \d+ — /,''), st, stLabel:m.label,
+        nota:this._redNum(q.obtido)+' / '+this._redNum(q.pontos),
+        barStyle:'width:'+Math.round(p*100)+'%;background-color:'+m.c+';',
+        faltou:String(q.faltou||obs||''), temFaltou:!!(q.faltou||obs), trecho:String(q.trecho||''), temTrecho:!!q.trecho,
+        estimado:!!q.estimado }; });
+    const _redAnot=(()=>{ const M=window.CT_REDACAO_MOTOR; const txt=String(this.state.redSubText||'');
+      if(!M || !M.anotar || !redQuesitosShow || !txt.trim() || !_rq.some(q=>q.trecho)) return null;
+      try{ const a=M.anotar(txt, _rq.map((q,i)=>({trecho:q.trecho, q:i+1, status:_rqSt(q)}))); return a.segs.some(s=>s.q)?a:null; }catch(_){ return null; } })();
+    const redAnotSegs=_redAnot?_redAnot.segs.map(s=>({t:s.t, marca:!!s.q, liso:!s.q, q:s.q?('Q'+s.q):'', st:s.status||''})):[];
+    const _redCmp=(()=>{ const hs=this.state.redHistory||[]; const cur=_redRes?hs.find(h=>h.id===this.state.redResultId):null;
+      const ant=(cur && cur.anteriorId)?hs.find(h=>h.id===cur.anteriorId):null; if(!ant) return null;
+      const d=Math.round(((+cur.nota||0)-(+ant.nota||0))*10)/10; const f1=(x)=>(+x||0).toFixed(1).replace('.',',');
+      const qa=(ant.res&&ant.res.quesitos)||[], qd=(cur.res&&cur.res.quesitos)||[];
+      const linhas=(qa.length && qa.length===qd.length)?qd.map((q,i)=>{ const dd=Math.round(((+q.obtido||0)-(+qa[i].obtido||0))*100)/100;
+        return { q:'Q'+(i+1), antes:this._redNum(qa[i].obtido), depois:this._redNum(q.obtido), d:dd>0?'subiu':(dd<0?'caiu':'igual'),
+          seta:dd>0?'↑':(dd<0?'↓':'='), cor:dd>0?'var(--ok)':(dd<0?'var(--danger)':'var(--text3)') }; }):[];
+      return { antes:f1(ant.nota), depois:f1(cur.nota), delta:d>0?('+'+f1(d)):(d<0?('−'+f1(-d)):'igual'),
+        cor:d>0?'var(--ok)':(d<0?'var(--danger)':'var(--text2)'), linhas }; })();
     const redCobertura=(_redRes && _redRes.cobertura!=null)?_redRes.cobertura:0;
     const redCobColor=redCobertura>=75?'var(--ok)':redCobertura>=50?'var(--warn)':'var(--danger)';
     const redConceito=_redRes?(_redRes.conceito||''):'';
@@ -20678,6 +20766,13 @@ class Component extends DCLogic {
       espSugRegerar:(this.state.espSugBusy?'Gerando…':'Regenerar'),
       gerarEspelhoSugerido:this.gerarEspelhoSugerido,
       redHasTopicos, redTopicos, redCobertura:String(redCobertura)+'%', redCobColor, redCobBarW:String(redCobertura)+'%', redConceito, redConceitoStyle, redTopResumo,
+      redQuesitosShow, redQuesitos, redTopLista:redHasTopicos && !redQuesitosShow,
+      redAnotShow:!!_redAnot, redAnotSegs, redCompareShow:redResultLivre && !_redAnot,
+      redCmpShow:!!_redCmp, redCmpAntes:_redCmp?_redCmp.antes:'', redCmpDepois:_redCmp?_redCmp.depois:'', redCmpDelta:_redCmp?_redCmp.delta:'',
+      redCmpDeltaStyle:'color:'+(_redCmp?_redCmp.cor:'var(--text2)')+';', redCmpLinhas:_redCmp?_redCmp.linhas.map(l=>({...l, setaStyle:'color:'+l.cor+';'})):[], redCmpTemLinhas:!!(_redCmp&&_redCmp.linhas.length),
+      reescreverRed:this.reescreverRed, redReescreverTxt:(_redRes&&_redRes.propria)?'Refazer à mão':'Reescrever esta resposta',
+      redReescreverDica:(_redRes&&_redRes.propria)?'Refaça no papel com o padrão guardado e compare as duas conferências.':'Volte à folha com o seu texto, corrija o que faltou e compare as duas correções.',
+      redReescrita:!!this.state.redReescritaDe && !this.state.redResult, redReescritaTxt:'Reescrita · a tentativa anterior teve nota '+(this.state.redReescritaNota||'—')+'. Ao entregar, as duas são comparadas quesito a quesito.',
       redOrigemLabel:(this.state.redResult&&this.state.redResult.propria)?'conferência própria'
         :((this.state.redResult&&this.state.redResult.aiUsed===false)?'estimativa local':'corrigido por IA'),
       redResultIA:!(this.state.redResult&&this.state.redResult.propria),

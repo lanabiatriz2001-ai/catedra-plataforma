@@ -69,6 +69,46 @@
     return temTrecho(resposta, t) ? t.slice(0, 400) : '';
   }
 
+  /* ---- Onde o trecho está NA RESPOSTA (fatia 3): para a tela marcar o texto da pessoa. ----
+     A busca é a mesma do temTrecho (sem caixa, sem diferença de espaços), mas devolve as
+     posições no texto original, para a marca cair sobre o que a pessoa escreveu de fato. */
+  function nfc(t) { var x = String(t || ''); try { x = x.normalize('NFC'); } catch (_) {} return x; }
+  function mapear(base) {
+    var norm = '', idx = [], espaco = true;
+    for (var i = 0; i < base.length; i++) {
+      var ch = base.charAt(i);
+      if (/\s/.test(ch)) { if (!espaco) { norm += ' '; idx.push(i); espaco = true; } }
+      else { norm += (ch.toLowerCase().charAt(0) || ch); idx.push(i); espaco = false; }
+    }
+    return { norm: norm, idx: idx };
+  }
+  function localizarEm(base, mapa, trecho) {
+    var t = limparTrecho(achatar(trecho));
+    if (t.length < 4) return null;
+    var p = mapa.norm.indexOf(t);
+    if (p < 0) return null;
+    return { ini: mapa.idx[p], fim: mapa.idx[p + t.length - 1] + 1 };
+  }
+  function localizar(resposta, trecho) { var base = nfc(resposta); return localizarEm(base, mapear(base), trecho); }
+  /** Parte a resposta em segmentos: os marcados ({t, q, status}) e os lisos ({t}). Remontados, dão o
+      texto original caractere a caractere. Trecho que não existe, ou que cai sobre outro já marcado, fica de fora. */
+  function anotar(resposta, itens) {
+    var base = nfc(resposta), mapa = mapear(base);
+    var achados = (itens || []).map(function (it) {
+      var pos = it && it.trecho ? localizarEm(base, mapa, it.trecho) : null;
+      return pos ? { ini: pos.ini, fim: pos.fim, q: it.q, status: it.status || '' } : null;
+    }).filter(Boolean).sort(function (a, b) { return a.ini - b.ini || a.q - b.q; });
+    var segs = [], cursor = 0;
+    achados.forEach(function (a) {
+      if (a.ini < cursor) return;                       // sobreposto a uma marca anterior
+      if (a.ini > cursor) segs.push({ t: base.slice(cursor, a.ini) });
+      segs.push({ t: base.slice(a.ini, a.fim), q: a.q, status: a.status });
+      cursor = a.fim;
+    });
+    if (cursor < base.length) segs.push({ t: base.slice(cursor) });
+    return { texto: base, segs: segs };
+  }
+
   function cortar(texto, limite, nome, cortes) {
     var t = String(texto || '').trim();
     if (t.length <= limite) return t;
@@ -194,5 +234,5 @@
   }
 
   window.CT_REDACAO_MOTOR = { montarPrompt: montarPrompt, interpretar: interpretar, temTrecho: temTrecho,
-    naEscala: naEscala, motivoDaFalha: motivoDaFalha, MOTIVOS: MOTIVOS, LIMITES: LIMITES };
+    naEscala: naEscala, motivoDaFalha: motivoDaFalha, localizar: localizar, anotar: anotar, MOTIVOS: MOTIVOS, LIMITES: LIMITES };
 })();

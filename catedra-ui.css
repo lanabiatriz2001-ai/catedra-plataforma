@@ -1814,6 +1814,32 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
   .ct-rm-perfil:hover { transform: none; }
 }
 
+/* ===== Redação · resultado anotado (03/10/2026) =====
+   A cor de situação (ok/aviso/perigo) é fundo translúcido e traço; o TEXTO fica na tinta do tema. */
+.ct-quesito { display: grid; grid-template-columns: 2.6em minmax(0, 1fr); gap: var(--ct-e3); padding: var(--ct-e4) 0; border-top: 1px solid var(--border); }
+.ct-quesito-n { font-family: var(--mono); font-size: var(--fs-sm); font-weight: 600; color: var(--text2); padding-top: 2px; }
+.ct-quesito-tit { font-size: var(--fs-md); color: var(--ink); line-height: 1.5; font-weight: 600; }
+.ct-quesito-regua { display: flex; align-items: center; gap: var(--ct-e3); margin-top: var(--ct-e2); flex-wrap: wrap; }
+.ct-quesito-barra { flex: 1; min-width: 8em; height: 8px; border-radius: 99px; background: var(--surface2); overflow: hidden; }
+.ct-quesito-barra > div { height: 100%; border-radius: 99px; }
+.ct-quesito-st { font-size: var(--fs-2xs); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--text2); }
+.ct-quesito-trecho { margin-top: var(--ct-e2); font-family: var(--display); font-size: var(--fs-md); color: var(--ink); line-height: 1.6; }
+.ct-quesito-falta { margin-top: var(--ct-e2); font-size: var(--fs-base); color: var(--ink); line-height: 1.6; }
+.ct-quesito[data-st="faltou"] .ct-quesito-falta, .ct-quesito[data-st="parcial"] .ct-quesito-falta { padding: var(--ct-e2) var(--ct-e3); border-radius: var(--r-md); background: color-mix(in srgb, var(--warn) 12%, var(--surface)); }
+.ct-quesito[data-st="faltou"] .ct-quesito-falta { background: color-mix(in srgb, var(--danger) 10%, var(--surface)); }
+.ct-anotada { white-space: pre-wrap; font-family: var(--display); font-size: var(--fs-lg); line-height: 2; color: var(--ink); margin-top: var(--ct-e3); max-width: 68ch; }
+.ct-anot { color: var(--ink); border-radius: var(--r-sm); padding: 2px 1px; background: color-mix(in srgb, var(--ok) 22%, var(--surface)); box-shadow: inset 0 -2px 0 var(--ok); }
+.ct-anot[data-st="parcial"] { background: color-mix(in srgb, var(--warn) 22%, var(--surface)); box-shadow: inset 0 -2px 0 var(--warn); }
+.ct-anot::after { content: attr(data-q); font-family: var(--mono); font-size: var(--fs-2xs); font-weight: 700; margin-left: 4px; padding: 0 4px; border-radius: 99px; background: var(--surface); color: var(--text2); vertical-align: 2px; }
+.ct-cmp-topo { display: flex; align-items: baseline; gap: var(--ct-e3); flex-wrap: wrap; margin-top: var(--ct-e2); }
+.ct-cmp-nota { font-family: var(--display); font-size: var(--fs-2xl); font-weight: 700; color: var(--text2); }
+.ct-cmp-nova { font-size: calc(var(--fs-2xl) * 1.9); color: var(--ink); line-height: 1; }
+.ct-cmp-seta { color: var(--text3); }
+.ct-cmp-delta { font-family: var(--mono); font-weight: 700; font-size: var(--fs-md); }
+.ct-cmp-linhas { margin-top: var(--ct-e3); display: flex; flex-direction: column; }
+.ct-cmp-linha { display: flex; align-items: center; gap: var(--ct-e3); padding: var(--ct-e2) 0; border-top: 1px solid var(--border); color: var(--ink); }
+.ct-cmp-sinal { font-weight: 800; margin-left: auto; }
+
 /* ===== Redação · mesa de prova (03/10/2026) =====
    Questão à esquerda, folha à direita; empilha quando o conteúdo tem menos de 880px (janela de ~1180px com o menu aberto).
    A decisão é pela largura do CONTÊINER (iPad deitado fica lado a lado, em pé empilha). */
