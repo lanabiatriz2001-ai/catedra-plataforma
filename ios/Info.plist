@@ -37,6 +37,9 @@
     <string>UIInterfaceOrientationLandscapeRight</string>
   </array>
   <key>UIRequiresFullScreen</key><false/>
+  <!-- Janela flutuante do cronômetro (PiP do sistema, AVPictureInPictureController): sem o
+       modo de fundo "audio" o iOS não deixa o PiP abrir nem seguir com o app em segundo plano. -->
+  <key>UIBackgroundModes</key><array><string>audio</string></array>
   <!-- Endpoint da IA. O app lê daqui (com override por UserDefaults). -->
   <key>CatedraAIEndpoint</key><string>https://catedra-plataforma-fawn.vercel.app/api/complete</string>
   <!-- Deixa os arquivos exportados aparecerem no app Arquivos. -->

@@ -180,6 +180,9 @@ cat > "$APP/Info.plist" <<PLIST
     <string>UIInterfaceOrientationLandscapeRight</string>
   </array>
   <key>UIRequiresFullScreen</key><false/>
+  <!-- Janela flutuante do cronômetro (PiP do sistema, AVPictureInPictureController): sem o
+       modo de fundo "audio" o iOS não deixa o PiP abrir nem seguir com o app em segundo plano. -->
+  <key>UIBackgroundModes</key><array><string>audio</string></array>
   <key>CFBundleSupportedPlatforms</key><array><string>$PLATAFORMA</string></array>
   <key>DTPlatformName</key><string>$DTPLATFORM</string>
   <!-- O conteúdo vem de file:// dentro do app; as chamadas de rede (Supabase e IA) são

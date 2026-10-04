@@ -10,7 +10,7 @@
          mouseup não vem) — e a seleção sobrevive aos re-renders de cada segundo;
    · (g) Sair com o auth.js presente delega ao CatedraAuth e NÃO mostra o login antigo;
    · (h) janela flutuante: dentro do nativo sem API de PiP o botão não aparece; com o shim
-         do Mac, aparece;
+         do Mac, aparece; (h2) com a ponte catedraPiP do iPad (PiP do sistema), abre e conversa;
    · (i) cronômetro e simulado restaurados depois de o processo morrer somam o tempo parado
          pela MESMA política do tique (mínimo 1s, teto 6h).
    O item 3 da lista original (fonte ≥16px para não dar zoom ao focar) foi refutado — o zoom
@@ -250,6 +250,29 @@ export async function testarIpadToque(pageDaSuite, base, ok, ctx = {}) {
         await a.togglePiP(); await w(200);
         r.msg = String(a.state.pipMsg || '');
         r.msgHonesta = /não está disponível neste aparelho/.test(r.msg) && !/Safari|Tela cheia/.test(r.msg);
+        // (h2) iPad com a ponte catedraPiP (PiP do sistema): o botão aparece, abrir manda os
+        // números, o host recebe 'atualizar' a cada 500 ms, o play/pausa da janela alterna o
+        // cronômetro e o fechamento pelo sistema para o envio
+        const msgs = []; let responde = true;
+        window.webkit.messageHandlers.catedraPiP = { postMessage(b) { msgs.push(b); return Promise.resolve(b.acao === 'abrir' ? responde : false); } };
+        r.natMostra = a._mostraPiP();
+        a.setState({ pomoMenuOpen: true }); await w(1300);
+        r.natBotao = [...document.querySelectorAll('button')].some(b => /Janela flutuante/.test(b.textContent || '') && b.getBoundingClientRect().height > 0);
+        a.setState({ pomoMenuOpen: false, timerSeconds: 754, timerMode: 'livre', timerRunning: false });
+        await a.togglePiP(); await w(1200);
+        const ab = msgs.find(m => m.acao === 'abrir');
+        r.natAbriu = !!ab && ab.disp === a.fmtClock(754) && ab.rodando === false && /^#|^rgb/.test(String(ab.cor || ''));
+        r.natAtualiza = msgs.filter(m => m.acao === 'atualizar').length >= 2;
+        const rodavaAntes = a.state.timerRunning;
+        window.catedraPiPEvento('alternar'); await w(100);
+        r.natAlterna = a.state.timerRunning !== rodavaAntes;
+        if (a.state.timerRunning) a.toggleTimer();
+        window.catedraPiPEvento('fechado'); const n0 = msgs.length; await w(1200);
+        r.natParou = msgs.length === n0 && !a._pipNatAberto;
+        responde = false; msgs.length = 0;
+        await a.togglePiP(); await w(200);
+        r.natRecusa = /não está disponível neste aparelho/.test(String(a.state.pipMsg || '')) && !a._pipNatInt;
+        delete window.webkit.messageHandlers.catedraPiP;
         // limpa
         delete window.webkit; a.setState({ pomoMenuOpen: false });
         if (capt) HTMLCanvasElement.prototype.captureStream = capt;
@@ -267,6 +290,10 @@ export async function testarIpadToque(pageDaSuite, base, ok, ctx = {}) {
       ok(r.nativoDetectado && r.semPip && r.botaoSumiu, R + '(h) nativo sem API de PiP: "Janela flutuante" não é renderizada');
       ok(r.comShim && r.botaoVoltou, R + '(h) com o shim do Mac (documentPictureInPicture) o botão volta');
       ok(r.msgHonesta, R + '(h) a mensagem não manda para o Safari nem para uma Tela cheia (' + r.msg.slice(0, 70) + ')');
+      ok(r.natMostra && r.natBotao, R + '(h2) iPad com a ponte catedraPiP: "Janela flutuante" aparece e pinta');
+      ok(r.natAbriu && r.natAtualiza, R + '(h2) abrir manda os números do cronômetro e segue atualizando');
+      ok(r.natAlterna && r.natParou, R + '(h2) play/pausa da janela alterna o cronômetro; fechar pelo sistema para o envio');
+      ok(r.natRecusa, R + '(h2) host sem PiP responde não: aviso honesto e nada fica rodando');
       ok(r.semAuthSai, R + '(g) sem CatedraAuth o Sair antigo continua valendo');
     } finally { await c.close(); }
   }

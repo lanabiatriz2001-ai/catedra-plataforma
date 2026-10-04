@@ -20,6 +20,8 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;mostr
 <title>Cátedra · Plataforma de estudos</title>
 <meta name="description" content="Protótipo funcional da Cátedra para organizar estudos, revisões, simulados e materiais.">
 <script src="./prioridade-calc.js"></script>
+<!-- método "Ciclo Magistratura": regras puras (rotação, turnos, D+7/30/90); a tela vive aqui no host -->
+<script src="./ciclo-magistratura.js"></script>
 <!-- motor da busca do ⌘K (item 6): leve (4 KB) e sem dados; os acervos entram sob demanda -->
 <script src="./busca-unica.js"></script>
 <!-- "O que mudou esta semana" (item 7): recorte dos informativos, gerado no build -->
@@ -326,8 +328,12 @@ html.ct-teclado .ct-scroll{ padding-bottom:12px !important; }
 .cth-chead h3{ margin:0; font-family:var(--display); font-size:17.5px; font-weight:700; letter-spacing:-.01em; color:var(--ink); }
 .cth-chead .meta{ color:var(--text3); font-size:var(--fs-sm); }
 .cth-chead .meta b{ color:var(--text2); font-family:var(--mono); font-weight:600; }
-.cth-bars{ display:flex; align-items:flex-end; gap:12px; height:150px; }
-.cth-bcol{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:7px; height:100%; }
+/* min-width:0 nas colunas: sem isto a coluna não encolhe abaixo do rótulo ("45min", "DOM · HOJE")
+   e, com sete delas em 390 px, a última empurrava o cartão 2 px para fora da tela — só aparecia
+   no domingo, quando o "hoje" cai na última coluna. O rótulo não quebra; sobra, vaza centrado. */
+.cth-bars{ display:flex; align-items:flex-end; gap:clamp(6px,2.4vw,12px); height:150px; }
+.cth-bcol{ flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:7px; height:100%; }
+.cth-bcol > span{ white-space:nowrap; }
 .cth-cols{ display:grid; grid-template-columns:minmax(0,47fr) minmax(0,53fr); gap:18px; align-items:start; }
 .cth-stack{ display:flex; flex-direction:column; gap:18px; min-width:0; }
 .cth-task{ display:flex; align-items:center; gap:12px; padding:11px 11px; border-radius:var(--radius); border:1px solid transparent; width:100%; text-align:left; background:transparent; cursor:pointer; font-family:inherit; }
@@ -1081,6 +1087,8 @@ window.ctPdfLib = (function(){
             </div>
             </sc-if>
 
+
+
             <div>
               <div class="ct-rotulo">Nível de foco</div>
               <div class="ct-reg-foco"><sc-for list="{{ focoDots }}" as="f" hint-placeholder-count="5"><button class="ct-alvo ct-miudo" data-v="{{ f.n }}" onclick="{{ setSessionFoco }}" title="{{ f.label }}" aria-label="{{ f.label }}" style="{{ f.style }}"></button></sc-for><span class="ct-nota" style="margin-left:6px;font-weight:600;color:var(--text2);">{{ focoLabel }}</span></div>
@@ -1241,6 +1249,24 @@ window.ctPdfLib = (function(){
           <button onclick="{{ finishFocus }}" style="{{ salaBtnSec }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"></path></svg>Encerrar</button>
           <sc-if value="{{ mostraPiP }}" hint-placeholder-val="{{ true }}"><button onclick="{{ togglePiP }}" title="Janela flutuante (Picture-in-Picture)" style="{{ salaBtnSec }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="14" rx="2"></rect><rect x="12" y="11" width="7" height="5" rx="1" fill="currentColor" stroke="none"></rect></svg>Flutuante</button></sc-if>
         </div>
+        <!-- Ciclo Magistratura: registrar cada questão enquanto responde (só com o relógio correndo) -->
+        <sc-if value="{{ cmQShow }}" hint-placeholder-val="{{ false }}">
+          <div class="cm-qm" data-onde="foco">
+            <button class="cm-qm-btn" onclick="{{ cmQAlternar }}" aria-expanded="{{ cmQAbertoStr }}" aria-controls="cm-qm-foco">Registrar questão<span class="cm-qm-n">{{ cmQHojeTxt }}</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+            <sc-if value="{{ cmQAberto }}" hint-placeholder-val="{{ false }}">
+              <div class="cm-qm-painel" id="cm-qm-foco" role="group" aria-label="Registrar questão">
+                <label class="cm-lab">Matéria<select class="cm-in" data-q="mat" value="{{ cmQMatSel }}" onchange="{{ cmQ }}"><sc-for list="{{ cmQMats }}" as="o" hint-placeholder-count="4"><option value="{{ o.id }}" selected="{{ o.sel }}">{{ o.nome }}</option></sc-for></select></label>
+                <div class="cm-lab" role="group" aria-label="Resultado">Resultado<span class="cm-seg"><sc-for list="{{ cmQRes }}" as="o" hint-placeholder-count="2"><button data-q="res" data-v="{{ o.v }}" onclick="{{ cmQ }}" aria-pressed="{{ o.on }}">{{ o.t }}</button></sc-for></span></div>
+                <div class="cm-lab" role="group" aria-label="Certeza">Certeza<span class="cm-seg"><sc-for list="{{ cmQCert }}" as="o" hint-placeholder-count="3"><button data-q="certeza" data-v="{{ o.v }}" onclick="{{ cmQ }}" aria-pressed="{{ o.on }}">{{ o.t }}</button></sc-for></span></div>
+                <sc-if value="{{ cmQCatShow }}" hint-placeholder-val="{{ true }}">
+                  <div class="cm-lab" role="group" aria-label="Categoria do erro">Categoria do erro<span class="cm-seg"><sc-for list="{{ cmQCat }}" as="o" hint-placeholder-count="5"><button data-q="categoria" data-v="{{ o.v }}" onclick="{{ cmQ }}" aria-pressed="{{ o.on }}">{{ o.t }}</button></sc-for></span></div>
+                </sc-if>
+                <p class="cm-nota">Chute certo conta como erro. Acerto com certeza não vai para o caderno.</p>
+                <button class="ct-btn cm-qm-ok" onclick="{{ cmQRegistrar }}">Registrar</button>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
         <sc-if value="{{ hasPipMsg }}" hint-placeholder-val="{{ false }}">
           <div style="max-width:min(440px,84vw);margin-top:16px;text-align:center;font-size:var(--fs-sm);line-height:1.5;color:rgba(255,255,255,.72);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:var(--radius);padding:11px 14px;">{{ pipMsg }}</div>
         </sc-if>
@@ -1687,6 +1713,24 @@ window.ctPdfLib = (function(){
                 <button class="cth-bghost" onclick="{{ resetTimer }}">Zerar</button>
                 <button class="cth-bstrong" onclick="{{ openSession }}">+ Registrar sessão</button>
               </div>
+              <!-- Ciclo Magistratura: registrar cada questão enquanto responde (só com o relógio correndo) -->
+              <sc-if value="{{ cmQShow }}" hint-placeholder-val="{{ false }}">
+                <div class="cm-qm" data-onde="inicio">
+                  <button class="cm-qm-btn" onclick="{{ cmQAlternar }}" aria-expanded="{{ cmQAbertoStr }}" aria-controls="cm-qm-inicio">Registrar questão<span class="cm-qm-n">{{ cmQHojeTxt }}</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+                  <sc-if value="{{ cmQAberto }}" hint-placeholder-val="{{ false }}">
+                    <div class="cm-qm-painel" id="cm-qm-inicio" role="group" aria-label="Registrar questão">
+                      <label class="cm-lab">Matéria<select class="cm-in" data-q="mat" value="{{ cmQMatSel }}" onchange="{{ cmQ }}"><sc-for list="{{ cmQMats }}" as="o" hint-placeholder-count="4"><option value="{{ o.id }}" selected="{{ o.sel }}">{{ o.nome }}</option></sc-for></select></label>
+                      <div class="cm-lab" role="group" aria-label="Resultado">Resultado<span class="cm-seg"><sc-for list="{{ cmQRes }}" as="o" hint-placeholder-count="2"><button data-q="res" data-v="{{ o.v }}" onclick="{{ cmQ }}" aria-pressed="{{ o.on }}">{{ o.t }}</button></sc-for></span></div>
+                      <div class="cm-lab" role="group" aria-label="Certeza">Certeza<span class="cm-seg"><sc-for list="{{ cmQCert }}" as="o" hint-placeholder-count="3"><button data-q="certeza" data-v="{{ o.v }}" onclick="{{ cmQ }}" aria-pressed="{{ o.on }}">{{ o.t }}</button></sc-for></span></div>
+                      <sc-if value="{{ cmQCatShow }}" hint-placeholder-val="{{ true }}">
+                        <div class="cm-lab" role="group" aria-label="Categoria do erro">Categoria do erro<span class="cm-seg"><sc-for list="{{ cmQCat }}" as="o" hint-placeholder-count="5"><button data-q="categoria" data-v="{{ o.v }}" onclick="{{ cmQ }}" aria-pressed="{{ o.on }}">{{ o.t }}</button></sc-for></span></div>
+                      </sc-if>
+                      <p class="cm-nota">Chute certo conta como erro. Acerto com certeza não vai para o caderno.</p>
+                      <button class="ct-btn cm-qm-ok" onclick="{{ cmQRegistrar }}">Registrar</button>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-if>
             </div>
           </div>
         </div>
@@ -2233,6 +2277,118 @@ window.ctPdfLib = (function(){
 
         <div id="ct-cycle-panel-executar" role="tabpanel" aria-labelledby="ct-cycle-tab-executar" style="{{ cyclePainelExecStyle }}">
 
+        <!-- CICLO MAGISTRATURA (ciclo-magistratura.js): 4 matérias ativas, turnos A/B por assunto,
+             revisões D+7/30/90 e o sábado. Só aparece no modo; os outros modos não mudam. -->
+        <sc-if value="{{ cmOn }}" hint-placeholder-val="{{ false }}">
+         <section class="cm" aria-labelledby="cm-titulo">
+          <header class="cm-hero">
+            <div>
+              <div class="cm-kicker">Ciclo Magistratura</div>
+              <h2 id="cm-titulo" class="cm-h">Hoje: {{ cmHoje }}</h2>
+              <p class="cm-sub">Uma matéria por dia, em ordem. Dois assuntos por matéria, depois ela vai para o fim da fila.</p>
+            </div>
+            <div class="cm-hero-acoes">
+              <sc-if value="{{ cmTemVencidas }}" hint-placeholder-val="{{ false }}"><span class="cm-alerta" role="status">{{ cmVencidasTxt }}</span></sc-if>
+              <button class="ct-btn-clara" onclick="{{ cmAvancar }}">Próxima matéria</button>
+            </div>
+          </header>
+
+          <div class="cm-rotina">
+            <sc-for list="{{ cmRotina }}" as="r" hint-placeholder-count="3"><div class="cm-rot"><b>{{ r.t }}</b><span>{{ r.d }}</span></div></sc-for>
+          </div>
+
+          <div class="cm-grade">
+            <sc-for list="{{ cmAtivas }}" as="a" hint-placeholder-count="4">
+              <article class="cm-mat" style="{{ a.estilo }}" data-vez="{{ a.vez }}" aria-label="{{ a.nome }}">
+                <div class="cm-mat-topo">
+                  <span class="cm-num" aria-hidden="true">{{ a.num }}</span>
+                  <h3 class="cm-mat-n">{{ a.nome }}</h3>
+                  <span class="cm-cnt">{{ a.assLabel }}</span>
+                  <sc-if value="{{ a.vez }}" hint-placeholder-val="{{ false }}"><span class="cm-hoje">Hoje</span></sc-if>
+                </div>
+                <label class="cm-lab">Assunto atual
+                  <input class="cm-in" type="text" data-id="{{ a.id }}" data-campo="ass" value="{{ a.ass }}" placeholder="Ex.: controle difuso" onchange="{{ cmCampo }}">
+                </label>
+                <sc-if value="{{ a.temNota }}" hint-placeholder-val="{{ false }}"><p class="cm-nota">{{ a.nota }}</p></sc-if>
+                <details class="cm-obras">
+                  <summary><span>{{ a.obra }}</span><sc-if value="{{ a.semObra }}" hint-placeholder-val="{{ false }}"><span>Cadastrar as obras</span></sc-if></summary>
+                  <label class="cm-lab">Obra principal<input class="cm-in" type="text" data-id="{{ a.id }}" data-campo="o" value="{{ a.obra }}" onchange="{{ cmCampo }}"></label>
+                  <label class="cm-lab">Segunda obra (vazio = Jurisprudência dos erros)<input class="cm-in" type="text" data-id="{{ a.id }}" data-campo="s" value="{{ a.segunda }}" onchange="{{ cmCampo }}"></label>
+                  <label class="cm-lab">Nota<input class="cm-in" type="text" data-id="{{ a.id }}" data-campo="nota" value="{{ a.nota }}" onchange="{{ cmCampo }}"></label>
+                </details>
+                <div class="cm-turno"><span>Turno A · primeiro contato</span><span>{{ a.aFeitoTxt }}</span></div>
+                <sc-for list="{{ a.A }}" as="b" hint-placeholder-count="4">
+                  <div class="cm-blk" data-feito="{{ b.feitoStr }}">
+                    <button class="cm-chk" data-id="{{ b.id }}" data-k="{{ b.k }}" onclick="{{ cmToggle }}" aria-pressed="{{ b.feitoStr }}" aria-label="{{ b.aria }}" disabled="{{ b.travado }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+                    <div class="cm-blk-t">
+                      <b>{{ b.b }}</b><small>{{ b.s }}</small>
+                      <sc-if value="{{ b.pr }}" hint-placeholder-val="{{ false }}"><input class="cm-in cm-pr" type="text" data-id="{{ b.id }}" data-campo="{{ b.prCampo }}" value="{{ b.prVal }}" placeholder="Progresso do caderno (ex.: 34/80)" aria-label="{{ b.prAria }}" onchange="{{ cmCampo }}"></sc-if>
+                      <sc-if value="{{ b.temLink }}" hint-placeholder-val="{{ false }}"><span class="cm-lk-linha"><a class="cm-lk" href="{{ b.link }}" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" stroke-linecap="round" stroke-linejoin="round"></path></svg>Abrir caderno do TEC</a><button class="cm-lk-x" data-l="{{ b.key }}" onclick="{{ cmLinkApagar }}" aria-label="Apagar o link do TEC">Trocar</button></span></sc-if>
+                      <sc-if value="{{ b.podeColar }}" hint-placeholder-val="{{ false }}"><button class="cm-lk" data-l="{{ b.key }}" onclick="{{ cmLinkAbrir }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" stroke-linecap="round" stroke-linejoin="round"></path></svg>Colar link do TEC</button></sc-if>
+                      <sc-if value="{{ b.editando }}" hint-placeholder-val="{{ false }}"><input class="cm-in" type="url" inputmode="url" autofocus data-l="{{ b.key }}" placeholder="https://www.tecconcursos.com.br/…" aria-label="Link do caderno do TEC (Enter grava)" onkeydown="{{ cmLinkSalvar }}" onblur="{{ cmLinkSalvar }}"></sc-if>
+                    </div>
+                  </div>
+                </sc-for>
+                <div class="cm-turno" data-aberto="{{ a.bAberto }}"><span>Turno B · reteste, na próxima vez da matéria após o Turno A</span><span>{{ a.bTxt }}</span></div>
+                <sc-for list="{{ a.B }}" as="b" hint-placeholder-count="4">
+                  <div class="cm-blk" data-feito="{{ b.feitoStr }}">
+                    <button class="cm-chk" data-id="{{ b.id }}" data-k="{{ b.k }}" onclick="{{ cmToggle }}" aria-pressed="{{ b.feitoStr }}" aria-label="{{ b.aria }}" disabled="{{ b.travado }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+                    <div class="cm-blk-t">
+                      <b>{{ b.b }}</b><small>{{ b.s }}</small>
+                      <sc-if value="{{ b.pr }}" hint-placeholder-val="{{ false }}"><input class="cm-in cm-pr" type="text" data-id="{{ b.id }}" data-campo="{{ b.prCampo }}" value="{{ b.prVal }}" placeholder="Progresso do caderno (ex.: 34/80)" aria-label="{{ b.prAria }}" onchange="{{ cmCampo }}"></sc-if>
+                      <sc-if value="{{ b.temLink }}" hint-placeholder-val="{{ false }}"><span class="cm-lk-linha"><a class="cm-lk" href="{{ b.link }}" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" stroke-linecap="round" stroke-linejoin="round"></path></svg>Abrir caderno do TEC</a><button class="cm-lk-x" data-l="{{ b.key }}" onclick="{{ cmLinkApagar }}" aria-label="Apagar o link do TEC">Trocar</button></span></sc-if>
+                      <sc-if value="{{ b.podeColar }}" hint-placeholder-val="{{ false }}"><button class="cm-lk" data-l="{{ b.key }}" onclick="{{ cmLinkAbrir }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" stroke-linecap="round" stroke-linejoin="round"></path></svg>Colar link do TEC</button></sc-if>
+                      <sc-if value="{{ b.editando }}" hint-placeholder-val="{{ false }}"><input class="cm-in" type="url" inputmode="url" autofocus data-l="{{ b.key }}" placeholder="https://www.tecconcursos.com.br/…" aria-label="Link do caderno do TEC (Enter grava)" onkeydown="{{ cmLinkSalvar }}" onblur="{{ cmLinkSalvar }}"></sc-if>
+                    </div>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ a.podeFechar }}" hint-placeholder-val="{{ false }}">
+                  <button class="ct-btn cm-fechar" data-id="{{ a.id }}" onclick="{{ cmFechar }}">Fechar assunto e agendar revisões</button>
+                </sc-if>
+              </article>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{ cmTemFila }}" hint-placeholder-val="{{ true }}">
+            <div class="ct-card cm-sec"><h3 class="cm-sec-h">Fila</h3>
+              <ol class="cm-fila"><sc-for list="{{ cmFila }}" as="f" hint-placeholder-count="6"><li style="{{ f.estilo }}">{{ f.nome }}</li></sc-for></ol>
+            </div>
+          </sc-if>
+
+          <div class="ct-card cm-sec"><h3 class="cm-sec-h">Revisões D+7, D+30 e D+90</h3>
+            <sc-if value="{{ cmTemRevs }}" hint-placeholder-val="{{ false }}">
+              <ul class="cm-revs">
+                <sc-for list="{{ cmRevs }}" as="r" hint-placeholder-count="2">
+                  <li class="cm-rev">
+                    <div class="cm-rev-t"><b>{{ r.ass }}</b><small>fechado em {{ r.dt }}</small></div>
+                    <div class="cm-rev-p">
+                      <sc-for list="{{ r.prazos }}" as="p" hint-placeholder-count="3">
+                        <button class="cm-prazo" data-estado="{{ p.estado }}" data-id="{{ p.rid }}" data-d="{{ p.d }}" onclick="{{ cmRevMarcar }}" aria-pressed="{{ p.feitaStr }}" aria-label="{{ p.aria }}"><b>{{ p.rot }}</b><span>{{ p.data }}</span></button>
+                      </sc-for>
+                      <button class="cm-lk-x" data-id="{{ r.id }}" onclick="{{ cmRevRemover }}">Remover</button>
+                    </div>
+                  </li>
+                </sc-for>
+              </ul>
+            </sc-if>
+            <sc-if value="{{ !cmTemRevs }}" hint-placeholder-val="{{ true }}"><p class="cm-vazio">Nenhuma revisão ainda. Ao fechar um assunto, as três datas aparecem aqui.</p></sc-if>
+          </div>
+
+          <div class="cm-semana">
+            <div class="ct-card cm-sec" data-hoje="{{ cmEhSabado }}"><h3 class="cm-sec-h">Sábado · erros mistos</h3>
+              <sc-for list="{{ cmSabado }}" as="q" hint-placeholder-count="5">
+                <button class="cm-sab" data-k="{{ q.k }}" onclick="{{ cmSabado }}" aria-pressed="{{ q.onStr }}"><span class="cm-chk" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>{{ q.txt }}</button>
+              </sc-for>
+              <button class="ct-btn-2" onclick="{{ cmZerarSabado }}">Zerar sábado</button>
+            </div>
+            <div class="ct-card cm-sec" data-hoje="{{ cmEhDomingo }}"><h3 class="cm-sec-h">Domingo · livre</h3><p class="cm-p">O descanso consolida o que foi estudado. Se sobrar vontade, só o Anki do dia.</p></div>
+            <div class="ct-card cm-sec"><h3 class="cm-sec-h">Faltou ou sobrou tempo</h3><sc-for list="{{ cmRegras }}" as="g" hint-placeholder-count="2"><p class="cm-p">{{ g }}</p></sc-for>
+              <p class="cm-aux">Materiais de apoio: {{ cmAux }}</p></div>
+          </div>
+         </section>
+        </sc-if>
+
+
         <!-- FAIXA DO CICLO · a bancada abre no que importa: onde o dia está, quanto está
              planejado contra a meta, e a LINHA DO DIA — cada bloco é um trecho proporcional
              ao tempo, na cor da MATÉRIA (dado, não enfeite); feito = cheio, pendente =
@@ -2543,6 +2699,7 @@ window.ctPdfLib = (function(){
                     <sc-if value="{{ m.isEdital }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10" stroke-linecap="round"></path></svg></sc-if>
                     <sc-if value="{{ m.isPesos }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 20V10M12 20V4M19 20v-7" stroke-linecap="round"></path></svg></sc-if>
                     <sc-if value="{{ m.isManual }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17z" stroke-linejoin="round"></path></svg></sc-if>
+                    <sc-if value="{{ m.isMagistratura }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1ZM2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1ZM7 21h10M12 3v18M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>
                   </span>
                   <span style="font-weight:600;font-size:var(--fs-md);color:{{ m.titleColor }};flex:1;min-width:0;">{{ m.title }}</span>
                 </div>
@@ -7393,6 +7550,8 @@ class Component extends DCLogic {
       rotPointer:this._load('rotPointer', 0),
       manualFixedRoteiroAtual:this._load('manualFixedRoteiroAtual', ''),
       agendaFeitas:this._load('agendaFeitas', {}),
+      cmag:this._load('cmag', null),                       // Ciclo Magistratura (ciclo-magistratura.js); null = método nunca usado
+      cmagRevs:this._load('cmagRevs', []),                 // revisões D+7/30/90 do Ciclo Magistratura (array com id/up: merge por id)
       edital: this._load('edital', []),
       // concursos por cima do acervo (ver _editaisComMigracao). editalAtivo '' = o primeiro.
       editais: this._load('editais', []), editalAtivo: this._load('editalAtivo', ''),
@@ -7939,6 +8098,7 @@ class Component extends DCLogic {
     try{ window.catedraWidgetResumo = ()=>{ try{ return this._widgetResumo(); }catch(_){ return null; } }; }catch(_){}
     // O widget da mesa (painel nativo) chama isto p/ abrir/fechar o PiP do cronômetro.
     try{ window.catedraTogglePiP = ()=>{ try{ this.togglePiP(); }catch(_){} }; }catch(_){}
+    try{ window.catedraPiPEvento = (ev)=>{ try{ this._pipNatEvento(String(ev||'')); }catch(_){} }; }catch(_){}
     // O CátedraLEGIS lê isto ao abrir a aba p/ oferecer as matérias do SEU edital
     // (não a taxonomia fixa do Vade Mecum) no vínculo da checklist de leitura.
     try{ window.catedraEditalDisciplinas = ()=>{ try{ return JSON.stringify([...new Set((this.state.edital||[]).map(d=>(d.disc||'').trim()).filter(Boolean))]); }catch(_){ return '[]'; } }; }catch(_){}
@@ -8093,7 +8253,7 @@ class Component extends DCLogic {
     window.addEventListener('catedra:synced', this._onSynced);
     // primeiro acerto com a nuvem: agora o conserto do edital pode ir ao disco sem vencer edição
     // mais nova de outro aparelho. setTimeout: deixa a reidratação do mesmo tique assentar antes.
-    this._onSyncPronto = ()=>{ setTimeout(()=>{ try{ this._edPersistirReparo(); }catch(_){} try{ this._carregarCotaIA(); }catch(_){} }, 0); };
+    this._onSyncPronto = ()=>{ setTimeout(()=>{ try{ this._cmagSeed(); }catch(_){} try{ this._edPersistirReparo(); }catch(_){} try{ this._carregarCotaIA(); }catch(_){} }, 0); };
     window.addEventListener('catedra:syncpronto', this._onSyncPronto);
     // Ponte CátedraLEGIS → Cátedra: o app nativo chama isto (evaluateJavaScript) para
     // registrar o estudo de leis feito na aba CátedraLEGIS como uma sessão REAL — assim o
@@ -8934,7 +9094,7 @@ class Component extends DCLogic {
   // Chaves que o app salva sozinho. Lista ÚNICA: o _autosave grava a partir dela e
   // o _rehydrateFromLocal recarrega a partir dela — se as duas divergirem, o que vem
   // da nuvem é sobrescrito pela memória velha deste aparelho.
-  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'editais', 'editalAtivo', 'reviews', 'leituras', 'enam', 'enamSim', 'aceite', 'iaConsentimento', 'blocks', 'blocksDate', 'cicloVolta', 'manualVoltaN', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs','redTempoMs', 'redGabarito', 'redEnunciado', 'redMarcas', 'redDisciplina', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'novidLidas', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis']; }
+  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'editais', 'editalAtivo', 'reviews', 'leituras', 'enam', 'enamSim', 'aceite', 'iaConsentimento', 'blocks', 'blocksDate', 'cicloVolta', 'manualVoltaN', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs','redTempoMs', 'redGabarito', 'redEnunciado', 'redMarcas', 'redDisciplina', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'novidLidas', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis', 'cmag', 'cmagRevs']; }
   /** Grava JÁ o que está pendente, sem esperar o debounce de 500 ms.
       PENDENTE é só o que a memória mudou desde o último salvamento (a mesma régua do
       _autosave). O resto já está no disco — e o disco pode ter acabado de receber a nuvem:
@@ -11049,6 +11209,8 @@ class Component extends DCLogic {
       const dom=(o.a-o.e)/o.q; if(!best||dom<best.dom) best={dom, topico:o.topico}; }); return best; }
   _genVolta(modo, n){
     modo=modo||this.state.cycleMode||'sugestao'; if(modo==='manual') modo='inteligente'; n=n||1;
+    // Ciclo Magistratura: a volta são as 4 matérias ativas a partir da vez, um turno cada
+    if(modo==='magistratura' && window.CT_CMAG) return CT_CMAG.gerarVolta(this.state.cmag||CT_CMAG.vazio(true), n, this._hoje());
     const O=this.state.orient||{}; const mult=this._enMult();
     const base=Math.max(20, Math.round((parseInt(O.blocoPadrao,10)||50)*mult));
     const nBl=Math.max(4, Math.min(40, Math.round(this._voltaTotalMin()/base)));
@@ -11197,13 +11359,17 @@ class Component extends DCLogic {
      os pulados) ficam com id, conteúdo e data; os pendentes vêm de uma volta nova pela regra
      de agora, sem repetir o que já foi concluído (mesma matéria+tipo+tópico) e com ids que
      não colidem. Modo manual: o ciclo é da pessoa, nada muda. */
-  _refazerPendentes(){ const m=this.state.cycleMode||'sugestao'; if(m==='manual') return;
+  _refazerPendentes(){ const m=this.state.cycleMode||'sugestao'; if(m==='manual'){ this._recomporDia(); return; }   // manual: a volta é da pessoa; só o dia é ressincronizado
     const V=this.state.cicloVolta; if(!V||!(V.blocos||[]).length) return;
     const feitos=V.blocos.filter(b=>b.done||b.pulado); const nPend=V.blocos.length-feitos.length;
     if(nPend<=0) return;
     const chave=(b)=>b.disc+'|'+b.kind+'|'+b.tag; const ja=new Set(feitos.map(chave)); const ids=new Set(feitos.map(b=>b.id));
     let i=0; const novos=this._genVolta(m, V.n||1).blocos.filter(b=>!ja.has(chave(b))).slice(0, nPend)
       .map(b=>{ let id; do{ id='v'+(V.n||1)+'-r'+(i++); }while(ids.has(id)); ids.add(id); return {...b, id}; });
+    // a volta nunca encolhe: o que a volta nova não cobre (bloco que a pessoa acrescentou, ou
+    // ponto que o gerador não repete) continua pendente, do jeito que estava
+    if(novos.length<nPend){ const tem=new Set([...ja, ...novos.map(chave)]);
+      V.blocos.filter(b=>!(b.done||b.pulado)).forEach(b=>{ if(novos.length>=nPend || tem.has(chave(b)) || ids.has(b.id)) return; tem.add(chave(b)); ids.add(b.id); novos.push(b); }); }
     const blocos=[...feitos, ...novos];
     const nova={...V, blocos, totalMin:blocos.reduce((a,b)=>a+(+b.min||0),0)};
     // o dia: fica o que já ocupa hoje (feito, extra, solto); os pendentes antigos saem e a fatia é refeita
@@ -11354,8 +11520,122 @@ class Component extends DCLogic {
   setCycleMode = (e)=>{ const m=e.currentTarget.dataset.mode; if(m===this.state.cycleMode) return; try{ localStorage.setItem('catedra:cycleMode', m); }catch(_){}
     if(m==='manual'){ this.setState({cycleMode:m, blocks:this.composeManual(this.state.manualFixed, this.state.manualRot, this.state.rotPointer)}); return; }
     const falta=this._cycleFalta(m); if(falta) this._toast(falta);
+    if(m==='magistratura' && !this.state.cmag && window.CT_CMAG) this.state.cmag=CT_CMAG.vazio(true);   // setState síncrono do support.js: o _genVolta abaixo já vê
     const V=this._genVolta(m, 1);
-    this.setState({cycleMode:m, cicloVolta:V, blocks:this._comporDia(V, []), blocksDate:this._hoje()}); };
+    this.setState({cycleMode:m, cmag:this.state.cmag, cicloVolta:V, blocks:this._comporDia(V, []), blocksDate:this._hoje()}); };
+  /* ===== CICLO MAGISTRATURA (regras em ciclo-magistratura.js) =====
+     O estado é `cmag` (objeto) + `cmagRevs` (array com id/up). Toda mudança passa por uma função
+     pura do CT_CMAG, que devolve objeto novo — o autosave compara por referência. */
+  _cm(){ return window.CT_CMAG ? CT_CMAG.normalizar(this.state.cmag||CT_CMAG.vazio(true)) : null; }
+  _cmSet(c, extra, soTexto){
+    if(!c) return;
+    const patch={cmag:c, ...(extra||{})};
+    // a ordem, a vez e o turno mudam a volta do dia: no modo, ela é refeita (o feito de hoje fica);
+    // texto (assunto, obras, nota) muda a cada tecla e não mexe na volta
+    if(this.state.cycleMode==='magistratura' && !soTexto){ this.state.cmag=c; const V=this._genVolta('magistratura', (this.state.cicloVolta&&this.state.cicloVolta.n)||1); patch.cicloVolta=V; patch.blocks=this._comporDia(V, this.state.blocks||[]); }
+    this.setState(patch); this.flashSync();
+  }
+  /* Seed da conta (CT_CMAG.seedDaConta): roda depois do primeiro acerto com a nuvem, para nunca
+     disputar com o que outro aparelho já gravou, e só quando não há progresso nenhum — nem no
+     ciclo, nem nas revisões. Idempotente: a marca `seed` fica no próprio estado. */
+  _cmagSeed(){
+    const M=window.CT_CMAG, S=window.CatedraSync; if(!M || !S || !S.pronto) return false;
+    const tag=M.seedDaConta(S.email); if(!tag) return false;
+    if(M.temProgresso(this.state.cmag, this.state.cmagRevs)) return false;
+    const c=M.seed(tag, Date.now());
+    try{ localStorage.setItem('catedra:cycleMode', 'magistratura'); }catch(_){}
+    this.state.cmag=c; this.state.cycleMode='magistratura';
+    const V=this._genVolta('magistratura', 1);
+    this.setState({cmag:c, cycleMode:'magistratura', cicloVolta:V, blocks:this._comporDia(V, []), blocksDate:this._hoje()});
+    return true;
+  }
+  cmToggle = (e)=>{ const d=e.currentTarget.dataset, M=window.CT_CMAG; if(!M) return;
+    const antes=this._cm(), c=M.alternar(antes, d.id, d.k);
+    if(c.st[d.id].d[d.k]===antes.st[d.id].d[d.k]){ this._toast('O Turno B abre quando o Turno A terminar.'); return; }
+    this._cmSet(c); };
+  cmCampo = (e)=>{ const t=e.currentTarget, M=window.CT_CMAG; if(!M) return;
+    const c=M.definir(this._cm(), t.dataset.id, t.dataset.campo, t.value); this._cmSet(c, null, true); };
+  cmLinkAbrir = (e)=>{ this.setState({cmLinkEdit:e.currentTarget.dataset.l||''}); };
+  cmLinkSalvar = (e)=>{ if(e && e.type==='keydown'){ if(e.key==='Escape'){ this.setState({cmLinkEdit:''}); return; } if(e.key!=='Enter') return; }
+    const t=e.currentTarget, M=window.CT_CMAG; if(!M) return;
+    if(!t.value.trim() && e.type==='blur'){ this.setState({cmLinkEdit:''}); return; }   // saiu sem colar nada
+    const c=M.definirLink(this._cm(), t.dataset.l, t.value);
+    if(!c){ this._toast('Link recusado: cole um endereço que comece com https://'); return; }
+    this.setState({cmLinkEdit:''}); this._cmSet(c); };
+  cmLinkApagar = (e)=>{ const M=window.CT_CMAG; if(!M) return; const c=M.definirLink(this._cm(), e.currentTarget.dataset.l, ''); if(c) this._cmSet(c); };
+  cmFechar = (e)=>{ const M=window.CT_CMAG; if(!M) return; const id=e.currentTarget.dataset.id;
+    const r=M.fechar(this._cm(), id, this._hoje()); if(!r) return;
+    const saiu=r.cmag.ordem.indexOf(id)>=M.ATIVAS;
+    this._cmSet(r.cmag, {cmagRevs:[...(this.state.cmagRevs||[]), r.rev]});
+    this._toast(saiu ? 'Assunto fechado. A matéria foi para o fim da fila e '+r.cmag.mats[r.cmag.ordem[M.ATIVAS-1]].n+' entrou.' : 'Assunto fechado. Revisões em D+7, D+30 e D+90 agendadas.'); };
+  cmRevMarcar = (e)=>{ const M=window.CT_CMAG; if(!M) return; const d=e.currentTarget.dataset;
+    this.setState(s=>({cmagRevs:M.marcarRevisao(s.cmagRevs, d.id, +d.d)})); this.flashSync(); };
+  cmRevRemover = (e)=>{ const id=e.currentTarget.dataset.id; const alvo=(this.state.cmagRevs||[]).find(r=>r&&r.id===id); if(!alvo) return;
+    this._excluirComDesfazer('Revisão',
+      ()=>{ this.setState(s=>({cmagRevs:(s.cmagRevs||[]).filter(r=>r&&r.id!==id)}), ()=>this.flashSync()); },
+      ()=>{ this.setState(s=>({cmagRevs:[...(s.cmagRevs||[]), {...alvo, up:Date.now()}]}), ()=>this.flashSync()); }); };
+  cmSabado = (e)=>{ const M=window.CT_CMAG; if(M) this._cmSet(M.alternarSabado(this._cm(), e.currentTarget.dataset.k)); };
+  cmZerarSabado = ()=>{ const M=window.CT_CMAG; if(M) this._cmSet(M.zerarSabado(this._cm())); };
+  cmQ = (e)=>{ const t=e.currentTarget; this.setState(s=>({cmQ:{...(s.cmQ||{}), [t.dataset.q]:t.dataset.v!=null?t.dataset.v:t.value}})); };
+  /* Registrar questão: erro e chute certo vão para o caderno de erros de sempre (errors), com
+     certeza, resultado e categoria ao lado do motivo; acerto firme não grava nada. */
+  cmQRegistrar = ()=>{ const M=window.CT_CMAG; if(!M) return; const q=this.state.cmQ||{}, c=this._cm();
+    const id=(q.mat && c.st[q.mat]) ? q.mat : c.ordem[c.vez]; const cls=M.classificar(q.res==='certo', q.certeza, q.categoria);
+    if(!q.certeza){ this._toast('Marque a certeza: alta, média ou chute.'); return; }
+    if(!cls){ this._toast('Acerto com certeza: nada vai para o caderno.'); this.setState({cmQ:{mat:id}}); return; }
+    if(cls.resultado==='erro' && !cls.categoria){ this._toast('Escolha a categoria do erro.'); return; }
+    // a matéria escolhida no menu (começa na do dia) e o assunto atual dela no ciclo
+    const agora=Date.now(), m=c.mats[id]||{n:'Geral'}, s=c.st[id]||{};
+    const disc=m.n, topico=s.ass||'';
+    const rec={id:'e'+agora, ts:agora, up:agora, disc, topico, enunciado:String(q.enunciado||'').trim().slice(0,1200)||((cls.resultado==='chute_certo'?'Chute certo':'Erro')+' · '+(topico||disc)),
+      myAnswer:'', gabarito:'', whyWrong:'', lesson:'', source:'Ciclo Magistratura', fonte:'ciclo-magistratura', difficulty:3, tags:[], favorite:false,
+      motivo:cls.motivo, certeza:cls.certeza, resultado:cls.resultado, categoria:cls.categoria, resolvido:false, reviewCount:0};
+    this.setState(st=>({errors:[rec, ...(st.errors||[])], cmQ:{mat:id}})); this.flashSync();
+    this._toast(cls.resultado==='chute_certo'?'Chute certo registrado como erro no caderno.':'Erro registrado no caderno.'); };
+  cmQAlternar = ()=>{ this.setState(s=>({cmQAberto:!s.cmQAberto})); };
+  cmAvancar = ()=>{ const M=window.CT_CMAG; if(M) this._cmSet(M.avancarVez(this._cm())); };
+  /* Variáveis da tela. Texto da pessoa vai cru: o template escapa {{ }} ao pintar. */
+  _cmView(){
+    const M=window.CT_CMAG; if(!M || this.state.cycleMode!=='magistratura') return {cmOn:false};
+    const c=this._cm(), hoje=this._hoje(), dark=!!this.state.darkMode, edit=this.state.cmLinkEdit||'';
+    const dow=new Date().getDay();
+    const cor=n=>{ const id=this._corDisc(n); return {cor:id, tx:this._corTx(id)}; };
+    const bloco=(id, b, on, s)=>{ const key=id+'-'+b.k, l=c.links[key]||'';
+      return {...b, id, key, pr:!!b.pr, prCampo:'p:'+b.k, prVal:(s.p||{})[b.k]||'', prAria:'Progresso do caderno: '+b.b, feito:!!s.d[b.k], feitoStr:s.d[b.k]?'true':'false', travado:!on, link:l, temLink:!!l, editando:edit===key, podeColar:b.tec&&!l&&edit!==key,
+        aria:(s.d[b.k]?'Desmarcar ':'Marcar como feito: ')+b.b}; };
+    const ativas=c.ordem.slice(0, M.ATIVAS).map((id, i)=>{
+      const m=c.mats[id], s=c.st[id], aOk=M.turnoAFeito(c, id), bOk=M.turnoBFeito(c, id), k=cor(m.n);
+      return {id, i, num:'0'+(i+1), nome:m.n, obra:m.o, segunda:m.s, temSegunda:!!m.s, semObra:!m.o, ass:s.ass, nota:s.nota, temNota:!!s.nota,
+        assLabel:'assunto '+(s.n+1)+' de '+M.POR_VOLTA, vez:i===c.vez, vezStr:i===c.vez?'Hoje':'',
+        estilo:'--cm-c:'+k.cor+';--cm-tx:'+k.tx+';',
+        aOk, aFeitoTxt:aOk?'feito':'em andamento', bAberto:aOk, bTxt:aOk?(bOk?'feito':'em andamento'):'abre quando o A terminar',
+        A:M.blocosA(m).map(b=>bloco(id, b, true, s)), B:M.blocosB(m).map(b=>bloco(id, b, aOk, s)),
+        podeFechar:aOk&&bOk};
+    });
+    const fila=c.ordem.slice(M.ATIVAS).map((id, i)=>({id, nome:c.mats[id].n, pos:i+1, estilo:'--cm-c:'+cor(c.mats[id].n).cor+';'}));
+    const fmt=iso=>{ const p=String(iso).split('-'); return p[2]+'/'+p[1]; };
+    const revs=(this.state.cmagRevs||[]).filter(r=>r&&r.id).slice().sort((a,b)=>String(a.dt).localeCompare(String(b.dt))).map(r=>({id:r.id, ass:r.ass, dt:fmt(r.dt),
+      prazos:M.prazos(r, hoje).map(p=>({...p, rid:r.id, rot:'D+'+p.d, data:fmt(p.due), estado:p.feita?'feita':p.vencida?'vencida':'agendada', feitaStr:p.feita?'true':'false',
+        aria:'Revisão D+'+p.d+' de '+r.ass+(p.feita?': feita':p.vencida?': vencida':'')}))}));
+    const vencidas=revs.reduce((a,r)=>a+r.prazos.filter(p=>p.vencida).length, 0);
+    return {cmOn:true, cmAtivas:ativas, cmFila:fila, cmTemFila:fila.length>0, cmRevs:revs, cmTemRevs:revs.length>0,
+      cmVencidas:vencidas, cmTemVencidas:vencidas>0, cmVencidasTxt:vencidas===1?'1 revisão vencida':vencidas+' revisões vencidas',
+      cmSabado:M.SABADO.map(q=>({k:q[0], txt:q[1], on:!!c.sab[q[0]], onStr:c.sab[q[0]]?'true':'false'})),
+      cmEhSabado:dow===6, cmEhDomingo:dow===0,
+      cmRotina:M.ROTINA.map(r=>({t:r[0], d:r[1]})), cmRegras:M.REGRAS, cmAux:M.AUXILIARES.join(' · '),
+      cmHoje:ativas[c.vez]?ativas[c.vez].nome:'',
+      ...(()=>{ const q=this.state.cmQ||{}, mat=(q.mat && c.st[q.mat]) ? q.mat : c.ordem[c.vez];
+        const nHoje=(this.state.errors||[]).filter(e=>e && e.fonte==='ciclo-magistratura' && e.ts && new Date(e.ts).toDateString()===new Date().toDateString()).length;
+        return {cmQShow:!!this.state.timerRunning, cmQAberto:!!this.state.cmQAberto, cmQAbertoStr:this.state.cmQAberto?'true':'false',
+          cmQHojeTxt:nHoje?String(nHoje)+' hoje':'', cmQMatSel:mat, cmQMats:ativas.map(a=>({id:a.id, nome:a.nome, sel:a.id===mat})),
+          cmQRes:[['erro','Errei'],['certo','Acertei']].map(r=>({v:r[0], t:r[1], on:(q.res||'erro')===r[0]?'true':'false'})),
+          cmQCert:M.CERTEZAS.map(r=>({v:r[0], t:r[1], on:q.certeza===r[0]?'true':'false'})),
+          cmQCat:M.CATEGORIAS.map(r=>({v:r[0], t:r[1], on:q.categoria===r[0]?'true':'false'})),
+          cmQCatShow:(q.res||'erro')==='erro'}; })(),
+      cmQ:this.cmQ, cmQRegistrar:this.cmQRegistrar, cmQAlternar:this.cmQAlternar,
+      cmToggle:this.cmToggle, cmCampo:this.cmCampo, cmLinkAbrir:this.cmLinkAbrir, cmLinkSalvar:this.cmLinkSalvar, cmLinkApagar:this.cmLinkApagar,
+      cmFechar:this.cmFechar, cmRevMarcar:this.cmRevMarcar, cmRevRemover:this.cmRevRemover, cmSabado:this.cmSabado, cmZerarSabado:this.cmZerarSabado, cmAvancar:this.cmAvancar};
+  }
   // Data ISO (AAAA-MM-DD) do dia da semana pedido, DENTRO da semana atual (segunda a domingo).
   _isoDiaSemana(diaKey){
     const ordem=['seg','ter','qua','qui','sex','sab','dom']; const t=ordem.indexOf(diaKey); if(t<0) return '';
@@ -11986,7 +12266,28 @@ class Component extends DCLogic {
      um shim de documentPictureInPicture (existe, logo mostra); no iPad não há documentPiP nem
      canvas.captureStream — o caminho por vídeo precisa dos dois — e o botão só rendia um toast
      mandando "abrir pelo Safari" de dentro do app. Sem API e dentro do nativo, o botão não aparece. */
-  _pipDisponivel(){ try{ return this._docPiPReady() || (this._videoPiPReady() && typeof HTMLCanvasElement!=='undefined' && !!HTMLCanvasElement.prototype.captureStream); }catch(_){ return false; } }
+  _pipDisponivel(){ try{ return this._pipNativo() || this._docPiPReady() || (this._videoPiPReady() && typeof HTMLCanvasElement!=='undefined' && !!HTMLCanvasElement.prototype.captureStream); }catch(_){ return false; } }
+  /* iPad: o host oferece o PiP DO SISTEMA (AVPictureInPictureController) pela ponte catedraPiP.
+     A web segue dona do tempo: manda os números a cada 500 ms e o host só desenha o quadro;
+     o play/pausa da janela volta por window.catedraPiPEvento('alternar'). */
+  _pipNativo(){ try{ return !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.catedraPiP); }catch(_){ return false; } }
+  _pipNatPayload(acao){ const v=this._pipVals(); return {acao, disp:v.disp, fase:v.phaseText, cor:v.color, pct:v.pct, rodando:!!v.running, pomo:!!v.isPomo}; }
+  _pipNatParar(){ if(this._pipNatInt){ clearInterval(this._pipNatInt); this._pipNatInt=null; } this._pipNatAberto=false; }
+  async _togglePiPNativo(){
+    const ponte=window.webkit.messageHandlers.catedraPiP;
+    if(this._pipNatAberto){ this._pipNatParar(); try{ await ponte.postMessage({acao:'fechar'}); }catch(_){} return; }
+    const ok=await ponte.postMessage(this._pipNatPayload('abrir'));
+    if(!ok){ this._pipFlash('A janela flutuante não está disponível neste aparelho. O cronômetro continua na barra de cima e na sala de foco.'); return; }
+    this._pipNatAberto=true;
+    if(this._pipNatInt) clearInterval(this._pipNatInt);
+    this._pipNatInt=setInterval(()=>{ try{ ponte.postMessage(this._pipNatPayload('atualizar')); }catch(_){} }, 500);
+  }
+  _pipNatEvento(ev){
+    if(ev==='alternar'){ this.toggleTimer(); return; }
+    if(ev==='aberto'){ this._pipFlash('Janela flutuante aberta. Se quiser, pode deixar o Cátedra em segundo plano.'); return; }
+    if(ev==='fechado'){ this._pipNatParar(); return; }
+    if(ev==='falhou'){ this._pipNatParar(); this._pipFlash('Não consegui abrir a janela flutuante agora — tente de novo.'); }
+  }
   _mostraPiP(){ try{ return !(this._temAbasNativas() && !this._pipDisponivel()); }catch(_){ return true; } }
   // Cor da plataforma (accent) resolvida em HEX. O PiP é OUTRA janela (ou um canvas):
   // não herda as CSS vars do app, então precisa da cor literal.
@@ -12143,6 +12444,7 @@ class Component extends DCLogic {
   }
   togglePiP = async ()=>{
     try{
+      if(this._pipNativo()) return await this._togglePiPNativo();
       if(this._pipWin && !this._pipWin.closed){ this._closeDocPiP(); return; }
       if(document.pictureInPictureElement){ await document.exitPictureInPicture(); this._pipStop(); return; }
       if(this._docPiPReady()) return await this._openDocPiP();
@@ -15740,7 +16042,8 @@ class Component extends DCLogic {
       myAnswer:(d.myAnswer||'').trim(), gabarito:(d.gabarito||'').trim(), whyWrong:(d.whyWrong||'').trim(), lesson:(d.lesson||'').trim(),
       source:(d.source||'').trim(), difficulty:Math.min(5,Math.max(1,parseInt(d.difficulty,10)||3)),
       tags:Array.isArray(d.tags)?d.tags.filter(Boolean):[], favorite:!!d.favorite,
-      motivo:d.motivo||'conteudo', resolvido:false, reviewCount:0};
+      motivo:d.motivo||'conteudo', resolvido:false, reviewCount:0,
+      ...(d.certeza?{certeza:d.certeza}:{}), ...(d.resultado?{resultado:d.resultado}:{}), ...(d.categoria?{categoria:d.categoria}:{})};
     this.setState(s=>({errors:[rec, ...s.errors], errDraft:this._freshErrDraft(s.errDraft), errMaisCampos:false, errTagInput:''})); this._toast('Erro registrado no caderno ✦'); this.flashSync(); };
   _freshErrDraft(prev){ const _d1=(this.state.edital[0]&&this.state.edital[0].disc)||''; return {disc:(prev&&prev.disc)||_d1, discCustom:false, topico:'', enunciado:'', myAnswer:'', gabarito:'', whyWrong:'', lesson:'', source:(prev&&prev.source)||'', difficulty:3, tags:[], favorite:false, motivo:(prev&&prev.motivo)||'conteudo'}; }
   removeErro = (e)=>{ const id=e.currentTarget.dataset.id;
@@ -16223,6 +16526,9 @@ class Component extends DCLogic {
     if(!window.confirm('Voltar "'+S.titulo+'" ao padrão? '+fora.length+' ajuste'+(fora.length>1?'s':'')+' volta'+(fora.length>1?'m':'')+' ao valor de fábrica. Os seus dados (edital, sessões, redações) não são tocados.')) return;
     const orient={...this.state.orient}, prefs={...this.state.prefs};
     (S.o||[]).forEach(k=>{ orient[k]=AJ_ORIENT_PADRAO[k]; });
+    // o carimbo da "energia de hoje" não é um ajuste contado na seção, mas volta junto com ela:
+    // sem isto o reset deixava energiaPlano valendo como "de hoje" até a meia-noite
+    if(S.id==='ritmo') orient.energiaDia=AJ_ORIENT_PADRAO.energiaDia;
     (S.p||[]).forEach(k=>{ prefs[k]=AJ_PREFS_PADRAO[k]; });
     const solto={};
     (S.s||[]).forEach(k=>{ solto[k]=AJ_ESTADO_PADRAO[k];
@@ -16263,7 +16569,11 @@ class Component extends DCLogic {
   aplicarPerfil = (e)=>{
     const id=e.currentTarget.dataset.id; const pf=(this.state.ajPerfis||[]).find(x=>x.id===id); if(!pf) return;
     if(!window.confirm('Aplicar o perfil "'+pf.nome+'"? Ritmo, metas, automações e aparência passam a ser os desse perfil. Edital, sessões e redações não mudam.')) return;
-    this.setState(st=>({orient:{...st.orient, ...(pf.cfg&&pf.cfg.o||{})}, prefs:{...st.prefs, ...(pf.cfg&&pf.cfg.p||{})}}),
+    /* Perfil salvo ANTES da "energia de hoje" não tem energiaDia: o energiaPlano dele era a
+       energia permanente de quem salvou — vira a de todo dia (mesma migração do legado), em
+       vez de herdar o carimbo de hoje deste aparelho e valer só até a meia-noite. */
+    const _po=(pf.cfg&&pf.cfg.o)||{};
+    this.setState(st=>({orient:(('energiaDia' in _po) ? {...st.orient, ..._po} : this._rmMigrarEnergia({...st.orient, ..._po, energiaDia:''})), prefs:{...st.prefs, ...(pf.cfg&&pf.cfg.p||{})}}),
       ()=>{ this._persistOrient(); this._toast('Perfil "'+pf.nome+'" aplicado'); });
   };
   apagarPerfil = (e)=>{
@@ -18808,7 +19118,8 @@ class Component extends DCLogic {
       for(let i=0;i<7;i++){ const k=this._ymd(seg.getTime()+i*864e5); const m=S.filter(s=>s.date===k).reduce((a,s)=>a+(s.min||0),0); arr.push({m,i}); }
       const mx=Math.max(60,...arr.map(x=>x.m));
       return arr.map(x=>{ const hj=x.i===dow; const h=x.m>0?Math.max(6,Math.round(x.m/mx*100)):0;
-        return { val:x.m>0?_fmtHM2(x.m):'—', dia:L[x.i]+(hj?' · hoje':''),
+        return { val:x.m>0?_fmtHM2(x.m):'—', // tela estreita: "DOM · HOJE" é mais largo que a coluna e cobria o vizinho — ali o dia de hoje diz só "hoje"
+          dia:hj?(this.state.isMobile?'hoje':(L[x.i]+' · hoje')):L[x.i],
           barStyle:'width:min(64px,72%);border-radius:var(--r-md) 11px 7px 7px;height:'+(x.m>0?h+'%':'5px')+';'+(hj?'background:var(--heroVivo);box-shadow:0 10px 34px -8px rgba(124,92,240,.55);':(x.m>0?'background:linear-gradient(180deg,var(--accentRing),var(--accentSoft));border:1px solid var(--accentRing);':'background:var(--surface2);border:1px solid var(--border);')),
           valStyle:'font-family:var(--mono);font-size:var(--fs-base);'+(hj?'font-weight:700;color:var(--ink);':'font-weight:600;color:var(--text2);'),
           diaStyle:'font-size:var(--fs-sm);font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:'+(hj?'var(--accent)':'var(--text3)')+';' }; });
@@ -20954,6 +21265,7 @@ class Component extends DCLogic {
       addFixed:this.addFixed, addToDay:this.addToDay, removeFixed:this.removeFixed, editFixed:this.editFixed, agEditToggle:this.agEditToggle, agEditPronto:this.agEditPronto, addRot:this.addRot, removeRot:this.removeRot, editRot:this.editRot, moveRot:this.moveRot, moveFixed:this.moveFixed, advanceRot:this.advanceRot,
       setRoteiroAtual:this.setRoteiroAtual, clearRoteiro:this.clearRoteiro,
       rotNextName:(()=>{ const nx=(this.state.manualRot||[]).find(x=>!x.done); return (nx&&nx.disc)||'—'; })(),
+      ...this._cmView(),
       cycleModes:[
         /* A descrição citava "lei seca e jurisprudência" para TODA área — vocabulário
            jurídico na tela de quem estuda Enfermagem. Agora ela lista as categorias que a
@@ -20966,9 +21278,10 @@ class Component extends DCLogic {
          }catch(_){ return 'teoria, questões e revisão.'; } })()},
         {mode:'edital', icon:'▤', title:'Conforme o edital', desc:'Volta proporcional ao que ainda falta no edital: mais blocos para a matéria com mais tópicos pendentes.'},
         {mode:'pesos', icon:'▲', title:'Pesos e pontos', desc:'Volta com mais blocos para o que vale mais pontos e onde você está mais fraco.'},
-        {mode:'manual', icon:'✎', title:'Manual', desc:'Você monta a volta: ordem, tipo e tempo de cada bloco — ou gera uma pela prioridade e reordena. Agenda semanal para quem segue roteiro.'}
+        {mode:'manual', icon:'✎', title:'Manual', desc:'Você monta a volta: ordem, tipo e tempo de cada bloco — ou gera uma pela prioridade e reordena. Agenda semanal para quem segue roteiro.'},
+        {mode:'magistratura', icon:'⚖', title:'Ciclo Magistratura', desc:'Quatro matérias ativas, uma por dia, dois assuntos cada. Turno A de primeiro contato, Turno B de reteste, revisões em D+7, D+30 e D+90 e sábado de erros mistos.'}
       ].map(m=>{ const on=this.state.cycleMode===m.mode; const aviso=this._cycleFalta(m.mode); return {...m, aviso, temAviso:!!aviso, onStr:on?'true':'false', recomendado:!!m.recomendado,
-        isInteligente:m.mode==='inteligente', isSugestao:m.mode==='sugestao', isEdital:m.mode==='edital', isPesos:m.mode==='pesos', isManual:m.mode==='manual',
+        isInteligente:m.mode==='inteligente', isSugestao:m.mode==='sugestao', isEdital:m.mode==='edital', isPesos:m.mode==='pesos', isManual:m.mode==='manual', isMagistratura:m.mode==='magistratura',
         cardStyle:`text-align:left;cursor:pointer;font-family:inherit;border-radius:var(--radius);padding:16px;border:2px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accentSoft)':'var(--surface)'};transition:all .15s;`,
         iconStyle:`width:32px;height:32px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;font-size:var(--fs-lg);flex:none;background:${on?'var(--accentSolid)':'var(--surface2)'};color:${on?'var(--onAccent)':'var(--text2)'};`,
         titleColor: on?'var(--accentD)':'var(--ink)' }; }),
