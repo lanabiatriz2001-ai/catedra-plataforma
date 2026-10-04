@@ -1872,6 +1872,11 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 .ct-mesa-acao { display: inline-flex; align-items: center; gap: var(--ct-e2); min-height: var(--ct-alvo-toque); padding: 0 var(--ct-e2); background: transparent; border: none; color: var(--text2); font: inherit; font-size: var(--fs-sm); cursor: pointer; border-radius: var(--r-md); }
 .ct-mesa-acao:hover { color: var(--ink); background: var(--surface2); }
 .ct-mesa-acao:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* Ação DENTRO do herói: a cor é a do herói (clara sobre o gradiente). O hover comum trocava o fundo para
+   --surface2 e o texto continuava claro: sumia. Aqui o hover só escurece o gradiente, e o contraste sobe. */
+.ct-mesa-acao.ct-mesa-acao-heroi, .ct-mesa-acao.ct-mesa-acao-heroi:hover { color: inherit; }
+.ct-mesa-acao.ct-mesa-acao-heroi:hover { background: color-mix(in srgb, black 22%, transparent); }
+.ct-mesa-acao.ct-mesa-acao-heroi:focus-visible { outline-color: currentColor; }
 .ct-folha-barra { display: flex; align-items: center; gap: var(--ct-e3); flex-wrap: wrap; padding: var(--ct-e3) var(--ct-e5); border-bottom: 1px solid var(--border); }
 .ct-folha-crono { margin-left: auto; font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: var(--fs-md); color: var(--ink); }
 .ct-seg { display: inline-flex; padding: 2px; border-radius: var(--radius); background: var(--surface2); border: 1px solid var(--border); }
@@ -1901,7 +1906,9 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 .ct-folha-rodape { display: flex; align-items: center; gap: var(--ct-e3); flex-wrap: wrap; border-top: 1px solid var(--border); padding: var(--ct-e3) var(--ct-e5); }
 .ct-folha-salvo { font-size: var(--fs-sm); color: var(--text2); display: inline-flex; align-items: center; gap: var(--ct-e1); }
 /* Modo foco: só a mesa. O atributo vai na raiz porque a navegação mora fora da view. */
-[data-red-foco] aside, [data-red-foco] [data-red-fora-do-foco] { display: none !important; }
+/* Foco é a questão e a folha, mais nada: saem o menu, a barra do topo e a navegação inferior do celular.
+   A saída continua na própria folha (botão de foco) e no Esc. */
+[data-red-foco] aside, [data-red-foco] .ct-topbar, [data-red-foco] .ct-bnav, [data-red-foco] [data-red-fora-do-foco] { display: none !important; }
 .ct-gab-lista { list-style: none; margin: var(--ct-e3) 0 0; padding: 0; display: flex; flex-direction: column; }
 .ct-gab-lista > li { display: grid; grid-template-columns: 2em minmax(0, 1fr) auto; gap: var(--ct-e3); align-items: baseline; padding: var(--ct-e3) 0; border-top: 1px solid var(--border); font-size: var(--fs-base); line-height: 1.55; color: var(--ink); }
 .ct-gab-n { font-family: var(--mono); color: var(--text2); text-align: right; }
