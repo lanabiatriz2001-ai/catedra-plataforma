@@ -85,8 +85,8 @@ export function testarRedacaoMotorEstatico(ok) {
 }
 
 // ───────────── Parte 2: navegador, com a IA simulada ─────────────
-const RESPOSTA = Array.from({ length: 5 }, () => 'A tutela antecipada antecedente torna-se estável quando não há recurso, nos termos do art. 304 do CPC, e o prazo da ação de revisão é de dois anos.').join(' ');
-const BOA = JSON.stringify({ quesitos: [
+export const RESPOSTA = Array.from({ length: 5 }, () => 'A tutela antecipada antecedente torna-se estável quando não há recurso, nos termos do art. 304 do CPC, e o prazo da ação de revisão é de dois anos.').join(' ');
+export const BOA = JSON.stringify({ quesitos: [
   { i: 1, nota: 0.3, trecho: 'torna-se estável quando não há recurso', faltou: '' },
   { i: 2, nota: 0.1, trecho: 'trecho que não existe na resposta', faltou: 'citar o § 5º do art. 304' },
   { i: 3, nota: 0.4, trecho: '', faltou: '' } ],
@@ -95,7 +95,7 @@ const BOA = JSON.stringify({ quesitos: [
 
 // A IA do teste: troca window.claude.complete depois do boot (por fora do portão de consentimento).
 // modo: 'boa' | 'rede' | 'lixo' | 'pendente' (só resolve quando window.__iaSolta() é chamada)
-const armarIA = (page, modo, boa) => page.evaluate(({ modo, boa }) => {
+export const armarIA = (page, modo, boa) => page.evaluate(({ modo, boa }) => {
   window.__iaChamadas = 0;
   window.claude = window.claude || {};
   window.claude.complete = (prompt, opts) => { window.__iaChamadas++; window.__iaSinal = (opts && opts.signal) || null;
@@ -104,10 +104,10 @@ const armarIA = (page, modo, boa) => page.evaluate(({ modo, boa }) => {
     if (modo === 'pendente') return new Promise(res => { window.__iaSolta = () => res(boa); });
     return Promise.resolve(boa); };
 }, { modo, boa });
-const hist = page => page.evaluate(() => JSON.parse(localStorage.getItem('catedra:red') || '[]'));
+export const hist = page => page.evaluate(() => JSON.parse(localStorage.getItem('catedra:red') || '[]'));
 const evo = page => page.evaluate(() => { try { return JSON.parse(localStorage.getItem('catedra:redHist') || '[]'); } catch (_) { return []; } });
-const entregar = page => page.click('[data-red="folha"] .ct-folha-rodape .ct-btn');
-const abrir = async (pageDaSuite, base, extra) => {
+export const entregar = page => page.click('[data-red="folha"] .ct-folha-rodape .ct-btn');
+export const abrir = async (pageDaSuite, base, extra) => {
   const c = await novoContexto(pageDaSuite);
   // consentimento da IA já dado (versão do termo em IA_CONSENT_VERSAO): sem ele a correção espera o modal
   await semear(c.page, base, Object.assign({ redText: RESPOSTA, redTextTs: Date.now() - 1000, iaConsentimento: { versao: '2026-09', ts: Date.now() - 1000 } }, extra || {}));
@@ -252,7 +252,7 @@ async function revisao(pageDaSuite, base, ok, R) {
 }
 
 // Pedidos da dona em 03/10/2026: cancelar durante "Corrigir de novo", chamada abortada/aproveitada, e faixa MEDIDA
-const contraste = (page, sels) => page.evaluate(sels => {
+export const contraste = (page, sels) => page.evaluate(sels => {
   const rgb = c => { const m = c.match(/[\d.]+/g).map(Number); return /color\(srgb/.test(c) ? m.slice(0, 3).map(v => v * 255) : m.slice(0, 3); };
   const lum = c => { const m = rgb(c); const f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(m[0]) + 0.7152 * f(m[1]) + 0.0722 * f(m[2]); };
   const fundos = el => { let e = el; while (e) { const cs = getComputedStyle(e);

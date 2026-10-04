@@ -52,6 +52,7 @@ import { testarFaixaMapaAlvos } from './faixa-mapa-alvos.mjs';
 import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
 import { testarRedacaoMesa } from './redacao-mesa.mjs';
 import { testarRedacaoMotor } from './redacao-motor.mjs';
+import { testarRedacaoResultado } from './redacao-resultado.mjs';
 import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 import { testarRevisaoOficial } from './revisao-oficial.mjs';
@@ -178,6 +179,7 @@ for (const [base, origem, arquivo] of ORIGENS) {
     try { await testarPrioridadeDiscursiva(page, base, ok); } catch(e) { ok(false, 'DISCURSIVA exceção: '+e.message); }
     try { await testarRedacaoMesa(page, base, ok, { motor: 'webkit' }); } catch(e) { ok(false, 'MESA exceção: '+e.message); }
     try { await testarRedacaoMotor(page, base, ok, { motor: 'webkit' }); } catch(e) { ok(false, 'MOTOR exceção: '+e.message); }
+    try { await testarRedacaoResultado(page, base, ok, { motor: 'webkit' }); } catch(e) { ok(false, 'RESULTADO exceção: '+e.message); }
     try { await testarRevisaoFonte(page, base, ok, { motor, origem }); }
     catch (e) {
       ok(false, 'REVISÃO/FONTE [' + motor + '] o roteiro correu sem exceção ('
