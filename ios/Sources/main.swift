@@ -30,6 +30,8 @@ import WebKit
 import UniformTypeIdentifiers
 import WidgetKit
 import UserNotifications
+import AVKit
+import AVFoundation
 
 // Endpoint da IA: Info.plist (CatedraAIEndpoint), com override por UserDefaults para
 // poder trocar sem rebuild. Mesmo contrato do app do Mac.
@@ -68,6 +70,7 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
     var legisReviewsBaseline: Int?                     // reviewedToday no início da rajada
     var jurisLidosBaseline: Int?                       // lidosHoje (JURIS) no início da rajada
     var catalogoJSONCache: String?
+    var pipCronometro: PiPCronometro?                  // janela flutuante do cronômetro (PiP do sistema)
 
     override func viewDidLoad() {
         // Gaveta do leitor do LEGIS: texto OFICIAL do verbete lido do acervo do JURIS.
@@ -97,7 +100,7 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         // Ponte de IA + notificações, no mundo .page (o app roda no mundo principal).
         for nome in ["catedraAI", "notifyPermission", "notifyShow", "catedraLembretes",
                      "catedraNav", "catedraPlano", "catedraPrint", "catedraAcervo", "catedraBackup",
-                     "catedraArea", "catedraWidget"] {
+                     "catedraArea", "catedraWidget", "catedraPiP"] {
             ucc.addScriptMessageHandler(self, contentWorld: .page, name: nome)
         }
         ucc.addUserScript(WKUserScript(source: Self.pontesJS,
@@ -956,6 +959,18 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
             }
             replyHandler(nil, nil)
         case "catedraBackup":    handleBackup(message, replyHandler)
+        case "catedraPiP":
+            // {acao: abrir|atualizar|fechar, disp, fase, cor, pct, rodando, pomo}. Responde se
+            // o PiP do sistema está (ou vai ficar) aberto, para a web saber se cai no aviso.
+            let d = message.body as? [String: Any] ?? [:]
+            DispatchQueue.main.async {
+                if self.pipCronometro == nil {
+                    self.pipCronometro = PiPCronometro(hospedeiro: self.view) { [weak self] evento in
+                        self?.webView.evaluateJavaScript("window.catedraPiPEvento && window.catedraPiPEvento('\(evento)')", completionHandler: nil)
+                    }
+                }
+                replyHandler(self.pipCronometro!.receber(d), nil)
+            }
         default:                 replyHandler(nil, nil)
         }
     }
@@ -1883,6 +1898,183 @@ struct AjustesEmbrulho<Conteudo: View>: View {
 // A cena é entregue por CÓDIGO (delegateClass abaixo), o que evita ter que declarar
 // UIApplicationSceneManifest no Info.plist — que exigiria acertar o nome do módulo
 // Swift, coisa frágil num build sem projeto Xcode.
+// ===== Janela flutuante do cronômetro (PiP do sistema) =====
+// No Mac o host hospeda a janela do documentPictureInPicture num NSPanel. No iPad não existe
+// janela solta: o único "flutuante" que passa por cima de outros apps é o PiP do sistema, que
+// só mostra VÍDEO. Então o cronômetro vira quadros desenhados aqui (2 por segundo) num
+// AVSampleBufferDisplayLayer, e o AVPictureInPictureController leva esse vídeo para a janela
+// flutuante. O botão de play/pausa do PiP pausa e retoma o cronômetro da web; os números vêm
+// da web (catedraPiP 'atualizar' a cada 500 ms), que segue sendo a fonte única do tempo.
+final class PiPCronometro: NSObject, AVPictureInPictureControllerDelegate, AVPictureInPictureSampleBufferPlaybackDelegate {
+    private let camada = AVSampleBufferDisplayLayer()
+    private let suporte = UIView(frame: CGRect(x: 0, y: 0, width: 2, height: 2))
+    private var controle: AVPictureInPictureController?
+    private var obsPossivel: NSKeyValueObservation?
+    private var querAbrir = false
+    private var rodando = false
+    private var vals: [String: Any] = [:]
+    private let avisar: (String) -> Void
+    private let tamanho = CGSize(width: 640, height: 360)
+
+    init(hospedeiro: UIView, avisar: @escaping (String) -> Void) {
+        self.avisar = avisar
+        super.init()
+        // A camada precisa estar na hierarquia de uma janela visível, mesmo minúscula.
+        suporte.alpha = 0.01
+        suporte.isUserInteractionEnabled = false
+        camada.frame = suporte.bounds
+        camada.videoGravity = .resizeAspect
+        suporte.layer.addSublayer(camada)
+        hospedeiro.addSubview(suporte)
+    }
+
+    static var disponivel: Bool { AVPictureInPictureController.isPictureInPictureSupported() }
+
+    /// Devolve true quando o PiP está aberto ou a caminho.
+    func receber(_ d: [String: Any]) -> Bool {
+        let acao = (d["acao"] as? String) ?? "atualizar"
+        if acao == "fechar" { fechar(); return false }
+        vals = d
+        rodando = (d["rodando"] as? Bool) ?? false
+        if acao == "abrir" {
+            guard Self.disponivel else { return false }
+            abrir()
+            return true
+        }
+        guard controle != nil else { return false }
+        enfileirarQuadro()
+        controle?.invalidatePlaybackState()
+        return controle?.isPictureInPictureActive ?? false
+    }
+
+    private func abrir() {
+        try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .moviePlayback, options: [.mixWithOthers])
+        try? AVAudioSession.sharedInstance().setActive(true)
+        enfileirarQuadro()
+        if controle == nil {
+            let fonte = AVPictureInPictureController.ContentSource(sampleBufferDisplayLayer: camada, playbackDelegate: self)
+            let c = AVPictureInPictureController(contentSource: fonte)
+            c.delegate = self
+            c.canStartPictureInPictureAutomaticallyFromInline = false
+            controle = c
+            // Logo após criar, isPictureInPicturePossible ainda é false: abre quando virar true.
+            obsPossivel = c.observe(\.isPictureInPicturePossible, options: [.new]) { [weak self] c, _ in
+                DispatchQueue.main.async {
+                    guard let self, self.querAbrir, c.isPictureInPicturePossible else { return }
+                    self.querAbrir = false
+                    c.startPictureInPicture()
+                }
+            }
+        }
+        if let c = controle, c.isPictureInPicturePossible { c.startPictureInPicture() } else { querAbrir = true }
+        // Se em 3 s não abriu, a web avisa em vez de ficar muda.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
+            guard let self, self.querAbrir else { return }
+            self.querAbrir = false
+            self.avisar("falhou")
+        }
+    }
+
+    private func fechar() {
+        querAbrir = false
+        controle?.stopPictureInPicture()
+    }
+
+    // MARK: quadro
+    private func cor(_ hex: String?) -> UIColor {
+        var h = (hex ?? "").trimmingCharacters(in: .whitespaces).replacingOccurrences(of: "#", with: "")
+        if h.count == 3 { h = h.map { "\($0)\($0)" }.joined() }
+        guard h.count >= 6, let n = UInt32(h.prefix(6), radix: 16) else { return UIColor(red: 0.06, green: 0.48, blue: 0.34, alpha: 1) }
+        return UIColor(red: CGFloat((n >> 16) & 255) / 255, green: CGFloat((n >> 8) & 255) / 255, blue: CGFloat(n & 255) / 255, alpha: 1)
+    }
+
+    private func desenhar() -> UIImage {
+        let disp = (vals["disp"] as? String) ?? "00:00"
+        let fase = ((vals["fase"] as? String) ?? "Foco").uppercased()
+        let pct = CGFloat((vals["pct"] as? Double) ?? 0)
+        let pomo = (vals["pomo"] as? Bool) ?? false
+        let acento = cor(vals["cor"] as? String)
+        let fmt = UIGraphicsImageRendererFormat(); fmt.scale = 1; fmt.opaque = true
+        return UIGraphicsImageRenderer(size: tamanho, format: fmt).image { ctx in
+            let W = tamanho.width, H = tamanho.height
+            // fundo: o acento escurecido (o mesmo mixDark da janela do Mac)
+            var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+            acento.getRed(&r, green: &g, blue: &b, alpha: &a)
+            UIColor(red: r * 0.1, green: g * 0.1, blue: b * 0.1, alpha: 1).setFill()
+            ctx.fill(CGRect(origin: .zero, size: tamanho))
+            if pomo {
+                UIColor(white: 1, alpha: 0.1).setFill(); ctx.fill(CGRect(x: 0, y: H - 14, width: W, height: 14))
+                acento.setFill(); ctx.fill(CGRect(x: 0, y: H - 14, width: W * min(1, max(0, pct)), height: 14))
+            }
+            let centro = NSMutableParagraphStyle(); centro.alignment = .center
+            let rotulo = fase + (rodando ? "" : "  ·  PAUSADO")
+            (rotulo as NSString).draw(in: CGRect(x: 0, y: H * 0.14, width: W, height: 50), withAttributes: [
+                .font: UIFont.systemFont(ofSize: 32, weight: .heavy), .foregroundColor: acento,
+                .kern: 6, .paragraphStyle: centro])
+            let tam: CGFloat = disp.count > 5 ? 128 : 160
+            (disp as NSString).draw(in: CGRect(x: 0, y: H * 0.52 - tam * 0.62, width: W, height: tam * 1.25), withAttributes: [
+                .font: UIFont.monospacedDigitSystemFont(ofSize: tam, weight: .bold), .foregroundColor: UIColor.white,
+                .paragraphStyle: centro])
+            ("Cátedra · Foco" as NSString).draw(in: CGRect(x: 0, y: H * 0.8, width: W, height: 34), withAttributes: [
+                .font: UIFont.systemFont(ofSize: 24, weight: .medium), .foregroundColor: UIColor(white: 1, alpha: 0.45),
+                .paragraphStyle: centro])
+        }
+    }
+
+    private func enfileirarQuadro() {
+        guard let cg = desenhar().cgImage else { return }
+        var pb: CVPixelBuffer?
+        let attrs = [kCVPixelBufferCGImageCompatibilityKey: true, kCVPixelBufferCGBitmapContextCompatibilityKey: true,
+                     kCVPixelBufferIOSurfacePropertiesKey: [:]] as CFDictionary
+        guard CVPixelBufferCreate(kCFAllocatorDefault, cg.width, cg.height, kCVPixelFormatType_32BGRA, attrs, &pb) == kCVReturnSuccess,
+              let buf = pb else { return }
+        CVPixelBufferLockBaseAddress(buf, [])
+        if let c = CGContext(data: CVPixelBufferGetBaseAddress(buf), width: cg.width, height: cg.height, bitsPerComponent: 8,
+                             bytesPerRow: CVPixelBufferGetBytesPerRow(buf), space: CGColorSpaceCreateDeviceRGB(),
+                             bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue) {
+            c.draw(cg, in: CGRect(x: 0, y: 0, width: cg.width, height: cg.height))
+        }
+        CVPixelBufferUnlockBaseAddress(buf, [])
+        var desc: CMVideoFormatDescription?
+        CMVideoFormatDescriptionCreateForImageBuffer(allocator: kCFAllocatorDefault, imageBuffer: buf, formatDescriptionOut: &desc)
+        guard let fd = desc else { return }
+        var tempo = CMSampleTimingInfo(duration: CMTime(value: 1, timescale: 2),
+                                       presentationTimeStamp: CMClockGetTime(CMClockGetHostTimeClock()), decodeTimeStamp: .invalid)
+        var sb: CMSampleBuffer?
+        CMSampleBufferCreateReadyWithImageBuffer(allocator: kCFAllocatorDefault, imageBuffer: buf, formatDescription: fd,
+                                                 sampleTiming: &tempo, sampleBufferOut: &sb)
+        guard let amostra = sb else { return }
+        // Mostrar já, sem esperar o relógio da camada.
+        if let anexos = CMSampleBufferGetSampleAttachmentsArray(amostra, createIfNecessary: true), CFArrayGetCount(anexos) > 0 {
+            let dic = unsafeBitCast(CFArrayGetValueAtIndex(anexos, 0), to: CFMutableDictionary.self)
+            CFDictionarySetValue(dic, Unmanaged.passUnretained(kCMSampleAttachmentKey_DisplayImmediately).toOpaque(),
+                                 Unmanaged.passUnretained(kCFBooleanTrue).toOpaque())
+        }
+        if camada.status == .failed { camada.flush() }
+        camada.enqueue(amostra)
+    }
+
+    // MARK: AVPictureInPictureSampleBufferPlaybackDelegate
+    func pictureInPictureController(_ c: AVPictureInPictureController, setPlaying playing: Bool) {
+        // play/pausa da janela flutuante → o mesmo toggleTimer da web
+        if playing != rodando { rodando = playing; enfileirarQuadro(); avisar("alternar") }
+    }
+    func pictureInPictureControllerTimeRangeForPlayback(_ c: AVPictureInPictureController) -> CMTimeRange {
+        // ao vivo: sem barra de progresso nem pulos
+        CMTimeRange(start: .negativeInfinity, duration: .positiveInfinity)
+    }
+    func pictureInPictureControllerIsPlaybackPaused(_ c: AVPictureInPictureController) -> Bool { !rodando }
+    func pictureInPictureController(_ c: AVPictureInPictureController, didTransitionToRenderSize newRenderSize: CMVideoDimensions) {}
+    func pictureInPictureController(_ c: AVPictureInPictureController, skipByInterval skipInterval: CMTime, completion: @escaping () -> Void) { completion() }
+
+    // MARK: AVPictureInPictureControllerDelegate
+    func pictureInPictureControllerDidStartPictureInPicture(_ c: AVPictureInPictureController) { avisar("aberto") }
+    func pictureInPictureControllerDidStopPictureInPicture(_ c: AVPictureInPictureController) { avisar("fechado") }
+    func pictureInPictureController(_ c: AVPictureInPictureController, failedToStartPictureInPictureWithError error: Error) {
+        querAbrir = false; avisar("falhou")
+    }
+}
+
 final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession,
