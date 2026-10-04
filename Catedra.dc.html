@@ -12398,7 +12398,9 @@ class Component extends DCLogic {
      A web segue dona do tempo: manda os números a cada 500 ms e o host só desenha o quadro;
      o play/pausa da janela volta por window.catedraPiPEvento('alternar'). */
   _pipNativo(){ try{ return !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.catedraPiP); }catch(_){ return false; } }
-  _pipNatPayload(acao){ const v=this._pipVals(); return {acao, disp:v.disp, fase:v.phaseText, cor:v.color, pct:v.pct, rodando:!!v.running, pomo:!!v.isPomo}; }
+  _pipNatPayload(acao){ const v=this._pipVals(); const st=this.state, dur=v.isPomo?((st.pomoPhase==='foco'?st.pomoFocus:st.pomoBreak)*60):0;
+    // seg/dur: com o app em segundo plano o iOS congela a web; o host segue contando a partir daqui
+    return {acao, disp:v.disp, fase:v.phaseText, cor:v.color, pct:v.pct, rodando:!!v.running, pomo:!!v.isPomo, seg:Number(st.timerSeconds)||0, dur}; }
   _pipNatParar(){ if(this._pipNatInt){ clearInterval(this._pipNatInt); this._pipNatInt=null; } this._pipNatAberto=false; }
   async _togglePiPNativo(){
     const ponte=window.webkit.messageHandlers.catedraPiP;

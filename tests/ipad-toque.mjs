@@ -261,7 +261,7 @@ export async function testarIpadToque(pageDaSuite, base, ok, ctx = {}) {
         a.setState({ pomoMenuOpen: false, timerSeconds: 754, timerMode: 'livre', timerRunning: false });
         await a.togglePiP(); await w(1200);
         const ab = msgs.find(m => m.acao === 'abrir');
-        r.natAbriu = !!ab && ab.disp === a.fmtClock(754) && ab.rodando === false && /^#|^rgb/.test(String(ab.cor || ''));
+        r.natAbriu = !!ab && ab.disp === a.fmtClock(754) && ab.rodando === false && ab.seg === 754 && ab.dur === 0 && /^#|^rgb/.test(String(ab.cor || ''));
         r.natAtualiza = msgs.filter(m => m.acao === 'atualizar').length >= 2;
         const rodavaAntes = a.state.timerRunning;
         window.catedraPiPEvento('alternar'); await w(100);
@@ -291,7 +291,7 @@ export async function testarIpadToque(pageDaSuite, base, ok, ctx = {}) {
       ok(r.comShim && r.botaoVoltou, R + '(h) com o shim do Mac (documentPictureInPicture) o botão volta');
       ok(r.msgHonesta, R + '(h) a mensagem não manda para o Safari nem para uma Tela cheia (' + r.msg.slice(0, 70) + ')');
       ok(r.natMostra && r.natBotao, R + '(h2) iPad com a ponte catedraPiP: "Janela flutuante" aparece e pinta');
-      ok(r.natAbriu && r.natAtualiza, R + '(h2) abrir manda os números do cronômetro e segue atualizando');
+      ok(r.natAbriu && r.natAtualiza, R + '(h2) abrir manda os números do cronômetro (com seg/dur, para o host contar com a web congelada) e segue atualizando');
       ok(r.natAlterna && r.natParou, R + '(h2) play/pausa da janela alterna o cronômetro; fechar pelo sistema para o envio');
       ok(r.natRecusa, R + '(h2) host sem PiP responde não: aviso honesto e nada fica rodando');
       ok(r.semAuthSai, R + '(g) sem CatedraAuth o Sair antigo continua valendo');

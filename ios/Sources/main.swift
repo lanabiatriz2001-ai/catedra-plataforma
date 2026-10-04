@@ -1913,6 +1913,12 @@ final class PiPCronometro: NSObject, AVPictureInPictureControllerDelegate, AVPic
     private var querAbrir = false
     private var rodando = false
     private var vals: [String: Any] = [:]
+    // O tempo corre AQUI também: com o Cátedra fora da tela o iOS congela o WKWebView e os
+    // 'atualizar' param de chegar. O host guarda o último segundo que a web mandou e o
+    // instante em que chegou, e conta sozinho até a web voltar.
+    private var segBase: Double = 0
+    private var segEm = Date()
+    private var relogio: Timer?
     private let avisar: (String) -> Void
     private let tamanho = CGSize(width: 640, height: 360)
 
@@ -1936,6 +1942,8 @@ final class PiPCronometro: NSObject, AVPictureInPictureControllerDelegate, AVPic
         if acao == "fechar" { fechar(); return false }
         vals = d
         rodando = (d["rodando"] as? Bool) ?? false
+        segBase = (d["seg"] as? Double) ?? Double((d["seg"] as? Int) ?? 0)
+        segEm = Date()
         if acao == "abrir" {
             guard Self.disponivel else { return false }
             abrir()
@@ -1967,6 +1975,10 @@ final class PiPCronometro: NSObject, AVPictureInPictureControllerDelegate, AVPic
             }
         }
         if let c = controle, c.isPictureInPicturePossible { c.startPictureInPicture() } else { querAbrir = true }
+        relogio?.invalidate()
+        let t = Timer(timeInterval: 0.5, repeats: true) { [weak self] _ in self?.enfileirarQuadro() }
+        RunLoop.main.add(t, forMode: .common)
+        relogio = t
         // Se em 3 s não abriu, a web avisa em vez de ficar muda.
         DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
             guard let self, self.querAbrir else { return }
@@ -1977,6 +1989,7 @@ final class PiPCronometro: NSObject, AVPictureInPictureControllerDelegate, AVPic
 
     private func fechar() {
         querAbrir = false
+        relogio?.invalidate(); relogio = nil
         controle?.stopPictureInPicture()
     }
 
@@ -1988,11 +2001,19 @@ final class PiPCronometro: NSObject, AVPictureInPictureControllerDelegate, AVPic
         return UIColor(red: CGFloat((n >> 16) & 255) / 255, green: CGFloat((n >> 8) & 255) / 255, blue: CGFloat(n & 255) / 255, alpha: 1)
     }
 
+    private func relogioTexto(_ seg: Int) -> String {
+        let h = seg / 3600, m = seg % 3600 / 60, s = seg % 60
+        return h > 0 ? String(format: "%d:%02d:%02d", h, m, s) : String(format: "%02d:%02d", m, s)
+    }
+
     private func desenhar() -> UIImage {
-        let disp = (vals["disp"] as? String) ?? "00:00"
-        let fase = ((vals["fase"] as? String) ?? "Foco").uppercased()
-        let pct = CGFloat((vals["pct"] as? Double) ?? 0)
         let pomo = (vals["pomo"] as? Bool) ?? false
+        let dur = (vals["dur"] as? Double) ?? Double((vals["dur"] as? Int) ?? 0)
+        let seg = segBase + (rodando ? Date().timeIntervalSince(segEm) : 0)
+        let disp = vals["seg"] == nil ? ((vals["disp"] as? String) ?? "00:00")
+            : relogioTexto(Int(pomo && dur > 0 ? max(0, dur - seg) : seg))
+        let fase = ((vals["fase"] as? String) ?? "Foco").uppercased()
+        let pct = CGFloat(pomo && dur > 0 ? min(1, seg / dur) : ((vals["pct"] as? Double) ?? 0))
         let acento = cor(vals["cor"] as? String)
         let fmt = UIGraphicsImageRendererFormat(); fmt.scale = 1; fmt.opaque = true
         return UIGraphicsImageRenderer(size: tamanho, format: fmt).image { ctx in
@@ -2057,7 +2078,11 @@ final class PiPCronometro: NSObject, AVPictureInPictureControllerDelegate, AVPic
     // MARK: AVPictureInPictureSampleBufferPlaybackDelegate
     func pictureInPictureController(_ c: AVPictureInPictureController, setPlaying playing: Bool) {
         // play/pausa da janela flutuante → o mesmo toggleTimer da web
-        if playing != rodando { rodando = playing; enfileirarQuadro(); avisar("alternar") }
+        if playing != rodando {
+            // rebase no instante da troca, para a pausa congelar o número certo
+            segBase += rodando ? Date().timeIntervalSince(segEm) : 0
+            segEm = Date(); rodando = playing; enfileirarQuadro(); avisar("alternar")
+        }
     }
     func pictureInPictureControllerTimeRangeForPlayback(_ c: AVPictureInPictureController) -> CMTimeRange {
         // ao vivo: sem barra de progresso nem pulos
@@ -2069,7 +2094,10 @@ final class PiPCronometro: NSObject, AVPictureInPictureControllerDelegate, AVPic
 
     // MARK: AVPictureInPictureControllerDelegate
     func pictureInPictureControllerDidStartPictureInPicture(_ c: AVPictureInPictureController) { avisar("aberto") }
-    func pictureInPictureControllerDidStopPictureInPicture(_ c: AVPictureInPictureController) { avisar("fechado") }
+    func pictureInPictureControllerDidStopPictureInPicture(_ c: AVPictureInPictureController) {
+        relogio?.invalidate(); relogio = nil
+        avisar("fechado")
+    }
     func pictureInPictureController(_ c: AVPictureInPictureController, failedToStartPictureInPictureWithError error: Error) {
         querAbrir = false; avisar("falhou")
     }
