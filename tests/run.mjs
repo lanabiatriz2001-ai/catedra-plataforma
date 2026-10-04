@@ -25,6 +25,7 @@ import { testarLegisGuiado } from './legis-guiado.mjs';
 import { testarLeitorWeb } from './leitor-web.mjs';
 import { testarCicloInteligente } from './ciclo-inteligente.mjs';
 import { testarRegistroSessao } from './registro-sessao.mjs';
+import { testarCronometroPausa } from './cronometro-pausa.mjs';
 import { testarIntegracaoModulos } from './integracao-modulos.mjs';
 import { testarIntegracaoFase2 } from './integracao-fase2.mjs';
 import { testarVariosEditais } from './varios-editais.mjs';
@@ -9724,6 +9725,13 @@ catch (e) {
 try { await testarCicloInteligente(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'CICLO INTELIGENTE [' + motor + '] [http] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+// Cronômetro: a pausa aparece no relógio e não entra no registro (tests/cronometro-pausa.mjs)
+try { await testarCronometroPausa(page, URL0, ok, { motor }); }
+catch (e) {
+  ok(false, 'PAUSA [' + motor + '] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 

@@ -291,6 +291,8 @@ html.ct-teclado .ct-scroll{ padding-bottom:12px !important; }
 .cth-clock{ font-family:var(--mono); font-weight:700; letter-spacing:-.01em;
   font-size:clamp(46px,4vw,66px); color:#fff; line-height:1.05; margin:4px 0 2px;
   font-variant-numeric:tabular-nums; }
+.cth-pausa{ font-family:var(--mono); font-size:var(--fs-sm); font-weight:600; color:rgba(255,255,255,.72);
+  font-variant-numeric:tabular-nums; margin:0 0 4px; }
 .cth-ritmos{ display:flex; gap:7px; flex-wrap:wrap; margin:8px 0 14px; }
 .cth-timer-actions{ display:flex; gap:9px; align-items:center; flex-wrap:wrap; }
 .cth-bghost{ display:inline-flex; align-items:center; justify-content:center; gap:7px;
@@ -1230,6 +1232,7 @@ window.ctPdfLib = (function(){
           <div style="position:relative;text-align:center;">
             <div style="font-size:var(--fs-xs);letter-spacing:.24em;text-transform:uppercase;color:{{ phaseColor }};font-weight:800;">{{ focusPhaseLabel }}</div>
             <div style="font-family:var(--display);font-weight:700;color:#fff;font-size:clamp(46px,12vw,86px);line-height:1.02;margin-top:8px;letter-spacing:-.025em;font-variant-numeric:tabular-nums;">{{ sessionDisplay }}</div>
+            <sc-if value="{{ pausaMostra }}" hint-placeholder-val="{{ false }}"><div class="cth-pausa" data-pausa style="margin-top:6px;">{{ pausaLabel }}</div></sc-if>
             <sc-if value="{{ salaTemBloco }}" hint-placeholder-val="{{ false }}">
               <div style="font-size:var(--fs-base);color:rgba(255,255,255,.6);margin-top:8px;max-width:260px;line-height:1.4;">{{ salaBloco }}</div>
             </sc-if>
@@ -1678,6 +1681,7 @@ window.ctPdfLib = (function(){
                 <span class="cth-bloco">{{ heroBloco }}</span>
               </div>
               <div class="cth-clock">{{ sessionDisplay }}</div>
+              <sc-if value="{{ pausaMostra }}" hint-placeholder-val="{{ false }}"><div class="cth-pausa" data-pausa>{{ pausaLabel }}</div></sc-if>
               <sc-if value="{{ isPomo }}" hint-placeholder-val="{{ false }}"><div style="height:5px;border-radius:99px;background:rgba(255,255,255,.16);overflow:hidden;margin:2px 0 4px;"><i style="display:block;height:100%;border-radius:99px;background:#fff;width:100%;transform:translateX(calc({{ phasePct }}% - 100%));transition:transform .9s linear;will-change:transform;"></i></div></sc-if>
               <div class="cth-ritmos">
                 <button data-mode="livre" onclick="{{ setTimerMode }}" style="{{ homePmLivre }}">Livre</button>
@@ -7396,7 +7400,7 @@ class Component extends DCLogic {
       sim:this._load('sim', {total:0, acertos:0, erros:0, brancos:0}), simNome:'', simMin:'',
       simAnalysis:this._load('simAnalysis', 'liquida'),
       discItems:this._load('discItems', []),
-      timerRunning:false, timerSeconds:0,
+      timerRunning:false, timerSeconds:0, pausaSeg:0, pausaDesde:0, pausaTique:0,
       timerMode:'livre', pomoFocus:25, pomoBreak:5, pomoMenuOpen:false, sessionModalOpen:false,
       pomoPhase:'foco', pomoCycles:0, studiedSeconds:0, focusMode:false, focusBlockIdx:null, pipMsg:'', salaFrase:'', salaFraseVisivel:false,   // D13: a frase que abre a sala
       sessions: (()=>{ try{ const raw=localStorage.getItem(this._chave('sessions')); if(raw){ const arr=JSON.parse(raw); if(Array.isArray(arr)&&arr.length) return arr; } }catch(_){} return null; })(),
@@ -8639,7 +8643,7 @@ class Component extends DCLogic {
       try{ localStorage.setItem('catedra:schemaVersion', String(V)); }catch(_){}
     }catch(_){ }
   }
-  componentWillUnmount(){ if(this._redCronoT) clearInterval(this._redCronoT); if(this._redCorrT) clearInterval(this._redCorrT); try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onSelChange){ document.removeEventListener('selectionchange', this._onSelChange); clearTimeout(this._selChangeT); } ['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev, this._acDespertar)); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._areaMsg) window.removeEventListener('message', this._areaMsg); if(this._acervoMsg) window.removeEventListener('message', this._acervoMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._revT) clearInterval(this._revT);
+  componentWillUnmount(){ if(this._redCronoT) clearInterval(this._redCronoT); if(this._redCorrT) clearInterval(this._redCorrT); try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onSelChange){ document.removeEventListener('selectionchange', this._onSelChange); clearTimeout(this._selChangeT); } ['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev, this._acDespertar)); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._areaMsg) window.removeEventListener('message', this._areaMsg); if(this._acervoMsg) window.removeEventListener('message', this._acervoMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._pausaT) clearInterval(this._pausaT); if(this._revT) clearInterval(this._revT);
     try{ if(this._mqDark && this._onMqDark){ if(this._mqDark.removeEventListener) this._mqDark.removeEventListener('change', this._onMqDark); else if(this._mqDark.removeListener) this._mqDark.removeListener(this._onMqDark); } }catch(_){}
     if(this._pipMsgT) clearTimeout(this._pipMsgT); if(this._bkpAutoT) clearInterval(this._bkpAutoT); if(this._salaT) clearTimeout(this._salaT); this._pipStop(); this._closeDocPiP();  }
   componentDidUpdate(){ if(this.state.view==='redacao'){ this._redVigiarFolha();
@@ -9031,11 +9035,24 @@ class Component extends DCLogic {
       return { timerSeconds:sec, pomoPhase:phase, pomoCycles:cycles, studiedSeconds:studied };
     }, ()=>{ try{ this._saveTimer(); }catch(_){} });
   };
+  // Tempo em PAUSA: o relógio mostra quanto a sessão ficou parada (pausaSeg acumulado +
+  // o trecho aberto desde pausaDesde), mas ele NUNCA entra em timerSeconds/studiedSeconds —
+  // o registro continua sendo só o tempo líquido de estudo.
+  _pausaTotal(s){ s=s||this.state; return (+s.pausaSeg||0) + (s.pausaDesde? Math.max(0, Math.min(6*3600, Math.round((Date.now()-s.pausaDesde)/1000))) : 0); }
+  _pausaVigia(){ if(this._pausaT) clearInterval(this._pausaT); this._pausaT=null;
+    if(this.state.pausaDesde) this._pausaT=setInterval(()=>{ const s=this.state;
+      if(s.timerRunning || !s.pausaDesde || (!s.timerSeconds && !s.studiedSeconds)){ clearInterval(this._pausaT); this._pausaT=null;
+        if(!s.timerRunning && !s.timerSeconds && !s.studiedSeconds && (s.pausaDesde||s.pausaSeg)) this.setState({pausaSeg:0, pausaDesde:0}); return; }
+      this.setState({pausaTique:Date.now()}); }, 1000); }
   toggleTimer = ()=>{
     if(this.state.timerRunning){ if(this._tick) clearInterval(this._tick); this._tick=null;
       const _min=this._minCronometro();
-      this.setState({timerRunning:false}, ()=>{ this._saveTimer(); this._ofertarRegistro(_min); }); }
-    else { this._tickLast=Date.now(); this._tick = setInterval(this.tick, 1000); this.setState({timerRunning:true}, ()=>this._saveTimer()); }
+      this.setState({timerRunning:false, pausaDesde:Date.now()}, ()=>{ this._saveTimer(); this._pausaVigia(); this._ofertarRegistro(_min); }); }
+    else { this._tickLast=Date.now(); this._tick = setInterval(this.tick, 1000);
+      const s=this.state, zerado=!s.timerSeconds && !s.studiedSeconds;   // sessão nova começa sem pausa herdada
+      const pausaSeg=zerado?0:this._pausaTotal(s);
+      if(this._pausaT){ clearInterval(this._pausaT); this._pausaT=null; }
+      this.setState({timerRunning:true, pausaSeg, pausaDesde:0}, ()=>this._saveTimer()); }
   };
   resetTimer = ()=>{ if(this._tick) clearInterval(this._tick); this._tick=null; try{ localStorage.removeItem('ct_timer'); }catch(_){}
     const _min=this._minCronometro();   // lido ANTES de zerar, senão a oferta viria com 0
@@ -9095,7 +9112,7 @@ class Component extends DCLogic {
       if(!s.timerRunning && !s.timerSeconds && !s.studiedSeconds){ localStorage.removeItem('ct_timer'); return; }
       localStorage.setItem('ct_timer', JSON.stringify({ sec:s.timerSeconds, studied:s.studiedSeconds,
         mode:s.timerMode, phase:s.pomoPhase, cycles:s.pomoCycles, running:s.timerRunning, ts:Date.now(),
-        d:this._hoje(), pf:s.pomoFocus, pb:s.pomoBreak }));
+        d:this._hoje(), pf:s.pomoFocus, pb:s.pomoBreak, ps:+s.pausaSeg||0, pd:+s.pausaDesde||0 }));
     }catch(_){}
   }
   /* Ajustes que passam a VALER: "modo padrão", "bloco padrão" e "pausa padrão" existiam
@@ -9130,10 +9147,13 @@ class Component extends DCLogic {
       if(typeof t.cycles==='number') patch.pomoCycles=t.cycles;
       if(+t.pf>0) patch.pomoFocus=+t.pf;
       if(+t.pb>0) patch.pomoBreak=+t.pb;
+      patch.pausaSeg=+t.ps||0;
+      // parado quando o app fechou: a pausa segue contando desde o carimbo de então
+      patch.pausaDesde=t.running?0:(+t.pd||+t.ts||Date.now());
       // Estava RODANDO quando o processo morreu: o carimbo `ts` gravado no _saveTimer vira o
       // "último tique", e um tick imediato soma o intervalo pela mesma política/teto de sempre
       // (inclusive a virada foco↔pausa do pomodoro, que só o tick sabe fazer).
-      this.setState(patch, ()=>{ if(t.running){ if(this._tick) clearInterval(this._tick); this._tickLast=(+t.ts>0?+t.ts:Date.now()); this._tick=setInterval(this.tick,1000); this.setState({timerRunning:true}); if(+t.ts>0) this.tick(); } });
+      this.setState(patch, ()=>{ if(t.running){ if(this._tick) clearInterval(this._tick); this._tickLast=(+t.ts>0?+t.ts:Date.now()); this._tick=setInterval(this.tick,1000); this.setState({timerRunning:true}); if(+t.ts>0) this.tick(); } else this._pausaVigia(); });
     }catch(_){}
   }
   fmtClock = (sec)=>{ const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60), s=sec%60; const p=n=>String(n).padStart(2,'0');
@@ -20234,6 +20254,8 @@ class Component extends DCLogic {
            +(this.state.cycleMode==='inteligente'?' · a volta segue a sua prioridade real':''))),
       onSim:this.onSim, simNome:this.state.simNome, onSimNome:this.onSimNome, saveSimulado:this.saveSimulado, simMin:this.state.simMin, onSimMin:this.onSimMin, simTempoLabel:(this.state.provaDurationMin>0?fmtHM(this.state.provaDurationMin):'—'),
       toggleTimer:this.toggleTimer, resetTimer:this.resetTimer, timerRunning:this.state.timerRunning, timerIdle:!this.state.timerRunning, sessionDisplay, timerPillStyle,
+      ...(()=>{ const s=this.state, tem=!!(s.timerSeconds||s.studiedSeconds), p=tem?this._pausaTotal(s):0;
+        return { pausaMostra:p>0, pausaLabel:(s.pausaDesde&&!s.timerRunning?'Em pausa · ':'Pausas · ')+this.fmtClock(p)+' fora da conta' }; })(),
       // ===== D12: o chip de foco =====
       // Nova CASCA sobre os mesmos handlers. Parado, o chip convida ("Focar"); rodando,
       // mostra o tempo e o que ela está fazendo, e pulsa devagar para lembrar que corre.
