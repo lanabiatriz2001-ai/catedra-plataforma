@@ -29,6 +29,7 @@ import { testarIntegracaoModulos } from './integracao-modulos.mjs';
 import { testarIntegracaoFase2 } from './integracao-fase2.mjs';
 import { testarVariosEditais } from './varios-editais.mjs';
 import { testarImportadorEdital } from './importador-edital.mjs';
+import { testarEditalPorConcurso } from './edital-por-concurso.mjs';
 import { testarTemplateFileUrl } from './template-file-url.mjs';
 import { testarAuthModoLocal } from './auth-modo-local.mjs';
 import { testarSyncMemoriaVelha } from './sync-memoria-velha.mjs';
@@ -9784,6 +9785,9 @@ catch (e) {
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
+// Cada concurso com o seu edital: tópicos por concurso, estudo único (tests/edital-por-concurso.mjs)
+try { await testarEditalPorConcurso(page, URL0, ok, { motor }); }
+catch (e) { ok(false, 'EDITAL/CONCURSO exceção: ' + e.message); }
 // Importador de edital: formatos das bancas, caminho da tela e modelos (tests/importador-edital.mjs)
 try { await testarImportadorEdital(page, URL0, ok, { motor }); }
 catch (e) { ok(false, 'IMPORTADOR exceção: ' + e.message); }

@@ -56,6 +56,7 @@ import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 import { testarRevisaoOficial } from './revisao-oficial.mjs';
 import { testarMenuLateral } from './menu-lateral.mjs';
 import { testarImportadorEdital } from './importador-edital.mjs';
+import { testarEditalPorConcurso } from './edital-por-concurso.mjs';
 import { testarNovidadesCentral } from './novidades-central.mjs';
 import { testarSemDodEstatico, testarSemDodNavegador } from './sem-dod.mjs';
 import { testarMigracaoL4Navegador } from './teses-oficiais.mjs';
@@ -223,6 +224,8 @@ for (const [base, origem, arquivo] of ORIGENS) {
     catch (e) { ok(false, 'OFICIAL [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
     // o Baralho do menu com o estilo dos irmãos, e 44 px no toque em retrato e em paisagem —
     // o importador de edital é quase todo regex: o JavaScriptCore é o motor que o lê no Mac e no iPad
+    try { await testarEditalPorConcurso(page, base, ok, { motor }); }
+    catch (e) { ok(false, 'EDITAL/CONCURSO [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
     try { await testarImportadorEdital(page, base, ok, { motor }); }
     catch (e) { ok(false, 'IMPORTADOR [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
     // o motor do WKWebView é o que o iPad pinta

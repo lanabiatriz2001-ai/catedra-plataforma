@@ -3006,6 +3006,7 @@ window.ctPdfLib = (function(){
               </div>
               <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
                 <button onclick="{{ aplicarModelo }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">{{ modeloAplicarLabel }}</button>
+                <sc-if value="{{ modeloPodeConcursoNovo }}" hint-placeholder-val="{{ false }}"><button data-modelo-novo-concurso="1" onclick="{{ aplicarModeloNovoConcurso }}" title="Cria um concurso com o nome deste modelo e põe nele só os tópicos deste edital. O que você já estudou nas disciplinas em comum continua valendo." style="background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 18px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;min-height:44px;">Criar um concurso com este edital</button></sc-if>
                 <span style="font-size:var(--fs-xs);color:var(--text3);align-self:center;">Some ao que você já tem — não apaga nada.</span>
               </div>
               </sc-if>
@@ -3070,6 +3071,7 @@ window.ctPdfLib = (function(){
                       <span title="Domínio calculado do seu desempenho real nas sessões deste tópico" style="flex:none;font-size:var(--fs-2xs);font-weight:600;color:{{ t.domColor }};background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:2px 9px;white-space:nowrap;">{{ t.domStr }}</span>
                       <!-- C2: praticar este tópico na plataforma de questões (link de saída) -->
                       <button data-d="{{ t.discNome }}" data-a="{{ t.topNome }}" onclick="{{ praticarDisciplina }}" title="{{ praticarTitulo }}" aria-label="Praticar questões deste tópico" style="flex:none;border:1px solid var(--border);background:var(--surface2);border-radius:var(--r-sm);padding:3px 8px;font-size:var(--fs-2xs);color:var(--text3);cursor:pointer;font-family:inherit;">↗</button>
+                      <sc-if value="{{ t.podeTirar }}" hint-placeholder-val="{{ false }}"><button data-tirar="1" data-d="{{ t.d }}" data-t="{{ t.i }}" data-s="-1" onclick="{{ tirarTopico }}" aria-label="Tirar do concurso ativo" title="Tirar deste concurso — continua no acervo, com o estudo feito, e nos outros concursos" style="flex:none;width:44px;height:44px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M8 12h8"></path></svg></button></sc-if>
                     </div>
                     <sc-if value="{{ t.hasSubs }}" hint-placeholder-val="{{ false }}">
                       <div style="display:flex;flex-direction:column;gap:1px;padding-left:31px;">
@@ -3077,11 +3079,29 @@ window.ctPdfLib = (function(){
                           <div style="display:flex;align-items:center;gap:10px;padding:6px 0;">
                             <button class="ct-alvo ct-miudo" data-d="{{ sb.d }}" data-t="{{ sb.t }}" data-i="{{ sb.i }}" onclick="{{ toggleSub }}" title="Concluir / desmarcar" style="width:16px;height:16px;border-radius:5px;flex:none;display:flex;align-items:center;justify-content:center;border:2px solid {{ sb.subBorder }};background:{{ sb.subBg }};color:#fff;cursor:pointer;padding:0;"><sc-if value="{{ sb.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3.8"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></button>
                             <input data-d="{{ sb.d }}" data-t="{{ sb.t }}" data-i="{{ sb.i }}" value="{{ sb.name }}" oninput="{{ editSub }}" title="Editar subtópico" style="flex:1;min-width:0;font-size:var(--fs-sm);color:var(--text3);text-decoration:{{ sb.subStrike }};border:1px solid var(--border);background:var(--surface);border-radius:var(--r-sm);padding:4px 8px;font-family:inherit;">
+                            <sc-if value="{{ sb.podeTirar }}" hint-placeholder-val="{{ false }}"><button data-tirar="1" data-d="{{ sb.d }}" data-t="{{ sb.t }}" data-s="{{ sb.i }}" onclick="{{ tirarTopico }}" aria-label="Tirar do concurso ativo" title="Tirar deste concurso — continua no acervo, com o estudo feito, e nos outros concursos" style="flex:none;width:44px;height:44px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M8 12h8"></path></svg></button></sc-if>
                           </div>
                         </sc-for>
                       </div>
                     </sc-if>
                   </sc-for>
+                  <!-- cada concurso com o seu edital: o que é do acervo mas não deste concurso -->
+                  <sc-if value="{{ d.temOutros }}" hint-placeholder-val="{{ false }}">
+                    <div data-ed-outros="{{ d.disc }}" style="border-top:1px solid var(--border);padding-top:8px;margin-top:4px;">
+                      <button data-n="{{ d.disc }}" onclick="{{ toggleOutros }}" aria-expanded="{{ d.outrosAbertoStr }}" title="Tópicos desta disciplina que vieram do edital de outro concurso. O estudo é o mesmo: trazer só faz o tópico aparecer também aqui." style="min-height:44px;background:transparent;border:1px dashed var(--border);border-radius:var(--r-md);padding:8px 12px;font-size:var(--fs-xs);font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;">{{ d.outrosLabel }}</button>
+                      <sc-if value="{{ d.outrosAberto }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex;flex-direction:column;gap:2px;margin-top:6px;">
+                          <sc-for list="{{ d.outros }}" as="o" hint-placeholder-count="2">
+                            <div style="display:flex;align-items:center;gap:10px;padding:4px 0;">
+                              <span style="flex:1;min-width:0;font-size:var(--fs-sm);color:var(--text2);line-height:1.4;">{{ o.label }}</span>
+                              <button data-d="{{ o.d }}" data-t="{{ o.t }}" data-s="{{ o.s }}" onclick="{{ trazerTopico }}" style="flex:none;min-height:44px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:8px 12px;font-size:var(--fs-xs);font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;">Trazer para este concurso</button>
+                            </div>
+                          </sc-for>
+                          <button data-i="{{ d.i }}" onclick="{{ trazerTodos }}" style="align-self:flex-start;min-height:44px;margin-top:4px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:8px 14px;font-size:var(--fs-sm);font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;">Trazer todos</button>
+                        </div>
+                      </sc-if>
+                    </div>
+                  </sc-if>
                 </div>
               </sc-if>
             </div>
@@ -7400,7 +7420,7 @@ class Component extends DCLogic {
       histLixeiraOpen:false,
       sessionDraft:{ disc:_areaIni.discs[0], topico:'', categorias:['Teoria'], categoria:'Teoria', minutos:'', acertos:'', erradas:'', brancos:'', foco:4, nota:'', agendarRevisao:false, contarMeta:true },
       edRaw:'', edParsed:null, edAiBusy:false,
-      modeloOpen:false, modeloSel:[], modeloOutras:false,
+      modeloOpen:false, modeloSel:[], modeloOutras:false, edOutros:{},
       modeloId:((CT_MODELOS.filter(m=>(_areaIni.modelos||[]).indexOf(m.id)>=0)[0])||CT_MODELOS[0]||{}).id||'',   // modelos de edital pré-cadastrados
       cad:{mode:'nova', discSel:_areaIni.discs[0], discNova:'', cor:'#2563eb', topico:'', sub:'', peso:'', questoes:''},
       eventos:this._load('eventos', []),
@@ -9785,6 +9805,7 @@ class Component extends DCLogic {
     const norm=s=>String(s||'').trim().toLowerCase();
     const has=(v)=>v!==''&&v!=null;
     const ed=this.state.edital.map(d=>({...d, topics:(d.topics||[]).map(t=>({...t, subs:Array.isArray(t.subs)?t.subs.map(s=>this._subObj(s)):[]}))}));
+    const _id=this._edAlvo(), _novo=this._edNovo(_id);   // o que entra é do concurso ATIVO
     this.state.edParsed.forEach((pd)=>{
       let di=ed.findIndex(d=>norm(d.disc)===norm(pd.disc));
       if(di<0){ ed.push({disc:pd.disc, color:pd.color||this._editalColor(pd.disc, ed.length), open:false, topics:[],
@@ -9798,9 +9819,12 @@ class Component extends DCLogic {
       const D=ed[di];
       (pd.topics||[]).forEach(pt=>{
         let ti=D.topics.findIndex(t=>norm(t.name)===norm(pt.name));
-        if(ti<0){ D.topics.push({name:pt.name, done:false, subs:(pt.subs||[]).map(s=>({name:s, done:false}))}); }
-        else { const t=D.topics[ti]; const seen=new Set((t.subs||[]).map(s=>norm(s.name)));
-          (pt.subs||[]).forEach(s=>{ const k=norm(s); if(k && !seen.has(k)){ t.subs.push({name:s, done:false}); seen.add(k); } }); }
+        if(ti<0){ D.topics.push({name:pt.name, done:false, subs:(pt.subs||[]).map(s=>({name:s, done:false, ..._novo})), ..._novo}); }
+        else { const t=D.topics[ti]=this._edCom(D.topics[ti], _id);   // já existia (de outro concurso): passa a ser deste também
+          const quer=new Set((pt.subs||[]).map(norm));
+          t.subs=(t.subs||[]).map(x=> quer.has(norm(x.name)) ? this._edCom(x, _id) : x);
+          const seen=new Set(t.subs.map(s=>norm(s.name)));
+          (pt.subs||[]).forEach(s=>{ const k=norm(s); if(k && !seen.has(k)){ t.subs.push({name:s, done:false, ..._novo}); seen.add(k); } }); }
       });
     });
     this.setState({edital:ed, edParsed:null, edRaw:''}); if(this.flashSync) this.flashSync();
@@ -9827,9 +9851,13 @@ class Component extends DCLogic {
     if(di<0){ ed.push({disc:nome, color:c.mode==='nova'?c.cor:'#0f7a57', open:true, topics:[], peso:_peso, questoes:_quest, foraDoConcurso:false, _esp:this._espAtivo()}); di=ed.length-1; }
     else { ed[di]={...ed[di], peso:(_peso!==''?_peso:ed[di].peso), questoes:(_quest!==''?_quest:ed[di].questoes), foraDoConcurso:false, _esp:this._espAtivo()}; }
     if(c.topico.trim()){
+      const _id=this._edAlvo(), _novo=this._edNovo(_id);   // o que entra é do concurso ATIVO
       let ti = ed[di].topics.findIndex(t=>t.name.toLowerCase()===c.topico.trim().toLowerCase());
-      if(ti<0){ ed[di].topics.push({name:c.topico.trim(), done:false, subs: c.sub.trim()?[{name:c.sub.trim(), done:false}]:[]}); }
-      else { const t=ed[di].topics[ti]; const subs=Array.isArray(t.subs)?t.subs.map(x=>this._subObj(x)):[]; if(c.sub.trim()) subs.push({name:c.sub.trim(), done:false}); ed[di].topics[ti]={...t, subs}; }
+      if(ti<0){ ed[di].topics.push({name:c.topico.trim(), done:false, subs: c.sub.trim()?[{name:c.sub.trim(), done:false, ..._novo}]:[], ..._novo}); }
+      else { const t=this._edCom(ed[di].topics[ti], _id); let subs=Array.isArray(t.subs)?t.subs.map(x=>this._subObj(x)):[];
+        if(c.sub.trim()){ const k=c.sub.trim().toLowerCase(); const j=subs.findIndex(x=>String(x.name||'').trim().toLowerCase()===k);
+          if(j<0) subs.push({name:c.sub.trim(), done:false, ..._novo}); else subs[j]=this._edCom(subs[j], _id); }   // repetido não duplica: só entra neste concurso
+        ed[di].topics[ti]={...t, subs}; }
       ed[di]={...ed[di], open:true};
     }
     this.setState({edital:ed, cad:{...c, discNova:'', topico:'', sub:'', peso:'', questoes:''}}); this.flashSync(); };
@@ -9865,6 +9893,53 @@ class Component extends DCLogic {
   _concursoAtivo(){
     const eds=this._editaisComMigracao(); if(!eds.length) return null;
     return eds.find(e=>e.id===this.state.editalAtivo) || eds[0];
+  }
+  /* ===== CADA CONCURSO COM O SEU EDITAL (03/10/2026) =====
+     Decisão da dona: "cada concurso tem o seu edital" — com o estudo ÚNICO de 17/09 mantido.
+     O acervo continua um só e NÃO é movido. Cada tópico (e cada subtópico) pode carregar `eds`,
+     a lista dos concursos a que pertence:
+       · sem `eds`  → vale para TODOS os concursos (é tudo o que existia antes desta mudança:
+                      a migração é não fazer nada, e ninguém perde edital ao atualizar);
+       · com `eds`  → só aparece nos concursos da lista. Subtópico sem `eds` acompanha o tópico.
+     Importar, aplicar modelo e cadastrar à mão marcam o concurso ATIVO. Tópico de mesmo nome
+     que já existia (veio de outro concurso) só GANHA o concurso ativo na lista: o que já foi
+     estudado nele passa a contar aqui também — não há segunda cópia.
+     A lista viaja dentro do próprio tópico, na chave `edital`, que já sincroniza: nenhuma
+     chave nova, nenhuma regra nova no auth.js. */
+  _noEd(x, id){ return !id || !x || typeof x!=='object' || !Array.isArray(x.eds) || x.eds.indexOf(id)>=0; }
+  /** Devolve x pertencendo também ao concurso id (o mesmo objeto quando já pertence). */
+  _edCom(x, id){ return (!id || !x || typeof x!=='object' || !Array.isArray(x.eds) || x.eds.indexOf(id)>=0) ? x : {...x, eds:x.eds.concat([id])}; }
+  /** Marca de nascimento de um tópico/subtópico novo: do concurso `id`. */
+  _edNovo(id){ return id ? {eds:[id]} : {}; }
+  /** O concurso que recebe o que entra AGORA. Com o edital ainda vazio não existe concurso
+      nenhum — mas o primeiro que nascer é o principal (id fixo), então o 1º edital já entra
+      marcado como dele: senão ele valeria para "todos" e apareceria em todo concurso futuro. */
+  _edAlvo(){ return this._espAtivo() || this.ED_PRINCIPAL; }
+  /** Ao NASCER um concurso, o que ainda não tinha marca passa a ser dos concursos que já
+      existiam — e não do que está nascendo. Sem isto o edital antigo, por valer "para todos",
+      apareceria inteiro dentro de cada concurso futuro, e nenhum teria só o edital dele. */
+  _edFecharLegado(pool, ids){
+    if(!ids || !ids.length) return pool||[];
+    return (pool||[]).map(d=>{ if(!d || !Array.isArray(d.topics) || !d.topics.some(t=>t && typeof t==='object' && !Array.isArray(t.eds))) return d;
+      return {...d, topics:d.topics.map(t=>(t && typeof t==='object' && !Array.isArray(t.eds)) ? {...t, eds:ids.slice()} : t)}; });
+  }
+  /** O acervo como o concurso `id` o enxerga (padrão: o ativo) — para LEITURA. Mesma ordem e
+      mesmas disciplinas; some só o tópico/subtópico que não é desse concurso. Quando nada é
+      filtrado devolve o PRÓPRIO acervo: quem tem um concurso só não nota diferença nenhuma. */
+  _edVista(id){
+    const C=id||this._espAtivo(); const pool=this.state.edital||[];
+    if(!C) return pool;
+    if(this._edVistaRef!==pool){ this._edVistaRef=pool; this._edVistaMemo={}; }
+    if(this._edVistaMemo[C]) return this._edVistaMemo[C];
+    let mudou=false;
+    const v=pool.map(d=>{ if(!d || !Array.isArray(d.topics)) return d;
+      let m=false; const tops=[];
+      d.topics.forEach(t=>{
+        if(!this._noEd(t, C)){ m=true; return; }
+        if(t && Array.isArray(t.subs) && t.subs.some(x=>!this._noEd(x, C))){ m=true; tops.push({...t, subs:t.subs.filter(x=>this._noEd(x, C))}); }
+        else tops.push(t); });
+      if(!m) return d; mudou=true; return {...d, topics:tops}; });
+    return (this._edVistaMemo[C]=(mudou?v:pool));
   }
   /** Projeta o concurso C sobre o acervo: membros recebem o peso/questões de C; quem não cai em
       C fica marcado e sem peso. Tópicos, cor e progresso NÃO são tocados — são do acervo. */
@@ -9913,14 +9988,14 @@ class Component extends DCLogic {
      2) adota o novo concurso ANTES de reler, para todo _chave() do ciclo mirar o destino;
      3) relê o ciclo do destino e alinha o _lastSaved — sem isso o autosave veria o ciclo velho
         na memória como "mudança" e o gravaria DENTRO do concurso novo, apagando o dele. */
-  _virarConcurso(id, eds){
+  _virarConcurso(id, eds, pool){
     const C=(eds||[]).find(x=>x.id===id); if(!C) return;
     this._edCapturar();
     try{ clearTimeout(this._asT); }catch(_){}
     this._salvarAgora();                                                     // (1)
     this.state.editalAtivo=id;                                               // (2)
     try{ localStorage.setItem(this._chave('editalAtivo'), JSON.stringify(id)); }catch(_){}
-    const patch={ editalAtivo:id, editais:eds, edital:this._edProjetar(this.state.edital, C) };
+    const patch={ editalAtivo:id, editais:eds, edital:this._edProjetar(pool||this.state.edital, C) };
     this.CICLO_PROPRIO.forEach(k=>{ patch[k]=this._load(k, this._vazioDe(k)); });   // (3)
     const L=this._lastSaved||(this._lastSaved={});
     this.CICLO_PROPRIO.forEach(k=>{ L[k]=patch[k]; }); L.editalAtivo=id;
@@ -9943,7 +10018,7 @@ class Component extends DCLogic {
     return eds.map(e=>{
       const discs=pool.filter(d=>membro(e, String(d.disc||'').trim()));
       const nomes=new Set(discs.map(d=>String(d.disc||'').trim()));
-      let tot=0, done=0; discs.forEach(d=>(d.topics||[]).forEach(t=>{ tot++; if(t&&t.done) done++; }));
+      let tot=0, done=0; discs.forEach(d=>(d.topics||[]).forEach(t=>{ if(!this._noEd(t, e.id)) return; tot++; if(t&&t.done) done++; }));   // só os tópicos DESTE concurso
       const min=sess.filter(x=>nomes.has(String(x.disc||'').trim())).reduce((a,x)=>a+Math.max(0,+x.min||0),0);
       const compart=[...nomes].filter(n=>eds.some(o=>o.id!==e.id&&membro(o,n))).length;
       return { id:e.id, nome:e.nome, ativo:!!(C&&C.id===e.id), discN:nomes.size,
@@ -9978,7 +10053,8 @@ class Component extends DCLogic {
     // o PRIMEIRO concurso de quem ainda não tinha nenhum é o principal: é ele que fica com as
     // chaves de sempre do ciclo — senão o ciclo já montado ficaria órfão, sem dono
     const C={ id:(eds.length?('ed-'+Date.now()):this.ED_PRINCIPAL), nome, banca:'', dataProva:'', discs, up:Date.now() };
-    this._virarConcurso(C.id, [...eds, C]);
+    // o edital que já existia fica com os concursos que já existiam: o novo começa com o edital DELE
+    this._virarConcurso(C.id, [...eds, C], this._edFecharLegado(this.state.edital||[], eds.map(e=>e.id)));
     this._toast('Concurso "'+nome+'" criado, com ciclo próprio — marque as disciplinas que caem nele');
   };
   renomearConcurso = ()=>{
@@ -9994,6 +10070,12 @@ class Component extends DCLogic {
     const C=this._concursoAtivo(); const guard=(C&&C.discs&&C.discs[String(ed[i].disc||'').trim()])||{};
     ed[i]= fora ? {...ed[i], foraDoConcurso:true, peso:'', questoes:'', _esp:this._espAtivo()}
                 : {...ed[i], foraDoConcurso:false, peso:(guard.peso!=null?guard.peso:''), questoes:(guard.questoes!=null?guard.questoes:''), _esp:this._espAtivo()};
+    // Marcar à mão que a disciplina cai neste concurso, sem ele ter NENHUM tópico dela (não veio
+    // edital para ela aqui): os tópicos que já existem passam a valer aqui também — é o que a
+    // marcação sempre significou. Se o concurso já tem tópicos dela, o edital dele é o que vale.
+    const _id=this._espAtivo(), _tops=Array.isArray(ed[i].topics)?ed[i].topics:[];
+    if(!fora && _id && _tops.length && !_tops.some(t=>this._noEd(t, _id)))
+      ed[i]={...ed[i], topics:_tops.map(T=>({...this._edCom(T, _id), subs:(Array.isArray(T.subs)?T.subs.map(x=>this._edCom(this._subObj(x), _id)):[])}))};
     this.setState({edital:ed}); this.flashSync();
   };
   // ===== modelos de edital pré-cadastrados (CT_MODELOS) =====
@@ -10033,32 +10115,85 @@ class Component extends DCLogic {
     return {modeloSel:(s.modeloSel||[]).length===all.length?[]:all.map((_,i)=>i)}; });
   // Mescla no edital existente pelo mesmo critério do importador: disciplina e
   // tópico repetidos não duplicam; subtópicos novos são somados aos que já existem.
-  aplicarModelo = ()=>{
+  /* `alvo` (interno) = {id, base, discs}: aplica num concurso que ACABOU de ser criado, sem
+     depender de o setState dele já ter assentado. Vindo do botão, o 1º argumento é o evento. */
+  aplicarModelo = (_ev, alvo)=>{
     const sel=(this.state.modeloSel||[]); if(!sel.length){ this._toast('Escolha ao menos uma disciplina'); return; }
     const _discs=this._modeloDiscs(this.state.modeloId);
     const norm=s=>String(s||'').trim().toLowerCase();
-    const ed=(this.state.edital||[]).map(d=>({...d, topics:(d.topics||[]).map(t=>({...t, subs:Array.isArray(t.subs)?t.subs.map(x=>this._subObj(x)):[]}))}));
+    const _alvo=(alvo && alvo.id) ? alvo : null;
+    const _esp=_alvo ? _alvo.id : this._espAtivo();
+    const _id=_esp || this.ED_PRINCIPAL, _novo=this._edNovo(_id);   // o que entra é do concurso ATIVO
+    const _guarda=_alvo ? (_alvo.discs||{}) : ((this._concursoAtivo()||{}).discs||{});
+    const ed=((_alvo&&_alvo.base)||this.state.edital||[]).map(d=>({...d, topics:(d.topics||[]).map(t=>({...t, subs:Array.isArray(t.subs)?t.subs.map(x=>this._subObj(x)):[]}))}));
     let nd=0, nt=0, ns=0;
     sel.slice().sort((a,b)=>a-b).forEach(i=>{
       const m=_discs[i]; if(!m) return;
       const [nome, cor, tops]=m;
       let di=ed.findIndex(d=>norm(d.disc)===norm(nome));
-      if(di<0){ ed.push({disc:nome, color:cor||this._editalColor(norm(nome), ed.length), open:false, topics:[], peso:'', questoes:'', foraDoConcurso:false, _esp:this._espAtivo()}); di=ed.length-1; nd++; }
+      if(di<0){ ed.push({disc:nome, color:cor||this._editalColor(norm(nome), ed.length), open:false, topics:[], peso:'', questoes:'', foraDoConcurso:false, _esp:_esp}); di=ed.length-1; nd++; }
       // aplicar o modelo = estas disciplinas caem no concurso ATIVO. Num concurso novo, as que já
       // existiam no acervo nascem "fora" — sem isto o modelo trazia os tópicos e elas seguiam fora.
-      else if(ed[di].foraDoConcurso){ const g=((this._concursoAtivo()||{}).discs||{})[String(ed[di].disc||'').trim()]||{};
-        ed[di]={...ed[di], foraDoConcurso:false, peso:(g.peso!=null?g.peso:''), questoes:(g.questoes!=null?g.questoes:''), _esp:this._espAtivo()}; nd++; }
+      else if(ed[di].foraDoConcurso){ const g=_guarda[String(ed[di].disc||'').trim()]||{};
+        ed[di]={...ed[di], foraDoConcurso:false, peso:(g.peso!=null?g.peso:''), questoes:(g.questoes!=null?g.questoes:''), _esp:_esp}; nd++; }
       const D=ed[di];
       (tops||[]).forEach(([tnome, subs])=>{
         let ti=D.topics.findIndex(t=>norm(t.name)===norm(tnome));
-        if(ti<0){ D.topics.push({name:tnome, done:false, subs:(subs||[]).map(x=>({name:x, done:false}))}); nt++; ns+=(subs||[]).length; return; }
-        const T=D.topics[ti];
-        (subs||[]).forEach(x=>{ if(!T.subs.some(y=>norm(y.name)===norm(x))){ T.subs.push({name:x, done:false}); ns++; } });
+        if(ti<0){ D.topics.push({name:tnome, done:false, subs:(subs||[]).map(x=>({name:x, done:false, ..._novo})), ..._novo}); nt++; ns+=(subs||[]).length; return; }
+        // já existia (de outro concurso, ou de todos): passa a ser deste também, sem segunda cópia
+        const eraDaqui=this._noEd(D.topics[ti], _id);
+        const T=D.topics[ti]=this._edCom(D.topics[ti], _id); if(!eraDaqui) nt++;
+        const quer=new Set((subs||[]).map(norm));
+        T.subs=T.subs.map(y=>{ if(!quer.has(norm(y.name)) || this._noEd(y, _id)) return y; ns++; return this._edCom(y, _id); });
+        (subs||[]).forEach(x=>{ if(!T.subs.some(y=>norm(y.name)===norm(x))){ T.subs.push({name:x, done:false, ..._novo}); ns++; } });
       });
     });
     this.setState({edital:ed, modeloOpen:false}, ()=>this.flashSync());
+    if(_alvo) return {nd, nt, ns};
     this._toast('Modelo aplicado ✦ '+(nd?nd+' disciplina'+(nd>1?'s':''):'')+(nd&&nt?' · ':'')+(nt?nt+' tópicos':'')+(ns?' · '+ns+' subtópicos':''));
   };
+  /* "Cada concurso tem o seu edital": aplicar um segundo modelo no MESMO concurso soma os dois
+     programas. Este caminho cria o concurso do modelo (com o nome dele) e aplica lá — as
+     disciplinas que já existem entram só com os tópicos deste edital; o estudo é o mesmo. */
+  aplicarModeloNovoConcurso = ()=>{
+    const sel=(this.state.modeloSel||[]); if(!sel.length){ this._toast('Escolha ao menos uma disciplina'); return; }
+    const m=CT_MODELOS.find(x=>x.id===this.state.modeloId); if(!m) return;
+    if(!this._modeloDiscs(this.state.modeloId).length){ this._toast('O modelo ainda está carregando — tente de novo em instantes'); return; }
+    this._edCapturar();
+    const eds=this._editaisComMigracao();
+    let nome=m.nome, n=2; while(eds.some(e=>String(e.nome||'')===nome)) nome=m.nome+' ('+(n++)+')';
+    const discs={}; (this.state.edital||[]).forEach(d=>{ const k=String(d.disc||'').trim(); if(k) discs[k]={peso:'', questoes:'', fora:true}; });
+    const C={ id:(eds.length?('ed-'+Date.now()):this.ED_PRINCIPAL), nome, banca:'', dataProva:'', discs, up:Date.now() };
+    // o edital que já existia fica com os concursos que já existiam: o novo recebe SÓ o do modelo
+    const fechado=this._edFecharLegado(this.state.edital||[], eds.map(e=>e.id));
+    const base=this._edProjetar(fechado, C);
+    this._virarConcurso(C.id, [...eds, C], fechado);
+    const r=this.aplicarModelo(null, {id:C.id, base, discs})||{};
+    this._toast('Concurso "'+nome+'" criado com o edital dele ✦ '+(r.nt||0)+' tópicos'+(r.ns?' · '+r.ns+' subtópicos':''));
+  };
+  /* Tópicos do acervo que NÃO são do concurso ativo: a tela os lista sob cada disciplina e
+     deixa trazer um a um, ou todos. Trazer não copia nada — só põe o concurso ativo na lista. */
+  toggleOutros = (e)=>{ const n=String(e.currentTarget.dataset.n||''); this.setState(s=>({edOutros:{...(s.edOutros||{}), [n]:!(s.edOutros||{})[n]}})); };
+  trazerTopico = (e)=>{ const el=e.currentTarget, d=+el.dataset.d, t=+el.dataset.t, k=+el.dataset.s; const id=this._espAtivo(); if(!id) return;
+    const ed=(this.state.edital||[]).slice(); const D=ed[d]; if(!D || !Array.isArray(D.topics) || !D.topics[t]) return;
+    const tp=D.topics.slice(); const T=tp[t];
+    if(k>=0){ const sb=Array.isArray(T.subs)?T.subs.map(x=>this._subObj(x)):[]; if(!sb[k]) return; sb[k]=this._edCom(sb[k], id); tp[t]={...T, subs:sb}; }
+    else tp[t]={...this._edCom(T, id), subs:(Array.isArray(T.subs)?T.subs.map(x=>this._edCom(this._subObj(x), id)):[])};
+    ed[d]={...D, topics:tp}; this.setState({edital:ed}); this.flashSync(); };
+  /* Tirar do concurso ativo: o tópico (ou subtópico) continua no acervo, com o estudo dele, e
+     nos outros concursos — só deixa de aparecer aqui. Volta por "Trazer para este concurso". */
+  tirarTopico = (e)=>{ const el=e.currentTarget, d=+el.dataset.d, t=+el.dataset.t, k=+el.dataset.s; const id=this._espAtivo(); if(!id) return;
+    const todos=(this._editaisComMigracao()||[]).map(x=>x.id); if(todos.length<2) return;
+    const ed=(this.state.edital||[]).slice(); const D=ed[d]; if(!D || !Array.isArray(D.topics) || !D.topics[t]) return;
+    const tp=D.topics.slice(); const T=tp[t];
+    const sem=(x, herda)=>({...x, eds:(Array.isArray(x.eds)?x.eds:(herda||todos)).filter(y=>y!==id)});
+    if(k>=0){ const sb=Array.isArray(T.subs)?T.subs.map(x=>this._subObj(x)):[]; if(!sb[k]) return; sb[k]=sem(sb[k], Array.isArray(T.eds)?T.eds:todos); tp[t]={...T, subs:sb}; }
+    else tp[t]=sem(T);
+    ed[d]={...D, topics:tp}; this.setState({edital:ed}); this.flashSync(); };
+  trazerTodos = (e)=>{ const d=+e.currentTarget.dataset.i; const id=this._espAtivo(); if(!id) return;
+    const ed=(this.state.edital||[]).slice(); const D=ed[d]; if(!D || !Array.isArray(D.topics)) return;
+    ed[d]={...D, topics:D.topics.map(T=>({...this._edCom(T, id), subs:(Array.isArray(T.subs)?T.subs.map(x=>this._edCom(this._subObj(x), id)):[])}))};
+    this.setState(s=>({edital:ed, edOutros:{...(s.edOutros||{}), [String(D.disc||'')]:false}})); this.flashSync(); };
   // Cor da disciplina depois de cadastrada — o edital é a fonte da cor em todo o app
   // (ciclo, gráficos, revisões leem _corDisc, que cai em CT_CORES_RAMO quando não há cor custom).
   setDiscCor = (e)=>{ const i=+e.currentTarget.dataset.i; const v=e.currentTarget.value;
@@ -10918,7 +11053,7 @@ class Component extends DCLogic {
     const base=Math.max(20, Math.round((parseInt(O.blocoPadrao,10)||50)*mult));
     const nBl=Math.max(4, Math.min(40, Math.round(this._voltaTotalMin()/base)));
     let B; try{ B=this._brain(); }catch(_){ B={byTopic:{}, discList:[]}; }
-    const ed=(this.state.edital||[]).filter(d=>!d.foraDoConcurso).map(d=>({disc:String(d.disc||'').trim(), peso:(parseFloat(d.peso)||1), pend:(d.topics||[]).filter(t=>t&&!t.done).map(t=>String(t.name||'').trim()).filter(Boolean)})).filter(d=>d.disc);
+    const ed=this._edVista().filter(d=>!d.foraDoConcurso).map(d=>({disc:String(d.disc||'').trim(), peso:(parseFloat(d.peso)||1), pend:(d.topics||[]).filter(t=>t&&!t.done).map(t=>String(t.name||'').trim()).filter(Boolean)})).filter(d=>d.disc);
     let prio=[]; try{ prio=this._prioridade(); }catch(_){ prio=[]; }
     const pmap={}; prio.forEach(p=>{ pmap[p.disc]=p; });
     let discs;
@@ -11163,7 +11298,7 @@ class Component extends DCLogic {
      helper devolve a frase do que está faltando (ou '' quando o modo tem com o que
      trabalhar), e a tela mostra isso no card e num toast ao trocar. */
   _cycleFalta(mode){
-    const ed=this.state.edital||[];
+    const ed=this._edVista();
     if(mode==='inteligente'){
       if(!ed.length) return 'Sem edital cadastrado — a volta sai pelas matérias da área até você cadastrar.';
       return '';
@@ -11515,9 +11650,18 @@ class Component extends DCLogic {
   _freshSessionDraft(prev){ const _d1=(this.state.edital[0]&&this.state.edital[0].disc)||'Direito Constitucional'; const _autoRev=(this.state.prefs&&this.state.prefs.autoRevisao)!==false; return { disc:(prev&&prev.disc)||_d1, discCustom:false, topico:'', edTop:'', edSub:'', marcarEdital:false, categorias:(prev&&prev.categorias)||['Teoria'], categoria:(prev&&prev.categoria)||'Teoria', minutos:'', acertos:'', erradas:'', brancos:'', foco:4, nota:'', agendarRevisao:_autoRev, contarMeta:true }; }
   // Tópicos/subtópicos da disciplina, lidos do EDITAL (fonte canônica) — usados
   // pelos selects do registro de sessão e da edição do histórico.
-  _topicosDe(disc){ const d=(this.state.edital||[]).find(x=>String(x.disc||'').trim()===String(disc||'').trim());
-    return (d&&Array.isArray(d.topics))?d.topics:[]; }
-  _subsDe(disc, topico){ const t=this._topicosDe(disc).find(x=>String(x.name||'').trim()===String(topico||'').trim());
+  // Os selects oferecem os tópicos do concurso ATIVO; `cru` olha o acervo inteiro (para
+  // conferir se um tópico já gravado numa sessão existe, seja de que concurso for).
+  // `manter` = tópico que a sessão JÁ aponta (um bloco de revisão pode trazer um tópico de outro
+  // concurso): ele entra na lista mesmo não sendo do ativo, senão o select ficaria sem a opção.
+  _topicosDe(disc, cru, manter){ const k=x=>String(x||'').trim();
+    const d=(cru?(this.state.edital||[]):this._edVista()).find(x=>k(x.disc)===k(disc));
+    const tops=(d&&Array.isArray(d.topics))?d.topics:[];
+    if(cru || !k(manter) || tops.some(t=>k(t.name)===k(manter))) return tops;
+    const a=(this.state.edital||[]).find(x=>k(x.disc)===k(disc));
+    const t=a && Array.isArray(a.topics) && a.topics.find(x=>k(x.name)===k(manter));
+    return t ? tops.concat([t]) : tops; }
+  _subsDe(disc, topico){ const t=this._topicosDe(disc, false, topico).find(x=>String(x.name||'').trim()===String(topico||'').trim());
     return (t&&Array.isArray(t.subs))?t.subs:[]; }
   // Flashcards é o único tipo cuja categoria difere do nome; os tipos próprios de cada
   // área (Caso clínico, Prática/laboratório…) valem como categoria com o mesmo nome.
@@ -11575,7 +11719,7 @@ class Component extends DCLogic {
     const disc = b.discEdital || b.disc || '';
     const topico = b.topico || ((b.tag&&b.tag!=='Rotativa'&&b.tag!=='Ciclo'&&b.tag!=='Fixa'&&!b.discEdital)?b.tag:'');
     // se o tópico do bloco é um tópico do edital, a sessão já nasce com o vínculo pronto
-    const _edTop=this._topicosDe(disc).some(t=>String(t.name||'').trim()===String(topico||'').trim())?topico:'';
+    const _edTop=this._topicosDe(disc, true).some(t=>String(t.name||'').trim()===String(topico||'').trim())?topico:'';
     // o subtópico do bloco vira o subtópico da sessão — é o que dá granularidade ao
     // domínio por tópico; sem isto o registro voltava para "o tópico inteiro".
     // atvKey é o fio que leva a sessão de volta à atividade: tempo parcial, origem do
@@ -11617,10 +11761,14 @@ class Component extends DCLogic {
         const topics=(d.topics||[]).map(t=>{
           if(String(t.name||'').trim()!==String(topico||'').trim()) return t;
           // string vira {name, done}; objeto mantém os outros campos — spread de string vira caracteres soltos
+          // só o que é do concurso ATIVO: subtópico que pertence a outro edital não é concluído
+          // daqui, nem impede o tópico de fechar quando todos os DESTE concurso estão feitos
+          const _id=this._espAtivo();
           if(sub){ const subs=(t.subs||[]).map(x0=>{ const x=this._subObj(x0); return String(x.name||'').trim()===String(sub).trim() ? {...x, done:true} : x; });
-            const todos=subs.length>0 && subs.every(x=>x.done);
+            const meus=subs.filter(x=>this._noEd(x, _id));
+            const todos=meus.length>0 && meus.every(x=>x.done);
             return {...t, subs, done: todos||t.done}; }
-          const subs=(t.subs||[]).map(x=>({...this._subObj(x), done:true}));
+          const subs=(t.subs||[]).map(x0=>{ const x=this._subObj(x0); return this._noEd(x, _id) ? {...x, done:true} : x; });
           return {...t, subs, done:true};
         });
         return {...d, topics};
@@ -12212,7 +12360,7 @@ class Component extends DCLogic {
   // ===== Exportar o EDITAL (texto/PDF) — outline com progresso, gerado localmente =====
   // Outline compartilhado pelos dois formatos: uma lista de blocos tipados.
   _editalOutline(){
-    const ed=this.state.edital||[]; const rows=[];
+    const ed=this._edVista(); const rows=[];   // o que se imprime é o edital do concurso ativo
     const nome=(this.state.prefs&&this.state.prefs.objetivo)||'';
     rows.push({k:'title', text:'EDITAL'+(nome?(' — '+nome):'')});
     const hoje=new Date().toLocaleDateString('pt-BR');
@@ -14189,7 +14337,7 @@ class Component extends DCLogic {
     try{
       const calc=window.CT_PRIORIDADE_CALC; if(!calc) return [];
       return calc.prioridadeDisciplinas({
-        edital:(this.state.edital||[]).filter(d=>!d.foraDoConcurso), errors:this.state.errors, reviews:this.state.reviews,
+        edital:this._edVista().filter(d=>!d.foraDoConcurso), errors:this.state.errors, reviews:this.state.reviews,
         sessions:this.state.sessions, redHist:this.state.redHist, incidencia:this._prioridadeIncidencia(), leituraPendente:this._laPendentePorDisc(), hoje:this._hoje(),
         // os controles de prioridade de Ajustes SÃO os pesos: a mesma régua do Foco do Início
         pesos:(typeof calc.pesosDosControles==='function') ? calc.pesosDosControles(this.state.orient||{}) : undefined,
@@ -14484,7 +14632,7 @@ class Component extends DCLogic {
         if(reNome && reNome.test(nt)) return true;
         return !!(mesmaDisc && reArt && reArt.test(nt)); };
       // Edital: os tópicos que citam a norma (ou o artigo, dentro da própria disciplina)
-      const edital=Array.isArray(this.state.edital) ? this.state.edital : [];
+      const edital=Array.isArray(this.state.edital) ? this._edVista() : [];
       const topicos=[]; let discEd=null;
       for(const d of edital){
         if(!d) continue;
@@ -15712,7 +15860,7 @@ class Component extends DCLogic {
     let B; try{ B=this._brain(); }catch(_){ B={discList:[],byTopic:{},normT:s=>String(s||'')}; }
     const fracas=[...(B.discList||[])].filter(d=>d.q>=5).sort((a,b)=>a.liqPct-b.liqPct).slice(0,4).map(d=>String(d.disc||'').replace('Direito ','')+' ('+d.liqPct+'% líq)');
     const now=Date.now(), TAU=45, MINQ=6; const temas=[];
-    (this.state.edital||[]).forEach(d=>{ (d.topics||[]).forEach(tp=>{ const ag=B.byTopic[(d.disc||'—')+'¦'+B.normT(tp.name)]; if(!ag||ag.q<MINQ) return; const dom=Math.max(0,Math.min(100,Math.round((ag.a-ag.e)/ag.q*100))); const dias=(now-(ag.lastTs||now))/864e5; if(dom>=60&&dias>TAU) temas.push(tp.name+' (esfriando)'); else if(dom<55) temas.push(tp.name+' (frágil '+dom+'%)'); }); });
+    this._edVista().forEach(d=>{ (d.topics||[]).forEach(tp=>{ const ag=B.byTopic[(d.disc||'—')+'¦'+B.normT(tp.name)]; if(!ag||ag.q<MINQ) return; const dom=Math.max(0,Math.min(100,Math.round((ag.a-ag.e)/ag.q*100))); const dias=(now-(ag.lastTs||now))/864e5; if(dom>=60&&dias>TAU) temas.push(tp.name+' (esfriando)'); else if(dom<55) temas.push(tp.name+' (frágil '+dom+'%)'); }); });
     const revVenc=(this.state.reviews||[]).filter(r=>(r.due||0)<0).length;
     if(!fracas.length && !temas.length && !revVenc){ this.setState({lacunas:'Ainda não há dados suficientes. Registre algumas sessões com questões e o tópico preenchido — aí eu mapeio suas lacunas e monto o plano de ataque.', lacunasBusy:false}); return; }
     const ctx='Disciplinas fracas: '+(fracas.join('; ')||'—')+'. Temas em risco: '+(temas.slice(0,10).join('; ')||'—')+'. Revisões vencidas: '+revVenc+'.';
@@ -17643,7 +17791,7 @@ class Component extends DCLogic {
       const hojeKey=['dom','seg','ter','qua','qui','sex','sab'][new Date().getDay()];
       const fixed=this.state.manualFixed||[];
       // vínculo com o edital: cada atividade ganha selects de disciplina + tópico
-      const _edList=this.state.edital||[];
+      const _edList=this._edVista();
       const _agHM=(mm)=>{ mm=Math.max(0,Math.round(mm||0)); const h=Math.floor(mm/60), m=mm%60; return h>0?(h+'h'+(m?String(m).padStart(2,'0'):'')):(m+'min'); };
       const _mkItem=(f)=>{ const discOpts=_edList.map(d=>({v:d.disc,label:d.disc,sel:d.disc===f.discEdital}));
         const ed=_edList.find(d=>d.disc===f.discEdital);
@@ -17698,26 +17846,36 @@ class Component extends DCLogic {
       const level= liq>=70?'Dominado':liq>=55?'Em curso':'Frágil';
       const color= liq>=70?'var(--ok)':liq>=55?'var(--warn)':'var(--danger)';
       return {has:true, pct:liq, level, color, str:level+' · '+liq+'%'}; };
+    const _ativoId=this._espAtivo(), _outrosAb=this.state.edOutros||{};
+    const _varios=(this._editaisComMigracao()||[]).length>1;   // "tirar deste concurso" só faz sentido com mais de um
     const edital = this.state.edital.map((d,i)=>{
       // Disciplina sem `topics` (blob de sync truncado, item de versão antiga, edital
       // importado à mão) derrubava o renderVals INTEIRO e punha um TypeError na tela.
       // Uma disciplina sem tópicos é um caso legítimo: zero de zero é 0%.
-      const _tp=Array.isArray(d.topics)?d.topics:[];
+      // Só os tópicos do concurso ATIVO entram na lista e nas contas; o índice (j, k) continua
+      // sendo o do ACERVO, porque é por ele que marcar/editar acha o tópico certo.
+      const _todos=Array.isArray(d.topics)?d.topics:[];
+      const _meus=[], _outros=[];
+      _todos.forEach((t,j)=>{ if(!this._noEd(t, _ativoId)){ _outros.push({d:i, t:j, s:-1, label:String((t&&t.name)||'')}); return; }
+        _meus.push(j);
+        (Array.isArray(t&&t.subs)?t.subs:[]).forEach((x,k)=>{ if(!this._noEd(x, _ativoId)) _outros.push({d:i, t:j, s:k, label:String(t.name||'')+' › '+String((x&&x.name)||'')}); }); });
+      const _tp=_meus.map(j=>_todos[j]);
       const done=_tp.filter(t=>t&&t.done).length, tot=_tp.length;
       const pct=tot>0?Math.round(done/tot*100):0;
       const act=_actBy[d.disc]||{horas:0,q:0,liqPct:0,min:0};
       const actStr = act.min>0 ? (act.horas+'h estudadas · '+act.q+'q · '+act.liqPct+'% líq') : 'sem sessões ainda';
       const _pv=(d.peso!=null&&d.peso!=='')?d.peso:'', _qv=(d.questoes!=null&&d.questoes!=='')?d.questoes:'';
       const _hasMeta=_pv!==''||_qv!=='';
-      const _tops=_tp.map((t,j)=>{ const dm=_domTopico(d.disc, t.name); return {...t,d:i,i:j,
+      const _tops=_tp.map((t,_p)=>{ const j=_meus[_p]; const dm=_domTopico(d.disc, t.name); return {...t,d:i,i:j,
         domHas:dm.has, domPct:dm.pct, domLevel:dm.level, domColor:dm.color, domStr:dm.str,
         discNome:d.disc, topNome:t.name,          // C2: o que vai na busca da plataforma
+        podeTirar:_varios,
         checkBorder: t.done?d.color:'var(--border)',
         checkBg: t.done?d.color:'transparent',
         strike: t.done?'line-through':'none',
-        subs:(Array.isArray(t.subs)?t.subs:[]).map((sb0,k)=>{ const sb=this._subObj(sb0); return {...sb, d:i, t:j, i:k,
-          subBorder: sb.done?d.color:'var(--border)', subBg: sb.done?d.color:'transparent', subStrike: sb.done?'line-through':'none'}; }),
-        hasSubs:(Array.isArray(t.subs)?t.subs.length:0)>0}; });
+        subs:(Array.isArray(t.subs)?t.subs:[]).map((sb0,k)=>{ const sb=this._subObj(sb0); return {...sb, d:i, t:j, i:k, podeTirar:_varios,
+          subBorder: sb.done?d.color:'var(--border)', subBg: sb.done?d.color:'transparent', subStrike: sb.done?'line-through':'none'}; }).filter(sb=>this._noEd(sb, _ativoId)),
+        hasSubs:(Array.isArray(t.subs)?t.subs:[]).some(x=>this._noEd(x, _ativoId))}; });
       const _domTops=_tops.filter(t=>t.domHas&&t.domPct!=null);
       const domMedio=_domTops.length?Math.round(_domTops.reduce((a,t)=>a+t.domPct,0)/_domTops.length):null;
       return {...d, i, done, tot, pct, actHoras:act.horas, actQ:act.q, actLiq:act.liqPct, actStr, hasAct:act.min>0,
@@ -17726,6 +17884,9 @@ class Component extends DCLogic {
         pesoVal:_pv, questoesVal:_qv, pesoStr:_pv!==''?String(_pv):'—', questoesStr:_qv!==''?String(_qv):'—', hasMeta:_hasMeta, metaChip:(_pv!==''?('peso '+_pv):'')+(_pv!==''&&_qv!==''?' · ':'')+(_qv!==''?(_qv+'q'):''),
         colorHex:(/^#[0-9a-f]{6}$/i.test(d.color||'')?d.color:'#0f7a57'),   // <input type=color> só aceita #rrggbb
         noConcurso:!d.foraDoConcurso, foraConcurso:!!d.foraDoConcurso, noConcursoStr:d.foraDoConcurso?'false':'true',
+        outros:_outros, temOutros:_outros.length>0, outrosAberto:!!_outrosAb[String(d.disc||'')], outrosAbertoStr:_outrosAb[String(d.disc||'')]?'true':'false',
+        outrosLabel:(()=>{ const nt=_outros.filter(o=>o.s<0).length, ns=_outros.length-nt; const pl=(n,a,b)=>n+' '+(n===1?a:b);
+          return [nt?pl(nt,'tópico','tópicos'):'', ns?pl(ns,'subtópico','subtópicos'):''].filter(Boolean).join(' e ')+(_outros.length===1?' de outro concurso':' de outros concursos'); })(),
         ...(()=>{ const n=String(d.disc||'').trim(); const k=(this._editaisComMigracao()||[]).filter(e=>e.discs&&e.discs[n]&&!e.discs[n].fora).length;
           return { emConcursosN:String(k), emVariosConcursos:k>1 }; })(),
         topics:_tops};
@@ -17858,7 +18019,7 @@ class Component extends DCLogic {
     // ===== Radar de prioridades POR TEMA (Fase 3): esquecimento + fraqueza × incidência =====
     const radarTemas = (()=>{
       const now=Date.now(); const TAU=45, MINQ=6; const out=[];
-      (this.state.edital||[]).forEach(d=>{
+      this._edVista().forEach(d=>{
         const inc=(d.questoes!==''&&d.questoes!=null?(parseInt(d.questoes,10)||0):0);
         const short=(d.disc||'').replace('Direito ','');
         (d.topics||[]).forEach(tp=>{
@@ -19014,7 +19175,7 @@ class Component extends DCLogic {
     const _domBlend=(short,orig)=>{ const real=_liqShort[short]; return real!=null ? Math.round(0.6*real+0.4*orig) : orig; };
     // domínio por tópico REAL: agrega as sessões do tópico (líquido), com amostra mínima e decaimento por recência
     const domTopics=(()=>{ const out=[]; const MIN_Q=6, TAU=45; const now=Date.now();
-      (this.state.edital||[]).forEach(d=>{ const short=(d.disc||'').replace('Direito ','');
+      this._edVista().forEach(d=>{ const short=(d.disc||'').replace('Direito ','');
         (d.topics||[]).forEach(tp=>{ const key=(d.disc||'—')+'¦'+B.normT(tp.name); const ag=B.byTopic[key];
           if(ag && ag.q>=MIN_Q){
             const liq=Math.max(0,Math.min(100,Math.round((ag.a-ag.e)/ag.q*100)));
@@ -19358,7 +19519,7 @@ class Component extends DCLogic {
     const sessDiscOpts=[...new Set([...discListReg, ...((!sessDiscCustom && _sd0.disc && !discListReg.includes(_sd0.disc))?[_sd0.disc]:[])])].map(v=>({v, sel:!sessDiscCustom && v===_sd0.disc}));
     const sessDiscSelVal=sessDiscCustom?'__outra__':(_sd0.disc||'');
     // ===== tópicos e subtópicos do EDITAL no registro de sessão =====
-    const _sdTopics=this._topicosDe(_sd0.disc);
+    const _sdTopics=this._topicosDe(_sd0.disc, false, _sd0.edTop);
     const sessTopShow=_sdTopics.length>0;
     const sessTopOpts=_sdTopics.map(t=>{ const n=String(t.name||'').trim(); const nsub=(t.subs||[]).length;
       return { v:n, label:(t.done?'✓ ':'')+n+(nsub?(' ('+nsub+')'):''), sel:n===(_sd0.edTop||'') }; });
@@ -20118,7 +20279,7 @@ class Component extends DCLogic {
       setOralBancaCarr:this.setOralBancaCarr, setOralBancaBanca:this.setOralBancaBanca,
       onOralBancaQ:this.onOralBancaQ, toggleOralOuro:this.toggleOralOuro,
       abrirConcursoOral:this.abrirConcursoOral, voltarConcursoOral:this.voltarConcursoOral,
-      toggleBlock:this.toggleBlock, registrarParcial:this.registrarParcial, abrirAcervoDoBloco:this.abrirAcervoDoBloco, toggleEdital:this.toggleEdital, toggleTopic:this.toggleTopic, editTopic:this.editTopic, editSub:this.editSub,
+      toggleBlock:this.toggleBlock, registrarParcial:this.registrarParcial, abrirAcervoDoBloco:this.abrirAcervoDoBloco, toggleEdital:this.toggleEdital, toggleOutros:this.toggleOutros, trazerTopico:this.trazerTopico, trazerTodos:this.trazerTodos, tirarTopico:this.tirarTopico, aplicarModeloNovoConcurso:this.aplicarModeloNovoConcurso, modeloPodeConcursoNovo:(this.state.edital||[]).length>0, toggleTopic:this.toggleTopic, editTopic:this.editTopic, editSub:this.editSub,
       cicloFolha, cicloFolhaHeader, roteiroNav:this.roteiroNav, roteiroHoje:this.roteiroHoje,
       reorganizarPorPonto:this.reorganizarPorPonto, desfazerReorg:this.desfazerReorg,
       temDesfazerReorg:!!this.state.cicloDesfazer, desfazerReorgN:String((this.state.cicloDesfazer&&this.state.cicloDesfazer.n)||0),
