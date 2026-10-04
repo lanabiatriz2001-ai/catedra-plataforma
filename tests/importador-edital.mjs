@@ -160,6 +160,7 @@ DIREITO PENAL Princípios aplicáveis ao Direito Penal. Aplicação da lei penal
   repetidos: `Direito Civil: Pessoas jurídicas. Disposições gerais. Associações. Negócio jurídico. Disposições gerais. Prescrição. Disposições gerais.
 DIREITO DE FAMÍLIA
 1. Direito das famílias. Direitos pessoais. Casamento. 2. Direito das famílias. Direitos patrimoniais. Alimentos. 3. Sucessões.`,
+  genericos: `Direito Constitucional: Poder Legislativo. Organização. Funcionamento. Atribuições. Poder Judiciário. Organização. Atribuições.`,
   caps: `DIREITO CIVIL
 LEI DE INTRODUÇÃO
 PESSOAS NATURAIS
@@ -280,6 +281,8 @@ async function formatos(page, ok, R) {
   // nome de tópico é identidade: repetido, a 2ª ocorrência sumia ao entrar no edital
   ok(tops('repetidos', 0).join(' | ') === 'Pessoas jurídicas | Pessoas jurídicas — Disposições gerais | Associações | Negócio jurídico | Negócio jurídico — Disposições gerais | Prescrição | Prescrição — Disposições gerais',
     R + 'tópico repetido sem subtópicos ganha o assunto a que pertence (' + tops('repetidos', 0).join(' | ') + ')');
+  ok(tops('genericos', 0).join(' | ') === 'Poder Legislativo | Poder Legislativo — Organização | Funcionamento | Poder Legislativo — Atribuições | Poder Judiciário | Poder Judiciário — Organização | Poder Judiciário — Atribuições',
+    R + 'nome genérico ("Funcionamento") nunca vira o assunto do tópico seguinte (' + tops('genericos', 0).join(' | ') + ')');
   ok(tops('repetidos', 1).join(' | ') === 'Direito das famílias | Sucessões' && subs('repetidos', 1, 0).join(' | ') === 'Direitos pessoais | Casamento | Direitos patrimoniais | Alimentos',
     R + 'título repetido em itens seguidos é o mesmo tópico: os subtópicos se juntam no primeiro (' + subs('repetidos', 1, 0).join(' | ') + ')');
 

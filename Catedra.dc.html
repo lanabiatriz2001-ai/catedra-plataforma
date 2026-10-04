@@ -9924,9 +9924,12 @@ class Component extends DCLogic {
     const chave=x=>String(x||'').trim().toLowerCase();
     const vezes={}; (topics||[]).forEach(t=>{ const k=chave(t.name); vezes[k]=(vezes[k]||0)+1; });
     const comSubs={}; (topics||[]).forEach(t=>{ if(vezes[chave(t.name)]>1 && (t.subs||[]).length) comSubs[chave(t.name)]=true; });
+    const GENERICO=/^(?:no[çc][õo]es gerais|disposi[çc][õo]es (?:gerais|preliminares|finais|comuns)|conceitos?|defini[çc][ãa]o|defini[çc][õo]es|classifica[çc][ãa]o|classifica[çc][õo]es|esp[ée]cies|princ[íi]pios|caracter[íi]sticas|caracteres|organiza[çc][ãa]o|funcionamento|atribui[çc][õo]es|compet[êe]ncias?|composi[çc][ãa]o|estrutura|natureza(?: jur[íi]dica)?|requisitos|pressupostos|elementos|efeitos|fontes|finalidades?|objeto|objetivos|evolu[çc][ãa]o(?: hist[óo]rica)?|hist[óo]rico|modalidades|generalidades|introdu[çc][ãa]o|aspectos gerais|regras gerais|normas gerais|teoria geral)$/;
     const out=[], primeiro={}, usados={}; let assunto='';
     (topics||[]).forEach(t=>{ const k=chave(t.name);
-      if(vezes[k]<2){ assunto=t.name; out.push(t); usados[k]=true; return; }
+      // "Poder Legislativo. Organização. Funcionamento. Atribuições.": "Funcionamento" não se repete,
+      // mas é item DO Poder Legislativo, não assunto — nome genérico nunca vira o assunto do seguinte
+      if(vezes[k]<2){ if(!GENERICO.test(k)) assunto=t.name; out.push(t); usados[k]=true; return; }
       if(comSubs[k]){ if(primeiro[k]) primeiro[k].subs=primeiro[k].subs.concat(t.subs||[]); else { primeiro[k]={...t, subs:(t.subs||[]).slice()}; out.push(primeiro[k]); usados[k]=true; } return; }
       // assunto curto: até a primeira pontuação forte, no máximo 60 caracteres
       const curto=String(assunto||'').split(/[:;(]/)[0].trim().slice(0,60).replace(/[\s,.\-–]+$/,'');
