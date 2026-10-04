@@ -2306,9 +2306,21 @@ window.ctPdfLib = (function(){
                   <span class="cm-cnt">{{ a.assLabel }}</span>
                   <sc-if value="{{ a.vez }}" hint-placeholder-val="{{ false }}"><span class="cm-hoje">Hoje</span></sc-if>
                 </div>
+                <sc-if value="{{ a.semEdital }}" hint-placeholder-val="{{ true }}">
                 <label class="cm-lab">Assunto atual
                   <input class="cm-in" type="text" data-id="{{ a.id }}" data-campo="ass" value="{{ a.ass }}" placeholder="Ex.: controle difuso" onchange="{{ cmCampo }}">
                 </label>
+                </sc-if>
+                <sc-if value="{{ a.noEdital }}" hint-placeholder-val="{{ false }}">
+                <label class="cm-lab">Capítulo · {{ a.edDisc }} no edital
+                  <select class="cm-in cm-ed-t" data-id="{{ a.id }}" value="{{ a.edTopSel }}" onchange="{{ cmEdTopico }}"><option value="" selected="{{ a.edTopVazio }}">Escolha o capítulo</option><sc-for list="{{ a.edTopicos }}" as="o" hint-placeholder-count="6"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.t }}</option></sc-for></select>
+                </label>
+                <sc-if value="{{ a.edTemSubs }}" hint-placeholder-val="{{ false }}">
+                <label class="cm-lab">Seção (opcional: vazio = o capítulo inteiro)
+                  <select class="cm-in cm-ed-s" data-id="{{ a.id }}" value="{{ a.edSubSel }}" onchange="{{ cmEdSub }}"><option value="" selected="{{ a.edSubVazio }}">O capítulo inteiro</option><sc-for list="{{ a.edSubs }}" as="o" hint-placeholder-count="6"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.t }}</option></sc-for></select>
+                </label>
+                </sc-if>
+                </sc-if>
                 <sc-if value="{{ a.temNota }}" hint-placeholder-val="{{ false }}"><p class="cm-nota">{{ a.nota }}</p></sc-if>
                 <details class="cm-obras">
                   <summary><span>{{ a.obra }}</span><sc-if value="{{ a.semObra }}" hint-placeholder-val="{{ false }}"><span>Cadastrar as obras</span></sc-if></summary>
@@ -11606,6 +11618,15 @@ class Component extends DCLogic {
     this._cmSet(c); };
   cmCampo = (e)=>{ const t=e.currentTarget, M=window.CT_CMAG; if(!M) return;
     const c=M.definir(this._cm(), t.dataset.id, t.dataset.campo, t.value); this._cmSet(c, null, true); };
+  _cmDisc(id){ const M=window.CT_CMAG, ed=this.state.edital||[], d=M?M.discDoEdital(ed, id):-1; return d>=0?{d, disc:ed[d]}:null; }
+  cmEdTopico = (e)=>{ const M=window.CT_CMAG, t=e.currentTarget, id=t.dataset.id, L=this._cmDisc(id); if(!M||!L) return;
+    const tps=(L.disc.topics||[]).filter(x=>x&&x.name), tp=tps[+t.value];
+    this._cmSet(M.definirRef(this._cm(), id, tp?{t:tp.name, s:'', nome:tp.name}:null), null, true); };
+  cmEdSub = (e)=>{ const M=window.CT_CMAG, t=e.currentTarget, id=t.dataset.id, L=this._cmDisc(id); if(!M||!L) return;
+    const c=this._cm(), ref=c.st[id].ref; if(!ref) return;
+    const tp=(L.disc.topics||[]).find(x=>x&&x.name===ref.t); if(!tp) return;
+    const sb=t.value===''?null:(tp.subs||[])[+t.value], nome=sb?(typeof sb==='string'?sb:sb.name):'';   // vazio = o capítulo inteiro
+    this._cmSet(M.definirRef(c, id, nome?{t:tp.name, s:nome, nome}:{t:tp.name, s:'', nome:tp.name}), null, true); };
   cmLinkAbrir = (e)=>{ this.setState({cmLinkEdit:e.currentTarget.dataset.l||''}); };
   cmLinkSalvar = (e)=>{ if(e && e.type==='keydown'){ if(e.key==='Escape'){ this.setState({cmLinkEdit:''}); return; } if(e.key!=='Enter') return; }
     const t=e.currentTarget, M=window.CT_CMAG; if(!M) return;
@@ -11615,9 +11636,14 @@ class Component extends DCLogic {
     this.setState({cmLinkEdit:''}); this._cmSet(c); };
   cmLinkApagar = (e)=>{ const M=window.CT_CMAG; if(!M) return; const c=M.definirLink(this._cm(), e.currentTarget.dataset.l, ''); if(c) this._cmSet(c); };
   cmFechar = (e)=>{ const M=window.CT_CMAG; if(!M) return; const id=e.currentTarget.dataset.id;
-    const r=M.fechar(this._cm(), id, this._hoje()); if(!r) return;
-    const saiu=r.cmag.ordem.indexOf(id)>=M.ATIVAS;
-    this._cmSet(r.cmag, {cmagRevs:[...(this.state.cmagRevs||[]), r.rev]});
+    const antes=this._cm(), ref=antes.st[id]&&antes.st[id].ref;
+    const r=M.fechar(antes, id, this._hoje()); if(!r) return;
+    const saiu=r.cmag.ordem.indexOf(id)>=M.ATIVAS, extra={cmagRevs:[...(this.state.cmagRevs||[]), r.rev]};
+    // ligado ao edital: o item estudado fica marcado lá e o próximo pendente vira o assunto atual
+    const L=this._cmDisc(id);
+    if(L && ref){ const ed=M.marcarNoEdital(this.state.edital, L.d, ref); extra.edital=ed;
+      const nx=M.proximoPendente(ed[L.d], ref); if(nx) r.cmag=M.definirRef(r.cmag, id, nx); }
+    this._cmSet(r.cmag, extra);
     this._toast(saiu ? 'Assunto fechado. A matéria foi para o fim da fila e '+r.cmag.mats[r.cmag.ordem[M.ATIVAS-1]].n+' entrou.' : 'Assunto fechado. Revisões em D+7, D+30 e D+90 agendadas.'); };
   cmRevMarcar = (e)=>{ const M=window.CT_CMAG; if(!M) return; const d=e.currentTarget.dataset;
     this.setState(s=>({cmagRevs:M.marcarRevisao(s.cmagRevs, d.id, +d.d)})); this.flashSync(); };
@@ -11656,8 +11682,15 @@ class Component extends DCLogic {
         aria:(s.d[b.k]?'Desmarcar ':'Marcar como feito: ')+b.b}; };
     const ativas=c.ordem.slice(0, M.ATIVAS).map((id, i)=>{
       const m=c.mats[id], s=c.st[id], aOk=M.turnoAFeito(c, id), bOk=M.turnoBFeito(c, id), k=cor(m.n);
+      // ligada ao edital ativo? o assunto vira capítulo (tópico) + seção (subtópico) da disciplina
+      const ed=this.state.edital||[], di=M.discDoEdital(ed, id), disc=di>=0?ed[di]:null, ref=s.ref||{};
+      const tps=disc?(disc.topics||[]).filter(t=>t&&t.name):[], tSel=tps.findIndex(t=>t.name===ref.t), tpAtual=tSel>=0?tps[tSel]:null;
+      const subs=tpAtual?(tpAtual.subs||[]).map(x=>typeof x==='string'?{name:x, done:false}:x).filter(x=>x&&x.name):[];
       return {id, i, num:'0'+(i+1), nome:m.n, obra:m.o, segunda:m.s, temSegunda:!!m.s, semObra:!m.o, ass:s.ass, nota:s.nota, temNota:!!s.nota,
         assLabel:'assunto '+(s.n+1)+' de '+M.POR_VOLTA, vez:i===c.vez, vezStr:i===c.vez?'Hoje':'',
+        noEdital:!!disc, semEdital:!disc, edDisc:disc?disc.disc:'',
+        edTopicos:tps.map((t, ti)=>({v:String(ti), t:t.name+(t.done?' · estudado':''), sel:ti===tSel})), edTopSel:tSel>=0?String(tSel):'', edTopVazio:tSel<0,
+        edTemSubs:subs.length>0, edSubs:subs.map((x, si)=>({v:String(si), t:x.name+(x.done?' · estudado':''), sel:x.name===ref.s})), edSubSel:ref.s?String(subs.findIndex(x=>x.name===ref.s)):'', edSubVazio:!ref.s,
         estilo:'--cm-c:'+k.cor+';--cm-tx:'+k.tx+';',
         aOk, aFeitoTxt:aOk?'feito':'em andamento', bAberto:aOk, bTxt:aOk?(bOk?'feito':'em andamento'):'abre quando o A terminar',
         A:M.blocosA(m).map(b=>bloco(id, b, true, s)), B:M.blocosB(m).map(b=>bloco(id, b, aOk, s)),
@@ -11685,7 +11718,7 @@ class Component extends DCLogic {
           cmQCatShow:(q.res||'erro')==='erro'}; })(),
       cmQ:this.cmQ, cmQRegistrar:this.cmQRegistrar, cmQAlternar:this.cmQAlternar,
       cmToggle:this.cmToggle, cmCampo:this.cmCampo, cmLinkAbrir:this.cmLinkAbrir, cmLinkSalvar:this.cmLinkSalvar, cmLinkApagar:this.cmLinkApagar,
-      cmFechar:this.cmFechar, cmRevMarcar:this.cmRevMarcar, cmRevRemover:this.cmRevRemover, cmSabado:this.cmSabado, cmZerarSabado:this.cmZerarSabado, cmAvancar:this.cmAvancar};
+      cmEdTopico:this.cmEdTopico, cmEdSub:this.cmEdSub, cmFechar:this.cmFechar, cmRevMarcar:this.cmRevMarcar, cmRevRemover:this.cmRevRemover, cmSabado:this.cmSabado, cmZerarSabado:this.cmZerarSabado, cmAvancar:this.cmAvancar};
   }
   // Data ISO (AAAA-MM-DD) do dia da semana pedido, DENTRO da semana atual (segunda a domingo).
   _isoDiaSemana(diaKey){

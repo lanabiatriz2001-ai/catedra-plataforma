@@ -135,7 +135,9 @@ export async function testarCicloMagistratura(page, base, ok, opcoes = {}) {
   await page.selectOption('.cm-qm-painel select[data-q="mat"]', 'civ'); await w(150);
   await page.click('.cm-qm-painel button[data-q="res"][data-v="certo"]');
   await page.click('.cm-qm-painel button[data-q="certeza"][data-v="chute"]');
-  await page.click('.cm-qm-painel .cm-qm-ok'); await w(1400);
+  await page.click('.cm-qm-painel .cm-qm-ok');
+  // com o relógio correndo, o tique de cada segundo reagenda o autosave (500 ms): o disco recebe em até ~1,5 s
+  await page.waitForFunction(() => (JSON.parse(localStorage.getItem('catedra:errors') || '[]')[0] || {}).resultado, null, { timeout: 5000 }).catch(() => {});
   const erro = await page.evaluate(() => (JSON.parse(localStorage.getItem('catedra:errors') || '[]')[0]) || {});
   ok(erro.resultado === 'chute_certo' && erro.certeza === 'chute' && erro.motivo === 'chute' && erro.disc === 'Direito Civil' && /LINDB$/.test(erro.topico) && erro.up > 0,
     R + 'chute certo entra no caderno como erro (' + JSON.stringify({ r: erro.resultado, c: erro.certeza, m: erro.motivo, d: erro.disc }) + ')');
@@ -146,6 +148,24 @@ export async function testarCicloMagistratura(page, base, ok, opcoes = {}) {
   await page.reload(); await page.waitForFunction(() => window.__catedraApp && window.CT_CMAG, null, { timeout: 30000 });
   const vol = await page.evaluate(() => { const s = window.__catedraApp.state; return { modo: s.cycleMode, prim: s.cmag && s.cmag.ordem[0], link: s.cmag && s.cmag.links['civ-a1'], revs: (s.cmagRevs || []).length }; });
   ok(vol.modo === 'magistratura' && vol.prim === 'civ' && /^https:/.test(vol.link || '') && vol.revs === 1, R + 'estado volta igual depois de recarregar (' + JSON.stringify(vol) + ')');
+
+  // 9. ligado ao edital: o assunto vira capítulo + seção; fechar marca no edital e propõe o próximo
+  await page.evaluate(() => { const app = window.__catedraApp;
+    app.setState({ view: 'ciclo', cyclePanel: 'executar', edital: [{ disc: 'Direito Civil', peso: 1, topics: [
+      { name: '1 Lei de introdução', done: false, subs: ['1.1 Vigência', '1.2 Eficácia'] }, { name: '2 Parte geral', done: false, subs: [] }] }] }); });
+  await w(400);
+  const temSel = await page.evaluate(() => !!document.querySelector('select.cm-ed-t[data-id="civ"]') && !document.querySelector('input.cm-in[data-id="civ"][data-campo="ass"]'));
+  await page.selectOption('select.cm-ed-t[data-id="civ"]', '0'); await w(200);
+  await page.selectOption('select.cm-ed-s[data-id="civ"]', '0'); await w(200);
+  await page.selectOption('select.cm-ed-s[data-id="civ"]', ''); await w(200);
+  const inteiro = await page.evaluate(() => JSON.stringify(window.__catedraApp.state.cmag.st.civ.ref));
+  await page.selectOption('select.cm-ed-s[data-id="civ"]', '0'); await w(200);
+  await marcar('civ', ['a1', 'a2', 'a3', 'a4', 'b1', 'b2', 'b3', 'b4', 'b5']);
+  await page.click('.cm-fechar[data-id="civ"]'); await w(500);
+  const ed = await page.evaluate(() => { const s = window.__catedraApp.state; const sb = s.edital[0].topics[0].subs[0];
+    return { feito: typeof sb === 'object' && sb.done === true, prox: s.cmag.st.civ.ass, ref: s.cmag.st.civ.ref }; });
+  ok(temSel && inteiro === '{"t":"1 Lei de introdução","s":""}' && ed.feito && ed.prox === '1.2 Eficácia',
+    R + 'assunto escolhido no edital; fechar marca a seção estudada e propõe a próxima (' + JSON.stringify({ temSel, inteiro, ed }) + ')');
 
   if (opcoes.capturas) {
     await page.evaluate(() => window.__catedraApp.setState({ view: 'ciclo', cyclePanel: 'executar' })); await w(500);

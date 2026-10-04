@@ -109,7 +109,8 @@
       var x = obj(s0[id]), d = {};
       Object.keys(obj(x.d)).forEach(function (k) { if (/^[ab][1-5]$/.test(k) && x.d[k]) d[k] = true; });
       var pr = {}; ['a1', 'b2'].forEach(function (k) { var v = obj(x.p)[k]; if (v != null && String(v).trim()) pr[k] = txt(v, 40); });
-      st[id] = { n: Math.max(0, Math.min(POR_VOLTA - 1, parseInt(x.n, 10) || 0)), ass: txt(x.ass), nota: txt(x.nota), d: d, p: pr };
+      var rf = obj(x.ref), ref = rf.t ? { t: txt(rf.t), s: txt(rf.s) } : null;
+      st[id] = { n: Math.max(0, Math.min(POR_VOLTA - 1, parseInt(x.n, 10) || 0)), ass: txt(x.ass), nota: txt(x.nota), d: d, p: pr, ref: ref };
     });
     var links = {};
     Object.keys(obj(c.links)).forEach(function (k) { if (/^[a-z]+-[ab][1-5]$/.test(k) && linkValido(c.links[k])) links[k] = c.links[k]; });
@@ -189,7 +190,7 @@
     var rev = { id: 'cm-' + id + '-' + agora, mat: id, ass: n.mats[id].n + ' · ' + (s.ass || ('assunto ' + (s.n + 1))), dt: hojeISO, f7: false, f30: false, f90: false, up: agora };
     var out = com(n, function (x) {
       var nn = s.n + 1;
-      x.st[id] = Object.assign({}, s, { n: nn >= POR_VOLTA ? 0 : nn, ass: '', d: {}, p: {} });
+      x.st[id] = Object.assign({}, s, { n: nn >= POR_VOLTA ? 0 : nn, ass: '', d: {}, p: {}, ref: null });
       if (nn >= POR_VOLTA) {
         var o = x.ordem.slice(); o.splice(i, 1); o.push(id); x.ordem = o;
         // a vez aponta para a mesma matéria de antes quando quem saiu estava antes dela
@@ -249,6 +250,77 @@
     return { resultado: resultado, certeza: certeza, categoria: cat ? cat[0] : '', motivo: acertou ? 'chute' : (cat ? cat[2] : 'conteudo') };
   }
 
+  /* ===== Ligação com o edital =====
+     Cada matéria do ciclo acha a sua disciplina no edital ativo pelo nome (com apelidos: "ECA" é
+     "Direito da Criança e do Adolescente"). Quando acha, o assunto atual é um tópico ou subtópico
+     dela — guardado pelos NOMES ({t, s}), que sobrevivem a reordenar o edital — e fechar o
+     assunto marca esse item como estudado e propõe o próximo pendente. */
+  var APELIDOS = {
+    const: ['direito constitucional', 'constitucional'], civ: ['direito civil', 'civil'],
+    pc: ['processo civil', 'direito processual civil'], pen: ['direito penal', 'penal'],
+    pp: ['processo penal', 'direito processual penal'], adm: ['direito administrativo', 'administrativo'],
+    cdc: ['direito do consumidor', 'consumidor'], eca: ['direito da crianca e do adolescente', 'eca', 'estatuto da crianca e do adolescente'],
+    emp: ['direito empresarial', 'empresarial', 'direito comercial'], trib: ['direito tributario', 'tributario'],
+    dh: ['direitos humanos'], hum: ['nocoes gerais de direito e formacao humanistica', 'formacao humanistica'],
+    amb: ['direito ambiental', 'ambiental'], elei: ['direito eleitoral', 'eleitoral']
+  };
+  function norm(x) { return String(x || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim(); }
+  function nomeSub(x) { return typeof x === 'string' ? x : (x && x.name) || ''; }
+  function feitoSub(x) { return !!(x && typeof x === 'object' && x.done); }
+  /* índice da disciplina do edital ligada à matéria, ou -1 */
+  function discDoEdital(edital, id) {
+    var nomes = (APELIDOS[id] || []).map(norm);
+    if (!Array.isArray(edital) || !nomes.length) return -1;
+    for (var i = 0; i < edital.length; i++) { if (edital[i] && nomes.indexOf(norm(edital[i].disc)) >= 0) return i; }
+    return -1;
+  }
+  /* tópicos e subtópicos em ordem, achatados: {t, s, nome, feito, ti, si} (s='' no tópico) */
+  function itensDaDisc(disc) {
+    var out = [];
+    ((disc && disc.topics) || []).forEach(function (tp, ti) {
+      if (!tp || !tp.name) return;
+      out.push({ t: tp.name, s: '', nome: tp.name, feito: !!tp.done, ti: ti, si: -1 });
+      (Array.isArray(tp.subs) ? tp.subs : []).forEach(function (sb, si) {
+        var n = nomeSub(sb); if (n) out.push({ t: tp.name, s: n, nome: n, feito: feitoSub(sb) || !!tp.done, ti: ti, si: si });
+      });
+    });
+    return out;
+  }
+  function posRef(itens, ref) {
+    if (!ref || !ref.t) return -1;
+    for (var i = 0; i < itens.length; i++) { if (itens[i].t === ref.t && itens[i].s === (ref.s || '')) return i; }
+    return -1;
+  }
+  /* o próximo item ainda não estudado depois do ref (ou o primeiro pendente) */
+  function proximoPendente(disc, ref) {
+    var itens = itensDaDisc(disc), i0 = posRef(itens, ref) + 1;
+    for (var i = i0; i < itens.length; i++) { if (!itens[i].feito) return itens[i]; }
+    for (var j = 0; j < i0 && j < itens.length; j++) { if (!itens[j].feito) return itens[j]; }
+    return null;
+  }
+  /* edital NOVO com o item do ref marcado como estudado (tópico inteiro ou um subtópico) */
+  function marcarNoEdital(edital, d, ref) {
+    if (!Array.isArray(edital) || !edital[d] || !ref || !ref.t) return edital;
+    var disc = edital[d], ti = -1;
+    (disc.topics || []).forEach(function (tp, i) { if (ti < 0 && tp && tp.name === ref.t) ti = i; });
+    if (ti < 0) return edital;
+    var topics = disc.topics.slice(), tp = Object.assign({}, topics[ti]);
+    if (ref.s) {
+      var subs = (Array.isArray(tp.subs) ? tp.subs : []).map(function (sb) {
+        return nomeSub(sb) === ref.s ? { name: ref.s, done: true } : (typeof sb === 'string' ? { name: sb, done: false } : sb);
+      });
+      tp.subs = subs;
+    } else tp.done = true;
+    topics[ti] = tp;
+    var out = edital.slice(); out[d] = Object.assign({}, disc, { topics: topics });
+    return out;
+  }
+  function definirRef(c, id, item, agora) {
+    var n = normalizar(c); if (!n.st[id]) return n;
+    return com(n, function (x) { x.st[id] = Object.assign({}, x.st[id], item ? { ass: txt(item.nome), ref: { t: txt(item.t), s: txt(item.s) } } : { ref: null }); }, agora);
+  }
+
+
   raiz.CT_CMAG = {
     POR_VOLTA: POR_VOLTA, ATIVAS: ATIVAS, PRAZOS: PRAZOS, MATS: MATS, ORDEM: ORDEM,
     SABADO: SABADO, ROTINA: ROTINA, REGRAS: REGRAS, AUXILIARES: AUXILIARES,
@@ -258,6 +330,7 @@
     alternar: alternar, definir: definir, definirLink: definirLink,
     alternarSabado: alternarSabado, zerarSabado: zerarSabado, avancarVez: avancarVez,
     CERTEZAS: CERTEZAS, CATEGORIAS: CATEGORIAS, classificar: classificar,
+    norm: norm, discDoEdital: discDoEdital, itensDaDisc: itensDaDisc, proximoPendente: proximoPendente, marcarNoEdital: marcarNoEdital, definirRef: definirRef,
     fechar: fechar, somaDias: somaDias, prazos: prazos, marcarRevisao: marcarRevisao, gerarVolta: gerarVolta
   };
 })(typeof window !== 'undefined' ? window : globalThis);
