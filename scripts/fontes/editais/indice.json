@@ -1516,6 +1516,187 @@
      "Direito Financeiro"
     ]
    }
+  },
+  {
+   "id": "caAuditor",
+   "nome": "Auditor de Controle Externo",
+   "sub": "contas públicas · TCE-PE (FGV)",
+   "orgao": "Tribunal de Contas do Estado de Pernambuco (TCE-PE)",
+   "cargo": "Auditor de Controle Externo — área Auditoria de Contas Públicas",
+   "banca": "FGV",
+   "publicado": "2025-05-30",
+   "url": "https://conhecimento.fgv.br/sites/default/files/concursos/3a-retificacao-tce-pe-edital-de-abertura-17.07.2025.pdf",
+   "paginas": "Anexo I, p. 37–40 e 42–45",
+   "areas": [
+    "contas"
+   ],
+   "fontes": [
+    "tcepe-auditor-contas.txt"
+   ],
+   "disciplinas": [
+    "Língua Portuguesa",
+    "Estatística",
+    "Administração Pública",
+    "Controle Externo",
+    "Noções de Contabilidade Pública",
+    "Noções de Análise de Dados e de Inteligência Artificial",
+    "Direito Constitucional",
+    "Direito Administrativo",
+    "Direito Financeiro",
+    "Direito Civil",
+    "Direito Processual Civil",
+    "Auditoria Governamental",
+    "Contabilidade Geral",
+    "Contabilidade Pública",
+    "Noções de Direito Penal",
+    "Noções de Direito Tributário",
+    "Noções de Direito Previdenciário e de Avaliação Atuarial"
+   ],
+   "observacao": "Edital nº 01/2025, publicado no Diário Oficial do TCE-PE nº 92-A, de 30/05/2025; texto consolidado da 3ª retificação (18/07/2025), que já traz as mudanças das 1ª e 2ª retificações no Anexo I. Módulo I (conhecimentos gerais) + Módulo II (legislação), comuns a Analista e Auditor de Controle Externo, + Módulo III do cargo. O edital tem 19 títulos para este cargo: \"Direito Administrativo\" e \"Direito Financeiro\" aparecem no Módulo II (legislação) e de novo no Módulo III (específicos), com programas diferentes. O IMPORTADOR FUNDE as matérias de mesmo nome: saem 17 disciplinas, e os tópicos repetidos entre os dois módulos ganham prefixo de \"assunto\" que não é do edital (\"Responsabilidade Civil do Estado — Organização administrativa\", \"Créditos Adicionais — Vedações Orçamentárias (2)\"). Não publicar antes de decidir como separar os dois módulos. Edital em texto corrido (sem itens numerados): a fonte traz um parágrafo por linha, com a quebra de linha do PDF desfeita (a cópia com as linhas do PDF está em ~/catedra-auditoria-cache/tcepe/linhas-do-pdf/). Única correção de extração: \"p|artidos políticos\" (palavra partida na virada de linha da p. 38) → \"partidos\". O modelo antigo não tinha \"Noções de Direito Previdenciário e de Avaliação Atuarial\", que está no edital."
+  },
+  {
+   "id": "caAnalista",
+   "nome": "Analista de Controle Externo",
+   "sub": "contas públicas · TCE-PE (FGV)",
+   "orgao": "Tribunal de Contas do Estado de Pernambuco (TCE-PE)",
+   "cargo": "Analista de Controle Externo — área Auditoria de Contas Públicas",
+   "banca": "FGV",
+   "publicado": "2025-05-30",
+   "url": "https://conhecimento.fgv.br/sites/default/files/concursos/3a-retificacao-tce-pe-edital-de-abertura-17.07.2025.pdf",
+   "paginas": "Anexo I, p. 37–42",
+   "areas": [
+    "contas"
+   ],
+   "fontes": [
+    "tcepe-analista-contas.txt"
+   ],
+   "disciplinas": [
+    "Língua Portuguesa",
+    "Estatística",
+    "Administração Pública",
+    "Controle Externo",
+    "Noções de Contabilidade Pública",
+    "Noções de Análise de Dados e de Inteligência Artificial",
+    "Direito Constitucional",
+    "Direito Administrativo",
+    "Direito Financeiro",
+    "Direito Civil",
+    "Direito Processual Civil",
+    "Auditoria Governamental",
+    "Contabilidade Geral",
+    "Contabilidade Pública",
+    "Noções de Direito Penal",
+    "Noções de Direito Tributário",
+    "Noções de Direito Previdenciário e de Avaliação Atuarial"
+   ],
+   "observacao": "Edital nº 01/2025, publicado no Diário Oficial do TCE-PE nº 92-A, de 30/05/2025; texto consolidado da 3ª retificação (18/07/2025), que já traz as mudanças das 1ª e 2ª retificações no Anexo I. Módulo I (conhecimentos gerais) + Módulo II (legislação), comuns a Analista e Auditor de Controle Externo, + Módulo III do cargo. O edital tem 19 títulos para este cargo: \"Direito Administrativo\" e \"Direito Financeiro\" aparecem no Módulo II (legislação) e de novo no Módulo III (específicos), com programas diferentes. O IMPORTADOR FUNDE as matérias de mesmo nome: saem 17 disciplinas, e os tópicos repetidos entre os dois módulos ganham prefixo de \"assunto\" que não é do edital (\"Responsabilidade Civil do Estado — Organização administrativa\", \"Créditos Adicionais — Vedações Orçamentárias (2)\"). Não publicar antes de decidir como separar os dois módulos. Edital em texto corrido (sem itens numerados): a fonte traz um parágrafo por linha, com a quebra de linha do PDF desfeita (a cópia com as linhas do PDF está em ~/catedra-auditoria-cache/tcepe/linhas-do-pdf/). Única correção de extração: \"p|artidos políticos\" (palavra partida na virada de linha da p. 38) → \"partidos\". O modelo antigo não tinha \"Noções de Direito Previdenciário e de Avaliação Atuarial\", que está no edital."
+  },
+  {
+   "id": "caObras",
+   "nome": "Auditor de Controle Externo · Obras",
+   "sub": "auditoria de obras públicas · TCE-PE (FGV)",
+   "orgao": "Tribunal de Contas do Estado de Pernambuco (TCE-PE)",
+   "cargo": "Auditor de Controle Externo — área Auditoria de Obras Públicas",
+   "banca": "FGV",
+   "publicado": "2025-05-30",
+   "url": "https://conhecimento.fgv.br/sites/default/files/concursos/3a-retificacao-tce-pe-edital-de-abertura-17.07.2025.pdf",
+   "paginas": "Anexo I, p. 37–40 e 47–50",
+   "areas": [
+    "contas"
+   ],
+   "fontes": [
+    "tcepe-auditor-obras.txt"
+   ],
+   "disciplinas": [
+    "Língua Portuguesa",
+    "Estatística",
+    "Administração Pública",
+    "Controle Externo",
+    "Noções de Contabilidade Pública",
+    "Noções de Análise de Dados e de Inteligência Artificial",
+    "Direito Constitucional",
+    "Direito Administrativo",
+    "Direito Financeiro",
+    "Direito Civil",
+    "Direito Processual Civil",
+    "Auditoria Governamental",
+    "Obras e Serviços de Engenharia: Planejamento, Normas, Fiscalização e Legislação",
+    "Conhecimentos Básicos de Engenharia: Obras de Edificações",
+    "Conhecimentos Básicos de Engenharia: Obras Hídricas/Saneamento/Energia",
+    "Conhecimentos Básicos de Engenharia: Obras Rodoviárias",
+    "Desestatizações"
+   ],
+   "observacao": "Edital nº 01/2025, publicado no Diário Oficial do TCE-PE nº 92-A, de 30/05/2025; texto consolidado da 3ª retificação (18/07/2025), que já traz as mudanças das 1ª e 2ª retificações no Anexo I. Módulo I + Módulo II (comuns) + Módulo III do cargo. O edital tem 16 matérias para este cargo; O IMPORTADOR DEVOLVE 15: corta o título no dois-pontos (\"OBRAS E SERVIÇOS DE ENGENHARIA: PLANEJAMENTO, NORMAS, FISCALIZAÇÃO E LEGISLAÇÃO\" vira a disciplina \"Obras e Serviços de Engenharia\" com um tópico \"PLANEJAMENTO, NORMAS, FISCALIZAÇÃO E LEGISLAÇÃO\") e funde as três \"CONHECIMENTOS BÁSICOS DE ENGENHARIA: OBRAS DE EDIFICAÇÕES / OBRAS HÍDRICAS/SANEAMENTO/ENERGIA / OBRAS RODOVIÁRIAS\" numa só, com o nome de cada uma como tópico em caixa-alta no meio da lista. Em Obras Hídricas o texto do edital (só no cargo de Auditor) traz números soltos — \"… aspectos construtivos. 2 Aproveitamento hidrelétrico: …\" — e o importador deixa os cinco assuntos num tópico só. Não publicar antes do conserto. Edital em texto corrido (sem itens numerados): a fonte traz um parágrafo por linha, com a quebra de linha do PDF desfeita (a cópia com as linhas do PDF está em ~/catedra-auditoria-cache/tcepe/linhas-do-pdf/). Única correção de extração: \"p|artidos políticos\" (palavra partida na virada de linha da p. 38) → \"partidos\". "
+  },
+  {
+   "id": "caGestao",
+   "nome": "Analista de Gestão",
+   "sub": "tribunal de contas · TCE-PE (FGV)",
+   "orgao": "Tribunal de Contas do Estado de Pernambuco (TCE-PE)",
+   "cargo": "Analista de Gestão — área Julgamento",
+   "banca": "FGV",
+   "publicado": "2025-05-30",
+   "url": "https://conhecimento.fgv.br/sites/default/files/concursos/3a-retificacao-tce-pe-edital-de-abertura-17.07.2025.pdf",
+   "paginas": "Anexo I, p. 53–57",
+   "areas": [
+    "contas"
+   ],
+   "fontes": [
+    "tcepe-analista-gestao-julgamento.txt"
+   ],
+   "disciplinas": [
+    "Língua Portuguesa",
+    "Raciocínio Lógico-Matemático",
+    "Noções de Administração Pública e de Gestão",
+    "Noções de Tecnologia da Informação e de Inteligência Artificial",
+    "Legislação",
+    "Controle Externo e Legislação do TCE-PE",
+    "Direito Constitucional",
+    "Direito Administrativo",
+    "Direito Civil",
+    "Direito Processual Civil",
+    "Direito Financeiro",
+    "Direito Tributário",
+    "Direito Eleitoral"
+   ],
+   "renomear": {
+    "Controle Externo e Legislação do Tce-pe": "Controle Externo e Legislação do TCE-PE"
+   },
+   "observacao": "Edital nº 01/2025, publicado no Diário Oficial do TCE-PE nº 92-A, de 30/05/2025; texto consolidado da 3ª retificação (18/07/2025), que já traz as mudanças das 1ª e 2ª retificações no Anexo I. Módulo I (conhecimentos gerais) + Módulo II (conhecimentos específicos) da área Julgamento — a área Administração (p. 57–61) é outro programa e não entra aqui. As 13 matérias batem com o edital, uma a uma. Edital em texto corrido (sem itens numerados): a fonte traz um parágrafo por linha, com a quebra de linha do PDF desfeita (a cópia com as linhas do PDF está em ~/catedra-auditoria-cache/tcepe/linhas-do-pdf/). Nenhuma correção de extração neste cargo."
+  },
+  {
+   "id": "caProcurador",
+   "nome": "Procurador do Ministério Público de Contas",
+   "sub": "TCE-PE (FGV)",
+   "orgao": "Tribunal de Contas do Estado de Pernambuco (TCE-PE)",
+   "cargo": "Procurador do Tribunal de Contas",
+   "banca": "FGV",
+   "publicado": "2025-05-30",
+   "url": "https://conhecimento.fgv.br/sites/default/files/concursos/3a-retificacao-tce-pe-edital-de-abertura-17.07.2025.pdf",
+   "paginas": "Anexo I, p. 61–68",
+   "areas": [
+    "contas"
+   ],
+   "fontes": [
+    "tcepe-procurador.txt"
+   ],
+   "disciplinas": [
+    "Direito Constitucional",
+    "Direito Administrativo",
+    "Direito Civil e Empresarial",
+    "Direito Processual",
+    "Direito Financeiro",
+    "Direito Tributário",
+    "Direito Previdenciário",
+    "Direito Penal",
+    "Direito Individual do Trabalho",
+    "Direito Coletivo do Trabalho",
+    "Direito Ambiental",
+    "Direito Eleitoral",
+    "Controle Externo da Administração Pública",
+    "Noções de Tecnologia da Informação e de Inteligência Artificial"
+   ],
+   "observacao": "Edital nº 01/2025, publicado no Diário Oficial do TCE-PE nº 92-A, de 30/05/2025; texto consolidado da 3ª retificação (18/07/2025), que já traz as mudanças das 1ª e 2ª retificações no Anexo I. O edital chama o cargo de \"Procurador do Tribunal de Contas\". As 14 matérias com programa batem com o edital; \"DIREITO DO TRABALHO\" é um título-mãe sem texto próprio, logo acima de \"Direito Individual do Trabalho\" e \"Direito Coletivo do Trabalho\", e o importador o descarta (as duas partes ficam como matérias, como no modelo antigo). O modelo antigo não tinha \"Direito Previdenciário\" nem \"Controle Externo da Administração Pública\", que estão no edital. Fonte com as linhas do PDF, sem nenhuma correção. O EDITAL COLA o número do item na palavra em 46 pontos (\"políticos. 14.Os remédios…\", \"desportos.19. Constituição…\", \"terceiros.10 Poderes\") e o importador só abre o item quando o número colado cai no começo da linha (3 dos 46): os outros 43 ficam dentro do item anterior (Constitucional sai com 14 tópicos em vez de 21; Administrativo, 11 em vez de 23; Civil e Empresarial, 9 em vez de 25; Processual, 29 em vez de 30; Penal, 8 em vez de 9; Ambiental, 9 em vez de 13). Não publicar antes do conserto do importador — ou da decisão de pôr o espaço depois do número (cópia assim em ~/catedra-auditoria-cache/tcepe/alternativas/tcepe-procurador.txt)."
   }
  ]
 }

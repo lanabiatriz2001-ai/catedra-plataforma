@@ -126,8 +126,16 @@ function aplicar({ html, modelos }) {
      nome). Todos os modelos — os antigos também, que não têm fonte aqui — passam pela mesma
      desambiguação do importador. Rodar de novo não muda nada. */
   const imp = importadorDoApp(html);
+  // Os modelos sem fonte guardam o nome já desambiguado ("Assunto — Conceito"). Para a regra
+  // poder melhorar sem ficar presa ao que foi gravado, o prefixo que É o assunto de um tópico
+  // anterior sai antes, e a desambiguação refaz tudo do zero.
+  const curto = x => String(x || '').split(/[:;(]/)[0].trim().slice(0, 60).replace(/[\s,.\-–]+$/, '');
+  const cru = tops => { const vistos = new Set();
+    return tops.map(([t, subs]) => { const i = t.indexOf(' — '); let nome = t;
+      if (i > 0 && vistos.has(t.slice(0, i))) nome = t.slice(i + 3).replace(/ \(\d+\)$/, '');
+      vistos.add(curto(nome)); return { name: nome, subs: subs || [] }; }); };
   Object.keys(D).forEach(id => { D[id] = D[id].map(([nome, cor, tops]) =>
-    [nome, cor, imp._edDesambigua(tops.map(([t, subs]) => ({ name: t, subs: subs || [] }))).map(t => (t.subs.length ? [t.name, t.subs] : [t.name]))]); });
+    [nome, cor, imp._edDesambigua(cru(tops)).map(t => (t.subs.length ? [t.name, t.subs] : [t.name]))]); });
   // 2) cartões
   const reIdx = /^const CT_MODELOS = (\[.*\]);$/m;
   const idx = JSON.parse(html.match(reIdx)[1]);
