@@ -1967,3 +1967,19 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 .cm-seg button[aria-pressed="true"] { background: var(--accentSolid, var(--accent)); border-color: var(--accentSolid, var(--accent)); color: var(--onAccent, #fff); }
 [data-toque] .cm-seg button { min-height: var(--ct-alvo-toque); }
 .cm-pr { margin-top: var(--ct-e1); max-width: 240px; font-family: var(--mono, monospace); }
+/* menu suspenso "Registrar questão" (Início e sala de foco), só com o relógio correndo */
+.cm-qm { position: relative; margin-top: var(--ct-e3); display: flex; justify-content: center; }
+.cm-qm[data-onde="inicio"] { justify-content: flex-start; }
+.cm-qm-btn { font: inherit; font-size: var(--fs-sm); font-weight: 700; display: inline-flex; align-items: center; gap: var(--ct-e2); cursor: pointer;
+  min-height: var(--ct-alvo-toque); padding: var(--ct-e2) var(--ct-e4); border-radius: var(--ct-pill);
+  background: rgba(255, 255, 255, .14); color: var(--onAccent, #fff); border: 1px solid rgba(255, 255, 255, .55); }
+.cm-qm-btn[aria-expanded="true"] svg { transform: rotate(180deg); }
+.cm-qm-n { font-family: var(--mono, monospace); font-weight: 600; opacity: .85; }
+.cm-qm-painel { position: absolute; top: calc(100% + var(--ct-e2)); z-index: 70; width: min(360px, 88vw); text-align: left;
+  background: var(--surface); color: var(--ink); border: 1px solid var(--border); border-radius: var(--ct-r-lg); box-shadow: var(--ct-sombra-2);
+  padding: var(--ct-e4); display: flex; flex-direction: column; gap: var(--ct-e3); }
+.cm-qm[data-onde="inicio"] .cm-qm-painel { left: 0; }
+.cm-qm-ok { align-self: flex-start; }
+@media (prefers-reduced-motion: no-preference) { .cm-qm-btn svg { transition: transform .14s ease; } }
+.cm-qm[data-onde="foco"] .cm-qm-painel { top: auto; bottom: calc(100% + var(--ct-e2)); }
+.cm-qm-painel { max-height: min(70vh, 520px); overflow-y: auto; }

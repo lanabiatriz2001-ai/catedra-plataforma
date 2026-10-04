@@ -1087,21 +1087,6 @@ window.ctPdfLib = (function(){
             </div>
             </sc-if>
 
-            <!-- Ciclo Magistratura: certeza por questão, dentro do registro de sessão (decisão da dona, 03/10) -->
-          <sc-if value="{{ cmOn }}" hint-placeholder-val="{{ false }}">
-              <div class="ct-reg-desemp cm-sec cm-q"><h3 class="cm-sec-h">Registrar questão</h3>
-              <p class="cm-p">Ciclo Magistratura · cada questão errada ou chutada entra no caderno de erros, na disciplina desta sessão. Chute certo conta como erro.</p>
-              <div class="cm-q-linha">
-                <div class="cm-lab" role="group" aria-label="Resultado">Resultado<span class="cm-seg"><sc-for list="{{ cmQRes }}" as="o" hint-placeholder-count="2"><button data-q="res" data-v="{{ o.v }}" onclick="{{ cmQ }}" aria-pressed="{{ o.on }}">{{ o.t }}</button></sc-for></span></div>
-                <div class="cm-lab" role="group" aria-label="Certeza">Certeza<span class="cm-seg"><sc-for list="{{ cmQCert }}" as="o" hint-placeholder-count="3"><button data-q="certeza" data-v="{{ o.v }}" onclick="{{ cmQ }}" aria-pressed="{{ o.on }}">{{ o.t }}</button></sc-for></span></div>
-              </div>
-              <sc-if value="{{ cmQCatShow }}" hint-placeholder-val="{{ true }}">
-                <div class="cm-lab" role="group" aria-label="Categoria do erro">Categoria do erro<span class="cm-seg cm-seg-wrap"><sc-for list="{{ cmQCat }}" as="o" hint-placeholder-count="5"><button data-q="categoria" data-v="{{ o.v }}" onclick="{{ cmQ }}" aria-pressed="{{ o.on }}">{{ o.t }}</button></sc-for></span></div>
-              </sc-if>
-              <label class="cm-lab">Enunciado ou resumo (opcional)<input class="cm-in" type="text" data-q="enunciado" value="{{ cmQEnun }}" onchange="{{ cmQ }}"></label>
-              <div><button class="ct-btn-2" onclick="{{ cmQRegistrar }}">Registrar questão</button></div>
-              </div>
-              </sc-if>
 
 
             <div>
@@ -1264,6 +1249,24 @@ window.ctPdfLib = (function(){
           <button onclick="{{ finishFocus }}" style="{{ salaBtnSec }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"></path></svg>Encerrar</button>
           <sc-if value="{{ mostraPiP }}" hint-placeholder-val="{{ true }}"><button onclick="{{ togglePiP }}" title="Janela flutuante (Picture-in-Picture)" style="{{ salaBtnSec }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="14" rx="2"></rect><rect x="12" y="11" width="7" height="5" rx="1" fill="currentColor" stroke="none"></rect></svg>Flutuante</button></sc-if>
         </div>
+        <!-- Ciclo Magistratura: registrar cada questão enquanto responde (só com o relógio correndo) -->
+        <sc-if value="{{ cmQShow }}" hint-placeholder-val="{{ false }}">
+          <div class="cm-qm" data-onde="foco">
+            <button class="cm-qm-btn" onclick="{{ cmQAlternar }}" aria-expanded="{{ cmQAbertoStr }}" aria-controls="cm-qm-foco">Registrar questão<span class="cm-qm-n">{{ cmQHojeTxt }}</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+            <sc-if value="{{ cmQAberto }}" hint-placeholder-val="{{ false }}">
+              <div class="cm-qm-painel" id="cm-qm-foco" role="group" aria-label="Registrar questão">
+                <label class="cm-lab">Matéria<select class="cm-in" data-q="mat" value="{{ cmQMatSel }}" onchange="{{ cmQ }}"><sc-for list="{{ cmQMats }}" as="o" hint-placeholder-count="4"><option value="{{ o.id }}" selected="{{ o.sel }}">{{ o.nome }}</option></sc-for></select></label>
+                <div class="cm-lab" role="group" aria-label="Resultado">Resultado<span class="cm-seg"><sc-for list="{{ cmQRes }}" as="o" hint-placeholder-count="2"><button data-q="res" data-v="{{ o.v }}" onclick="{{ cmQ }}" aria-pressed="{{ o.on }}">{{ o.t }}</button></sc-for></span></div>
+                <div class="cm-lab" role="group" aria-label="Certeza">Certeza<span class="cm-seg"><sc-for list="{{ cmQCert }}" as="o" hint-placeholder-count="3"><button data-q="certeza" data-v="{{ o.v }}" onclick="{{ cmQ }}" aria-pressed="{{ o.on }}">{{ o.t }}</button></sc-for></span></div>
+                <sc-if value="{{ cmQCatShow }}" hint-placeholder-val="{{ true }}">
+                  <div class="cm-lab" role="group" aria-label="Categoria do erro">Categoria do erro<span class="cm-seg"><sc-for list="{{ cmQCat }}" as="o" hint-placeholder-count="5"><button data-q="categoria" data-v="{{ o.v }}" onclick="{{ cmQ }}" aria-pressed="{{ o.on }}">{{ o.t }}</button></sc-for></span></div>
+                </sc-if>
+                <p class="cm-nota">Chute certo conta como erro. Acerto com certeza não vai para o caderno.</p>
+                <button class="ct-btn cm-qm-ok" onclick="{{ cmQRegistrar }}">Registrar</button>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
         <sc-if value="{{ hasPipMsg }}" hint-placeholder-val="{{ false }}">
           <div style="max-width:min(440px,84vw);margin-top:16px;text-align:center;font-size:var(--fs-sm);line-height:1.5;color:rgba(255,255,255,.72);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:var(--radius);padding:11px 14px;">{{ pipMsg }}</div>
         </sc-if>
@@ -1710,6 +1713,24 @@ window.ctPdfLib = (function(){
                 <button class="cth-bghost" onclick="{{ resetTimer }}">Zerar</button>
                 <button class="cth-bstrong" onclick="{{ openSession }}">+ Registrar sessão</button>
               </div>
+              <!-- Ciclo Magistratura: registrar cada questão enquanto responde (só com o relógio correndo) -->
+              <sc-if value="{{ cmQShow }}" hint-placeholder-val="{{ false }}">
+                <div class="cm-qm" data-onde="inicio">
+                  <button class="cm-qm-btn" onclick="{{ cmQAlternar }}" aria-expanded="{{ cmQAbertoStr }}" aria-controls="cm-qm-inicio">Registrar questão<span class="cm-qm-n">{{ cmQHojeTxt }}</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+                  <sc-if value="{{ cmQAberto }}" hint-placeholder-val="{{ false }}">
+                    <div class="cm-qm-painel" id="cm-qm-inicio" role="group" aria-label="Registrar questão">
+                      <label class="cm-lab">Matéria<select class="cm-in" data-q="mat" value="{{ cmQMatSel }}" onchange="{{ cmQ }}"><sc-for list="{{ cmQMats }}" as="o" hint-placeholder-count="4"><option value="{{ o.id }}" selected="{{ o.sel }}">{{ o.nome }}</option></sc-for></select></label>
+                      <div class="cm-lab" role="group" aria-label="Resultado">Resultado<span class="cm-seg"><sc-for list="{{ cmQRes }}" as="o" hint-placeholder-count="2"><button data-q="res" data-v="{{ o.v }}" onclick="{{ cmQ }}" aria-pressed="{{ o.on }}">{{ o.t }}</button></sc-for></span></div>
+                      <div class="cm-lab" role="group" aria-label="Certeza">Certeza<span class="cm-seg"><sc-for list="{{ cmQCert }}" as="o" hint-placeholder-count="3"><button data-q="certeza" data-v="{{ o.v }}" onclick="{{ cmQ }}" aria-pressed="{{ o.on }}">{{ o.t }}</button></sc-for></span></div>
+                      <sc-if value="{{ cmQCatShow }}" hint-placeholder-val="{{ true }}">
+                        <div class="cm-lab" role="group" aria-label="Categoria do erro">Categoria do erro<span class="cm-seg"><sc-for list="{{ cmQCat }}" as="o" hint-placeholder-count="5"><button data-q="categoria" data-v="{{ o.v }}" onclick="{{ cmQ }}" aria-pressed="{{ o.on }}">{{ o.t }}</button></sc-for></span></div>
+                      </sc-if>
+                      <p class="cm-nota">Chute certo conta como erro. Acerto com certeza não vai para o caderno.</p>
+                      <button class="ct-btn cm-qm-ok" onclick="{{ cmQRegistrar }}">Registrar</button>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-if>
             </div>
           </div>
         </div>
@@ -11423,18 +11444,19 @@ class Component extends DCLogic {
   /* Registrar questão: erro e chute certo vão para o caderno de erros de sempre (errors), com
      certeza, resultado e categoria ao lado do motivo; acerto firme não grava nada. */
   cmQRegistrar = ()=>{ const M=window.CT_CMAG; if(!M) return; const q=this.state.cmQ||{}, c=this._cm();
-    const sd=this.state.sessionDraft||{}, id=c.ordem[c.vez]; const cls=M.classificar(q.res==='certo', q.certeza, q.categoria);
+    const id=(q.mat && c.st[q.mat]) ? q.mat : c.ordem[c.vez]; const cls=M.classificar(q.res==='certo', q.certeza, q.categoria);
     if(!q.certeza){ this._toast('Marque a certeza: alta, média ou chute.'); return; }
-    if(!cls){ this._toast('Acerto com certeza: nada vai para o caderno.'); this.setState({cmQ:{}}); return; }
+    if(!cls){ this._toast('Acerto com certeza: nada vai para o caderno.'); this.setState({cmQ:{mat:id}}); return; }
     if(cls.resultado==='erro' && !cls.categoria){ this._toast('Escolha a categoria do erro.'); return; }
-    // a disciplina e o tópico são os da sessão sendo registrada; sem eles, a matéria do dia no ciclo
+    // a matéria escolhida no menu (começa na do dia) e o assunto atual dela no ciclo
     const agora=Date.now(), m=c.mats[id]||{n:'Geral'}, s=c.st[id]||{};
-    const disc=String(sd.disc||'').trim()||m.n, topico=String(sd.topico||'').trim()||s.ass||'';
+    const disc=m.n, topico=s.ass||'';
     const rec={id:'e'+agora, ts:agora, up:agora, disc, topico, enunciado:String(q.enunciado||'').trim().slice(0,1200)||((cls.resultado==='chute_certo'?'Chute certo':'Erro')+' · '+(topico||disc)),
       myAnswer:'', gabarito:'', whyWrong:'', lesson:'', source:'Ciclo Magistratura', fonte:'ciclo-magistratura', difficulty:3, tags:[], favorite:false,
       motivo:cls.motivo, certeza:cls.certeza, resultado:cls.resultado, categoria:cls.categoria, resolvido:false, reviewCount:0};
-    this.setState(st=>({errors:[rec, ...(st.errors||[])], cmQ:{}})); this.flashSync();
+    this.setState(st=>({errors:[rec, ...(st.errors||[])], cmQ:{mat:id}})); this.flashSync();
     this._toast(cls.resultado==='chute_certo'?'Chute certo registrado como erro no caderno.':'Erro registrado no caderno.'); };
+  cmQAlternar = ()=>{ this.setState(s=>({cmQAberto:!s.cmQAberto})); };
   cmAvancar = ()=>{ const M=window.CT_CMAG; if(M) this._cmSet(M.avancarVez(this._cm())); };
   /* Variáveis da tela. Texto da pessoa vai cru: o template escapa {{ }} ao pintar. */
   _cmView(){
@@ -11466,13 +11488,15 @@ class Component extends DCLogic {
       cmEhSabado:dow===6, cmEhDomingo:dow===0,
       cmRotina:M.ROTINA.map(r=>({t:r[0], d:r[1]})), cmRegras:M.REGRAS, cmAux:M.AUXILIARES.join(' · '),
       cmHoje:ativas[c.vez]?ativas[c.vez].nome:'',
-      ...(()=>{ const q=this.state.cmQ||{};
-        return {cmQEnun:q.enunciado||'',
+      ...(()=>{ const q=this.state.cmQ||{}, mat=(q.mat && c.st[q.mat]) ? q.mat : c.ordem[c.vez];
+        const nHoje=(this.state.errors||[]).filter(e=>e && e.fonte==='ciclo-magistratura' && e.ts && new Date(e.ts).toDateString()===new Date().toDateString()).length;
+        return {cmQShow:!!this.state.timerRunning, cmQAberto:!!this.state.cmQAberto, cmQAbertoStr:this.state.cmQAberto?'true':'false',
+          cmQHojeTxt:nHoje?String(nHoje)+' hoje':'', cmQMatSel:mat, cmQMats:ativas.map(a=>({id:a.id, nome:a.nome, sel:a.id===mat})),
           cmQRes:[['erro','Errei'],['certo','Acertei']].map(r=>({v:r[0], t:r[1], on:(q.res||'erro')===r[0]?'true':'false'})),
           cmQCert:M.CERTEZAS.map(r=>({v:r[0], t:r[1], on:q.certeza===r[0]?'true':'false'})),
           cmQCat:M.CATEGORIAS.map(r=>({v:r[0], t:r[1], on:q.categoria===r[0]?'true':'false'})),
           cmQCatShow:(q.res||'erro')==='erro'}; })(),
-      cmQ:this.cmQ, cmQRegistrar:this.cmQRegistrar,
+      cmQ:this.cmQ, cmQRegistrar:this.cmQRegistrar, cmQAlternar:this.cmQAlternar,
       cmToggle:this.cmToggle, cmCampo:this.cmCampo, cmLinkAbrir:this.cmLinkAbrir, cmLinkSalvar:this.cmLinkSalvar, cmLinkApagar:this.cmLinkApagar,
       cmFechar:this.cmFechar, cmRevMarcar:this.cmRevMarcar, cmRevRemover:this.cmRevRemover, cmSabado:this.cmSabado, cmZerarSabado:this.cmZerarSabado, cmAvancar:this.cmAvancar};
   }

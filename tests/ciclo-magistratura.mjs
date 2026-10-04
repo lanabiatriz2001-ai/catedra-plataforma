@@ -118,20 +118,30 @@ export async function testarCicloMagistratura(page, base, ok, opcoes = {}) {
   const xss = await page.evaluate(() => ({ img: !!document.querySelector('section.cm img'), xss: !!window.__xss, ass: window.__catedraApp.state.cmag.st.civ.ass }));
   ok(!xss.img && !xss.xss && /LINDB$/.test(xss.ass), R + 'assunto com HTML fica texto (' + JSON.stringify(xss) + ')');
 
-  // 7. no registro de sessão (e só no modo): chute certo vira erro no caderno, na disciplina da sessão
-  const fora = await page.evaluate(() => !document.querySelector('section.cm .cm-q'));
-  await page.evaluate(() => { const app = window.__catedraApp; app.openSession(); app.setState(s => ({ sessionDraft: { ...s.sessionDraft, disc: 'Direito Civil', topico: 'LINDB' } })); });
+  // 7. menu suspenso no Início e na sala de foco, só com o relógio correndo; chute certo vira erro
+  const semRelogio = await page.evaluate(() => { const app = window.__catedraApp; app.setState({ view: 'inicio' }); return new Promise(r => setTimeout(() => r(!document.querySelector('.cm-qm')), 300)); });
+  await page.evaluate(() => { const app = window.__catedraApp; if (!app.state.timerRunning) app.toggleTimer(); });
   await w(400);
-  ok(fora && await page.evaluate(() => !!document.querySelector('.cm-q .cm-seg')), R + 'o registro de questão fica no modal de sessão, não no painel');
-  await page.click('.cm-seg button[data-q="res"][data-v="certo"]');
-  await page.click('.cm-seg button[data-q="certeza"][data-v="chute"]');
-  await page.click('.cm-q .ct-btn-2'); await w(1400);
+  const noInicio = await page.evaluate(() => !!document.querySelector('.cm-qm[data-onde="inicio"] .cm-qm-btn'));
+  const noModal = await page.evaluate(() => { const app = window.__catedraApp; app.openSession(); return new Promise(r => setTimeout(() => { const t = !!document.querySelector('.ct-reg-desemp .cm-seg'); app.setState({ sessionModalOpen: false }); r(t); }, 300)); });
+  await page.evaluate(() => window.__catedraApp.enterFocus({})); await w(400);
+  const noFoco = await page.evaluate(() => !!document.querySelector('.cm-qm[data-onde="foco"] .cm-qm-btn'));
+  ok(semRelogio && noInicio && noFoco && !noModal, R + 'menu "Registrar questão" aparece no Início e na sala de foco com o relógio correndo, e não no registro de sessão ('
+    + JSON.stringify({ semRelogio, noInicio, noFoco, noModal }) + ')');
+  await page.click('.cm-qm[data-onde="foco"] .cm-qm-btn', { timeout: 10000 }); await w(200);
+  const dentro = await page.evaluate(() => { const r = document.querySelector('.cm-qm-painel').getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight; });
+  ok(dentro, R + 'o painel do menu cabe inteiro na tela da sala de foco');
+  if (opcoes.capturas) await page.screenshot({ path: opcoes.capturas + '/ciclo-magistratura-foco-' + motor + '.png' });
+  await page.selectOption('.cm-qm-painel select[data-q="mat"]', 'civ'); await w(150);
+  await page.click('.cm-qm-painel button[data-q="res"][data-v="certo"]');
+  await page.click('.cm-qm-painel button[data-q="certeza"][data-v="chute"]');
+  await page.click('.cm-qm-painel .cm-qm-ok'); await w(1400);
   const erro = await page.evaluate(() => (JSON.parse(localStorage.getItem('catedra:errors') || '[]')[0]) || {});
-  ok(erro.resultado === 'chute_certo' && erro.certeza === 'chute' && erro.motivo === 'chute' && erro.disc === 'Direito Civil' && erro.topico === 'LINDB' && erro.up > 0,
+  ok(erro.resultado === 'chute_certo' && erro.certeza === 'chute' && erro.motivo === 'chute' && erro.disc === 'Direito Civil' && /LINDB$/.test(erro.topico) && erro.up > 0,
     R + 'chute certo entra no caderno como erro (' + JSON.stringify({ r: erro.resultado, c: erro.certeza, m: erro.motivo, d: erro.disc }) + ')');
 
-  // a sessão aberta não fica pendurada para o passo seguinte
-  await page.evaluate(() => window.__catedraApp.setState({ sessionModalOpen: false }));
+  // sai da sala e para o relógio antes do passo seguinte
+  await page.evaluate(() => { const app = window.__catedraApp; app.exitFocus(); if (app.state.timerRunning) app.toggleTimer(); app.setState({ sessionModalOpen: false }); });
   // 8. sobrevive ao recarregar
   await page.reload(); await page.waitForFunction(() => window.__catedraApp && window.CT_CMAG, null, { timeout: 30000 });
   const vol = await page.evaluate(() => { const s = window.__catedraApp.state; return { modo: s.cycleMode, prim: s.cmag && s.cmag.ordem[0], link: s.cmag && s.cmag.links['civ-a1'], revs: (s.cmagRevs || []).length }; });
