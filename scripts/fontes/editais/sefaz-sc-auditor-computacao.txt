@@ -1,0 +1,144 @@
+Língua Portuguesa:
+Redação Oficial. Ortografia e acentuação. Emprego do sinal indicativo de crase. Compreensão e interpretação de textos de
+gêneros variados. Relação do texto com seu contexto histórico. Denotação e conotação. Discurso direto, discurso indireto
+e discurso indireto livre. Intertextualidade. Figuras de linguagem. Morfossintaxe. Elementos estruturais e processos de
+formação de palavras. Sinonímia e antonímia. Pontuação. Pronomes. Concordância nominal e concordância verbal. Flexão
+nominal e flexão verbal. Vozes do verbo. Correlação de tempos e modos verbais. Regência nominal e regência verbal.
+Coordenação e subordinação. Conectivos. Redação (confronto e reconhecimento de frases corretas e incorretas;
+organização e reorganização de orações e períodos; equivalência e transformação de estruturas).
+
+Matemática Financeira/Estatística e Raciocínio Lógico:
+Juros simples. Montante e juros. Taxa real e taxa efetiva. Taxas equivalentes. Capitais equivalentes. Juros compostos.
+Montante e juros. Taxa real e taxa efetiva. Taxas equivalentes. Capitais equivalentes. Capitalização contínua. Descontos:
+simples, composto. Desconto racional e desconto comercial. Amortizações. Sistema francês. Sistema de amortização
+constante. Sistema misto. Fluxo de caixa. Valor atual. Taxa interna de retorno. Estatística Descritiva: gráficos, tabelas,
+medidas de posição (média, moda, mediana, quartis, mínimo e máximo) e de variabilidade (variância, desvio-padrão,
+amplitude). Técnicas de Contagem e Análise Combinatória: Combinações Simples, Arranjos e Permutação com e sem
+repetição. Probabilidades: conceito, espaço amostral, axiomas e distribuições de probabilidades discretas e contínuas
+(Bernoulli, binomial, geométrica, uniforme, discreta, contínua, normal, Poisson, qui-quadrado, t de Student e F-Snedecor).
+Inferência estatística. Amostragem: amostras casuais e não casuais. Processos de amostragem, incluindo estimativa pontual
+de parâmetros. Intervalos de confiança. Testes de hipóteses para médias e proporções. Correlação e regressão linear
+simples. Raciocínio Lógico: Estrutura lógica de relações arbitrárias entre pessoas, lugares, objetos ou eventos fictícios;
+dedução de novas informações das relações fornecidas e avaliação das condições usadas para estabelecer a estrutura
+daquelas relações. Compreensão e elaboração da lógica das situações por meio de: raciocínio verbal; raciocínio
+matemático; raciocínio sequencial; orientação espacial e temporal; formação de conceitos; discriminação de elementos.
+Compreensão do processo lógico que, a partir de um conjunto de hipóteses, conduz, de forma válida, a conclusões
+determinadas.
+
+Noções de Direito Constitucional:
+Constituição da República Federativa do Brasil de 1988. Princípios fundamentais. Direitos e garantias fundamentais: Direitos
+e deveres individuais e coletivos, direitos sociais, nacionalidade, direitos políticos. Organização político‐administrativa do
+Estado: Estado federal brasileiro, União, estados, Distrito Federal, municípios e territórios. Administração pública:
+Disposições gerais, servidores públicos. Poder Executivo: atribuições do Presidente da República. Poder Legislativo:
+estrutura; funcionamento e atribuições; fiscalização contábil, financeira e orçamentária. Finanças Públicas. Ordem
+econômica e financeira: Princípios gerais da atividade econômica. Ordem social: Seguridade social; Mínimos constitucionais
+federais e estaduais; disposições gerais. Constituição do Estado de Santa Catarina.
+
+Noções de Direito Administrativo:
+Poderes da Administração Pública, Responsabilidade Civil do Estado e Controle da Administração Pública. Lei
+Complementar nº 741/2019 (Estrutura organizacional do Estado). Lei nº 6.745/1985 (Estatuto do servidor público SC). Lei
+nº 12.527/2011 (LAI). Lei nº 8.429/1992 (Lei improbidade administrativa). Lei nº 14.133/2021 (Nova lei de licitações e
+contratos).
+Ciência e Análise de Dados:
+Conceitos fundamentais de Ciência de Dados e Análise de Dados aplicados à Administração Pública, controle e finanças.
+Dados estruturados, semiestruturados e não estruturados. Coleta, qualidade, tratamento, análise e interpretação de dados.
+Identificação de padrões, tendências, correlações e anomalias. Business Intelligence e Visualização de Dados: Conceitos
+de Business Intelligence (BI), analytics, data mining e web scraping. Indicadores, métricas, relatórios gerenciais, dashboards
+e visualização de dados. Uso de ferramentas analíticas para extração, cruzamento, interpretação e comunicação de
+informações. Governo Digital e Inteligência Artificial: Governo Digital, transformação digital, serviços públicos digitais,
+interoperabilidade, automação e Administração Pública orientada por dados. Conceitos fundamentais de Inteligência
+Artificial, aprendizado de máquina, IA generativa e modelos de linguagem de grande porte (LLMs). Proteção de Dados
+Pessoais: Lei nº 13.709/2018 - Lei Geral de Proteção de Dados Pessoais (LGPD) e alterações posteriores. Princípios,
+conceitos, bases legais, direitos dos titulares, agentes de tratamento e tratamento de dados pelo Poder Público.
+Compartilhamento, segurança, boas práticas e incidentes envolvendo dados pessoais.
+
+Ética, Integridade e Prevenção ao Assédio e Discriminação:
+Ética no setor público: princípios, deveres e vedações institucionais.
+Programas de integridade e compliance na administração pública: gestão de riscos de fraude e corrupção.
+Prevenção e combate ao assédio moral, assédio sexual e a todas as formas de discriminação (gênero, raça, orientação
+sexual, idade e PCD) no ambiente de trabalho e nas políticas públicas.
+Lei nº 12.846/2013 (Lei anticorrupção)
+
+Conhecimentos Regionais de Santa Catarina:
+História, Geografia, Cultura, Política e Economia do Estado de Santa Catarina.
+
+Finanças Públicas: Lei nº 4.320/1964. Lei de Responsabilidade Fiscal. Planejamento e orçamento público: PPA, LDO e LOA;
+princípios orçamentários; receita e despesa orçamentária; classificações; estágios; créditos adicionais; restos a pagar;
+despesas de exercícios anteriores; fontes ou destinações de recursos.
+Governança, Gestão de TI e Projetos: Governança e gestão de TI. Alinhamento estratégico, serviços, processos, riscos,
+controles, indicadores e níveis de serviço. COBIT 2019 e ITIL v5. Planejamento, contratação, gestão e fiscalização de bens e
+serviços de TI. Governança de contratos de TI. Gestão de fornecedores. Definição, acompanhamento e avaliação de
+indicadores contratuais, níveis mínimos de serviço, acordos de nível de serviço (SLA), critérios de aceite, entregáveis,
+qualidade, produtividade e desempenho. Gestão de riscos contratuais, aplicação de controles, monitoramento da
+execução, avaliação de conformidade e aferição de resultados. Gerenciamento de projetos conforme PMBOK Guide, 8ª
+edição. Métodos ágeis. Scrum Guide 2020 e Kanban. Abordagens preditivas, adaptativas e híbridas. Engenharia e
+Arquitetura de Software: Ciclo de vida e processos de desenvolvimento. Engenharia de requisitos. Requisitos funcionais e
+não funcionais. Arquitetura de software, sistemas distribuídos, microsserviços e integração de aplicações. Qualidade e
+testes de software. Métricas de software. Medição de tamanho funcional e não funcional. Análise de Pontos de Função
+(APF), conceitos, componentes, contagem, estimativas e aplicações. Pontos de Caso de Uso e outras métricas de tamanho
+de software. Métricas de produtividade, esforço, prazo, custo, qualidade, manutenibilidade e complexidade. Estimativas
+de desenvolvimento e manutenção de software. Utilização de métricas para contratação, medição, aceite, faturamento,
+acompanhamento e fiscalização de serviços de desenvolvimento, manutenção e sustentação de sistemas. Git 2.x. CI/CD,
+DevOps e DevSecOps. APIs REST, HTTP/HTTPS, JSON, XML, autenticação, autorização, mensageria e interoperabilidade.
+Desenvolvimento e manutenção de aplicações web. Linguagem C#. Plataforma .NET e ASP.NET. HTML5, CSS3, JavaScript e
+TypeScript. Conceitos de programação orientada a objetos, arquitetura em camadas, aplicações cliente-servidor e
+aplicações web. Leitura, compreensão e análise de código-fonte nessas tecnologias. Integração e Sistemas da
+Administração Pública: Integração tecnológica com sistemas estruturantes de planejamento, orçamento, finanças,
+contabilidade, compras, licitações, contratos e patrimônio. APIs, serviços web, barramentos de integração, mensageria,
+interoperabilidade, segurança, qualidade, consistência e rastreabilidade das informações. Análise de integrações entre
+sistemas corporativos e sistemas estruturantes da Administração Pública, incluindo avaliação de interfaces, fluxos de dados,
+regras de negócio, controles, segurança, disponibilidade, integridade e rastreabilidade. Bancos de Dados e SQL:
+Modelagem conceitual, lógica e física. MER. Modelo relacional. Entidades, relacionamentos, chaves, integridade,
+normalização, transações, concorrência, índices, particionamento, visões, segurança, backup e recuperação. Bancos
+relacionais e não relacionais (NoSQL). PostgreSQL 18, MySQL 8.4 LTS, Microsoft SQL Server 2025 e MongoDB 8.0, ou versões
+mais recentes. SQL: DDL, DML, DCL e TCL; consultas, filtros, agrupamentos, junções, subconsultas, CTE, operações de
+conjuntos, funções de janela, visões, transações, índices, planos de execução e otimização de desempenho. Data
+Warehouse e Engenharia de Dados: Data Warehouse, Data Mart, Data Lake e Lakehouse. OLTP e OLAP. Modelagem
+dimensional, tabelas fato e dimensão, esquemas estrela e floco de neve. ETL e ELT. Coleta, ingestão, limpeza,
+transformação, integração e armazenamento. Pipelines batch e streaming. Processamento distribuído, Big Data e
+arquiteturas escaláveis. Apache Spark 4.x e conceitos de DataFrame e Spark SQL. Governança e Qualidade de Dados:
+Governança, papéis e responsabilidades, catálogo, glossário, metadados, dicionário e linhagem de dados. Gestão do ciclo
+de vida, dados mestres e de referência. Qualidade de dados: completude, consistência, validade, precisão, unicidade,
+integridade e atualidade. Data profiling, limpeza, tratamento de inconsistências, duplicidades, valores ausentes e outliers.
+Business Intelligence, Analytics e Visualização: Arquitetura de BI, indicadores, métricas, relatórios, dashboards, análise
+descritiva, diagnóstica, preditiva e prescritiva. Self-service BI. Visualização e comunicação de dados. Microsoft Power BI,
+versão vigente: Power Query, linguagem M, modelagem de dados, DAX, medidas, relacionamentos, filtros e dashboards.
+Programação e Automação para Dados: Lógica de programação, algoritmos, estruturas de dados, funções, arquivos e
+tratamento de exceções. Python 3.14.x. NumPy 2.5.x e pandas 3.0.x. Manipulação, transformação, integração e análise de
+dados. CSV, JSON e XML. Consumo de APIs e web scraping. Automação de rotinas de coleta, tratamento, cruzamento,
+análise e geração de relatórios. Conceitos de RPA. Estatística, Ciência de Dados e Machine Learning: Estatística descritiva
+e inferencial. Medidas de posição e dispersão, probabilidade, distribuições, amostragem, correlação, regressão, intervalos
+de confiança e testes de hipóteses. Análise exploratória de dados. Ciclo de vida de projetos de Ciência de Dados. Preparação,
+engenharia e seleção de atributos. Aprendizado supervisionado e não supervisionado. Classificação, regressão e clustering.
+Árvores de decisão, métodos ensemble e algoritmos baseados em distância. Treinamento, validação, overfitting,
+underfitting e métricas de avaliação. scikit-learn 1.9.x. Detecção de Anomalias e Padrões Suspeitos: Técnicas estatísticas,
+regras e aprendizado de máquina para identificação de anomalias, outliers e padrões suspeitos. Análise de grandes volumes
+de transações financeiras, orçamentárias, contábeis, compras, contratos e licitações. Identificação de inconsistências,
+duplicidades, fracionamentos, concentrações e relacionamentos atípicos. Falsos positivos, falsos negativos, indicadores de
+risco e priorização de casos para análise. Inteligência Artificial, PLN e IA Generativa: Conceitos de Inteligência Artificial e
+Deep Learning. Redes neurais. Processamento de Linguagem Natural – PLN: classificação, extração de informações,
+entidades, similaridade, busca semântica e sumarização. LLMs, transformers, tokens, embeddings, contexto, engenharia
+de prompts, RAG, bancos vetoriais, agentes de IA e modelos multimodais (conceitos). Frameworks como PyTorch e
+TensorFlow, em versões estáveis suportadas. Alucinações, vieses, segurança, privacidade, explicabilidade, supervisão
+humana e uso responsável de IA. Infraestrutura, Redes e Computação em Nuvem: Servidores, sistemas operacionais,
+virtualização, armazenamento, contêineres, alta disponibilidade e balanceamento de carga. Modelos OSI e TCP/IP, IPv4 e
+IPv6, TCP, UDP, DNS, DHCP, HTTP/HTTPS, LAN, WAN, WLAN, VLAN, NAT, VPN, roteamento e switching. Computação em
+nuvem: IaaS, PaaS, SaaS, nuvens pública, privada e híbrida, elasticidade, escalabilidade, serviços gerenciados,
+armazenamento, bancos de dados, serverless, monitoramento, backup e responsabilidade compartilhada. AWS, Microsoft
+Azure e Google Cloud Platform (GCP), em serviços vigentes. Docker e Kubernetes, em versões estáveis suportadas.
+Segurança da Informação e Proteção de Dados: Confidencialidade, integridade, disponibilidade, autenticidade e não
+repúdio. Ameaças, vulnerabilidades, riscos e controles. Gestão de identidades e acessos (IAM), MFA e RBAC. Segurança de
+redes, sistemas, bancos de dados, APIs, aplicações, endpoints, pipelines de dados e ambientes em nuvem. Firewalls, IDS/IPS
+e WAF. Hardening, gestão de vulnerabilidades e patches. Logs, monitoramento, incidentes, backup e continuidade.
+Criptografia simétrica e assimétrica, hashes, certificados, assinaturas digitais, PKI, TLS, gestão de chaves e segredos. LGPD
+aplicada a sistemas, analytics e IA; Privacy by Design, minimização, anonimização, pseudonimização, mascaramento e
+proteção de dados em repouso e em trânsito. Auditoria e Controle com Uso de Tecnologia: Aplicação de bancos de dados,
+SQL, BI, Ciência de Dados, automação e Inteligência Artificial às atividades de auditoria, fiscalização e controle. Extração,
+integração, cruzamento e análise de bases. Automatização de testes. Identificação de inconsistências, exceções, anomalias
+e padrões suspeitos. Indicadores de risco, relatórios e dashboards. Análise de transações financeiras, orçamento, receitas,
+despesas, compras, contratos e licitações. Rastreabilidade, integridade, reprodutibilidade e documentação das análises.
+Auditoria de contratos de TI e de serviços de desenvolvimento, manutenção, sustentação, infraestrutura e suporte.
+Avaliação de conformidade da execução contratual, níveis de serviço, indicadores, métricas de software, produtividade,
+qualidade das entregas, critérios de aceite, medições, faturamento e desempenho de fornecedores. Auditoria de sistemas
+e aplicações, incluindo análise de requisitos, arquitetura, código-fonte, integrações, controles, trilhas de auditoria e
+aderência às especificações contratuais. Inglês Técnico.

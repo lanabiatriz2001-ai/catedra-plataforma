@@ -553,18 +553,23 @@
     "Direito Financeiro e Tributário",
     "Direito Ambiental",
     "Direito Administrativo",
-    "Legislação Estadual",
-    "Sociologia do Direito",
-    "Psicologia Judiciária",
-    "Ética e Estatuto Jurídico da Magistratura Nacional",
-    "Filosofia do Direito",
-    "Teoria Geral do Direito e da Política",
-    "Direito Digital",
-    "Pragmatismo, Análise Econômica do Direito e Economia Comportamental",
-    "Direito da Antidiscriminação",
+    "Noções Gerais de Direito e Formação Humanística",
     "Direitos Humanos"
    ],
-   "observacao": "O edital traz \"Noções Gerais de Direito e Formação Humanística\" como UMA matéria dividida em partes com letra (A, B, C…). O importador devolve cada parte como disciplina própria e o nome-mãe some (fica sem tópicos). Nada do conteúdo se perde; a dona decide se quer as partes soltas ou agrupadas. Direito Digital sai com 1 tópico em vez de 4 (o item '1. 4ª Revolução industrial' impede o desdobramento) e Direito da Criança e do Adolescente com 12 em vez de 13 (o item 12 fica dentro do 11). Defeitos de leitura do importador em subtópicos (item partido na quebra de linha, alínea 'b)' no começo da linha) estão listados no relatório da curadoria; o texto-fonte é o oficial, sem reescrita."
+   "observacao": "O edital traz \"Noções Gerais de Direito e Formação Humanística\" como UMA matéria dividida em partes com letra (A, B, C…). O importador devolve cada parte como disciplina própria e o nome-mãe some (fica sem tópicos). Nada do conteúdo se perde; a dona decide se quer as partes soltas ou agrupadas. Direito Digital sai com 1 tópico em vez de 4 (o item '1. 4ª Revolução industrial' impede o desdobramento) e Direito da Criança e do Adolescente com 12 em vez de 13 (o item 12 fica dentro do 11). Defeitos de leitura do importador em subtópicos (item partido na quebra de linha, alínea 'b)' no começo da linha) estão listados no relatório da curadoria; o texto-fonte é o oficial, sem reescrita. \"Noções Gerais de Direito e Formação Humanística\" é uma matéria só no edital, com partes em letras (A, B, C…); cada parte entra como tópico dela, e os itens da parte como subtópicos. Decisão da dona em 04/10/2026.",
+   "juntar": {
+    "Noções Gerais de Direito e Formação Humanística": [
+     "Legislação Estadual",
+     "Sociologia do Direito",
+     "Psicologia Judiciária",
+     "Ética e Estatuto Jurídico da Magistratura Nacional",
+     "Filosofia do Direito",
+     "Teoria Geral do Direito e da Política",
+     "Direito Digital",
+     "Pragmatismo, Análise Econômica do Direito e Economia Comportamental",
+     "Direito da Antidiscriminação"
+    ]
+   }
   },
   {
    "id": "juizTJPE",
@@ -595,18 +600,23 @@
     "Direito Financeiro e Tributário",
     "Direito Ambiental",
     "Direito Administrativo",
-    "Legislação Estadual",
-    "Sociologia do Direito",
-    "Psicologia Judiciária",
-    "Ética e Estatuto Jurídico da Magistratura Nacional",
-    "Filosofia do Direito",
-    "Teoria Geral do Direito e da Política",
-    "Direito Digital",
-    "Pragmatismo, Análise Econômica do Direito e Economia Comportamental",
-    "Direito da Antidiscriminação",
+    "Noções Gerais de Direito e Formação Humanística",
     "Direitos Humanos"
    ],
-   "observacao": "O edital traz \"Noções Gerais de Direito e Formação Humanística\" como UMA matéria dividida em partes com letra (A, B, C…). O importador devolve cada parte como disciplina própria e o nome-mãe some (fica sem tópicos). Nada do conteúdo se perde; a dona decide se quer as partes soltas ou agrupadas. Direito Digital sai com 1 tópico em vez de 4 e Direito da Criança e do Adolescente com 12 em vez de 13 (mesmos casos do TJ-BA). Defeitos de leitura do importador em subtópicos (item partido na quebra de linha, alínea 'b)' no começo da linha) estão listados no relatório da curadoria; o texto-fonte é o oficial, sem reescrita."
+   "observacao": "O edital traz \"Noções Gerais de Direito e Formação Humanística\" como UMA matéria dividida em partes com letra (A, B, C…). O importador devolve cada parte como disciplina própria e o nome-mãe some (fica sem tópicos). Nada do conteúdo se perde; a dona decide se quer as partes soltas ou agrupadas. Direito Digital sai com 1 tópico em vez de 4 e Direito da Criança e do Adolescente com 12 em vez de 13 (mesmos casos do TJ-BA). Defeitos de leitura do importador em subtópicos (item partido na quebra de linha, alínea 'b)' no começo da linha) estão listados no relatório da curadoria; o texto-fonte é o oficial, sem reescrita. \"Noções Gerais de Direito e Formação Humanística\" é uma matéria só no edital, com partes em letras (A, B, C…); cada parte entra como tópico dela, e os itens da parte como subtópicos. Decisão da dona em 04/10/2026.",
+   "juntar": {
+    "Noções Gerais de Direito e Formação Humanística": [
+     "Legislação Estadual",
+     "Sociologia do Direito",
+     "Psicologia Judiciária",
+     "Ética e Estatuto Jurídico da Magistratura Nacional",
+     "Filosofia do Direito",
+     "Teoria Geral do Direito e da Política",
+     "Direito Digital",
+     "Pragmatismo, Análise Econômica do Direito e Economia Comportamental",
+     "Direito da Antidiscriminação"
+    ]
+   }
   },
   {
    "id": "juizTJRS",
@@ -638,17 +648,22 @@
     "Direito Tributário",
     "Direito Ambiental",
     "Direito Administrativo",
-    "Sociologia do Direito",
-    "Psicologia Judiciária",
-    "Ética e Estatuto Jurídico da Magistratura Nacional",
-    "Filosofia do Direito",
-    "Teoria Geral do Direito e da Política",
-    "Direito Digital e Tecnologia",
-    "Pragmatismo, Análise Econômica do Direito e Economia Comportamental",
-    "Direito da Antidiscriminação",
+    "Noções Gerais de Direito e Formação Humanística",
     "Direitos Humanos"
    ],
-   "observacao": "NÃO GERA HOJE: a lista acima é a do edital (22 nomes na leitura esperada), mas o importador devolve 19 — somem Direito Processual Civil, Direito da Criança e do Adolescente e Direito Tributário, engolidas pela matéria anterior. Causa: a linha 'Tribunal de Justiça do Estado do Rio Grande do Sul.' fecha o último item de três matérias, aparece 3 vezes e é descartada como cabeçalho de página; a linha de cima termina em 'e do' e costura com o nome da matéria seguinte. Depende de conserto no importador. O edital traz \"Noções Gerais de Direito e Formação Humanística\" como UMA matéria dividida em partes com letra (A, B, C…). O importador devolve cada parte como disciplina própria e o nome-mãe some (fica sem tópicos). Nada do conteúdo se perde; a dona decide se quer as partes soltas ou agrupadas. O edital inclui Língua Portuguesa. A última palavra do anexo ('institucionais.') está na p. 51."
+   "observacao": "NÃO GERA HOJE: a lista acima é a do edital (22 nomes na leitura esperada), mas o importador devolve 19 — somem Direito Processual Civil, Direito da Criança e do Adolescente e Direito Tributário, engolidas pela matéria anterior. Causa: a linha 'Tribunal de Justiça do Estado do Rio Grande do Sul.' fecha o último item de três matérias, aparece 3 vezes e é descartada como cabeçalho de página; a linha de cima termina em 'e do' e costura com o nome da matéria seguinte. Depende de conserto no importador. O edital traz \"Noções Gerais de Direito e Formação Humanística\" como UMA matéria dividida em partes com letra (A, B, C…). O importador devolve cada parte como disciplina própria e o nome-mãe some (fica sem tópicos). Nada do conteúdo se perde; a dona decide se quer as partes soltas ou agrupadas. O edital inclui Língua Portuguesa. A última palavra do anexo ('institucionais.') está na p. 51. \"Noções Gerais de Direito e Formação Humanística\" é uma matéria só no edital, com partes em letras (A, B, C…); cada parte entra como tópico dela, e os itens da parte como subtópicos. Decisão da dona em 04/10/2026.",
+   "juntar": {
+    "Noções Gerais de Direito e Formação Humanística": [
+     "Sociologia do Direito",
+     "Psicologia Judiciária",
+     "Ética e Estatuto Jurídico da Magistratura Nacional",
+     "Filosofia do Direito",
+     "Teoria Geral do Direito e da Política",
+     "Direito Digital e Tecnologia",
+     "Pragmatismo, Análise Econômica do Direito e Economia Comportamental",
+     "Direito da Antidiscriminação"
+    ]
+   }
   },
   {
    "id": "juizTJGO",
@@ -713,17 +728,22 @@
     "Direito Administrativo",
     "Direito Ambiental",
     "Direito Internacional Público e Privado",
-    "Sociologia do Direito",
-    "Psicologia Judiciária",
-    "Ética e Estatuto Jurídico da Magistratura Nacional",
-    "Filosofia do Direito",
-    "Teoria Geral do Direito e da Política",
-    "Direito Digital",
-    "Pragmatismo, Análise Econômica do Direito e Economia Comportamental",
-    "Direito da Antidiscriminação",
+    "Noções Gerais de Direito e Formação Humanística",
     "Direitos Humanos"
    ],
-   "observacao": "O edital traz \"Noções Gerais de Direito e Formação Humanística\" como UMA matéria dividida em partes com letra (A, B, C…). O importador devolve cada parte como disciplina própria e o nome-mãe some (fica sem tópicos). Nada do conteúdo se perde; a dona decide se quer as partes soltas ou agrupadas. "
+   "observacao": "O edital traz \"Noções Gerais de Direito e Formação Humanística\" como UMA matéria dividida em partes com letra (A, B, C…). O importador devolve cada parte como disciplina própria e o nome-mãe some (fica sem tópicos). Nada do conteúdo se perde; a dona decide se quer as partes soltas ou agrupadas.  \"Noções Gerais de Direito e Formação Humanística\" é uma matéria só no edital, com partes em letras (A, B, C…); cada parte entra como tópico dela, e os itens da parte como subtópicos. Decisão da dona em 04/10/2026.",
+   "juntar": {
+    "Noções Gerais de Direito e Formação Humanística": [
+     "Sociologia do Direito",
+     "Psicologia Judiciária",
+     "Ética e Estatuto Jurídico da Magistratura Nacional",
+     "Filosofia do Direito",
+     "Teoria Geral do Direito e da Política",
+     "Direito Digital",
+     "Pragmatismo, Análise Econômica do Direito e Economia Comportamental",
+     "Direito da Antidiscriminação"
+    ]
+   }
   },
   {
    "id": "procuradorManaus",
@@ -1697,6 +1717,213 @@
     "Noções de Tecnologia da Informação e de Inteligência Artificial"
    ],
    "observacao": "Edital nº 01/2025, publicado no Diário Oficial do TCE-PE nº 92-A, de 30/05/2025; texto consolidado da 3ª retificação (18/07/2025), que já traz as mudanças das 1ª e 2ª retificações no Anexo I. O edital chama o cargo de \"Procurador do Tribunal de Contas\". As 14 matérias com programa batem com o edital; \"DIREITO DO TRABALHO\" é um título-mãe sem texto próprio, logo acima de \"Direito Individual do Trabalho\" e \"Direito Coletivo do Trabalho\", e o importador o descarta (as duas partes ficam como matérias, como no modelo antigo). O modelo antigo não tinha \"Direito Previdenciário\" nem \"Controle Externo da Administração Pública\", que estão no edital. Fonte com as linhas do PDF, sem nenhuma correção. O EDITAL COLA o número do item na palavra em 46 pontos (\"políticos. 14.Os remédios…\", \"desportos.19. Constituição…\", \"terceiros.10 Poderes\") e o importador só abre o item quando o número colado cai no começo da linha (3 dos 46): os outros 43 ficam dentro do item anterior (Constitucional sai com 14 tópicos em vez de 21; Administrativo, 11 em vez de 23; Civil e Empresarial, 9 em vez de 25; Processual, 29 em vez de 30; Penal, 8 em vez de 9; Ambiental, 9 em vez de 13). Não publicar antes do conserto do importador — ou da decisão de pôr o espaço depois do número (cópia assim em ~/catedra-auditoria-cache/tcepe/alternativas/tcepe-procurador.txt)."
+  },
+  {
+   "id": "sefazSPContabilidade",
+   "nome": "APOFP · Sefaz-SP",
+   "sub": "Contabilidade Pública · FCC · 2026",
+   "orgao": "Secretaria da Fazenda e Planejamento do Estado de São Paulo (Sefaz-SP)",
+   "cargo": "Analista em Planejamento, Orçamento e Finanças Públicas (APOFP) — área B02, Contabilidade Pública",
+   "banca": "FCC",
+   "publicado": "2026-10-02",
+   "url": "https://www.concursosfcc.com.br/concursos/fazsp126/edital_n0_01-2026_-_abertura_das_incricoes_apofp.pdf",
+   "paginas": "Anexo II, p. 31–36",
+   "areas": [
+    "fiscal"
+   ],
+   "fontes": [
+    "sefaz-sp-apofp-contabilidade.txt"
+   ],
+   "disciplinas": [
+    "Administração Geral, Administração Pública e Auditoria Governamental",
+    "Direito Administrativo",
+    "Direito Constitucional",
+    "Economia",
+    "Língua Portuguesa",
+    "Matemática Financeira / Estatística",
+    "Administração Financeira e Orçamentária",
+    "Contabilidade Geral e Pública",
+    "Direito Financeiro e Finanças Públicas",
+    "Fluência de Dados",
+    "Conhecimentos Específicos"
+   ],
+   "juntar": {
+    "Conhecimentos Específicos": [
+     "Contabilidade Geral",
+     "Contabilidade Pública",
+     "Contabilidade de Custos",
+     "Responsabilidade Fiscal e Demonstrativos",
+     "Tecnologia Aplicada à Contabilidade"
+    ]
+   }
+  },
+  {
+   "id": "sefazSPTI",
+   "nome": "APOFP · Sefaz-SP",
+   "sub": "Ciências de Dados e Tecnologia da Informação · FCC · 2026",
+   "orgao": "Secretaria da Fazenda e Planejamento do Estado de São Paulo (Sefaz-SP)",
+   "cargo": "Analista em Planejamento, Orçamento e Finanças Públicas (APOFP) — área C03, Ciências de Dados e Tecnologia da Informação",
+   "banca": "FCC",
+   "publicado": "2026-10-02",
+   "url": "https://www.concursosfcc.com.br/concursos/fazsp126/edital_n0_01-2026_-_abertura_das_incricoes_apofp.pdf",
+   "paginas": "Anexo II, p. 31–35 e 36",
+   "areas": [
+    "fiscal",
+    "tecnologia"
+   ],
+   "fontes": [
+    "sefaz-sp-apofp-ti.txt"
+   ],
+   "cabecalhos": [
+    "Gestão ágil de produtos e projetos digitais",
+    "Ciência de dados e inteligência artificial",
+    "Business Intelligence, Analytics e Visualização"
+   ],
+   "disciplinas": [
+    "Administração Geral, Administração Pública e Auditoria Governamental",
+    "Direito Administrativo",
+    "Direito Constitucional",
+    "Economia",
+    "Língua Portuguesa",
+    "Matemática Financeira / Estatística",
+    "Administração Financeira e Orçamentária",
+    "Contabilidade Geral e Pública",
+    "Direito Financeiro e Finanças Públicas",
+    "Fluência de Dados",
+    "Conhecimentos Específicos"
+   ],
+   "juntar": {
+    "Conhecimentos Específicos": [
+     "Gestão ágil de produtos e projetos digitais",
+     "Ciência de dados e inteligência artificial",
+     "Business Intelligence, Analytics e Visualização"
+    ]
+   },
+   "observacao": "Conhecimentos Básicos (Provas 1 e 3, comuns às três áreas; p. 31–35) + Específicos da área C03 (Prova 2; p. 36). O nome da área varia no próprio edital (\"Ciências de Dados…\" no Anexo II, usado aqui, e \"Ciência de Dados…\" no quadro de provas). A Prova 2 é um bloco só, sem disciplinas nomeadas: entra como \"Conhecimentos Específicos\", com as três partes do bloco como tópicos."
+  },
+  {
+   "id": "sefazSCComputacao",
+   "nome": "Auditor de Finanças Públicas · Sefaz-SC",
+   "sub": "Ciências da Computação · FCC · 2026",
+   "orgao": "Secretaria de Estado da Fazenda de Santa Catarina (Sefaz-SC)",
+   "cargo": "Auditor Estadual de Finanças Públicas — Ciências da Computação (B02)",
+   "banca": "FCC",
+   "publicado": "2026-08-31",
+   "url": "https://www.concursosfcc.com.br/concursos/sefsc126/sefsc126_edital_de_abertura_final_publicar.pdf",
+   "paginas": "Anexo III, p. 24–25 e 28–29",
+   "areas": [
+    "fiscal",
+    "tecnologia"
+   ],
+   "fontes": [
+    "sefaz-sc-auditor-computacao.txt"
+   ],
+   "cabecalhos": [
+    "Finanças Públicas",
+    "Governança, Gestão de TI e Projetos",
+    "Engenharia e Arquitetura de Software",
+    "Integração e Sistemas da Administração Pública",
+    "Bancos de Dados e SQL",
+    "Data Warehouse e Engenharia de Dados",
+    "Governança e Qualidade de Dados",
+    "Business Intelligence, Analytics e Visualização",
+    "Programação e Automação para Dados",
+    "Estatística, Ciência de Dados e Machine Learning",
+    "Detecção de Anomalias e Padrões Suspeitos",
+    "Inteligência Artificial, PLN e IA Generativa",
+    "Infraestrutura, Redes e Computação em Nuvem",
+    "Segurança da Informação e Proteção de Dados",
+    "Auditoria e Controle com Uso de Tecnologia"
+   ],
+   "disciplinas": [
+    "Língua Portuguesa",
+    "Matemática Financeira/Estatística e Raciocínio Lógico",
+    "Noções de Direito Constitucional",
+    "Noções de Direito Administrativo",
+    "Ciência e Análise de Dados",
+    "Ética, Integridade e Prevenção ao Assédio e Discriminação",
+    "Conhecimentos Regionais de Santa Catarina",
+    "Finanças Públicas",
+    "Governança, Gestão de TI e Projetos",
+    "Engenharia e Arquitetura de Software",
+    "Integração e Sistemas da Administração Pública",
+    "Bancos de Dados e SQL",
+    "Data Warehouse e Engenharia de Dados",
+    "Governança e Qualidade de Dados",
+    "Business Intelligence, Analytics e Visualização",
+    "Programação e Automação para Dados",
+    "Estatística, Ciência de Dados e Machine Learning",
+    "Detecção de Anomalias e Padrões Suspeitos",
+    "Inteligência Artificial, PLN e IA Generativa",
+    "Infraestrutura, Redes e Computação em Nuvem",
+    "Segurança da Informação e Proteção de Dados",
+    "Auditoria e Controle com Uso de Tecnologia"
+   ],
+   "observacao": "Conhecimentos Gerais comuns a quatro áreas (p. 24–25) + Específicos de Ciências da Computação (p. 28–29). As matérias específicas vêm no edital em negrito, no meio do parágrafo corrido; os títulos estão em \"cabecalhos\". \"Inglês Técnico\" aparece no edital só como nome, sem programa, e entra como último tópico de \"Auditoria e Controle com Uso de Tecnologia\"."
+  },
+  {
+   "id": "sefazCETI",
+   "nome": "Auditor-Fiscal · Sefaz-CE",
+   "sub": "Tecnologia da Informação · FCC · 2026",
+   "orgao": "Secretaria da Fazenda do Estado do Ceará (Sefaz-CE)",
+   "cargo": "Auditor-Fiscal da Fazenda Estadual — área B02, Tecnologia da Informação",
+   "banca": "FCC",
+   "publicado": "2026-04-24",
+   "url": "https://www.concursosfcc.com.br/concursos/sface125/sface125_edital_de_abertura_final-publicar_-_docx.pdf",
+   "paginas": "Anexo VI, p. 34–38 e 40–42",
+   "areas": [
+    "fiscal",
+    "tecnologia"
+   ],
+   "fontes": [
+    "sefaz-ce-auditor-ti.txt"
+   ],
+   "cabecalhos": [
+    "Governança, gestão e contratações de TIC",
+    "Segurança da Informação e Cibernética",
+    "Infraestrutura de TI",
+    "Computação em Nuvem",
+    "Banco de Dados e Engenharia de Dados",
+    "Ciência de Dados e Inteligência Artificial",
+    "Engenharia de Software e Desenvolvimento",
+    "Gestão de Projetos, Produtos e Serviços"
+   ],
+   "disciplinas": [
+    "Língua Portuguesa",
+    "Matemática Financeira/Estatística e Raciocínio Lógico",
+    "Administração Pública e Governança Pública",
+    "Economia",
+    "Direito Constitucional",
+    "Direito Administrativo",
+    "Direito Civil",
+    "Direito Penal",
+    "Direito Financeiro",
+    "Contabilidade Geral e Pública",
+    "Direito Tributário",
+    "Legislação Tributária Estadual",
+    "Contabilidade Avançada e de Custos",
+    "Tecnologia da Informação",
+    "Finanças Públicas"
+   ],
+   "juntar": {
+    "Direito Tributário": [
+     "Legislação Tributária Nacional"
+    ],
+    "Contabilidade Avançada e de Custos": [
+     "Contabilidade de Custos"
+    ],
+    "Tecnologia da Informação": [
+     "Governança, gestão e contratações de TIC",
+     "Segurança da Informação e Cibernética",
+     "Infraestrutura de TI",
+     "Computação em Nuvem",
+     "Banco de Dados e Engenharia de Dados",
+     "Ciência de Dados e Inteligência Artificial",
+     "Engenharia de Software e Desenvolvimento",
+     "Gestão de Projetos, Produtos e Serviços"
+    ]
+   },
+   "observacao": "Conhecimentos Gerais (comuns às áreas A01 e B02; p. 34–38) + Específicos da área B02 – Tecnologia da Informação (p. 40–42). \"Legislação Tributária Nacional\" e \"Contabilidade de Custos\" entram como tópicos da matéria a que pertencem. \"Tecnologia da Informação\" é uma matéria com oito partes em negrito (títulos em \"cabecalhos\"); cada parte é um tópico e cada assunto dela, separado por ponto e vírgula no edital, um subtópico. \"Inglês Técnico\" aparece só como nome, sem programa."
   }
  ]
 }
