@@ -53,10 +53,13 @@ export async function testarIphoneHost390(pageDaSuite, base, ok, opcoes = {}) {
       materialId: null, countMeta: true };
   });
 
-  async function abrir(viewport) {
+  async function abrir(viewport, relogio) {
     const ctx = await browser.newContext({ viewport, isMobile: viewport.width < 900,
       hasTouch: viewport.width < 900, deviceScaleFactor: viewport.width < 900 ? 3 : 1 });
     const page = await ctx.newPage();
+    if (relogio) await page.clock.install({ time: relogio });
+    // com relógio fixo, as sessões são datadas a partir DELE (senão o "hoje" da página fica sem sessão)
+    const sessoes = relogio ? SESSOES.map((x, i) => { const ts = relogio.getTime() - i * 86400000; return { ...x, ts, date: ymd(ts) }; }) : SESSOES;
     const erros = [];
     page.on('pageerror', e => erros.push(String(e && e.message || e)));
     await page.goto(base + '/__semente');
@@ -68,7 +71,7 @@ export async function testarIphoneHost390(pageDaSuite, base, ok, opcoes = {}) {
       set('edital', [{ disc: 'Direito Civil', peso: 2, questoes: 15, color: '#2563eb',
         topics: [{ name: 'Obrigações', done: false, subs: [] }] }]);
       set('sessions', ses); set('reviews', []); set('errors', []);
-    }, SESSOES);
+    }, sessoes);
     await page.goto(base + '/' + arquivo);
     await page.waitForFunction(() => !!window.__catedraApp, null, { timeout: 25000 });
     await page.waitForTimeout(1800);
@@ -366,6 +369,37 @@ export async function testarIphoneHost390(pageDaSuite, base, ok, opcoes = {}) {
           + m.alturaFicha + ' px de altura)');
         ok(m.docRola <= 0, R + '(g) a tela "inicio" não passa a rolar de lado (' + m.docRola + ' px)');
       }
+    } finally { await ctx.close(); }
+  }
+
+  /* (h) DOMINGO (04/10/2026). O gráfico da semana do Início vai de segunda a domingo e marca o
+     dia de hoje como "DOM · HOJE". No domingo esse rótulo cai na ÚLTIMA coluna, é mais largo
+     que ela e — sem min-width:0 na coluna — empurrava o cartão 2 px para fora da tela: o caso
+     (a) reprovava em toda suíte que rodasse num domingo (na CI, UTC) e passava nos outros dias.
+     Relógio fixo num domingo ao meio-dia, em contexto próprio, para o caso valer todo dia. */
+  {
+    const dom = new Date(); dom.setDate(dom.getDate() + ((7 - dom.getDay()) % 7)); dom.setHours(12, 0, 0, 0);
+    const { ctx, page } = await abrir({ width: 390, height: 844 }, dom);
+    try {
+      await ir(page, 'inicio'); await page.waitForTimeout(1400);
+      const m = await page.evaluate(() => {
+        const sc = document.querySelector('main .ct-scroll');
+        const cols = [...document.querySelectorAll('.cth-bcol')];
+        const hoje = cols.findIndex(c => /hoje/i.test(c.textContent));
+        const larg = cols.map(c => Math.round(c.getBoundingClientRect().width));
+        return { dia: new Date().getDay(), n: cols.length, hoje, larg, scRola: sc ? sc.scrollWidth - sc.clientWidth : -1,
+          docRola: document.documentElement.scrollWidth - innerWidth,
+          direita: cols.length ? Math.round(cols[cols.length - 1].getBoundingClientRect().right) : 0 };
+      });
+      ok(m.dia === 0 && m.n === 7 && m.hoje === 6, R + '(h) no domingo o "hoje" é a última das 7 colunas da semana (dia ' + m.dia + ', coluna ' + m.hoje + ' de ' + m.n + ')');
+      ok(m.scRola <= 0 && m.docRola <= 0, R + '(h) no domingo o Início não rola de lado (contêiner ' + m.scRola + ' px, documento ' + m.docRola + ' px)');
+      ok(Math.max(...m.larg) - Math.min(...m.larg) <= 1, R + '(h) as sete colunas têm a mesma largura (' + m.larg.join(',') + ')');
+      ok(m.direita <= 390, R + '(h) a última coluna termina dentro da tela (' + m.direita + ' px)');
+      // o rótulo de cada dia cabe na própria coluna: não cobre o vizinho nem sai da tela
+      const rot = await page.evaluate(() => [...document.querySelectorAll('.cth-bcol')].map(c => { const l = c.lastElementChild.getBoundingClientRect(), b = c.getBoundingClientRect();
+        return { t: c.lastElementChild.textContent.trim(), sobra: Math.round(Math.max(b.left - l.left, l.right - b.right) * 10) / 10 }; }));
+      ok(rot.every(x => x.sobra <= 1), R + '(h) nenhum rótulo de dia passa da própria coluna (' + rot.map(x => x.t + ':' + x.sobra).join(' ') + ')');
+      ok(/^hoje$/i.test(rot[6].t), R + '(h) em tela estreita o dia de hoje diz só "hoje" (' + rot[6].t + ')');
     } finally { await ctx.close(); }
   }
 }
