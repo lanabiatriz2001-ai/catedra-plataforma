@@ -70,7 +70,7 @@ export async function testarPrioridadeDiscursiva(pageBase, base, ok) {
       const manual=a.state.redDisciplina;
       a.setState({ redText:Array(50).fill('resposta').join(' '), redGabarito:'Espelho sintético.', redHist:[] });
       await new Promise(r=>setTimeout(r,300));
-      a._corrigeRedacaoLivre=async()=>({ nota:2, criterios:[{ nome:'Conteúdo', nota:2, max:10 }], topicos:[], fortes:[], melhorar:[], geral:'Teste' });
+      a._redCorrigir=async()=>({ nota:2, criterios:[{ nome:'Conteúdo', nota:2, max:10 }], topicos:[], fortes:[], melhorar:[], geral:'Teste' });
       await a.submitRed();
       await new Promise(r=>setTimeout(r,1400));
       const h=JSON.parse(localStorage.getItem('catedra:redHist')||'[]');

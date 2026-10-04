@@ -122,5 +122,27 @@ export async function testarCicloNivelEstrategia(pageDaSuite, base, ok, opcoes =
       a.setOrientVal({ currentTarget: { dataset: { k: 'estrategia', v: 'revisao' } } }); await new Promise(r => setTimeout(r, 400));
       return antes === JSON.stringify(a.state.cicloVolta.blocos); });
     ok(manual, R + 'modo manual: trocar a estratégia não mexe na volta guardada');
+
+    // bloco que a pessoa acrescentou à volta não some quando os pendentes são refeitos
+    const proprio = await page.evaluate(async () => { const a = window.__catedraApp;
+      a.setState(s => ({ orient: { ...s.orient, nivel: 'intermediario', estrategia: 'ciclo' }, cycleMode: 'pesos' }));
+      const V = a._genVolta('pesos', 1);
+      V.blocos.push({ id: 'meu-1', disc: 'Direito Civil', kind: 'Lei seca', tag: 'meu bloco de usucapião', topico: '', discEdital: 'Direito Civil', min: 30, motivo: '', done: false, pulado: false, doneDate: '' });
+      a.setState({ cicloVolta: V, blocks: a._comporDia(V, []), blocksDate: a._hoje() }); const n = V.blocos.length;
+      a.setOrientVal({ currentTarget: { dataset: { k: 'estrategia', v: 'sequencial' } } }); await new Promise(r => setTimeout(r, 400));
+      const N = a.state.cicloVolta.blocos;
+      return { n, depois: N.length, ficou: N.some(b => b.tag === 'meu bloco de usucapião'), unicos: new Set(N.map(b => b.id)).size === N.length,
+        semRepetir: new Set(N.map(b => b.disc + '|' + b.kind + '|' + b.tag)).size === N.length }; });
+    ok(proprio.ficou, R + 'o bloco acrescentado pela pessoa continua na volta depois de trocar a estratégia');
+    ok(proprio.depois === proprio.n, R + 'a volta não encolhe ao ser refeita (' + proprio.depois + '/' + proprio.n + ')');
+    ok(proprio.unicos && proprio.semRepetir, R + 'sem id nem conteúdo repetido depois de completar com os pendentes antigos');
+
+    // modo manual: nada na volta, mas o dia é ressincronizado como sempre foi
+    const sync = await page.evaluate(async () => { const a = window.__catedraApp; let n = 0; const orig = a.syncManual;
+      a.syncManual = function () { n++; return orig.apply(this, arguments); };
+      a.setState({ cycleMode: 'manual' });
+      a.setOrientVal({ currentTarget: { dataset: { k: 'nivel', v: 'iniciante' } } }); await new Promise(r => setTimeout(r, 300));
+      a.syncManual = orig; return n; });
+    ok(sync >= 1, R + 'modo manual: trocar o nível ressincroniza o dia (' + sync + ' chamada(s))');
   } finally { await ctx.close(); }
 }
