@@ -8078,6 +8078,7 @@ class Component extends DCLogic {
     try{ window.catedraWidgetResumo = ()=>{ try{ return this._widgetResumo(); }catch(_){ return null; } }; }catch(_){}
     // O widget da mesa (painel nativo) chama isto p/ abrir/fechar o PiP do cronômetro.
     try{ window.catedraTogglePiP = ()=>{ try{ this.togglePiP(); }catch(_){} }; }catch(_){}
+    try{ window.catedraPiPEvento = (ev)=>{ try{ this._pipNatEvento(String(ev||'')); }catch(_){} }; }catch(_){}
     // O CátedraLEGIS lê isto ao abrir a aba p/ oferecer as matérias do SEU edital
     // (não a taxonomia fixa do Vade Mecum) no vínculo da checklist de leitura.
     try{ window.catedraEditalDisciplinas = ()=>{ try{ return JSON.stringify([...new Set((this.state.edital||[]).map(d=>(d.disc||'').trim()).filter(Boolean))]); }catch(_){ return '[]'; } }; }catch(_){}
@@ -12117,7 +12118,28 @@ class Component extends DCLogic {
      um shim de documentPictureInPicture (existe, logo mostra); no iPad não há documentPiP nem
      canvas.captureStream — o caminho por vídeo precisa dos dois — e o botão só rendia um toast
      mandando "abrir pelo Safari" de dentro do app. Sem API e dentro do nativo, o botão não aparece. */
-  _pipDisponivel(){ try{ return this._docPiPReady() || (this._videoPiPReady() && typeof HTMLCanvasElement!=='undefined' && !!HTMLCanvasElement.prototype.captureStream); }catch(_){ return false; } }
+  _pipDisponivel(){ try{ return this._pipNativo() || this._docPiPReady() || (this._videoPiPReady() && typeof HTMLCanvasElement!=='undefined' && !!HTMLCanvasElement.prototype.captureStream); }catch(_){ return false; } }
+  /* iPad: o host oferece o PiP DO SISTEMA (AVPictureInPictureController) pela ponte catedraPiP.
+     A web segue dona do tempo: manda os números a cada 500 ms e o host só desenha o quadro;
+     o play/pausa da janela volta por window.catedraPiPEvento('alternar'). */
+  _pipNativo(){ try{ return !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.catedraPiP); }catch(_){ return false; } }
+  _pipNatPayload(acao){ const v=this._pipVals(); return {acao, disp:v.disp, fase:v.phaseText, cor:v.color, pct:v.pct, rodando:!!v.running, pomo:!!v.isPomo}; }
+  _pipNatParar(){ if(this._pipNatInt){ clearInterval(this._pipNatInt); this._pipNatInt=null; } this._pipNatAberto=false; }
+  async _togglePiPNativo(){
+    const ponte=window.webkit.messageHandlers.catedraPiP;
+    if(this._pipNatAberto){ this._pipNatParar(); try{ await ponte.postMessage({acao:'fechar'}); }catch(_){} return; }
+    const ok=await ponte.postMessage(this._pipNatPayload('abrir'));
+    if(!ok){ this._pipFlash('A janela flutuante não está disponível neste aparelho. O cronômetro continua na barra de cima e na sala de foco.'); return; }
+    this._pipNatAberto=true;
+    if(this._pipNatInt) clearInterval(this._pipNatInt);
+    this._pipNatInt=setInterval(()=>{ try{ ponte.postMessage(this._pipNatPayload('atualizar')); }catch(_){} }, 500);
+  }
+  _pipNatEvento(ev){
+    if(ev==='alternar'){ this.toggleTimer(); return; }
+    if(ev==='aberto'){ this._pipFlash('Janela flutuante aberta. Se quiser, pode deixar o Cátedra em segundo plano.'); return; }
+    if(ev==='fechado'){ this._pipNatParar(); return; }
+    if(ev==='falhou'){ this._pipNatParar(); this._pipFlash('Não consegui abrir a janela flutuante agora — tente de novo.'); }
+  }
   _mostraPiP(){ try{ return !(this._temAbasNativas() && !this._pipDisponivel()); }catch(_){ return true; } }
   // Cor da plataforma (accent) resolvida em HEX. O PiP é OUTRA janela (ou um canvas):
   // não herda as CSS vars do app, então precisa da cor literal.
@@ -12274,6 +12296,7 @@ class Component extends DCLogic {
   }
   togglePiP = async ()=>{
     try{
+      if(this._pipNativo()) return await this._togglePiPNativo();
       if(this._pipWin && !this._pipWin.closed){ this._closeDocPiP(); return; }
       if(document.pictureInPictureElement){ await document.exitPictureInPicture(); this._pipStop(); return; }
       if(this._docPiPReady()) return await this._openDocPiP();
