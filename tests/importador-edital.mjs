@@ -173,6 +173,17 @@ DIREITO ADMINISTRATIVO
 Organização administrativa: administração direta e indireta, autarquias, fundações, empresas públicas e sociedades de economia mista. Atos administrativos.
 DIREITO ADMINISTRATIVO
 Organização administrativa: administração direta e indireta, autarquias, fundações, empresas públicas e sociedades de economia mista. Licitações.`,
+  // Sefaz-SC e Sefaz-CE 2026 (FCC): "Programação…" não é o rótulo "programa" do edital, e o que
+  // vem abaixo de um cabeçalho fechado em dois-pontos é conteúdo, mesmo começando em minúscula
+  programacao: `Governança e Qualidade de Dados: Governança, papéis e responsabilidades. Data profiling.
+Programação e Automação para Dados: Lógica de programação, algoritmos e estruturas de dados. Python 3.14.x.
+Conceitos de RPA. Estatística descritiva e inferencial.
+DIREITO CIVIL
+1 Pessoas. 1.1 Capacidade. 2 Bens.
+SEGURANÇA DA INFORMAÇÃO E CIBERNÉTICA:
+fundamentos (confidencialidade, integridade, disponibilidade); normas e frameworks.
+FINANÇAS PÚBLICAS:
+Objetivos e metas. Funções do Estado.`,
   caps: `DIREITO CIVIL
 LEI DE INTRODUÇÃO
 PESSOAS NATURAIS
@@ -307,6 +318,11 @@ async function formatos(page, ok, R) {
     R + 'parágrafo que começa sem o "1" e segue "2 … 3 …" vira três tópicos (' + tops('tcepe', 2).length + ')');
   ok(tops('tcepe', 3).length === 3 && tops('tcepe', 3).filter(x => /^Organização administrativa/.test(x)).length === 1,
     R + 'item inteiro repetido nos dois módulos da mesma matéria entra uma vez só (' + tops('tcepe', 3).length + ' tópicos)');
+
+  ok(JSON.stringify(r.programacao).indexOf('Programação e Automação para Dados') > 0 && JSON.stringify(r.programacao).indexOf('Conceitos de RPA') > 0 && JSON.stringify(r.programacao).indexOf('Python 3.14.x') > 0,
+    R + '"Programação…" não é confundida com o rótulo "programa" do edital: a linha e o que vem depois dela não somem');
+  ok(/Segurança da Informação e Cibernética \| Finanças Públicas$/.test(nomes('programacao')) && /^fundamentos \(confidencialidade/.test((tops('programacao', (r.programacao || []).length - 2)[0]) || ''),
+    R + 'conteúdo em minúscula logo abaixo de "CABEÇALHO:" é tópico da matéria, não rabo do nome dela (' + nomes('programacao') + ')');
 
   // o que já funcionava continua funcionando
   ok(nomes('livro') === 'Direito Eleitoral | Direito Civil' && subs('livro', 0, 0).length === 3

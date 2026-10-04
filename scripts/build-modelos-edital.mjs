@@ -60,7 +60,19 @@ export function montar() {
   const modelos = []; const modeloPerda = {};
   for (const m of indice.modelos) {
     const blocos = (m.fontes || [m.id + '.txt']).map(f => fs.readFileSync(path.join(FONTES, f), 'utf8'));
-    const lido = imp.parseEdital(blocos.join('\n'));
+    /* "cabecalhos": matérias que o edital marca só com NEGRITO, no meio do parágrafo corrido
+       ("…híbridas. Engenharia e" / "Arquitetura de Software: Ciclo de vida…"). O texto puro perde o
+       negrito, e sem ele não há como saber que ali começa uma matéria. A fonte fica como o PDF; a
+       dica mora no índice, e aqui o título vai para uma linha só dele, em caixa-alta, antes de o
+       importador ler. O nome volta à grafia do edital depois. */
+    let texto = blocos.join('\n'); const grafia = {};
+    (m.cabecalhos || []).slice().sort((x, y) => y.length - x.length).forEach(t => {
+      const re = new RegExp('(^|[\\s.;:])(' + t.trim().split(/\s+/).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+') + ')\\s*:', 'g');
+      let n = 0; texto = texto.replace(re, (_, antes) => { n++; return antes + '\n' + t.toUpperCase() + ':\n'; });
+      if (!n) throw new Error(m.id + ': cabeçalho não encontrado na fonte — ' + t);
+      grafia[t.toUpperCase()] = t; });
+    const lido = imp.parseEdital(texto);
+    lido.forEach(d => { const g = grafia[String(d.disc).toUpperCase()]; if (g) { d._orig = d.disc; d.disc = g; } });
     const vistos = new Set();
     const discs = lido.map((d, i) => {
       const nome = (m.renomear && m.renomear[d.disc]) || d.disc;
@@ -83,7 +95,14 @@ export function montar() {
       if (pos.some(i => i < 0)) throw new Error(m.id + ': "juntar" cita parte que o importador não devolveu — ' + filhos.filter((f, k) => pos[k] < 0).join(', '));
       const partes = filhos.map((f, k) => { const d = discs[pos[k]]; const itens = [];
         d[2].forEach(([t, subs]) => { itens.push(t); (subs || []).forEach(x => itens.push(x)); });
-        return [f, itens]; });
+        // parte escrita num período só, com os assuntos separados por ponto e vírgula (o programa
+        // de TI da Sefaz-CE tem partes de 800 letras): cada assunto vira um subtópico. O ponto e
+        // vírgula de dentro de parênteses não separa.
+        const porAssunto = x => { if (x.length < 300) return [x]; const out = []; let prof = 0, ini = 0;
+          for (let i = 0; i < x.length; i++) { const c = x[i]; if (c === '(') prof++; else if (c === ')') prof = Math.max(0, prof - 1);
+            else if (c === ';' && !prof) { out.push(x.slice(ini, i).trim()); ini = i + 1; } }
+          out.push(x.slice(ini).trim()); return out.filter(Boolean); };
+        return [f, itens.flatMap(porAssunto)]; });
       let ip = discs.findIndex(d => d[0] === pai);
       if (ip < 0) { const primeiro = Math.min(...pos); discs[primeiro] = [pai, imp._editalColor(pai.toLowerCase(), primeiro), partes]; pos.splice(pos.indexOf(primeiro), 1); }
       else discs[ip][2] = discs[ip][2].concat(partes);
@@ -106,7 +125,8 @@ export function montar() {
     // "A)", "ÁREA DE HABILITAÇÃO") — poucas palavras, cada uma no máximo duas vezes
     if (perdidas > 20 || sobra.some(w => conta[w] > 2)) throw new Error(m.id + ': o modelo perdeu texto da fonte — ' + sobra.slice(0, 30).map(w => w + '×' + conta[w]).join(' '));
     modeloPerda[m.id] = { total, perdidas, amostra: sobra.sort((x, y) => conta[y] - conta[x]).slice(0, 40).map(w => w + '×' + conta[w]) };
-    if (m.disciplinas) {   // conferência contra o PDF: a lista esperada, na ordem do edital
+    if (process.argv.includes('--disciplinas')) console.log(m.id + '\t' + JSON.stringify(discs.map(d => d[0] + ' [' + d[2].length + ']')));
+    else if (m.disciplinas) {   // conferência contra o PDF: a lista esperada, na ordem do edital
       const tem = discs.map(d => d[0]).join(' | '), quer = m.disciplinas.join(' | ');
       if (tem !== quer) throw new Error(m.id + ': as disciplinas lidas não batem com as do edital\n  lidas:    ' + tem + '\n  no edital: ' + quer);
     }
