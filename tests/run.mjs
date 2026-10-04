@@ -24,12 +24,14 @@ import { testarPiiVerificador, testarPiiBuildSemTrecho } from './pii-verificador
 import { testarLegisGuiado } from './legis-guiado.mjs';
 import { testarLeitorWeb } from './leitor-web.mjs';
 import { testarCicloInteligente } from './ciclo-inteligente.mjs';
+import { testarCicloMagistratura } from './ciclo-magistratura.mjs';
 import { testarRegistroSessao } from './registro-sessao.mjs';
 import { testarCronometroPausa } from './cronometro-pausa.mjs';
 import { testarIntegracaoModulos } from './integracao-modulos.mjs';
 import { testarIntegracaoFase2 } from './integracao-fase2.mjs';
 import { testarVariosEditais } from './varios-editais.mjs';
 import { testarImportadorEdital } from './importador-edital.mjs';
+import { testarEditalPorConcurso } from './edital-por-concurso.mjs';
 import { testarTemplateFileUrl } from './template-file-url.mjs';
 import { testarAuthModoLocal } from './auth-modo-local.mjs';
 import { testarSyncMemoriaVelha } from './sync-memoria-velha.mjs';
@@ -45,6 +47,7 @@ import { testarFaixaMapaAlvos } from './faixa-mapa-alvos.mjs';
 import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
 import { testarRedacaoMesa } from './redacao-mesa.mjs';
 import { testarRedacaoMotorEstatico, testarRedacaoMotor } from './redacao-motor.mjs';
+import { testarRedacaoResultadoEstatico, testarRedacaoResultado } from './redacao-resultado.mjs';
 import { testarOnboardingImportar } from './onboarding-importar.mjs';
 import { testarCotaIA } from './cota-ia.mjs';
 import { testarIphoneSatelites390 } from './iphone-satelites-390.mjs';
@@ -102,6 +105,13 @@ const ok = (cond, label) => { console.log((cond ? '✓ ' : '✗ ') + label); if 
 page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
 
 // CT_SO=redacao-mesa roda só o módulo pedido — para o ciclo curto de uma tela.
+if (process.env.CT_SO === 'redacao-resultado') {
+  testarRedacaoResultadoEstatico(ok);
+  await testarRedacaoResultado(page, URL0, ok, { motor });
+  await browser.close(); srv.close();
+  console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
+  process.exit(falhas.length ? 1 : 0);
+}
 if (process.env.CT_SO === 'redacao-motor') {
   testarRedacaoMotorEstatico(ok);
   await testarRedacaoMotor(page, URL0, ok, { motor });
@@ -9735,6 +9745,13 @@ catch (e) {
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
+// Ciclo Magistratura: método opcional, seed idempotente, rotação, D+7/30/90 (tests/ciclo-magistratura.mjs)
+try { await testarCicloMagistratura(page, URL0, ok, { motor, origem: 'http' }); }
+catch (e) {
+  ok(false, 'CICLO MAGISTRATURA [' + motor + '] [http] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
 // Registro de sessão: o efeito antes do toque (tests/registro-sessao.mjs)
 try { await testarRegistroSessao(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
@@ -9746,6 +9763,7 @@ catch (e) {
 try { await testarPrioridadeDiscursiva(page, URL0, ok); } catch(e) { ok(false, 'DISCURSIVA exceção: '+e.message); }
 try { await testarRedacaoMesa(page, URL0, ok, { motor }); } catch(e) { ok(false, 'MESA exceção: '+e.message); }
 try { testarRedacaoMotorEstatico(ok); await testarRedacaoMotor(page, URL0, ok, { motor }); } catch(e) { ok(false, 'MOTOR exceção: '+e.message); }
+try { testarRedacaoResultadoEstatico(ok); await testarRedacaoResultado(page, URL0, ok, { motor }); } catch(e) { ok(false, 'RESULTADO exceção: '+e.message); }
 try { await testarRevisaoFonte(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'REVISÃO/FONTE [' + motor + '] o roteiro correu sem exceção ('
@@ -9792,6 +9810,9 @@ catch (e) {
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 
+// Cada concurso com o seu edital: tópicos por concurso, estudo único (tests/edital-por-concurso.mjs)
+try { await testarEditalPorConcurso(page, URL0, ok, { motor }); }
+catch (e) { ok(false, 'EDITAL/CONCURSO exceção: ' + e.message); }
 // Importador de edital: formatos das bancas, caminho da tela e modelos (tests/importador-edital.mjs)
 try { await testarImportadorEdital(page, URL0, ok, { motor }); }
 catch (e) { ok(false, 'IMPORTADOR exceção: ' + e.message); }

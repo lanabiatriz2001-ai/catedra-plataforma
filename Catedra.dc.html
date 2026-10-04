@@ -20,6 +20,8 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;mostr
 <title>Cátedra · Plataforma de estudos</title>
 <meta name="description" content="Protótipo funcional da Cátedra para organizar estudos, revisões, simulados e materiais.">
 <script src="./prioridade-calc.js"></script>
+<!-- método "Ciclo Magistratura": regras puras (rotação, turnos, D+7/30/90); a tela vive aqui no host -->
+<script src="./ciclo-magistratura.js"></script>
 <!-- motor da busca do ⌘K (item 6): leve (4 KB) e sem dados; os acervos entram sob demanda -->
 <script src="./busca-unica.js"></script>
 <!-- "O que mudou esta semana" (item 7): recorte dos informativos, gerado no build -->
@@ -1087,6 +1089,8 @@ window.ctPdfLib = (function(){
             </div>
             </sc-if>
 
+
+
             <div>
               <div class="ct-rotulo">Nível de foco</div>
               <div class="ct-reg-foco"><sc-for list="{{ focoDots }}" as="f" hint-placeholder-count="5"><button class="ct-alvo ct-miudo" data-v="{{ f.n }}" onclick="{{ setSessionFoco }}" title="{{ f.label }}" aria-label="{{ f.label }}" style="{{ f.style }}"></button></sc-for><span class="ct-nota" style="margin-left:6px;font-weight:600;color:var(--text2);">{{ focoLabel }}</span></div>
@@ -1248,6 +1252,24 @@ window.ctPdfLib = (function(){
           <button onclick="{{ finishFocus }}" style="{{ salaBtnSec }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"></path></svg>Encerrar</button>
           <sc-if value="{{ mostraPiP }}" hint-placeholder-val="{{ true }}"><button onclick="{{ togglePiP }}" title="Janela flutuante (Picture-in-Picture)" style="{{ salaBtnSec }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="14" rx="2"></rect><rect x="12" y="11" width="7" height="5" rx="1" fill="currentColor" stroke="none"></rect></svg>Flutuante</button></sc-if>
         </div>
+        <!-- Ciclo Magistratura: registrar cada questão enquanto responde (só com o relógio correndo) -->
+        <sc-if value="{{ cmQShow }}" hint-placeholder-val="{{ false }}">
+          <div class="cm-qm" data-onde="foco">
+            <button class="cm-qm-btn" onclick="{{ cmQAlternar }}" aria-expanded="{{ cmQAbertoStr }}" aria-controls="cm-qm-foco">Registrar questão<span class="cm-qm-n">{{ cmQHojeTxt }}</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+            <sc-if value="{{ cmQAberto }}" hint-placeholder-val="{{ false }}">
+              <div class="cm-qm-painel" id="cm-qm-foco" role="group" aria-label="Registrar questão">
+                <label class="cm-lab">Matéria<select class="cm-in" data-q="mat" value="{{ cmQMatSel }}" onchange="{{ cmQ }}"><sc-for list="{{ cmQMats }}" as="o" hint-placeholder-count="4"><option value="{{ o.id }}" selected="{{ o.sel }}">{{ o.nome }}</option></sc-for></select></label>
+                <div class="cm-lab" role="group" aria-label="Resultado">Resultado<span class="cm-seg"><sc-for list="{{ cmQRes }}" as="o" hint-placeholder-count="2"><button data-q="res" data-v="{{ o.v }}" onclick="{{ cmQ }}" aria-pressed="{{ o.on }}">{{ o.t }}</button></sc-for></span></div>
+                <div class="cm-lab" role="group" aria-label="Certeza">Certeza<span class="cm-seg"><sc-for list="{{ cmQCert }}" as="o" hint-placeholder-count="3"><button data-q="certeza" data-v="{{ o.v }}" onclick="{{ cmQ }}" aria-pressed="{{ o.on }}">{{ o.t }}</button></sc-for></span></div>
+                <sc-if value="{{ cmQCatShow }}" hint-placeholder-val="{{ true }}">
+                  <div class="cm-lab" role="group" aria-label="Categoria do erro">Categoria do erro<span class="cm-seg"><sc-for list="{{ cmQCat }}" as="o" hint-placeholder-count="5"><button data-q="categoria" data-v="{{ o.v }}" onclick="{{ cmQ }}" aria-pressed="{{ o.on }}">{{ o.t }}</button></sc-for></span></div>
+                </sc-if>
+                <p class="cm-nota">Chute certo conta como erro. Acerto com certeza não vai para o caderno.</p>
+                <button class="ct-btn cm-qm-ok" onclick="{{ cmQRegistrar }}">Registrar</button>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
         <sc-if value="{{ hasPipMsg }}" hint-placeholder-val="{{ false }}">
           <div style="max-width:min(440px,84vw);margin-top:16px;text-align:center;font-size:var(--fs-sm);line-height:1.5;color:rgba(255,255,255,.72);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:var(--radius);padding:11px 14px;">{{ pipMsg }}</div>
         </sc-if>
@@ -1695,6 +1717,24 @@ window.ctPdfLib = (function(){
                 <button class="cth-bghost" onclick="{{ resetTimer }}">Zerar</button>
                 <button class="cth-bstrong" onclick="{{ openSession }}">+ Registrar sessão</button>
               </div>
+              <!-- Ciclo Magistratura: registrar cada questão enquanto responde (só com o relógio correndo) -->
+              <sc-if value="{{ cmQShow }}" hint-placeholder-val="{{ false }}">
+                <div class="cm-qm" data-onde="inicio">
+                  <button class="cm-qm-btn" onclick="{{ cmQAlternar }}" aria-expanded="{{ cmQAbertoStr }}" aria-controls="cm-qm-inicio">Registrar questão<span class="cm-qm-n">{{ cmQHojeTxt }}</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+                  <sc-if value="{{ cmQAberto }}" hint-placeholder-val="{{ false }}">
+                    <div class="cm-qm-painel" id="cm-qm-inicio" role="group" aria-label="Registrar questão">
+                      <label class="cm-lab">Matéria<select class="cm-in" data-q="mat" value="{{ cmQMatSel }}" onchange="{{ cmQ }}"><sc-for list="{{ cmQMats }}" as="o" hint-placeholder-count="4"><option value="{{ o.id }}" selected="{{ o.sel }}">{{ o.nome }}</option></sc-for></select></label>
+                      <div class="cm-lab" role="group" aria-label="Resultado">Resultado<span class="cm-seg"><sc-for list="{{ cmQRes }}" as="o" hint-placeholder-count="2"><button data-q="res" data-v="{{ o.v }}" onclick="{{ cmQ }}" aria-pressed="{{ o.on }}">{{ o.t }}</button></sc-for></span></div>
+                      <div class="cm-lab" role="group" aria-label="Certeza">Certeza<span class="cm-seg"><sc-for list="{{ cmQCert }}" as="o" hint-placeholder-count="3"><button data-q="certeza" data-v="{{ o.v }}" onclick="{{ cmQ }}" aria-pressed="{{ o.on }}">{{ o.t }}</button></sc-for></span></div>
+                      <sc-if value="{{ cmQCatShow }}" hint-placeholder-val="{{ true }}">
+                        <div class="cm-lab" role="group" aria-label="Categoria do erro">Categoria do erro<span class="cm-seg"><sc-for list="{{ cmQCat }}" as="o" hint-placeholder-count="5"><button data-q="categoria" data-v="{{ o.v }}" onclick="{{ cmQ }}" aria-pressed="{{ o.on }}">{{ o.t }}</button></sc-for></span></div>
+                      </sc-if>
+                      <p class="cm-nota">Chute certo conta como erro. Acerto com certeza não vai para o caderno.</p>
+                      <button class="ct-btn cm-qm-ok" onclick="{{ cmQRegistrar }}">Registrar</button>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-if>
             </div>
           </div>
         </div>
@@ -2241,6 +2281,130 @@ window.ctPdfLib = (function(){
 
         <div id="ct-cycle-panel-executar" role="tabpanel" aria-labelledby="ct-cycle-tab-executar" style="{{ cyclePainelExecStyle }}">
 
+        <!-- CICLO MAGISTRATURA (ciclo-magistratura.js): 4 matérias ativas, turnos A/B por assunto,
+             revisões D+7/30/90 e o sábado. Só aparece no modo; os outros modos não mudam. -->
+        <sc-if value="{{ cmOn }}" hint-placeholder-val="{{ false }}">
+         <section class="cm" aria-labelledby="cm-titulo">
+          <header class="cm-hero">
+            <div>
+              <div class="cm-kicker">Ciclo Magistratura</div>
+              <h2 id="cm-titulo" class="cm-h">Hoje: {{ cmHoje }}</h2>
+              <p class="cm-sub">Uma matéria por dia, em ordem. Dois assuntos por matéria, depois ela vai para o fim da fila.</p>
+            </div>
+            <div class="cm-hero-acoes">
+              <sc-if value="{{ cmTemVencidas }}" hint-placeholder-val="{{ false }}"><span class="cm-alerta" role="status">{{ cmVencidasTxt }}</span></sc-if>
+              <button class="ct-btn-clara" onclick="{{ cmAvancar }}">Próxima matéria</button>
+            </div>
+          </header>
+
+          <div class="cm-rotina">
+            <sc-for list="{{ cmRotina }}" as="r" hint-placeholder-count="3"><div class="cm-rot"><b>{{ r.t }}</b><span>{{ r.d }}</span></div></sc-for>
+          </div>
+
+          <div class="cm-grade">
+            <sc-for list="{{ cmAtivas }}" as="a" hint-placeholder-count="4">
+              <article class="cm-mat" style="{{ a.estilo }}" data-vez="{{ a.vez }}" aria-label="{{ a.nome }}">
+                <div class="cm-mat-topo">
+                  <span class="cm-num" aria-hidden="true">{{ a.num }}</span>
+                  <h3 class="cm-mat-n">{{ a.nome }}</h3>
+                  <span class="cm-cnt">{{ a.assLabel }}</span>
+                  <sc-if value="{{ a.vez }}" hint-placeholder-val="{{ false }}"><span class="cm-hoje">Hoje</span></sc-if>
+                </div>
+                <sc-if value="{{ a.semEdital }}" hint-placeholder-val="{{ true }}">
+                <label class="cm-lab">Assunto atual
+                  <input class="cm-in" type="text" data-id="{{ a.id }}" data-campo="ass" value="{{ a.ass }}" placeholder="Ex.: controle difuso" onchange="{{ cmCampo }}">
+                </label>
+                </sc-if>
+                <sc-if value="{{ a.noEdital }}" hint-placeholder-val="{{ false }}">
+                <label class="cm-lab">Capítulo · {{ a.edDisc }} no edital
+                  <select class="cm-in cm-ed-t" data-id="{{ a.id }}" value="{{ a.edTopSel }}" onchange="{{ cmEdTopico }}"><option value="" selected="{{ a.edTopVazio }}">Escolha o capítulo</option><sc-for list="{{ a.edTopicos }}" as="o" hint-placeholder-count="6"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.t }}</option></sc-for></select>
+                </label>
+                <sc-if value="{{ a.edTemSubs }}" hint-placeholder-val="{{ false }}">
+                <label class="cm-lab">Seção (opcional: vazio = o capítulo inteiro)
+                  <select class="cm-in cm-ed-s" data-id="{{ a.id }}" value="{{ a.edSubSel }}" onchange="{{ cmEdSub }}"><option value="" selected="{{ a.edSubVazio }}">O capítulo inteiro</option><sc-for list="{{ a.edSubs }}" as="o" hint-placeholder-count="6"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.t }}</option></sc-for></select>
+                </label>
+                </sc-if>
+                </sc-if>
+                <sc-if value="{{ a.temNota }}" hint-placeholder-val="{{ false }}"><p class="cm-nota">{{ a.nota }}</p></sc-if>
+                <details class="cm-obras">
+                  <summary><span>{{ a.obra }}</span><sc-if value="{{ a.semObra }}" hint-placeholder-val="{{ false }}"><span>Cadastrar as obras</span></sc-if></summary>
+                  <label class="cm-lab">Obra principal<input class="cm-in" type="text" data-id="{{ a.id }}" data-campo="o" value="{{ a.obra }}" onchange="{{ cmCampo }}"></label>
+                  <label class="cm-lab">Segunda obra (vazio = Jurisprudência dos erros)<input class="cm-in" type="text" data-id="{{ a.id }}" data-campo="s" value="{{ a.segunda }}" onchange="{{ cmCampo }}"></label>
+                  <label class="cm-lab">Nota<input class="cm-in" type="text" data-id="{{ a.id }}" data-campo="nota" value="{{ a.nota }}" onchange="{{ cmCampo }}"></label>
+                </details>
+                <div class="cm-turno"><span>Turno A · primeiro contato</span><span>{{ a.aFeitoTxt }}</span></div>
+                <sc-for list="{{ a.A }}" as="b" hint-placeholder-count="4">
+                  <div class="cm-blk" data-feito="{{ b.feitoStr }}">
+                    <button class="cm-chk" data-id="{{ b.id }}" data-k="{{ b.k }}" onclick="{{ cmToggle }}" aria-pressed="{{ b.feitoStr }}" aria-label="{{ b.aria }}" disabled="{{ b.travado }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+                    <div class="cm-blk-t">
+                      <b>{{ b.b }}</b><small>{{ b.s }}</small>
+                      <sc-if value="{{ b.pr }}" hint-placeholder-val="{{ false }}"><input class="cm-in cm-pr" type="text" data-id="{{ b.id }}" data-campo="{{ b.prCampo }}" value="{{ b.prVal }}" placeholder="Progresso do caderno (ex.: 34/80)" aria-label="{{ b.prAria }}" onchange="{{ cmCampo }}"></sc-if>
+                      <sc-if value="{{ b.temLink }}" hint-placeholder-val="{{ false }}"><span class="cm-lk-linha"><a class="cm-lk" href="{{ b.link }}" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" stroke-linecap="round" stroke-linejoin="round"></path></svg>Abrir caderno do TEC</a><button class="cm-lk-x" data-l="{{ b.key }}" onclick="{{ cmLinkApagar }}" aria-label="Apagar o link do TEC">Trocar</button></span></sc-if>
+                      <sc-if value="{{ b.podeColar }}" hint-placeholder-val="{{ false }}"><button class="cm-lk" data-l="{{ b.key }}" onclick="{{ cmLinkAbrir }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" stroke-linecap="round" stroke-linejoin="round"></path></svg>Colar link do TEC</button></sc-if>
+                      <sc-if value="{{ b.editando }}" hint-placeholder-val="{{ false }}"><input class="cm-in" type="url" inputmode="url" autofocus data-l="{{ b.key }}" placeholder="https://www.tecconcursos.com.br/…" aria-label="Link do caderno do TEC (Enter grava)" onkeydown="{{ cmLinkSalvar }}" onblur="{{ cmLinkSalvar }}"></sc-if>
+                    </div>
+                  </div>
+                </sc-for>
+                <div class="cm-turno" data-aberto="{{ a.bAberto }}"><span>Turno B · reteste, na próxima vez da matéria após o Turno A</span><span>{{ a.bTxt }}</span></div>
+                <sc-for list="{{ a.B }}" as="b" hint-placeholder-count="4">
+                  <div class="cm-blk" data-feito="{{ b.feitoStr }}">
+                    <button class="cm-chk" data-id="{{ b.id }}" data-k="{{ b.k }}" onclick="{{ cmToggle }}" aria-pressed="{{ b.feitoStr }}" aria-label="{{ b.aria }}" disabled="{{ b.travado }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+                    <div class="cm-blk-t">
+                      <b>{{ b.b }}</b><small>{{ b.s }}</small>
+                      <sc-if value="{{ b.pr }}" hint-placeholder-val="{{ false }}"><input class="cm-in cm-pr" type="text" data-id="{{ b.id }}" data-campo="{{ b.prCampo }}" value="{{ b.prVal }}" placeholder="Progresso do caderno (ex.: 34/80)" aria-label="{{ b.prAria }}" onchange="{{ cmCampo }}"></sc-if>
+                      <sc-if value="{{ b.temLink }}" hint-placeholder-val="{{ false }}"><span class="cm-lk-linha"><a class="cm-lk" href="{{ b.link }}" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" stroke-linecap="round" stroke-linejoin="round"></path></svg>Abrir caderno do TEC</a><button class="cm-lk-x" data-l="{{ b.key }}" onclick="{{ cmLinkApagar }}" aria-label="Apagar o link do TEC">Trocar</button></span></sc-if>
+                      <sc-if value="{{ b.podeColar }}" hint-placeholder-val="{{ false }}"><button class="cm-lk" data-l="{{ b.key }}" onclick="{{ cmLinkAbrir }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" stroke-linecap="round" stroke-linejoin="round"></path></svg>Colar link do TEC</button></sc-if>
+                      <sc-if value="{{ b.editando }}" hint-placeholder-val="{{ false }}"><input class="cm-in" type="url" inputmode="url" autofocus data-l="{{ b.key }}" placeholder="https://www.tecconcursos.com.br/…" aria-label="Link do caderno do TEC (Enter grava)" onkeydown="{{ cmLinkSalvar }}" onblur="{{ cmLinkSalvar }}"></sc-if>
+                    </div>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ a.podeFechar }}" hint-placeholder-val="{{ false }}">
+                  <button class="ct-btn cm-fechar" data-id="{{ a.id }}" onclick="{{ cmFechar }}">Fechar assunto e agendar revisões</button>
+                </sc-if>
+              </article>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{ cmTemFila }}" hint-placeholder-val="{{ true }}">
+            <div class="ct-card cm-sec"><h3 class="cm-sec-h">Fila</h3>
+              <ol class="cm-fila"><sc-for list="{{ cmFila }}" as="f" hint-placeholder-count="6"><li style="{{ f.estilo }}">{{ f.nome }}</li></sc-for></ol>
+            </div>
+          </sc-if>
+
+          <div class="ct-card cm-sec"><h3 class="cm-sec-h">Revisões D+7, D+30 e D+90</h3>
+            <sc-if value="{{ cmTemRevs }}" hint-placeholder-val="{{ false }}">
+              <ul class="cm-revs">
+                <sc-for list="{{ cmRevs }}" as="r" hint-placeholder-count="2">
+                  <li class="cm-rev">
+                    <div class="cm-rev-t"><b>{{ r.ass }}</b><small>fechado em {{ r.dt }}</small></div>
+                    <div class="cm-rev-p">
+                      <sc-for list="{{ r.prazos }}" as="p" hint-placeholder-count="3">
+                        <button class="cm-prazo" data-estado="{{ p.estado }}" data-id="{{ p.rid }}" data-d="{{ p.d }}" onclick="{{ cmRevMarcar }}" aria-pressed="{{ p.feitaStr }}" aria-label="{{ p.aria }}"><b>{{ p.rot }}</b><span>{{ p.data }}</span></button>
+                      </sc-for>
+                      <button class="cm-lk-x" data-id="{{ r.id }}" onclick="{{ cmRevRemover }}">Remover</button>
+                    </div>
+                  </li>
+                </sc-for>
+              </ul>
+            </sc-if>
+            <sc-if value="{{ !cmTemRevs }}" hint-placeholder-val="{{ true }}"><p class="cm-vazio">Nenhuma revisão ainda. Ao fechar um assunto, as três datas aparecem aqui.</p></sc-if>
+          </div>
+
+          <div class="cm-semana">
+            <div class="ct-card cm-sec" data-hoje="{{ cmEhSabado }}"><h3 class="cm-sec-h">Sábado · erros mistos</h3>
+              <sc-for list="{{ cmSabado }}" as="q" hint-placeholder-count="5">
+                <button class="cm-sab" data-k="{{ q.k }}" onclick="{{ cmSabado }}" aria-pressed="{{ q.onStr }}"><span class="cm-chk" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>{{ q.txt }}</button>
+              </sc-for>
+              <button class="ct-btn-2" onclick="{{ cmZerarSabado }}">Zerar sábado</button>
+            </div>
+            <div class="ct-card cm-sec" data-hoje="{{ cmEhDomingo }}"><h3 class="cm-sec-h">Domingo · livre</h3><p class="cm-p">O descanso consolida o que foi estudado. Se sobrar vontade, só o Anki do dia.</p></div>
+            <div class="ct-card cm-sec"><h3 class="cm-sec-h">Faltou ou sobrou tempo</h3><sc-for list="{{ cmRegras }}" as="g" hint-placeholder-count="2"><p class="cm-p">{{ g }}</p></sc-for>
+              <p class="cm-aux">Materiais de apoio: {{ cmAux }}</p></div>
+          </div>
+         </section>
+        </sc-if>
+
+
         <!-- FAIXA DO CICLO · a bancada abre no que importa: onde o dia está, quanto está
              planejado contra a meta, e a LINHA DO DIA — cada bloco é um trecho proporcional
              ao tempo, na cor da MATÉRIA (dado, não enfeite); feito = cheio, pendente =
@@ -2551,6 +2715,7 @@ window.ctPdfLib = (function(){
                     <sc-if value="{{ m.isEdital }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10" stroke-linecap="round"></path></svg></sc-if>
                     <sc-if value="{{ m.isPesos }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 20V10M12 20V4M19 20v-7" stroke-linecap="round"></path></svg></sc-if>
                     <sc-if value="{{ m.isManual }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17z" stroke-linejoin="round"></path></svg></sc-if>
+                    <sc-if value="{{ m.isMagistratura }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1ZM2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1ZM7 21h10M12 3v18M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>
                   </span>
                   <span style="font-weight:600;font-size:var(--fs-md);color:{{ m.titleColor }};flex:1;min-width:0;">{{ m.title }}</span>
                 </div>
@@ -3014,6 +3179,7 @@ window.ctPdfLib = (function(){
               </div>
               <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
                 <button onclick="{{ aplicarModelo }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">{{ modeloAplicarLabel }}</button>
+                <sc-if value="{{ modeloPodeConcursoNovo }}" hint-placeholder-val="{{ false }}"><button data-modelo-novo-concurso="1" onclick="{{ aplicarModeloNovoConcurso }}" title="Cria um concurso com o nome deste modelo e põe nele só os tópicos deste edital. O que você já estudou nas disciplinas em comum continua valendo." style="background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 18px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;min-height:44px;">Criar um concurso com este edital</button></sc-if>
                 <span style="font-size:var(--fs-xs);color:var(--text3);align-self:center;">Some ao que você já tem — não apaga nada.</span>
               </div>
               </sc-if>
@@ -3078,6 +3244,7 @@ window.ctPdfLib = (function(){
                       <span title="Domínio calculado do seu desempenho real nas sessões deste tópico" style="flex:none;font-size:var(--fs-2xs);font-weight:600;color:{{ t.domColor }};background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:2px 9px;white-space:nowrap;">{{ t.domStr }}</span>
                       <!-- C2: praticar este tópico na plataforma de questões (link de saída) -->
                       <button data-d="{{ t.discNome }}" data-a="{{ t.topNome }}" onclick="{{ praticarDisciplina }}" title="{{ praticarTitulo }}" aria-label="Praticar questões deste tópico" style="flex:none;border:1px solid var(--border);background:var(--surface2);border-radius:var(--r-sm);padding:3px 8px;font-size:var(--fs-2xs);color:var(--text3);cursor:pointer;font-family:inherit;">↗</button>
+                      <sc-if value="{{ t.podeTirar }}" hint-placeholder-val="{{ false }}"><button data-tirar="1" data-d="{{ t.d }}" data-t="{{ t.i }}" data-s="-1" onclick="{{ tirarTopico }}" aria-label="Tirar do concurso ativo" title="Tirar deste concurso — continua no acervo, com o estudo feito, e nos outros concursos" style="flex:none;width:44px;height:44px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M8 12h8"></path></svg></button></sc-if>
                     </div>
                     <sc-if value="{{ t.hasSubs }}" hint-placeholder-val="{{ false }}">
                       <div style="display:flex;flex-direction:column;gap:1px;padding-left:31px;">
@@ -3085,11 +3252,29 @@ window.ctPdfLib = (function(){
                           <div style="display:flex;align-items:center;gap:10px;padding:6px 0;">
                             <button class="ct-alvo ct-miudo" data-d="{{ sb.d }}" data-t="{{ sb.t }}" data-i="{{ sb.i }}" onclick="{{ toggleSub }}" title="Concluir / desmarcar" style="width:16px;height:16px;border-radius:5px;flex:none;display:flex;align-items:center;justify-content:center;border:2px solid {{ sb.subBorder }};background:{{ sb.subBg }};color:#fff;cursor:pointer;padding:0;"><sc-if value="{{ sb.done }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3.8"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></button>
                             <input data-d="{{ sb.d }}" data-t="{{ sb.t }}" data-i="{{ sb.i }}" value="{{ sb.name }}" oninput="{{ editSub }}" title="Editar subtópico" style="flex:1;min-width:0;font-size:var(--fs-sm);color:var(--text3);text-decoration:{{ sb.subStrike }};border:1px solid var(--border);background:var(--surface);border-radius:var(--r-sm);padding:4px 8px;font-family:inherit;">
+                            <sc-if value="{{ sb.podeTirar }}" hint-placeholder-val="{{ false }}"><button data-tirar="1" data-d="{{ sb.d }}" data-t="{{ sb.t }}" data-s="{{ sb.i }}" onclick="{{ tirarTopico }}" aria-label="Tirar do concurso ativo" title="Tirar deste concurso — continua no acervo, com o estudo feito, e nos outros concursos" style="flex:none;width:44px;height:44px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M8 12h8"></path></svg></button></sc-if>
                           </div>
                         </sc-for>
                       </div>
                     </sc-if>
                   </sc-for>
+                  <!-- cada concurso com o seu edital: o que é do acervo mas não deste concurso -->
+                  <sc-if value="{{ d.temOutros }}" hint-placeholder-val="{{ false }}">
+                    <div data-ed-outros="{{ d.disc }}" style="border-top:1px solid var(--border);padding-top:8px;margin-top:4px;">
+                      <button data-n="{{ d.disc }}" onclick="{{ toggleOutros }}" aria-expanded="{{ d.outrosAbertoStr }}" title="Tópicos desta disciplina que vieram do edital de outro concurso. O estudo é o mesmo: trazer só faz o tópico aparecer também aqui." style="min-height:44px;background:transparent;border:1px dashed var(--border);border-radius:var(--r-md);padding:8px 12px;font-size:var(--fs-xs);font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;">{{ d.outrosLabel }}</button>
+                      <sc-if value="{{ d.outrosAberto }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex;flex-direction:column;gap:2px;margin-top:6px;">
+                          <sc-for list="{{ d.outros }}" as="o" hint-placeholder-count="2">
+                            <div style="display:flex;align-items:center;gap:10px;padding:4px 0;">
+                              <span style="flex:1;min-width:0;font-size:var(--fs-sm);color:var(--text2);line-height:1.4;">{{ o.label }}</span>
+                              <button data-d="{{ o.d }}" data-t="{{ o.t }}" data-s="{{ o.s }}" onclick="{{ trazerTopico }}" style="flex:none;min-height:44px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:8px 12px;font-size:var(--fs-xs);font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;">Trazer para este concurso</button>
+                            </div>
+                          </sc-for>
+                          <button data-i="{{ d.i }}" onclick="{{ trazerTodos }}" style="align-self:flex-start;min-height:44px;margin-top:4px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:8px 14px;font-size:var(--fs-sm);font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;">Trazer todos</button>
+                        </div>
+                      </sc-if>
+                    </div>
+                  </sc-if>
                 </div>
               </sc-if>
             </div>
@@ -3519,6 +3704,9 @@ window.ctPdfLib = (function(){
 
         <!-- ─────────── ETAPA 2 · RESPONDER ─────────── -->
         <sc-if value="{{ redEtapa2 }}" hint-placeholder-val="{{ false }}">
+          <sc-if value="{{ redReescrita }}" hint-placeholder-val="{{ false }}">
+            <div class="ct-card" data-red="reescrita" role="status"><div class="ct-eb">Reescrita</div><div style="font-size:var(--fs-base);color:var(--ink);margin-top:var(--ct-e1);line-height:1.5;">{{ redReescritaTxt }}</div></div>
+          </sc-if>
           <!-- U4: retomada explícita do rascunho. O texto sempre voltou para a caixa, mas
                em silêncio: nada dizia de quando era nem oferecia recomeçar sem perder a
                prova carregada. "Começar do zero" pergunta antes — é destruição de texto. -->
@@ -3544,7 +3732,7 @@ window.ctPdfLib = (function(){
                 <div class="ct-hero" style="border-radius:0;">
                   <div class="ct-mesa-linha" style="justify-content:space-between;">
                     <div class="ct-hero-eb">Questão</div>
-                    <button class="ct-mesa-acao ct-mesa-recolher" data-red="questao-toggle" onclick="{{ toggleRedQuestao }}" aria-expanded="{{ redQuestaoAberta }}" style="color:inherit;">{{ redQuestaoToggleTxt }}</button>
+                    <button class="ct-mesa-acao ct-mesa-acao-heroi ct-mesa-recolher" data-red="questao-toggle" onclick="{{ toggleRedQuestao }}" aria-expanded="{{ redQuestaoAberta }}">{{ redQuestaoToggleTxt }}</button>
                   </div>
                   <h2 class="ct-hero-tit" style="font-size:var(--fs-2xl);">{{ redProvaTitulo }}</h2>
                   <div class="ct-mesa-chips">
@@ -3734,7 +3922,7 @@ window.ctPdfLib = (function(){
                 </ol>
               </sc-if>
               <sc-if value="{{ redConfProsa }}" hint-placeholder-val="{{ false }}">
-                <div class="ct-leitura" style="margin-top:var(--ct-e3);white-space:pre-wrap;color:var(--ink);line-height:1.7;">{{ redGabarito }}</div>
+                <sc-if value="{{ redConfProsaLeitura }}" hint-placeholder-val="{{ false }}"><div class="ct-leitura" data-red="conf-padrao" style="margin-top:var(--ct-e3);white-space:pre-wrap;color:var(--ink);line-height:1.7;">{{ redGabarito }}</div></sc-if>
                 <div class="ct-mesa-linha" style="margin-top:var(--ct-e3);">
                   <label for="red-conf-unica" class="ct-eb">Sua nota, de 0 a 10</label>
                   <input id="red-conf-unica" data-red="conf-unica" class="ct-campo ct-campo-num" inputmode="decimal" value="{{ redConfUnica }}" oninput="{{ onConfUnica }}" style="width:6em;min-height:var(--ct-alvo-toque);">
@@ -3742,7 +3930,10 @@ window.ctPdfLib = (function(){
               </sc-if>
               <div class="ct-mesa-linha" style="margin-top:var(--ct-e4);justify-content:space-between;">
                 <span data-red="conf-soma" class="ct-dado" aria-live="polite">{{ redConfSomaTxt }}</span>
-                <button class="ct-btn" data-red="conf-registrar" onclick="{{ registrarConferencia }}" disabled="{{ redConfNaoPode }}">Registrar conferência</button>
+                <span class="ct-mesa-linha">
+                  <button class="ct-btn-2" data-red="conf-voltar" onclick="{{ voltarConferencia }}" style="min-height:var(--ct-alvo-toque);">Voltar a escrever</button>
+                  <button class="ct-btn" data-red="conf-registrar" onclick="{{ registrarConferencia }}" disabled="{{ redConfNaoPode }}">Registrar conferência</button>
+                </span>
               </div>
             </div>
           </sc-if>
@@ -3821,6 +4012,45 @@ window.ctPdfLib = (function(){
           <sc-if value="{{ redCortesShow }}" hint-placeholder-val="{{ false }}">
             <div class="ct-card" data-red="cortes-ia" role="status"><div class="ct-eb ct-eb-warn">Texto acima do limite</div><div class="ct-nota" style="margin-top:var(--ct-e1);">{{ redCortesTxt }}.</div></div>
           </sc-if>
+          <!-- RESULTADO ANOTADO (fatia 3): comparação com a tentativa anterior, nota por quesito e o texto marcado -->
+          <sc-if value="{{ redCmpShow }}" hint-placeholder-val="{{ false }}">
+            <div class="ct-card" data-red="comparacao">
+              <div class="ct-eb">Antes e depois</div>
+              <div class="ct-cmp-topo"><span class="ct-cmp-nota">{{ redCmpAntes }}</span><span class="ct-cmp-seta" aria-hidden="true">→</span><span class="ct-cmp-nota ct-cmp-nova">{{ redCmpDepois }}</span><span class="ct-cmp-delta" style="{{ redCmpDeltaStyle }}">{{ redCmpDelta }}</span></div>
+              <sc-if value="{{ redCmpTemLinhas }}" hint-placeholder-val="{{ false }}">
+                <div class="ct-cmp-linhas"><sc-for list="{{ redCmpLinhas }}" as="l"><div class="ct-cmp-linha" data-red="comparacao-linha" data-d="{{ l.d }}"><span class="ct-quesito-n">{{ l.q }}</span><span class="ct-dado">{{ l.antes }}</span><span aria-hidden="true">→</span><span class="ct-dado">{{ l.depois }}</span><span class="ct-cmp-sinal" style="{{ l.setaStyle }}">{{ l.seta }}</span></div></sc-for></div>
+              </sc-if>
+            </div>
+          </sc-if>
+          <sc-if value="{{ redQuesitosShow }}" hint-placeholder-val="{{ false }}">
+            <div class="ct-card" data-red="quesitos">
+              <div class="ct-esp-cab">Nota por quesito</div>
+              <div class="ct-esp-ex">{{ redTopResumo }}</div>
+              <sc-for list="{{ redQuesitos }}" as="q" hint-placeholder-count="3">
+                <div class="ct-quesito" data-red="quesito" data-st="{{ q.st }}">
+                  <span class="ct-quesito-n">{{ q.q }}</span>
+                  <div class="ct-quesito-corpo">
+                    <div class="ct-quesito-tit">{{ q.texto }}</div>
+                    <div class="ct-quesito-regua"><div class="ct-quesito-barra" data-red="quesito-barra"><div style="{{ q.barStyle }}"></div></div><span class="ct-dado" data-red="quesito-nota">{{ q.nota }}</span><span class="ct-quesito-st">{{ q.stLabel }}</span></div>
+                    <sc-if value="{{ q.temTrecho }}" hint-placeholder-val="{{ false }}"><div class="ct-quesito-trecho">“{{ q.trecho }}”</div></sc-if>
+                    <sc-if value="{{ q.temFaltou }}" hint-placeholder-val="{{ false }}"><div class="ct-quesito-falta" data-red="quesito-falta">{{ q.faltou }}</div></sc-if>
+                    <sc-if value="{{ q.estimado }}" hint-placeholder-val="{{ false }}"><div class="ct-nota">A IA não avaliou este quesito; a nota é a do corretor local.</div></sc-if>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ redAnotShow }}" hint-placeholder-val="{{ false }}">
+            <div class="ct-card" data-red="anotada">
+              <div class="ct-esp-cab">Sua resposta, anotada</div>
+              <div class="ct-nota" style="margin-top:var(--ct-e1);">O que está marcado é o trecho que pontuou em cada quesito. O que não tem marca não foi usado pela correção.</div>
+              <div class="ct-anotada ct-leitura" data-red="anotada-texto"><sc-for list="{{ redAnotSegs }}" as="s"><sc-if value="{{ s.liso }}" hint-placeholder-val="{{ true }}"><span>{{ s.t }}</span></sc-if><sc-if value="{{ s.marca }}" hint-placeholder-val="{{ false }}"><mark class="ct-anot" data-st="{{ s.st }}" data-q="{{ s.q }}">{{ s.t }}</mark></sc-if></sc-for></div>
+            </div>
+          </sc-if>
+          <div class="ct-card ct-mesa-linha" style="justify-content:space-between;gap:var(--ct-e4);">
+            <div style="flex:1;min-width:14em;"><div class="ct-eb">Próxima tentativa</div><div style="font-size:var(--fs-base);color:var(--text2);margin-top:var(--ct-e1);line-height:1.5;">{{ redReescreverDica }}</div></div>
+            <button class="ct-btn" data-red="reescrever" onclick="{{ reescreverRed }}">{{ redReescreverTxt }}</button>
+          </div>
           <sc-if value="{{ redTemPlano }}" hint-placeholder-val="{{ false }}">
             <div class="ct-card">
               <div style="font-family:var(--display);font-size:var(--fs-2xl);font-weight:600;color:var(--ink);">Como corrigir esta resposta</div>
@@ -3844,7 +4074,7 @@ window.ctPdfLib = (function(){
             </div>
           </sc-if>
 
-          <sc-if value="{{ redHasTopicos }}" hint-placeholder-val="{{ false }}">
+          <sc-if value="{{ redTopLista }}" hint-placeholder-val="{{ false }}">
             <div class="ct-card">
               <div class="ct-esp-cab">Quesito a quesito</div>
               <div class="ct-esp-ex">{{ redTopResumo }}</div>
@@ -3887,7 +4117,7 @@ window.ctPdfLib = (function(){
           </div>
           </sc-if>
 
-          <sc-if value="{{ redResultLivre }}" hint-placeholder-val="{{ false }}">
+          <sc-if value="{{ redCompareShow }}" hint-placeholder-val="{{ false }}">
             <div class="ct-card">
               <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:14px;">
                 <div style="font-family:var(--display);font-size:var(--fs-2xl);font-weight:600;color:var(--ink);">Sua resposta × o espelho</div>
@@ -7381,6 +7611,8 @@ class Component extends DCLogic {
       rotPointer:this._load('rotPointer', 0),
       manualFixedRoteiroAtual:this._load('manualFixedRoteiroAtual', ''),
       agendaFeitas:this._load('agendaFeitas', {}),
+      cmag:this._load('cmag', null),                       // Ciclo Magistratura (ciclo-magistratura.js); null = método nunca usado
+      cmagRevs:this._load('cmagRevs', []),                 // revisões D+7/30/90 do Ciclo Magistratura (array com id/up: merge por id)
       edital: this._load('edital', []),
       // concursos por cima do acervo (ver _editaisComMigracao). editalAtivo '' = o primeiro.
       editais: this._load('editais', []), editalAtivo: this._load('editalAtivo', ''),
@@ -7408,7 +7640,7 @@ class Component extends DCLogic {
       histLixeiraOpen:false,
       sessionDraft:{ disc:_areaIni.discs[0], topico:'', categorias:['Teoria'], categoria:'Teoria', minutos:'', acertos:'', erradas:'', brancos:'', foco:4, nota:'', agendarRevisao:false, contarMeta:true },
       edRaw:'', edParsed:null, edAiBusy:false,
-      modeloOpen:false, modeloSel:[], modeloOutras:false,
+      modeloOpen:false, modeloSel:[], modeloOutras:false, edOutros:{},
       modeloId:((CT_MODELOS.filter(m=>(_areaIni.modelos||[]).indexOf(m.id)>=0)[0])||CT_MODELOS[0]||{}).id||'',   // modelos de edital pré-cadastrados
       cad:{mode:'nova', discSel:_areaIni.discs[0], discNova:'', cor:'#2563eb', topico:'', sub:'', peso:'', questoes:''},
       eventos:this._load('eventos', []),
@@ -7504,7 +7736,7 @@ class Component extends DCLogic {
       redRascunhoOculto:false,
       redQuestaoAberta:true, redMarcasAberto:false, redEditandoEnun:false,   // mesa de prova: só de tela
       redModoResposta:(String(this._load('redText','')||'').trim()?'digitar':'mao'), redCronoOn:false, redCronoTick:0,
-      redLinhasN:null, redFoco:false, redGabVista:'', redGabErro:'', redGabOk:'', redConferindo:false, redConf:{}, redLinhasMao:'', redResultId:'', redRecBusy:false, redCorrDesde:0, redCorrTick:0,    // U4: a faixa do rascunho da redação, depois de dispensada
+      redLinhasN:null, redFoco:false, redGabVista:'', redGabErro:'', redGabOk:'', redConferindo:false, redConf:{}, redLinhasMao:'', redResultId:'', redReescritaDe:'', redReescritaNota:'', redRecBusy:false, redCorrDesde:0, redCorrTick:0,    // U4: a faixa do rascunho da redação, depois de dispensada
       // 'video' e 'mapa' (este em 25/09/2026) saíram dos formatos; quem tivesse essa
       // preferência salva ficaria numa aba sem botão para sair dela. Cai para texto; o
       // mfGen antigo continua guardado, só não é mais lido.
@@ -7927,6 +8159,7 @@ class Component extends DCLogic {
     try{ window.catedraWidgetResumo = ()=>{ try{ return this._widgetResumo(); }catch(_){ return null; } }; }catch(_){}
     // O widget da mesa (painel nativo) chama isto p/ abrir/fechar o PiP do cronômetro.
     try{ window.catedraTogglePiP = ()=>{ try{ this.togglePiP(); }catch(_){} }; }catch(_){}
+    try{ window.catedraPiPEvento = (ev)=>{ try{ this._pipNatEvento(String(ev||'')); }catch(_){} }; }catch(_){}
     // O CátedraLEGIS lê isto ao abrir a aba p/ oferecer as matérias do SEU edital
     // (não a taxonomia fixa do Vade Mecum) no vínculo da checklist de leitura.
     try{ window.catedraEditalDisciplinas = ()=>{ try{ return JSON.stringify([...new Set((this.state.edital||[]).map(d=>(d.disc||'').trim()).filter(Boolean))]); }catch(_){ return '[]'; } }; }catch(_){}
@@ -8081,7 +8314,7 @@ class Component extends DCLogic {
     window.addEventListener('catedra:synced', this._onSynced);
     // primeiro acerto com a nuvem: agora o conserto do edital pode ir ao disco sem vencer edição
     // mais nova de outro aparelho. setTimeout: deixa a reidratação do mesmo tique assentar antes.
-    this._onSyncPronto = ()=>{ setTimeout(()=>{ try{ this._edPersistirReparo(); }catch(_){} try{ this._carregarCotaIA(); }catch(_){} }, 0); };
+    this._onSyncPronto = ()=>{ setTimeout(()=>{ try{ this._cmagSeed(); }catch(_){} try{ this._edPersistirReparo(); }catch(_){} try{ this._carregarCotaIA(); }catch(_){} }, 0); };
     window.addEventListener('catedra:syncpronto', this._onSyncPronto);
     // Ponte CátedraLEGIS → Cátedra: o app nativo chama isto (evaluateJavaScript) para
     // registrar o estudo de leis feito na aba CátedraLEGIS como uma sessão REAL — assim o
@@ -8643,12 +8876,18 @@ class Component extends DCLogic {
       try{ localStorage.setItem('catedra:schemaVersion', String(V)); }catch(_){}
     }catch(_){ }
   }
-  componentWillUnmount(){ if(this._redCronoT) clearInterval(this._redCronoT); if(this._redCorrT) clearInterval(this._redCorrT); try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onSelChange){ document.removeEventListener('selectionchange', this._onSelChange); clearTimeout(this._selChangeT); } ['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev, this._acDespertar)); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._areaMsg) window.removeEventListener('message', this._areaMsg); if(this._acervoMsg) window.removeEventListener('message', this._acervoMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._pausaT) clearInterval(this._pausaT); if(this._revT) clearInterval(this._revT);
+  componentWillUnmount(){ if(this._redFocoEsc){ try{ document.removeEventListener('keydown', this._redFocoEsc); document.documentElement.removeAttribute('data-red-foco'); }catch(_){} this._redFocoEsc=null; } if(this._redCronoT) clearInterval(this._redCronoT); if(this._redCorrT) clearInterval(this._redCorrT); try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onSelChange){ document.removeEventListener('selectionchange', this._onSelChange); clearTimeout(this._selChangeT); } ['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev, this._acDespertar)); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._areaMsg) window.removeEventListener('message', this._areaMsg); if(this._acervoMsg) window.removeEventListener('message', this._acervoMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._pausaT) clearInterval(this._pausaT); if(this._revT) clearInterval(this._revT);
     try{ if(this._mqDark && this._onMqDark){ if(this._mqDark.removeEventListener) this._mqDark.removeEventListener('change', this._onMqDark); else if(this._mqDark.removeListener) this._mqDark.removeListener(this._onMqDark); } }catch(_){}
     if(this._pipMsgT) clearTimeout(this._pipMsgT); if(this._bkpAutoT) clearInterval(this._bkpAutoT); if(this._salaT) clearTimeout(this._salaT); this._pipStop(); this._closeDocPiP();  }
   componentDidUpdate(){ if(this.state.view==='redacao'){ this._redVigiarFolha();
       // texto que muda sem tecla (zerar o rascunho, chegar da nuvem) também precisa remedir a folha
-      if(this.state.redText!==this._redTextoMedido){ this._redTextoMedido=this.state.redText; try{ requestAnimationFrame(this._redMedirFolha); }catch(_){} } } this._baixaRaiz(); this._widgetAvisar(); this._syncModalFocus(); try{ const ta=this._toastAcaoEl; if(ta && ta.style.pointerEvents==='auto') this._toastAcaoPos(); }catch(_){} try{ this._edSincronizarConcurso(); }catch(_){} this._autosave(); this._montarFrames(); this._marcasEnunSync(); }
+      if(this.state.redText!==this._redTextoMedido){ const _antes=this._redTextoMedido; this._redTextoMedido=this.state.redText; try{ requestAnimationFrame(this._redMedirFolha); }catch(_){}
+        // Rascunho que chega depois do boot (nuvem): o modo só era decidido no construtor, e a tela ficava
+        // em "À mão" escondendo o texto. Só troca quando o texto vai de vazio a não vazio sem tecla, a pessoa
+        // não escolheu o modo nesta sessão e não está conferindo. Um setState só: o valor já mudou acima.
+        if(!String(_antes||'').trim() && String(this.state.redText||'').trim() && !this._redTextoDeTecla && !this._redModoEscolhido
+           && this.state.redModoResposta!=='digitar' && !this.state.redConferindo && !this.state.redBusy && !this.state.redResult) this.setState({redModoResposta:'digitar'}); }
+      this._redTextoDeTecla=false; } this._baixaRaiz(); this._widgetAvisar(); this._syncModalFocus(); try{ const ta=this._toastAcaoEl; if(ta && ta.style.pointerEvents==='auto') this._toastAcaoPos(); }catch(_){} try{ this._edSincronizarConcurso(); }catch(_){} this._autosave(); this._montarFrames(); this._marcasEnunSync(); }
   // LEGIS e JURIS ficam em <iframe> com data-ct-frame (e não src=) de propósito: com
   // src no HTML cru o navegador baixava as duas páginas durante o parse — antes do
   // runtime existir — e jogava fora ao montar o app. Aqui o src entra só quando a
@@ -8922,7 +9161,7 @@ class Component extends DCLogic {
   // Chaves que o app salva sozinho. Lista ÚNICA: o _autosave grava a partir dela e
   // o _rehydrateFromLocal recarrega a partir dela — se as duas divergirem, o que vem
   // da nuvem é sobrescrito pela memória velha deste aparelho.
-  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'editais', 'editalAtivo', 'reviews', 'leituras', 'enam', 'enamSim', 'aceite', 'iaConsentimento', 'blocks', 'blocksDate', 'cicloVolta', 'manualVoltaN', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs','redTempoMs', 'redGabarito', 'redEnunciado', 'redMarcas', 'redDisciplina', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'novidLidas', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis']; }
+  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'editais', 'editalAtivo', 'reviews', 'leituras', 'enam', 'enamSim', 'aceite', 'iaConsentimento', 'blocks', 'blocksDate', 'cicloVolta', 'manualVoltaN', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs','redTempoMs', 'redGabarito', 'redEnunciado', 'redMarcas', 'redDisciplina', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'novidLidas', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis', 'cmag', 'cmagRevs']; }
   /** Grava JÁ o que está pendente, sem esperar o debounce de 500 ms.
       PENDENTE é só o que a memória mudou desde o último salvamento (a mesma régua do
       _autosave). O resto já está no disco — e o disco pode ter acabado de receber a nuvem:
@@ -9809,6 +10048,7 @@ class Component extends DCLogic {
     const norm=s=>String(s||'').trim().toLowerCase();
     const has=(v)=>v!==''&&v!=null;
     const ed=this.state.edital.map(d=>({...d, topics:(d.topics||[]).map(t=>({...t, subs:Array.isArray(t.subs)?t.subs.map(s=>this._subObj(s)):[]}))}));
+    const _id=this._edAlvo(), _novo=this._edNovo(_id);   // o que entra é do concurso ATIVO
     this.state.edParsed.forEach((pd)=>{
       let di=ed.findIndex(d=>norm(d.disc)===norm(pd.disc));
       if(di<0){ ed.push({disc:pd.disc, color:pd.color||this._editalColor(pd.disc, ed.length), open:false, topics:[],
@@ -9822,9 +10062,12 @@ class Component extends DCLogic {
       const D=ed[di];
       (pd.topics||[]).forEach(pt=>{
         let ti=D.topics.findIndex(t=>norm(t.name)===norm(pt.name));
-        if(ti<0){ D.topics.push({name:pt.name, done:false, subs:(pt.subs||[]).map(s=>({name:s, done:false}))}); }
-        else { const t=D.topics[ti]; const seen=new Set((t.subs||[]).map(s=>norm(s.name)));
-          (pt.subs||[]).forEach(s=>{ const k=norm(s); if(k && !seen.has(k)){ t.subs.push({name:s, done:false}); seen.add(k); } }); }
+        if(ti<0){ D.topics.push({name:pt.name, done:false, subs:(pt.subs||[]).map(s=>({name:s, done:false, ..._novo})), ..._novo}); }
+        else { const t=D.topics[ti]=this._edCom(D.topics[ti], _id);   // já existia (de outro concurso): passa a ser deste também
+          const quer=new Set((pt.subs||[]).map(norm));
+          t.subs=(t.subs||[]).map(x=> quer.has(norm(x.name)) ? this._edCom(x, _id) : x);
+          const seen=new Set(t.subs.map(s=>norm(s.name)));
+          (pt.subs||[]).forEach(s=>{ const k=norm(s); if(k && !seen.has(k)){ t.subs.push({name:s, done:false, ..._novo}); seen.add(k); } }); }
       });
     });
     this.setState({edital:ed, edParsed:null, edRaw:''}); if(this.flashSync) this.flashSync();
@@ -9851,9 +10094,13 @@ class Component extends DCLogic {
     if(di<0){ ed.push({disc:nome, color:c.mode==='nova'?c.cor:'#0f7a57', open:true, topics:[], peso:_peso, questoes:_quest, foraDoConcurso:false, _esp:this._espAtivo()}); di=ed.length-1; }
     else { ed[di]={...ed[di], peso:(_peso!==''?_peso:ed[di].peso), questoes:(_quest!==''?_quest:ed[di].questoes), foraDoConcurso:false, _esp:this._espAtivo()}; }
     if(c.topico.trim()){
+      const _id=this._edAlvo(), _novo=this._edNovo(_id);   // o que entra é do concurso ATIVO
       let ti = ed[di].topics.findIndex(t=>t.name.toLowerCase()===c.topico.trim().toLowerCase());
-      if(ti<0){ ed[di].topics.push({name:c.topico.trim(), done:false, subs: c.sub.trim()?[{name:c.sub.trim(), done:false}]:[]}); }
-      else { const t=ed[di].topics[ti]; const subs=Array.isArray(t.subs)?t.subs.map(x=>this._subObj(x)):[]; if(c.sub.trim()) subs.push({name:c.sub.trim(), done:false}); ed[di].topics[ti]={...t, subs}; }
+      if(ti<0){ ed[di].topics.push({name:c.topico.trim(), done:false, subs: c.sub.trim()?[{name:c.sub.trim(), done:false, ..._novo}]:[], ..._novo}); }
+      else { const t=this._edCom(ed[di].topics[ti], _id); let subs=Array.isArray(t.subs)?t.subs.map(x=>this._subObj(x)):[];
+        if(c.sub.trim()){ const k=c.sub.trim().toLowerCase(); const j=subs.findIndex(x=>String(x.name||'').trim().toLowerCase()===k);
+          if(j<0) subs.push({name:c.sub.trim(), done:false, ..._novo}); else subs[j]=this._edCom(subs[j], _id); }   // repetido não duplica: só entra neste concurso
+        ed[di].topics[ti]={...t, subs}; }
       ed[di]={...ed[di], open:true};
     }
     this.setState({edital:ed, cad:{...c, discNova:'', topico:'', sub:'', peso:'', questoes:''}}); this.flashSync(); };
@@ -9889,6 +10136,53 @@ class Component extends DCLogic {
   _concursoAtivo(){
     const eds=this._editaisComMigracao(); if(!eds.length) return null;
     return eds.find(e=>e.id===this.state.editalAtivo) || eds[0];
+  }
+  /* ===== CADA CONCURSO COM O SEU EDITAL (03/10/2026) =====
+     Decisão da dona: "cada concurso tem o seu edital" — com o estudo ÚNICO de 17/09 mantido.
+     O acervo continua um só e NÃO é movido. Cada tópico (e cada subtópico) pode carregar `eds`,
+     a lista dos concursos a que pertence:
+       · sem `eds`  → vale para TODOS os concursos (é tudo o que existia antes desta mudança:
+                      a migração é não fazer nada, e ninguém perde edital ao atualizar);
+       · com `eds`  → só aparece nos concursos da lista. Subtópico sem `eds` acompanha o tópico.
+     Importar, aplicar modelo e cadastrar à mão marcam o concurso ATIVO. Tópico de mesmo nome
+     que já existia (veio de outro concurso) só GANHA o concurso ativo na lista: o que já foi
+     estudado nele passa a contar aqui também — não há segunda cópia.
+     A lista viaja dentro do próprio tópico, na chave `edital`, que já sincroniza: nenhuma
+     chave nova, nenhuma regra nova no auth.js. */
+  _noEd(x, id){ return !id || !x || typeof x!=='object' || !Array.isArray(x.eds) || x.eds.indexOf(id)>=0; }
+  /** Devolve x pertencendo também ao concurso id (o mesmo objeto quando já pertence). */
+  _edCom(x, id){ return (!id || !x || typeof x!=='object' || !Array.isArray(x.eds) || x.eds.indexOf(id)>=0) ? x : {...x, eds:x.eds.concat([id])}; }
+  /** Marca de nascimento de um tópico/subtópico novo: do concurso `id`. */
+  _edNovo(id){ return id ? {eds:[id]} : {}; }
+  /** O concurso que recebe o que entra AGORA. Com o edital ainda vazio não existe concurso
+      nenhum — mas o primeiro que nascer é o principal (id fixo), então o 1º edital já entra
+      marcado como dele: senão ele valeria para "todos" e apareceria em todo concurso futuro. */
+  _edAlvo(){ return this._espAtivo() || this.ED_PRINCIPAL; }
+  /** Ao NASCER um concurso, o que ainda não tinha marca passa a ser dos concursos que já
+      existiam — e não do que está nascendo. Sem isto o edital antigo, por valer "para todos",
+      apareceria inteiro dentro de cada concurso futuro, e nenhum teria só o edital dele. */
+  _edFecharLegado(pool, ids){
+    if(!ids || !ids.length) return pool||[];
+    return (pool||[]).map(d=>{ if(!d || !Array.isArray(d.topics) || !d.topics.some(t=>t && typeof t==='object' && !Array.isArray(t.eds))) return d;
+      return {...d, topics:d.topics.map(t=>(t && typeof t==='object' && !Array.isArray(t.eds)) ? {...t, eds:ids.slice()} : t)}; });
+  }
+  /** O acervo como o concurso `id` o enxerga (padrão: o ativo) — para LEITURA. Mesma ordem e
+      mesmas disciplinas; some só o tópico/subtópico que não é desse concurso. Quando nada é
+      filtrado devolve o PRÓPRIO acervo: quem tem um concurso só não nota diferença nenhuma. */
+  _edVista(id){
+    const C=id||this._espAtivo(); const pool=this.state.edital||[];
+    if(!C) return pool;
+    if(this._edVistaRef!==pool){ this._edVistaRef=pool; this._edVistaMemo={}; }
+    if(this._edVistaMemo[C]) return this._edVistaMemo[C];
+    let mudou=false;
+    const v=pool.map(d=>{ if(!d || !Array.isArray(d.topics)) return d;
+      let m=false; const tops=[];
+      d.topics.forEach(t=>{
+        if(!this._noEd(t, C)){ m=true; return; }
+        if(t && Array.isArray(t.subs) && t.subs.some(x=>!this._noEd(x, C))){ m=true; tops.push({...t, subs:t.subs.filter(x=>this._noEd(x, C))}); }
+        else tops.push(t); });
+      if(!m) return d; mudou=true; return {...d, topics:tops}; });
+    return (this._edVistaMemo[C]=(mudou?v:pool));
   }
   /** Projeta o concurso C sobre o acervo: membros recebem o peso/questões de C; quem não cai em
       C fica marcado e sem peso. Tópicos, cor e progresso NÃO são tocados — são do acervo. */
@@ -9937,14 +10231,14 @@ class Component extends DCLogic {
      2) adota o novo concurso ANTES de reler, para todo _chave() do ciclo mirar o destino;
      3) relê o ciclo do destino e alinha o _lastSaved — sem isso o autosave veria o ciclo velho
         na memória como "mudança" e o gravaria DENTRO do concurso novo, apagando o dele. */
-  _virarConcurso(id, eds){
+  _virarConcurso(id, eds, pool){
     const C=(eds||[]).find(x=>x.id===id); if(!C) return;
     this._edCapturar();
     try{ clearTimeout(this._asT); }catch(_){}
     this._salvarAgora();                                                     // (1)
     this.state.editalAtivo=id;                                               // (2)
     try{ localStorage.setItem(this._chave('editalAtivo'), JSON.stringify(id)); }catch(_){}
-    const patch={ editalAtivo:id, editais:eds, edital:this._edProjetar(this.state.edital, C) };
+    const patch={ editalAtivo:id, editais:eds, edital:this._edProjetar(pool||this.state.edital, C) };
     this.CICLO_PROPRIO.forEach(k=>{ patch[k]=this._load(k, this._vazioDe(k)); });   // (3)
     const L=this._lastSaved||(this._lastSaved={});
     this.CICLO_PROPRIO.forEach(k=>{ L[k]=patch[k]; }); L.editalAtivo=id;
@@ -9967,7 +10261,7 @@ class Component extends DCLogic {
     return eds.map(e=>{
       const discs=pool.filter(d=>membro(e, String(d.disc||'').trim()));
       const nomes=new Set(discs.map(d=>String(d.disc||'').trim()));
-      let tot=0, done=0; discs.forEach(d=>(d.topics||[]).forEach(t=>{ tot++; if(t&&t.done) done++; }));
+      let tot=0, done=0; discs.forEach(d=>(d.topics||[]).forEach(t=>{ if(!this._noEd(t, e.id)) return; tot++; if(t&&t.done) done++; }));   // só os tópicos DESTE concurso
       const min=sess.filter(x=>nomes.has(String(x.disc||'').trim())).reduce((a,x)=>a+Math.max(0,+x.min||0),0);
       const compart=[...nomes].filter(n=>eds.some(o=>o.id!==e.id&&membro(o,n))).length;
       return { id:e.id, nome:e.nome, ativo:!!(C&&C.id===e.id), discN:nomes.size,
@@ -10002,7 +10296,8 @@ class Component extends DCLogic {
     // o PRIMEIRO concurso de quem ainda não tinha nenhum é o principal: é ele que fica com as
     // chaves de sempre do ciclo — senão o ciclo já montado ficaria órfão, sem dono
     const C={ id:(eds.length?('ed-'+Date.now()):this.ED_PRINCIPAL), nome, banca:'', dataProva:'', discs, up:Date.now() };
-    this._virarConcurso(C.id, [...eds, C]);
+    // o edital que já existia fica com os concursos que já existiam: o novo começa com o edital DELE
+    this._virarConcurso(C.id, [...eds, C], this._edFecharLegado(this.state.edital||[], eds.map(e=>e.id)));
     this._toast('Concurso "'+nome+'" criado, com ciclo próprio — marque as disciplinas que caem nele');
   };
   renomearConcurso = ()=>{
@@ -10018,6 +10313,12 @@ class Component extends DCLogic {
     const C=this._concursoAtivo(); const guard=(C&&C.discs&&C.discs[String(ed[i].disc||'').trim()])||{};
     ed[i]= fora ? {...ed[i], foraDoConcurso:true, peso:'', questoes:'', _esp:this._espAtivo()}
                 : {...ed[i], foraDoConcurso:false, peso:(guard.peso!=null?guard.peso:''), questoes:(guard.questoes!=null?guard.questoes:''), _esp:this._espAtivo()};
+    // Marcar à mão que a disciplina cai neste concurso, sem ele ter NENHUM tópico dela (não veio
+    // edital para ela aqui): os tópicos que já existem passam a valer aqui também — é o que a
+    // marcação sempre significou. Se o concurso já tem tópicos dela, o edital dele é o que vale.
+    const _id=this._espAtivo(), _tops=Array.isArray(ed[i].topics)?ed[i].topics:[];
+    if(!fora && _id && _tops.length && !_tops.some(t=>this._noEd(t, _id)))
+      ed[i]={...ed[i], topics:_tops.map(T=>({...this._edCom(T, _id), subs:(Array.isArray(T.subs)?T.subs.map(x=>this._edCom(this._subObj(x), _id)):[])}))};
     this.setState({edital:ed}); this.flashSync();
   };
   // ===== modelos de edital pré-cadastrados (CT_MODELOS) =====
@@ -10057,32 +10358,85 @@ class Component extends DCLogic {
     return {modeloSel:(s.modeloSel||[]).length===all.length?[]:all.map((_,i)=>i)}; });
   // Mescla no edital existente pelo mesmo critério do importador: disciplina e
   // tópico repetidos não duplicam; subtópicos novos são somados aos que já existem.
-  aplicarModelo = ()=>{
+  /* `alvo` (interno) = {id, base, discs}: aplica num concurso que ACABOU de ser criado, sem
+     depender de o setState dele já ter assentado. Vindo do botão, o 1º argumento é o evento. */
+  aplicarModelo = (_ev, alvo)=>{
     const sel=(this.state.modeloSel||[]); if(!sel.length){ this._toast('Escolha ao menos uma disciplina'); return; }
     const _discs=this._modeloDiscs(this.state.modeloId);
     const norm=s=>String(s||'').trim().toLowerCase();
-    const ed=(this.state.edital||[]).map(d=>({...d, topics:(d.topics||[]).map(t=>({...t, subs:Array.isArray(t.subs)?t.subs.map(x=>this._subObj(x)):[]}))}));
+    const _alvo=(alvo && alvo.id) ? alvo : null;
+    const _esp=_alvo ? _alvo.id : this._espAtivo();
+    const _id=_esp || this.ED_PRINCIPAL, _novo=this._edNovo(_id);   // o que entra é do concurso ATIVO
+    const _guarda=_alvo ? (_alvo.discs||{}) : ((this._concursoAtivo()||{}).discs||{});
+    const ed=((_alvo&&_alvo.base)||this.state.edital||[]).map(d=>({...d, topics:(d.topics||[]).map(t=>({...t, subs:Array.isArray(t.subs)?t.subs.map(x=>this._subObj(x)):[]}))}));
     let nd=0, nt=0, ns=0;
     sel.slice().sort((a,b)=>a-b).forEach(i=>{
       const m=_discs[i]; if(!m) return;
       const [nome, cor, tops]=m;
       let di=ed.findIndex(d=>norm(d.disc)===norm(nome));
-      if(di<0){ ed.push({disc:nome, color:cor||this._editalColor(norm(nome), ed.length), open:false, topics:[], peso:'', questoes:'', foraDoConcurso:false, _esp:this._espAtivo()}); di=ed.length-1; nd++; }
+      if(di<0){ ed.push({disc:nome, color:cor||this._editalColor(norm(nome), ed.length), open:false, topics:[], peso:'', questoes:'', foraDoConcurso:false, _esp:_esp}); di=ed.length-1; nd++; }
       // aplicar o modelo = estas disciplinas caem no concurso ATIVO. Num concurso novo, as que já
       // existiam no acervo nascem "fora" — sem isto o modelo trazia os tópicos e elas seguiam fora.
-      else if(ed[di].foraDoConcurso){ const g=((this._concursoAtivo()||{}).discs||{})[String(ed[di].disc||'').trim()]||{};
-        ed[di]={...ed[di], foraDoConcurso:false, peso:(g.peso!=null?g.peso:''), questoes:(g.questoes!=null?g.questoes:''), _esp:this._espAtivo()}; nd++; }
+      else if(ed[di].foraDoConcurso){ const g=_guarda[String(ed[di].disc||'').trim()]||{};
+        ed[di]={...ed[di], foraDoConcurso:false, peso:(g.peso!=null?g.peso:''), questoes:(g.questoes!=null?g.questoes:''), _esp:_esp}; nd++; }
       const D=ed[di];
       (tops||[]).forEach(([tnome, subs])=>{
         let ti=D.topics.findIndex(t=>norm(t.name)===norm(tnome));
-        if(ti<0){ D.topics.push({name:tnome, done:false, subs:(subs||[]).map(x=>({name:x, done:false}))}); nt++; ns+=(subs||[]).length; return; }
-        const T=D.topics[ti];
-        (subs||[]).forEach(x=>{ if(!T.subs.some(y=>norm(y.name)===norm(x))){ T.subs.push({name:x, done:false}); ns++; } });
+        if(ti<0){ D.topics.push({name:tnome, done:false, subs:(subs||[]).map(x=>({name:x, done:false, ..._novo})), ..._novo}); nt++; ns+=(subs||[]).length; return; }
+        // já existia (de outro concurso, ou de todos): passa a ser deste também, sem segunda cópia
+        const eraDaqui=this._noEd(D.topics[ti], _id);
+        const T=D.topics[ti]=this._edCom(D.topics[ti], _id); if(!eraDaqui) nt++;
+        const quer=new Set((subs||[]).map(norm));
+        T.subs=T.subs.map(y=>{ if(!quer.has(norm(y.name)) || this._noEd(y, _id)) return y; ns++; return this._edCom(y, _id); });
+        (subs||[]).forEach(x=>{ if(!T.subs.some(y=>norm(y.name)===norm(x))){ T.subs.push({name:x, done:false, ..._novo}); ns++; } });
       });
     });
     this.setState({edital:ed, modeloOpen:false}, ()=>this.flashSync());
+    if(_alvo) return {nd, nt, ns};
     this._toast('Modelo aplicado ✦ '+(nd?nd+' disciplina'+(nd>1?'s':''):'')+(nd&&nt?' · ':'')+(nt?nt+' tópicos':'')+(ns?' · '+ns+' subtópicos':''));
   };
+  /* "Cada concurso tem o seu edital": aplicar um segundo modelo no MESMO concurso soma os dois
+     programas. Este caminho cria o concurso do modelo (com o nome dele) e aplica lá — as
+     disciplinas que já existem entram só com os tópicos deste edital; o estudo é o mesmo. */
+  aplicarModeloNovoConcurso = ()=>{
+    const sel=(this.state.modeloSel||[]); if(!sel.length){ this._toast('Escolha ao menos uma disciplina'); return; }
+    const m=CT_MODELOS.find(x=>x.id===this.state.modeloId); if(!m) return;
+    if(!this._modeloDiscs(this.state.modeloId).length){ this._toast('O modelo ainda está carregando — tente de novo em instantes'); return; }
+    this._edCapturar();
+    const eds=this._editaisComMigracao();
+    let nome=m.nome, n=2; while(eds.some(e=>String(e.nome||'')===nome)) nome=m.nome+' ('+(n++)+')';
+    const discs={}; (this.state.edital||[]).forEach(d=>{ const k=String(d.disc||'').trim(); if(k) discs[k]={peso:'', questoes:'', fora:true}; });
+    const C={ id:(eds.length?('ed-'+Date.now()):this.ED_PRINCIPAL), nome, banca:'', dataProva:'', discs, up:Date.now() };
+    // o edital que já existia fica com os concursos que já existiam: o novo recebe SÓ o do modelo
+    const fechado=this._edFecharLegado(this.state.edital||[], eds.map(e=>e.id));
+    const base=this._edProjetar(fechado, C);
+    this._virarConcurso(C.id, [...eds, C], fechado);
+    const r=this.aplicarModelo(null, {id:C.id, base, discs})||{};
+    this._toast('Concurso "'+nome+'" criado com o edital dele ✦ '+(r.nt||0)+' tópicos'+(r.ns?' · '+r.ns+' subtópicos':''));
+  };
+  /* Tópicos do acervo que NÃO são do concurso ativo: a tela os lista sob cada disciplina e
+     deixa trazer um a um, ou todos. Trazer não copia nada — só põe o concurso ativo na lista. */
+  toggleOutros = (e)=>{ const n=String(e.currentTarget.dataset.n||''); this.setState(s=>({edOutros:{...(s.edOutros||{}), [n]:!(s.edOutros||{})[n]}})); };
+  trazerTopico = (e)=>{ const el=e.currentTarget, d=+el.dataset.d, t=+el.dataset.t, k=+el.dataset.s; const id=this._espAtivo(); if(!id) return;
+    const ed=(this.state.edital||[]).slice(); const D=ed[d]; if(!D || !Array.isArray(D.topics) || !D.topics[t]) return;
+    const tp=D.topics.slice(); const T=tp[t];
+    if(k>=0){ const sb=Array.isArray(T.subs)?T.subs.map(x=>this._subObj(x)):[]; if(!sb[k]) return; sb[k]=this._edCom(sb[k], id); tp[t]={...T, subs:sb}; }
+    else tp[t]={...this._edCom(T, id), subs:(Array.isArray(T.subs)?T.subs.map(x=>this._edCom(this._subObj(x), id)):[])};
+    ed[d]={...D, topics:tp}; this.setState({edital:ed}); this.flashSync(); };
+  /* Tirar do concurso ativo: o tópico (ou subtópico) continua no acervo, com o estudo dele, e
+     nos outros concursos — só deixa de aparecer aqui. Volta por "Trazer para este concurso". */
+  tirarTopico = (e)=>{ const el=e.currentTarget, d=+el.dataset.d, t=+el.dataset.t, k=+el.dataset.s; const id=this._espAtivo(); if(!id) return;
+    const todos=(this._editaisComMigracao()||[]).map(x=>x.id); if(todos.length<2) return;
+    const ed=(this.state.edital||[]).slice(); const D=ed[d]; if(!D || !Array.isArray(D.topics) || !D.topics[t]) return;
+    const tp=D.topics.slice(); const T=tp[t];
+    const sem=(x, herda)=>({...x, eds:(Array.isArray(x.eds)?x.eds:(herda||todos)).filter(y=>y!==id)});
+    if(k>=0){ const sb=Array.isArray(T.subs)?T.subs.map(x=>this._subObj(x)):[]; if(!sb[k]) return; sb[k]=sem(sb[k], Array.isArray(T.eds)?T.eds:todos); tp[t]={...T, subs:sb}; }
+    else tp[t]=sem(T);
+    ed[d]={...D, topics:tp}; this.setState({edital:ed}); this.flashSync(); };
+  trazerTodos = (e)=>{ const d=+e.currentTarget.dataset.i; const id=this._espAtivo(); if(!id) return;
+    const ed=(this.state.edital||[]).slice(); const D=ed[d]; if(!D || !Array.isArray(D.topics)) return;
+    ed[d]={...D, topics:D.topics.map(T=>({...this._edCom(T, id), subs:(Array.isArray(T.subs)?T.subs.map(x=>this._edCom(this._subObj(x), id)):[])}))};
+    this.setState(s=>({edital:ed, edOutros:{...(s.edOutros||{}), [String(D.disc||'')]:false}})); this.flashSync(); };
   // Cor da disciplina depois de cadastrada — o edital é a fonte da cor em todo o app
   // (ciclo, gráficos, revisões leem _corDisc, que cai em CT_CORES_RAMO quando não há cor custom).
   setDiscCor = (e)=>{ const i=+e.currentTarget.dataset.i; const v=e.currentTarget.value;
@@ -10938,11 +11292,13 @@ class Component extends DCLogic {
       const dom=(o.a-o.e)/o.q; if(!best||dom<best.dom) best={dom, topico:o.topico}; }); return best; }
   _genVolta(modo, n){
     modo=modo||this.state.cycleMode||'sugestao'; if(modo==='manual') modo='inteligente'; n=n||1;
+    // Ciclo Magistratura: a volta são as 4 matérias ativas a partir da vez, um turno cada
+    if(modo==='magistratura' && window.CT_CMAG) return CT_CMAG.gerarVolta(this.state.cmag||CT_CMAG.vazio(true), n, this._hoje());
     const O=this.state.orient||{}; const mult=this._enMult();
     const base=Math.max(20, Math.round((parseInt(O.blocoPadrao,10)||50)*mult));
     const nBl=Math.max(4, Math.min(40, Math.round(this._voltaTotalMin()/base)));
     let B; try{ B=this._brain(); }catch(_){ B={byTopic:{}, discList:[]}; }
-    const ed=(this.state.edital||[]).filter(d=>!d.foraDoConcurso).map(d=>({disc:String(d.disc||'').trim(), peso:(parseFloat(d.peso)||1), pend:(d.topics||[]).filter(t=>t&&!t.done).map(t=>String(t.name||'').trim()).filter(Boolean)})).filter(d=>d.disc);
+    const ed=this._edVista().filter(d=>!d.foraDoConcurso).map(d=>({disc:String(d.disc||'').trim(), peso:(parseFloat(d.peso)||1), pend:(d.topics||[]).filter(t=>t&&!t.done).map(t=>String(t.name||'').trim()).filter(Boolean)})).filter(d=>d.disc);
     let prio=[]; try{ prio=this._prioridade(); }catch(_){ prio=[]; }
     const pmap={}; prio.forEach(p=>{ pmap[p.disc]=p; });
     let discs;
@@ -11191,7 +11547,7 @@ class Component extends DCLogic {
      helper devolve a frase do que está faltando (ou '' quando o modo tem com o que
      trabalhar), e a tela mostra isso no card e num toast ao trocar. */
   _cycleFalta(mode){
-    const ed=this.state.edital||[];
+    const ed=this._edVista();
     if(mode==='inteligente'){
       if(!ed.length) return 'Sem edital cadastrado — a volta sai pelas matérias da área até você cadastrar.';
       return '';
@@ -11247,8 +11603,143 @@ class Component extends DCLogic {
   setCycleMode = (e)=>{ const m=e.currentTarget.dataset.mode; if(m===this.state.cycleMode) return; try{ localStorage.setItem('catedra:cycleMode', m); }catch(_){}
     if(m==='manual'){ this.setState({cycleMode:m, blocks:this.composeManual(this.state.manualFixed, this.state.manualRot, this.state.rotPointer)}); return; }
     const falta=this._cycleFalta(m); if(falta) this._toast(falta);
+    if(m==='magistratura' && !this.state.cmag && window.CT_CMAG) this.state.cmag=CT_CMAG.vazio(true);   // setState síncrono do support.js: o _genVolta abaixo já vê
     const V=this._genVolta(m, 1);
-    this.setState({cycleMode:m, cicloVolta:V, blocks:this._comporDia(V, []), blocksDate:this._hoje()}); };
+    this.setState({cycleMode:m, cmag:this.state.cmag, cicloVolta:V, blocks:this._comporDia(V, []), blocksDate:this._hoje()}); };
+  /* ===== CICLO MAGISTRATURA (regras em ciclo-magistratura.js) =====
+     O estado é `cmag` (objeto) + `cmagRevs` (array com id/up). Toda mudança passa por uma função
+     pura do CT_CMAG, que devolve objeto novo — o autosave compara por referência. */
+  _cm(){ return window.CT_CMAG ? CT_CMAG.normalizar(this.state.cmag||CT_CMAG.vazio(true)) : null; }
+  _cmSet(c, extra, soTexto){
+    if(!c) return;
+    const patch={cmag:c, ...(extra||{})};
+    // a ordem, a vez e o turno mudam a volta do dia: no modo, ela é refeita (o feito de hoje fica);
+    // texto (assunto, obras, nota) muda a cada tecla e não mexe na volta
+    if(this.state.cycleMode==='magistratura' && !soTexto){ this.state.cmag=c; const V=this._genVolta('magistratura', (this.state.cicloVolta&&this.state.cicloVolta.n)||1); patch.cicloVolta=V; patch.blocks=this._comporDia(V, this.state.blocks||[]); }
+    this.setState(patch); this.flashSync();
+  }
+  /* Seed da conta (CT_CMAG.seedDaConta): roda depois do primeiro acerto com a nuvem, para nunca
+     disputar com o que outro aparelho já gravou, e só quando não há progresso nenhum — nem no
+     ciclo, nem nas revisões. Idempotente: a marca `seed` fica no próprio estado. */
+  _cmagSeed(){
+    const M=window.CT_CMAG, S=window.CatedraSync; if(!M || !S || !S.pronto) return false;
+    const tag=M.seedDaConta(S.email); if(!tag) return false;
+    if(M.temProgresso(this.state.cmag, this.state.cmagRevs)) return false;
+    const c=M.seed(tag, Date.now());
+    try{ localStorage.setItem('catedra:cycleMode', 'magistratura'); }catch(_){}
+    this.state.cmag=c; this.state.cycleMode='magistratura';
+    const V=this._genVolta('magistratura', 1);
+    this.setState({cmag:c, cycleMode:'magistratura', cicloVolta:V, blocks:this._comporDia(V, []), blocksDate:this._hoje()});
+    return true;
+  }
+  cmToggle = (e)=>{ const d=e.currentTarget.dataset, M=window.CT_CMAG; if(!M) return;
+    const antes=this._cm(), c=M.alternar(antes, d.id, d.k);
+    if(c.st[d.id].d[d.k]===antes.st[d.id].d[d.k]){ this._toast('O Turno B abre quando o Turno A terminar.'); return; }
+    this._cmSet(c); };
+  cmCampo = (e)=>{ const t=e.currentTarget, M=window.CT_CMAG; if(!M) return;
+    const c=M.definir(this._cm(), t.dataset.id, t.dataset.campo, t.value); this._cmSet(c, null, true); };
+  _cmDisc(id){ const M=window.CT_CMAG, ed=this.state.edital||[], d=M?M.discDoEdital(ed, id):-1; return d>=0?{d, disc:ed[d]}:null; }
+  cmEdTopico = (e)=>{ const M=window.CT_CMAG, t=e.currentTarget, id=t.dataset.id, L=this._cmDisc(id); if(!M||!L) return;
+    const tps=(L.disc.topics||[]).filter(x=>x&&x.name), tp=tps[+t.value];
+    this._cmSet(M.definirRef(this._cm(), id, tp?{t:tp.name, s:'', nome:tp.name}:null), null, true); };
+  cmEdSub = (e)=>{ const M=window.CT_CMAG, t=e.currentTarget, id=t.dataset.id, L=this._cmDisc(id); if(!M||!L) return;
+    const c=this._cm(), ref=c.st[id].ref; if(!ref) return;
+    const tp=(L.disc.topics||[]).find(x=>x&&x.name===ref.t); if(!tp) return;
+    const sb=t.value===''?null:(tp.subs||[])[+t.value], nome=sb?(typeof sb==='string'?sb:sb.name):'';   // vazio = o capítulo inteiro
+    this._cmSet(M.definirRef(c, id, nome?{t:tp.name, s:nome, nome}:{t:tp.name, s:'', nome:tp.name}), null, true); };
+  cmLinkAbrir = (e)=>{ this.setState({cmLinkEdit:e.currentTarget.dataset.l||''}); };
+  cmLinkSalvar = (e)=>{ if(e && e.type==='keydown'){ if(e.key==='Escape'){ this.setState({cmLinkEdit:''}); return; } if(e.key!=='Enter') return; }
+    const t=e.currentTarget, M=window.CT_CMAG; if(!M) return;
+    if(!t.value.trim() && e.type==='blur'){ this.setState({cmLinkEdit:''}); return; }   // saiu sem colar nada
+    const c=M.definirLink(this._cm(), t.dataset.l, t.value);
+    if(!c){ this._toast('Link recusado: cole um endereço que comece com https://'); return; }
+    this.setState({cmLinkEdit:''}); this._cmSet(c); };
+  cmLinkApagar = (e)=>{ const M=window.CT_CMAG; if(!M) return; const c=M.definirLink(this._cm(), e.currentTarget.dataset.l, ''); if(c) this._cmSet(c); };
+  cmFechar = (e)=>{ const M=window.CT_CMAG; if(!M) return; const id=e.currentTarget.dataset.id;
+    const antes=this._cm(), ref=antes.st[id]&&antes.st[id].ref;
+    const r=M.fechar(antes, id, this._hoje()); if(!r) return;
+    const saiu=r.cmag.ordem.indexOf(id)>=M.ATIVAS, extra={cmagRevs:[...(this.state.cmagRevs||[]), r.rev]};
+    // ligado ao edital: o item estudado fica marcado lá e o próximo pendente vira o assunto atual
+    const L=this._cmDisc(id);
+    if(L && ref){ const ed=M.marcarNoEdital(this.state.edital, L.d, ref); extra.edital=ed;
+      const nx=M.proximoPendente(ed[L.d], ref); if(nx) r.cmag=M.definirRef(r.cmag, id, nx); }
+    this._cmSet(r.cmag, extra);
+    this._toast(saiu ? 'Assunto fechado. A matéria foi para o fim da fila e '+r.cmag.mats[r.cmag.ordem[M.ATIVAS-1]].n+' entrou.' : 'Assunto fechado. Revisões em D+7, D+30 e D+90 agendadas.'); };
+  cmRevMarcar = (e)=>{ const M=window.CT_CMAG; if(!M) return; const d=e.currentTarget.dataset;
+    this.setState(s=>({cmagRevs:M.marcarRevisao(s.cmagRevs, d.id, +d.d)})); this.flashSync(); };
+  cmRevRemover = (e)=>{ const id=e.currentTarget.dataset.id; const alvo=(this.state.cmagRevs||[]).find(r=>r&&r.id===id); if(!alvo) return;
+    this._excluirComDesfazer('Revisão',
+      ()=>{ this.setState(s=>({cmagRevs:(s.cmagRevs||[]).filter(r=>r&&r.id!==id)}), ()=>this.flashSync()); },
+      ()=>{ this.setState(s=>({cmagRevs:[...(s.cmagRevs||[]), {...alvo, up:Date.now()}]}), ()=>this.flashSync()); }); };
+  cmSabado = (e)=>{ const M=window.CT_CMAG; if(M) this._cmSet(M.alternarSabado(this._cm(), e.currentTarget.dataset.k)); };
+  cmZerarSabado = ()=>{ const M=window.CT_CMAG; if(M) this._cmSet(M.zerarSabado(this._cm())); };
+  cmQ = (e)=>{ const t=e.currentTarget; this.setState(s=>({cmQ:{...(s.cmQ||{}), [t.dataset.q]:t.dataset.v!=null?t.dataset.v:t.value}})); };
+  /* Registrar questão: erro e chute certo vão para o caderno de erros de sempre (errors), com
+     certeza, resultado e categoria ao lado do motivo; acerto firme não grava nada. */
+  cmQRegistrar = ()=>{ const M=window.CT_CMAG; if(!M) return; const q=this.state.cmQ||{}, c=this._cm();
+    const id=(q.mat && c.st[q.mat]) ? q.mat : c.ordem[c.vez]; const cls=M.classificar(q.res==='certo', q.certeza, q.categoria);
+    if(!q.certeza){ this._toast('Marque a certeza: alta, média ou chute.'); return; }
+    if(!cls){ this._toast('Acerto com certeza: nada vai para o caderno.'); this.setState({cmQ:{mat:id}}); return; }
+    if(cls.resultado==='erro' && !cls.categoria){ this._toast('Escolha a categoria do erro.'); return; }
+    // a matéria escolhida no menu (começa na do dia) e o assunto atual dela no ciclo
+    const agora=Date.now(), m=c.mats[id]||{n:'Geral'}, s=c.st[id]||{};
+    const disc=m.n, topico=s.ass||'';
+    const rec={id:'e'+agora, ts:agora, up:agora, disc, topico, enunciado:String(q.enunciado||'').trim().slice(0,1200)||((cls.resultado==='chute_certo'?'Chute certo':'Erro')+' · '+(topico||disc)),
+      myAnswer:'', gabarito:'', whyWrong:'', lesson:'', source:'Ciclo Magistratura', fonte:'ciclo-magistratura', difficulty:3, tags:[], favorite:false,
+      motivo:cls.motivo, certeza:cls.certeza, resultado:cls.resultado, categoria:cls.categoria, resolvido:false, reviewCount:0};
+    this.setState(st=>({errors:[rec, ...(st.errors||[])], cmQ:{mat:id}})); this.flashSync();
+    this._toast(cls.resultado==='chute_certo'?'Chute certo registrado como erro no caderno.':'Erro registrado no caderno.'); };
+  cmQAlternar = ()=>{ this.setState(s=>({cmQAberto:!s.cmQAberto})); };
+  cmAvancar = ()=>{ const M=window.CT_CMAG; if(M) this._cmSet(M.avancarVez(this._cm())); };
+  /* Variáveis da tela. Texto da pessoa vai cru: o template escapa {{ }} ao pintar. */
+  _cmView(){
+    const M=window.CT_CMAG; if(!M || this.state.cycleMode!=='magistratura') return {cmOn:false};
+    const c=this._cm(), hoje=this._hoje(), dark=!!this.state.darkMode, edit=this.state.cmLinkEdit||'';
+    const dow=new Date().getDay();
+    const cor=n=>{ const id=this._corDisc(n); return {cor:id, tx:this._corTx(id)}; };
+    const bloco=(id, b, on, s)=>{ const key=id+'-'+b.k, l=c.links[key]||'';
+      return {...b, id, key, pr:!!b.pr, prCampo:'p:'+b.k, prVal:(s.p||{})[b.k]||'', prAria:'Progresso do caderno: '+b.b, feito:!!s.d[b.k], feitoStr:s.d[b.k]?'true':'false', travado:!on, link:l, temLink:!!l, editando:edit===key, podeColar:b.tec&&!l&&edit!==key,
+        aria:(s.d[b.k]?'Desmarcar ':'Marcar como feito: ')+b.b}; };
+    const ativas=c.ordem.slice(0, M.ATIVAS).map((id, i)=>{
+      const m=c.mats[id], s=c.st[id], aOk=M.turnoAFeito(c, id), bOk=M.turnoBFeito(c, id), k=cor(m.n);
+      // ligada ao edital ativo? o assunto vira capítulo (tópico) + seção (subtópico) da disciplina
+      const ed=this.state.edital||[], di=M.discDoEdital(ed, id), disc=di>=0?ed[di]:null, ref=s.ref||{};
+      const tps=disc?(disc.topics||[]).filter(t=>t&&t.name):[], tSel=tps.findIndex(t=>t.name===ref.t), tpAtual=tSel>=0?tps[tSel]:null;
+      const subs=tpAtual?(tpAtual.subs||[]).map(x=>typeof x==='string'?{name:x, done:false}:x).filter(x=>x&&x.name):[];
+      return {id, i, num:'0'+(i+1), nome:m.n, obra:m.o, segunda:m.s, temSegunda:!!m.s, semObra:!m.o, ass:s.ass, nota:s.nota, temNota:!!s.nota,
+        assLabel:'assunto '+(s.n+1)+' de '+M.POR_VOLTA, vez:i===c.vez, vezStr:i===c.vez?'Hoje':'',
+        noEdital:!!disc, semEdital:!disc, edDisc:disc?disc.disc:'',
+        edTopicos:tps.map((t, ti)=>({v:String(ti), t:t.name+(t.done?' · estudado':''), sel:ti===tSel})), edTopSel:tSel>=0?String(tSel):'', edTopVazio:tSel<0,
+        edTemSubs:subs.length>0, edSubs:subs.map((x, si)=>({v:String(si), t:x.name+(x.done?' · estudado':''), sel:x.name===ref.s})), edSubSel:ref.s?String(subs.findIndex(x=>x.name===ref.s)):'', edSubVazio:!ref.s,
+        estilo:'--cm-c:'+k.cor+';--cm-tx:'+k.tx+';',
+        aOk, aFeitoTxt:aOk?'feito':'em andamento', bAberto:aOk, bTxt:aOk?(bOk?'feito':'em andamento'):'abre quando o A terminar',
+        A:M.blocosA(m).map(b=>bloco(id, b, true, s)), B:M.blocosB(m).map(b=>bloco(id, b, aOk, s)),
+        podeFechar:aOk&&bOk};
+    });
+    const fila=c.ordem.slice(M.ATIVAS).map((id, i)=>({id, nome:c.mats[id].n, pos:i+1, estilo:'--cm-c:'+cor(c.mats[id].n).cor+';'}));
+    const fmt=iso=>{ const p=String(iso).split('-'); return p[2]+'/'+p[1]; };
+    const revs=(this.state.cmagRevs||[]).filter(r=>r&&r.id).slice().sort((a,b)=>String(a.dt).localeCompare(String(b.dt))).map(r=>({id:r.id, ass:r.ass, dt:fmt(r.dt),
+      prazos:M.prazos(r, hoje).map(p=>({...p, rid:r.id, rot:'D+'+p.d, data:fmt(p.due), estado:p.feita?'feita':p.vencida?'vencida':'agendada', feitaStr:p.feita?'true':'false',
+        aria:'Revisão D+'+p.d+' de '+r.ass+(p.feita?': feita':p.vencida?': vencida':'')}))}));
+    const vencidas=revs.reduce((a,r)=>a+r.prazos.filter(p=>p.vencida).length, 0);
+    return {cmOn:true, cmAtivas:ativas, cmFila:fila, cmTemFila:fila.length>0, cmRevs:revs, cmTemRevs:revs.length>0,
+      cmVencidas:vencidas, cmTemVencidas:vencidas>0, cmVencidasTxt:vencidas===1?'1 revisão vencida':vencidas+' revisões vencidas',
+      cmSabado:M.SABADO.map(q=>({k:q[0], txt:q[1], on:!!c.sab[q[0]], onStr:c.sab[q[0]]?'true':'false'})),
+      cmEhSabado:dow===6, cmEhDomingo:dow===0,
+      cmRotina:M.ROTINA.map(r=>({t:r[0], d:r[1]})), cmRegras:M.REGRAS, cmAux:M.AUXILIARES.join(' · '),
+      cmHoje:ativas[c.vez]?ativas[c.vez].nome:'',
+      ...(()=>{ const q=this.state.cmQ||{}, mat=(q.mat && c.st[q.mat]) ? q.mat : c.ordem[c.vez];
+        const nHoje=(this.state.errors||[]).filter(e=>e && e.fonte==='ciclo-magistratura' && e.ts && new Date(e.ts).toDateString()===new Date().toDateString()).length;
+        return {cmQShow:!!this.state.timerRunning, cmQAberto:!!this.state.cmQAberto, cmQAbertoStr:this.state.cmQAberto?'true':'false',
+          cmQHojeTxt:nHoje?String(nHoje)+' hoje':'', cmQMatSel:mat, cmQMats:ativas.map(a=>({id:a.id, nome:a.nome, sel:a.id===mat})),
+          cmQRes:[['erro','Errei'],['certo','Acertei']].map(r=>({v:r[0], t:r[1], on:(q.res||'erro')===r[0]?'true':'false'})),
+          cmQCert:M.CERTEZAS.map(r=>({v:r[0], t:r[1], on:q.certeza===r[0]?'true':'false'})),
+          cmQCat:M.CATEGORIAS.map(r=>({v:r[0], t:r[1], on:q.categoria===r[0]?'true':'false'})),
+          cmQCatShow:(q.res||'erro')==='erro'}; })(),
+      cmQ:this.cmQ, cmQRegistrar:this.cmQRegistrar, cmQAlternar:this.cmQAlternar,
+      cmToggle:this.cmToggle, cmCampo:this.cmCampo, cmLinkAbrir:this.cmLinkAbrir, cmLinkSalvar:this.cmLinkSalvar, cmLinkApagar:this.cmLinkApagar,
+      cmEdTopico:this.cmEdTopico, cmEdSub:this.cmEdSub, cmFechar:this.cmFechar, cmRevMarcar:this.cmRevMarcar, cmRevRemover:this.cmRevRemover, cmSabado:this.cmSabado, cmZerarSabado:this.cmZerarSabado, cmAvancar:this.cmAvancar};
+  }
   // Data ISO (AAAA-MM-DD) do dia da semana pedido, DENTRO da semana atual (segunda a domingo).
   _isoDiaSemana(diaKey){
     const ordem=['seg','ter','qua','qui','sex','sab','dom']; const t=ordem.indexOf(diaKey); if(t<0) return '';
@@ -11543,9 +12034,18 @@ class Component extends DCLogic {
   _freshSessionDraft(prev){ const _d1=(this.state.edital[0]&&this.state.edital[0].disc)||'Direito Constitucional'; const _autoRev=(this.state.prefs&&this.state.prefs.autoRevisao)!==false; return { disc:(prev&&prev.disc)||_d1, discCustom:false, topico:'', edTop:'', edSub:'', marcarEdital:false, categorias:(prev&&prev.categorias)||['Teoria'], categoria:(prev&&prev.categoria)||'Teoria', minutos:'', acertos:'', erradas:'', brancos:'', foco:4, nota:'', agendarRevisao:_autoRev, contarMeta:true }; }
   // Tópicos/subtópicos da disciplina, lidos do EDITAL (fonte canônica) — usados
   // pelos selects do registro de sessão e da edição do histórico.
-  _topicosDe(disc){ const d=(this.state.edital||[]).find(x=>String(x.disc||'').trim()===String(disc||'').trim());
-    return (d&&Array.isArray(d.topics))?d.topics:[]; }
-  _subsDe(disc, topico){ const t=this._topicosDe(disc).find(x=>String(x.name||'').trim()===String(topico||'').trim());
+  // Os selects oferecem os tópicos do concurso ATIVO; `cru` olha o acervo inteiro (para
+  // conferir se um tópico já gravado numa sessão existe, seja de que concurso for).
+  // `manter` = tópico que a sessão JÁ aponta (um bloco de revisão pode trazer um tópico de outro
+  // concurso): ele entra na lista mesmo não sendo do ativo, senão o select ficaria sem a opção.
+  _topicosDe(disc, cru, manter){ const k=x=>String(x||'').trim();
+    const d=(cru?(this.state.edital||[]):this._edVista()).find(x=>k(x.disc)===k(disc));
+    const tops=(d&&Array.isArray(d.topics))?d.topics:[];
+    if(cru || !k(manter) || tops.some(t=>k(t.name)===k(manter))) return tops;
+    const a=(this.state.edital||[]).find(x=>k(x.disc)===k(disc));
+    const t=a && Array.isArray(a.topics) && a.topics.find(x=>k(x.name)===k(manter));
+    return t ? tops.concat([t]) : tops; }
+  _subsDe(disc, topico){ const t=this._topicosDe(disc, false, topico).find(x=>String(x.name||'').trim()===String(topico||'').trim());
     return (t&&Array.isArray(t.subs))?t.subs:[]; }
   // Flashcards é o único tipo cuja categoria difere do nome; os tipos próprios de cada
   // área (Caso clínico, Prática/laboratório…) valem como categoria com o mesmo nome.
@@ -11603,7 +12103,7 @@ class Component extends DCLogic {
     const disc = b.discEdital || b.disc || '';
     const topico = b.topico || ((b.tag&&b.tag!=='Rotativa'&&b.tag!=='Ciclo'&&b.tag!=='Fixa'&&!b.discEdital)?b.tag:'');
     // se o tópico do bloco é um tópico do edital, a sessão já nasce com o vínculo pronto
-    const _edTop=this._topicosDe(disc).some(t=>String(t.name||'').trim()===String(topico||'').trim())?topico:'';
+    const _edTop=this._topicosDe(disc, true).some(t=>String(t.name||'').trim()===String(topico||'').trim())?topico:'';
     // o subtópico do bloco vira o subtópico da sessão — é o que dá granularidade ao
     // domínio por tópico; sem isto o registro voltava para "o tópico inteiro".
     // atvKey é o fio que leva a sessão de volta à atividade: tempo parcial, origem do
@@ -11645,10 +12145,14 @@ class Component extends DCLogic {
         const topics=(d.topics||[]).map(t=>{
           if(String(t.name||'').trim()!==String(topico||'').trim()) return t;
           // string vira {name, done}; objeto mantém os outros campos — spread de string vira caracteres soltos
+          // só o que é do concurso ATIVO: subtópico que pertence a outro edital não é concluído
+          // daqui, nem impede o tópico de fechar quando todos os DESTE concurso estão feitos
+          const _id=this._espAtivo();
           if(sub){ const subs=(t.subs||[]).map(x0=>{ const x=this._subObj(x0); return String(x.name||'').trim()===String(sub).trim() ? {...x, done:true} : x; });
-            const todos=subs.length>0 && subs.every(x=>x.done);
+            const meus=subs.filter(x=>this._noEd(x, _id));
+            const todos=meus.length>0 && meus.every(x=>x.done);
             return {...t, subs, done: todos||t.done}; }
-          const subs=(t.subs||[]).map(x=>({...this._subObj(x), done:true}));
+          const subs=(t.subs||[]).map(x0=>{ const x=this._subObj(x0); return this._noEd(x, _id) ? {...x, done:true} : x; });
           return {...t, subs, done:true};
         });
         return {...d, topics};
@@ -11866,7 +12370,28 @@ class Component extends DCLogic {
      um shim de documentPictureInPicture (existe, logo mostra); no iPad não há documentPiP nem
      canvas.captureStream — o caminho por vídeo precisa dos dois — e o botão só rendia um toast
      mandando "abrir pelo Safari" de dentro do app. Sem API e dentro do nativo, o botão não aparece. */
-  _pipDisponivel(){ try{ return this._docPiPReady() || (this._videoPiPReady() && typeof HTMLCanvasElement!=='undefined' && !!HTMLCanvasElement.prototype.captureStream); }catch(_){ return false; } }
+  _pipDisponivel(){ try{ return this._pipNativo() || this._docPiPReady() || (this._videoPiPReady() && typeof HTMLCanvasElement!=='undefined' && !!HTMLCanvasElement.prototype.captureStream); }catch(_){ return false; } }
+  /* iPad: o host oferece o PiP DO SISTEMA (AVPictureInPictureController) pela ponte catedraPiP.
+     A web segue dona do tempo: manda os números a cada 500 ms e o host só desenha o quadro;
+     o play/pausa da janela volta por window.catedraPiPEvento('alternar'). */
+  _pipNativo(){ try{ return !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.catedraPiP); }catch(_){ return false; } }
+  _pipNatPayload(acao){ const v=this._pipVals(); return {acao, disp:v.disp, fase:v.phaseText, cor:v.color, pct:v.pct, rodando:!!v.running, pomo:!!v.isPomo}; }
+  _pipNatParar(){ if(this._pipNatInt){ clearInterval(this._pipNatInt); this._pipNatInt=null; } this._pipNatAberto=false; }
+  async _togglePiPNativo(){
+    const ponte=window.webkit.messageHandlers.catedraPiP;
+    if(this._pipNatAberto){ this._pipNatParar(); try{ await ponte.postMessage({acao:'fechar'}); }catch(_){} return; }
+    const ok=await ponte.postMessage(this._pipNatPayload('abrir'));
+    if(!ok){ this._pipFlash('A janela flutuante não está disponível neste aparelho. O cronômetro continua na barra de cima e na sala de foco.'); return; }
+    this._pipNatAberto=true;
+    if(this._pipNatInt) clearInterval(this._pipNatInt);
+    this._pipNatInt=setInterval(()=>{ try{ ponte.postMessage(this._pipNatPayload('atualizar')); }catch(_){} }, 500);
+  }
+  _pipNatEvento(ev){
+    if(ev==='alternar'){ this.toggleTimer(); return; }
+    if(ev==='aberto'){ this._pipFlash('Janela flutuante aberta. Se quiser, pode deixar o Cátedra em segundo plano.'); return; }
+    if(ev==='fechado'){ this._pipNatParar(); return; }
+    if(ev==='falhou'){ this._pipNatParar(); this._pipFlash('Não consegui abrir a janela flutuante agora — tente de novo.'); }
+  }
   _mostraPiP(){ try{ return !(this._temAbasNativas() && !this._pipDisponivel()); }catch(_){ return true; } }
   // Cor da plataforma (accent) resolvida em HEX. O PiP é OUTRA janela (ou um canvas):
   // não herda as CSS vars do app, então precisa da cor literal.
@@ -12023,6 +12548,7 @@ class Component extends DCLogic {
   }
   togglePiP = async ()=>{
     try{
+      if(this._pipNativo()) return await this._togglePiPNativo();
       if(this._pipWin && !this._pipWin.closed){ this._closeDocPiP(); return; }
       if(document.pictureInPictureElement){ await document.exitPictureInPicture(); this._pipStop(); return; }
       if(this._docPiPReady()) return await this._openDocPiP();
@@ -12240,7 +12766,7 @@ class Component extends DCLogic {
   // ===== Exportar o EDITAL (texto/PDF) — outline com progresso, gerado localmente =====
   // Outline compartilhado pelos dois formatos: uma lista de blocos tipados.
   _editalOutline(){
-    const ed=this.state.edital||[]; const rows=[];
+    const ed=this._edVista(); const rows=[];   // o que se imprime é o edital do concurso ativo
     const nome=(this.state.prefs&&this.state.prefs.objetivo)||'';
     rows.push({k:'title', text:'EDITAL'+(nome?(' — '+nome):'')});
     const hoje=new Date().toLocaleDateString('pt-BR');
@@ -12592,6 +13118,7 @@ class Component extends DCLogic {
   // e é a data que responde a única pergunta que importa ao reabrir — isto aqui é de hoje
   // ou é de três semanas atrás? É escalar, então o carimbo por chave do sync já resolve.
   onRedText = (e)=>{ if(!this._redCronoDesde && !this.state.redBusy) this._redCronoIniciar();
+    this._redTextoDeTecla=true;
     this.setState({redText:e.currentTarget.value, redTextTs:Date.now()});
     try{ requestAnimationFrame(this._redMedirFolha); }catch(_){} };
   // ===== U4: RETOMADA EXPLÍCITA DA REDAÇÃO =============================================
@@ -12600,7 +13127,12 @@ class Component extends DCLogic {
   // agora e continuava escrevendo por cima do que já não servia. A faixa aparece só quando
   // o rascunho é de OUTRA sessão (o texto ainda é igual ao que veio do disco no boot) e
   // some assim que a pessoa escreve — não fica pedindo passagem enquanto se trabalha.
-  redRascunhoOk = ()=>{ this.setState({redRascunhoOculto:true}); try{ const t=document.querySelector('[data-red="folha"] textarea')||document.querySelector('main textarea'); if(t){ t.focus(); t.setSelectionRange(t.value.length, t.value.length); } }catch(_){} };
+  redRascunhoOk = ()=>{
+    // continuar o rascunho é continuar DIGITANDO: em "À mão" a folha nem está na tela para receber o cursor
+    const focar=()=>{ try{ const t=document.querySelector('[data-red="folha"] textarea'); if(t){ t.focus(); t.setSelectionRange(t.value.length, t.value.length); return true; } }catch(_){} return false; };
+    const patch={redRascunhoOculto:true};
+    if(this.state.redModoResposta!=='digitar' && !this.state.redBusy){ patch.redModoResposta='digitar'; patch.redConferindo=false; patch.redConf={}; this._redModoEscolhido=true; }
+    this.setState(patch, ()=>{ if(!focar()) setTimeout(focar, 60); }); };
   redZerarRascunho = ()=>{
     if(!window.confirm('Apagar o rascunho e começar do zero? A prova e o espelho continuam carregados — só a sua resposta sai da tela.')) return;
     this._redBoot=''; this._redCorrAbortar(); this._redCronoZerar();
@@ -12638,6 +13170,11 @@ class Component extends DCLogic {
      o do arquivo. Aqui cada linha vira um BLOCO tipografado: título (peso e respiro),
      alínea (recuo pendurado, para a 2ª linha alinhar sob o texto e não sob a letra) e
      parágrafo (justificado, como a prova impressa). Só apresentação — o dado fica como veio. */
+  // Os blocos do enunciado saem do mesmo texto para a leitura e para o chip de comandos, e o render roda
+  // a cada segundo com o cronômetro: guarda os dois últimos textos (com e sem a 1ª linha da prova).
+  _redBlocosMemo(bruto){ const c=this._redBlocosCache||(this._redBlocosCache=[]);
+    for(let i=0;i<c.length;i++) if(c[i].t===bruto) return c[i].b;
+    const b=this._redBlocos(this._desquebrar(bruto)); c.unshift({t:bruto, b}); if(c.length>2) c.length=2; return b; }
   _redBlocos(t){
     const linhas=String(t||'').split('\n').map(x=>x.trim());
     const out=[];
@@ -12793,7 +13330,7 @@ class Component extends DCLogic {
     const _sug = gabTexto ? null : this._espSugDe(q.id);
     const _gab = gabTexto || (_sug ? this._espSugTexto(_sug) : '');
     this._redCorrAbortar(); this._redCronoZerar();
-    this.setState({
+    this.setState({redReescritaDe:'', redReescritaNota:'', 
       redProvaId: q.id, espSugAtual: _sug,
       redDisciplina:{disc:this._redDiscDoBanco(q.disciplina), origem:'banco', banco:String(q.disciplina||'')},
       // guarda POR QUE não há espelho, para a faixa dizer a verdade em vez de chutar
@@ -12892,7 +13429,9 @@ class Component extends DCLogic {
       if(caixa===this._redFolhaVista) return;
       if(this._redFolhaRO){ this._redFolhaRO.disconnect(); this._redFolhaRO=null; }
       this._redFolhaVista=caixa; if(!caixa) return;
-      if(typeof ResizeObserver==='function'){ this._redFolhaRO=new ResizeObserver(()=>this._redMedirFolha()); this._redFolhaRO.observe(caixa); if(caixa.parentElement) this._redFolhaRO.observe(caixa.parentElement); }
+      if(typeof ResizeObserver==='function'){ // a medição muda a altura da folha: feita dentro do aviso do observador, o navegador acusa "ResizeObserver loop"
+        // e o app mostrava isso como erro na tela. Vai para o próximo quadro.
+        this._redFolhaRO=new ResizeObserver(()=>{ try{ requestAnimationFrame(this._redMedirFolha); }catch(_){ this._redMedirFolha(); } }); this._redFolhaRO.observe(caixa); if(caixa.parentElement) this._redFolhaRO.observe(caixa.parentElement); }
       // a medida é em ch: quando a serifa do tema termina de carregar, o ch muda e a folha não muda de tamanho
       try{ if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>this._redMedirFolha()); }catch(_){}
       this._redMedirFolha();
@@ -12900,10 +13439,15 @@ class Component extends DCLogic {
   toggleRedFoco = ()=> this._redFocoPor(!this.state.redFoco);
   _redFocoPor(on){ this.setState({redFoco:!!on});
     try{ if(on) document.documentElement.setAttribute('data-red-foco',''); else document.documentElement.removeAttribute('data-red-foco'); }catch(_){}
-    if(on && !this._redFocoEsc){ this._redFocoEsc=(e)=>{ if(e.key==='Escape' && this.state.redFoco) this._redFocoPor(false); }; document.addEventListener('keydown', this._redFocoEsc); } }
+    if(on && !this._redFocoEsc){ this._redFocoEsc=(e)=>{ if(e.key==='Escape' && this.state.redFoco) this._redFocoPor(false); }; document.addEventListener('keydown', this._redFocoEsc); }
+    if(!on && this._redFocoEsc){ try{ document.removeEventListener('keydown', this._redFocoEsc); }catch(_){} this._redFocoEsc=null; } }
   _redNum(x){ return (Math.round((+x||0)*100)/100).toFixed(2).replace('.',','); }
   // O que o espelho em uso permite: correção por quesito, por cobertura, ou nada.
   _redEspelhoResumo(){ const g=String(this.state.redGabarito||'');
+    // o render pede isto a cada segundo (cronômetro): o resultado só depende do texto do espelho
+    const m=this._redResumoMemo; if(m && m.g===g) return m.r;
+    const r=this._redEspelhoResumoDe(g); this._redResumoMemo={g, r}; return r; }
+  _redEspelhoResumoDe(g){
     if(!g.trim()) return {qs:[], total:0, estado:'vazio', txt:'Falta o espelho'};
     const qs=this._redQuesitos(g);
     if(!qs.length) return {qs, total:0, estado:'prosa', txt:'Espelho em prosa — a correção será por cobertura'};
@@ -12915,12 +13459,24 @@ class Component extends DCLogic {
   // Os degraus que a pessoa pode se dar num quesito: a escala da banca quando há; senão
   // zero, metade e cheio. Nota fora da escala não existe (mesma regra do corretor local).
   _redConfOpcoes(q){ if(q.escala&&q.escala.length) return q.escala.slice();
-    const max=q.max!=null?q.max:1; return [0, Math.round(max*50)/100, max]; }
+    const max=q.max!=null?q.max:1;
+    return [0, Math.round(max*50)/100, max].filter((v,i,a)=>a.indexOf(v)===i); }   // máximo 0 (ou de 1 centésimo) não repete degrau
   terminarMao = ()=>{
     this._redCronoPausar();
     const r=this._redEspelhoResumo();
     if(r.estado==='vazio'){ this.setState({redEspelhoOculto:false, redGabVista:'texto'}); return; }
+    this._redOcultoAntesConf=!!this.state.redEspelhoOculto;   // "Voltar a escrever" guarda o espelho de novo
     this.setState({redConferindo:true, redEspelhoOculto:false, redGabVista:'quesitos', redConf:{}});
+  };
+  // Há nota marcada na conferência? Sair dela (voltar a escrever, trocar de modo) descarta — então pergunta antes.
+  _redConfTemNota(){ const c=this.state.redConf||{};
+    return Object.keys(c).some(k=> k==='unica' ? !!String(c.unica==null?'':c.unica).trim() : c[k]!=null); }
+  // Tocou "Terminei" cedo demais: volta para a escrita. O tempo fica como está e o cronômetro NÃO
+  // retoma sozinho — quem decide voltar a contar é a pessoa, no "Continuar".
+  voltarConferencia = ()=>{
+    if(!this.state.redConferindo) return;
+    if(this._redConfTemNota() && !window.confirm('Voltar a escrever? As notas que você já marcou nesta conferência serão descartadas.')) return;
+    this.setState({redConferindo:false, redConf:{}, redGabVista:'', redEspelhoOculto:!!this._redOcultoAntesConf});
   };
   marcarConf = (e)=>{ const i=e.currentTarget.dataset.i, v=parseFloat(e.currentTarget.dataset.v);
     if(i==null || isNaN(v)) return; this.setState({redConf:{...(this.state.redConf||{}), [i]:v}}); };
@@ -12956,9 +13512,10 @@ class Component extends DCLogic {
       aiUsed:false, propria:true, livre:false, enunciado:enun, aproximada:aprox, quesitos };
     const agora=Date.now();
     const entry={ id:'rd'+agora, up:agora, tema:titulo, words:0, nota, ts:agora, disc:disc.disc||'', disciplinaOrigem:disc.origem||'',
-      res, texto:'', gabarito:this.state.redGabarito, aproximada:aprox, origem:'conferencia-propria', tempoMs, ...(linhas!=null?{linhas}:{}) };
+      res, texto:'', gabarito:this.state.redGabarito, aproximada:aprox, origem:'conferencia-propria', tempoMs, ...(linhas!=null?{linhas}:{}),
+      ...(this._redAnteriorId()?{anteriorId:this._redAnteriorId()}:{}) };
     const hist=[entry, ...this.state.redHistory].slice(0,12); this._redSave(hist);
-    this.setState({redResult:res, redHistory:hist, redConferindo:false, redConf:{}, redLinhasMao:'', redSubText:'', redSubGab:this.state.redGabarito});
+    this.setState({redResult:res, redResultId:entry.id, redHistory:hist, redConferindo:false, redConf:{}, redLinhasMao:'', redSubText:'', redSubGab:this.state.redGabarito, redReescritaDe:'', redReescritaNota:''});
     this._redCronoZerar(); this.flashSync();
     try{ this._redRegistrar({origem:'redacao', prova:titulo, notaTotal:nota, notaMax:10, disc:disc.disc, disciplinaOrigem:disc.origem, aproximada:aprox,
       quesitos:quesitos.map(q=>({titulo:q.quesito, nota:q.obtido, max:q.pontos})) }); }catch(_){}
@@ -12966,6 +13523,9 @@ class Component extends DCLogic {
   toggleRedCrono = ()=>{ if(this.state.redBusy) return; if(this._redCronoDesde) this._redCronoPausar(); else this._redCronoIniciar(); };
   setRedModo = (e)=>{ const m=e.currentTarget.dataset.m==='digitar'?'digitar':'mao';
     if(m===this.state.redModoResposta || this.state.redBusy) return;
+    // trocar de modo fecha a conferência: com nota marcada, isso não acontece em silêncio
+    if(this.state.redConferindo && this._redConfTemNota() && !window.confirm('Trocar de modo agora? As notas que você já marcou nesta conferência serão descartadas.')) return;
+    this._redModoEscolhido=true;   // escolha da pessoa nesta sessão: rascunho que chegar depois não troca o modo por ela
     this.setState({redModoResposta:m, redConferindo:false, redConf:{}}); };
   // Dados derivados da Prova oral (só calculados quando a view está aberta).
   _oralVM(){
@@ -14217,7 +14777,7 @@ class Component extends DCLogic {
     try{
       const calc=window.CT_PRIORIDADE_CALC; if(!calc) return [];
       return calc.prioridadeDisciplinas({
-        edital:(this.state.edital||[]).filter(d=>!d.foraDoConcurso), errors:this.state.errors, reviews:this.state.reviews,
+        edital:this._edVista().filter(d=>!d.foraDoConcurso), errors:this.state.errors, reviews:this.state.reviews,
         sessions:this.state.sessions, redHist:this.state.redHist, incidencia:this._prioridadeIncidencia(), leituraPendente:this._laPendentePorDisc(), hoje:this._hoje(),
         // os controles de prioridade de Ajustes SÃO os pesos: a mesma régua do Foco do Início
         pesos:(typeof calc.pesosDosControles==='function') ? calc.pesosDosControles(this.state.orient||{}) : undefined,
@@ -14512,7 +15072,7 @@ class Component extends DCLogic {
         if(reNome && reNome.test(nt)) return true;
         return !!(mesmaDisc && reArt && reArt.test(nt)); };
       // Edital: os tópicos que citam a norma (ou o artigo, dentro da própria disciplina)
-      const edital=Array.isArray(this.state.edital) ? this.state.edital : [];
+      const edital=Array.isArray(this.state.edital) ? this._edVista() : [];
       const topicos=[]; let discEd=null;
       for(const d of edital){
         if(!d) continue;
@@ -14853,7 +15413,7 @@ class Component extends DCLogic {
     if(disc && !this._redDiscOpcoes().some(d=>d.v===disc)) return;
     this.setState({redDisciplina:{...(this.state.redDisciplina||{}),disc,origem:'manual'}});
   };
-  redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.')) return; this._redBoot=''; this._redCorrAbortar(); this._redCronoZerar(); this.setState({redResult:null, redText:'', redTextTs:0, redRascunhoOculto:false, redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false, redModoProva:false, redEditandoEnun:false, redQuestaoAberta:true, redModoResposta:'mao', redGabVista:'', redGabErro:'', redGabOk:'', redConferindo:false, redConf:{}, redLinhasMao:'', redProvaId:'', redDisciplina:{}, espSugAtual:null}); try{ localStorage.setItem(this._chave('redText'),JSON.stringify('')); localStorage.setItem(this._chave('redGabarito'),JSON.stringify('')); localStorage.setItem(this._chave('redEnunciado'),JSON.stringify('')); }catch(_){} };
+  redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.')) return; this._redBoot=''; this._redCorrAbortar(); this._redCronoZerar(); this.setState({redReescritaDe:'', redReescritaNota:'', redResult:null, redText:'', redTextTs:0, redRascunhoOculto:false, redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false, redModoProva:false, redEditandoEnun:false, redQuestaoAberta:true, redModoResposta:'mao', redGabVista:'', redGabErro:'', redGabOk:'', redConferindo:false, redConf:{}, redLinhasMao:'', redProvaId:'', redDisciplina:{}, espSugAtual:null}); try{ localStorage.setItem(this._chave('redText'),JSON.stringify('')); localStorage.setItem(this._chave('redGabarito'),JSON.stringify('')); localStorage.setItem(this._chave('redEnunciado'),JSON.stringify('')); }catch(_){} };
   redOpenHist = (e)=>{ const id=e.currentTarget.dataset.id; const h=(this.state.redHistory||[]).find(x=>x.id===id);
     if(!h||!h.res){ this._toast('Correção completa não disponível para este item'); return; }
     this._redCorrAbortar();
@@ -14990,6 +15550,7 @@ class Component extends DCLogic {
     if(words<40 || this.state.redBusy || !(this.state.redGabarito||'').trim()) return;
     this._redCorrAbortar();
     const _aprox=!!this.state.espSugAtual;     // lido ANTES da espera: a prova pode mudar no meio
+    const _anterior=this._redAnteriorId();
     const _disc={...(this.state.redDisciplina||{})};
     this._redCronoPausar(); const _tempoMs=this._redTempoAgora(); if(this.state.redFoco) this._redFocoPor(false);
     const gab=this.state.redGabarito; const enun=(this.state.redEnunciado||'').trim();
@@ -15011,9 +15572,9 @@ class Component extends DCLogic {
         disc:_disc.disc, disciplinaOrigem:_disc.origem, aproximada:_aprox}); }catch(_){}
     const agora=Date.now();
     const entry={id:'rd'+agora, up:agora, tema:_titulo, words, nota:res.nota, ts:agora, disc:_disc.disc||'', disciplinaOrigem:_disc.origem||'', res, texto:text, gabarito:gab, aproximada:_aprox, origem:(_aprox?'espelho-sugerido':'espelho-oficial'), tempoMs:_tempoMs,
-      motor:res.motor||'ia', ...(res.falhaIA?{falhaIA:res.falhaIA}:{}), ...(evo&&evo.id?{evoId:evo.id}:{})};
+      motor:res.motor||'ia', ...(res.falhaIA?{falhaIA:res.falhaIA}:{}), ...(evo&&evo.id?{evoId:evo.id}:{}), ...(_anterior?{anteriorId:_anterior}:{})};
     const hist=[entry, ...this.state.redHistory].slice(0,12); this._redSave(hist);
-    this.setState({redBusy:false, redResult:res, redResultId:entry.id, redHistory:hist}); this._redCronoZerar(); this.flashSync();
+    this.setState({redBusy:false, redResult:res, redResultId:entry.id, redHistory:hist, redReescritaDe:'', redReescritaNota:''}); this._redCronoZerar(); this.flashSync();
     // tempo esgotado: se a IA ainda responder, a correção dela substitui a estimativa (a chamada já foi paga)
     const tardia=this._redTardia; this._redTardia=null;
     if(res.falhaIA==='tempo' && tardia){ const tok2=this._redCorrTok;
@@ -15035,6 +15596,22 @@ class Component extends DCLogic {
     this.setState({...(achou?{redHistory:hist}:{}), ...((naTela||!id)?{redResult:res}:{})}); this.flashSync();
     return !!achou;
   }
+  /* ===== RESULTADO ANOTADO (fatia 3, 03/10/2026): reescrever e comparar =====
+     Da tela da nota, volta para a folha com o mesmo enunciado e o mesmo espelho (guardado de novo). Quem
+     digitou recebe o texto anterior para editar; quem fez à mão refaz no papel. A nova correção guarda
+     `anteriorId`, e a tela da nota compara as duas tentativas quesito a quesito. */
+  reescreverRed = ()=>{
+    const r=this.state.redResult; if(!r) return;
+    const propria=!!r.propria; const texto=propria?'':String(this.state.redSubText||'');
+    this._redCorrAbortar(); this._redCronoZerar(); this._redBoot='';
+    this.setState({ redResult:null, redReescritaDe:this.state.redResultId||'', redReescritaNota:String(r.notaStr||'').replace('.',','),
+      redText:texto, redTextTs:texto?Date.now():0, redModoResposta:propria?'mao':'digitar', redRascunhoOculto:true,
+      redEnunciado:(r.enunciado||this.state.redEnunciado||''), redGabarito:(this.state.redSubGab||this.state.redGabarito||''),
+      redEspelhoOculto:true, redConferindo:false, redConf:{}, redSubText:null, redSubGab:null });
+    try{ window.scrollTo(0,0); }catch(_){}
+  };
+  /** A reescrita só vale como ligação se a tentativa anterior ainda está no histórico. */
+  _redAnteriorId(){ const id=this.state.redReescritaDe; return (id && (this.state.redHistory||[]).some(h=>h.id===id)) ? id : ''; }
   cancelarCorrecao = ()=>{ const eraEntrega=!!this.state.redBusy; this._redCorrAbortar();
     if(eraEntrega) this.setState({redEspelhoOculto:!!this._redOcultoAntes}); };
   /** A estimativa local está na tela; tenta de novo com a IA e, se der, SUBSTITUI a entrada do histórico. */
@@ -15620,7 +16197,8 @@ class Component extends DCLogic {
       myAnswer:(d.myAnswer||'').trim(), gabarito:(d.gabarito||'').trim(), whyWrong:(d.whyWrong||'').trim(), lesson:(d.lesson||'').trim(),
       source:(d.source||'').trim(), difficulty:Math.min(5,Math.max(1,parseInt(d.difficulty,10)||3)),
       tags:Array.isArray(d.tags)?d.tags.filter(Boolean):[], favorite:!!d.favorite,
-      motivo:d.motivo||'conteudo', resolvido:false, reviewCount:0};
+      motivo:d.motivo||'conteudo', resolvido:false, reviewCount:0,
+      ...(d.certeza?{certeza:d.certeza}:{}), ...(d.resultado?{resultado:d.resultado}:{}), ...(d.categoria?{categoria:d.categoria}:{})};
     this.setState(s=>({errors:[rec, ...s.errors], errDraft:this._freshErrDraft(s.errDraft), errMaisCampos:false, errTagInput:''})); this._toast('Erro registrado no caderno ✦'); this.flashSync(); };
   _freshErrDraft(prev){ const _d1=(this.state.edital[0]&&this.state.edital[0].disc)||''; return {disc:(prev&&prev.disc)||_d1, discCustom:false, topico:'', enunciado:'', myAnswer:'', gabarito:'', whyWrong:'', lesson:'', source:(prev&&prev.source)||'', difficulty:3, tags:[], favorite:false, motivo:(prev&&prev.motivo)||'conteudo'}; }
   removeErro = (e)=>{ const id=e.currentTarget.dataset.id;
@@ -15740,7 +16318,7 @@ class Component extends DCLogic {
     let B; try{ B=this._brain(); }catch(_){ B={discList:[],byTopic:{},normT:s=>String(s||'')}; }
     const fracas=[...(B.discList||[])].filter(d=>d.q>=5).sort((a,b)=>a.liqPct-b.liqPct).slice(0,4).map(d=>String(d.disc||'').replace('Direito ','')+' ('+d.liqPct+'% líq)');
     const now=Date.now(), TAU=45, MINQ=6; const temas=[];
-    (this.state.edital||[]).forEach(d=>{ (d.topics||[]).forEach(tp=>{ const ag=B.byTopic[(d.disc||'—')+'¦'+B.normT(tp.name)]; if(!ag||ag.q<MINQ) return; const dom=Math.max(0,Math.min(100,Math.round((ag.a-ag.e)/ag.q*100))); const dias=(now-(ag.lastTs||now))/864e5; if(dom>=60&&dias>TAU) temas.push(tp.name+' (esfriando)'); else if(dom<55) temas.push(tp.name+' (frágil '+dom+'%)'); }); });
+    this._edVista().forEach(d=>{ (d.topics||[]).forEach(tp=>{ const ag=B.byTopic[(d.disc||'—')+'¦'+B.normT(tp.name)]; if(!ag||ag.q<MINQ) return; const dom=Math.max(0,Math.min(100,Math.round((ag.a-ag.e)/ag.q*100))); const dias=(now-(ag.lastTs||now))/864e5; if(dom>=60&&dias>TAU) temas.push(tp.name+' (esfriando)'); else if(dom<55) temas.push(tp.name+' (frágil '+dom+'%)'); }); });
     const revVenc=(this.state.reviews||[]).filter(r=>(r.due||0)<0).length;
     if(!fracas.length && !temas.length && !revVenc){ this.setState({lacunas:'Ainda não há dados suficientes. Registre algumas sessões com questões e o tópico preenchido — aí eu mapeio suas lacunas e monto o plano de ataque.', lacunasBusy:false}); return; }
     const ctx='Disciplinas fracas: '+(fracas.join('; ')||'—')+'. Temas em risco: '+(temas.slice(0,10).join('; ')||'—')+'. Revisões vencidas: '+revVenc+'.';
@@ -17678,7 +18256,7 @@ class Component extends DCLogic {
       const hojeKey=['dom','seg','ter','qua','qui','sex','sab'][new Date().getDay()];
       const fixed=this.state.manualFixed||[];
       // vínculo com o edital: cada atividade ganha selects de disciplina + tópico
-      const _edList=this.state.edital||[];
+      const _edList=this._edVista();
       const _agHM=(mm)=>{ mm=Math.max(0,Math.round(mm||0)); const h=Math.floor(mm/60), m=mm%60; return h>0?(h+'h'+(m?String(m).padStart(2,'0'):'')):(m+'min'); };
       const _mkItem=(f)=>{ const discOpts=_edList.map(d=>({v:d.disc,label:d.disc,sel:d.disc===f.discEdital}));
         const ed=_edList.find(d=>d.disc===f.discEdital);
@@ -17733,26 +18311,36 @@ class Component extends DCLogic {
       const level= liq>=70?'Dominado':liq>=55?'Em curso':'Frágil';
       const color= liq>=70?'var(--ok)':liq>=55?'var(--warn)':'var(--danger)';
       return {has:true, pct:liq, level, color, str:level+' · '+liq+'%'}; };
+    const _ativoId=this._espAtivo(), _outrosAb=this.state.edOutros||{};
+    const _varios=(this._editaisComMigracao()||[]).length>1;   // "tirar deste concurso" só faz sentido com mais de um
     const edital = this.state.edital.map((d,i)=>{
       // Disciplina sem `topics` (blob de sync truncado, item de versão antiga, edital
       // importado à mão) derrubava o renderVals INTEIRO e punha um TypeError na tela.
       // Uma disciplina sem tópicos é um caso legítimo: zero de zero é 0%.
-      const _tp=Array.isArray(d.topics)?d.topics:[];
+      // Só os tópicos do concurso ATIVO entram na lista e nas contas; o índice (j, k) continua
+      // sendo o do ACERVO, porque é por ele que marcar/editar acha o tópico certo.
+      const _todos=Array.isArray(d.topics)?d.topics:[];
+      const _meus=[], _outros=[];
+      _todos.forEach((t,j)=>{ if(!this._noEd(t, _ativoId)){ _outros.push({d:i, t:j, s:-1, label:String((t&&t.name)||'')}); return; }
+        _meus.push(j);
+        (Array.isArray(t&&t.subs)?t.subs:[]).forEach((x,k)=>{ if(!this._noEd(x, _ativoId)) _outros.push({d:i, t:j, s:k, label:String(t.name||'')+' › '+String((x&&x.name)||'')}); }); });
+      const _tp=_meus.map(j=>_todos[j]);
       const done=_tp.filter(t=>t&&t.done).length, tot=_tp.length;
       const pct=tot>0?Math.round(done/tot*100):0;
       const act=_actBy[d.disc]||{horas:0,q:0,liqPct:0,min:0};
       const actStr = act.min>0 ? (act.horas+'h estudadas · '+act.q+'q · '+act.liqPct+'% líq') : 'sem sessões ainda';
       const _pv=(d.peso!=null&&d.peso!=='')?d.peso:'', _qv=(d.questoes!=null&&d.questoes!=='')?d.questoes:'';
       const _hasMeta=_pv!==''||_qv!=='';
-      const _tops=_tp.map((t,j)=>{ const dm=_domTopico(d.disc, t.name); return {...t,d:i,i:j,
+      const _tops=_tp.map((t,_p)=>{ const j=_meus[_p]; const dm=_domTopico(d.disc, t.name); return {...t,d:i,i:j,
         domHas:dm.has, domPct:dm.pct, domLevel:dm.level, domColor:dm.color, domStr:dm.str,
         discNome:d.disc, topNome:t.name,          // C2: o que vai na busca da plataforma
+        podeTirar:_varios,
         checkBorder: t.done?d.color:'var(--border)',
         checkBg: t.done?d.color:'transparent',
         strike: t.done?'line-through':'none',
-        subs:(Array.isArray(t.subs)?t.subs:[]).map((sb0,k)=>{ const sb=this._subObj(sb0); return {...sb, d:i, t:j, i:k,
-          subBorder: sb.done?d.color:'var(--border)', subBg: sb.done?d.color:'transparent', subStrike: sb.done?'line-through':'none'}; }),
-        hasSubs:(Array.isArray(t.subs)?t.subs.length:0)>0}; });
+        subs:(Array.isArray(t.subs)?t.subs:[]).map((sb0,k)=>{ const sb=this._subObj(sb0); return {...sb, d:i, t:j, i:k, podeTirar:_varios,
+          subBorder: sb.done?d.color:'var(--border)', subBg: sb.done?d.color:'transparent', subStrike: sb.done?'line-through':'none'}; }).filter(sb=>this._noEd(sb, _ativoId)),
+        hasSubs:(Array.isArray(t.subs)?t.subs:[]).some(x=>this._noEd(x, _ativoId))}; });
       const _domTops=_tops.filter(t=>t.domHas&&t.domPct!=null);
       const domMedio=_domTops.length?Math.round(_domTops.reduce((a,t)=>a+t.domPct,0)/_domTops.length):null;
       return {...d, i, done, tot, pct, actHoras:act.horas, actQ:act.q, actLiq:act.liqPct, actStr, hasAct:act.min>0,
@@ -17761,6 +18349,9 @@ class Component extends DCLogic {
         pesoVal:_pv, questoesVal:_qv, pesoStr:_pv!==''?String(_pv):'—', questoesStr:_qv!==''?String(_qv):'—', hasMeta:_hasMeta, metaChip:(_pv!==''?('peso '+_pv):'')+(_pv!==''&&_qv!==''?' · ':'')+(_qv!==''?(_qv+'q'):''),
         colorHex:(/^#[0-9a-f]{6}$/i.test(d.color||'')?d.color:'#0f7a57'),   // <input type=color> só aceita #rrggbb
         noConcurso:!d.foraDoConcurso, foraConcurso:!!d.foraDoConcurso, noConcursoStr:d.foraDoConcurso?'false':'true',
+        outros:_outros, temOutros:_outros.length>0, outrosAberto:!!_outrosAb[String(d.disc||'')], outrosAbertoStr:_outrosAb[String(d.disc||'')]?'true':'false',
+        outrosLabel:(()=>{ const nt=_outros.filter(o=>o.s<0).length, ns=_outros.length-nt; const pl=(n,a,b)=>n+' '+(n===1?a:b);
+          return [nt?pl(nt,'tópico','tópicos'):'', ns?pl(ns,'subtópico','subtópicos'):''].filter(Boolean).join(' e ')+(_outros.length===1?' de outro concurso':' de outros concursos'); })(),
         ...(()=>{ const n=String(d.disc||'').trim(); const k=(this._editaisComMigracao()||[]).filter(e=>e.discs&&e.discs[n]&&!e.discs[n].fora).length;
           return { emConcursosN:String(k), emVariosConcursos:k>1 }; })(),
         topics:_tops};
@@ -17893,7 +18484,7 @@ class Component extends DCLogic {
     // ===== Radar de prioridades POR TEMA (Fase 3): esquecimento + fraqueza × incidência =====
     const radarTemas = (()=>{
       const now=Date.now(); const TAU=45, MINQ=6; const out=[];
-      (this.state.edital||[]).forEach(d=>{
+      this._edVista().forEach(d=>{
         const inc=(d.questoes!==''&&d.questoes!=null?(parseInt(d.questoes,10)||0):0);
         const short=(d.disc||'').replace('Direito ','');
         (d.topics||[]).forEach(tp=>{
@@ -19050,7 +19641,7 @@ class Component extends DCLogic {
     const _domBlend=(short,orig)=>{ const real=_liqShort[short]; return real!=null ? Math.round(0.6*real+0.4*orig) : orig; };
     // domínio por tópico REAL: agrega as sessões do tópico (líquido), com amostra mínima e decaimento por recência
     const domTopics=(()=>{ const out=[]; const MIN_Q=6, TAU=45; const now=Date.now();
-      (this.state.edital||[]).forEach(d=>{ const short=(d.disc||'').replace('Direito ','');
+      this._edVista().forEach(d=>{ const short=(d.disc||'').replace('Direito ','');
         (d.topics||[]).forEach(tp=>{ const key=(d.disc||'—')+'¦'+B.normT(tp.name); const ag=B.byTopic[key];
           if(ag && ag.q>=MIN_Q){
             const liq=Math.max(0,Math.min(100,Math.round((ag.a-ag.e)/ag.q*100)));
@@ -19342,6 +19933,32 @@ class Component extends DCLogic {
     const redTopicos=(redHasTopicos?_redRes.topicos:[]).map(t=>{ const m=_topMeta[t.status]||_topMeta.faltou; return {ponto:t.ponto, comentario:t.comentario, hasComent:!!t.comentario, statusLabel:m.label, cor:m.c,
       badgeStyle:`display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:var(--r-sm);background:${m.bg};color:${m.c};font-weight:800;font-size:var(--fs-base);flex:none;line-height:1;`,
       chipStyle:`font-size:var(--fs-2xs);font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:${m.c};background:${m.bg};padding:2px 8px;border-radius:99px;flex:none;`, ic:m.ic}; });
+    // ---- resultado anotado (fatia 3): nota por quesito desenhada, texto marcado e comparação com a tentativa anterior
+    const _rq=(_redRes && Array.isArray(_redRes.quesitos))?_redRes.quesitos:[];
+    const _rqSt=(q)=>{ const p=q.pontos?(+q.obtido||0)/q.pontos:0; return p>=0.99?'coberto':(p>0?'parcial':'faltou'); };
+    const redQuesitosShow=_rq.length>0 && _rq.length===redTopicos.length && _rq.every(q=>q.pontos!=null);
+    const redQuesitos=!redQuesitosShow?[]:_rq.map((q,i)=>{ const st=_rqSt(q); const m=_topMeta[st]; const t=_redRes.topicos[i]||{};
+      const p=q.pontos?Math.max(0,Math.min(1,(+q.obtido||0)/q.pontos)):0;
+      // correção local e conferência própria não trazem "faltou"/"trecho": o comentário do tópico diz o que há a dizer
+      const obs=(!q.faltou && !q.trecho) ? String(t.comentario||'').replace(/^Nota [\d,]+ de [\d,]+(\s*\([^)]*\))?\s*(—\s*)?/,'') : '';
+      return { q:'Q'+(i+1), texto:String(t.ponto||q.quesito||'').replace(/^Quesito \d+ — /,''), st, stLabel:m.label,
+        nota:this._redNum(q.obtido)+' / '+this._redNum(q.pontos),
+        barStyle:'width:'+Math.round(p*100)+'%;background-color:'+m.c+';',
+        faltou:String(q.faltou||obs||''), temFaltou:!!(q.faltou||obs), trecho:String(q.trecho||''), temTrecho:!!q.trecho,
+        estimado:!!q.estimado }; });
+    const _redAnot=(()=>{ const M=window.CT_REDACAO_MOTOR; const txt=String(this.state.redSubText||'');
+      if(!M || !M.anotar || !redQuesitosShow || !txt.trim() || !_rq.some(q=>q.trecho)) return null;
+      try{ const a=M.anotar(txt, _rq.map((q,i)=>({trecho:q.trecho, q:i+1, status:_rqSt(q)}))); return a.segs.some(s=>s.q)?a:null; }catch(_){ return null; } })();
+    const redAnotSegs=_redAnot?_redAnot.segs.map(s=>({t:s.t, marca:!!s.q, liso:!s.q, q:s.q?('Q'+s.q):'', st:s.status||''})):[];
+    const _redCmp=(()=>{ const hs=this.state.redHistory||[]; const cur=_redRes?hs.find(h=>h.id===this.state.redResultId):null;
+      const ant=(cur && cur.anteriorId)?hs.find(h=>h.id===cur.anteriorId):null; if(!ant) return null;
+      const d=Math.round(((+cur.nota||0)-(+ant.nota||0))*10)/10; const f1=(x)=>(+x||0).toFixed(1).replace('.',',');
+      const qa=(ant.res&&ant.res.quesitos)||[], qd=(cur.res&&cur.res.quesitos)||[];
+      const linhas=(qa.length && qa.length===qd.length)?qd.map((q,i)=>{ const dd=Math.round(((+q.obtido||0)-(+qa[i].obtido||0))*100)/100;
+        return { q:'Q'+(i+1), antes:this._redNum(qa[i].obtido), depois:this._redNum(q.obtido), d:dd>0?'subiu':(dd<0?'caiu':'igual'),
+          seta:dd>0?'↑':(dd<0?'↓':'='), cor:dd>0?'var(--ok)':(dd<0?'var(--danger)':'var(--text3)') }; }):[];
+      return { antes:f1(ant.nota), depois:f1(cur.nota), delta:d>0?('+'+f1(d)):(d<0?('−'+f1(-d)):'igual'),
+        cor:d>0?'var(--ok)':(d<0?'var(--danger)':'var(--text2)'), linhas }; })();
     const redCobertura=(_redRes && _redRes.cobertura!=null)?_redRes.cobertura:0;
     const redCobColor=redCobertura>=75?'var(--ok)':redCobertura>=50?'var(--warn)':'var(--danger)';
     const redConceito=_redRes?(_redRes.conceito||''):'';
@@ -19394,7 +20011,7 @@ class Component extends DCLogic {
     const sessDiscOpts=[...new Set([...discListReg, ...((!sessDiscCustom && _sd0.disc && !discListReg.includes(_sd0.disc))?[_sd0.disc]:[])])].map(v=>({v, sel:!sessDiscCustom && v===_sd0.disc}));
     const sessDiscSelVal=sessDiscCustom?'__outra__':(_sd0.disc||'');
     // ===== tópicos e subtópicos do EDITAL no registro de sessão =====
-    const _sdTopics=this._topicosDe(_sd0.disc);
+    const _sdTopics=this._topicosDe(_sd0.disc, false, _sd0.edTop);
     const sessTopShow=_sdTopics.length>0;
     const sessTopOpts=_sdTopics.map(t=>{ const n=String(t.name||'').trim(); const nsub=(t.subs||[]).length;
       return { v:n, label:(t.done?'✓ ':'')+n+(nsub?(' ('+nsub+')'):''), sel:n===(_sd0.edTop||'') }; });
@@ -20154,7 +20771,7 @@ class Component extends DCLogic {
       setOralBancaCarr:this.setOralBancaCarr, setOralBancaBanca:this.setOralBancaBanca,
       onOralBancaQ:this.onOralBancaQ, toggleOralOuro:this.toggleOralOuro,
       abrirConcursoOral:this.abrirConcursoOral, voltarConcursoOral:this.voltarConcursoOral,
-      toggleBlock:this.toggleBlock, registrarParcial:this.registrarParcial, abrirAcervoDoBloco:this.abrirAcervoDoBloco, toggleEdital:this.toggleEdital, toggleTopic:this.toggleTopic, editTopic:this.editTopic, editSub:this.editSub,
+      toggleBlock:this.toggleBlock, registrarParcial:this.registrarParcial, abrirAcervoDoBloco:this.abrirAcervoDoBloco, toggleEdital:this.toggleEdital, toggleOutros:this.toggleOutros, trazerTopico:this.trazerTopico, trazerTodos:this.trazerTodos, tirarTopico:this.tirarTopico, aplicarModeloNovoConcurso:this.aplicarModeloNovoConcurso, modeloPodeConcursoNovo:(this.state.edital||[]).length>0, toggleTopic:this.toggleTopic, editTopic:this.editTopic, editSub:this.editSub,
       cicloFolha, cicloFolhaHeader, roteiroNav:this.roteiroNav, roteiroHoje:this.roteiroHoje,
       reorganizarPorPonto:this.reorganizarPorPonto, desfazerReorg:this.desfazerReorg,
       temDesfazerReorg:!!this.state.cicloDesfazer, desfazerReorgN:String((this.state.cicloDesfazer&&this.state.cicloDesfazer.n)||0),
@@ -20565,7 +21182,7 @@ class Component extends DCLogic {
         const est=Math.ceil(redWords/11);
         const med=this.state.redLinhasN; const n=(med!=null?med:est);
         const base=lim?(n+' / '+lim+' linhas'):(n+(n===1?' linha':' linhas'));
-        const extra=!lim?'':(n>lim?(' · passou '+(n-lim)):(n>=lim*0.9?(' · faltam '+(lim-n)):''));
+        const extra=!lim?'':(n>lim?(' · passou '+(n-lim)):(n===lim?' · no limite':(n>=lim*0.9?(' · faltam '+(lim-n)):'')));
         const cor=!lim?'var(--accent)':(n>lim?'var(--danger)':(n>=lim*0.9?'var(--warn)':'var(--accent)'));
         const ts=+this.state.redTextTs||0;
         const tot=Math.max(18, n+1, lim||0);
@@ -20574,7 +21191,8 @@ class Component extends DCLogic {
           redFolhaStyle:'--ct-folha-min:'+tot+';',   // a pauta vai até onde a numeração vai
           redPautaShow:med!=null, redPautaNums:Array.from({length:tot},(_,i)=>String(i+1)),
           redSalvoTxt:ts?('Salvo às '+new Date(ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})):'Ainda não salvo' }; })(),
-      ...(()=>{ const r=this._redEspelhoResumo(); const tem=r.estado==='quesitos';
+      ...(()=>{ const r=this.state.view==='redacao' ? this._redEspelhoResumo() : {qs:[], total:0, estado:'vazio', txt:''};   // fora da Redação ninguém lê: mesmas chaves, sem custo
+        const tem=r.estado==='quesitos';
         const vista=tem?(this.state.redGabVista||'quesitos'):'texto';
         const msg=this.state.redGabBusy?('Lendo '+(this.state.redGabFile||'arquivo')+'…'):(this.state.redGabErro||this.state.redGabOk||'');
         const alerta=!!this.state.redGabErro && !this.state.redGabBusy;
@@ -20583,7 +21201,11 @@ class Component extends DCLogic {
         const obt=r.qs.reduce((a,q,i)=>a+(+conf[i]||0),0);
         const pode=prosa?(this._redConfUnica()!=null):(tem && faltam===0);
         const lim=this._redLimiteLinhas(this.state.redEnunciado); const lm=this.state.redLinhasMao?+this.state.redLinhasMao:null;
-        return { redConferindo:conferindo, redConfProsa:conferindo && prosa, redConfListaShow:conferindo && tem && vista==='quesitos',
+        // Na conferência em prosa o padrão aparece só para leitura — MENOS quando a pessoa está na vista
+        // "Texto" editando o espelho: aí o campo continua montado (antes ele desmontava no meio da
+        // digitação, quando o texto deixava de ter quesitos) e a cópia de leitura some para não duplicar.
+        const editando=this.state.redGabVista==='texto';
+        return { redConferindo:conferindo, redConfProsa:conferindo && prosa, redConfProsaLeitura:conferindo && prosa && !editando, redConfListaShow:conferindo && tem && vista==='quesitos',
           redConfItens:r.qs.map((q,i)=>({ n:String(q.n), texto:q.texto,
             opcoes:this._redConfOpcoes(q).map(v=>({ i:String(i), v:String(v), l:this._redNum(v), on:conf[i]===v })) })),
           redConfSomaTxt:prosa?'':(this._redNum(obt)+' / '+this._redNum(r.total)+(faltam?(' · falta'+(faltam===1?'':'m')+' '+faltam):' · tudo marcado')),
@@ -20592,9 +21214,9 @@ class Component extends DCLogic {
           redLinhasMaoMsg:(lm==null||!lim)?'':(lm>lim?('passou '+(lm-lim)+(lm-lim===1?' linha':' linhas')+' do limite'):('dentro do limite de '+lim+' linhas')),
           redTermineiTxt:r.estado==='vazio'?'Colar ou importar o padrão para conferir':'Terminei — conferir pelo padrão',
           marcarConf:this.marcarConf, onConfUnica:this.onConfUnica, onLinhasMao:this.onLinhasMao,
-          terminarMao:this.terminarMao, registrarConferencia:this.registrarConferencia,
+          terminarMao:this.terminarMao, registrarConferencia:this.registrarConferencia, voltarConferencia:this.voltarConferencia,
           redGabEstadoTxt:r.txt, redGabTemQuesitos:tem,
-          redGabVistaQuesitos:vista==='quesitos', redGabVistaTexto:vista==='texto' && !(conferindo && prosa), redGabListaShow:vista==='quesitos' && !conferindo, setRedGabVista:this.setRedGabVista,
+          redGabVistaQuesitos:vista==='quesitos', redGabVistaTexto:vista==='texto' && (editando || !(conferindo && prosa)), redGabListaShow:vista==='quesitos' && !conferindo, setRedGabVista:this.setRedGabVista,
           redGabQuesitos:r.qs.map((q,i)=>({ i:String(i), n:String(q.n), texto:q.texto,
             pts:(q.escala&&q.escala.length?('escala '+q.escala.map(x=>this._redNum(x)).join(' / ')):('até '+this._redNum(q.max!=null?q.max:1))) })),
           redGabMsg:msg, redGabMsgAlerta:alerta, redGabMsgNormal:!!msg && !alerta }; })(),
@@ -20605,7 +21227,8 @@ class Component extends DCLogic {
       redMaoDica:(()=>{ const l=this._redLimiteLinhas(this.state.redEnunciado);
         return (l?('A banca dá até '+l+' linhas. '):'')+'Ligue o cronômetro, responda no papel e, ao terminar, confira o padrão de respostas quesito a quesito.'; })(),
       redChipLimite:(()=>{ const l=this._redLimiteLinhas(this.state.redEnunciado); return l?('até '+l+' linhas'):''; })(),
-      redChipComandos:(()=>{ const n=this._redBlocos(this._desquebrar(String(this.state.redEnunciado||''))).filter(b=>b.tipo==='item').length;
+      redChipComandos:(()=>{ if(this.state.view!=='redacao') return '';
+        const n=this._redBlocosMemo(String(this.state.redEnunciado||'')).filter(b=>b.tipo==='item').length;
         return n>1?(n+' comandos'):''; })(),
       redPasso1:this._passo(!this.state.redResult && !((this.state.redEnunciado||'').trim())),
       redPasso2:this._passo(!this.state.redResult && !!((this.state.redEnunciado||'').trim())),
@@ -20624,7 +21247,7 @@ class Component extends DCLogic {
       // era ler o mesmo cabeçalho duas vezes, uma em cada tipografia
       // corta a 1ª linha SÓ no padrão que _abrirDiscursiva grava (linha + linha em branco):
       // enunciado legado/livre sem esse padrão aparece inteiro, em vez de amputado
-      redBlocos:this._redBlocos(this._desquebrar((this.state.redModoProva && /^[^\n]+\n\n/.test(String(this.state.redEnunciado||'')))
+      redBlocos:(this.state.view!=='redacao' ? [] : this._redBlocosMemo((this.state.redModoProva && /^[^\n]+\n\n/.test(String(this.state.redEnunciado||'')))
         ? String(this.state.redEnunciado||'').replace(/^[^\n]*\n+/,'')
         : String(this.state.redEnunciado||''))).map(x=>({
           ehTitulo:x.tipo==='titulo', ehItem:x.tipo==='item', ehPar:x.tipo==='par',
@@ -20716,6 +21339,13 @@ class Component extends DCLogic {
       espSugRegerar:(this.state.espSugBusy?'Gerando…':'Regenerar'),
       gerarEspelhoSugerido:this.gerarEspelhoSugerido,
       redHasTopicos, redTopicos, redCobertura:String(redCobertura)+'%', redCobColor, redCobBarW:String(redCobertura)+'%', redConceito, redConceitoStyle, redTopResumo,
+      redQuesitosShow, redQuesitos, redTopLista:redHasTopicos && !redQuesitosShow,
+      redAnotShow:!!_redAnot, redAnotSegs, redCompareShow:redResultLivre && !_redAnot,
+      redCmpShow:!!_redCmp, redCmpAntes:_redCmp?_redCmp.antes:'', redCmpDepois:_redCmp?_redCmp.depois:'', redCmpDelta:_redCmp?_redCmp.delta:'',
+      redCmpDeltaStyle:'color:'+(_redCmp?_redCmp.cor:'var(--text2)')+';', redCmpLinhas:_redCmp?_redCmp.linhas.map(l=>({...l, setaStyle:'color:'+l.cor+';'})):[], redCmpTemLinhas:!!(_redCmp&&_redCmp.linhas.length),
+      reescreverRed:this.reescreverRed, redReescreverTxt:(_redRes&&_redRes.propria)?'Refazer à mão':'Reescrever esta resposta',
+      redReescreverDica:(_redRes&&_redRes.propria)?'Refaça no papel com o padrão guardado e compare as duas conferências.':'Volte à folha com o seu texto, corrija o que faltou e compare as duas correções.',
+      redReescrita:!!this.state.redReescritaDe && !this.state.redResult, redReescritaTxt:'Reescrita · a tentativa anterior teve nota '+(this.state.redReescritaNota||'—')+'. Ao entregar, as duas são comparadas quesito a quesito.',
       redOrigemLabel:(this.state.redResult&&this.state.redResult.propria)?'conferência própria'
         :((this.state.redResult&&this.state.redResult.aiUsed===false)?'estimativa local':'corrigido por IA'),
       redResultIA:!(this.state.redResult&&this.state.redResult.propria),
@@ -20831,6 +21461,7 @@ class Component extends DCLogic {
       addFixed:this.addFixed, addToDay:this.addToDay, removeFixed:this.removeFixed, editFixed:this.editFixed, agEditToggle:this.agEditToggle, agEditPronto:this.agEditPronto, addRot:this.addRot, removeRot:this.removeRot, editRot:this.editRot, moveRot:this.moveRot, moveFixed:this.moveFixed, advanceRot:this.advanceRot,
       setRoteiroAtual:this.setRoteiroAtual, clearRoteiro:this.clearRoteiro,
       rotNextName:(()=>{ const nx=(this.state.manualRot||[]).find(x=>!x.done); return (nx&&nx.disc)||'—'; })(),
+      ...this._cmView(),
       cycleModes:[
         /* A descrição citava "lei seca e jurisprudência" para TODA área — vocabulário
            jurídico na tela de quem estuda Enfermagem. Agora ela lista as categorias que a
@@ -20843,9 +21474,10 @@ class Component extends DCLogic {
          }catch(_){ return 'teoria, questões e revisão.'; } })()},
         {mode:'edital', icon:'▤', title:'Conforme o edital', desc:'Volta proporcional ao que ainda falta no edital: mais blocos para a matéria com mais tópicos pendentes.'},
         {mode:'pesos', icon:'▲', title:'Pesos e pontos', desc:'Volta com mais blocos para o que vale mais pontos e onde você está mais fraco.'},
-        {mode:'manual', icon:'✎', title:'Manual', desc:'Você monta a volta: ordem, tipo e tempo de cada bloco — ou gera uma pela prioridade e reordena. Agenda semanal para quem segue roteiro.'}
+        {mode:'manual', icon:'✎', title:'Manual', desc:'Você monta a volta: ordem, tipo e tempo de cada bloco — ou gera uma pela prioridade e reordena. Agenda semanal para quem segue roteiro.'},
+        {mode:'magistratura', icon:'⚖', title:'Ciclo Magistratura', desc:'Quatro matérias ativas, uma por dia, dois assuntos cada. Turno A de primeiro contato, Turno B de reteste, revisões em D+7, D+30 e D+90 e sábado de erros mistos.'}
       ].map(m=>{ const on=this.state.cycleMode===m.mode; const aviso=this._cycleFalta(m.mode); return {...m, aviso, temAviso:!!aviso, onStr:on?'true':'false', recomendado:!!m.recomendado,
-        isInteligente:m.mode==='inteligente', isSugestao:m.mode==='sugestao', isEdital:m.mode==='edital', isPesos:m.mode==='pesos', isManual:m.mode==='manual',
+        isInteligente:m.mode==='inteligente', isSugestao:m.mode==='sugestao', isEdital:m.mode==='edital', isPesos:m.mode==='pesos', isManual:m.mode==='manual', isMagistratura:m.mode==='magistratura',
         cardStyle:`text-align:left;cursor:pointer;font-family:inherit;border-radius:var(--radius);padding:16px;border:2px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accentSoft)':'var(--surface)'};transition:all .15s;`,
         iconStyle:`width:32px;height:32px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;font-size:var(--fs-lg);flex:none;background:${on?'var(--accentSolid)':'var(--surface2)'};color:${on?'var(--onAccent)':'var(--text2)'};`,
         titleColor: on?'var(--accentD)':'var(--ink)' }; }),

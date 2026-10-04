@@ -39,6 +39,7 @@ import { testarSyncMemoriaVelha } from './sync-memoria-velha.mjs';
 import { testarBackupDriveErros } from './backup-drive-erros.mjs';
 import { testarSelectHost } from './select-host.mjs';
 import { testarAjustesRitmo } from './ajustes-ritmo.mjs';
+import { testarCicloMagistratura } from './ciclo-magistratura.mjs';
 import { testarCicloNivelEstrategia } from './ciclo-nivel-estrategia.mjs';
 import { testarSemAnotacoesNavegador } from './sem-anotacoes.mjs';
 import { testarAvisosOficiaisNavegador } from './avisos-oficiais.mjs';
@@ -51,11 +52,13 @@ import { testarFaixaMapaAlvos } from './faixa-mapa-alvos.mjs';
 import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
 import { testarRedacaoMesa } from './redacao-mesa.mjs';
 import { testarRedacaoMotor } from './redacao-motor.mjs';
+import { testarRedacaoResultado } from './redacao-resultado.mjs';
 import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 import { testarRevisaoOficial } from './revisao-oficial.mjs';
 import { testarMenuLateral } from './menu-lateral.mjs';
 import { testarImportadorEdital } from './importador-edital.mjs';
+import { testarEditalPorConcurso } from './edital-por-concurso.mjs';
 import { testarNovidadesCentral } from './novidades-central.mjs';
 import { testarSemDodEstatico, testarSemDodNavegador } from './sem-dod.mjs';
 import { testarMigracaoL4Navegador } from './teses-oficiais.mjs';
@@ -177,6 +180,7 @@ for (const [base, origem, arquivo] of ORIGENS) {
     try { await testarPrioridadeDiscursiva(page, base, ok); } catch(e) { ok(false, 'DISCURSIVA exceção: '+e.message); }
     try { await testarRedacaoMesa(page, base, ok, { motor: 'webkit' }); } catch(e) { ok(false, 'MESA exceção: '+e.message); }
     try { await testarRedacaoMotor(page, base, ok, { motor: 'webkit' }); } catch(e) { ok(false, 'MOTOR exceção: '+e.message); }
+    try { await testarRedacaoResultado(page, base, ok, { motor: 'webkit' }); } catch(e) { ok(false, 'RESULTADO exceção: '+e.message); }
     try { await testarRevisaoFonte(page, base, ok, { motor, origem }); }
     catch (e) {
       ok(false, 'REVISÃO/FONTE [' + motor + '] o roteiro correu sem exceção ('
@@ -205,6 +209,8 @@ for (const [base, origem, arquivo] of ORIGENS) {
     // Ajustes · Ritmo e metas (só http: semeia por /__semente)
     if (origem === 'http') { try { await testarCicloNivelEstrategia(page, base, ok, { motor, origem, voltaDeReferencia: JSON.parse(fs.readFileSync(new URL('./fixtures/volta-fabrica.json', import.meta.url), 'utf8')) }); } catch (e) { ok(false, 'CICLO-NÍVEL [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); } }
     if (origem === 'http') { try { await testarAjustesRitmo(page, base, ok, { motor, origem }); } catch (e) { ok(false, 'RITMO [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); } }
+    // Ciclo Magistratura (só http: semeia por /__semente)
+    if (origem === 'http') { try { await testarCicloMagistratura(page, base, ok, { motor, origem }); } catch (e) { ok(false, 'CICLO MAGISTRATURA [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); } }
     try { await testarSelectHost(page, base, ok, { motor, origem }); }
     catch (e) {
       ok(false, 'SELECT/host [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
@@ -223,6 +229,8 @@ for (const [base, origem, arquivo] of ORIGENS) {
     catch (e) { ok(false, 'OFICIAL [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
     // o Baralho do menu com o estilo dos irmãos, e 44 px no toque em retrato e em paisagem —
     // o importador de edital é quase todo regex: o JavaScriptCore é o motor que o lê no Mac e no iPad
+    try { await testarEditalPorConcurso(page, base, ok, { motor }); }
+    catch (e) { ok(false, 'EDITAL/CONCURSO [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
     try { await testarImportadorEdital(page, base, ok, { motor }); }
     catch (e) { ok(false, 'IMPORTADOR [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
     // o motor do WKWebView é o que o iPad pinta
