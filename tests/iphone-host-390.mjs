@@ -128,7 +128,15 @@ export async function testarIphoneHost390(pageDaSuite, base, ok, opcoes = {}) {
       const TELAS = ['inicio', 'historico', 'redacao', 'analise', 'ajustes', 'calendario', 'novidades'];
       for (const v of TELAS) {
         await ir(page, v); await page.waitForTimeout(1400);
-        const m = await page.evaluate(() => {
+        /* As fontes do app são arquivos locais com font-display:swap: até o woff2 chegar, a tela
+           é desenhada com a fonte de reserva do sistema — no Chromium da CI (Linux) ela é mais
+           larga e o Início media 2 px de rolagem lateral, UMA rodada sim, outra não, em qualquer
+           branch (04/10/2026: quatro PRs caíram neste caso sem tocar no Início). O que se mede
+           aqui é o layout com a fonte do app; então espera as fontes. E, se ainda rolar, a
+           mensagem diz QUEM passou da borda e em que estado estavam as fontes. */
+        const m = await page.evaluate(async () => {
+          try { await Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 8000))]); } catch (_) {}
+          await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
           /* "passa da borda" só conta quando NADA corta o elemento no caminho até a raiz: um pai
              com overflow-x diferente de visible, ou com text-overflow:ellipsis, é corte de
              propósito. Sem este filtro a medida acusa os círculos decorativos dos heros e todo
@@ -152,13 +160,18 @@ export async function testarIphoneHost390(pageDaSuite, base, ok, opcoes = {}) {
           return {
             docRola: document.documentElement.scrollWidth - innerWidth,
             scRola: sc ? sc.scrollWidth - sc.clientWidth : 0,
+            // diagnóstico (nunca vira ok): os elementos mais à direita que nenhum pai corta, e as fontes
+            quem: (sc && sc.scrollWidth > sc.clientWidth) ? [...sc.querySelectorAll('*')].map(el => ({ el, r: el.getBoundingClientRect().right }))
+              .filter(x => x.r > sc.getBoundingClientRect().right + 0.5 && !contido(x.el)).sort((x, y) => y.r - x.r).slice(0, 4)
+              .map(x => x.el.tagName + '.' + String(x.el.className).slice(0, 28) + ' r=' + x.r.toFixed(1) + ' "' + String(x.el.textContent || '').trim().slice(0, 24) + '"').join(' ; ')
+              + ' | fontes ' + document.fonts.status + ' ' + [...document.fonts].filter(f => f.status === 'loaded').length + '/' + document.fonts.size : '',
             topbar: tb ? tb.getBoundingClientRect().height : 0,
             fora: fora.slice(0, 3).map(el => el.tagName + '.' + String(el.className).slice(0, 18)
               + ' r=' + Math.round(el.getBoundingClientRect().right)),
           };
         });
         ok(m.docRola <= 0, R + '(a) ' + v + ': o documento não rola de lado (' + m.docRola + ' px)');
-        ok(m.scRola <= 0, R + '(a) ' + v + ': o contêiner de rolagem não rola de lado (' + m.scRola + ' px)');
+        ok(m.scRola <= 0, R + '(a) ' + v + ': o contêiner de rolagem não rola de lado (' + m.scRola + ' px)' + (m.quem ? ' — ' + m.quem : ''));
         ok(m.fora.length === 0, R + '(a) ' + v + ': nada passa da borda direita sem ser cortado de propósito'
           + (m.fora.length ? ' (' + m.fora.join(' | ') + ')' : ''));
         /* O aceite numérico do plano: UMA faixa de no máximo 64 pt. Antes eram duas de 44 —
