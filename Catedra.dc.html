@@ -3536,7 +3536,7 @@ window.ctPdfLib = (function(){
                 <div class="ct-hero" style="border-radius:0;">
                   <div class="ct-mesa-linha" style="justify-content:space-between;">
                     <div class="ct-hero-eb">Questão</div>
-                    <button class="ct-mesa-acao ct-mesa-recolher" data-red="questao-toggle" onclick="{{ toggleRedQuestao }}" aria-expanded="{{ redQuestaoAberta }}" style="color:inherit;">{{ redQuestaoToggleTxt }}</button>
+                    <button class="ct-mesa-acao ct-mesa-acao-heroi ct-mesa-recolher" data-red="questao-toggle" onclick="{{ toggleRedQuestao }}" aria-expanded="{{ redQuestaoAberta }}">{{ redQuestaoToggleTxt }}</button>
                   </div>
                   <h2 class="ct-hero-tit" style="font-size:var(--fs-2xl);">{{ redProvaTitulo }}</h2>
                   <div class="ct-mesa-chips">
@@ -3726,7 +3726,7 @@ window.ctPdfLib = (function(){
                 </ol>
               </sc-if>
               <sc-if value="{{ redConfProsa }}" hint-placeholder-val="{{ false }}">
-                <div class="ct-leitura" style="margin-top:var(--ct-e3);white-space:pre-wrap;color:var(--ink);line-height:1.7;">{{ redGabarito }}</div>
+                <sc-if value="{{ redConfProsaLeitura }}" hint-placeholder-val="{{ false }}"><div class="ct-leitura" data-red="conf-padrao" style="margin-top:var(--ct-e3);white-space:pre-wrap;color:var(--ink);line-height:1.7;">{{ redGabarito }}</div></sc-if>
                 <div class="ct-mesa-linha" style="margin-top:var(--ct-e3);">
                   <label for="red-conf-unica" class="ct-eb">Sua nota, de 0 a 10</label>
                   <input id="red-conf-unica" data-red="conf-unica" class="ct-campo ct-campo-num" inputmode="decimal" value="{{ redConfUnica }}" oninput="{{ onConfUnica }}" style="width:6em;min-height:var(--ct-alvo-toque);">
@@ -3734,7 +3734,10 @@ window.ctPdfLib = (function(){
               </sc-if>
               <div class="ct-mesa-linha" style="margin-top:var(--ct-e4);justify-content:space-between;">
                 <span data-red="conf-soma" class="ct-dado" aria-live="polite">{{ redConfSomaTxt }}</span>
-                <button class="ct-btn" data-red="conf-registrar" onclick="{{ registrarConferencia }}" disabled="{{ redConfNaoPode }}">Registrar conferência</button>
+                <span class="ct-mesa-linha">
+                  <button class="ct-btn-2" data-red="conf-voltar" onclick="{{ voltarConferencia }}" style="min-height:var(--ct-alvo-toque);">Voltar a escrever</button>
+                  <button class="ct-btn" data-red="conf-registrar" onclick="{{ registrarConferencia }}" disabled="{{ redConfNaoPode }}">Registrar conferência</button>
+                </span>
               </div>
             </div>
           </sc-if>
@@ -8635,12 +8638,18 @@ class Component extends DCLogic {
       try{ localStorage.setItem('catedra:schemaVersion', String(V)); }catch(_){}
     }catch(_){ }
   }
-  componentWillUnmount(){ if(this._redCronoT) clearInterval(this._redCronoT); if(this._redCorrT) clearInterval(this._redCorrT); try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onSelChange){ document.removeEventListener('selectionchange', this._onSelChange); clearTimeout(this._selChangeT); } ['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev, this._acDespertar)); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._areaMsg) window.removeEventListener('message', this._areaMsg); if(this._acervoMsg) window.removeEventListener('message', this._acervoMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._revT) clearInterval(this._revT);
+  componentWillUnmount(){ if(this._redFocoEsc){ try{ document.removeEventListener('keydown', this._redFocoEsc); document.documentElement.removeAttribute('data-red-foco'); }catch(_){} this._redFocoEsc=null; } if(this._redCronoT) clearInterval(this._redCronoT); if(this._redCorrT) clearInterval(this._redCorrT); try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onSelChange){ document.removeEventListener('selectionchange', this._onSelChange); clearTimeout(this._selChangeT); } ['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev, this._acDespertar)); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._areaMsg) window.removeEventListener('message', this._areaMsg); if(this._acervoMsg) window.removeEventListener('message', this._acervoMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._revT) clearInterval(this._revT);
     try{ if(this._mqDark && this._onMqDark){ if(this._mqDark.removeEventListener) this._mqDark.removeEventListener('change', this._onMqDark); else if(this._mqDark.removeListener) this._mqDark.removeListener(this._onMqDark); } }catch(_){}
     if(this._pipMsgT) clearTimeout(this._pipMsgT); if(this._bkpAutoT) clearInterval(this._bkpAutoT); if(this._salaT) clearTimeout(this._salaT); this._pipStop(); this._closeDocPiP();  }
   componentDidUpdate(){ if(this.state.view==='redacao'){ this._redVigiarFolha();
       // texto que muda sem tecla (zerar o rascunho, chegar da nuvem) também precisa remedir a folha
-      if(this.state.redText!==this._redTextoMedido){ this._redTextoMedido=this.state.redText; try{ requestAnimationFrame(this._redMedirFolha); }catch(_){} } } this._baixaRaiz(); this._widgetAvisar(); this._syncModalFocus(); try{ const ta=this._toastAcaoEl; if(ta && ta.style.pointerEvents==='auto') this._toastAcaoPos(); }catch(_){} try{ this._edSincronizarConcurso(); }catch(_){} this._autosave(); this._montarFrames(); this._marcasEnunSync(); }
+      if(this.state.redText!==this._redTextoMedido){ const _antes=this._redTextoMedido; this._redTextoMedido=this.state.redText; try{ requestAnimationFrame(this._redMedirFolha); }catch(_){}
+        // Rascunho que chega depois do boot (nuvem): o modo só era decidido no construtor, e a tela ficava
+        // em "À mão" escondendo o texto. Só troca quando o texto vai de vazio a não vazio sem tecla, a pessoa
+        // não escolheu o modo nesta sessão e não está conferindo. Um setState só: o valor já mudou acima.
+        if(!String(_antes||'').trim() && String(this.state.redText||'').trim() && !this._redTextoDeTecla && !this._redModoEscolhido
+           && this.state.redModoResposta!=='digitar' && !this.state.redConferindo && !this.state.redBusy && !this.state.redResult) this.setState({redModoResposta:'digitar'}); }
+      this._redTextoDeTecla=false; } this._baixaRaiz(); this._widgetAvisar(); this._syncModalFocus(); try{ const ta=this._toastAcaoEl; if(ta && ta.style.pointerEvents==='auto') this._toastAcaoPos(); }catch(_){} try{ this._edSincronizarConcurso(); }catch(_){} this._autosave(); this._montarFrames(); this._marcasEnunSync(); }
   // LEGIS e JURIS ficam em <iframe> com data-ct-frame (e não src=) de propósito: com
   // src no HTML cru o navegador baixava as duas páginas durante o parse — antes do
   // runtime existir — e jogava fora ao montar o app. Aqui o src entra só quando a
@@ -12564,6 +12573,7 @@ class Component extends DCLogic {
   // e é a data que responde a única pergunta que importa ao reabrir — isto aqui é de hoje
   // ou é de três semanas atrás? É escalar, então o carimbo por chave do sync já resolve.
   onRedText = (e)=>{ if(!this._redCronoDesde && !this.state.redBusy) this._redCronoIniciar();
+    this._redTextoDeTecla=true;
     this.setState({redText:e.currentTarget.value, redTextTs:Date.now()});
     try{ requestAnimationFrame(this._redMedirFolha); }catch(_){} };
   // ===== U4: RETOMADA EXPLÍCITA DA REDAÇÃO =============================================
@@ -12572,7 +12582,12 @@ class Component extends DCLogic {
   // agora e continuava escrevendo por cima do que já não servia. A faixa aparece só quando
   // o rascunho é de OUTRA sessão (o texto ainda é igual ao que veio do disco no boot) e
   // some assim que a pessoa escreve — não fica pedindo passagem enquanto se trabalha.
-  redRascunhoOk = ()=>{ this.setState({redRascunhoOculto:true}); try{ const t=document.querySelector('[data-red="folha"] textarea')||document.querySelector('main textarea'); if(t){ t.focus(); t.setSelectionRange(t.value.length, t.value.length); } }catch(_){} };
+  redRascunhoOk = ()=>{
+    // continuar o rascunho é continuar DIGITANDO: em "À mão" a folha nem está na tela para receber o cursor
+    const focar=()=>{ try{ const t=document.querySelector('[data-red="folha"] textarea'); if(t){ t.focus(); t.setSelectionRange(t.value.length, t.value.length); return true; } }catch(_){} return false; };
+    const patch={redRascunhoOculto:true};
+    if(this.state.redModoResposta!=='digitar' && !this.state.redBusy){ patch.redModoResposta='digitar'; patch.redConferindo=false; patch.redConf={}; this._redModoEscolhido=true; }
+    this.setState(patch, ()=>{ if(!focar()) setTimeout(focar, 60); }); };
   redZerarRascunho = ()=>{
     if(!window.confirm('Apagar o rascunho e começar do zero? A prova e o espelho continuam carregados — só a sua resposta sai da tela.')) return;
     this._redBoot=''; this._redCorrAbortar(); this._redCronoZerar();
@@ -12610,6 +12625,11 @@ class Component extends DCLogic {
      o do arquivo. Aqui cada linha vira um BLOCO tipografado: título (peso e respiro),
      alínea (recuo pendurado, para a 2ª linha alinhar sob o texto e não sob a letra) e
      parágrafo (justificado, como a prova impressa). Só apresentação — o dado fica como veio. */
+  // Os blocos do enunciado saem do mesmo texto para a leitura e para o chip de comandos, e o render roda
+  // a cada segundo com o cronômetro: guarda os dois últimos textos (com e sem a 1ª linha da prova).
+  _redBlocosMemo(bruto){ const c=this._redBlocosCache||(this._redBlocosCache=[]);
+    for(let i=0;i<c.length;i++) if(c[i].t===bruto) return c[i].b;
+    const b=this._redBlocos(this._desquebrar(bruto)); c.unshift({t:bruto, b}); if(c.length>2) c.length=2; return b; }
   _redBlocos(t){
     const linhas=String(t||'').split('\n').map(x=>x.trim());
     const out=[];
@@ -12872,10 +12892,15 @@ class Component extends DCLogic {
   toggleRedFoco = ()=> this._redFocoPor(!this.state.redFoco);
   _redFocoPor(on){ this.setState({redFoco:!!on});
     try{ if(on) document.documentElement.setAttribute('data-red-foco',''); else document.documentElement.removeAttribute('data-red-foco'); }catch(_){}
-    if(on && !this._redFocoEsc){ this._redFocoEsc=(e)=>{ if(e.key==='Escape' && this.state.redFoco) this._redFocoPor(false); }; document.addEventListener('keydown', this._redFocoEsc); } }
+    if(on && !this._redFocoEsc){ this._redFocoEsc=(e)=>{ if(e.key==='Escape' && this.state.redFoco) this._redFocoPor(false); }; document.addEventListener('keydown', this._redFocoEsc); }
+    if(!on && this._redFocoEsc){ try{ document.removeEventListener('keydown', this._redFocoEsc); }catch(_){} this._redFocoEsc=null; } }
   _redNum(x){ return (Math.round((+x||0)*100)/100).toFixed(2).replace('.',','); }
   // O que o espelho em uso permite: correção por quesito, por cobertura, ou nada.
   _redEspelhoResumo(){ const g=String(this.state.redGabarito||'');
+    // o render pede isto a cada segundo (cronômetro): o resultado só depende do texto do espelho
+    const m=this._redResumoMemo; if(m && m.g===g) return m.r;
+    const r=this._redEspelhoResumoDe(g); this._redResumoMemo={g, r}; return r; }
+  _redEspelhoResumoDe(g){
     if(!g.trim()) return {qs:[], total:0, estado:'vazio', txt:'Falta o espelho'};
     const qs=this._redQuesitos(g);
     if(!qs.length) return {qs, total:0, estado:'prosa', txt:'Espelho em prosa — a correção será por cobertura'};
@@ -12887,12 +12912,24 @@ class Component extends DCLogic {
   // Os degraus que a pessoa pode se dar num quesito: a escala da banca quando há; senão
   // zero, metade e cheio. Nota fora da escala não existe (mesma regra do corretor local).
   _redConfOpcoes(q){ if(q.escala&&q.escala.length) return q.escala.slice();
-    const max=q.max!=null?q.max:1; return [0, Math.round(max*50)/100, max]; }
+    const max=q.max!=null?q.max:1;
+    return [0, Math.round(max*50)/100, max].filter((v,i,a)=>a.indexOf(v)===i); }   // máximo 0 (ou de 1 centésimo) não repete degrau
   terminarMao = ()=>{
     this._redCronoPausar();
     const r=this._redEspelhoResumo();
     if(r.estado==='vazio'){ this.setState({redEspelhoOculto:false, redGabVista:'texto'}); return; }
+    this._redOcultoAntesConf=!!this.state.redEspelhoOculto;   // "Voltar a escrever" guarda o espelho de novo
     this.setState({redConferindo:true, redEspelhoOculto:false, redGabVista:'quesitos', redConf:{}});
+  };
+  // Há nota marcada na conferência? Sair dela (voltar a escrever, trocar de modo) descarta — então pergunta antes.
+  _redConfTemNota(){ const c=this.state.redConf||{};
+    return Object.keys(c).some(k=> k==='unica' ? !!String(c.unica==null?'':c.unica).trim() : c[k]!=null); }
+  // Tocou "Terminei" cedo demais: volta para a escrita. O tempo fica como está e o cronômetro NÃO
+  // retoma sozinho — quem decide voltar a contar é a pessoa, no "Continuar".
+  voltarConferencia = ()=>{
+    if(!this.state.redConferindo) return;
+    if(this._redConfTemNota() && !window.confirm('Voltar a escrever? As notas que você já marcou nesta conferência serão descartadas.')) return;
+    this.setState({redConferindo:false, redConf:{}, redGabVista:'', redEspelhoOculto:!!this._redOcultoAntesConf});
   };
   marcarConf = (e)=>{ const i=e.currentTarget.dataset.i, v=parseFloat(e.currentTarget.dataset.v);
     if(i==null || isNaN(v)) return; this.setState({redConf:{...(this.state.redConf||{}), [i]:v}}); };
@@ -12938,6 +12975,9 @@ class Component extends DCLogic {
   toggleRedCrono = ()=>{ if(this.state.redBusy) return; if(this._redCronoDesde) this._redCronoPausar(); else this._redCronoIniciar(); };
   setRedModo = (e)=>{ const m=e.currentTarget.dataset.m==='digitar'?'digitar':'mao';
     if(m===this.state.redModoResposta || this.state.redBusy) return;
+    // trocar de modo fecha a conferência: com nota marcada, isso não acontece em silêncio
+    if(this.state.redConferindo && this._redConfTemNota() && !window.confirm('Trocar de modo agora? As notas que você já marcou nesta conferência serão descartadas.')) return;
+    this._redModoEscolhido=true;   // escolha da pessoa nesta sessão: rascunho que chegar depois não troca o modo por ela
     this.setState({redModoResposta:m, redConferindo:false, redConf:{}}); };
   // Dados derivados da Prova oral (só calculados quando a view está aberta).
   _oralVM(){
@@ -20527,7 +20567,7 @@ class Component extends DCLogic {
         const est=Math.ceil(redWords/11);
         const med=this.state.redLinhasN; const n=(med!=null?med:est);
         const base=lim?(n+' / '+lim+' linhas'):(n+(n===1?' linha':' linhas'));
-        const extra=!lim?'':(n>lim?(' · passou '+(n-lim)):(n>=lim*0.9?(' · faltam '+(lim-n)):''));
+        const extra=!lim?'':(n>lim?(' · passou '+(n-lim)):(n===lim?' · no limite':(n>=lim*0.9?(' · faltam '+(lim-n)):'')));
         const cor=!lim?'var(--accent)':(n>lim?'var(--danger)':(n>=lim*0.9?'var(--warn)':'var(--accent)'));
         const ts=+this.state.redTextTs||0;
         const tot=Math.max(18, n+1, lim||0);
@@ -20536,7 +20576,8 @@ class Component extends DCLogic {
           redFolhaStyle:'--ct-folha-min:'+tot+';',   // a pauta vai até onde a numeração vai
           redPautaShow:med!=null, redPautaNums:Array.from({length:tot},(_,i)=>String(i+1)),
           redSalvoTxt:ts?('Salvo às '+new Date(ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})):'Ainda não salvo' }; })(),
-      ...(()=>{ const r=this._redEspelhoResumo(); const tem=r.estado==='quesitos';
+      ...(()=>{ const r=this.state.view==='redacao' ? this._redEspelhoResumo() : {qs:[], total:0, estado:'vazio', txt:''};   // fora da Redação ninguém lê: mesmas chaves, sem custo
+        const tem=r.estado==='quesitos';
         const vista=tem?(this.state.redGabVista||'quesitos'):'texto';
         const msg=this.state.redGabBusy?('Lendo '+(this.state.redGabFile||'arquivo')+'…'):(this.state.redGabErro||this.state.redGabOk||'');
         const alerta=!!this.state.redGabErro && !this.state.redGabBusy;
@@ -20545,7 +20586,11 @@ class Component extends DCLogic {
         const obt=r.qs.reduce((a,q,i)=>a+(+conf[i]||0),0);
         const pode=prosa?(this._redConfUnica()!=null):(tem && faltam===0);
         const lim=this._redLimiteLinhas(this.state.redEnunciado); const lm=this.state.redLinhasMao?+this.state.redLinhasMao:null;
-        return { redConferindo:conferindo, redConfProsa:conferindo && prosa, redConfListaShow:conferindo && tem && vista==='quesitos',
+        // Na conferência em prosa o padrão aparece só para leitura — MENOS quando a pessoa está na vista
+        // "Texto" editando o espelho: aí o campo continua montado (antes ele desmontava no meio da
+        // digitação, quando o texto deixava de ter quesitos) e a cópia de leitura some para não duplicar.
+        const editando=this.state.redGabVista==='texto';
+        return { redConferindo:conferindo, redConfProsa:conferindo && prosa, redConfProsaLeitura:conferindo && prosa && !editando, redConfListaShow:conferindo && tem && vista==='quesitos',
           redConfItens:r.qs.map((q,i)=>({ n:String(q.n), texto:q.texto,
             opcoes:this._redConfOpcoes(q).map(v=>({ i:String(i), v:String(v), l:this._redNum(v), on:conf[i]===v })) })),
           redConfSomaTxt:prosa?'':(this._redNum(obt)+' / '+this._redNum(r.total)+(faltam?(' · falta'+(faltam===1?'':'m')+' '+faltam):' · tudo marcado')),
@@ -20554,9 +20599,9 @@ class Component extends DCLogic {
           redLinhasMaoMsg:(lm==null||!lim)?'':(lm>lim?('passou '+(lm-lim)+(lm-lim===1?' linha':' linhas')+' do limite'):('dentro do limite de '+lim+' linhas')),
           redTermineiTxt:r.estado==='vazio'?'Colar ou importar o padrão para conferir':'Terminei — conferir pelo padrão',
           marcarConf:this.marcarConf, onConfUnica:this.onConfUnica, onLinhasMao:this.onLinhasMao,
-          terminarMao:this.terminarMao, registrarConferencia:this.registrarConferencia,
+          terminarMao:this.terminarMao, registrarConferencia:this.registrarConferencia, voltarConferencia:this.voltarConferencia,
           redGabEstadoTxt:r.txt, redGabTemQuesitos:tem,
-          redGabVistaQuesitos:vista==='quesitos', redGabVistaTexto:vista==='texto' && !(conferindo && prosa), redGabListaShow:vista==='quesitos' && !conferindo, setRedGabVista:this.setRedGabVista,
+          redGabVistaQuesitos:vista==='quesitos', redGabVistaTexto:vista==='texto' && (editando || !(conferindo && prosa)), redGabListaShow:vista==='quesitos' && !conferindo, setRedGabVista:this.setRedGabVista,
           redGabQuesitos:r.qs.map((q,i)=>({ i:String(i), n:String(q.n), texto:q.texto,
             pts:(q.escala&&q.escala.length?('escala '+q.escala.map(x=>this._redNum(x)).join(' / ')):('até '+this._redNum(q.max!=null?q.max:1))) })),
           redGabMsg:msg, redGabMsgAlerta:alerta, redGabMsgNormal:!!msg && !alerta }; })(),
@@ -20567,7 +20612,8 @@ class Component extends DCLogic {
       redMaoDica:(()=>{ const l=this._redLimiteLinhas(this.state.redEnunciado);
         return (l?('A banca dá até '+l+' linhas. '):'')+'Ligue o cronômetro, responda no papel e, ao terminar, confira o padrão de respostas quesito a quesito.'; })(),
       redChipLimite:(()=>{ const l=this._redLimiteLinhas(this.state.redEnunciado); return l?('até '+l+' linhas'):''; })(),
-      redChipComandos:(()=>{ const n=this._redBlocos(this._desquebrar(String(this.state.redEnunciado||''))).filter(b=>b.tipo==='item').length;
+      redChipComandos:(()=>{ if(this.state.view!=='redacao') return '';
+        const n=this._redBlocosMemo(String(this.state.redEnunciado||'')).filter(b=>b.tipo==='item').length;
         return n>1?(n+' comandos'):''; })(),
       redPasso1:this._passo(!this.state.redResult && !((this.state.redEnunciado||'').trim())),
       redPasso2:this._passo(!this.state.redResult && !!((this.state.redEnunciado||'').trim())),
@@ -20586,7 +20632,7 @@ class Component extends DCLogic {
       // era ler o mesmo cabeçalho duas vezes, uma em cada tipografia
       // corta a 1ª linha SÓ no padrão que _abrirDiscursiva grava (linha + linha em branco):
       // enunciado legado/livre sem esse padrão aparece inteiro, em vez de amputado
-      redBlocos:this._redBlocos(this._desquebrar((this.state.redModoProva && /^[^\n]+\n\n/.test(String(this.state.redEnunciado||'')))
+      redBlocos:(this.state.view!=='redacao' ? [] : this._redBlocosMemo((this.state.redModoProva && /^[^\n]+\n\n/.test(String(this.state.redEnunciado||'')))
         ? String(this.state.redEnunciado||'').replace(/^[^\n]*\n+/,'')
         : String(this.state.redEnunciado||''))).map(x=>({
           ehTitulo:x.tipo==='titulo', ehItem:x.tipo==='item', ehPar:x.tipo==='par',

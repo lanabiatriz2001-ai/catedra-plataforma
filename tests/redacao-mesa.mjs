@@ -38,8 +38,10 @@ const caixa = (page, sel) => page.evaluate(s => { const e = document.querySelect
 
 export async function testarRedacaoMesa(pageDaSuite, base, ok, opcoes = {}) {
   const R = 'MESA [' + (opcoes.motor || 'chromium') + '] ';
-  const blocos = [arranjo, papel, folha, espelho, conferencia, acessivel, revisao];
+  const blocos = [arranjo, papel, folha, espelho, conferencia, acessivel, revisao, pendencias];
+  const so = process.env.CT_BLOCO;   // CT_BLOCO=pendencias roda só um bloco, para o ciclo curto
   for (const b of blocos) {
+    if (so && b.name !== so) continue;
     try { await b(pageDaSuite, base, ok, R, opcoes); }
     catch (e) { ok(false, R + b.name + ' exceção: ' + e.message); }
   }
@@ -390,5 +392,188 @@ async function revisao(pageDaSuite, base, ok, R) {
     await page.waitForFunction(() => { try { return JSON.parse(localStorage.getItem('catedra:red') || '[]').length > 0; } catch (_) { return false; } }, null, { timeout: 60000 });
     const h = await page.evaluate(() => JSON.parse(localStorage.getItem('catedra:red'))[0]);
     ok(Math.abs(h.tempoMs - 300000) < 3000 && h.origem !== 'conferencia-propria' && h.words > 40, R + 'correção digitada grava o tempo da resposta no histórico (' + h.tempoMs + ' ms)');
+  } finally { await ctx.close(); }
+}
+
+// Pendências da mesa (03/10/2026): voltar da conferência, notas que não somem em silêncio, espelho que
+// vira prosa no meio da digitação, rascunho que chega depois do boot, foco de verdade, hover do "Recolher".
+async function pendencias(pageDaSuite, base, ok, R) {
+  const app = (page, f, arg) => page.evaluate(f, arg);
+  const marcar = (page, i, txt) => page.locator('[data-red="conf-item"] >> nth=' + i).locator('[data-red="conf-opcao"]', { hasText: txt }).click();
+  const crono = async page => (await page.textContent('[data-red="crono"]')).trim();
+
+  // 1 · voltar a escrever depois de "Terminei"
+  let { ctx, page } = await novoContexto(pageDaSuite);
+  try {
+    let dialogos = 0, aceitar = true;
+    page.on('dialog', d => { dialogos++; return aceitar ? d.accept() : d.dismiss(); });
+    await semear(page, base); await abrirRedacao(page, base);
+    await app(page, () => window.__catedraApp.setState({ redEspelhoOculto: true }));
+    await page.click('[data-red="crono-btn"]'); await page.clock.runFor(60000);
+    await page.click('[data-red="terminei"]'); await page.waitForSelector('[data-red="conf-item"]');
+    const parado = await crono(page);
+    const bx = await caixa(page, '[data-red="conf-voltar"]');
+    ok(!!bx && bx.h >= 44 && bx.w > 0, R + 'conferência tem "Voltar a escrever", com alvo ≥ 44 px (mediu ' + (bx ? Math.round(bx.h) : 'ausente') + ')');
+    await page.click('[data-red="conf-voltar"]'); await page.waitForTimeout(200);
+    ok(dialogos === 0 && await page.locator('[data-red="conf-item"]').count() === 0, R + 'sem nota marcada, voltar a escrever sai da conferência sem perguntar');
+    ok(await page.locator('button:has-text("Ver mesmo assim")').count() === 1 && !/estabilização/.test(await page.textContent('[data-red="espelho"]')), R + 'voltar a escrever guarda de novo o espelho que estava guardado');
+    await page.clock.runFor(20000);
+    ok(await crono(page) === parado && parado !== '00:00' && await app(page, () => !window.__catedraApp.state.redCronoOn), R + 'voltar a escrever mantém o tempo e não retoma o cronômetro sozinho (' + parado + ')');
+    ok(!(await page.isDisabled('[data-red="terminei"]')) && !(await page.isDisabled('[data-red="crono-btn"]')), R + 'de volta à escrita, cronômetro e "Terminei" ficam disponíveis');
+    await page.click('[data-red="terminei"]'); await page.waitForSelector('[data-red="conf-item"]');
+    await marcar(page, 0, '0,30');
+    aceitar = false; await page.click('[data-red="conf-voltar"]'); await page.waitForTimeout(200);
+    ok(dialogos === 1 && await page.locator('[data-red="conf-opcao"][aria-pressed="true"]').count() === 1, R + 'com nota marcada, voltar pede confirmação e recusar mantém a conferência');
+    aceitar = true; await page.click('[data-red="conf-voltar"]'); await page.waitForTimeout(200);
+    ok(dialogos === 2 && await page.locator('[data-red="conf-item"]').count() === 0 && await app(page, () => Object.keys(window.__catedraApp.state.redConf || {}).length === 0), R + 'confirmando, sai da conferência e descarta as notas');
+
+    // 2 · trocar de modo não descarta notas em silêncio
+    await page.click('[data-red="terminei"]'); await page.waitForSelector('[data-red="conf-item"]');
+    dialogos = 0; await page.click('[data-red="modo-digitar"]'); await page.waitForTimeout(200);
+    ok(dialogos === 0 && await page.getAttribute('[data-red="modo-digitar"]', 'aria-pressed') === 'true', R + 'trocar de modo sem nota marcada não pergunta');
+    await page.click('[data-red="modo-mao"]');
+    await page.click('[data-red="terminei"]'); await page.waitForSelector('[data-red="conf-item"]');
+    await marcar(page, 1, '0,10');
+    aceitar = false; dialogos = 0; await page.click('[data-red="modo-digitar"]'); await page.waitForTimeout(200);
+    ok(dialogos === 1 && await page.getAttribute('[data-red="modo-mao"]', 'aria-pressed') === 'true' && await page.locator('[data-red="conf-opcao"][aria-pressed="true"]').count() === 1, R + 'trocar de modo com nota marcada pergunta, e recusar não muda nada');
+    aceitar = true; await page.click('[data-red="modo-digitar"]'); await page.waitForTimeout(200);
+    ok(dialogos === 2 && await page.getAttribute('[data-red="modo-digitar"]', 'aria-pressed') === 'true' && await page.locator('[data-red="conf-item"]').count() === 0, R + 'confirmando, troca de modo e a conferência fecha');
+  } finally { await ctx.close(); }
+
+  // 3 · espelho editado até virar prosa no meio da conferência
+  ({ ctx, page } = await novoContexto(pageDaSuite));
+  try {
+    await semear(page, base); await abrirRedacao(page, base);
+    await page.click('[data-red="terminei"]'); await page.waitForSelector('[data-red="conf-item"]');
+    await page.click('[data-red="gab-vista-texto"]');
+    const ta = page.locator('[data-red="espelho"] textarea');
+    await ta.click(); await page.evaluate(() => { document.querySelector('[data-red="espelho"] textarea').__marca = 1; });
+    await page.keyboard.press('ControlOrMeta+a'); await page.keyboard.press('Backspace');
+    const prosa = 'A resposta deve reconhecer a estabilização da tutela e afastar a coisa julgada.';
+    await page.keyboard.type(prosa, { delay: 5 }); await page.waitForTimeout(200);
+    const fim = await page.evaluate(() => { const t = document.querySelector('[data-red="espelho"] textarea'); return t ? { v: t.value, foco: document.activeElement === t, mesmo: t.__marca === 1 } : null; });
+    ok(!!fim && fim.v === prosa && fim.foco && fim.mesmo, R + 'espelho que vira prosa na conferência: o campo continua montado e com foco até o fim (' + JSON.stringify(fim).slice(0, 80) + ')');
+    ok(await page.locator('[data-red="conf-unica"]').count() === 1 && await page.locator('[data-red="conf-padrao"]').count() === 0, R + 'conferência em prosa com o campo aberto: pede a nota única e não duplica o padrão');
+  } finally { await ctx.close(); }
+  // prosa desde o início: a cópia de leitura continua lá (ninguém escolheu a vista Texto)
+  ({ ctx, page } = await novoContexto(pageDaSuite));
+  try {
+    await semear(page, base, { redGabarito: 'A resposta deve reconhecer a estabilização da tutela e afastar a coisa julgada.' }); await abrirRedacao(page, base);
+    await page.click('[data-red="terminei"]'); await page.waitForSelector('[data-red="conf-unica"]');
+    const c = await caixa(page, '[data-red="conf-padrao"]');
+    ok(!!c && c.h > 0 && await page.locator('[data-red="espelho"] textarea').count() === 0, R + 'espelho em prosa desde o início: conferência mostra o padrão só para leitura');
+  } finally { await ctx.close(); }
+
+  // 4 · rascunho que chega depois do boot
+  ({ ctx, page } = await novoContexto(pageDaSuite));
+  try {
+    await semear(page, base); await abrirRedacao(page, base);
+    ok(await page.getAttribute('[data-red="modo-mao"]', 'aria-pressed') === 'true', R + 'sem rascunho, abre em "À mão" (ponto de partida)');
+    const chega = txt => app(page, txt => { localStorage.setItem('catedra:redText', JSON.stringify(txt)); localStorage.setItem('catedra:redTextTs', JSON.stringify(Date.now())); window.__catedraApp._rehydrateFromLocal(); return window.__catedraApp.state.redText; }, txt);
+    ok(await chega('Rascunho que veio de outro aparelho.') === 'Rascunho que veio de outro aparelho.', R + 'a reidratação traz o rascunho para o estado');
+    await page.waitForTimeout(300);
+    ok(await page.getAttribute('[data-red="modo-digitar"]', 'aria-pressed') === 'true' && (await page.inputValue('[data-red="folha"] textarea')) === 'Rascunho que veio de outro aparelho.', R + 'rascunho que chega depois do boot passa a tela para "Digitar" e aparece');
+    // quem escolheu o modo à mão nesta sessão não é empurrado de volta
+    await page.click('[data-red="modo-mao"]');
+    await app(page, () => window.__catedraApp.setState({ redText: '' })); await page.waitForTimeout(150);
+    await app(page, () => window.__catedraApp.setState({ redText: 'Outro texto vindo de fora.' })); await page.waitForTimeout(300);
+    ok(await page.getAttribute('[data-red="modo-mao"]', 'aria-pressed') === 'true', R + 'depois de escolher "À mão", texto que chega de fora não troca o modo');
+  } finally { await ctx.close(); }
+  ({ ctx, page } = await novoContexto(pageDaSuite));
+  try {
+    await semear(page, base); await abrirRedacao(page, base);
+    await page.click('[data-red="terminei"]'); await page.waitForSelector('[data-red="conf-item"]');
+    await app(page, () => window.__catedraApp.setState({ redText: 'Texto vindo de fora no meio da conferência.' })); await page.waitForTimeout(300);
+    ok(await page.getAttribute('[data-red="modo-mao"]', 'aria-pressed') === 'true' && await page.locator('[data-red="conf-item"]').count() === 3, R + 'texto que chega durante a conferência não tira a pessoa dela');
+  } finally { await ctx.close(); }
+  ({ ctx, page } = await novoContexto(pageDaSuite));
+  try {
+    await semear(page, base, { redText: 'Rascunho digitado em outra sessão.', redTextTs: Date.now() - 3600e3 }); await abrirRedacao(page, base);
+    await page.click('[data-red="modo-mao"]');
+    await page.click('button:has-text("Continuar")'); await page.waitForTimeout(400);
+    ok(await page.getAttribute('[data-red="modo-digitar"]', 'aria-pressed') === 'true' && await page.evaluate(() => { const t = document.querySelector('[data-red="folha"] textarea'); return !!t && document.activeElement === t; }), R + '"Continuar" do rascunho salvo passa para "Digitar" e põe o cursor na folha');
+  } finally { await ctx.close(); }
+
+  // 5 · modo foco esconde a barra do topo e a navegação inferior
+  const area = (page, sel) => page.evaluate(s => { const e = document.querySelector(s); if (!e) return -1; const r = e.getBoundingClientRect(); return Math.round(r.width * r.height); }, sel);
+  for (const vp of [{ width: 1280, height: 900 }, { width: 390, height: 844 }]) {
+    ({ ctx, page } = await novoContexto(pageDaSuite, vp));
+    const L = R + vp.width + ': ';
+    try {
+      await semear(page, base, { redText: 'Um texto digitado.', redTextTs: Date.now() }); await abrirRedacao(page, base);
+      const sels = vp.width < 700 ? ['.ct-topbar', '.ct-bnav'] : ['.ct-topbar', 'aside'];
+      const fora = []; for (const s of sels) fora.push(await area(page, s));
+      ok(fora.every(a => a > 0), L + 'fora do foco, cabeçalho e navegação ocupam área (' + sels.join(', ') + ': ' + fora.join(', ') + ')');
+      await page.click('[data-red="foco"]'); await page.waitForTimeout(200);
+      const dentro = []; for (const s of sels) dentro.push(await area(page, s));
+      ok(dentro.every(a => a === 0), L + 'no foco, cabeçalho e navegação somem (' + dentro.join(', ') + ')');
+      const sair = await caixa(page, '[data-red="foco"]');
+      ok(!!sair && sair.w * sair.h > 0 && sair.h >= 44 && await page.locator('[data-red="foco"]').isVisible() && await page.locator('[data-red="folha"] textarea').isVisible(), L + 'no foco, o botão de sair e a folha continuam visíveis');
+      ok(await app(page, () => typeof window.__catedraApp._redFocoEsc === 'function'), L + 'no foco, o Esc está escutando');
+      await page.click('[data-red="foco"]'); await page.waitForTimeout(200);
+      const depois = []; for (const s of sels) depois.push(await area(page, s));
+      ok(depois.every(a => a > 0) && await app(page, () => !window.__catedraApp._redFocoEsc), L + 'saindo do foco, tudo volta e o listener do Esc é removido');
+    } finally { await ctx.close(); }
+  }
+
+  // 6 · "Recolher" no hover mantém contraste sobre o herói
+  ({ ctx, page } = await novoContexto(pageDaSuite, { width: 768, height: 1024 }));
+  try {
+    await semear(page, base); await abrirRedacao(page, base);
+    const medirHover = () => page.evaluate(() => {
+      const num = c => { const m = c.match(/[\d.]+/g).map(Number); const srgb = /color\(srgb/.test(c); return { rgb: srgb ? m.slice(0, 3).map(v => v * 255) : m.slice(0, 3), a: m.length > 3 ? m[3] : 1 }; };
+      const lum = v3 => { const f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(v3[0]) + 0.7152 * f(v3[1]) + 0.0722 * f(v3[2]); };
+      const el = document.querySelector('[data-red="questao-toggle"]');
+      // sobe juntando as camadas translúcidas até achar um fundo opaco ou um gradiente (todas as paradas: vale a pior)
+      const camadas = []; let bases = [[255, 255, 255]]; let e = el;
+      while (e) { const cs = getComputedStyle(e);
+        if (/gradient/.test(cs.backgroundImage)) { const cores = cs.backgroundImage.match(/rgba?\([^)]*\)|color\(srgb[^)]*\)/g) || []; if (cores.length) { bases = cores.map(c => num(c).rgb); break; } }
+        const b = num(cs.backgroundColor); if (b.a >= 0.99) { bases = [b.rgb]; break; } if (b.a > 0) camadas.push(b);
+        e = e.parentElement; }
+      const txt = num(getComputedStyle(el).color).rgb; const a = lum(txt);
+      const r = Math.min(...bases.map(base => { let c = base; for (let i = camadas.length - 1; i >= 0; i--) { const k = camadas[i]; c = c.map((v, j) => k.rgb[j] * k.a + v * (1 - k.a)); } const b = lum(c); return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05); }));
+      return { r: Math.round(r * 100) / 100, camadas: camadas.length, inline: el.getAttribute('style') || '', h: Math.round(el.getBoundingClientRect().height) };
+    });
+    const antes = await medirHover();
+    await page.hover('[data-red="questao-toggle"]'); await page.waitForTimeout(250);
+    const hov = await medirHover();
+    ok(antes.r >= 4.5 && hov.r >= 4.5, R + '"Recolher" tem contraste ≥ 4,5:1 parado e no hover (mediu ' + antes.r + ' e ' + hov.r + ')');
+    ok(hov.camadas >= 1 && hov.h >= 44 && !/color/.test(hov.inline), R + '"Recolher" responde ao hover com fundo translúcido, sem cor inline (' + hov.camadas + ' camada, ' + hov.h + ' px)');
+    await page.screenshot({ path: 'tests/_capturas/mesa-recolher-hover.png' }).catch(() => {});
+  } finally { await ctx.close(); }
+
+  // 7 · rótulos: "no limite" e quesito de máximo zero
+  ({ ctx, page } = await novoContexto(pageDaSuite));
+  try {
+    const linha = 'uma linha de prova com onze palavras bem curtas aqui sim';
+    await semear(page, base, { redText: Array.from({ length: 30 }, () => linha).join('\n'), redTextTs: Date.now() - 60e3 }); await abrirRedacao(page, base);
+    await esperaLinhas(page, /30 \/ 30 linhas/);
+    const rot = (await page.textContent('[data-red="linhas"]')).replace(/\s+/g, ' ').trim();
+    ok(/30 \/ 30 linhas · no limite/.test(rot) && !/faltam 0/.test(rot), R + 'com as linhas exatamente no limite, o rótulo diz "no limite" (' + rot + ')');
+    const ops = await app(page, () => { const c = window.__catedraApp; return { zero: c._redConfOpcoes({ max: 0 }), um: c._redConfOpcoes({ max: 1 }), esc: c._redConfOpcoes({ max: 0.3, escala: [0, 0.1, 0.3] }) }; });
+    ok(ops.zero.length === 1 && ops.zero[0] === 0 && ops.um.join('|') === '0|0.5|1' && ops.esc.join('|') === '0|0.1|0.3', R + 'quesito de máximo zero oferece uma opção só; os demais seguem iguais (' + JSON.stringify(ops.zero) + ')');
+  } finally { await ctx.close(); }
+
+  // 9 · regenerar o espelho sugerido limpa as notas marcadas no antigo
+  ({ ctx, page } = await novoContexto(pageDaSuite));
+  try {
+    await semear(page, base, { redGabarito: '', redProvaId: 'x-sem-espelho' }); await abrirRedacao(page, base);
+    // _aiText é trocada inteira: a chamada não passa por window.claude (onde mora o consentimento da IA)
+    await app(page, () => { const c = window.__catedraApp; c.setState({ redModoProva: true }); c.__ger = 0;
+      c._aiText = async () => { c.__ger++; return JSON.stringify({ total: 1, quesitos: [
+        { quesito: 'Reconhece a estabilização da tutela antecipada antecedente (geração ' + c.__ger + ')', pontos: 0.5, fundamento: 'art. 304 do CPC' },
+        { quesito: 'Afasta a formação de coisa julgada material', pontos: 0.5, fundamento: 'art. 304, § 6º, do CPC' }] }); }; });
+    await page.waitForTimeout(200);
+    await page.click('button:has-text("Gerar espelho sugerido")');
+    await page.waitForFunction(() => /ESPELHO SUGERIDO/.test(window.__catedraApp.state.redGabarito || ''), null, { timeout: 8000 });
+    await page.click('[data-red="terminei"]'); await page.waitForSelector('[data-red="conf-item"]');
+    ok(await page.locator('[data-red="conf-item"]').count() === 2, R + 'espelho sugerido abre a conferência com os quesitos gerados');
+    await marcar(page, 0, '0,50');
+    ok(await app(page, () => { const s = window.__catedraApp.state; return s.redConferindo && Object.keys(s.redConf || {}).length === 1; }), R + 'nota marcada sobre o espelho sugerido (ponto de partida)');
+    await page.click('button:has-text("Regenerar")');
+    await page.waitForFunction(() => window.__catedraApp.__ger === 2 && !window.__catedraApp.state.espSugBusy, null, { timeout: 8000 });
+    await page.waitForTimeout(200);
+    const s = await app(page, () => { const s = window.__catedraApp.state; return { conf: Object.keys(s.redConf || {}).length, conferindo: !!s.redConferindo, g2: /geração 2/.test(s.redGabarito || '') }; });
+    ok(s.conf === 0 && !s.conferindo && s.g2 && await page.locator('[data-red="conf-item"]').count() === 0, R + 'regenerar o espelho sugerido limpa as notas e fecha a conferência (' + JSON.stringify(s) + ')');
   } finally { await ctx.close(); }
 }
