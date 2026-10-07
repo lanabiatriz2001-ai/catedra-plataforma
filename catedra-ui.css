@@ -2078,7 +2078,7 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 .cm-plano{display:grid;gap:12px;margin:8px 0;padding:20px;border:1px solid var(--accentRing);border-radius:var(--r-md);background:var(--accentSoft);min-width:0}.cm-plano .cm-acoes{align-items:center}.cm-plano button[aria-pressed="true"]{background:var(--accentSolid);color:var(--onAccent);border-color:var(--accentSolid)}.cm-plano-objetivo{font-size:var(--fs-base);font-weight:650;line-height:1.6;color:var(--text)}.cm-plano-diagnostico{display:grid;gap:10px;padding:12px;border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface)}.cm-plano-foco{color:#fff;font-size:var(--fs-base);line-height:1.6;max-width:440px;margin:16px auto;padding:0 16px}
 .cm-plano [role="group"]{display:grid;grid-template-columns:auto repeat(3,minmax(0,1fr));gap:6px}.cm-plano [role="group"] .ct-btn-2{padding:10px 5px;min-width:0;min-height:44px}
 
-/* Navigation inside a study area, with a visible active destination. */
+/* Navegação dentro de uma área de estudo, com o destino ativo visível. */
 .ct-fluxo-abas{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px;min-width:0}
 .ct-fluxo-abas button{min-height:44px;flex:1;white-space:normal}
 .ct-fluxo-abas button[aria-current="page"],.ct-fluxo-abas button[aria-pressed="true"]{background:var(--accentSolid);color:var(--onAccent);border-color:var(--accentSolid)}

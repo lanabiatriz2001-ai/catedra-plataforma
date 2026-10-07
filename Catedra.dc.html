@@ -1010,7 +1010,7 @@ window.ctPdfLib = (function(){
             <button onclick="{{ closeSession }}" aria-label="Fechar" class="ct-reg-fechar"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"></path></svg></button>
           </div>
           <nav class="ct-fluxo-abas" aria-label="Modo de registro"><button class="ct-btn-2" data-v="estudo" aria-pressed="{{ sessModoEstudoStr }}" onclick="{{ setRegistroModo }}">Estudo</button><button class="ct-btn-2" data-v="simulado" aria-pressed="{{ sessModoSimStr }}" onclick="{{ setRegistroModo }}">Simulado</button></nav>
-          <sc-if value="{{ sessModoSim }}"><div class="ct-reg-corpo">        <!-- form -->
+          <sc-if value="{{ sessModoSim }}"><div class="ct-reg-corpo"><p class="ct-nota" role="status">{{ simRegistroTempoLabel }}</p><sc-if value="{{ simTemTempoCrono }}"><button class="ct-btn-2" onclick="{{ usarTempoSimulado }}">Usar tempo do cronômetro ({{ simTempoCrono }} min)</button></sc-if>        <!-- form -->
         <div class="ct-card">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><span class="ct-titulo">Registrar simulado</span></div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
@@ -9261,12 +9261,12 @@ class Component extends DCLogic {
       this.setState({timerRunning:false, pausaDesde:Date.now()}, ()=>{ this._saveTimer(); this._pausaVigia(); this._ofertarRegistro(_min); }); }
     else { if(!this.state.sessionDraft.atvKey&&!this.state.timerSeconds&&!this.state.studiedSeconds){const ctx=this._cmContexto();if(ctx)this.setState({sessionDraft:this._blockToDraft(ctx.b,this.state.sessionDraft)});}
       this._tickLast=Date.now(); this._tick = setInterval(this.tick, 1000);
-      const s=this.state, zerado=!s.timerSeconds && !s.studiedSeconds;   // sessão nova começa sem pausa herdada
+      const s=this.state, zerado=!s.timerSeconds && !s.studiedSeconds;if(zerado)this._cronometroGeracao=(this._cronometroGeracao||0)+1;   // sessão nova começa sem pausa herdada
       const pausaSeg=zerado?0:this._pausaTotal(s);
       if(this._pausaT){ clearInterval(this._pausaT); this._pausaT=null; }
       this.setState({timerRunning:true, pausaSeg, pausaDesde:0}, ()=>this._saveTimer()); }
   };
-  resetTimer = ()=>{ if(this._tick) clearInterval(this._tick); this._tick=null; try{ localStorage.removeItem('ct_timer'); }catch(_){}
+  resetTimer = ()=>{this._cronometroGeracao=(this._cronometroGeracao||0)+1;this._simSoltarTempo(); if(this._tick) clearInterval(this._tick); this._tick=null; try{ localStorage.removeItem('ct_timer'); }catch(_){}
     const _min=this._minCronometro();   // lido ANTES de zerar, senão a oferta viria com 0
     this.setState({timerRunning:false, timerSeconds:0, studiedSeconds:0, pomoPhase:'foco', pomoCycles:0}, ()=>this._ofertarRegistro(_min, true)); };
 
@@ -12042,8 +12042,16 @@ class Component extends DCLogic {
     const tp=ed[d].topics.slice(); const sb=(tp[t].subs||[]).slice(); sb[i]={...this._subObj(sb[i]),name:v}; tp[t]={...tp[t],subs:sb}; ed[d]={...ed[d],topics:tp}; this.setState({edital:ed}); this.flashSync(); };
   onSim = (e)=>{ const f=e.currentTarget.dataset.f; const v=Math.max(0,parseInt(e.currentTarget.value,10)||0); this.setState(s=>({sim:{...s.sim,[f]:v}})); };
   setSimAba = (e)=> this.setState({simAba:e.currentTarget.dataset.v==='treino'?'treino':'registro'});
-  setRegistroModo = (e)=>{ const modo=e.currentTarget.dataset.v==='simulado'?'simulado':'estudo';
-    this.setState(s=>({registroModo:modo,...(modo==='simulado'&&!s.simMin?{simMin:s.sessionDraft.minutos||'',simRegistroUsaTimer:+s.sessionDraft.minutos>0}:{})})); };
+  _simSoltarTempo(){this._simTimerRegistro=null;this.setState({simRegistroFonte:'manual'});}
+  setRegistroModo = (e)=>{const modo=e.currentTarget.dataset.v==='simulado'?'simulado':'estudo';
+    this._simSoltarTempo();this.setState({registroModo:modo},()=>{if(modo==='simulado'&&!this.state.simMin)this.usarTempoSimulado();});};
+  usarTempoSimulado = ()=>{
+    if(!this.state.sessionModalOpen||this.state.registroModo!=='simulado')return;
+    const min=this._minCronometro();if(!(min>0))return;
+    this._simTimerRegistro={modal:this._registroId,geracao:this._cronometroGeracao||0,modo:this.state.timerMode};
+    if(this._tick){clearInterval(this._tick);this._tick=null;}
+    this.setState({simMin:String(min),simRegistroFonte:'cronometro',timerRunning:false,pausaDesde:Date.now()},()=>this._saveTimer());
+  };
   onSimNome = (e)=> this.setState({simNome:e.currentTarget.value});
   saveSimulado = ()=>{ const s=this.state.sim||{}; const nome=(this.state.simNome||'').trim()||'Simulado';
     const min=Math.max(0, parseInt(this.state.simMin,10)||0);   // tempo REAL digitado (vazio = 0)
@@ -12065,11 +12073,11 @@ class Component extends DCLogic {
     }
     const rec={ id:'s'+Date.now(), ts:Date.now(), date:this._ymd(Date.now()-Math.min(min,600)*60000), disc:'Simulado', topico:nome, categoria:'Simulado', categorias:['Simulado'], min, questoes, acertos, erradas, brancos, liquido:acertos-erradas, foco:4, nota:notaTxt, discPct:discPctRec, countMeta:true };
     const sessions=[rec, ...this.state.sessions]; this._saveSessions(sessions);
-    const consomeTimer=!!this.state.simRegistroUsaTimer;
+    const ref=this._simTimerRegistro,consomeTimer=!!(ref&&this.state.sessionModalOpen&&this.state.registroModo==='simulado'&&ref.modal===this._registroId&&ref.geracao===(this._cronometroGeracao||0)&&ref.modo===this.state.timerMode);this._simTimerRegistro=null;
     if(consomeTimer){if(this._tick){clearInterval(this._tick);this._tick=null;}try{localStorage.removeItem('ct_timer');}catch(_){}}
-    this.setState({...(consomeTimer?{timerRunning:false,timerSeconds:0,studiedSeconds:0,sessionDraft:this._freshSessionDraft(this.state.sessionDraft)}:{}),simRegistroUsaTimer:false,sessions, simNome:'', simMin:'', simAba:'registro', sessionModalOpen:false, registroModo:'estudo'}, ()=>{ try{ this._reconcileStreak(); }catch(_){} try{ this._pubAtvT=0; this._publicarAtividade(); }catch(_){} }); this.flashSync();
+    this.setState({...(consomeTimer?{timerRunning:false,timerSeconds:0,studiedSeconds:0,sessionDraft:this._freshSessionDraft(this.state.sessionDraft)}:{}),simRegistroFonte:'manual',sessions, simNome:'', simMin:'', simAba:'registro', sessionModalOpen:false, registroModo:'estudo'}, ()=>{ try{ this._reconcileStreak(); }catch(_){} try{ this._pubAtvT=0; this._publicarAtividade(); }catch(_){} }); this.flashSync();
     this._toast('Simulado "'+nome+'" registrado no histórico ✦'); };
-  onSimMin = (e)=>{ const v=e.currentTarget.value; this.setState({simMin: v===''?'':String(Math.max(0,parseInt(v,10)||0))}); };
+  onSimMin = (e)=>{ this._simSoltarTempo(); const v=e.currentTarget.value; this.setState({simMin: v===''?'':String(Math.max(0,parseInt(v,10)||0))}); };
 
   // ===== análise: sub-abas =====
   // Hub "Desempenho": as abas navegam entre a Análise (com anaTab) e o Domínio por tópico,
@@ -12080,7 +12088,7 @@ class Component extends DCLogic {
 
   // ===== cronômetro: pomodoro + modal sessão =====
   togglePomoMenu = ()=> this.setState(s=>({pomoMenuOpen:!s.pomoMenuOpen}));
-  setTimerMode = (e)=>{ const m=e.currentTarget.dataset.mode; const f=+e.currentTarget.dataset.f||25, b=+e.currentTarget.dataset.b||5;
+  setTimerMode = (e)=>{this._cronometroGeracao=(this._cronometroGeracao||0)+1;this._simSoltarTempo(); const m=e.currentTarget.dataset.mode; const f=+e.currentTarget.dataset.f||25, b=+e.currentTarget.dataset.b||5;
     if(this._tick) clearInterval(this._tick); this._tick=null;
     this.setState({timerMode:m, pomoFocus:f, pomoBreak:b, pomoMenuOpen:false, timerRunning:false, timerSeconds:0, pomoPhase:'foco', pomoCycles:0}); };
   _saveSessions(s){ try{ localStorage.setItem(this._chave('sessions'), JSON.stringify(s)); }catch(_){} }
@@ -12237,12 +12245,12 @@ class Component extends DCLogic {
     // indicador e reabertura da atividade quando a sessão é excluída dependem só dele.
     return {...this._freshSessionDraft(prev), disc, topico, edTop:_edTop, edSub:b.subtopico||'', categorias:b.kind==='Estudo dirigido'?[]:[cat], categoria:b.kind==='Estudo dirigido'?'':cat,
       atvKey:this._atvChave(b), origem:'ciclo', ...(prev&&prev.atvKey===this._atvChave(b)?{cmPlanoMin:prev.cmPlanoMin,cmPlanoObjetivo:prev.cmPlanoObjetivo}:{}), ...(()=>{const ctx=this._cmContexto(b);if(!ctx)return {};const r=ctx.id!=='juris'?CT_CMAG.roteiro(this._cm(),ctx.id):null;const k=prev&&prev.atvKey===this._atvChave(b)&&prev.cmEtapa?prev.cmEtapa:ctx.etapa;const e=r&&r.etapas.find(x=>x.k===k);const v=e?(this._cm().st[ctx.id].retomadas[k]||{}):{};const mesmo=prev&&prev.atvKey===this._atvChave(b)&&prev.cmEtapa===k;return {cmEtapa:k||'',cmPonto:mesmo&&prev.cmPonto!=null?prev.cmPonto:(e?v.ponto||'':ctx.ponto),cmProximo:mesmo&&prev.cmProximo!=null?prev.cmProximo:(e?v.proximo||'':ctx.proximo),...(e?{categoria:e.categoria,categorias:[e.categoria]}:{}),agendarRevisao:false,concluiu:false};})()}; }
-  openSession = ()=>{ const _st=this.state; const pre=Math.round(((_st.timerMode==='pomo'?_st.studiedSeconds:_st.timerSeconds)||_st.studiedSeconds||0)/60); this.setState(s=>({sessionModalOpen:true, registroModo:'estudo', pomoMenuOpen:false, sessionDraft:{...(s.sessionDraft.atvKey?s.sessionDraft:(this._cmContexto()?this._blockToDraft(this._cmContexto().b,s.sessionDraft):this._freshSessionDraft(s.sessionDraft))), minutos: pre>0?String(pre):''}})); };
+  openSession = ()=>{this._registroId=(this._registroId||0)+1;this._simTimerRegistro=null; const _st=this.state; const pre=Math.round(((_st.timerMode==='pomo'?_st.studiedSeconds:_st.timerSeconds)||_st.studiedSeconds||0)/60); this.setState(s=>({sessionModalOpen:true, registroModo:'estudo', pomoMenuOpen:false, sessionDraft:{...(s.sessionDraft.atvKey?s.sessionDraft:(this._cmContexto()?this._blockToDraft(this._cmContexto().b,s.sessionDraft):this._freshSessionDraft(s.sessionDraft))), minutos: pre>0?String(pre):''}})); };
   closeSessionBackdrop = (e)=>{ if(e&&e.target!==e.currentTarget) return;   // só o clique no fundo
     const n=(this._extRegQueue||[]).length;
     if(n && !window.confirm('Há '+n+' registro'+(n>1?'s':'')+' pendente'+(n>1?'s':'')+' na fila. Descartar tudo?')) return;
     this.closeSession(); };
-  closeSession = ()=>{
+  closeSession = ()=>{this._simSoltarTempo();
     // Fechar no X descarta os registros restantes da fila (LEGIS/JURIS multi-matéria).
     if(this._extRegQueue && this._extRegQueue.length){
       const n=this._extRegQueue.length; this._extRegQueue=[];
@@ -12422,7 +12430,7 @@ class Component extends DCLogic {
     this.setState({sessions}, ()=>{ try{ this._reconcileStreak(); }catch(_){} });
     return rec;
   };
-  saveSession = ()=>{
+  saveSession = ()=>{this._simSoltarTempo();
     const d=this.state.sessionDraft;
     const min=Math.max(0, parseInt(d.minutos,10)||0);
     const a=Math.max(0, parseInt(d.acertos,10)||0);
@@ -21557,7 +21565,7 @@ class Component extends DCLogic {
       ...((this.state.provaMode && this.state.sjModo==='enam' && (this.state.sjItens||[]).length) ? this._enamVM() : {}),
       isSegundaHub:['redacao','segundafase'].includes(this.state.view), navSegundaCur:['redacao','segundafase'].includes(this.state.view)?'page':'', navSegundaHub:navStyle(['redacao','segundafase'].includes(this.state.view)?this.state.view:'redacao'),
       simTreino:this.state.simAba==='treino', simRegistroTela:this.state.simAba!=='treino'&&!(this.state.sessionModalOpen&&this.state.registroModo==='simulado'), simRegistroStr:this.state.simAba==='treino'?'false':'true',simTreinoStr:this.state.simAba==='treino'?'true':'false',setSimAba:this.setSimAba,
-      sessModoSim:this.state.registroModo==='simulado',sessModoEstudo:this.state.registroModo!=='simulado',sessModoSimStr:this.state.registroModo==='simulado'?'true':'false',sessModoEstudoStr:this.state.registroModo==='simulado'?'false':'true',setRegistroModo:this.setRegistroModo,
+      sessModoSim:this.state.registroModo==='simulado',sessModoEstudo:this.state.registroModo!=='simulado',sessModoSimStr:this.state.registroModo==='simulado'?'true':'false',sessModoEstudoStr:this.state.registroModo==='simulado'?'false':'true',setRegistroModo:this.setRegistroModo,usarTempoSimulado:this.usarTempoSimulado,simTemTempoCrono:this._minCronometro()>0,simTempoCrono:this._minCronometro(),simRegistroTempoLabel:this.state.simRegistroFonte==='cronometro'?'Tempo líquido copiado do cronômetro pausado. Registrar consome esse tempo; cancelar preserva a sessão.':'Tempo preenchido manualmente. O cronômetro da sua sessão não será alterado.', 
       isRev:this.state.view==='revisoes', isSim:this.state.view==='simulados', isAnalise:this.state.view==='analise', isConq:this.state.view==='conquistas', isConqMetas:(this.state.view==='conquistas'||this.state.view==='metas'),
       isBaralho:this.state.view==='flashcards',
       isAnki:this.state.view==='anki', isPersonal:this.state.view==='personalizacao', isAjustes:this.state.view==='ajustes', isConfig:(this.state.view==='ajustes'||this.state.view==='personalizacao'||this.state.view==='orientacao'), isDash:this.state.view==='dashboards',
