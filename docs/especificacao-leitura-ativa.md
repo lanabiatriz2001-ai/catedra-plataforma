@@ -251,8 +251,9 @@ de volta; **só o que ela errou ou hesitou vira cartão e revisão**. Acertou: n
 É a regra dela ("cards Anki só dos erros e hesitações") virando comportamento.
 
 **O que já existe.**
-- Revisão espaçada SM-2 no host: `sm2(estado, q)` (~linha 7322), fila `catedra:reviews`
-  (itens `{id, topic, disc, facilidade, intervalo, repeticoes, due, dueDate, up}`),
+- Revisão espaçada FSRS-6 no host: `fsrs(estado, q)`, fila `catedra:reviews`
+  (itens `{id, topic, disc, intervalo, repeticoes, due, dueDate, up, fsrs}`;
+  `facilidade` antiga preservada para compatibilidade),
   sessão "Revisar agora" (`startRevSession`, `revReveal`, `revAnswer` com `q` 1/3/4/5).
 - Caderno de erros `catedra:errors` e flashcards `catedra:fc` criados pelo canal
   `ctFlashcards` (`{id:'fc'+ts, front, back, disc, origem, criado, ia}`, `_saveFC`,

@@ -88,16 +88,16 @@ async function emailLiberadoDB(user) {
   }
 }
 
-// Registra a chamada para as métricas de custo/uso do painel. Fire-and-forget:
-// nunca deixa o log derrubar a resposta da IA.
-async function logarUsoIA(user, endpoint, chars) {
-  try {
-    await fetch(SB_URL + '/rest/v1/rpc/registrar_uso_ia', {
-      method: 'POST',
-      headers: { apikey: SB_KEY, authorization: 'Bearer ' + user.__token, 'content-type': 'application/json' },
-      body: JSON.stringify({ p_endpoint: endpoint, p_chars: chars | 0 }),
-    });
-  } catch (_) {}
+// Reserva atômica compartilhada com a narração. Sem reserva, não chama o provedor.
+async function reservarUsoIA(user, endpoint, chars) {
+  const r = await fetch(SB_URL + '/rest/v1/rpc/reservar_uso_ia', {
+    method: 'POST', headers: { apikey: SB_KEY, authorization: 'Bearer ' + user.__token, 'content-type': 'application/json' },
+    body: JSON.stringify({ p_endpoint: endpoint, p_chars: chars }),
+  });
+  if (!r.ok) throw new Error('reserva_indisponivel');
+  const c = await r.json();
+  if (!c || typeof c.reservada !== 'boolean' || !Number.isFinite(c.limite) || !Number.isFinite(c.usadas)) throw new Error('reserva_invalida');
+  return c;
 }
 
 
@@ -170,9 +170,11 @@ export default async function handler(req, res) {
       res.status(413).json({ error: 'Texto grande demais para a IA (máx. 60 mil caracteres).' });
       return;
     }
-    // Registra a tentativa (inclui as que batem 429 — elas custam cota, então contam
-    // para o painel). Não bloqueia a resposta se o log falhar.
-    await logarUsoIA(user, 'complete', prompt.length);
+    // Reserva a chamada no banco antes do provedor; falha nunca libera gasto sem cota.
+    let reserva;
+    try { reserva = await reservarUsoIA(user, 'complete', prompt.length); }
+    catch (_) { res.status(503).json({ error: 'Não foi possível conferir a cota de IA. Tente novamente em instantes.' }); return; }
+    if (!reserva.reservada) { res.status(429).json({ error: mensagemCota(reserva), cota: reserva }); return; }
 
     const maxTokens = Math.min(body.max_tokens || 4096, 8192);
     const temperature = typeof body.temperature === 'number' ? body.temperature : 0.7;

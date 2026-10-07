@@ -57,7 +57,7 @@ if (!IS_PROD) {
      4G falha inteiro (o c.add é tudo-ou-nada por arquivo) ou nunca termina.
      './' e './index.html' são chaves de cache DIFERENTES: o PWA instalado abre em
      ./index.html (start_url), então sem ele na lista o app abria em branco offline. */
-  var ASSETS = ['./', './index.html', './support.js', './auth.js', './ct-dados.js', './manifest.webmanifest', './icon.svg'];
+  var ASSETS = ['./', './index.html', './support.js', './auth.js', './fsrs.js', './ct-dados.js', './manifest.webmanifest', './icon.svg'];
   /*__EXTRA_ASSETS__*/
 
   /* Dentro da casca, o que é CRÍTICO: sem qualquer um destes o app não abre (ou abre sem
@@ -67,7 +67,7 @@ if (!IS_PROD) {
      ativava com skipWaiting sobre um cache PARCIAL — offline, faltava justamente o que
      tinha falhado. O resto da casca (ícones, manifestos dos acervos, fontes, scripts
      secundários do <head>) segue tolerante: melhor ativar sem um ícone que não ativar. */
-  var CRITICOS = ['./', './index.html', './support.js', './auth.js', './catedra-ui.css', './fonts.css'];
+  var CRITICOS = ['./', './index.html', './support.js', './auth.js', './fsrs.js', './catedra-ui.css', './fonts.css'];
   function ehCritico(caminho) {
     // vendor/*.js da abertura (react, react-dom, supabase); vendor/pdfjs/ fica de fora
     return CRITICOS.indexOf(caminho) >= 0 || /^\.\/vendor\/[^/]+\.js$/.test(caminho);

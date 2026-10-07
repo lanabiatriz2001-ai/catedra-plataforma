@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Sessão de revisão espaçada (SM-2, estilo Anki): percorre os cartões vencidos do
+/// Sessão de revisão espaçada (FSRS, estilo Anki): percorre os cartões vencidos do
 /// baralho, revela a resposta e agenda a próxima revisão conforme Errei/Difícil/Bom/Fácil.
 /// Portado do "Vade Mecum de Leis" para manter os dois apps no mesmo padrão.
 struct RevisaoEspacadaView: View {

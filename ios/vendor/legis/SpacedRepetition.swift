@@ -1,16 +1,17 @@
 import Foundation
 import SwiftUI
 
-/// Estado de um artigo no baralho de revisão espaçada (algoritmo SM-2, estilo Anki).
+/// Estado de um artigo no baralho de revisão espaçada (algoritmo FSRS, estilo Anki).
 /// Persistido no library.json, indexado por "uuidDaNorma|chaveDoArtigo".
 struct SRSCard: Codable, Hashable {
-    var ease: Double = 2.5      // fator de facilidade (SM-2); mínimo 1.3
+    var ease: Double = 2.5      // legado preservado; FSRS usa estabilidade e dificuldade
     var intervalDays: Int = 0   // intervalo atual, em dias
-    var reps: Int = 0           // acertos consecutivos (0 = cartão novo/reaprendendo)
+    var reps: Int = 0           // respostas acumuladas, preservadas na migração
     var lapses: Int = 0         // quantas vezes a usuária errou
     var due: Date               // próxima revisão (início do dia)
     var added: Date             // quando entrou no baralho
     var lastReviewed: Date?
+    var fsrs: FSRSEstado? // nil nos cartões anteriores: migra ao responder
     // Conteúdo do flashcard gerado a partir do artigo (Optional = cartões antigos
     // decodificam como recordação simples).
     var cardKind: String?       // "cloze" | "recall"
@@ -32,6 +33,7 @@ struct SRSCard: Codable, Hashable {
         due = try c.decodeIfPresent(Date.self, forKey: .due) ?? Date(timeIntervalSince1970: 0)
         added = try c.decodeIfPresent(Date.self, forKey: .added) ?? Date(timeIntervalSince1970: 0)
         lastReviewed = try c.decodeIfPresent(Date.self, forKey: .lastReviewed)
+        fsrs = try? c.decodeIfPresent(FSRSEstado.self, forKey: .fsrs)
         cardKind = try c.decodeIfPresent(String.self, forKey: .cardKind)
         prompt = try c.decodeIfPresent(String.self, forKey: .prompt)
         answer = try c.decodeIfPresent(String.self, forKey: .answer)
@@ -43,7 +45,7 @@ enum SRSGrade: String, CaseIterable, Identifiable {
     case again, hard, good, easy
     var id: String { rawValue }
 
-    /// Qualidade SM-2 (0–5); < 3 = erro (reinicia o intervalo).
+    /// Compatibilidade das notas da interface: Errei/Difícil/Bom/Fácil.
     var quality: Int {
         switch self {
         case .again: return 1
@@ -80,35 +82,20 @@ enum SRSGrade: String, CaseIterable, Identifiable {
 
 enum SpacedRepetition {
     /// Próximo intervalo (em dias) que uma resposta produziria — 0 = "hoje de novo".
-    static func nextInterval(_ card: SRSCard, _ grade: SRSGrade) -> Int {
-        guard grade.quality >= 3 else { return 0 }   // errou: reaprende hoje
-        var iv: Int
-        switch card.reps {
-        case 0: iv = 1
-        case 1: iv = 6
-        default: iv = max(1, Int((Double(card.intervalDays) * card.ease).rounded()))
-        }
-        if grade == .hard { iv = max(1, Int((Double(iv) * 0.8).rounded())) }
-        if grade == .easy { iv = Int((Double(iv) * 1.3).rounded()) }
-        return iv
+    static func nextInterval(_ card: SRSCard, _ grade: SRSGrade, now: Date = Date()) -> Int {
+        CatedraFSRS.responder(card.fsrs, intervalo: card.intervalDays, reps: card.reps, ultima: card.lastReviewed, q: grade.quality, agora: now).intervalo
     }
 
-    /// Aplica a resposta e devolve o cartão atualizado (SM-2).
+    /// Responder preserva conteúdo, identidade, datas anteriores e histórico de falhas.
     static func schedule(_ card: SRSCard, grade: SRSGrade, today: Date, calendar: Calendar) -> SRSCard {
         var c = card
-        let q = grade.quality
-        let iv = nextInterval(card, grade)
-        if q < 3 {
-            c.reps = 0
-            c.lapses += 1
-        } else {
-            c.reps += 1
-        }
-        c.intervalDays = iv
-        // Ajuste do fator de facilidade (fórmula clássica do SM-2), piso 1.3.
-        c.ease = max(1.3, c.ease + (0.1 - Double(5 - q) * (0.08 + Double(5 - q) * 0.02)))
+        let r = CatedraFSRS.responder(card.fsrs, intervalo: card.intervalDays, reps: card.reps, ultima: card.lastReviewed, q: grade.quality, agora: today)
+        c.fsrs = r.estado
+        c.reps = grade == .again ? 0 : c.reps + 1
+        if grade == .again { c.lapses += 1 }
+        c.intervalDays = r.intervalo
         let base = calendar.startOfDay(for: today)
-        c.due = calendar.date(byAdding: .day, value: iv, to: base) ?? base
+        c.due = calendar.date(byAdding: .day, value: r.intervalo, to: base) ?? base
         c.lastReviewed = today
         return c
     }

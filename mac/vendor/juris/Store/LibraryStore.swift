@@ -777,7 +777,7 @@ final class LibraryStore {
     }
     var totalCloze: Int { marks.values.reduce(0) { $0 + $1.filter { $0.kind == .cloze }.count } }
 
-    // MARK: - Baralho de revisão espaçada (SM-2, estilo Anki)
+    // MARK: - Baralho de revisão espaçada (FSRS, estilo Anki)
 
     func srsCard(_ id: String) -> JurisSRSCard? { srs[id] }
     func srsHasCard(_ id: String) -> Bool { srs[id] != nil }
@@ -807,7 +807,7 @@ final class LibraryStore {
     func srsPreview(_ id: String, _ grade: JurisSRSGrade, now: Date = Date()) -> Int {
         let base = Self.srsCalendar.startOfDay(for: now)
         let card = srs[id] ?? JurisSRSCard(due: base, added: now)
-        return JurisSpacedRepetition.nextInterval(card, grade)
+        return JurisSpacedRepetition.nextInterval(card, grade, now: now)
     }
     /// Aplica a resposta (cria o cartão se não existir) e reprograma.
     @discardableResult

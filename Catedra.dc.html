@@ -21,6 +21,7 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;mostr
 <meta name="description" content="Protótipo funcional da Cátedra para organizar estudos, revisões, simulados e materiais.">
 <script src="./prioridade-calc.js"></script>
 <!-- método "Ciclo Magistratura": regras puras (rotação, turnos, D+7/30/90); a tela vive aqui no host -->
+<script src="./fsrs.js"></script>
 <script src="./ciclo-magistratura.js"></script>
 <!-- motor da busca do ⌘K (item 6): leve (4 KB) e sem dados; os acervos entram sob demanda -->
 <script src="./busca-unica.js"></script>
@@ -1100,7 +1101,7 @@ window.ctPdfLib = (function(){
             <div><label class="ct-rotulo">Anotação rápida <span class="ct-rotulo-nota">(opcional)</span></label><textarea data-k="nota" value="{{ sessionDraft.nota }}" oninput="{{ onSessionField }}" placeholder="o que ficou pendente, dúvidas, pegadinhas…" aria-label="Anotação rápida" class="ct-campo" style="min-height:58px;resize:vertical;line-height:1.5;"></textarea></div>
 
             <div style="display:flex;flex-direction:column;gap:8px;">
-              <button data-k="agendarRevisao" onclick="{{ toggleSessionFlag }}" role="switch" aria-checked="{{ sessRevAria }}" style="{{ flagRevisao }}"><span style="display:flex;align-items:center;gap:9px;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="color:var(--accent);flex:none;"><path d="M3 12a9 9 0 0 1 15.5-6.3L21 8M21 3v5h-5M21 12a9 9 0 0 1-15.5 6.3L3 16M3 21v-5h5" stroke-linecap="round" stroke-linejoin="round"></path></svg><span style="text-align:left;"><span style="display:block;font-size:var(--fs-base);font-weight:600;color:var(--ink);">Agendar revisão deste tópico</span><span style="display:block;font-size:var(--fs-xs);color:var(--text3);">cria uma revisão espaçada (SM-2) para amanhã</span></span></span><span style="{{ switchRevisao }}"><i style="{{ switchRevisaoKnob }}"></i></span></button>
+              <button data-k="agendarRevisao" onclick="{{ toggleSessionFlag }}" role="switch" aria-checked="{{ sessRevAria }}" style="{{ flagRevisao }}"><span style="display:flex;align-items:center;gap:9px;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="color:var(--accent);flex:none;"><path d="M3 12a9 9 0 0 1 15.5-6.3L21 8M21 3v5h-5M21 12a9 9 0 0 1-15.5 6.3L3 16M3 21v-5h5" stroke-linecap="round" stroke-linejoin="round"></path></svg><span style="text-align:left;"><span style="display:block;font-size:var(--fs-base);font-weight:600;color:var(--ink);">Agendar revisão deste tópico</span><span style="display:block;font-size:var(--fs-xs);color:var(--text3);">cria uma revisão espaçada (FSRS) para amanhã</span></span></span><span style="{{ switchRevisao }}"><i style="{{ switchRevisaoKnob }}"></i></span></button>
               <button data-k="contarMeta" onclick="{{ toggleSessionFlag }}" role="switch" aria-checked="{{ sessMetaAria }}" style="{{ flagMeta }}"><span style="display:flex;align-items:center;gap:9px;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="color:var(--accent);flex:none;"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1.5" fill="currentColor"></circle></svg><span style="text-align:left;"><span style="display:block;font-size:var(--fs-base);font-weight:600;color:var(--ink);">Contar para a meta da semana</span><span style="display:block;font-size:var(--fs-xs);color:var(--text3);">soma este tempo ao progresso semanal</span></span></span><span style="{{ switchMeta }}"><i style="{{ switchMetaKnob }}"></i></span></button>
             </div>
             </sc-if>
@@ -1444,7 +1445,7 @@ window.ctPdfLib = (function(){
       </div>
     </sc-if>
 
-    <!-- REVISAR AGORA (sessão guiada SM-2) -->
+    <!-- REVISAR AGORA (sessão guiada FSRS) -->
     <sc-if value="{{ revActive }}" hint-placeholder-val="{{ false }}">
       <div role="dialog" aria-modal="true" aria-label="Sessão de revisão" class="ct-modal-panel" tabindex="-1" style="position:fixed;inset:0;z-index:150;background:var(--sbg);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;">
         <div style="position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:18px clamp(18px,4vw,40px);">
@@ -1472,7 +1473,7 @@ window.ctPdfLib = (function(){
                   <button onclick="{{ revReveal }}" style="margin-top:24px;background:#fff;color:var(--sbg);border:none;border-radius:99px;padding:13px 30px;font-size:var(--fs-md);font-weight:700;cursor:pointer;font-family:inherit;">Já recordei — avaliar</button>
                 </sc-if>
                 <sc-if value="{{ revRevealed }}" hint-placeholder-val="{{ false }}">
-                  <div style="display:flex;justify-content:center;gap:18px;margin:18px 0 4px;font-size:var(--fs-sm);color:rgba(255,255,255,.55);font-family:var(--mono);flex-wrap:wrap;"><span>intervalo: {{ revCardInterval }}d</span><span>facilidade: {{ revCardEf }}</span><span>reps: {{ revCardReps }}</span></div>
+                  <div style="display:flex;justify-content:center;gap:18px;margin:18px 0 4px;font-size:var(--fs-sm);color:rgba(255,255,255,.55);font-family:var(--mono);flex-wrap:wrap;"><span>intervalo: {{ revCardInterval }}d</span><span>dificuldade FSRS: {{ revCardEf }}</span><span>reps: {{ revCardReps }}</span></div>
                   <div style="font-size:var(--fs-sm);color:rgba(255,255,255,.6);margin-top:14px;">Como foi a recordação?</div>
                   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:12px;">
                     <sc-for list="{{ revOpts }}" as="o" hint-placeholder-count="4">
@@ -1552,7 +1553,7 @@ window.ctPdfLib = (function(){
             <sc-if value="{{ onboardStep1 }}" hint-placeholder-val="{{ true }}">
               <div style="font-size:var(--fs-xs);letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;">Passo 1 de 4</div>
               <h2 style="font-family:var(--display);font-size:24px;font-weight:600;color:var(--ink);margin:10px 0 6px;">Bem-vindo à Cátedra <span class="ct-ladrilho ct-emo" aria-hidden="true" style="vertical-align:middle;margin-left:4px;"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="hand"><use href="#ct-i-hand"></use></svg></span></h2>
-              <p style="font-size:var(--fs-md);color:var(--text2);line-height:1.6;margin:0 0 22px;">Sua plataforma de estudos para concursos: ciclo inteligente, revisão espaçada SM-2, simulados com raio-X e prognóstico de aprovação. Vamos configurar em 4 passos.</p>
+              <p style="font-size:var(--fs-md);color:var(--text2);line-height:1.6;margin:0 0 22px;">Sua plataforma de estudos para concursos: ciclo inteligente, revisão espaçada FSRS, simulados com raio-X e prognóstico de aprovação. Vamos configurar em 4 passos.</p>
               <button onclick="{{ onboardNext }}" style="width:100%;background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:13px;font-weight:600;font-size:var(--fs-lg);cursor:pointer;font-family:inherit;">Começar</button>
             </sc-if>
             <sc-if value="{{ onboardStep2 }}" hint-placeholder-val="{{ false }}">
@@ -1605,7 +1606,7 @@ window.ctPdfLib = (function(){
           <div style="position:relative;">
             <div style="font-size:var(--fs-sm);letter-spacing:.16em;text-transform:uppercase;opacity:.8;font-weight:600;">Sua aprovação, organizada</div>
             <h1 style="font-family:var(--display);font-size:clamp(28px,3.6vw,44px);font-weight:700;line-height:1.1;margin:14px 0 0;max-width:460px;">Estude o que cai, na proporção em que cai.</h1>
-            <p style="font-size:var(--fs-lg);opacity:.9;line-height:1.6;margin:16px 0 0;max-width:420px;">Ciclo inteligente, revisão espaçada SM-2, simulados com raio-X e prognóstico de aprovação — tudo em um só lugar.</p>
+            <p style="font-size:var(--fs-lg);opacity:.9;line-height:1.6;margin:16px 0 0;max-width:420px;">Ciclo inteligente, revisão espaçada FSRS, simulados com raio-X e prognóstico de aprovação — tudo em um só lugar.</p>
           </div>
           <div style="position:relative;font-size:var(--fs-sm);opacity:.8;">© Cátedra · plataforma de estudos para concursos</div>
         </div>
@@ -2404,7 +2405,7 @@ window.ctPdfLib = (function(){
             </div>
           </sc-if>
 
-          <div class="ct-card cm-sec"><h3 class="cm-sec-h">Revisões D+7, D+30 e D+90</h3>
+          <div class="ct-card cm-sec"><h3 class="cm-sec-h">Revisões pelo FSRS</h3>
             <sc-if value="{{ cmTemRevs }}" hint-placeholder-val="{{ false }}">
               <ul class="cm-revs">
                 <sc-for list="{{ cmRevs }}" as="r" hint-placeholder-count="2">
@@ -2412,7 +2413,7 @@ window.ctPdfLib = (function(){
                     <div class="cm-rev-t"><b>{{ r.ass }}</b><small>fechado em {{ r.dt }}</small></div>
                     <div class="cm-rev-p">
                       <sc-for list="{{ r.prazos }}" as="p" hint-placeholder-count="3">
-                        <button class="cm-prazo" data-estado="{{ p.estado }}" data-id="{{ p.rid }}" data-d="{{ p.d }}" onclick="{{ cmRevMarcar }}" aria-pressed="{{ p.feitaStr }}" aria-label="{{ p.aria }}"><b>{{ p.rot }}</b><span>{{ p.data }}</span></button>
+                        <button class="cm-prazo" data-estado="{{ p.estado }}" data-id="{{ p.rid }}" data-d="{{ p.d }}" onclick="{{ cmRevAbrir }}" aria-pressed="{{ p.feitaStr }}" aria-label="{{ p.aria }}"><b>{{ p.rot }}</b><span>{{ p.data }}</span></button>
                       </sc-for>
                       <button class="cm-lk-x" data-id="{{ r.id }}" onclick="{{ cmRevRemover }}">Remover</button>
                     </div>
@@ -2420,7 +2421,7 @@ window.ctPdfLib = (function(){
                 </sc-for>
               </ul>
             </sc-if>
-            <sc-if value="{{ !cmTemRevs }}" hint-placeholder-val="{{ true }}"><p class="cm-vazio">Nenhuma revisão ainda. Ao fechar um assunto, as três datas aparecem aqui.</p></sc-if>
+            <sc-if value="{{ !cmTemRevs }}" hint-placeholder-val="{{ true }}"><p class="cm-vazio">Nenhuma revisão ainda. Ao fechar um assunto, ele entra na fila do FSRS.</p></sc-if>
           </div>
 
           <div class="cm-semana">
@@ -3406,7 +3407,7 @@ window.ctPdfLib = (function(){
             <div class="ct-bc-foco">
               <div>
                 <h3>{{ fcDueStr }} para revisar</h3>
-                <p>De {{ fcTotalStr }} cartões no baralho. Eles vieram do quiz do CátedraJURIS, da leitura ativa da lei e dos erros que você registrou — e voltam na data que o SM-2 marcar.</p>
+                <p>De {{ fcTotalStr }} cartões no baralho. Eles vieram do quiz do CátedraJURIS, da leitura ativa da lei e dos erros que você registrou — e voltam na data que o FSRS marcar.</p>
               </div>
               <div class="ct-bc-acoes">
                 <sc-if value="{{ fcTemDue }}" hint-placeholder-val="{{ true }}">
@@ -3470,13 +3471,13 @@ window.ctPdfLib = (function(){
              os grupos Atrasadas/Hoje/Próximas logo abaixo — as três zonas de sempre. -->
         <div class="ct-bc">
         <div class="ct-bc-foco" style="background:var(--heroGrad);color:#fff;border-color:transparent;min-height:0;padding:20px 22px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;flex-direction:row;">
-          <div style="display:flex;align-items:center;gap:14px;"><span class="ct-ladrilho ct-ladrilho-g ct-ladrilho-claro" aria-hidden="true"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="repeat"><use href="#ct-i-repeat"></use></svg></span><div><div style="font-family:var(--display);font-weight:700;font-size:21px;letter-spacing:-.01em;">Revisar agora</div><div style="font-size:var(--fs-sm);opacity:.9;margin-top:2px;">sessão guiada item a item — você avalia e a Cátedra reagenda por repetição espaçada (SM-2)</div></div></div>
+          <div style="display:flex;align-items:center;gap:14px;"><span class="ct-ladrilho ct-ladrilho-g ct-ladrilho-claro" aria-hidden="true"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="repeat"><use href="#ct-i-repeat"></use></svg></span><div><div style="font-family:var(--display);font-weight:700;font-size:21px;letter-spacing:-.01em;">Revisar agora</div><div style="font-size:var(--fs-sm);opacity:.9;margin-top:2px;">sessão guiada item a item — você avalia e a Cátedra reagenda por repetição espaçada (FSRS)</div></div></div>
           <button onclick="{{ startRevSession }}" disabled="{{ revStartDisabled }}" style="{{ revStartStyle }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 5l12 7-12 7z"></path></svg>{{ revStartLabel }}</button>
         </div>
         <div class="ct-bc-apoio" style="min-height:0;">
           <div class="ct-bc-apoio-t">a fila de hoje</div>
           <div class="ct-bc-it"><b>{{ revAtrasadas }} atrasada(s)</b><span>a revisão adiada é a que mais desaprende</span></div>
-          <div class="ct-bc-it"><b>{{ revHoje }} para hoje</b><span>no intervalo previsto pelo SM-2</span></div>
+          <div class="ct-bc-it"><b>{{ revHoje }} para hoje</b><span>no intervalo previsto pelo FSRS</span></div>
         </div>
         </div>
         <!-- AGENDA ÚNICA: revisões espaçadas dos apps nativos (lei seca + jurisprudência),
@@ -3508,7 +3509,7 @@ window.ctPdfLib = (function(){
                 <span style="width:10px;height:10px;border-radius:3px;background:{{ r.color }};flex:none;"></span>
                 <div style="flex:1;min-width:140px;"><div class="ct-titulo" style="font-size:var(--fs-md);">{{ r.topic }}</div><div class="ct-nota ct-nota-solta">{{ r.disc }}</div></div>
                 <span style="font-size:var(--fs-xs);color:var(--danger);font-weight:600;background:var(--surface2);padding:4px 10px;border-radius:99px;">vencida {{ r.dueLabel }}</span>
-                <span style="font-family:var(--mono);font-size:var(--fs-xs);color:var(--text2);font-variant-numeric:tabular-nums;letter-spacing:.02em;">int. {{ r.interval }} · ef {{ r.ef }}</span>
+                <span style="font-family:var(--mono);font-size:var(--fs-xs);color:var(--text2);font-variant-numeric:tabular-nums;letter-spacing:.02em;">int. {{ r.interval }} · dificuldade {{ r.ef }}</span>
                 <sc-if value="{{ r.refTem }}" hint-placeholder-val="{{ false }}">
                   <button type="button" data-id="{{ r.id }}" data-acervo-rev="1" onclick="{{ abrirAcervoDaRevisao }}" class="ct-btn-2 ct-alvo" style="min-height:var(--ct-alvo-toque);white-space:nowrap;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 5h5v5"></path><path d="M10 14 19 5"></path><path d="M19 13v6H5V5h6"></path></svg>{{ r.refLabel }}</button>
                 </sc-if>
@@ -3539,7 +3540,7 @@ window.ctPdfLib = (function(){
                 <span style="width:10px;height:10px;border-radius:3px;background:{{ r.color }};flex:none;"></span>
                 <div style="flex:1;min-width:140px;"><div class="ct-titulo" style="font-size:var(--fs-md);">{{ r.topic }}</div><div class="ct-nota ct-nota-solta">{{ r.disc }}</div></div>
                 <span style="font-size:var(--fs-xs);color:var(--accentD);font-weight:600;background:var(--accentSoft);padding:4px 10px;border-radius:99px;">agendada hoje</span>
-                <span class="ct-dado" style="color:var(--text2);">int. {{ r.interval }} · ef {{ r.ef }}</span>
+                <span class="ct-dado" style="color:var(--text2);">int. {{ r.interval }} · dificuldade {{ r.ef }}</span>
                 <sc-if value="{{ r.refTem }}" hint-placeholder-val="{{ false }}">
                   <button type="button" data-id="{{ r.id }}" data-acervo-rev="1" onclick="{{ abrirAcervoDaRevisao }}" class="ct-btn-2 ct-alvo" style="min-height:var(--ct-alvo-toque);white-space:nowrap;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 5h5v5"></path><path d="M10 14 19 5"></path><path d="M19 13v6H5V5h6"></path></svg>{{ r.refLabel }}</button>
                 </sc-if>
@@ -3581,7 +3582,7 @@ window.ctPdfLib = (function(){
         </div>
         <div style="display:flex;gap:14px;align-items:flex-start;background:var(--accentSoft);border:1px solid var(--accentRing);border-radius:var(--radius);padding:16px 18px;">
           <span style="width:8px;height:8px;border-radius:99px;background:var(--accent);margin-top:6px;flex:none;"></span>
-          <p style="margin:0;font-size:var(--fs-base);color:var(--text2);line-height:1.55;">Ao avaliar como foi (<b style="color:var(--ink);">Errei, Difícil, Bom ou Fácil</b>), o tópico avança no intervalo de repetição espaçada (SM-2: 1 → 6 → intervalo × facilidade) e some das pendências até a nova data. <b style="color:var(--ink);">Adiar</b> empurra a revisão um dia, e <b style="color:var(--ink);">Tirar da fila</b> remove o tópico de vez — use quando ele entrou por engano ou você decidiu não estudá-lo.</p>
+          <p style="margin:0;font-size:var(--fs-base);color:var(--text2);line-height:1.55;">Ao avaliar como foi (<b style="color:var(--ink);">Errei, Difícil, Bom ou Fácil</b>), o tópico avança no intervalo de repetição espaçada (FSRS, conforme sua lembrança e o tempo desde a última resposta) e some das pendências até a nova data. <b style="color:var(--ink);">Adiar</b> empurra a revisão um dia, e <b style="color:var(--ink);">Tirar da fila</b> remove o tópico de vez — use quando ele entrou por engano ou você decidiu não estudá-lo.</p>
         </div>
        </div>
       </sc-if>
@@ -7257,7 +7258,7 @@ window.ctPdfLib = (function(){
 </x-dc>
 <script type="text/x-dc" data-dc-script="" data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:760},&quot;direction&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;sutil&quot;,&quot;premium&quot;,&quot;clean&quot;,&quot;moderno&quot;,&quot;aurora&quot;,&quot;solar&quot;,&quot;terminal&quot;,&quot;holo&quot;],&quot;default&quot;:&quot;sutil&quot;,&quot;tsType&quot;:&quot;'sutil'|'premium'|'clean'|'moderno'|'aurora'|'solar'|'terminal'|'holo'&quot;}}">
 // ===== ÁREAS DE ESTUDO =====
-// A Cátedra nasceu jurídica, mas o método (ciclo, revisão espaçada SM-2, questões,
+// A Cátedra nasceu jurídica, mas o método (ciclo, revisão espaçada FSRS, questões,
 // simulados, raio-X) serve a qualquer prova. A área que a pessoa escolhe é o que
 // adapta o VOCABULÁRIO e os atalhos da plataforma:
 //   juridico -> vocabulário jurídico nos tipos de atividade (lei seca, jurisprudência)
@@ -7342,11 +7343,11 @@ const CT_AREAS = [
    juridico:true, juris:true, modulo:'Processo e peças', cats:['Lei seca','Jurisprudência'],
    discs:['Direito Constitucional','Direito Administrativo','Direito Civil','Direito Processual Civil','Direito Penal','Direito Processual Penal'],
    modelos:['magistratura','enam','promotor','defensor','procurador','juizfederal','tribunais','tj','consultor','oab1','oab2Administrativo','oab2Civil','oab2Constitucional','oab2Empresarial','oab2Penal','oab2Trabalho','oab2Tributario','juizTJBA','juizTJPE','juizTJRS','juizTJGO','juizFederalTRF5','procuradorManaus','trt8Analista','tjceAnalista','tjscAnalistaJuridico','tjscOficialJustica','dpepbAnalista']},
-  {id:'saude', essenciais:[{v:'areamod',ico:'heart-pulse',t:'Corpo humano',d:'o módulo de estudo da área'},{v:'simulados',ico:'clipboard-list',t:'Simulados',d:'treino por questões com relatório final'},{v:'ciclo',ico:'refresh-cw',t:'Ciclo',d:'roteiro de estudo com caso clínico e protocolo'},{v:'edital',ico:'scroll-text',t:'Edital',d:'pesos e cobertura por disciplina'},{v:'revisoes',ico:'repeat',t:'Revisões',d:'espaçadas, no ritmo SM-2'}], ico:'stethoscope', label:'Saúde e Medicina', desc:'Residência, Revalida, enfermagem, farmácia, odontologia, concursos da saúde',
+  {id:'saude', essenciais:[{v:'areamod',ico:'heart-pulse',t:'Corpo humano',d:'o módulo de estudo da área'},{v:'simulados',ico:'clipboard-list',t:'Simulados',d:'treino por questões com relatório final'},{v:'ciclo',ico:'refresh-cw',t:'Ciclo',d:'roteiro de estudo com caso clínico e protocolo'},{v:'edital',ico:'scroll-text',t:'Edital',d:'pesos e cobertura por disciplina'},{v:'revisoes',ico:'repeat',t:'Revisões',d:'espaçadas, no ritmo FSRS'}], ico:'stethoscope', label:'Saúde e Medicina', desc:'Residência, Revalida, enfermagem, farmácia, odontologia, concursos da saúde',
    juridico:false, juris:false, modulo:'Corpo humano', cats:['Caso clínico','Protocolo/diretriz'],
    discs:['Clínica Médica','Cirurgia','Pediatria','Ginecologia e Obstetrícia','Medicina Preventiva','Saúde Pública / SUS'],
    modelos:['ebserhEnfermagem']},
-  {id:'social', essenciais:[{v:'areamod',ico:'handshake',t:'SUAS e política social',d:'o módulo de estudo da área'},{v:'edital',ico:'scroll-text',t:'Edital',d:'pesos e cobertura por disciplina'},{v:'ciclo',ico:'refresh-cw',t:'Ciclo',d:'legislação social e estudo de caso no roteiro'},{v:'simulados',ico:'clipboard-list',t:'Simulados',d:'treino por questões'},{v:'revisoes',ico:'repeat',t:'Revisões',d:'espaçadas, no ritmo SM-2'}], ico:'handshake', label:'Assistência Social', desc:'Serviço social, SUAS, CRAS/CREAS, políticas públicas',
+  {id:'social', essenciais:[{v:'areamod',ico:'handshake',t:'SUAS e política social',d:'o módulo de estudo da área'},{v:'edital',ico:'scroll-text',t:'Edital',d:'pesos e cobertura por disciplina'},{v:'ciclo',ico:'refresh-cw',t:'Ciclo',d:'legislação social e estudo de caso no roteiro'},{v:'simulados',ico:'clipboard-list',t:'Simulados',d:'treino por questões'},{v:'revisoes',ico:'repeat',t:'Revisões',d:'espaçadas, no ritmo FSRS'}], ico:'handshake', label:'Assistência Social', desc:'Serviço social, SUAS, CRAS/CREAS, políticas públicas',
    juridico:false, juris:false, modulo:'SUAS e política social', cats:['Legislação social','Estudo de caso'],
    discs:['Serviço Social','Política Social e Seguridade','Ética e Projeto Profissional','SUAS e Assistência Social','Saúde Pública / SUS','Direitos Humanos'],
    modelos:['transpetroSocial']},
@@ -7362,23 +7363,23 @@ const CT_AREAS = [
    juridico:true, juris:true, modulo:'Controle externo', cats:['Lei seca','Jurisprudência'],
    discs:['Controle Externo','Direito Financeiro','Direito Administrativo','Administração Pública','Contabilidade Pública','Auditoria Governamental'],
    modelos:['caAuditor','caAnalista','caObras','caTI','caGestao','caProcurador','caOficial','tceSCDireito','tceSCContabilidade']},
-  {id:'administrativa', essenciais:[{v:'legis',ico:'scale',t:'Lei seca',d:'a base de qualquer prova administrativa'},{v:'edital',ico:'scroll-text',t:'Edital',d:'pesos e cobertura por disciplina'},{v:'ciclo',ico:'refresh-cw',t:'Ciclo',d:'roteiro semanal equilibrado'},{v:'simulados',ico:'clipboard-list',t:'Simulados',d:'treino por questões'},{v:'revisoes',ico:'repeat',t:'Revisões',d:'espaçadas, no ritmo SM-2'}], ico:'building-2', label:'Administrativa e Gestão', desc:'Analista e técnico administrativo, gestão pública, legislativo',
+  {id:'administrativa', essenciais:[{v:'legis',ico:'scale',t:'Lei seca',d:'a base de qualquer prova administrativa'},{v:'edital',ico:'scroll-text',t:'Edital',d:'pesos e cobertura por disciplina'},{v:'ciclo',ico:'refresh-cw',t:'Ciclo',d:'roteiro semanal equilibrado'},{v:'simulados',ico:'clipboard-list',t:'Simulados',d:'treino por questões'},{v:'revisoes',ico:'repeat',t:'Revisões',d:'espaçadas, no ritmo FSRS'}], ico:'building-2', label:'Administrativa e Gestão', desc:'Analista e técnico administrativo, gestão pública, legislativo',
    juridico:true, juris:true, modulo:'Administração pública', cats:['Lei seca'],
    discs:['Língua Portuguesa','Direito Administrativo','Direito Constitucional','Administração Pública','Raciocínio Lógico','Informática'],
    modelos:['tribunais','tj','consultor','trt8Analista','trt8Tecnico','tjceAnalista','tjceTecnico','tjscAnalistaJuridico','tjscAnalistaAdministrativo','tjscOficialJustica','mpesAgenteApoio','dpepbAnalista','dpepbTecnico']},
-  {id:'educacao', essenciais:[{v:'areamod',ico:'graduation-cap',t:'Fundamentos da educação',d:'o módulo de estudo da área'},{v:'edital',ico:'scroll-text',t:'Edital',d:'LDB e conhecimentos específicos com peso'},{v:'ciclo',ico:'refresh-cw',t:'Ciclo',d:'documento normativo e prática de ensino'},{v:'revisoes',ico:'repeat',t:'Revisões',d:'espaçadas, no ritmo SM-2'},{v:'simulados',ico:'clipboard-list',t:'Simulados',d:'treino por questões'}], ico:'graduation-cap', label:'Educação e Docência', desc:'Professor, pedagogia, magistério, provas de licenciatura',
+  {id:'educacao', essenciais:[{v:'areamod',ico:'graduation-cap',t:'Fundamentos da educação',d:'o módulo de estudo da área'},{v:'edital',ico:'scroll-text',t:'Edital',d:'LDB e conhecimentos específicos com peso'},{v:'ciclo',ico:'refresh-cw',t:'Ciclo',d:'documento normativo e prática de ensino'},{v:'revisoes',ico:'repeat',t:'Revisões',d:'espaçadas, no ritmo FSRS'},{v:'simulados',ico:'clipboard-list',t:'Simulados',d:'treino por questões'}], ico:'graduation-cap', label:'Educação e Docência', desc:'Professor, pedagogia, magistério, provas de licenciatura',
    juridico:false, juris:false, modulo:'Fundamentos da educação', cats:['Documento normativo','Prática de ensino'],
    discs:['Fundamentos da Educação','Didática','Legislação Educacional (LDB)','Psicologia da Aprendizagem','Gestão Escolar','Conhecimentos Específicos'],
    modelos:['seducSP','cnuEducacao']},
-  {id:'tecnologia', essenciais:[{v:'areamod',ico:'laptop',t:'Fundamentos de TI',d:'o módulo de estudo da área'},{v:'ciclo',ico:'refresh-cw',t:'Ciclo',d:'prática e laboratório no roteiro'},{v:'simulados',ico:'clipboard-list',t:'Simulados',d:'treino por questões'},{v:'revisoes',ico:'repeat',t:'Revisões',d:'espaçadas, no ritmo SM-2'},{v:'analise',ico:'trending-up',t:'Desempenho',d:'domínio por tópico'}], ico:'laptop', label:'Tecnologia e Engenharia', desc:'TI, engenharias, exatas e carreiras técnicas',
+  {id:'tecnologia', essenciais:[{v:'areamod',ico:'laptop',t:'Fundamentos de TI',d:'o módulo de estudo da área'},{v:'ciclo',ico:'refresh-cw',t:'Ciclo',d:'prática e laboratório no roteiro'},{v:'simulados',ico:'clipboard-list',t:'Simulados',d:'treino por questões'},{v:'revisoes',ico:'repeat',t:'Revisões',d:'espaçadas, no ritmo FSRS'},{v:'analise',ico:'trending-up',t:'Desempenho',d:'domínio por tópico'}], ico:'laptop', label:'Tecnologia e Engenharia', desc:'TI, engenharias, exatas e carreiras técnicas',
    juridico:false, juris:false, modulo:'Fundamentos de TI', cats:['Prática/laboratório','Documentação'],
    discs:['Matemática','Raciocínio Lógico','Programação','Banco de Dados','Redes de Computadores','Segurança da Informação'],
    modelos:['cnuTecnologia','sefazSPTI','sefazSCComputacao','sefazCETI']},
-  {id:'militar', essenciais:[{v:'areamod',ico:'medal',t:'Exatas militares',d:'o módulo de estudo da área'},{v:'ciclo',ico:'refresh-cw',t:'Ciclo',d:'exercícios em volume, todo dia'},{v:'simulados',ico:'clipboard-list',t:'Simulados',d:'treino cronometrado'},{v:'revisoes',ico:'repeat',t:'Revisões',d:'espaçadas, no ritmo SM-2'},{v:'calendario',ico:'calendar-days',t:'Calendário',d:'constância até a prova'}], ico:'medal', label:'Militar', desc:'Forças Armadas, ESA, EsPCEx, EEAr, IME/ITA',
+  {id:'militar', essenciais:[{v:'areamod',ico:'medal',t:'Exatas militares',d:'o módulo de estudo da área'},{v:'ciclo',ico:'refresh-cw',t:'Ciclo',d:'exercícios em volume, todo dia'},{v:'simulados',ico:'clipboard-list',t:'Simulados',d:'treino cronometrado'},{v:'revisoes',ico:'repeat',t:'Revisões',d:'espaçadas, no ritmo FSRS'},{v:'calendario',ico:'calendar-days',t:'Calendário',d:'constância até a prova'}], ico:'medal', label:'Militar', desc:'Forças Armadas, ESA, EsPCEx, EEAr, IME/ITA',
    juridico:false, juris:false, modulo:'Exatas militares', cats:['Exercícios'],
    discs:['Matemática','Física','Química','Língua Portuguesa','História','Geografia'],
    modelos:['espcex']},
-  {id:'outra', essenciais:[{v:'ciclo',ico:'refresh-cw',t:'Ciclo',d:'o método de estudo vale para qualquer prova'},{v:'edital',ico:'scroll-text',t:'Edital',d:'cadastre as disciplinas com peso'},{v:'revisoes',ico:'repeat',t:'Revisões',d:'espaçadas, no ritmo SM-2'},{v:'simulados',ico:'clipboard-list',t:'Simulados',d:'treino por questões'},{v:'analise',ico:'trending-up',t:'Desempenho',d:'o que está fraco, por tópico'}], ico:'asterisk', label:'Outra área', desc:'Qualquer outra prova — o método de estudo continua o mesmo',
+  {id:'outra', essenciais:[{v:'ciclo',ico:'refresh-cw',t:'Ciclo',d:'o método de estudo vale para qualquer prova'},{v:'edital',ico:'scroll-text',t:'Edital',d:'cadastre as disciplinas com peso'},{v:'revisoes',ico:'repeat',t:'Revisões',d:'espaçadas, no ritmo FSRS'},{v:'simulados',ico:'clipboard-list',t:'Simulados',d:'treino por questões'},{v:'analise',ico:'trending-up',t:'Desempenho',d:'o que está fraco, por tópico'}], ico:'asterisk', label:'Outra área', desc:'Qualquer outra prova — o método de estudo continua o mesmo',
    juridico:false, juris:false, modulo:'', cats:[],
    discs:['Língua Portuguesa','Conhecimentos Específicos','Raciocínio Lógico','Atualidades','Informática','Conhecimentos Gerais'],
    modelos:[]},
@@ -7662,7 +7663,7 @@ class Component extends DCLogic {
       revSession: null,
       treino: null,
       // rodada do baralho: só de tela (a fila se remonta do agendamento a cada vez).
-      // NÃO entra em _autosaveKeys — o que sobrevive é o SM-2 gravado em cada cartão.
+      // NÃO entra em _autosaveKeys — o que sobrevive é o FSRS gravado em cada cartão.
       fcSess: null,
       sim:this._load('sim', {total:0, acertos:0, erros:0, brancos:0}), simNome:'', simMin:'',
       simAnalysis:this._load('simAnalysis', 'liquida'),
@@ -7789,7 +7790,6 @@ class Component extends DCLogic {
     };
     if(this.state.sessions===null){ this.state.sessions = []; }
     try{ const _o=localStorage.getItem('catedra:orient'); if(_o){ const _op=JSON.parse(_o); if(_op&&typeof _op==='object') this.state.orient=this._rmMigrarEnergia({...this.state.orient, ..._op, energiaDia:_op.energiaDia||''}); } }catch(_){}
-    this.INTERVALS = [1,3,7,15,30];
     this.QUOTES = [
       {t:'A aprovação é a soma de pequenos esforços repetidos dia após dia.', a:'constância'},
       {t:'Disciplina é escolher entre o que você quer agora e o que você quer mais.', a:'foco'},
@@ -8744,7 +8744,9 @@ class Component extends DCLogic {
          o título de um caso que não existe mais e sem nenhuma tela por onde removê-la.
          A lápide do caso viaja no blob, então ela chega aqui e resolve nos dois lados. */
       const _mortos=new Set((this.state.casos||[]).filter(c=>c&&c.del).map(c=>c.id));
-      const _vivas=(this.state.reviews||[]).filter(r=>{
+      const _migradas=this._revisoesDoCicloFSRS();
+      if(_migradas.length!==(this.state.reviews||[]).length) mudou=true;
+      const _vivas=_migradas.filter(r=>{
         if(r && r.casoId && _mortos.has(r.casoId)){ mudou=true; return false; }
         return true;
       });
@@ -9440,7 +9442,7 @@ class Component extends DCLogic {
   fmtClock = (sec)=>{ const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60), s=sec%60; const p=n=>String(n).padStart(2,'0');
     return h>0 ? `${h}:${p(m)}:${p(s)}` : `${p(m)}:${p(s)}`; };
 
-  // ===== revisões (repetição espaçada SM-2) =====
+  // ===== revisões (repetição espaçada FSRS) =====
   /* ===== CASOS DA ÁREA =============================================================
      O acervo é da pessoa; a estrutura é da área. Nenhum caso vem pronto e nenhum texto
      jurídico é reaproveitado aqui: quem estuda Medicina escreve caso clínico na forma do
@@ -9522,7 +9524,7 @@ class Component extends DCLogic {
   casoVerRespostas = ()=> this.setState(s=>({casoResp:!s.casoResp}));
   casoFecharTreino = ()=> this.setState({casoTreino:null, casoPasso:0, casoResp:false});
 
-  /* A autoavaliação alimenta o MESMO motor de revisão do resto do app (SM-2): o caso
+  /* A autoavaliação alimenta o MESMO motor de revisão do resto do app (FSRS): o caso
      passa a aparecer em Revisões no dia certo, junto com o que já está lá. */
   casoAvaliar = (ev)=>{
     const q=+ev.currentTarget.dataset.q, c=this.state.casoTreino, e=this._casoEsq();
@@ -9533,27 +9535,23 @@ class Component extends DCLogic {
     let reviews=this.state.reviews||[];
     const atual=reviews.find(r=>r.casoId===c.id);
     if(atual){
-      const sc=this.sm2(atual, q);
+      const sc=this.fsrs(atual, q);
       reviews=reviews.map(r=>r.casoId===c.id?{...r, ...sc, dueDate:this._addDiasStr(hoje, sc.intervalo), up:agora}:r);
     } else {
-      const sc=this.sm2({facilidade:2.5, intervalo:1, repeticoes:0}, q);
+      const sc=this.fsrs({facilidade:2.5, intervalo:1, repeticoes:0}, q);
       reviews=[...reviews, {id:'r'+agora, casoId:c.id, disc:e.nome, topic:(c.titulo||e.nome),
         color:'#8b5cf6', ...sc, dueDate:this._addDiasStr(hoje, sc.intervalo), up:agora}];
     }
     this.setState({casos, reviews, casoTreino:null, casoPasso:0, casoResp:false},
       ()=>{ this._autosave(); this.flashSync(); });
-    this._toast('Anotado — volta para revisar em '+this.sm2(atual||{facilidade:2.5,intervalo:1,repeticoes:0}, q).intervalo+' dia(s)');
+    this._toast('Anotado — volta para revisar em '+this.fsrs(atual||{facilidade:2.5,intervalo:1,repeticoes:0}, q).intervalo+' dia(s)');
   };
 
-  sm2(estado, q){
-    let { facilidade, intervalo, repeticoes } = estado;
-    if(q < 3){ repeticoes = 0; intervalo = 1; }
-    else { if(repeticoes===0) intervalo = 1; else if(repeticoes===1) intervalo = 6; else intervalo = Math.round(intervalo * facilidade); repeticoes += 1; }
-    facilidade = Math.max(1.3, facilidade + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02)));
-    return { facilidade: Math.round(facilidade*100)/100, intervalo, repeticoes, due: intervalo };
+  fsrs(estado, q, registrar=true){
+    return window.CT_FSRS.responder(estado,q,Date.now(),registrar);
   }
   reviewRate = (e)=>{ const id=e.currentTarget.dataset.id; const q=+e.currentTarget.dataset.q; const hoje=this._hoje();
-    const rv=this.state.reviews.map(r=>{ if(r.id!==id) return r; const sc=this.sm2(r, q); return {...r, ...sc, dueDate:this._addDiasStr(hoje, sc.intervalo), up:Date.now()}; }); this.setState({reviews:rv}); };
+    const rv=this.state.reviews.map(r=>{ if(r.id!==id) return r; const sc=this.fsrs(r, q); return {...r, ...sc, dueDate:this._addDiasStr(hoje, sc.intervalo), up:Date.now()}; }); this.setState({reviews:rv}); };
   reviewSnooze = (e)=>{ const id=e.currentTarget.dataset.id; const hoje=this._hoje(); const rv=this.state.reviews.map(r=>{ if(r.id!==id) return r; const base=((r.due||0)<0||!r.dueDate)?hoje:r.dueDate; return {...r, dueDate:this._addDiasStr(base,1), due:Math.max(1,(r.due||0)+1), up:Date.now()}; }); this.setState({reviews:rv}); };
   /* A referência fica no objeto sincronizado da revisão. O id no botão evita pôr texto
      jurídico cru em atributo HTML; a navegação sai pelo mesmo ctAbrirAcervo que os
@@ -9592,17 +9590,17 @@ class Component extends DCLogic {
   reviewRemove = (e)=>{ const id=e.currentTarget.dataset.id;
     const alvo=(this.state.reviews||[]).find(r=>r.id===id); if(!alvo) return;
     if(!window.confirm('Tirar "'+(alvo.topic||'este tópico')+'" da fila de revisão?\n\nEle deixa de ser reagendado. O histórico de estudo não muda.')) return;
-    this.setState(s=>({reviews:(s.reviews||[]).filter(r=>r.id!==id)}));
+    this.setState(s=>({reviews:(s.reviews||[]).filter(r=>r.id!==id),cmagRevs:(s.cmagRevs||[]).filter(r=>r.id!==id&&r.id!==alvo.cmagId)}));
     try{ this._toast('Fora da fila de revisão ✦'); }catch(_){}
     this.flashSync(); };
-  // fluxo "revisar agora" — item a item, reagendando por SM-2
+  // fluxo "revisar agora" — item a item, reagendando por FSRS
   startRevSession = ()=>{ const due=this.state.reviews.filter(r=>r.due<=0).sort((a,b)=>a.due-b.due).map(r=>r.id);
     if(!due.length){ this._toast('Nenhuma revisão pendente — tudo em dia 🎉'); return; }
     this.setState({revSession:{queue:due, idx:0, revealed:false, again:0, hard:0, good:0, easy:0, done:false}}); };
   revReveal = ()=> this.setState(s=>({revSession:{...s.revSession, revealed:true}}));
   revAnswer = (e)=>{ const q=+e.currentTarget.dataset.q; const rs=this.state.revSession; if(!rs||rs.done) return;
     const id=rs.queue[rs.idx]; const hoje=this._hoje();
-    const reviews=this.state.reviews.map(r=>{ if(r.id!==id) return r; const sc=this.sm2(r,q); return {...r, ...sc, dueDate:this._addDiasStr(hoje, sc.intervalo), up:Date.now()}; });
+    const reviews=this.state.reviews.map(r=>{ if(r.id!==id) return r; const sc=this.fsrs(r,q); return {...r, ...sc, dueDate:this._addDiasStr(hoje, sc.intervalo), up:Date.now()}; });
     const t={again:rs.again, hard:rs.hard, good:rs.good, easy:rs.easy};
     if(q<=2)t.again++; else if(q===3)t.hard++; else if(q===4)t.good++; else t.easy++;
     const nextIdx=rs.idx+1; const done=nextIdx>=rs.queue.length;
@@ -10101,7 +10099,7 @@ class Component extends DCLogic {
   async _extractEditalPdf(f){
     const lib = await this._pdfLib();
     const bytes = await this._readFileBytes(f);
-    const pdf = await lib.getDocument({data:bytes.slice(0)}).promise;
+    const pdf = await lib.getDocument({data:bytes.slice(0),isEvalSupported:false}).promise;
     const pages = [];
     const maxPages = Math.min(pdf.numPages || 0, 80);
     for(let p=1;p<=maxPages;p++){
@@ -11749,19 +11747,39 @@ class Component extends DCLogic {
   cmFechar = (e)=>{ const M=window.CT_CMAG; if(!M) return; const id=e.currentTarget.dataset.id;
     const antes=this._cm(), ref=antes.st[id]&&antes.st[id].ref;
     const r=M.fechar(antes, id, this._hoje()); if(!r) return;
-    const saiu=r.cmag.ordem.indexOf(id)>=r.cmag.ativas, extra={cmagRevs:[...(this.state.cmagRevs||[]), r.rev]};
+    const saiu=r.cmag.ordem.indexOf(id)>=r.cmag.ativas, extra={cmagRevs:[...(this.state.cmagRevs||[]), r.rev], reviews:[...this._revisoesDoCicloFSRS(), {id:r.rev.id, cmagId:r.rev.id, disc:r.cmag.mats[id].n, topic:r.rev.ass, color:this._corDisc(r.cmag.mats[id].n), due:1, dueDate:this._addDiasStr(this._hoje(),1), intervalo:1, repeticoes:0, up:Date.now()}]};
     // ligado ao edital: o item estudado fica marcado lá e o próximo pendente vira o assunto atual
     const L=this._cmDisc(id);
     if(L && ref){ const ed=M.marcarNoEdital(this.state.edital, L.d, ref); extra.edital=ed;
       const nx=M.proximoPendente(ed[L.d], ref); if(nx) r.cmag=M.definirRef(r.cmag, id, nx); }
     this._cmSet(r.cmag, extra);
-    this._toast(saiu ? 'Assunto fechado. A matéria foi para o fim da fila e '+r.cmag.mats[r.cmag.ordem[r.cmag.ativas-1]].n+' entrou.' : 'Assunto fechado. Revisões em D+7, D+30 e D+90 agendadas.'); };
-  cmRevMarcar = (e)=>{ const M=window.CT_CMAG; if(!M) return; const d=e.currentTarget.dataset;
-    this.setState(s=>({cmagRevs:M.marcarRevisao(s.cmagRevs, d.id, +d.d)})); this.flashSync(); };
-  cmRevRemover = (e)=>{ const id=e.currentTarget.dataset.id; const alvo=(this.state.cmagRevs||[]).find(r=>r&&r.id===id); if(!alvo) return;
+    this._toast(saiu ? 'Assunto fechado. A matéria foi para o fim da fila e '+r.cmag.mats[r.cmag.ordem[r.cmag.ativas-1]].n+' entrou.' : 'Assunto fechado. A revisão entrou na fila do FSRS.'); };
+  /* Migração conservadora: mantém a próxima data legada pendente e a referência original.
+     Os três marcos antigos continuam em cmagRevs como histórico; há uma só fila adaptativa. */
+  _revisoesDoCicloFSRS(){
+    const reviews=(this.state.reviews||[]).slice(), M=window.CT_CMAG;
+    if(!M) return reviews;
+    (this.state.cmagRevs||[]).forEach(r=>{
+      if(!r||!r.id||reviews.some(x=>x.id===r.id||x.cmagId===r.id)) return;
+      const pend=M.prazos(r,this._hoje()).filter(p=>!p.feita); if(!pend.length) return;
+      const dueDate=pend[0].due, disc=this._cm().mats[r.mat];
+      reviews.push({id:r.id, cmagId:r.id, disc:disc?disc.n:'Ciclo Magistratura', topic:r.ass,
+        color:this._corDisc(disc?disc.n:''), dueDate, due:Math.round((Date.parse(dueDate+'T00:00:00Z')-Date.parse(this._hoje()+'T00:00:00Z'))/86400000), intervalo:pend[0].d, repeticoes:0, up:r.up||Date.now()});
+    });
+    return reviews;
+  }
+  cmRevAbrir = (e)=>{
+    const id=e.currentTarget.dataset.id, reviews=this._revisoesDoCicloFSRS();
+    if(!reviews.some(r=>r.id===id)) return;
+    this.setState({reviews, revSession:{queue:[id],idx:0,revealed:false,again:0,hard:0,good:0,easy:0,done:false}});
+  };
+  cmRevRemover = (e)=>{ const id=e.currentTarget.dataset.id;
+    const antes=this._revisoesDoCicloFSRS(), alvo=antes.find(r=>r.id===id);
+    const legado=(this.state.cmagRevs||[]).find(r=>r&&r.id===id); if(!alvo&&!legado) return;
     this._excluirComDesfazer('Revisão',
-      ()=>{ this.setState(s=>({cmagRevs:(s.cmagRevs||[]).filter(r=>r&&r.id!==id)}), ()=>this.flashSync()); },
-      ()=>{ this.setState(s=>({cmagRevs:[...(s.cmagRevs||[]), {...alvo, up:Date.now()}]}), ()=>this.flashSync()); }); };
+      ()=>{ this.setState(s=>({reviews:(s.reviews||[]).filter(r=>r.id!==id),cmagRevs:(s.cmagRevs||[]).filter(r=>r&&r.id!==id)}),()=>this.flashSync()); },
+      ()=>{ this.setState(s=>({reviews:alvo?[...(s.reviews||[]),{...alvo,up:Date.now()}]:s.reviews,cmagRevs:legado?[...(s.cmagRevs||[]),{...legado,up:Date.now()}]:s.cmagRevs}),()=>this.flashSync()); });
+  };
   cmSabado = (e)=>{ const M=window.CT_CMAG; if(M) this._cmSet(M.alternarSabado(this._cm(), e.currentTarget.dataset.k)); };
   cmZerarSabado = ()=>{ const M=window.CT_CMAG; if(M) this._cmSet(M.zerarSabado(this._cm())); };
   cmQ = (e)=>{ const t=e.currentTarget; this.setState(s=>({cmQ:{...(s.cmQ||{}), [t.dataset.q]:t.dataset.v!=null?t.dataset.v:t.value}})); };
@@ -11857,9 +11875,8 @@ class Component extends DCLogic {
     });
     const fila=c.ordem.slice(c.ativas).map((id, i)=>({id, nome:c.mats[id].n, pos:i+1, estilo:'--cm-c:'+cor(c.mats[id].n).cor+';'}));
     const fmt=iso=>{ const p=String(iso).split('-'); return p[2]+'/'+p[1]; };
-    const revs=(this.state.cmagRevs||[]).filter(r=>r&&r.id).slice().sort((a,b)=>String(a.dt).localeCompare(String(b.dt))).map(r=>({id:r.id, ass:r.ass, dt:fmt(r.dt),
-      prazos:M.prazos(r, hoje).map(p=>({...p, rid:r.id, rot:'D+'+p.d, data:fmt(p.due), estado:p.feita?'feita':p.vencida?'vencida':'agendada', feitaStr:p.feita?'true':'false',
-        aria:'Revisão D+'+p.d+' de '+r.ass+(p.feita?': feita':p.vencida?': vencida':'')}))}));
+    const revs=this._revisoesDoCicloFSRS().filter(r=>r&&r.cmagId).sort((a,b)=>String(a.dueDate).localeCompare(String(b.dueDate))).map(r=>({id:r.id,ass:r.topic,dt:fmt(((this.state.cmagRevs||[]).find(x=>x.id===r.cmagId)||{}).dt||r.dueDate),
+      prazos:[{rid:r.id,d:0,rot:'FSRS',data:fmt(r.dueDate),feita:false,vencida:r.dueDate<=hoje,estado:r.dueDate<=hoje?'vencida':'agendada',feitaStr:'false',aria:'Revisar '+r.topic+' pelo FSRS'}]}));
     const vencidas=revs.reduce((a,r)=>a+r.prazos.filter(p=>p.vencida).length, 0);
     return {cmOn:true, cmVoltaNum:c.voltas+1, cmQuantidadeTexto:c.ativas===1?'Uma matéria':c.ativas+' matérias', cmTotalAtividades:c.ativas+1, cmQuantidade:String(c.ativas), cmQuantidadeMudar:this.cmQuantidadeMudar, cmPosAtual:c.jurisNaVez?c.ativas+1:c.vez+1, cmSequencia:sequencia, cmAtualId:atual.cmagId, cmJurisNaVez:c.jurisNaVez, cmJurisTempo:tempo(ju), cmJuris:M.jurisDoDia(c), cmJurisSemana:M.JURIS.map(j=>({num:j[0],tipo:j[1]})), cmJurisMin:this.cmJurisMin, cmGuardarDepois:this.cmGuardarDepois,cmRetomadaCampo:this.cmRetomadaCampo,cmEtapaEstudar:this.cmEtapaEstudar,cmEtapaRegistrar:this.cmEtapaRegistrar,cmEstudar:this.cmEstudar, cmRegistrarTempo:this.cmRegistrarTempo, cmSelecionar:this.cmSelecionar, cmJurisPonto:this.cmJurisPonto, cmJurisConcluir:this.cmJurisConcluir, cmAtivas:ativas, cmFila:fila, cmTemFila:fila.length>0, cmRevs:revs, cmTemRevs:revs.length>0,
       cmVencidas:vencidas, cmTemVencidas:vencidas>0, cmVencidasTxt:vencidas===1?'1 revisão vencida':vencidas+' revisões vencidas',
@@ -11879,7 +11896,7 @@ class Component extends DCLogic {
           cmQCatShow:(q.res||'erro')==='erro'}; })(),
       cmQ:this.cmQ, cmQRegistrar:this.cmQRegistrar, cmQAlternar:this.cmQAlternar,
       cmToggle:this.cmToggle, cmCampo:this.cmCampo, cmLinkAbrir:this.cmLinkAbrir, cmLinkSalvar:this.cmLinkSalvar, cmLinkApagar:this.cmLinkApagar,
-      cmEdTopico:this.cmEdTopico, cmEdSub:this.cmEdSub, cmFechar:this.cmFechar, cmRevMarcar:this.cmRevMarcar, cmRevRemover:this.cmRevRemover, cmSabado:this.cmSabado, cmZerarSabado:this.cmZerarSabado, cmAvancar:this.cmAvancar};
+      cmEdTopico:this.cmEdTopico, cmEdSub:this.cmEdSub, cmFechar:this.cmFechar, cmRevAbrir:this.cmRevAbrir, cmRevRemover:this.cmRevRemover, cmSabado:this.cmSabado, cmZerarSabado:this.cmZerarSabado, cmAvancar:this.cmAvancar};
   }
   // Data ISO (AAAA-MM-DD) do dia da semana pedido, DENTRO da semana atual (segunda a domingo).
   _isoDiaSemana(diaKey){
@@ -12547,8 +12564,10 @@ class Component extends DCLogic {
     return { fundo:this._accentHex(), texto:'#fff' };
   }
   _accentHex(){
-    try{ if(this.state.accent) return this.state.accent; }catch(_){}
-    try{ const v=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim(); if(v) return v; }catch(_){}
+    try{ if(/^#[0-9a-f]{6}$/i.test(this.state.accent||'')) return this.state.accent; }catch(_){}
+    // Os dois destaques por token acompanham o tema; ao PiP só chega o hex resolvido.
+    try{ const el=document.querySelector('[data-dark][data-dir]'); const v=el&&getComputedStyle(el).getPropertyValue('--accent').trim(); if(/^#[0-9a-f]{6}$/i.test(v||'')) return v; }catch(_){}
+    try{ const v=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim(); if(/^#[0-9a-f]{6}$/i.test(v)) return v; }catch(_){}
     return '#0f7a57';
   }
   _hexRgba(hex,a){ try{ let h=String(hex||'').replace('#',''); if(h.length===3) h=h.replace(/./g,'$&$&'); const n=parseInt(h.slice(0,6),16); return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')'; }catch(_){ return 'rgba(19,160,107,'+a+')'; } }
@@ -13078,7 +13097,7 @@ class Component extends DCLogic {
             if(d.provaData!=null) patch.provaData=d.provaData;
             if(d.dir&&CT_DIRS.includes(d.dir)) patch.dir=d.dir;
             if(typeof d.darkMode==='boolean') patch.darkMode=d.darkMode;
-            if(d.accent!==undefined) patch.accent=d.accent;
+            if(typeof d.accent==='string' && (/^#[0-9a-f]{6}$/i.test(d.accent) || d.accent==='var(--danger)' || d.accent==='var(--warn)')) patch.accent=d.accent;
             this.setState(patch, ()=>{ try{ if(patch.flashcards) this._saveFC(patch.flashcards); if(patch.sessions) this._saveSessions(patch.sessions); if(patch.dir) localStorage.setItem('catedra:dir',patch.dir); if('darkMode' in patch) localStorage.setItem('catedra:dark', patch.darkMode?'1':'0'); if(patch.orient) localStorage.setItem('catedra:orient', JSON.stringify(patch.orient)); if(patch.habitos) localStorage.setItem('catedra:habitos', JSON.stringify(patch.habitos)); if(patch.provaData) localStorage.setItem('catedra:prova', patch.provaData); if(patch.cycleMode) localStorage.setItem('catedra:cycleMode', patch.cycleMode); if(patch.redHistory) localStorage.setItem('catedra:red', JSON.stringify(patch.redHistory)); }catch(_){} });
             this.flashSync(); this._toast('Backup restaurado em todo o sistema ✦'); }
   // ===== Backup na nuvem PESSOAL (iCloud Drive / Google Drive) — além da conta Cátedra =====
@@ -14423,7 +14442,7 @@ class Component extends DCLogic {
      A conferência de um dispositivo lido chega do LEGIS (ctLeituraConferida) e vira:
      q=5 nada; q=3 flashcard + revisão; q=1 flashcard + revisão + caderno de erros.
      Revisão com id determinístico ('rv|la|<leitura>|<el>'): repetir a conferência aplica
-     sm2 em vez de duplicar. Flashcard barrado por hash do front em 30 dias; erro barrado
+     FSRS em vez de duplicar. Flashcard barrado por hash do front em 30 dias; erro barrado
      por id em 30 dias. Teto por mensagem (ERRO_AUTO_MAX) com aviso do restante; toast da
      casa com desfazer que devolve os cinco tipos de registro ao estado anterior. */
   _laDisciplina(it){
@@ -14480,8 +14499,8 @@ class Component extends DCLogic {
       if(r.criar.review){
         const rid='rv|la|'+it.id+'|'+c.el, j=reviews.findIndex(x=>x&&x.id===rid);
         if(j>=0){ if(!(rid in antes.revs)) antes.revs[rid]=reviews[j];
-          const sc=this.sm2(reviews[j], c.q); reviews[j]={...reviews[j], ...sc, dueDate:this._addDiasStr(hoje, sc.intervalo), up:agora}; }
-        else { const sc=this.sm2({facilidade:2.5, intervalo:1, repeticoes:0}, c.q);
+          const sc=this.fsrs(reviews[j], c.q); reviews[j]={...reviews[j], ...sc, dueDate:this._addDiasStr(hoje, sc.intervalo), up:agora}; }
+        else { const sc=this.fsrs({facilidade:2.5, intervalo:1, repeticoes:0}, c.q);
           reviews.push({id:rid, disc, topic, color:this._corDisc(disc), ...sc, dueDate:this._addDiasStr(hoje, sc.intervalo), up:agora, auto:true, la:{id:it.id, el:c.el}});
           novos.revs.push(rid); }
       }
@@ -16174,7 +16193,7 @@ class Component extends DCLogic {
      `fcCards`/`fcEmpty` calculados no render sem ninguém no template para lê-los. O ciclo
      ainda gerava o bloco "Revisão · Anki — N cartões no baralho", mandando estudar uma coisa
      que não tinha onde ser estudada.
-     O cartão ganha o MESMO SM-2 das revisões (this.sm2), gravado no próprio cartão: `catedra:fc`
+     O cartão ganha o MESMO FSRS das revisões (this.fsrs), gravado no próprio cartão: `catedra:fc`
      já está no ARRAY_ID do auth.js e o cartão já tem id, então o agendamento sincroniza entre
      aparelhos por id, sem chave nova. Cartão sem `dueDate` é cartão novo — vence hoje. */
   _fcVence(c, hoje){ if(!c) return false; const d=String(c.dueDate||''); return !d || d<=hoje; }
@@ -16198,7 +16217,7 @@ class Component extends DCLogic {
   fcEstudar = (e)=>{
     const ds=(e&&e.currentTarget&&e.currentTarget.dataset)||{};
     const fila=this._fcFila(ds.disc||'');
-    if(!fila.length){ this._toast('Nada vencido no baralho — os cartões voltam na data que o SM-2 marcou'); return; }
+    if(!fila.length){ this._toast('Nada vencido no baralho — os cartões voltam na data que o FSRS marcou'); return; }
     // vindo de um bloco do ciclo, a sessão nasce amarrada àquela atividade (mesmo fio do parcial)
     let atvKey=''; const _di=ds.i;
     if(_di!=null && _di!=='' && this.state.blocks[+_di]) atvKey=this._atvChave(this.state.blocks[+_di]);
@@ -16206,18 +16225,15 @@ class Component extends DCLogic {
       fcSess:{ ids:fila.map(c=>c.id), i:0, virado:false, acertos:0, erros:0, inicio:Date.now(), atvKey, disc:ds.disc||'' }});
   };
   fcVirar = ()=> this.setState(s=>s.fcSess?({fcSess:{...s.fcSess, virado:true}}):null);
-  /* Responder aplica o SM-2 NO CARTÃO. "Não sei" (q=1) devolve o cartão ao fim da fila desta
+  /* Responder aplica o FSRS NO CARTÃO. "Não sei" (q=1) devolve o cartão ao fim da fila desta
      rodada: errar e não rever de novo no mesmo dia é o modo mais rápido de esquecer. */
   fcResponder = (e)=>{
     const q=+e.currentTarget.dataset.q; if(q!==1&&q!==3&&q!==5) return;
     const S=this.state.fcSess; if(!S) return;
     const id=S.ids[S.i]; const hoje=this._hoje();
     const fc=(this.state.flashcards||[]).map(c=>{ if(c.id!==id) return c;
-      const base={facilidade:(c.facilidade||2.5), intervalo:(c.intervalo||1), repeticoes:(c.repeticoes||0)};
-      const sc=this.sm2(base, q);
-      // O SM-2 devolve intervalo 1 (amanhã) para q<3, mas o botão promete "volta ainda hoje" —
-      // e promete certo: quem errou precisa rever no mesmo dia. Sem esta linha, sair da sala e
-      // voltar dez minutos depois fazia o cartão recém-errado sumir da fila até amanhã.
+      const sc=this.fsrs(c, q===3?4:q);
+      // Erro usa intervalo zero; a data continua hoje mesmo ao sair e voltar à sala.
       const quando = (q<3) ? hoje : this._addDiasStr(hoje, sc.intervalo);
       return {...c, ...sc, dueDate:quando, up:Date.now()}; });
     try{ this._saveFC(fc); }catch(_){}
@@ -18740,12 +18756,8 @@ class Component extends DCLogic {
       // Só nas revisões que o Treino criou (as únicas com cor var(--danger)): um tema digitado
       // que por acaso tenha 44 caracteres perdia a última palavra.
       topic: r.color==='var(--danger)' ? this._tituloRev(r.topic) : r.topic,
-      // `facilidade` vem do SM-2 e a revisão criada pelo app sempre a tem. Mas um blob de
-      // sincronização truncado, ou um item vindo de uma versão anterior, chega sem ela — e
-      // um `.toFixed` de undefined derrubava o renderVals INTEIRO, pintando na tela
-      // "Catedra.renderVals(): Cannot read properties of undefined". Erro técnico não é
-      // assunto de quem está estudando: 2.5 é o valor inicial do próprio SM-2.
-      interval: (r.intervalo||0)+'d', ef: Number(r.facilidade!=null?r.facilidade:2.5).toFixed(2), reps: (r.repeticoes||0),
+      // Memória antiga permanece sem dificuldade FSRS até a primeira resposta.
+      interval: (r.intervalo||0)+'d', ef: r.fsrs?Number(r.fsrs.difficulty).toFixed(2):'—', reps: (r.repeticoes||0),
       dueLabel: r.due<0 ? `há ${Math.abs(r.due)} ${Math.abs(r.due)===1?'dia':'dias'}` : (r.due===0?'hoje':(r.due===1?'amanhã':`em ${r.due} dias`)),
       refTem: !!this._alvoAcervoAberto(r.ref),
       refLabel: this._alvoAcervoAberto(r.ref)==='juris'?'Abrir no JURIS':'Abrir no LEGIS' });
@@ -18758,12 +18770,12 @@ class Component extends DCLogic {
     if(RS){ const total=RS.queue.length, idx=RS.idx, done=RS.done||idx>=total;
       const reviewedN=RS.again+RS.hard+RS.good+RS.easy;
       const cur=done?null:this.state.reviews.find(r=>r.id===RS.queue[idx]);
-      const _iv=(q)=>cur?this.sm2(cur,q).intervalo:0, _refAlvo=cur?this._alvoAcervoAberto(cur.ref):'';
+      const _iv=(q)=>cur?this.fsrs(cur,q,false).intervalo:0, _refAlvo=cur?this._alvoAcervoAberto(cur.ref):'';
       revRun={ active:true, total, pos:Math.min(idx+1,total), pct: total?Math.round(idx/total*100):0, revealed:RS.revealed, done,
         id:cur?cur.id:'', disc: cur?cur.disc:'', discShort: cur?cur.disc.replace('Direito ',''):'', topic: cur?cur.topic:'', color: cur?cur.color:'#0f7a57',
         refTem:!!_refAlvo, refLabel:_refAlvo==='juris'?'Abrir no JURIS':'Abrir no LEGIS',
-        intervalo: (cur&&cur.intervalo)||0, ef: cur?Number(cur.facilidade!=null?cur.facilidade:2.5).toFixed(2):'', reps: (cur&&cur.repeticoes)||0,
-        opts: cur?[ {q:2,label:'Errei',sub:'1 dia',color:'var(--danger)'},{q:3,label:'Difícil',sub:_iv(3)+'d',color:'var(--warn)'},{q:4,label:'Bom',sub:_iv(4)+'d',color:'var(--ok)'},{q:5,label:'Fácil',sub:_iv(5)+'d',color:'#0f7a57'} ]:[],
+        intervalo: (cur&&cur.intervalo)||0, ef: cur&&cur.fsrs?Number(cur.fsrs.difficulty).toFixed(2):'—', reps: (cur&&cur.repeticoes)||0,
+        opts: cur?[ {q:2,label:'Errei',sub:'hoje',color:'var(--danger)'},{q:3,label:'Difícil',sub:_iv(3)+'d',color:'var(--warn)'},{q:4,label:'Bom',sub:_iv(4)+'d',color:'var(--ok)'},{q:5,label:'Fácil',sub:_iv(5)+'d',color:'#0f7a57'} ]:[],
         again:RS.again, hard:RS.hard, good:RS.good, easy:RS.easy, reviewedN, acertos:RS.good+RS.easy };
       // LA5: tópico de leitura ativa mostra o CARTÃO (cloze renderizado), não texto solto —
       // a lacuna antes de revelar, o trecho com o fundo da identidade e o "extra" depois
@@ -19518,7 +19530,7 @@ class Component extends DCLogic {
     const evById = (e)=> e.id||('seed'+e.dia+e.titulo);
     const _calColors={'Prova':'var(--danger)','Revisão':'#06b6d4','Ciclo':'#0d9488','Simulado':'var(--accent)','Meta':'var(--warn)','Tarefa':'#6b4fbb'};
     const _parseYmd=(s)=>{ const p=String(s).split('-'); return {ano:+p[0], mes:(+p[1]-1), dia:+p[2]}; };
-    // Fonte ÚNICA de eventos — padrão Google Agenda: manuais + revisões SM-2 (espelho,
+    // Fonte ÚNICA de eventos — padrão Google Agenda: manuais + revisões FSRS (espelho,
     // por dueDate) + data da prova. Assim o calendário mostra os compromissos REAIS.
     const _allEv=[];
     (this.state.eventos||[]).forEach(e=> _allEv.push({...e, mes:(e.mes==null?5:e.mes), ano:(e.ano==null?2026:e.ano), source:'manual'}));
@@ -20213,7 +20225,7 @@ class Component extends DCLogic {
       // mesma regra do saveSession: tópico digitado, senão a 1ª categoria
       const _rd=_fxDisc||'Geral'; const _rt=(_fxTop||(_selCats[0]||'Teoria')).toLowerCase();
       const ja=(this.state.reviews||[]).some(r=>r.disc===_rd && String(r.topic||'').toLowerCase()===_rt);
-      _fx.push({t:ja?'Revisão deste tópico já está na fila':'Revisão espaçada: amanhã (1º intervalo do SM-2)', cor:'var(--info, var(--accent))'}); }
+      _fx.push({t:ja?'Revisão deste tópico já está na fila':'Revisão espaçada: amanhã (primeira revisão; depois, FSRS)', cor:'var(--info, var(--accent))'}); }
     const _fxMarca=!!_sd0.marcarEdital && !!_sd0.edTop && _sdTopics.some(t=>String(t.name||'').trim()===String(_sd0.edTop).trim());
     if(_fxMarca) _fx.push({t:'Marca "'+(String(_sd0.edSub||'').trim()||String(_sd0.edTop))+'" como concluído no edital', cor:'var(--accent)'});
     const sessEfeitos=_fx.map(f=>({t:f.t, style:'--c:'+f.cor+';'}));

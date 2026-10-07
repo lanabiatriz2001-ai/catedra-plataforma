@@ -152,7 +152,7 @@ function ctIco(nome){ return '<svg class="ct-ico" viewBox="0 0 24 24" width="16"
       var id=AREA+'|'+gs+'|'+slug(it.t);
       var r=el('div','row'); r.style.setProperty('--lc',g.c);
       r.dataset.s=(it.t+' '+(it.d||'')).toLowerCase(); r.dataset.g=gs;
-      var st=est.stat[id]||'', fav=est.fav[id];
+      var st=STAT.indexOf(est.stat[id])>=0?est.stat[id]:'', fav=est.fav[id];
       r.innerHTML='<button class="st '+st+'" aria-label="'+att(rotStat(it.t,st))+'"'
         +' title="não estudado → estudando → dominado">'+ICON[st]+'</button>'
         +'<div class="lt"><b>'+esc(it.t)+'</b>'+(it.d?('<small>'+esc(it.d)+'</small>'):'')+'</div>'

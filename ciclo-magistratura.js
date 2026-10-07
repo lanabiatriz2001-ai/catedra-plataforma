@@ -4,15 +4,15 @@
    dois assuntos por volta; cada assunto tem um Turno A (primeiro contato) e um Turno B (reteste,
    na próxima vez da matéria depois do A, travado até ele terminar). O assunto só troca quando os
    dois cadernos de questões (a1 clássicas e b2 inéditas) chegam ao fim, o que pode levar vários
-   dias; cada caderno tem um progresso livre ("34/80"), zerado ao fechar; fechar o assunto agenda revisões em D+7, D+30 e
-   D+90; depois do 2º assunto fechado a matéria vai para o fim da fila e a primeira da fila entra.
+   dias; cada caderno tem um progresso livre ("34/80"), zerado ao fechar; fechar o assunto entra na fila adaptativa do FSRS no host; depois do 2º assunto fechado a matéria vai para o fim da fila e a primeira da fila entra.
 
    Estado (chave `cmag`, objeto, sincronizado pelo carimbo da chave — ver auth.js mergeAll):
      { v, seed, up, vez, visitas, ordem:[id], mats:{id:{n,o,s}}, st:{id:{n,ass,nota,d:{a1:true…},p:{a1:'34/80',b2}}},
        links:{'<id>-<bloco>':'https://…'}, sab:{s1:true…} }
-   Revisões ficam FORA, na chave `cmagRevs` (array com id e `up`, em ARRAY_ID do auth.js): assim
+   Histórico do assunto e marcos legados ficam FORA, na chave `cmagRevs` (array com id e `up`, em ARRAY_ID do auth.js): assim
    duas revisões criadas em aparelhos diferentes se somam no merge por id, em vez de uma apagar
    a outra.
+   O host mantém a revisão atual em `reviews`, usando o mesmo id e o motor fsrs.js.
      { id, mat, ass, dt:'AAAA-MM-DD', f7, f30, f90, up }
 
    Toda função devolve objeto NOVO (o autosave do app compara por referência). Sintaxe ES2017:
@@ -95,7 +95,7 @@
   var SABADO = [
     ['s1', 'Caderno misto de erros da semana, de todas as matérias'],
     ['s2', 'Explicar por que cada alternativa está errada antes de responder'],
-    ['s3', 'Revisões D+7, D+30 e D+90 vencidas'],
+    ['s3', 'Revisões pelo FSRS vencidas'],
     ['s4', 'Revisão em Frases só nos assuntos vencidos'],
     ['s5', 'Errou de novo: card novo ou ficha corrigida']
   ];
@@ -136,7 +136,7 @@
       m.s ? { k: 'b3', b: 'Segunda obra nos dispositivos errados', s: m.s + ' · só os artigos ligados aos erros' }
           : { k: 'b3', b: 'Jurisprudência dos erros', s: DOD + ' · só o que os erros pediram' },
       { k: 'b4', b: 'Discursiva', s: 'Uma questão à mão, depois a correção', tec: true },
-      { k: 'b5', b: 'Anki dos novos erros e fechamento', s: 'Novos erros viram cards; fechar agenda D+7, D+30 e D+90' }
+      { k: 'b5', b: 'Anki dos novos erros e fechamento', s: 'Novos erros viram cards; fechar inclui o assunto nas revisões pelo FSRS' }
     ];
   }
 

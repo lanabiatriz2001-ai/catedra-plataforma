@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Sessão de revisão espaçada do dia: percorre os artigos vencidos (de todas as
 /// normas), mostra o número/tema do artigo como estímulo, revela o texto quando a
-/// usuária pede e agenda a próxima revisão conforme a resposta (SM-2, estilo Anki).
+/// usuária pede e agenda a próxima revisão conforme a resposta (FSRS, estilo Anki).
 struct SRSReviewView: View {
     @EnvironmentObject var store: AppStore
     @Environment(\.dismiss) private var dismiss
@@ -327,7 +327,7 @@ struct SRSReviewView: View {
     private func applyScope() {
         queue = allItems.filter { item in
             // Não reapresentar cartões JÁ avaliados nesta sessão — reavaliar empurraria
-            // o agendamento SM-2 de novo (srsGrade avança incondicionalmente).
+            // o agendamento FSRS de novo (srsGrade avança incondicionalmente).
             let key = "\(item.lawID.uuidString)|\(item.unit.key)"
             guard !gradedKeys.contains(key) else { return false }
             switch scope {
