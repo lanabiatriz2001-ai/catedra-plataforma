@@ -419,8 +419,38 @@
   }
 
 
+  /* Sugestão explicável, sem mudar o percurso. Histórico mede duração, não domínio. */
+  function planejarSessao(c, op) {
+    c = normalizar(c); op = op || {};
+    var id = c.jurisNaVez ? 'juris' : c.ordem[c.vez], st = c.st[id];
+    var r = id === 'juris' ? null : roteiro(c, id), e = r && r.proxima;
+    var ju = jurisDoDia(c), v = e ? st.retomadas[e.k] || {} : {};
+    var janela = Math.max(5, Math.min(120, +op.janela || (op.energia === 'baixa' ? 15 : 30)));
+    var b = gerarVolta(c, 1, op.hoje || '').blocos.find(function (b) { return b.cmagId === id; });
+    var key = 'vt|' + b.id, outro = id === 'juris' ? key : key.replace(/-[ab]$/, b.id.endsWith('-a') ? '-b' : '-a');
+    var ss = (op.sessoes || []).filter(function (s) { return (s.atvKey === key || s.atvKey === outro) && (id === 'juris' || s.cmEtapa === (e && e.k)) && +s.min >= 5 && +s.min <= 120; })
+      .sort(function (a, b) { return (+b.ts || 0) - (+a.ts || 0); }).slice(0, 8);
+    var mm = ss.map(function (s) { return +s.min; }).sort(function (a, b) { return a - b; });
+    var med = mm.length >= 3 ? (mm[Math.floor((mm.length - 1) / 2)] + mm[Math.floor(mm.length / 2)]) / 2 : 0;
+    var base = med || (op.energia === 'baixa' ? 15 : op.energia === 'alta' ? 45 : 30);
+    var min = Math.max(5, Math.min(janela, Math.round(base), op.energia === 'baixa' ? 20 : 120));
+    var objetivos = {a2:'Leia um trecho com começo e fim. Salve a página e a próxima ação antes de parar.',a1:'Resolva um grupo de questões e registre a certeza durante cada resposta.',a3:'Explique um ponto de memória e confira o que precisa corrigir.',a4:'Revise os cards dos erros sem adicionar volume que não caiba agora.',b1:'Recupere o assunto de memória e confira as lacunas.',b2:'Resolva inéditas do assunto e registre erros e chutes certos.',b3:'Releia os trechos que os erros indicaram.',b4:'Escreva uma resposta e confira seu raciocínio.',b5:'Revise os novos erros antes de fechar o assunto.'};
+    var nome = id === 'juris' ? 'Jurisprudência' : c.mats[id].n, assunto = st ? st.ass : ju.tipo;
+    var errs = id === 'juris' ? [] : (op.erros || []).filter(function (x) { return x && !x.resolvido && norm(x.disc) === norm(nome) && (!assunto || norm(x.topico) === norm(assunto)); });
+    var alta = errs.filter(function (x) { return x.resultado !== 'chute_certo' && x.certeza === 'alta'; }).length;
+    var chutes = errs.filter(function (x) { return x.resultado === 'chute_certo'; }).length;
+    var motivos = ['Você tem ' + janela + ' min disponíveis.'];
+    if(op.energia === 'baixa') motivos.push('Com energia baixa, a proposta fica em até 20 min.');
+    if(med) motivos.push('Mediana de ' + ss.length + ' sessões desta etapa: ' + Math.round(med) + ' min.');
+    else motivos.push('Ainda não há três sessões desta etapa; uso um ponto de partida ajustável.');
+    return {id:id,k:e?e.k:'',min:min,janela:janela,possivel:id==='juris'||!!e,
+      objetivo:v.proximo || (id==='juris'?'Estude um trecho de '+ju.tipo+' e salve o último item lido.':objetivos[e&&e.k]||'Confira o percurso antes de abrir uma nova sessão.'),
+      ponto:id==='juris'?ju.ponto:v.ponto||'',motivo:motivos.join(' '),amostras:ss.length,erros:errs.length,alta:alta,chutes:chutes,
+      diagnostico:errs.length ? errs.length+(errs.length===1?' erro pendente ':' erros pendentes ')+(assunto?'neste assunto':'nesta matéria')+'. '+(alta?alta+(alta===1?' erro com alta certeza. ':' erros com alta certeza. '):'')+(chutes?chutes+(chutes===1?' chute certo.':' chutes certos.'):''):''};
+  }
+
   raiz.CT_CMAG = {
-    POR_VOLTA: POR_VOLTA, ATIVAS: ATIVAS, PRAZOS: PRAZOS, MATS: MATS, ORDEM: ORDEM,
+    planejarSessao:planejarSessao, POR_VOLTA: POR_VOLTA, ATIVAS: ATIVAS, PRAZOS: PRAZOS, MATS: MATS, ORDEM: ORDEM,
     guardarRetomada:guardarRetomada, roteiro:roteiro, definirAtivas:definirAtivas, selecionarAtividade:selecionarAtividade, avancarAtividade:avancarAtividade, definirJurisMin:definirJurisMin,
     JURIS: JURIS, jurisDoDia: jurisDoDia, definirJuris: definirJuris, concluirJuris: concluirJuris,
     SABADO: SABADO, ROTINA: ROTINA, REGRAS: REGRAS, AUXILIARES: AUXILIARES,

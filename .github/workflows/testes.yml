@@ -27,7 +27,9 @@ jobs:
       - name: Build da plataforma
         run: node scripts/build.mjs
       - name: Ciclo integrado com início e registro
-        run: node tests/ciclo-plataforma.mjs
+        run: |
+          node tests/ciclo-plataforma.mjs
+          node tests/ciclo-sessao-intencional.mjs
         env:
           CT_CHROME: /usr/bin/google-chrome
       - name: Testes de navegador (sync + acervo ida-e-volta)
@@ -56,6 +58,7 @@ jobs:
         run: |
           node tests/ciclo-plataforma.mjs
           node tests/ciclo-retomada.mjs
+          node tests/ciclo-sessao-intencional.mjs
         env:
           CT_BROWSER: webkit
       - name: Prova oral → Lei seca em WebKit (http e file://)
