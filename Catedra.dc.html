@@ -998,7 +998,7 @@ window.ctPdfLib = (function(){
          saveSession e o _brain usam. A cor da MATÉRIA veste o cabeçalho; tudo por token.
          Contratos preservados: role/aria-label do dialog e a classe .ct-modal-panel (focus
          trap), data-k/data-v dos handlers, aria-label de todo select, textos dos testes. -->
-    <sc-if value="{{ sessionModalOpen }}" hint-placeholder-val="{{ false }}">
+    <sc-if value="{{ sessModalEstudoOpen }}" hint-placeholder-val="{{ false }}">
       <div onclick="{{ closeSessionBackdrop }}" style="position:fixed;inset:0;background:rgba(16,24,40,.45);z-index:100;display:flex;align-items:center;justify-content:center;padding:18px;">
         <div onclick="{{ stop }}" role="dialog" aria-modal="true" aria-label="Registrar sessão" class="ct-modal-panel ct-modal-caixa ct-reg" style="{{ sessCorStyle }}">
           <div class="ct-reg-cab">
@@ -1010,52 +1010,6 @@ window.ctPdfLib = (function(){
             <button onclick="{{ closeSession }}" aria-label="Fechar" class="ct-reg-fechar"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"></path></svg></button>
           </div>
           <nav class="ct-fluxo-abas" aria-label="Modo de registro"><button class="ct-btn-2" data-v="estudo" aria-pressed="{{ sessModoEstudoStr }}" onclick="{{ setRegistroModo }}">Estudo</button><button class="ct-btn-2" data-v="simulado" aria-pressed="{{ sessModoSimStr }}" onclick="{{ setRegistroModo }}">Simulado</button></nav>
-          <sc-if value="{{ sessModoSim }}"><div class="ct-reg-corpo"><p class="ct-nota" role="status">{{ simRegistroTempoLabel }}</p><sc-if value="{{ simTemTempoCrono }}"><button class="ct-btn-2" onclick="{{ usarTempoSimulado }}">Usar tempo do cronômetro ({{ simTempoCrono }} min)</button></sc-if>        <!-- form -->
-        <div class="ct-card">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><span class="ct-titulo">Registrar simulado</span></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-            <div><label class="ct-rotulo">Nome / Banca</label><input value="{{ simNome }}" oninput="{{ onSimNome }}" placeholder="ex.: Simulado CEBRASPE 05" class="ct-campo"></div>
-            <div><label class="ct-rotulo">Tempo gasto (min)</label><input type="number" value="{{ simMin }}" oninput="{{ onSimMin }}" placeholder="opcional" class="ct-campo ct-campo-num"></div>
-            <div style="grid-column:1/-1;"><label class="ct-rotulo">Forma de análise</label><select value="{{ simAnalysis }}" aria-label="Forma de análise" onchange="{{ onSimAnalysis }}" class="ct-campo"><option value="liquida">Certo/errado — nota líquida C−E (Cespe/Cebraspe)</option><option value="me">Múltipla escolha — % bruto (FGV/FCC/Vunesp)</option><option value="disc">Discursiva / peça jurídica</option></select><div style="font-size:var(--fs-xs);color:var(--text3);margin-top:6px;line-height:1.45;">{{ anaNote }}</div></div>
-          </div>
-
-          <!-- objetiva -->
-          <sc-if value="{{ isObjetiva }}" hint-placeholder-val="{{ true }}">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;">
-              <div><label class="ct-rotulo">Total de questões</label><input type="number" data-f="total" value="{{ sim.total }}" oninput="{{ onSim }}" class="ct-campo ct-campo-num"></div>
-              <div><label class="ct-rotulo">Acertos</label><input type="number" data-f="acertos" value="{{ sim.acertos }}" oninput="{{ onSim }}" class="ct-campo ct-campo-num"></div>
-              <div><label class="ct-rotulo">Erros</label><input type="number" data-f="erros" value="{{ sim.erros }}" oninput="{{ onSim }}" class="ct-campo ct-campo-num"></div>
-              <div><label class="ct-rotulo">Brancos</label><input type="number" data-f="brancos" value="{{ sim.brancos }}" oninput="{{ onSim }}" class="ct-campo ct-campo-num"></div>
-            </div>
-            <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:14px;line-height:1.5;display:flex;gap:9px;align-items:flex-start;"><span style="color:var(--danger);font-weight:700;">!</span><span>Banca estilo CEBRASPE/CESPE: cada erro anula um acerto. A nota líquida (C−E) é o que vale.</span></div>
-          </sc-if>
-
-          <!-- discursiva / peças -->
-          <sc-if value="{{ isDisc }}" hint-placeholder-val="{{ false }}">
-            <div style="margin-top:14px;">
-              <div class="ct-eb" style="display:flex;padding-bottom:8px;">
-                <span style="flex:1;">Questão / peça</span><span style="width:80px;text-align:right;">Obtida</span><span style="width:80px;text-align:right;">Máxima</span><span style="width:28px;"></span>
-              </div>
-              <sc-for list="{{ discItems }}" as="d" hint-placeholder-count="3">
-                <div style="display:flex;align-items:center;gap:8px;padding:6px 0;">
-                  <span style="flex:1;font-size:var(--fs-base);color:var(--ink);min-width:0;">{{ d.label }}</span>
-                  <input type="number" step="0.5" data-i="{{ d.i }}" data-f="obtida" value="{{ d.obtidaTxt }}" oninput="{{ onDiscItem }}" class="ct-campo ct-campo-num" style="width:80px;text-align:right;">
-                  <input type="number" step="0.5" data-i="{{ d.i }}" data-f="maxima" value="{{ d.maxima }}" oninput="{{ onDiscItem }}" class="ct-campo ct-campo-num" style="width:80px;text-align:right;color:var(--text2);">
-                  <button class="ct-alvo ct-miudo" data-i="{{ d.i }}" onclick="{{ removeDiscItem }}" title="Remover" style="width:28px;height:28px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text3);cursor:pointer;flex:none;">×</button>
-                </div>
-              </sc-for>
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
-                <button onclick="{{ addDiscItem }}" class="ct-btn-2">+ Adicionar item</button>
-                <div style="font-size:var(--fs-base);color:var(--text2);">Nota: <b style="color:var(--ink);font-family:var(--mono);">{{ discObtidaTxt }} / {{ discMaxima }}</b> · <b style="color:var(--accent);">{{ discPct }}%</b></div>
-              </div>
-              <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:14px;line-height:1.5;display:flex;gap:9px;align-items:flex-start;"><span style="color:var(--accent);font-weight:700;">i</span><span>Some a nota de cada questão discursiva e peça jurídica. A pontuação total define o percentual de aproveitamento.</span></div>
-            </div>
-          </sc-if>
-          <button onclick="{{ saveSimulado }}" class="ct-btn" style="margin-top:18px;width:100%;">Registrar simulado no histórico</button>
-          <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:8px;text-align:center;">soma às suas horas, ao desempenho e aparece nos "Simulados registrados"</div>
-        </div>
-
-<button class="ct-btn-2" onclick="{{ closeSession }}">Cancelar</button></div></sc-if>
           <sc-if value="{{ sessModoEstudo }}">
           <div class="ct-reg-efeito">
             <div class="ct-reg-efeito-t">O que esta sessão muda</div>
@@ -4656,57 +4610,60 @@ window.ctPdfLib = (function(){
           </div>
         </div>
         </sc-if>
-        <sc-if value="{{ simRegistroTela }}">
+       </div>
+      </sc-if>
+      <sc-if value="{{ simRegistroVisible }}"><div style="{{ simRegistroFundoStyle }}" onclick="{{ closeSessionBackdrop }}"><section class="{{ simRegistroClasse }}" role="{{ simRegistroRole }}" aria-modal="{{ simRegistroAriaModal }}" aria-label="{{ simRegistroAriaLabel }}" style="{{ simRegistroPainelStyle }}" onclick="{{ stop }}">
+        <sc-if value="{{ sessModoSim }}"><div class="ct-fluxo-abas" style="margin-bottom:var(--ct-e4);"><h2 class="ct-titulo" style="flex:1;">Registrar sessão · Simulado</h2><button class="ct-btn-2" onclick="{{ closeSession }}" aria-label="Fechar">Fechar</button></div><nav class="ct-fluxo-abas" aria-label="Modo de registro"><button class="ct-btn-2" data-v="estudo" aria-pressed="false" onclick="{{ setRegistroModo }}">Estudo</button><button class="ct-btn-2" data-v="simulado" aria-pressed="true" onclick="{{ setRegistroModo }}">Simulado</button></nav><p class="ct-nota" role="status">{{ simRegistroTempoLabel }}</p><sc-if value="{{ simTemTempoCrono }}"><button class="ct-btn-2" onclick="{{ usarTempoSimulado }}">Usar tempo do cronômetro ({{ simTempoCrono }} min)</button></sc-if></sc-if>
         <div class="ct-grade-larga" style="align-items:start;">
-        <!-- form -->
+        <!-- Formulário único de registro -->
         <div class="ct-card">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><span class="ct-titulo">Registrar simulado</span></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--ct-e4);"><span class="ct-titulo">Registrar simulado</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--ct-e4);">
             <div><label class="ct-rotulo">Nome / Banca</label><input value="{{ simNome }}" oninput="{{ onSimNome }}" placeholder="ex.: Simulado CEBRASPE 05" class="ct-campo"></div>
             <div><label class="ct-rotulo">Tempo gasto (min)</label><input type="number" value="{{ simMin }}" oninput="{{ onSimMin }}" placeholder="opcional" class="ct-campo ct-campo-num"></div>
-            <div style="grid-column:1/-1;"><label class="ct-rotulo">Forma de análise</label><select value="{{ simAnalysis }}" aria-label="Forma de análise" onchange="{{ onSimAnalysis }}" class="ct-campo"><option value="liquida">Certo/errado — nota líquida C−E (Cespe/Cebraspe)</option><option value="me">Múltipla escolha — % bruto (FGV/FCC/Vunesp)</option><option value="disc">Discursiva / peça jurídica</option></select><div style="font-size:var(--fs-xs);color:var(--text3);margin-top:6px;line-height:1.45;">{{ anaNote }}</div></div>
+            <div style="grid-column:1/-1;"><label class="ct-rotulo">Forma de análise</label><select value="{{ simAnalysis }}" aria-label="Forma de análise" onchange="{{ onSimAnalysis }}" class="ct-campo"><option value="liquida">Certo/errado — nota líquida C−E (Cespe/Cebraspe)</option><option value="me">Múltipla escolha — % bruto (FGV/FCC/Vunesp)</option><option value="disc">Discursiva / peça jurídica</option></select><div style="font-size:var(--fs-xs);color:var(--text3);margin-top:var(--ct-e2);line-height:1.45;">{{ anaNote }}</div></div>
           </div>
 
           <!-- objetiva -->
           <sc-if value="{{ isObjetiva }}" hint-placeholder-val="{{ true }}">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--ct-e4);margin-top:var(--ct-e4);">
               <div><label class="ct-rotulo">Total de questões</label><input type="number" data-f="total" value="{{ sim.total }}" oninput="{{ onSim }}" class="ct-campo ct-campo-num"></div>
               <div><label class="ct-rotulo">Acertos</label><input type="number" data-f="acertos" value="{{ sim.acertos }}" oninput="{{ onSim }}" class="ct-campo ct-campo-num"></div>
               <div><label class="ct-rotulo">Erros</label><input type="number" data-f="erros" value="{{ sim.erros }}" oninput="{{ onSim }}" class="ct-campo ct-campo-num"></div>
               <div><label class="ct-rotulo">Brancos</label><input type="number" data-f="brancos" value="{{ sim.brancos }}" oninput="{{ onSim }}" class="ct-campo ct-campo-num"></div>
             </div>
-            <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:14px;line-height:1.5;display:flex;gap:9px;align-items:flex-start;"><span style="color:var(--danger);font-weight:700;">!</span><span>Banca estilo CEBRASPE/CESPE: cada erro anula um acerto. A nota líquida (C−E) é o que vale.</span></div>
+            <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:var(--ct-e4);line-height:1.5;display:flex;gap:var(--ct-e2);align-items:flex-start;"><span style="color:var(--danger);font-weight:700;">!</span><span>Banca estilo CEBRASPE/CESPE: cada erro anula um acerto. A nota líquida (C−E) é o que vale.</span></div>
           </sc-if>
 
           <!-- discursiva / peças -->
           <sc-if value="{{ isDisc }}" hint-placeholder-val="{{ false }}">
-            <div style="margin-top:14px;">
-              <div class="ct-eb" style="display:flex;padding-bottom:8px;">
-                <span style="flex:1;">Questão / peça</span><span style="width:80px;text-align:right;">Obtida</span><span style="width:80px;text-align:right;">Máxima</span><span style="width:28px;"></span>
+            <div style="margin-top:var(--ct-e4);">
+              <div class="ct-eb" style="display:flex;padding-bottom:var(--ct-e2);">
+                <span style="flex:1;">Questão / peça</span><span style="width:var(--ct-sim-num);text-align:right;">Obtida</span><span style="width:var(--ct-sim-num);text-align:right;">Máxima</span><span style="width:var(--ct-e7);"></span>
               </div>
               <sc-for list="{{ discItems }}" as="d" hint-placeholder-count="3">
-                <div style="display:flex;align-items:center;gap:8px;padding:6px 0;">
+                <div style="display:flex;align-items:center;gap:var(--ct-e2);padding:var(--ct-e2) 0;">
                   <span style="flex:1;font-size:var(--fs-base);color:var(--ink);min-width:0;">{{ d.label }}</span>
-                  <input type="number" step="0.5" data-i="{{ d.i }}" data-f="obtida" value="{{ d.obtidaTxt }}" oninput="{{ onDiscItem }}" class="ct-campo ct-campo-num" style="width:80px;text-align:right;">
-                  <input type="number" step="0.5" data-i="{{ d.i }}" data-f="maxima" value="{{ d.maxima }}" oninput="{{ onDiscItem }}" class="ct-campo ct-campo-num" style="width:80px;text-align:right;color:var(--text2);">
-                  <button class="ct-alvo ct-miudo" data-i="{{ d.i }}" onclick="{{ removeDiscItem }}" title="Remover" style="width:28px;height:28px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text3);cursor:pointer;flex:none;">×</button>
+                  <input type="number" step="0.5" data-i="{{ d.i }}" data-f="obtida" value="{{ d.obtidaTxt }}" oninput="{{ onDiscItem }}" class="ct-campo ct-campo-num" style="width:var(--ct-sim-num);text-align:right;">
+                  <input type="number" step="0.5" data-i="{{ d.i }}" data-f="maxima" value="{{ d.maxima }}" oninput="{{ onDiscItem }}" class="ct-campo ct-campo-num" style="width:var(--ct-sim-num);text-align:right;color:var(--text2);">
+                  <button class="ct-alvo ct-miudo" data-i="{{ d.i }}" onclick="{{ removeDiscItem }}" title="Remover" style="width:var(--ct-e7);height:var(--ct-e7);border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text3);cursor:pointer;flex:none;">×</button>
                 </div>
               </sc-for>
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:var(--ct-e3);">
                 <button onclick="{{ addDiscItem }}" class="ct-btn-2">+ Adicionar item</button>
                 <div style="font-size:var(--fs-base);color:var(--text2);">Nota: <b style="color:var(--ink);font-family:var(--mono);">{{ discObtidaTxt }} / {{ discMaxima }}</b> · <b style="color:var(--accent);">{{ discPct }}%</b></div>
               </div>
-              <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:14px;line-height:1.5;display:flex;gap:9px;align-items:flex-start;"><span style="color:var(--accent);font-weight:700;">i</span><span>Some a nota de cada questão discursiva e peça jurídica. A pontuação total define o percentual de aproveitamento.</span></div>
+              <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:var(--ct-e4);line-height:1.5;display:flex;gap:var(--ct-e2);align-items:flex-start;"><span style="color:var(--accent);font-weight:700;">i</span><span>Some a nota de cada questão discursiva e peça jurídica. A pontuação total define o percentual de aproveitamento.</span></div>
             </div>
           </sc-if>
-          <button onclick="{{ saveSimulado }}" class="ct-btn" style="margin-top:18px;width:100%;">Registrar simulado no histórico</button>
-          <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:8px;text-align:center;">soma às suas horas, ao desempenho e aparece nos "Simulados registrados"</div>
+          <button onclick="{{ saveSimulado }}" class="ct-btn" style="margin-top:var(--ct-e5);width:100%;">Registrar simulado no histórico</button>
+          <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:var(--ct-e2);text-align:center;">soma às suas horas, ao desempenho e aparece nos "Simulados registrados"</div>
         </div>
 
         <!-- raio-x ao vivo -->
         <div class="ct-card">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><span class="ct-titulo">Raio-X do simulado</span><span class="ct-selo ct-selo-hoje" style="display:inline-flex;align-items:center;gap:5px;"><span style="width:6px;height:6px;border-radius:99px;background:var(--accent);"></span>ao vivo</span></div>
-          <div style="display:flex;align-items:center;gap:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--ct-e4);"><span class="ct-titulo">Raio-X do simulado</span><span class="ct-selo ct-selo-hoje" style="display:inline-flex;align-items:center;gap:var(--ct-e1);"><span style="width:var(--ct-e2);height:var(--ct-e2);border-radius:99px;background:var(--accent);"></span>ao vivo</span></div>
+          <div style="display:flex;align-items:center;gap:var(--ct-e5);">
             <div style="position:relative;flex:none;width:108px;height:108px;">
               <svg width="108" height="108" viewBox="0 0 168 168" style="transform:rotate(-90deg);">
                 <circle cx="84" cy="84" r="72" fill="none" stroke="var(--surface2)" stroke-width="15"></circle>
@@ -4716,38 +4673,42 @@ window.ctPdfLib = (function(){
             </div>
             <div style="flex:1;min-width:0;">
               <div style="font-weight:600;font-size:var(--fs-lg);color:var(--ink);">{{ diagTitle }}</div>
-              <p style="margin:5px 0 0;font-size:var(--fs-sm);color:var(--text2);line-height:1.5;">{{ diagText }}</p>
+              <p style="margin:var(--ct-e1) 0 0;font-size:var(--fs-sm);color:var(--text2);line-height:1.5;">{{ diagText }}</p>
             </div>
           </div>
           <sc-if value="{{ isObjetiva }}" hint-placeholder-val="{{ true }}">
-            <div style="display:flex;gap:10px;margin-top:16px;">
+            <div style="display:flex;gap:var(--ct-e3);margin-top:var(--ct-e4);">
               <div class="ct-num" style="flex:1;"><b>{{ brutoPct }}%</b><span>Bruto · acertos/total</span></div>
               <div class="ct-num ct-num-forte" style="flex:1;"><b>{{ liquidoPct }}%</b><span>Líquido · (C−E)/total</span></div>
             </div>
-            <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:8px;line-height:1.45;">Bancas que punem erro (Cebraspe) valem pelo <b style="color:var(--ink);">líquido</b>. FGV/FCC não punem: vale o <b style="color:var(--ink);">bruto</b>. Olhe sempre os dois.</div>
+            <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:var(--ct-e2);line-height:1.45;">Bancas que punem erro (Cebraspe) valem pelo <b style="color:var(--ink);">líquido</b>. FGV/FCC não punem: vale o <b style="color:var(--ink);">bruto</b>. Olhe sempre os dois.</div>
           </sc-if>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;">
+          <div style="display:flex;gap:var(--ct-e2);flex-wrap:wrap;margin-top:var(--ct-e4);">
             <span class="ct-selo" style="color:{{ levelColor }};">Nível: {{ level }}</span>
             <span class="ct-selo">Líquido: {{ liquido }} ({{ liquidoPct }}%)</span>
             <span class="ct-selo ct-selo-hoje">Ação: {{ action }}</span>
           </div>
-          <div class="ct-nums" style="margin-top:18px;">
+          <div class="ct-nums" style="margin-top:var(--ct-e5);">
             <div class="ct-num"><b>{{ sim.total }}</b><span>questões</span></div>
             <div class="ct-num ct-num-risco"><b>{{ loss }}</b><span>erros+brancos</span></div>
             <div class="ct-num"><b>{{ simTempoLabel }}</b><span>tempo</span></div>
           </div>
-          <div style="margin-top:18px;">
-            <div class="ct-eb" style="margin-bottom:10px;">Pontos fracos a atacar</div>
+          <div style="margin-top:var(--ct-e5);">
+            <div class="ct-eb" style="margin-bottom:var(--ct-e3);">Pontos fracos a atacar</div>
             <sc-for list="{{ simBars }}" as="x" hint-placeholder-count="3">
-              <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">
+              <div style="display:flex;align-items:center;gap:var(--ct-e3);margin-bottom:var(--ct-e2);">
                 <span style="width:96px;font-size:var(--fs-sm);color:var(--text2);flex:none;">{{ x.disc }}</span>
-                <div style="flex:1;height:8px;border-radius:99px;background:var(--surface2);overflow:hidden;"><i style="display:block;height:100%;width:{{ x.pct }}%;background:{{ x.color }};border-radius:99px;"></i></div>
+                <div style="flex:1;height:var(--ct-e2);border-radius:99px;background:var(--surface2);overflow:hidden;"><i style="display:block;height:100%;width:{{ x.pct }}%;background:{{ x.color }};border-radius:99px;"></i></div>
                 <span style="font-family:var(--mono);font-size:var(--fs-xs);color:var(--text2);width:34px;text-align:right;">{{ x.pct }}%</span>
               </div>
             </sc-for>
           </div>
         </div>
 
+        </div>
+        <sc-if value="{{ sessModoSim }}"><button class="ct-btn-2" onclick="{{ closeSession }}">Cancelar</button></sc-if>
+      </section></div></sc-if>
+      <sc-if value="{{ isSim }}"><sc-if value="{{ simRegistroTela }}"><div class="ct-grade-larga" style="align-items:start;">
         <!-- histórico + evolução -->
         <div class="ct-card">
           <div class="ct-esp-cab">O que os simulados já mediram</div>
@@ -4779,7 +4740,6 @@ window.ctPdfLib = (function(){
         </div>
        </div>
         </sc-if>
-       </div>
       </sc-if>
 
       <!-- ================= ANÁLISE ================= -->
@@ -12057,7 +12017,7 @@ class Component extends DCLogic {
     const min=this._minCronometro();if(!(min>0))return;
     this._simTimerRegistro={modal:this._registroId,geracao:this._cronometroGeracao||0,modo:this.state.timerMode};
     if(this._tick){clearInterval(this._tick);this._tick=null;}
-    this.setState({simMin:String(min),simRegistroFonte:'cronometro',timerRunning:false,pausaDesde:Date.now()},()=>this._saveTimer());
+    this.setState({simMin:String(min),simRegistroFonte:'cronometro',timerRunning:false,pausaDesde:this.state.timerRunning?Date.now():(this.state.pausaDesde||Date.now())},()=>{this._saveTimer();this._pausaVigia();});
   };
   onSimNome = (e)=> this.setState({simNome:e.currentTarget.value});
   saveSimulado = ()=>{ const s=this.state.sim||{}; const nome=(this.state.simNome||'').trim()||'Simulado';
@@ -12081,8 +12041,8 @@ class Component extends DCLogic {
     const rec={ id:'s'+Date.now(), ts:Date.now(), date:this._ymd(Date.now()-Math.min(min,600)*60000), disc:'Simulado', topico:nome, categoria:'Simulado', categorias:['Simulado'], min, questoes, acertos, erradas, brancos, liquido:acertos-erradas, foco:4, nota:notaTxt, discPct:discPctRec, countMeta:true };
     const sessions=[rec, ...this.state.sessions]; this._saveSessions(sessions);
     const ref=this._simTimerRegistro,consomeTimer=!!(ref&&this.state.sessionModalOpen&&this.state.registroModo==='simulado'&&ref.modal===this._registroId&&ref.geracao===(this._cronometroGeracao||0)&&ref.modo===this.state.timerMode);this._simTimerRegistro=null;
-    if(consomeTimer){if(this._tick){clearInterval(this._tick);this._tick=null;}try{localStorage.removeItem('ct_timer');}catch(_){}}
-    this.setState({...(consomeTimer?{timerRunning:false,timerSeconds:0,studiedSeconds:0,sessionDraft:this._freshSessionDraft(this.state.sessionDraft)}:{}),simRegistroFonte:'manual',sessions, simNome:'', simMin:'', simAba:'registro', sessionModalOpen:false, registroModo:'estudo'}, ()=>{ try{ this._reconcileStreak(); }catch(_){} try{ this._pubAtvT=0; this._publicarAtividade(); }catch(_){} }); this.flashSync();
+    if(consomeTimer){if(this._tick){clearInterval(this._tick);this._tick=null;}if(this._pausaT){clearInterval(this._pausaT);this._pausaT=null;}try{localStorage.removeItem('ct_timer');}catch(_){}}
+    this.setState({...(consomeTimer?{timerRunning:false,timerSeconds:0,studiedSeconds:0,pausaSeg:0,pausaDesde:0,pausaTique:0,pomoPhase:'foco',pomoCycles:0,sessionDraft:this._freshSessionDraft(this.state.sessionDraft)}:{}),simRegistroFonte:'manual',sessions, simNome:'', simMin:'', simAba:'registro', sessionModalOpen:false, registroModo:'estudo'}, ()=>{ try{ this._reconcileStreak(); }catch(_){} try{ this._pubAtvT=0; this._publicarAtividade(); }catch(_){} }); this.flashSync();
     this._toast('Simulado "'+nome+'" registrado no histórico ✦'); };
   onSimMin = (e)=>{ this._simSoltarTempo(); const v=e.currentTarget.value; this.setState({simMin: v===''?'':String(Math.max(0,parseInt(v,10)||0))}); };
 
@@ -13947,7 +13907,7 @@ class Component extends DCLogic {
     // setState aqui é síncrono: calcular `abre` ANTES, senão a checagem lê o valor já novo
     // e o acervo nunca começa a carregar.
     const abre=!this.state.sjAberto;
-    this.setState({sjAberto:abre});
+    this.setState({simAba:'treino',sjAberto:abre});
     if(abre && !this.state.sjPronto){
       /* Fora das áreas com jurisprudência o simulado sorteava crime doloso de perigo
          comum para quem estuda Enfermagem: o acervo jurídico subia junto e o sorteio não
@@ -14063,7 +14023,7 @@ class Component extends DCLogic {
       this._provaDurAntes=t.durAntes||this.state.provaDurationMin; this._enamAvisos={m60:(cap-sec)<=3600, m15:(cap-sec)<=900};
       try{ localStorage.removeItem('ct_prova'); }catch(_){}
       const n=itens.filter(x=>resp[x.id]!==undefined).length;
-      this.setState({sjModo:'enam', sjAberto:true, sjItens:itens, sjResp:resp, sjRev:(t.rev&&typeof t.rev==='object')?t.rev:{}, sjAtual:Math.max(0,Math.min(itens.length-1,+t.atual||0)), sjFim:false, sjRel:null, sjIni:+t.ini||Date.now(),
+      this.setState({simAba:'treino',sjModo:'enam', sjAberto:true, sjItens:itens, sjResp:resp, sjRev:(t.rev&&typeof t.rev==='object')?t.rev:{}, sjAtual:Math.max(0,Math.min(itens.length-1,+t.atual||0)), sjFim:false, sjRel:null, sjIni:+t.ini||Date.now(),
         sjComPausa:true, enamMont:Array.isArray(t.porArea)?t.porArea:null, enamErro:'',
         provaMode:true, provaRunning:false, provaDurationMin:E.DURACAO_MIN, provaSeconds:sec, provaName:t.nome||this._enamNome()}, ()=>{ this._saveEnamProva(); try{ this._irPara('simulados'); }catch(_){} });
       this._toast('Simulado ENAM retomado onde parou — '+n+' respondida'+(n===1?'':'s')+'; aperte Retomar para seguir');
@@ -14302,7 +14262,7 @@ class Component extends DCLogic {
     if(acao==='reta'){ this._irPara('reta-final'); return; }
     if(acao==='revisar'){ this._irPara('revisoes'); return; }
     if(acao==='estudar'){ this.enamEstudarArea(e); return; }
-    this.setState({sjModo:'enam', sjAberto:true, enamErro:''}); this._irPara('simulados');
+    this.setState({simAba:'treino',sjModo:'enam', sjAberto:true, enamErro:''}); this._irPara('simulados');
   };
   _enamVM(){
     const st=this.state, E=window.CT_ENAM, its=st.sjItens||[], r=st.sjResp||{}, rv=st.sjRev||{};
@@ -21587,7 +21547,8 @@ class Component extends DCLogic {
       ...((this.state.provaMode && this.state.sjModo==='enam' && (this.state.sjItens||[]).length) ? this._enamVM() : {}),
       isSegundaHub:['redacao','segundafase'].includes(this.state.view), navSegundaCur:['redacao','segundafase'].includes(this.state.view)?'page':'', navSegundaHub:navStyle(['redacao','segundafase'].includes(this.state.view)?this.state.view:'redacao'),
       simTreino:this.state.simAba==='treino', simRegistroTela:this.state.simAba!=='treino'&&!(this.state.sessionModalOpen&&this.state.registroModo==='simulado'), simRegistroStr:this.state.simAba==='treino'?'false':'true',simTreinoStr:this.state.simAba==='treino'?'true':'false',setSimAba:this.setSimAba,
-      sessModoSim:this.state.registroModo==='simulado',sessModoEstudo:this.state.registroModo!=='simulado',sessModoSimStr:this.state.registroModo==='simulado'?'true':'false',sessModoEstudoStr:this.state.registroModo==='simulado'?'false':'true',setRegistroModo:this.setRegistroModo,usarTempoSimulado:this.usarTempoSimulado,simTemTempoCrono:this._minCronometro()>0,simTempoCrono:this._minCronometro(),simRegistroTempoLabel:this.state.simRegistroFonte==='cronometro'?'Tempo líquido copiado do cronômetro pausado. Registrar consome esse tempo; cancelar preserva a sessão.':'Tempo preenchido manualmente. O cronômetro da sua sessão não será alterado.',
+      sessModalEstudoOpen:this.state.sessionModalOpen&&this.state.registroModo!=='simulado',simRegistroVisible:(this.state.view==='simulados'&&this.state.simAba!=='treino')||(this.state.sessionModalOpen&&this.state.registroModo==='simulado'),simRegistroRole:this.state.sessionModalOpen&&this.state.registroModo==='simulado'?'dialog':'region',simRegistroAriaLabel:this.state.sessionModalOpen&&this.state.registroModo==='simulado'?'Registrar sessão':'Registro de simulado',simRegistroAriaModal:this.state.sessionModalOpen&&this.state.registroModo==='simulado'?'true':'false',simRegistroClasse:this.state.sessionModalOpen&&this.state.registroModo==='simulado'?'ct-sim-registro ct-modal-panel ct-card':'ct-sim-registro',simRegistroFundoStyle:this.state.sessionModalOpen&&this.state.registroModo==='simulado'?'position:fixed;inset:0;background:color-mix(in srgb,var(--ink) 45%,transparent);z-index:100;display:flex;align-items:center;justify-content:center;padding:var(--ct-e4);':'',simRegistroPainelStyle:this.state.sessionModalOpen&&this.state.registroModo==='simulado'?'width:100%;max-width:960px;max-height:90vh;overflow:auto;box-sizing:border-box;':'',
+      sessModoSim:this.state.sessionModalOpen&&this.state.registroModo==='simulado',sessModoEstudo:this.state.registroModo!=='simulado',sessModoSimStr:this.state.registroModo==='simulado'?'true':'false',sessModoEstudoStr:this.state.registroModo==='simulado'?'false':'true',setRegistroModo:this.setRegistroModo,usarTempoSimulado:this.usarTempoSimulado,simTemTempoCrono:this._minCronometro()>0,simTempoCrono:this._minCronometro(),simRegistroTempoLabel:this.state.simRegistroFonte==='cronometro'?'Tempo líquido copiado do cronômetro pausado. Registrar consome esse tempo; cancelar preserva a sessão.':'Tempo preenchido manualmente. O cronômetro da sua sessão não será alterado.',
       isRev:this.state.view==='revisoes', isSim:this.state.view==='simulados', isAnalise:this.state.view==='analise', isConq:this.state.view==='conquistas', isConqMetas:(this.state.view==='conquistas'||this.state.view==='metas'),
       isBaralho:this.state.view==='flashcards',
       isAnki:this.state.view==='anki', isPersonal:this.state.view==='personalizacao', isAjustes:this.state.view==='ajustes', isConfig:(this.state.view==='ajustes'||this.state.view==='personalizacao'||this.state.view==='orientacao'), isDash:this.state.view==='dashboards',
