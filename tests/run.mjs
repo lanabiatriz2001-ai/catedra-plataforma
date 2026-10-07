@@ -24,6 +24,8 @@ import { testarPiiVerificador, testarPiiBuildSemTrecho } from './pii-verificador
 import { testarLegisGuiado } from './legis-guiado.mjs';
 import { testarLeitorWeb } from './leitor-web.mjs';
 import { testarCicloInteligente } from './ciclo-inteligente.mjs';
+import { testarRevisoesFSRS } from './fsrs-revisoes.mjs';
+import { testarMotorFSRS } from './fsrs-motor.mjs';
 import { testarCicloMagistratura } from './ciclo-magistratura.mjs';
 import { testarRegistroSessao } from './registro-sessao.mjs';
 import { testarCronometroPausa } from './cronometro-pausa.mjs';
@@ -2273,7 +2275,7 @@ for (const [k, v] of Object.entries(la4m)) ok(v, 'LEITURA/CONFERIR ' + k);
     r.doisCartoes = fc.length === 2 && fc.every(c => c.id && c.up && c.hash && /Leitura ativa/.test(c.origem) && c.la && c.la.id === it.id);
     r.cartaoDoPrazo = fc.some(c => c.la.el === 'prazo' && c.front.includes('Há prazo?') && c.back === 'por cinco anos ininterruptos' && !c.tipo);
     r.duasRevisoesIdDeterministico = rv.length === 2 && rv.some(x => x.id === 'rv|la|' + it.id + '|prazo') && rv.some(x => x.id === 'rv|la|' + it.id + '|como');
-    r.revisaoDoErreiIntervalo1 = !!rv.find(x => x.id.endsWith('|como')) && rv.find(x => x.id.endsWith('|como')).intervalo === 1 && rv.find(x => x.id.endsWith('|como')).due === 1;
+    r.revisaoDoErreiIntervalo1 = !!rv.find(x => x.id.endsWith('|como')) && rv.find(x => x.id.endsWith('|como')).intervalo === 0 && rv.find(x => x.id.endsWith('|como')).due === 0;
     r.revisaoTemTopicoEDisciplina = rv.every(x => x.topic === 'CC Art. 1.239 — ' + LA.rotulo(x.la.el) && x.disc === 'Direito Civil' && x.up && x.dueDate);
     r.umErro = er.length === 1 && er[0].id === 'e|la|' + it.id + '|como' && er[0].fonte === 'leitura-ativa' && er[0].ref === 'CC · Art. 1.239' && er[0].el === 'como' && er[0].disc === 'Direito Civil' && !!er[0].up;
     if (!r.umErro || !r.revisaoTemTopicoEDisciplina) r.__diag = JSON.stringify({ edital: ler('edital').map(d => d.disc), rv: rv.map(x => [x.disc, x.topic]), er: er.map(x => [x.id, x.disc, x.ref]) });
@@ -6344,6 +6346,7 @@ const u4 = await page.evaluate(async () => {
 for (const [k, v] of Object.entries(u4)) ok(v, 'U4 ' + k);
 
 // escrever faz a faixa sair sozinha — ela não fica pedindo passagem durante o trabalho
+await page.goto(URL0 + '/__semente');
 await page.evaluate(() => {
   localStorage.setItem('catedra:redText', JSON.stringify('Rascunho de outra sessão.'));
   localStorage.setItem('catedra:redTextTs', JSON.stringify(Date.now() - 26 * 3600e3));
@@ -6355,7 +6358,7 @@ const u4b = await page.evaluate(async () => {
   const M = () => document.querySelector('main').innerText;
   document.querySelector('button[data-view="redacao"]').click(); await w(2500);
   const antes = /rascunho salvo/i.test(M());
-  const ta = document.querySelector('main textarea');
+  const ta = document.querySelector('[data-red="folha"] textarea');
   const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set;
   setter.call(ta, 'Rascunho de outra sessão. Continuando agora.');
   ta.dispatchEvent(new Event('input', { bubbles: true }));
@@ -9746,7 +9749,9 @@ catch (e) {
 }
 
 // Ciclo Magistratura: método opcional, seed idempotente, rotação, D+7/30/90 (tests/ciclo-magistratura.mjs)
-try { await testarCicloMagistratura(page, URL0, ok, { motor, origem: 'http' }); }
+try { await testarMotorFSRS(ok);
+await testarRevisoesFSRS(page, URL0, ok);
+await testarCicloMagistratura(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'CICLO MAGISTRATURA [' + motor + '] [http] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');

@@ -1,0 +1,997 @@
+{
+  "source": "ts-fsrs@5.4.2, FSRS-6, parâmetros padrão, retenção 90%, enable_fuzz:false, learning_steps:[], relearning_steps:[1m]; Errei inicial adaptado para hoje",
+  "rows": [
+    {
+      "memory": null,
+      "t": 0,
+      "g": 1,
+      "expected": {
+        "difficulty": 6.4133,
+        "stability": 0.212
+      },
+      "interval": 0
+    },
+    {
+      "memory": null,
+      "t": 0,
+      "g": 2,
+      "expected": {
+        "difficulty": 5.11217071,
+        "stability": 1.2931
+      },
+      "interval": 1
+    },
+    {
+      "memory": null,
+      "t": 0,
+      "g": 3,
+      "expected": {
+        "difficulty": 2.11810397,
+        "stability": 2.3065
+      },
+      "interval": 2
+    },
+    {
+      "memory": null,
+      "t": 0,
+      "g": 4,
+      "expected": {
+        "difficulty": 1,
+        "stability": 8.2956
+      },
+      "interval": 8
+    },
+    {
+      "memory": null,
+      "t": 1,
+      "g": 1,
+      "expected": {
+        "difficulty": 6.4133,
+        "stability": 0.212
+      },
+      "interval": 0
+    },
+    {
+      "memory": null,
+      "t": 1,
+      "g": 2,
+      "expected": {
+        "difficulty": 5.11217071,
+        "stability": 1.2931
+      },
+      "interval": 1
+    },
+    {
+      "memory": null,
+      "t": 1,
+      "g": 3,
+      "expected": {
+        "difficulty": 2.11810397,
+        "stability": 2.3065
+      },
+      "interval": 2
+    },
+    {
+      "memory": null,
+      "t": 1,
+      "g": 4,
+      "expected": {
+        "difficulty": 1,
+        "stability": 8.2956
+      },
+      "interval": 8
+    },
+    {
+      "memory": null,
+      "t": 17,
+      "g": 1,
+      "expected": {
+        "difficulty": 6.4133,
+        "stability": 0.212
+      },
+      "interval": 0
+    },
+    {
+      "memory": null,
+      "t": 17,
+      "g": 2,
+      "expected": {
+        "difficulty": 5.11217071,
+        "stability": 1.2931
+      },
+      "interval": 1
+    },
+    {
+      "memory": null,
+      "t": 17,
+      "g": 3,
+      "expected": {
+        "difficulty": 2.11810397,
+        "stability": 2.3065
+      },
+      "interval": 2
+    },
+    {
+      "memory": null,
+      "t": 17,
+      "g": 4,
+      "expected": {
+        "difficulty": 1,
+        "stability": 8.2956
+      },
+      "interval": 8
+    },
+    {
+      "memory": null,
+      "t": 120,
+      "g": 1,
+      "expected": {
+        "difficulty": 6.4133,
+        "stability": 0.212
+      },
+      "interval": 0
+    },
+    {
+      "memory": null,
+      "t": 120,
+      "g": 2,
+      "expected": {
+        "difficulty": 5.11217071,
+        "stability": 1.2931
+      },
+      "interval": 1
+    },
+    {
+      "memory": null,
+      "t": 120,
+      "g": 3,
+      "expected": {
+        "difficulty": 2.11810397,
+        "stability": 2.3065
+      },
+      "interval": 2
+    },
+    {
+      "memory": null,
+      "t": 120,
+      "g": 4,
+      "expected": {
+        "difficulty": 1,
+        "stability": 8.2956
+      },
+      "interval": 8
+    },
+    {
+      "memory": {
+        "stability": 2.3065,
+        "difficulty": 4.88463127
+      },
+      "t": 0,
+      "g": 1,
+      "expected": {
+        "difficulty": 8.30384145,
+        "stability": 0.77508398
+      },
+      "interval": 0
+    },
+    {
+      "memory": {
+        "stability": 2.3065,
+        "difficulty": 4.88463127
+      },
+      "t": 0,
+      "g": 2,
+      "expected": {
+        "difficulty": 6.58940823,
+        "stability": 2.3065
+      },
+      "interval": 2
+    },
+    {
+      "memory": {
+        "stability": 2.3065,
+        "difficulty": 4.88463127
+      },
+      "t": 0,
+      "g": 3,
+      "expected": {
+        "difficulty": 4.87497501,
+        "stability": 2.3065
+      },
+      "interval": 3
+    },
+    {
+      "memory": {
+        "stability": 2.3065,
+        "difficulty": 4.88463127
+      },
+      "t": 0,
+      "g": 4,
+      "expected": {
+        "difficulty": 3.16054179,
+        "stability": 3.94605407
+      },
+      "interval": 4
+    },
+    {
+      "memory": {
+        "stability": 2.3065,
+        "difficulty": 4.88463127
+      },
+      "t": 1,
+      "g": 1,
+      "expected": {
+        "difficulty": 8.30384145,
+        "stability": 0.54272833
+      },
+      "interval": 0
+    },
+    {
+      "memory": {
+        "stability": 2.3065,
+        "difficulty": 4.88463127
+      },
+      "t": 1,
+      "g": 2,
+      "expected": {
+        "difficulty": 6.58940823,
+        "stability": 4.38052572
+      },
+      "interval": 4
+    },
+    {
+      "memory": {
+        "stability": 2.3065,
+        "difficulty": 4.88463127
+      },
+      "t": 1,
+      "g": 3,
+      "expected": {
+        "difficulty": 4.87497501,
+        "stability": 5.75516265
+      },
+      "interval": 6
+    },
+    {
+      "memory": {
+        "stability": 2.3065,
+        "difficulty": 4.88463127
+      },
+      "t": 1,
+      "g": 4,
+      "expected": {
+        "difficulty": 3.16054179,
+        "stability": 8.76550027
+      },
+      "interval": 9
+    },
+    {
+      "memory": {
+        "stability": 2.3065,
+        "difficulty": 4.88463127
+      },
+      "t": 17,
+      "g": 1,
+      "expected": {
+        "difficulty": 8.30384145,
+        "stability": 0.78547021
+      },
+      "interval": 0
+    },
+    {
+      "memory": {
+        "stability": 2.3065,
+        "difficulty": 4.88463127
+      },
+      "t": 17,
+      "g": 2,
+      "expected": {
+        "difficulty": 6.58940823,
+        "stability": 14.16573456
+      },
+      "interval": 14
+    },
+    {
+      "memory": {
+        "stability": 2.3065,
+        "difficulty": 4.88463127
+      },
+      "t": 17,
+      "g": 3,
+      "expected": {
+        "difficulty": 4.87497501,
+        "stability": 22.02587906
+      },
+      "interval": 22
+    },
+    {
+      "memory": {
+        "stability": 2.3065,
+        "difficulty": 4.88463127
+      },
+      "t": 17,
+      "g": 4,
+      "expected": {
+        "difficulty": 3.16054179,
+        "stability": 39.23892503
+      },
+      "interval": 39
+    },
+    {
+      "memory": {
+        "stability": 2.3065,
+        "difficulty": 4.88463127
+      },
+      "t": 120,
+      "g": 1,
+      "expected": {
+        "difficulty": 8.30384145,
+        "stability": 1.05475154
+      },
+      "interval": 0
+    },
+    {
+      "memory": {
+        "stability": 2.3065,
+        "difficulty": 4.88463127
+      },
+      "t": 120,
+      "g": 2,
+      "expected": {
+        "difficulty": 6.58940823,
+        "stability": 23.32191901
+      },
+      "interval": 23
+    },
+    {
+      "memory": {
+        "stability": 2.3065,
+        "difficulty": 4.88463127
+      },
+      "t": 120,
+      "g": 3,
+      "expected": {
+        "difficulty": 4.87497501,
+        "stability": 37.25066197
+      },
+      "interval": 37
+    },
+    {
+      "memory": {
+        "stability": 2.3065,
+        "difficulty": 4.88463127
+      },
+      "t": 120,
+      "g": 4,
+      "expected": {
+        "difficulty": 3.16054179,
+        "stability": 67.75342095
+      },
+      "interval": 68
+    },
+    {
+      "memory": {
+        "stability": 30,
+        "difficulty": 7.2
+      },
+      "t": 0,
+      "g": 1,
+      "expected": {
+        "difficulty": 9.06488741,
+        "stability": 8.51538557
+      },
+      "interval": 0
+    },
+    {
+      "memory": {
+        "stability": 30,
+        "difficulty": 7.2
+      },
+      "t": 0,
+      "g": 2,
+      "expected": {
+        "difficulty": 8.12645789,
+        "stability": 30
+      },
+      "interval": 30
+    },
+    {
+      "memory": {
+        "stability": 30,
+        "difficulty": 7.2
+      },
+      "t": 0,
+      "g": 3,
+      "expected": {
+        "difficulty": 7.18802837,
+        "stability": 30
+      },
+      "interval": 31
+    },
+    {
+      "memory": {
+        "stability": 30,
+        "difficulty": 7.2
+      },
+      "t": 0,
+      "g": 4,
+      "expected": {
+        "difficulty": 6.24959885,
+        "stability": 43.35294316
+      },
+      "interval": 43
+    },
+    {
+      "memory": {
+        "stability": 30,
+        "difficulty": 7.2
+      },
+      "t": 1,
+      "g": 1,
+      "expected": {
+        "difficulty": 9.06488741,
+        "stability": 1.94297179
+      },
+      "interval": 0
+    },
+    {
+      "memory": {
+        "stability": 30,
+        "difficulty": 7.2
+      },
+      "t": 1,
+      "g": 2,
+      "expected": {
+        "difficulty": 8.12645789,
+        "stability": 30.99792939
+      },
+      "interval": 31
+    },
+    {
+      "memory": {
+        "stability": 30,
+        "difficulty": 7.2
+      },
+      "t": 1,
+      "g": 3,
+      "expected": {
+        "difficulty": 7.18802837,
+        "stability": 31.65934385
+      },
+      "interval": 32
+    },
+    {
+      "memory": {
+        "stability": 30,
+        "difficulty": 7.2
+      },
+      "t": 1,
+      "g": 4,
+      "expected": {
+        "difficulty": 6.24959885,
+        "stability": 33.10778509
+      },
+      "interval": 33
+    },
+    {
+      "memory": {
+        "stability": 30,
+        "difficulty": 7.2
+      },
+      "t": 17,
+      "g": 1,
+      "expected": {
+        "difficulty": 9.06488741,
+        "stability": 2.14818131
+      },
+      "interval": 0
+    },
+    {
+      "memory": {
+        "stability": 30,
+        "difficulty": 7.2
+      },
+      "t": 17,
+      "g": 2,
+      "expected": {
+        "difficulty": 8.12645789,
+        "stability": 43.61534417
+      },
+      "interval": 44
+    },
+    {
+      "memory": {
+        "stability": 30,
+        "difficulty": 7.2
+      },
+      "t": 17,
+      "g": 3,
+      "expected": {
+        "difficulty": 7.18802837,
+        "stability": 52.63941499
+      },
+      "interval": 53
+    },
+    {
+      "memory": {
+        "stability": 30,
+        "difficulty": 7.2
+      },
+      "t": 17,
+      "g": 4,
+      "expected": {
+        "difficulty": 6.24959885,
+        "stability": 72.40136033
+      },
+      "interval": 72
+    },
+    {
+      "memory": {
+        "stability": 30,
+        "difficulty": 7.2
+      },
+      "t": 120,
+      "g": 1,
+      "expected": {
+        "difficulty": 9.06488741,
+        "stability": 2.75985342
+      },
+      "interval": 0
+    },
+    {
+      "memory": {
+        "stability": 30,
+        "difficulty": 7.2
+      },
+      "t": 120,
+      "g": 2,
+      "expected": {
+        "difficulty": 8.12645789,
+        "stability": 77.90431842
+      },
+      "interval": 78
+    },
+    {
+      "memory": {
+        "stability": 30,
+        "difficulty": 7.2
+      },
+      "t": 120,
+      "g": 3,
+      "expected": {
+        "difficulty": 7.18802837,
+        "stability": 109.65466981
+      },
+      "interval": 110
+    },
+    {
+      "memory": {
+        "stability": 30,
+        "difficulty": 7.2
+      },
+      "t": 120,
+      "g": 4,
+      "expected": {
+        "difficulty": 6.24959885,
+        "stability": 179.18523109
+      },
+      "interval": 179
+    },
+    {
+      "memory": {
+        "stability": 0.1,
+        "difficulty": 9
+      },
+      "t": 0,
+      "g": 1,
+      "expected": {
+        "difficulty": 9.65653517,
+        "stability": 0.04131214
+      },
+      "interval": 0
+    },
+    {
+      "memory": {
+        "stability": 0.1,
+        "difficulty": 9
+      },
+      "t": 0,
+      "g": 2,
+      "expected": {
+        "difficulty": 9.32138177,
+        "stability": 0.1
+      },
+      "interval": 1
+    },
+    {
+      "memory": {
+        "stability": 0.1,
+        "difficulty": 9
+      },
+      "t": 0,
+      "g": 3,
+      "expected": {
+        "difficulty": 8.98622837,
+        "stability": 0.12226078
+      },
+      "interval": 2
+    },
+    {
+      "memory": {
+        "stability": 0.1,
+        "difficulty": 9
+      },
+      "t": 0,
+      "g": 4,
+      "expected": {
+        "difficulty": 8.65107497,
+        "stability": 0.21032549
+      },
+      "interval": 3
+    },
+    {
+      "memory": {
+        "stability": 0.1,
+        "difficulty": 9
+      },
+      "t": 1,
+      "g": 1,
+      "expected": {
+        "difficulty": 9.65653517,
+        "stability": 0.05457185
+      },
+      "interval": 0
+    },
+    {
+      "memory": {
+        "stability": 0.1,
+        "difficulty": 9
+      },
+      "t": 1,
+      "g": 2,
+      "expected": {
+        "difficulty": 9.32138177,
+        "stability": 0.41794511
+      },
+      "interval": 1
+    },
+    {
+      "memory": {
+        "stability": 0.1,
+        "difficulty": 9
+      },
+      "t": 1,
+      "g": 3,
+      "expected": {
+        "difficulty": 8.98622837,
+        "stability": 0.62867494
+      },
+      "interval": 2
+    },
+    {
+      "memory": {
+        "stability": 0.1,
+        "difficulty": 9
+      },
+      "t": 1,
+      "g": 4,
+      "expected": {
+        "difficulty": 8.65107497,
+        "stability": 1.09015529
+      },
+      "interval": 3
+    },
+    {
+      "memory": {
+        "stability": 0.1,
+        "difficulty": 9
+      },
+      "t": 17,
+      "g": 1,
+      "expected": {
+        "difficulty": 9.65653517,
+        "stability": 0.08090565
+      },
+      "interval": 0
+    },
+    {
+      "memory": {
+        "stability": 0.1,
+        "difficulty": 9
+      },
+      "t": 17,
+      "g": 2,
+      "expected": {
+        "difficulty": 9.32138177,
+        "stability": 0.72493906
+      },
+      "interval": 1
+    },
+    {
+      "memory": {
+        "stability": 0.1,
+        "difficulty": 9
+      },
+      "t": 17,
+      "g": 3,
+      "expected": {
+        "difficulty": 8.98622837,
+        "stability": 1.13914043
+      },
+      "interval": 2
+    },
+    {
+      "memory": {
+        "stability": 0.1,
+        "difficulty": 9
+      },
+      "t": 17,
+      "g": 4,
+      "expected": {
+        "difficulty": 8.65107497,
+        "stability": 2.04620612
+      },
+      "interval": 3
+    },
+    {
+      "memory": {
+        "stability": 0.1,
+        "difficulty": 9
+      },
+      "t": 120,
+      "g": 1,
+      "expected": {
+        "difficulty": 9.65653517,
+        "stability": 0.0951728
+      },
+      "interval": 0
+    },
+    {
+      "memory": {
+        "stability": 0.1,
+        "difficulty": 9
+      },
+      "t": 120,
+      "g": 2,
+      "expected": {
+        "difficulty": 9.32138177,
+        "stability": 0.89927392
+      },
+      "interval": 1
+    },
+    {
+      "memory": {
+        "stability": 0.1,
+        "difficulty": 9
+      },
+      "t": 120,
+      "g": 3,
+      "expected": {
+        "difficulty": 8.98622837,
+        "stability": 1.42902216
+      },
+      "interval": 2
+    },
+    {
+      "memory": {
+        "stability": 0.1,
+        "difficulty": 9
+      },
+      "t": 120,
+      "g": 4,
+      "expected": {
+        "difficulty": 8.65107497,
+        "stability": 2.5891256
+      },
+      "interval": 3
+    },
+    {
+      "memory": {
+        "stability": 1000,
+        "difficulty": 1
+      },
+      "t": 0,
+      "g": 1,
+      "expected": {
+        "difficulty": 7.02698957,
+        "stability": 225.36041873
+      },
+      "interval": 0
+    },
+    {
+      "memory": {
+        "stability": 1000,
+        "difficulty": 1
+      },
+      "t": 0,
+      "g": 2,
+      "expected": {
+        "difficulty": 4.01060897,
+        "stability": 1000
+      },
+      "interval": 1000
+    },
+    {
+      "memory": {
+        "stability": 1000,
+        "difficulty": 1
+      },
+      "t": 0,
+      "g": 3,
+      "expected": {
+        "difficulty": 1,
+        "stability": 1000
+      },
+      "interval": 1001
+    },
+    {
+      "memory": {
+        "stability": 1000,
+        "difficulty": 1
+      },
+      "t": 0,
+      "g": 4,
+      "expected": {
+        "difficulty": 1,
+        "stability": 1147.33940678
+      },
+      "interval": 1147
+    },
+    {
+      "memory": {
+        "stability": 1000,
+        "difficulty": 1
+      },
+      "t": 1,
+      "g": 1,
+      "expected": {
+        "difficulty": 7.02698957,
+        "stability": 7.64064616
+      },
+      "interval": 0
+    },
+    {
+      "memory": {
+        "stability": 1000,
+        "difficulty": 1
+      },
+      "t": 1,
+      "g": 2,
+      "expected": {
+        "difficulty": 4.01060897,
+        "stability": 1001.48797526
+      },
+      "interval": 1001
+    },
+    {
+      "memory": {
+        "stability": 1000,
+        "difficulty": 1
+      },
+      "t": 1,
+      "g": 3,
+      "expected": {
+        "difficulty": 1,
+        "stability": 1002.47418567
+      },
+      "interval": 1002
+    },
+    {
+      "memory": {
+        "stability": 1000,
+        "difficulty": 1
+      },
+      "t": 1,
+      "g": 4,
+      "expected": {
+        "difficulty": 1,
+        "stability": 1004.63390234
+      },
+      "interval": 1005
+    },
+    {
+      "memory": {
+        "stability": 1000,
+        "difficulty": 1
+      },
+      "t": 17,
+      "g": 1,
+      "expected": {
+        "difficulty": 7.02698957,
+        "stability": 7.67086075
+      },
+      "interval": 0
+    },
+    {
+      "memory": {
+        "stability": 1000,
+        "difficulty": 1
+      },
+      "t": 17,
+      "g": 2,
+      "expected": {
+        "difficulty": 4.01060897,
+        "stability": 1025.09394561
+      },
+      "interval": 1025
+    },
+    {
+      "memory": {
+        "stability": 1000,
+        "difficulty": 1
+      },
+      "t": 17,
+      "g": 3,
+      "expected": {
+        "difficulty": 1,
+        "stability": 1041.72588229
+      },
+      "interval": 1042
+    },
+    {
+      "memory": {
+        "stability": 1000,
+        "difficulty": 1
+      },
+      "t": 17,
+      "g": 4,
+      "expected": {
+        "difficulty": 1,
+        "stability": 1078.14840495
+      },
+      "interval": 1078
+    },
+    {
+      "memory": {
+        "stability": 1000,
+        "difficulty": 1
+      },
+      "t": 120,
+      "g": 1,
+      "expected": {
+        "difficulty": 7.02698957,
+        "stability": 7.85586872
+      },
+      "interval": 0
+    },
+    {
+      "memory": {
+        "stability": 1000,
+        "difficulty": 1
+      },
+      "t": 120,
+      "g": 2,
+      "expected": {
+        "difficulty": 4.01060897,
+        "stability": 1168.59955226
+      },
+      "interval": 1169
+    },
+    {
+      "memory": {
+        "stability": 1000,
+        "difficulty": 1
+      },
+      "t": 120,
+      "g": 3,
+      "expected": {
+        "difficulty": 1,
+        "stability": 1280.34511516
+      },
+      "interval": 1280
+    },
+    {
+      "memory": {
+        "stability": 1000,
+        "difficulty": 1
+      },
+      "t": 120,
+      "g": 4,
+      "expected": {
+        "difficulty": 1,
+        "stability": 1525.05836618
+      },
+      "interval": 1525
+    }
+  ]
+}

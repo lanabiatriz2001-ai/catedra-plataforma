@@ -1243,7 +1243,7 @@ final class AppStore: ObservableObject {
         save()
     }
 
-    // MARK: - Revisão espaçada (SM-2, estilo Anki)
+    // MARK: - Revisão espaçada (FSRS, estilo Anki)
 
     private static let srsCalendar: Calendar = {
         var calendar = Calendar(identifier: .gregorian)
@@ -1271,7 +1271,7 @@ final class AppStore: ObservableObject {
     func srsPreview(_ lawID: UUID, _ unitKey: String, _ grade: SRSGrade, now: Date = Date()) -> Int {
         let base = Self.srsCalendar.startOfDay(for: now)
         let card = srsCard(lawID, unitKey) ?? SRSCard(due: base, added: now)
-        return SpacedRepetition.nextInterval(card, grade)
+        return SpacedRepetition.nextInterval(card, grade, now: now)
     }
 
     /// Aplica a resposta ao artigo (cria o cartão se ainda não existir) e reprograma.

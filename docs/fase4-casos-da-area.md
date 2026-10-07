@@ -48,7 +48,7 @@ mande um caso para grupo, comunidade ou outra pessoa.
 
 **Treino, revisão e acompanhamento.** O caso se revela por etapas, na ordem do esquema —
 você lê a apresentação, tenta responder as perguntas que você mesma cadastrou, e só então
-vê o resto. A autoavaliação no fim alimenta o **mesmo motor SM-2** do resto do app: o caso
+vê o resto. A autoavaliação no fim alimenta o **mesmo motor FSRS-6** do resto do app: o caso
 passa a aparecer em Revisões no dia certo, ao lado de tudo o mais. O painel conta quantos
 casos existem, quantos já foram treinados e quando foi o último.
 
