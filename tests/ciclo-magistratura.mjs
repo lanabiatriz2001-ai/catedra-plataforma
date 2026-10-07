@@ -4,7 +4,7 @@
    · os cinco modos de sempre continuam lá e o sexto é opcional (escolher e voltar funciona);
    · o seed da conta entra depois do acerto com a nuvem, liga o modo, e é IDEMPOTENTE: rodar de
      novo não duplica e não sobrescreve progresso; outra conta não recebe seed;
-   · o Turno B fica travado até o A terminar; fechar o assunto agenda D+7/30/90 e grava em
+   · o Turno B fica travado até o A terminar; fechar o assunto entra na fila FSRS e preserva o histórico em
      catedra:cmagRevs; o 2º assunto fechado manda a matéria para o fim da fila;
    · revisão vencida PINTA (fundo = --danger, texto ≥ 4,5:1, medido);
    · link do TEC só aceita http(s); texto da pessoa é escapado;
@@ -109,7 +109,7 @@ export async function testarCicloMagistratura(page, base, ok, opcoes = {}) {
   await page.click('.cm-fechar[data-id="const"]'); await w(1400);
   const f1 = await page.evaluate(() => ({ revs: JSON.parse(localStorage.getItem('catedra:cmagRevs') || '[]').length, n: window.__catedraApp.state.cmag.st.const.n,
     prazos: document.querySelectorAll('.cm-prazo').length, pr: Object.keys(window.__catedraApp.state.cmag.st.const.p || {}).length, primeira: document.querySelector('.cm-mat .cm-mat-n').textContent }));
-  ok(f1.revs === 1 && f1.n === 1 && f1.pr === 0 && f1.prazos === 3 && f1.primeira === 'Direito Constitucional', R + '1º assunto fechado: revisão gravada e checks zerados (' + JSON.stringify(f1) + ')');
+  ok(f1.revs === 1 && f1.n === 1 && f1.pr === 0 && f1.prazos === 1 && f1.primeira === 'Direito Constitucional', R + '1º assunto fechado: revisão gravada e checks zerados (' + JSON.stringify(f1) + ')');
   await marcar('const', ['a1', 'a2', 'a3', 'a4']);
   await page.evaluate(()=>{const a=window.__catedraApp; for(let i=0;i<4;i++)a.cmAvancar();}); await w(200);
   await marcar('const', ['b1', 'b2', 'b3', 'b4', 'b5']);
@@ -131,7 +131,7 @@ export async function testarCicloMagistratura(page, base, ok, opcoes = {}) {
     const L1 = lum(rgb(cs.color)), L2 = lum(rgb(cs.backgroundColor));
     return { n: document.querySelectorAll('.cm-prazo[data-estado="vencida"]').length, bg: cs.backgroundColor, danger: danger.trim(), ratio: (Math.max(L1, L2) + .05) / (Math.min(L1, L2) + .05), alerta: !!document.querySelector('.cm-alerta') };
   });
-  ok(venc && venc.n === 1 && venc.ratio >= 4.5 && venc.alerta && venc.bg !== 'rgba(0, 0, 0, 0)', R + 'revisão D+7 vencida destacada e legível (' + JSON.stringify(venc) + ')');
+  ok(venc && venc.n === 1 && venc.ratio >= 4.5 && venc.alerta && venc.bg !== 'rgba(0, 0, 0, 0)', R + 'próxima revisão preservada na migração FSRS, destacada e legível (' + JSON.stringify(venc) + ')');
 
   // 5. link do TEC: javascript: recusado, https aceito
   const colar = '.cm-lk[data-l="civ-a1"]';

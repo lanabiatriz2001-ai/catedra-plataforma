@@ -39,6 +39,8 @@ import { testarSyncMemoriaVelha } from './sync-memoria-velha.mjs';
 import { testarBackupDriveErros } from './backup-drive-erros.mjs';
 import { testarSelectHost } from './select-host.mjs';
 import { testarAjustesRitmo } from './ajustes-ritmo.mjs';
+import { testarRevisoesFSRS } from './fsrs-revisoes.mjs';
+import { testarMotorFSRS } from './fsrs-motor.mjs';
 import { testarCicloMagistratura } from './ciclo-magistratura.mjs';
 import { testarCicloNivelEstrategia } from './ciclo-nivel-estrategia.mjs';
 import { testarSemAnotacoesNavegador } from './sem-anotacoes.mjs';
@@ -210,7 +212,9 @@ for (const [base, origem, arquivo] of ORIGENS) {
     if (origem === 'http') { try { await testarCicloNivelEstrategia(page, base, ok, { motor, origem, voltaDeReferencia: JSON.parse(fs.readFileSync(new URL('./fixtures/volta-fabrica.json', import.meta.url), 'utf8')) }); } catch (e) { ok(false, 'CICLO-NÍVEL [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); } }
     if (origem === 'http') { try { await testarAjustesRitmo(page, base, ok, { motor, origem }); } catch (e) { ok(false, 'RITMO [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); } }
     // Ciclo Magistratura (só http: semeia por /__semente)
-    if (origem === 'http') { try { await testarCicloMagistratura(page, base, ok, { motor, origem }); } catch (e) { ok(false, 'CICLO MAGISTRATURA [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); } }
+    if (origem === 'http') { try { await testarMotorFSRS(ok);
+await testarRevisoesFSRS(page, base, ok);
+await testarCicloMagistratura(page, base, ok, { motor, origem }); } catch (e) { ok(false, 'CICLO MAGISTRATURA [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); } }
     try { await testarSelectHost(page, base, ok, { motor, origem }); }
     catch (e) {
       ok(false, 'SELECT/host [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('

@@ -16,7 +16,7 @@ struct SettingsView: View {
                 Toggle("Ativar revisão espaçada (estilo Anki)", isOn: $srsEnabled)
                 LabeledContent("Artigos no baralho", value: "\(store.srsDeckCount)")
                 LabeledContent("Para revisar hoje", value: "\(store.srsDueCount())")
-                Text("Quando ligada, cada artigo no modo Estudo ganha os botões Errei / Difícil / Bom / Fácil. O app agenda a próxima revisão conforme a sua resposta (algoritmo SM-2): quanto melhor você lembra, mais espaçadas ficam as revisões. As revisões do dia aparecem no Início. Você também liga/desliga pelo botão “Revisão espaçada” no topo do modo Estudo.")
+                Text("Quando ligada, cada artigo no modo Estudo ganha os botões Errei / Difícil / Bom / Fácil. O app agenda a próxima revisão conforme a sua resposta (algoritmo FSRS): quanto melhor você lembra, mais espaçadas ficam as revisões. As revisões do dia aparecem no Início. Você também liga/desliga pelo botão “Revisão espaçada” no topo do modo Estudo.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
