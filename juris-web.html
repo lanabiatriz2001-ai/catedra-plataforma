@@ -890,7 +890,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 
   function card(r){
     var id=r[I.id], ra=r[I.ra], rc=corFaceta(ra), tc=TRIBC[r[I.tr]]||'#64748b';
-    var stt=est.stat[id]||'', fav=est.fav[id];
+    var stt=STAT.indexOf(est.stat[id])>=0?est.stat[id]:'', fav=est.fav[id];
     var d=document.createElement('div'); d.className='vcard'; d.style.setProperty('--rc',rc); d.style.setProperty('--tc',tc); d.dataset.id=id;
     d.innerHTML=
       '<div class="vhead">'

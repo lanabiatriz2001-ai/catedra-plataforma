@@ -22,6 +22,8 @@ import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { iniciarServidor, lancarNavegador } from './_infra.mjs';
 import { testarOralLeiSeca } from './oral-lei-seca.mjs';
+import { testarSegurancaBackup } from './seguranca-backup.mjs';
+import { testarReservaIA } from './seguranca-cota.mjs';
 import { testarLegisGuiado } from './legis-guiado.mjs';
 import { testarEnamModo } from './enam-modo.mjs';
 import { testarProvaEncerrarUmaVez } from './prova-encerrar-uma-vez.mjs';
@@ -311,6 +313,14 @@ catch (e) { ok(false, 'REDE DA SUÍTE [' + motor + '] exceção: ' + String(e &&
   const b = ORIGENS.find(([, o]) => o === 'bundle');
   if (b) exec.push(b);
   await testarRedeExternaExecucao(browser, ok, { motor, origens: exec });
+}
+
+// Contexto próprio: não deixa o backup adulterado contaminar outros roteiros.
+{
+  const page = await browser.newPage();
+  try { await testarReservaIA(ok); await testarSegurancaBackup(page, URL0, ok); }
+  catch (e) { ok(false, 'SEGURANÇA [' + motor + '] exceção: ' + e.message); }
+  finally { await page.close(); }
 }
 
 await browser.close();

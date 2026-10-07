@@ -68,14 +68,15 @@ async function emailLiberadoDB(user) {
   } catch (_) { return true; }
 }
 
-async function logarUsoIA(user, endpoint, chars) {
-  try {
-    await fetch(SB_URL + '/rest/v1/rpc/registrar_uso_ia', {
-      method: 'POST',
-      headers: { apikey: SB_KEY, authorization: 'Bearer ' + user.__token, 'content-type': 'application/json' },
-      body: JSON.stringify({ p_endpoint: endpoint, p_chars: chars | 0 }),
-    });
-  } catch (_) {}
+async function reservarUsoIA(user, endpoint, chars) {
+  const r = await fetch(SB_URL + '/rest/v1/rpc/reservar_uso_ia', {
+    method: 'POST', headers: { apikey: SB_KEY, authorization: 'Bearer ' + user.__token, 'content-type': 'application/json' },
+    body: JSON.stringify({ p_endpoint: endpoint, p_chars: chars }),
+  });
+  if (!r.ok) throw new Error('reserva_indisponivel');
+  const c = await r.json();
+  if (!c || typeof c.reservada !== 'boolean' || !Number.isFinite(c.limite) || !Number.isFinite(c.usadas)) throw new Error('reserva_invalida');
+  return c;
 }
 
 /** Embrulha PCM 16-bit mono num WAV — 44 bytes de cabeçalho, sem dependência nenhuma. */
@@ -158,7 +159,10 @@ export default async function handler(req, res) {
       res.status(413).json({ error: 'Texto longo demais para narrar (máx. ' + MAX_CHARS + ' caracteres).' });
       return;
     }
-    await logarUsoIA(user, 'tts', texto.length);
+    let reserva;
+    try { reserva = await reservarUsoIA(user, 'tts', texto.length); }
+    catch (_) { res.status(503).json({ error: 'Não foi possível conferir a cota de IA. Tente novamente em instantes.' }); return; }
+    if (!reserva.reservada) { res.status(429).json({ error: mensagemCota(reserva), cota: reserva }); return; }
 
     const model = process.env.GEMINI_TTS_MODEL || 'gemini-2.5-flash-preview-tts';
     const voz = /^[A-Za-z]{3,20}$/.test(String(body.voz || '')) ? body.voz : (process.env.GEMINI_TTS_VOICE || 'Kore');

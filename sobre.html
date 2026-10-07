@@ -166,8 +166,7 @@ input, select { width:100%; min-height:48px; border:1.5px solid var(--border); b
   </footer>
 </main>
 <script>
-// Lista de espera: um INSERT anônimo na tabela lista_espera pela chave pública do projeto (a política RLS só
-// permite inserir; ninguém lê por esta chave). Sem redirecionar: a confirmação aparece no lugar.
+// Lista pública: RPC valida e limita as gravações; o cliente nunca lê e-mails.
 (function () {
   var CFG = (window.CATEDRA_SUPABASE) || { url: 'https://frcnfqxniwzdyykvgqqu.supabase.co', key: 'sb_publishable_nCm4a-RzzY8e8jVC9O6Gfg_4V6EOrI2' };
   var RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -182,10 +181,10 @@ input, select { width:100%; min-height:48px; border:1.5px solid var(--border); b
     if (!emailValido(email)) { erro.textContent = 'Escreva um e-mail válido, como nome@dominio.com.'; inE.focus(); return; }
     if (navigator.onLine === false) { erro.textContent = 'Você está sem internet. Tente de novo quando conectar.'; return; }
     btn.disabled = true; btn.textContent = 'Enviando…';
-    fetch(CFG.url + '/rest/v1/lista_espera', {
+    fetch(CFG.url + '/rest/v1/rpc/entrar_lista_espera', {
       method: 'POST',
       headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ email: email, area: String(sel.value || '').slice(0, 60), origem: 'sobre' })
+      body: JSON.stringify({ p_email: email, p_area: String(sel.value || '').slice(0, 60) })
     }).then(function (r) {
       btn.disabled = false; btn.textContent = 'Entrar na lista';
       if (r.status === 201 || r.status === 204 || r.ok) { form.reset(); ok.textContent = 'Pronto — você está na lista. Avisamos por e-mail quando abrir uma vaga.'; ok.setAttribute('data-mostra', '1'); return; }
