@@ -1931,6 +1931,11 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 .cm-h { font-family: var(--display, inherit); font-size: var(--fs-2xl, 26px); line-height: 1.1; margin: var(--ct-e1) 0 var(--ct-e2); font-weight: 800; }
 .cm-sub { margin: 0; font-size: var(--fs-sm); opacity: .9; max-width: 60ch; }
 .cm-hero-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ct-e2); }
+/* O gradiente mantém a identidade; a leitura usa a superfície do tema em ambos os modos. */
+.cm-hero-texto { background: var(--surface); color: var(--ink); border-radius: var(--ct-r-md); padding: var(--ct-e3) var(--ct-e4); }
+.cm-hero-acoes .ct-btn-clara { background: var(--surface); color: var(--ink); border-color: var(--border); }
+.cm-hero-acoes .ct-btn-clara:focus-visible { outline-color: var(--ink); }
+
 .cm-alerta { background: var(--danger); color: var(--onAccent, #fff); font-weight: 800; font-size: var(--fs-sm); padding: var(--ct-e2) var(--ct-e3); border-radius: var(--ct-pill); }
 .cm-rotina { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--ct-e2); }
 .cm-rot { display: flex; flex-direction: column; gap: 2px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--ct-r-md); padding: var(--ct-e3); font-size: var(--fs-sm); color: var(--text2); }
