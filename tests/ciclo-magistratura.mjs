@@ -65,6 +65,28 @@ export async function testarCicloMagistratura(page, base, ok, opcoes = {}) {
   await page.evaluate(() => window.__catedraApp.setState({ cyclePanel: 'executar' }));
   await w(400);
 
+  const dia=await page.evaluate(()=>{const a=window.__catedraApp; a.setState({orient:{...a.state.orient,metaIdeal:300}}); a._recomporDia(); return {n:a.state.blocks.length,disc:a.state.blocks[0].disc,geral:!!document.querySelector('.ct-hero-ciclo'),kind:a.state.blocks[0].kind};});
+  ok(dia.n===1&&dia.disc==='Direito Constitucional'&&!dia.geral&&dia.kind==='Estudo dirigido',R+'uma matéria com meta de 5h, sem controles de conclusão duplicados ('+JSON.stringify(dia)+')');
+  const regressao = await page.evaluate(() => {
+    const app=window.__catedraApp, M=window.CT_CMAG, c=app._cm();
+    const v=M.gerarVolta(c,1,'2026-10-06'), outra=M.gerarVolta(c,2,'2026-10-07');
+    const anterior=app.state.sessions;
+    const legado={id:'s-legado',disc:v.blocos[0].disc,topico:v.blocos[0].topico,atvKey:'vt|v1-cm0',min:30};
+    const alheio={id:'s-alheio',disc:'Direito Civil',topico:'Outro assunto',atvKey:'vt|v1-cm0',min:20};
+    app.state.sessions=[legado,alheio];
+    const migradas=app._cmVinculosLegados({blocos:[{...v.blocos[0],id:'v1-cm0'}]},v);
+    app.state.sessions=anterior;
+    app.puxarProximo(); const soUma=app.state.blocks.length===1;
+    app.toggleBlock({currentTarget:{dataset:{i:'0'}}});
+    const registro=app.state.sessionModalOpen&&!app.state.sessionDraft.concluiu&&app.state.sessionDraft.categorias.length===0&&!app.state.blocks[0].done;
+    app.setState({sessionModalOpen:false});
+    return {idsEstaveis:v.blocos[0].id===outra.blocos[0].id,
+      ocorrenciasSeparadas:v.blocos[0].id!==M.gerarVolta({...c,st:{...c.st,const:{...c.st.const,ocorrencia:123}}},1,'2026-10-06').blocos[0].id,
+      migraSemApagar:migradas.length===2&&migradas[0].id===legado.id&&migradas[0].min===30&&migradas[0].atvKey==='vt|'+v.blocos[0].id&&migradas[1]===alheio,
+      soUma,registro};
+  });
+  for(const [k,v] of Object.entries(regressao)) ok(v,R+k);
+
   // 3. tela: 4 matérias; B travado; A completo libera B; fechar agenda revisões
   const t0 = await page.evaluate(() => ({ mats: document.querySelectorAll('section.cm .cm-mat').length,
     bTravado: Array.from(document.querySelectorAll('.cm-mat')[0].querySelectorAll('.cm-chk[data-k^="b"]')).every(b => b.disabled) }));
@@ -74,15 +96,23 @@ export async function testarCicloMagistratura(page, base, ok, opcoes = {}) {
   const pr = await page.evaluate(() => ({ a1: window.__catedraApp.state.cmag.st.const.p.a1, n: document.querySelectorAll('.cm-mat')[0].querySelectorAll('input.cm-pr').length,
     rotB: Array.from(document.querySelectorAll('.cm-turno span')).some(x => /próxima vez da matéria/.test(x.textContent)) }));
   ok(pr.a1 === '34/80' && pr.n === 2 && pr.rotB, R + 'progresso do caderno só em a1 e b2, e o Turno B fala da próxima vez da matéria (' + JSON.stringify(pr) + ')');
+  await marcar('const', ['a1']);
+  ok(await page.evaluate(()=>!window.__catedraApp.state.cmag.st.const.d.a1), R+'34/80 impede concluir o caderno');
+  await page.fill('input.cm-pr[data-id="const"][data-campo="p:a1"]', '80/80');
+  await page.press('input.cm-pr[data-id="const"][data-campo="p:a1"]', 'Tab');
   await marcar('const', ['a1', 'a2', 'a3', 'a4']);
+  ok(await page.evaluate(()=>Array.from(document.querySelectorAll('.cm-chk[data-id="const"][data-k^="b"]')).every(b=>b.disabled)), R+'A completo mantém B travado nesta passagem');
+  await page.evaluate(()=>{const a=window.__catedraApp; for(let i=0;i<4;i++)a.cmAvancar();}); await w(200);
   const bLivre = await page.evaluate(() => Array.from(document.querySelectorAll('.cm-chk[data-id="const"][data-k^="b"]')).every(b => !b.disabled));
-  ok(bLivre, R + 'Turno A completo libera o Turno B');
+  ok(bLivre, R + 'nova passagem libera o Turno B');
   await marcar('const', ['b1', 'b2', 'b3', 'b4', 'b5']);
   await page.click('.cm-fechar[data-id="const"]'); await w(1400);
   const f1 = await page.evaluate(() => ({ revs: JSON.parse(localStorage.getItem('catedra:cmagRevs') || '[]').length, n: window.__catedraApp.state.cmag.st.const.n,
     prazos: document.querySelectorAll('.cm-prazo').length, pr: Object.keys(window.__catedraApp.state.cmag.st.const.p || {}).length, primeira: document.querySelector('.cm-mat .cm-mat-n').textContent }));
   ok(f1.revs === 1 && f1.n === 1 && f1.pr === 0 && f1.prazos === 3 && f1.primeira === 'Direito Constitucional', R + '1º assunto fechado: revisão gravada e checks zerados (' + JSON.stringify(f1) + ')');
-  await marcar('const', ['a1', 'a2', 'a3', 'a4', 'b1', 'b2', 'b3', 'b4', 'b5']);
+  await marcar('const', ['a1', 'a2', 'a3', 'a4']);
+  await page.evaluate(()=>{const a=window.__catedraApp; for(let i=0;i<4;i++)a.cmAvancar();}); await w(200);
+  await marcar('const', ['b1', 'b2', 'b3', 'b4', 'b5']);
   await page.click('.cm-fechar[data-id="const"]'); await w(500);
   const f2 = await page.evaluate(() => ({ ativas: Array.from(document.querySelectorAll('.cm-mat .cm-mat-n')).map(x => x.textContent), ultimaFila: Array.from(document.querySelectorAll('.cm-fila li')).pop().textContent }));
   ok(f2.ativas.join('|') === 'Direito Civil|Processo Civil|Direito Penal|Processo Penal' && f2.ultimaFila === 'Direito Constitucional',
@@ -160,7 +190,9 @@ export async function testarCicloMagistratura(page, base, ok, opcoes = {}) {
   await page.selectOption('select.cm-ed-s[data-id="civ"]', ''); await w(200);
   const inteiro = await page.evaluate(() => JSON.stringify(window.__catedraApp.state.cmag.st.civ.ref));
   await page.selectOption('select.cm-ed-s[data-id="civ"]', '0'); await w(200);
-  await marcar('civ', ['a1', 'a2', 'a3', 'a4', 'b1', 'b2', 'b3', 'b4', 'b5']);
+  await marcar('civ', ['a1', 'a2', 'a3', 'a4']);
+  await page.evaluate(()=>{const a=window.__catedraApp; for(let i=0;i<4;i++)a.cmAvancar();}); await w(200);
+  await marcar('civ', ['b1', 'b2', 'b3', 'b4', 'b5']);
   await page.click('.cm-fechar[data-id="civ"]'); await w(500);
   const ed = await page.evaluate(() => { const s = window.__catedraApp.state; const sb = s.edital[0].topics[0].subs[0];
     return { feito: typeof sb === 'object' && sb.done === true, prox: s.cmag.st.civ.ass, ref: s.cmag.st.civ.ref }; });
@@ -171,4 +203,41 @@ export async function testarCicloMagistratura(page, base, ok, opcoes = {}) {
     await page.evaluate(() => window.__catedraApp.setState({ view: 'ciclo', cyclePanel: 'executar' })); await w(500);
     await page.screenshot({ path: opcoes.capturas + '/ciclo-magistratura-' + motor + '.png', fullPage: false });
   }
+  // O cabeçalho novo pinta legível no toque, sem rolagem lateral, em duas direções e temas.
+  const contexto=await page.context().browser().newContext({viewport:{width:1024,height:1024},hasTouch:true});
+  const visual=await contexto.newPage();
+  try {
+    await visual.goto(base+'/__semente');
+    await visual.evaluate(()=>{
+      localStorage.setItem('catedra:auth','1'); localStorage.setItem('catedra:onboarded','1');
+      localStorage.setItem('catedra:areaEstudo','juridica'); localStorage.setItem('catedra:cycleMode','magistratura');
+    });
+    await visual.goto(base+'/Catedra.dc.html');
+    await visual.waitForFunction(()=>window.__catedraApp&&window.CT_CMAG);
+    await visual.evaluate(()=>{const a=window.__catedraApp;a._cmSet(CT_CMAG.seed('visual',Date.now()));a.setState({view:'ciclo',cyclePanel:'executar'});});
+    for(const largura of [390,1024,1280]) {
+      await visual.setViewportSize({width:largura,height:1024});
+      for(const dir of ['sutil','aurora']) for(const darkMode of [false,true]) {
+        await visual.evaluate(({dir,darkMode})=>window.__catedraApp.setState({dir,darkMode}),{dir,darkMode});
+        await visual.waitForTimeout(500);
+        const medidas=await visual.evaluate(()=>{
+          const hero=document.querySelector('.cm-hero'), painel=hero.querySelector('.cm-hero-texto');
+          const rgb=s=>(s.match(/[\d.]+/g)||[]).slice(0,3).map(Number);
+          const lum=c=>{const v=c.map(x=>{x/=255;return x<=.04045?x/12.92:Math.pow((x+.055)/1.055,2.4);});return .2126*v[0]+.7152*v[1]+.0722*v[2];};
+          const contraste=(el,bg)=>{const cs=getComputedStyle(el),a=+cs.opacity,fg=rgb(cs.color).map((v,i)=>v*a+bg[i]*(1-a));const l1=lum(fg),l2=lum(bg);return (Math.max(l1,l2)+.05)/(Math.min(l1,l2)+.05);};
+          const bg=rgb(getComputedStyle(painel).backgroundColor);
+          const textos=[...painel.querySelectorAll('.cm-kicker,.cm-h,.cm-sub')].map(el=>contraste(el,bg));
+          const botoes=[...hero.querySelectorAll('button')],h=hero.getBoundingClientRect();
+          return {semRolagem:document.documentElement.scrollWidth<=innerWidth,
+            toque:botoes.every(el=>el.getBoundingClientRect().height>=44),
+            dentro:botoes.every(el=>{const b=el.getBoundingClientRect();return b.left>=h.left&&b.right<=h.right;}),
+            contraste:Math.min(...textos,...botoes.map(el=>contraste(el,rgb(getComputedStyle(el).backgroundColor))))};
+        });
+        ok(medidas.semRolagem&&medidas.toque&&medidas.dentro&&medidas.contraste>=4.5,
+          R+'cabeçalho '+largura+' '+dir+' '+(darkMode?'escuro':'claro')+' — toque, caixas e contraste ≥ 4,5:1 ('+JSON.stringify(medidas)+')');
+      }
+      if(opcoes.capturas){await visual.locator('.cm-hero').scrollIntoViewIfNeeded();await visual.screenshot({path:opcoes.capturas+'/magistratura-topo-'+largura+'-'+motor+'.png'});}
+    }
+  } finally {await contexto.close();}
+
 }

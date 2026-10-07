@@ -8,7 +8,7 @@
    D+90; depois do 2º assunto fechado a matéria vai para o fim da fila e a primeira da fila entra.
 
    Estado (chave `cmag`, objeto, sincronizado pelo carimbo da chave — ver auth.js mergeAll):
-     { v, seed, up, vez, ordem:[id], mats:{id:{n,o,s}}, st:{id:{n,ass,nota,d:{a1:true…},p:{a1:'34/80',b2}}},
+     { v, seed, up, vez, visitas, ordem:[id], mats:{id:{n,o,s}}, st:{id:{n,ass,nota,d:{a1:true…},p:{a1:'34/80',b2}}},
        links:{'<id>-<bloco>':'https://…'}, sab:{s1:true…} }
    Revisões ficam FORA, na chave `cmagRevs` (array com id e `up`, em ARRAY_ID do auth.js): assim
    duas revisões criadas em aparelhos diferentes se somam no merge por id, em vez de uma apagar
@@ -110,14 +110,14 @@
       Object.keys(obj(x.d)).forEach(function (k) { if (/^[ab][1-5]$/.test(k) && x.d[k]) d[k] = true; });
       var pr = {}; ['a1', 'b2'].forEach(function (k) { var v = obj(x.p)[k]; if (v != null && String(v).trim()) pr[k] = txt(v, 40); });
       var rf = obj(x.ref), ref = rf.t ? { t: txt(rf.t), s: txt(rf.s) } : null;
-      st[id] = { n: Math.max(0, Math.min(POR_VOLTA - 1, parseInt(x.n, 10) || 0)), ass: txt(x.ass), nota: txt(x.nota), d: d, p: pr, ref: ref };
+      st[id] = { n: Math.max(0, Math.min(POR_VOLTA - 1, parseInt(x.n, 10) || 0)), ass: txt(x.ass), nota: txt(x.nota), d: d, p: pr, ref: ref, aVisita: x.aVisita == null ? null : Math.max(0, +x.aVisita || 0), ocorrencia: Math.max(0, +x.ocorrencia || 0) };
     });
     var links = {};
     Object.keys(obj(c.links)).forEach(function (k) { if (/^[a-z]+-[ab][1-5]$/.test(k) && linkValido(c.links[k])) links[k] = c.links[k]; });
     var sab = {};
     SABADO.forEach(function (s) { if (obj(c.sab)[s[0]]) sab[s[0]] = true; });
     var vez = parseInt(c.vez, 10) || 0; if (vez < 0 || vez >= ATIVAS) vez = 0;
-    return { v: 1, seed: txt(c.seed, 40), up: +c.up || 0, vez: vez, ordem: ordem, mats: mats, st: st, links: links, sab: sab };
+    return { v: 1, seed: txt(c.seed, 40), up: +c.up || 0, vez: vez, visitas: Math.max(0, +c.visitas || 0), ordem: ordem, mats: mats, st: st, links: links, sab: sab };
   }
   function vazio(semObras) {
     var c = normalizar({});
@@ -148,16 +148,37 @@
   function linkValido(u) { return typeof u === 'string' && u.length <= 2000 && /^https?:\/\/[^\s<>"']+$/i.test(u.trim()); }
 
   function com(c, mud, agora) { var n = normalizar(c); mud(n); n.up = agora || Date.now(); return n; }
-  function turnoAFeito(c, id) { var s = normalizar(c).st[id], m = normalizar(c).mats[id]; return !!s && blocosA(m).every(function (b) { return s.d[b.k]; }); }
-  function turnoBFeito(c, id) { var s = normalizar(c).st[id], m = normalizar(c).mats[id]; return !!s && blocosB(m).every(function (b) { return s.d[b.k]; }); }
+  function turnoAFeito(c, id) { var s = normalizar(c).st[id], m = normalizar(c).mats[id]; return !!s && !cadernoIncompleto(s.p.a1) && blocosA(m).every(function (b) { return s.d[b.k]; }); }
+  function turnoBFeito(c, id) { var s = normalizar(c).st[id], m = normalizar(c).mats[id]; return !!s && !cadernoIncompleto(s.p.b2) && blocosB(m).every(function (b) { return s.d[b.k]; }); }
+
+  // O reteste começa numa passagem posterior. Progresso antigo de B é preservado.
+  function turnoBLiberado(c, id) {
+    var n = normalizar(c), s = n.st[id];
+    if (!s || !turnoAFeito(n, id)) return false;
+    if (Object.keys(s.d).some(function (k) { return k.charAt(0) === 'b'; })) return true;
+    return n.ordem[n.vez] === id && (s.aVisita == null || n.visitas > s.aVisita);
+  }
+  function cadernoIncompleto(v) {
+    var m = String(v || '').trim().match(/^(\d+)\s*\/\s*(\d+)$/);
+    return !!m && (+m[2] <= 0 || +m[1] < +m[2]);
+  }
 
   /* Marca/desmarca um bloco. O Turno B não aceita marca enquanto o A não terminar; desmarcar um
      bloco do A com o B já começado mantém o B (desfazer não apaga trabalho). */
   function alternar(c, id, k, agora) {
     var n = normalizar(c);
     if (!n.st[id] || !/^[ab][1-5]$/.test(k)) return n;
-    if (k.charAt(0) === 'b' && !n.st[id].d[k] && !turnoAFeito(n, id)) return n;
-    return com(n, function (x) { var d = Object.assign({}, x.st[id].d); if (d[k]) delete d[k]; else d[k] = true; x.st[id] = Object.assign({}, x.st[id], { d: d }); }, agora);
+    if (k.charAt(0) === 'b' && !n.st[id].d[k] && !turnoBLiberado(n, id)) return n;
+    if (!n.st[id].d[k] && (k === 'a1' || k === 'b2') && cadernoIncompleto(n.st[id].p[k])) return n;
+    return com(n, function (x) {
+      var d = Object.assign({}, x.st[id].d);
+      if (d[k]) delete d[k]; else d[k] = true;
+      x.st[id] = Object.assign({}, x.st[id], { d: d });
+      if (k.charAt(0) === 'a') {
+        if (turnoAFeito(x, id) && !turnoAFeito(n, id)) x.st[id].aVisita = x.visitas;
+        else if (!turnoAFeito(x, id)) x.st[id].aVisita = null;
+      }
+    }, agora);
   }
   function definir(c, id, campo, valor, agora) {
     var n = normalizar(c);
@@ -179,7 +200,7 @@
     return com(c, function (x) { var s = Object.assign({}, x.sab); if (s[k]) delete s[k]; else if (SABADO.some(function (q) { return q[0] === k; })) s[k] = true; x.sab = s; }, agora);
   }
   function zerarSabado(c, agora) { return com(c, function (x) { x.sab = {}; }, agora); }
-  function avancarVez(c, agora) { return com(c, function (x) { x.vez = (x.vez + 1) % ATIVAS; }, agora); }
+  function avancarVez(c, agora) { return com(c, function (x) { x.vez = (x.vez + 1) % ATIVAS; x.visitas++; }, agora); }
 
   /* Fechar o assunto: só com A e B completos. Devolve {cmag, rev} ou null. */
   function fechar(c, id, hojeISO, agora) {
@@ -190,7 +211,7 @@
     var rev = { id: 'cm-' + id + '-' + agora, mat: id, ass: n.mats[id].n + ' · ' + (s.ass || ('assunto ' + (s.n + 1))), dt: hojeISO, f7: false, f30: false, f90: false, up: agora };
     var out = com(n, function (x) {
       var nn = s.n + 1;
-      x.st[id] = Object.assign({}, s, { n: nn >= POR_VOLTA ? 0 : nn, ass: '', d: {}, p: {}, ref: null });
+      x.st[id] = Object.assign({}, s, { n: nn >= POR_VOLTA ? 0 : nn, ass: '', d: {}, p: {}, ref: null, aVisita: null, ocorrencia: agora });
       if (nn >= POR_VOLTA) {
         var o = x.ordem.slice(); o.splice(i, 1); o.push(id); x.ordem = o;
         // a vez aponta para a mesma matéria de antes quando quem saiu estava antes dela
@@ -228,8 +249,8 @@
     var min = Math.max(60, base || 110), blocos = [];
     for (var j = 0; j < ATIVAS; j++) {
       var id = x.ordem[(x.vez + j) % ATIVAS], s = x.st[id], m = x.mats[id];
-      var turno = turnoAFeito(x, id) ? 'Turno B' : 'Turno A';
-      blocos.push({ id: 'v' + n + '-cm' + j, disc: m.n, kind: 'Teoria', tag: turno + ' · assunto ' + (s.n + 1) + '/' + POR_VOLTA,
+      var turno = turnoAFeito(x, id) && turnoBLiberado(x,id) ? 'Turno B' : 'Turno A';
+      blocos.push({ id: 'cm-' + id + '-' + s.ocorrencia + '-' + s.n + '-' + fnv(s.ass) + '-' + (turno === 'Turno A' ? 'a' : 'b'), disc: m.n, kind: 'Estudo dirigido', tag: turno + ' · assunto ' + (s.n + 1) + '/' + POR_VOLTA,
         topico: s.ass || '', discEdital: '', min: min, motivo: 'Ciclo Magistratura · ' + turno, done: false, pulado: false, doneDate: '' });
     }
     return { n: n, modo: 'magistratura', blocos: blocos, geradoEm: hojeISO || '', totalMin: blocos.reduce(function (a, b) { return a + b.min; }, 0) };
@@ -326,7 +347,7 @@
     SABADO: SABADO, ROTINA: ROTINA, REGRAS: REGRAS, AUXILIARES: AUXILIARES,
     fnv: fnv, seedDaConta: seedDaConta, blocosA: blocosA, blocosB: blocosB,
     normalizar: normalizar, vazio: vazio, temProgresso: temProgresso, seed: seed,
-    linkValido: linkValido, turnoAFeito: turnoAFeito, turnoBFeito: turnoBFeito,
+    linkValido: linkValido, turnoAFeito: turnoAFeito, turnoBLiberado: turnoBLiberado, cadernoIncompleto: cadernoIncompleto, turnoBFeito: turnoBFeito,
     alternar: alternar, definir: definir, definirLink: definirLink,
     alternarSabado: alternarSabado, zerarSabado: zerarSabado, avancarVez: avancarVez,
     CERTEZAS: CERTEZAS, CATEGORIAS: CATEGORIAS, classificar: classificar,

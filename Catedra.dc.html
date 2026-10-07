@@ -2286,13 +2286,18 @@ window.ctPdfLib = (function(){
         <sc-if value="{{ cmOn }}" hint-placeholder-val="{{ false }}">
          <section class="cm" aria-labelledby="cm-titulo">
           <header class="cm-hero">
-            <div>
+            <div class="cm-hero-texto">
               <div class="cm-kicker">Ciclo Magistratura</div>
               <h2 id="cm-titulo" class="cm-h">Hoje: {{ cmHoje }}</h2>
               <p class="cm-sub">Uma matéria por dia, em ordem. Dois assuntos por matéria, depois ela vai para o fim da fila.</p>
+              <p class="cm-sub" role="status">{{ cmHojeEstado }}</p>
             </div>
             <div class="cm-hero-acoes">
               <sc-if value="{{ cmTemVencidas }}" hint-placeholder-val="{{ false }}"><span class="cm-alerta" role="status">{{ cmVencidasTxt }}</span></sc-if>
+              <button class="ct-btn-clara" data-i="0" onclick="{{ enterFocus }}" disabled="{{ !cmPodeEstudar }}">Estudar {{ cmHoje }}</button>
+              <button class="ct-btn-clara" data-i="0" onclick="{{ registrarParcial }}">Registrar estudo</button>
+              <button class="ct-btn-clara" data-i="0" data-alvo="legis" onclick="{{ abrirAcervoDoBloco }}">Lei seca</button>
+              <button class="ct-btn-clara" data-i="0" data-alvo="juris" onclick="{{ abrirAcervoDoBloco }}">Jurisprudência</button>
               <button class="ct-btn-clara" onclick="{{ cmAvancar }}">Próxima matéria</button>
             </div>
           </header>
@@ -2405,6 +2410,7 @@ window.ctPdfLib = (function(){
         </sc-if>
 
 
+        <sc-if value="{{ !cmOn }}" hint-placeholder-val="{{ true }}">
         <!-- FAIXA DO CICLO · a bancada abre no que importa: onde o dia está, quanto está
              planejado contra a meta, e a LINHA DO DIA — cada bloco é um trecho proporcional
              ao tempo, na cor da MATÉRIA (dado, não enfeite); feito = cheio, pendente =
@@ -2696,6 +2702,7 @@ window.ctPdfLib = (function(){
           <span style="flex:1;min-width:0;"><span style="display:block;font-weight:700;font-size:var(--fs-lg);">Reta Final</span><span style="display:block;font-size:var(--fs-sm);opacity:.85;margin-top:1px;">faltam {{ retaDias }} dias — três comandos para pontuar mais</span></span>
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" style="opacity:.85;flex:none;"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
         </button>
+        </sc-if>
         </div><!-- /ct-cycle-panel-executar -->
 
         <!-- ================= CONFIGURAÇÕES E DEFINIÇÕES DO CICLO ================= -->
@@ -8755,7 +8762,7 @@ class Component extends DCLogic {
         if(legado.length){ V={n:1, modo, geradoEm:hoje, blocos:legado.map((b,i)=>({id:'v1-'+i, disc:b.disc, kind:b.kind||'Teoria', tag:b.tag||'', topico:b.topico||'', discEdital:b.discEdital||'', min:+b.min||50, motivo:b.motivo||'', done:!!b.done, pulado:false, doneDate:b.done?hoje:''})), totalMin:legado.reduce((a,b)=>a+(+b.min||0),0)}; prevB=prevB.filter(b=>b&&(b.extra||b.voltaId)); }
         else V=this._genVolta(modo, 1);
         patch.cicloVolta=V;
-      } else if(V.modo!==modo){ V=this._genVolta(modo, V.n||1); patch.cicloVolta=V; }
+      } else if(modo==='magistratura'){ const antiga=V; V=this._genVolta(modo, V.n||1); patch.cicloVolta=V; const sessoes=this._cmVinculosLegados(antiga,V); if(sessoes!==this.state.sessions) patch.sessions=sessoes; } else if(V.modo!==modo){ V=this._genVolta(modo, V.n||1); patch.cicloVolta=V; }
       patch.blocks=this._comporDia(V, prevB);
       // nada mudou (mesmo dia, mesma volta, mesma lista): não acorda o React à toa
       if(!patch.cicloVolta && prev===hoje && JSON.stringify(patch.blocks)===JSON.stringify(this.state.blocks||[])) return;
@@ -11169,7 +11176,7 @@ class Component extends DCLogic {
     if(q){ const alvo=((o.disc||'')+' '+(o.discEdital||'')+' '+(o.tag||'')+' '+(o.topico||'')+' '+(o.kind||'')).toLowerCase();
       if(alvo.indexOf(q)<0) return false; }
     return true; }
-  toggleBlock = (e)=>{ const _di=e.currentTarget.dataset.i; if(_di==null||_di==='') return; const i=+_di; const b=this.state.blocks.slice(); if(!b[i]) return; const willDone=!b[i].done; b[i]={...b[i],done:willDone};
+  toggleBlock = (e)=>{ if(this.state.cycleMode==='magistratura'){ this.registrarParcial(e); return; } const _di=e.currentTarget.dataset.i; if(_di==null||_di==='') return; const i=+_di; const b=this.state.blocks.slice(); if(!b[i]) return; const willDone=!b[i].done; b[i]={...b[i],done:willDone};
     // Registro persistente de conclusão por OCORRÊNCIA (item da agenda + data), pra que uma
     // atividade da semana feita não volte a aparecer como atrasada no dia seguinte.
     const extra={}; const hojeS=this._hoje(); let fechou=0;
@@ -11318,7 +11325,12 @@ class Component extends DCLogic {
   _genVolta(modo, n){
     modo=modo||this.state.cycleMode||'sugestao'; if(modo==='manual') modo='inteligente'; n=n||1;
     // Ciclo Magistratura: a volta são as 4 matérias ativas a partir da vez, um turno cada
-    if(modo==='magistratura' && window.CT_CMAG) return CT_CMAG.gerarVolta(this.state.cmag||CT_CMAG.vazio(true), n, this._hoje());
+    if(modo==='magistratura' && window.CT_CMAG){
+      const c=this._cm(), V=CT_CMAG.gerarVolta(c, n, this._hoje());
+      V.blocos=V.blocos.map((b,j)=>{ const id=c.ordem[(c.vez+j)%CT_CMAG.ATIVAS], ref=c.st[id].ref, L=this._cmDisc(id);
+        return {...b, discEdital:L?L.disc.disc:'', topico:ref?ref.t:b.topico, subtopico:ref?ref.s:''}; });
+      return V;
+    }
     const O=this.state.orient||{}; const mult=this._enMult();
     const base=Math.max(20, Math.round((parseInt(O.blocoPadrao,10)||50)*mult));
     const nBl=Math.max(4, Math.min(40, Math.round(this._voltaTotalMin()/base)));
@@ -11433,6 +11445,10 @@ class Component extends DCLogic {
      pessoa puxou a mais) fica; o que foi feito ontem some; extras removidos hoje não voltam. */
   _comporDia(volta, prev){
     const hoje=this._hoje(); const V=volta||this.state.cicloVolta||{}; const bl=V.blocos||[];
+    // Magistratura tem uma única matéria em execução; a meta não puxa a próxima.
+    if(V.modo==='magistratura'){
+      const b=bl[0]; return b?[{...b, voltaId:b.id}]:[];
+    }
     const O=this.state.orient||{}; const meta=Math.max(60, Math.round((parseInt(O.metaIdeal,10)||180)*this._enMult()));
     const mesmoDia=(this.state.blocksDate===hoje); const prevArr=prev||[];
     const prevIds=new Set(prevArr.map(b=>b.voltaId).filter(Boolean));
@@ -11485,7 +11501,7 @@ class Component extends DCLogic {
     this.setState({cicloVolta:nova, blocks:this._comporDia(nova, fica)}); }
   /* Refaz a VOLTA pela prioridade de agora. O que foi feito hoje continua contando no dia;
      os extras feitos ficam; os pendentes são substituídos pela volta nova. */
-  regerarCiclo = ()=>{ const m=this.state.cycleMode||'sugestao'; if(m==='manual') return;
+  regerarCiclo = ()=>{ if(this.state.cycleMode==='magistratura'){ this._toast('O Ciclo Magistratura segue a fila de matérias.'); return; } const m=this.state.cycleMode||'sugestao'; if(m==='manual') return;
     const V=this.state.cicloVolta; const nova=this._genVolta(m, V?(V.n||1):1);
     // _comporDia mantém os feitos de hoje (mesmo de volta anterior) e os extras
     this.setState({cicloVolta:nova, blocks:this._comporDia(nova, this.state.blocks), blocksDate:this._hoje()});
@@ -11540,7 +11556,7 @@ class Component extends DCLogic {
     }
     this._toast('Bloco acrescentado à volta, já no dia de hoje'); };
   // Puxa para hoje o próximo bloco pendente da volta que ainda não está no dia.
-  puxarProximo = ()=>{ const man=this.state.cycleMode==='manual'; const lista=man?(this.state.manualRot||[]):(((this.state.cicloVolta||{}).blocos)||[]);
+  puxarProximo = ()=>{ if(this.state.cycleMode==='magistratura'){ this._toast('Estude a matéria atual; a próxima fica para outra passagem.'); return; } const man=this.state.cycleMode==='manual'; const lista=man?(this.state.manualRot||[]):(((this.state.cicloVolta||{}).blocos)||[]);
     const ids=new Set((this.state.blocks||[]).map(b=>man?b.rotId:b.voltaId).filter(Boolean)); const nx=lista.find(b=>!b.done && !ids.has(b.id));
     if(!nx){ this._toast('Não há mais blocos pendentes nesta volta'); return; }
     const db=man?{disc:nx.disc, kind:nx.kind, tag:'Ciclo', min:+nx.min||0, done:false, rotId:nx.id, discEdital:nx.discEdital||'', topico:nx.topico||'', motivo:nx.motivo||''}:{id:nx.id, voltaId:nx.id, disc:nx.disc, kind:nx.kind, tag:nx.tag, topico:nx.topico||'', discEdital:nx.discEdital||'', min:+nx.min||0, motivo:nx.motivo||'', done:false};
@@ -11635,12 +11651,24 @@ class Component extends DCLogic {
      O estado é `cmag` (objeto) + `cmagRevs` (array com id/up). Toda mudança passa por uma função
      pura do CT_CMAG, que devolve objeto novo — o autosave compara por referência. */
   _cm(){ return window.CT_CMAG ? CT_CMAG.normalizar(this.state.cmag||CT_CMAG.vazio(true)) : null; }
+  // Os ids antigos dependiam da posição na fila. Mantém as sessões do mesmo assunto
+  // ligadas ao bloco correspondente ao trocar para os ids estáveis, sem apagar histórico.
+  _cmVinculosLegados(antiga,nova){
+    const mapa={}; (antiga&&antiga.blocos||[]).forEach(b=>{
+      if(!/^v\d+-cm\d+$/.test(b.id||'')) return;
+      const alvo=(nova.blocos||[]).find(x=>x.disc===b.disc&&x.tag===b.tag);
+      if(alvo) mapa['vt|'+b.id]={b,alvo};
+    });
+    let mudou=false; const sessoes=(this.state.sessions||[]).map(s=>{
+      const m=mapa[s.atvKey]; if(!m||s.disc!==m.b.disc||String(s.topico||'')!==String(m.b.topico||m.b.tag||'')) return s;
+      mudou=true; return {...s,atvKey:'vt|'+m.alvo.id,up:Date.now()};
+    }); return mudou?sessoes:this.state.sessions;
+  }
   _cmSet(c, extra, soTexto){
     if(!c) return;
     const patch={cmag:c, ...(extra||{})};
-    // a ordem, a vez e o turno mudam a volta do dia: no modo, ela é refeita (o feito de hoje fica);
-    // texto (assunto, obras, nota) muda a cada tecla e não mexe na volta
-    if(this.state.cycleMode==='magistratura' && !soTexto){ this.state.cmag=c; const V=this._genVolta('magistratura', (this.state.cicloVolta&&this.state.cicloVolta.n)||1); patch.cicloVolta=V; patch.blocks=this._comporDia(V, this.state.blocks||[]); }
+    // A matéria, o turno e o assunto atualizam o bloco usado pelo foco e pelo registro.
+    if(this.state.cycleMode==='magistratura'){ const antiga=this.state.cicloVolta; this.state.cmag=c; const V=this._genVolta('magistratura', (antiga&&antiga.n)||1); const sessoes=this._cmVinculosLegados(antiga,V); if(sessoes!==this.state.sessions) patch.sessions=sessoes; patch.cicloVolta=V; patch.blocks=this._comporDia(V, this.state.blocks||[]); }
     this.setState(patch); this.flashSync();
   }
   /* Seed da conta (CT_CMAG.seedDaConta): roda depois do primeiro acerto com a nuvem, para nunca
@@ -11659,7 +11687,7 @@ class Component extends DCLogic {
   }
   cmToggle = (e)=>{ const d=e.currentTarget.dataset, M=window.CT_CMAG; if(!M) return;
     const antes=this._cm(), c=M.alternar(antes, d.id, d.k);
-    if(c.st[d.id].d[d.k]===antes.st[d.id].d[d.k]){ this._toast('O Turno B abre quando o Turno A terminar.'); return; }
+    if(c.st[d.id].d[d.k]===antes.st[d.id].d[d.k]){ this._toast((d.k==='a1'||d.k==='b2')&&M.cadernoIncompleto(antes.st[d.id].p[d.k])?'Termine o caderno antes de marcar este passo como feito.':'O Turno B abre na próxima passagem pela matéria, depois de terminar o Turno A.'); return; }
     this._cmSet(c); };
   cmCampo = (e)=>{ const t=e.currentTarget, M=window.CT_CMAG; if(!M) return;
     const c=M.definir(this._cm(), t.dataset.id, t.dataset.campo, t.value); this._cmSet(c, null, true); };
@@ -11737,8 +11765,8 @@ class Component extends DCLogic {
         edTopicos:tps.map((t, ti)=>({v:String(ti), t:t.name+(t.done?' · estudado':''), sel:ti===tSel})), edTopSel:tSel>=0?String(tSel):'', edTopVazio:tSel<0,
         edTemSubs:subs.length>0, edSubs:subs.map((x, si)=>({v:String(si), t:x.name+(x.done?' · estudado':''), sel:x.name===ref.s})), edSubSel:ref.s?String(subs.findIndex(x=>x.name===ref.s)):'', edSubVazio:!ref.s,
         estilo:'--cm-c:'+k.cor+';--cm-tx:'+k.tx+';',
-        aOk, aFeitoTxt:aOk?'feito':'em andamento', bAberto:aOk, bTxt:aOk?(bOk?'feito':'em andamento'):'abre quando o A terminar',
-        A:M.blocosA(m).map(b=>bloco(id, b, true, s)), B:M.blocosB(m).map(b=>bloco(id, b, aOk, s)),
+        aOk, aFeitoTxt:aOk?'feito':'em andamento', bAberto:M.turnoBLiberado(c,id), bTxt:M.turnoBLiberado(c,id)?(bOk?'feito':'em andamento'):(aOk?'abre na próxima passagem pela matéria':'abre quando o A terminar'),
+        A:M.blocosA(m).map(b=>bloco(id, b, true, s)), B:M.blocosB(m).map(b=>bloco(id, b, M.turnoBLiberado(c,id), s)),
         podeFechar:aOk&&bOk};
     });
     const fila=c.ordem.slice(M.ATIVAS).map((id, i)=>({id, nome:c.mats[id].n, pos:i+1, estilo:'--cm-c:'+cor(c.mats[id].n).cor+';'}));
@@ -11753,6 +11781,8 @@ class Component extends DCLogic {
       cmEhSabado:dow===6, cmEhDomingo:dow===0,
       cmRotina:M.ROTINA.map(r=>({t:r[0], d:r[1]})), cmRegras:M.REGRAS, cmAux:M.AUXILIARES.join(' · '),
       cmHoje:ativas[c.vez]?ativas[c.vez].nome:'',
+      cmPodeEstudar:!M.turnoAFeito(c,c.ordem[c.vez])||M.turnoBLiberado(c,c.ordem[c.vez]),
+      cmHojeEstado:M.turnoAFeito(c,c.ordem[c.vez])&&!M.turnoBLiberado(c,c.ordem[c.vez])?'Turno A concluído. O reteste fica para a próxima passagem pela matéria.':M.turnoAFeito(c,c.ordem[c.vez])?'Turno B · reteste':'Turno A · primeiro contato',
       ...(()=>{ const q=this.state.cmQ||{}, mat=(q.mat && c.st[q.mat]) ? q.mat : c.ordem[c.vez];
         const nHoje=(this.state.errors||[]).filter(e=>e && e.fonte==='ciclo-magistratura' && e.ts && new Date(e.ts).toDateString()===new Date().toDateString()).length;
         return {cmQShow:!!this.state.timerRunning, cmQAberto:!!this.state.cmQAberto, cmQAbertoStr:this.state.cmQAberto?'true':'false',
@@ -12133,7 +12163,7 @@ class Component extends DCLogic {
     // domínio por tópico; sem isto o registro voltava para "o tópico inteiro".
     // atvKey é o fio que leva a sessão de volta à atividade: tempo parcial, origem do
     // indicador e reabertura da atividade quando a sessão é excluída dependem só dele.
-    return {...this._freshSessionDraft(prev), disc, topico, edTop:_edTop, edSub:b.subtopico||'', categorias:[cat], categoria:cat,
+    return {...this._freshSessionDraft(prev), disc, topico, edTop:_edTop, edSub:b.subtopico||'', categorias:b.kind==='Estudo dirigido'?[]:[cat], categoria:b.kind==='Estudo dirigido'?'':cat,
       atvKey:this._atvChave(b), origem:'ciclo'}; }
   openSession = ()=>{ const _st=this.state; const pre=Math.round(((_st.timerMode==='pomo'?_st.studiedSeconds:_st.timerSeconds)||_st.studiedSeconds||0)/60); this.setState(s=>({sessionModalOpen:true, pomoMenuOpen:false, sessionDraft:{...this._freshSessionDraft(s.sessionDraft), minutos: pre>0?String(pre):''}})); };
   closeSessionBackdrop = (e)=>{ if(e&&e.target!==e.currentTarget) return;   // só o clique no fundo
