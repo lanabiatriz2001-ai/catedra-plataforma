@@ -1,6 +1,6 @@
 /* ciclo-magistratura.js — o método "Ciclo Magistratura" (regras puras, sem DOM).
 
-   O método, em uma frase: quatro matérias ativas em ordem, uma por dia; cada matéria trabalha
+   O método, em uma frase: uma a quatro matérias ativas e jurisprudência em uma volta contínua; cada matéria trabalha
    dois assuntos por volta; cada assunto tem um Turno A (primeiro contato) e um Turno B (reteste,
    na próxima vez da matéria depois do A, travado até ele terminar). O assunto só troca quando os
    dois cadernos de questões (a1 clássicas e b2 inéditas) chegam ao fim, o que pode levar vários
@@ -43,6 +43,55 @@
   ];
   var ORDEM = MATS.map(function (m) { return m[0]; });
 
+  // A jurisprudência é a quinta atividade da volta. O calendário não troca o conteúdo.
+  var JURIS = [
+    ['1', 'Súmulas STF'], ['2', 'Súmulas STJ'], ['3', 'Súmulas vinculantes'],
+    ['4', 'Repercussão geral STF'], ['5', 'Repetitivos STJ'],
+    ['6', 'Informativos STF'], ['7', 'Informativos STJ']
+  ];
+  function normalizarJuris(j) {
+    j = obj(j);
+    return { etapa: Math.max(0, Math.min(1000000, Math.floor(+j.etapa || 0))), ponto: txt(j.ponto, 300),
+      min: Math.max(5, Math.min(240, parseInt(j.min, 10) || 30)),
+      concluidoEm: /^\d{4}-\d{2}-\d{2}$/.test(j.concluidoEm || '') ? j.concluidoEm : '' };
+  }
+  function jurisDoDia(c) {
+    var j = normalizar(c).juris;
+    return { etapa:j.etapa, tipo:JURIS[j.etapa % JURIS.length][1], ponto:j.ponto, min:j.min,
+      pos:j.etapa % JURIS.length + 1, volta:Math.floor(j.etapa / JURIS.length) + 1,
+      proximo:JURIS[(j.etapa + 1) % JURIS.length][1] };
+  }
+  function definirJuris(c, ponto, agora) {
+    return com(c, function (x) { x.juris.ponto = txt(ponto, 300); }, agora);
+  }
+  function definirJurisMin(c, min, agora) {
+    return com(c, function (x) { x.juris.min = Math.max(5, Math.min(240, parseInt(min, 10) || 30)); }, agora);
+  }
+  function concluirJuris(c, hoje, agora, etapa) {
+    var n=normalizar(c);
+    if (etapa != null && +etapa !== n.juris.etapa) return n;
+    return com(n, function (x) { x.juris.etapa++; x.juris.ponto = ''; x.juris.concluidoEm = hoje || ''; }, agora);
+  }
+  function selecionarAtividade(c, id, agora) {
+    return com(c, function (x) {
+      if (id === 'juris') { x.jurisNaVez = true; return; }
+      var i=x.ordem.slice(0, x.ativas).indexOf(id);
+      if (i < 0) return;
+      if (i !== x.vez || x.jurisNaVez) x.visitas++;
+      x.vez=i; x.jurisNaVez=false;
+    }, agora);
+  }
+  function definirAtivas(c, quantidade, agora) {
+    return com(c, function(x) { x.ativas=Math.max(1,Math.min(4,parseInt(quantidade,10)||1)); if(x.vez>=x.ativas) x.vez=0; }, agora);
+  }
+  function avancarAtividade(c, agora) {
+    return com(c, function (x) {
+      if (x.jurisNaVez) { x.jurisNaVez=false; x.vez=0; x.visitas++; x.voltas++; }
+      else if (x.vez === x.ativas-1) x.jurisNaVez=true;
+      else { x.vez++; x.visitas++; }
+    }, agora);
+  }
+
   var SABADO = [
     ['s1', 'Caderno misto de erros da semana, de todas as matérias'],
     ['s2', 'Explicar por que cada alternativa está errada antes de responder'],
@@ -51,13 +100,13 @@
     ['s5', 'Errou de novo: card novo ou ficha corrigida']
   ];
   var ROTINA = [
-    ['Abertura · 10 min', 'D+1: lembrança livre do assunto de ontem'],
-    ['Turno · 1h45 a 2h', 'Os blocos do turno da matéria do dia'],
+    ['Abertura · 10 min', 'Lembrança livre do último assunto estudado'],
+    ['Turno · 1h45 a 2h', 'Os blocos do turno da matéria da vez'],
     ['Fechamento · 15 a 20 min', 'Anki à noite, no máximo 15 cards novos']
   ];
   var REGRAS = [
-    'Faltou tempo: corte o turno, nunca o Anki nem o sábado.',
-    'Sobrou tempo: Anki atrasado, depois erros acumulados. Nunca matéria nova.'
+    'Faltou tempo: retome o mesmo conteúdo na próxima passagem.',
+    'Tempo registrado não conclui conteúdo: feche os turnos ou o tipo de jurisprudência quando terminar.'
   ];
   var AUXILIARES = ['Vade Mecum', DOD, 'Revisão em Frases (só no sábado)', 'Revisaço TRF (banco extra para a Federal)'];
 
@@ -74,21 +123,34 @@
 
   function blocosA(m) {
     return [
-      { k: 'a1', b: 'Clássicas objetivas · até o fim do caderno', s: 'Caderno TEC · marque a certeza · não acabou no dia: continua quando a matéria voltar', tec: true, pr: true },
-      { k: 'a2', b: 'Obra principal no trecho dos erros + lei seca', s: (m.o ? m.o + ' · ' : '') + 'Vade Mecum · ' + DOD },
+      { k: 'a2', b: 'Leitura da doutrina + lei seca', s: (m.o ? m.o + ' · ' : '') + 'Vade Mecum · ' + DOD },
+      { k: 'a1', b: 'Questões clássicas · até o fim do caderno', s: 'Caderno TEC · marque a certeza · não acabou no dia: continua quando a matéria voltar', tec: true, pr: true },
       { k: 'a3', b: 'Conversa com a IA + ficha de memória', s: 'Você explica primeiro; a ficha sai com o livro fechado' },
-      { k: 'a4', b: 'Cards dos erros', s: 'Erro, chute certo e erro confiante viram card' }
+      { k: 'a4', b: 'Anki dos erros', s: 'Erro, chute certo e erro confiante viram card' }
     ];
   }
   function blocosB(m) {
     return [
-      { k: 'b1', b: 'Lembrança livre · 3 min', s: 'Tudo o que lembra do assunto, sem consulta' },
+      { k: 'b1', b: 'Revisão · lembrança livre · 3 min', s: 'Tudo o que lembra do assunto, sem consulta' },
       { k: 'b2', b: 'Inéditas · até o fim do caderno', s: 'Caderno TEC · marque a certeza · continua na próxima vez da matéria', tec: true, pr: true },
       m.s ? { k: 'b3', b: 'Segunda obra nos dispositivos errados', s: m.s + ' · só os artigos ligados aos erros' }
           : { k: 'b3', b: 'Jurisprudência dos erros', s: DOD + ' · só o que os erros pediram' },
       { k: 'b4', b: 'Discursiva', s: 'Uma questão à mão, depois a correção', tec: true },
-      { k: 'b5', b: 'Cards e fechamento', s: 'Novos erros viram cards; fechar agenda D+7, D+30 e D+90' }
+      { k: 'b5', b: 'Anki dos novos erros e fechamento', s: 'Novos erros viram cards; fechar agenda D+7, D+30 e D+90' }
     ];
+  }
+
+  function roteiro(c,id) {
+    var n=normalizar(c), m=n.mats[id], s=n.st[id]; if(!m||!s) return null;
+    var aberto=turnoBLiberado(n,id), etapas=blocosA(m).concat(blocosB(m)).map(function(b){
+      var nomes={a2:'Doutrina',a1:'Questões',a3:'Ficha de memória',a4:'Anki dos erros',b1:'Revisão',b2:'Inéditas',b3:'Correção dos erros',b4:'Discursiva',b5:'Anki e fechamento'};
+      var cats={a2:'Teoria',a1:'Questões',a3:'Revisão',a4:'Flashcards',b1:'Revisão',b2:'Questões',b3:'Teoria',b4:'Discursiva',b5:'Flashcards'};
+      return Object.assign({},b,{nome:nomes[b.k],categoria:cats[b.k],feito:!!s.d[b.k]&&(!b.pr||!cadernoIncompleto(s.p[b.k])),travado:b.k[0]==='b'&&!aberto});
+    });
+    var proxima=etapas.find(function(e){return e.k===s.retomar&&!e.feito&&!e.travado;})||etapas.find(function(e){return !e.feito&&!e.travado;});
+    var feitos=etapas.filter(function(e){return e.feito;}).length;
+    return {etapas:etapas,proxima:proxima||null,feitos:feitos,total:etapas.length,pct:Math.round(feitos/etapas.length*100),
+      espera:!proxima&&feitos<etapas.length,concluido:feitos===etapas.length};
   }
 
   function obj(x) { return x && typeof x === 'object' && !Array.isArray(x) ? x : {}; }
@@ -109,15 +171,17 @@
       var x = obj(s0[id]), d = {};
       Object.keys(obj(x.d)).forEach(function (k) { if (/^[ab][1-5]$/.test(k) && x.d[k]) d[k] = true; });
       var pr = {}; ['a1', 'b2'].forEach(function (k) { var v = obj(x.p)[k]; if (v != null && String(v).trim()) pr[k] = txt(v, 40); });
+      var retomadas={}; Object.keys(obj(x.retomadas)).forEach(function(k){if(!/^[ab][1-5]$/.test(k))return;var r=obj(x.retomadas[k]);retomadas[k]={ponto:txt(r.ponto,300),proximo:txt(r.proximo,500),pausado:Math.max(0,+r.pausado||0)};});
       var rf = obj(x.ref), ref = rf.t ? { t: txt(rf.t), s: txt(rf.s) } : null;
-      st[id] = { n: Math.max(0, Math.min(POR_VOLTA - 1, parseInt(x.n, 10) || 0)), ass: txt(x.ass), nota: txt(x.nota), d: d, p: pr, ref: ref, aVisita: x.aVisita == null ? null : Math.max(0, +x.aVisita || 0), ocorrencia: Math.max(0, +x.ocorrencia || 0) };
+      st[id] = { retomadas:retomadas,retomar:/^[ab][1-5]$/.test(x.retomar||'')?x.retomar:'', n: Math.max(0, Math.min(POR_VOLTA - 1, parseInt(x.n, 10) || 0)), ass: txt(x.ass), nota: txt(x.nota), d: d, p: pr, ref: ref, aVisita: x.aVisita == null ? null : Math.max(0, +x.aVisita || 0), ocorrencia: Math.max(0, +x.ocorrencia || 0) };
     });
     var links = {};
     Object.keys(obj(c.links)).forEach(function (k) { if (/^[a-z]+-[ab][1-5]$/.test(k) && linkValido(c.links[k])) links[k] = c.links[k]; });
     var sab = {};
     SABADO.forEach(function (s) { if (obj(c.sab)[s[0]]) sab[s[0]] = true; });
-    var vez = parseInt(c.vez, 10) || 0; if (vez < 0 || vez >= ATIVAS) vez = 0;
-    return { v: 1, seed: txt(c.seed, 40), up: +c.up || 0, vez: vez, visitas: Math.max(0, +c.visitas || 0), ordem: ordem, mats: mats, st: st, links: links, sab: sab };
+    var ativas = Math.max(1, Math.min(4, parseInt(c.ativas, 10) || 1));
+    var vez = parseInt(c.vez, 10) || 0; if (vez < 0 || vez >= ativas) vez = 0;
+    return { v: 1, ativas: ativas, seed: txt(c.seed, 40), up: +c.up || 0, vez: vez, voltas:Math.max(0,parseInt(c.voltas,10)||0), jurisNaVez:!!c.jurisNaVez, visitas: Math.max(0, +c.visitas || 0), ordem: ordem, mats: mats, st: st, links: links, sab: sab, juris: normalizarJuris(c.juris) };
   }
   function vazio(semObras) {
     var c = normalizar({});
@@ -129,9 +193,9 @@
     if (Array.isArray(revs) && revs.length) return true;
     if (!c || typeof c !== 'object' || !Array.isArray(c.ordem)) return false;
     var n = normalizar(c);
-    if (n.seed) return true;
+    if (n.seed || n.juris.etapa || n.juris.ponto || n.juris.concluidoEm) return true;
     if (Object.keys(n.links).length || Object.keys(n.sab).length) return true;
-    return n.ordem.some(function (id) { var s = n.st[id]; return s.n || s.ass || s.nota || Object.keys(s.d).length || Object.keys(s.p).length; });
+    return n.ordem.some(function (id) { var s = n.st[id]; return s.retomar || Object.keys(s.retomadas).length || s.n || s.ass || s.nota || Object.keys(s.d).length || Object.keys(s.p).length; });
   }
 
   /* O seed da conta: as 14 matérias com as obras, Constitucional no assunto 1/2 com Teoria da
@@ -190,6 +254,14 @@
     return n;
   }
   /* Link do TEC: vazio apaga; qualquer coisa que não seja http(s) é recusada (devolve null). */
+  function guardarRetomada(c,id,k,campo,valor,agora){
+    var n=normalizar(c);if(!n.st[id]||!/^[ab][1-5]$/.test(k))return n;
+    return com(n,function(x){var s=x.st[id],r=s.retomadas[k]||{ponto:'',proximo:'',pausado:0};
+      if(campo==='ponto'||campo==='proximo')r[campo]=txt(valor,campo==='ponto'?300:500);
+      if(campo==='pausado')r.pausado=agora||Date.now();
+      s.retomadas[k]=r;s.retomar=k;
+    },agora);
+  }
   function definirLink(c, chave, url, agora) {
     var n = normalizar(c), u = String(url == null ? '' : url).trim();
     if (!/^[a-z]+-[ab][1-5]$/.test(chave) || !n.st[chave.split('-')[0]]) return null;
@@ -200,7 +272,7 @@
     return com(c, function (x) { var s = Object.assign({}, x.sab); if (s[k]) delete s[k]; else if (SABADO.some(function (q) { return q[0] === k; })) s[k] = true; x.sab = s; }, agora);
   }
   function zerarSabado(c, agora) { return com(c, function (x) { x.sab = {}; }, agora); }
-  function avancarVez(c, agora) { return com(c, function (x) { x.vez = (x.vez + 1) % ATIVAS; x.visitas++; }, agora); }
+  function avancarVez(c, agora) { return com(c, function (x) { x.vez = (x.vez + 1) % x.ativas; x.jurisNaVez=false; x.visitas++; }, agora); }
 
   /* Fechar o assunto: só com A e B completos. Devolve {cmag, rev} ou null. */
   function fechar(c, id, hojeISO, agora) {
@@ -211,12 +283,12 @@
     var rev = { id: 'cm-' + id + '-' + agora, mat: id, ass: n.mats[id].n + ' · ' + (s.ass || ('assunto ' + (s.n + 1))), dt: hojeISO, f7: false, f30: false, f90: false, up: agora };
     var out = com(n, function (x) {
       var nn = s.n + 1;
-      x.st[id] = Object.assign({}, s, { n: nn >= POR_VOLTA ? 0 : nn, ass: '', d: {}, p: {}, ref: null, aVisita: null, ocorrencia: agora });
+      x.st[id] = Object.assign({}, s, { n: nn >= POR_VOLTA ? 0 : nn, ass: '', d: {}, p: {}, retomadas:{},retomar:'',ref: null, aVisita: null, ocorrencia: agora });
       if (nn >= POR_VOLTA) {
         var o = x.ordem.slice(); o.splice(i, 1); o.push(id); x.ordem = o;
         // a vez aponta para a mesma matéria de antes quando quem saiu estava antes dela
         if (i < x.vez) x.vez = x.vez - 1;
-        if (x.vez >= ATIVAS) x.vez = 0;
+        if (x.vez >= x.ativas) x.vez = 0;
       }
     }, agora);
     return { cmag: out, rev: rev };
@@ -247,12 +319,17 @@
   function gerarVolta(c, n, hojeISO, base) {
     var x = normalizar(c); n = n || 1;
     var min = Math.max(60, base || 110), blocos = [];
-    for (var j = 0; j < ATIVAS; j++) {
-      var id = x.ordem[(x.vez + j) % ATIVAS], s = x.st[id], m = x.mats[id];
+    for (var j = 0; j < x.ativas; j++) {
+      var id = x.ordem[j], s = x.st[id], m = x.mats[id];
       var turno = turnoAFeito(x, id) && turnoBLiberado(x,id) ? 'Turno B' : 'Turno A';
-      blocos.push({ id: 'cm-' + id + '-' + s.ocorrencia + '-' + s.n + '-' + fnv(s.ass) + '-' + (turno === 'Turno A' ? 'a' : 'b'), disc: m.n, kind: 'Estudo dirigido', tag: turno + ' · assunto ' + (s.n + 1) + '/' + POR_VOLTA,
+      blocos.push({ cmagId:id, id: 'cm-' + id + '-' + s.ocorrencia + '-' + s.n + '-' + fnv(s.ass) + '-' + (turno === 'Turno A' ? 'a' : 'b'), disc: m.n, kind: 'Estudo dirigido', tag: turno + ' · assunto ' + (s.n + 1) + '/' + POR_VOLTA,
         topico: s.ass || '', discEdital: '', min: min, motivo: 'Ciclo Magistratura · ' + turno, done: false, pulado: false, doneDate: '' });
     }
+    var ju=jurisDoDia(x);
+    blocos.push({cmagId:'juris', id:'cm-juris-'+ju.etapa, disc:'Jurisprudência', kind:'Jurisprudência',
+      tag:ju.tipo, topico:ju.tipo, discEdital:'', min:ju.min, motivo:'Ciclo Magistratura · jurisprudência', done:false, pulado:false, doneDate:''});
+    var pos=x.jurisNaVez?x.ativas:x.vez;
+    blocos=blocos.slice(pos).concat(blocos.slice(0,pos));
     return { n: n, modo: 'magistratura', blocos: blocos, geradoEm: hojeISO || '', totalMin: blocos.reduce(function (a, b) { return a + b.min; }, 0) };
   }
 
@@ -344,6 +421,8 @@
 
   raiz.CT_CMAG = {
     POR_VOLTA: POR_VOLTA, ATIVAS: ATIVAS, PRAZOS: PRAZOS, MATS: MATS, ORDEM: ORDEM,
+    guardarRetomada:guardarRetomada, roteiro:roteiro, definirAtivas:definirAtivas, selecionarAtividade:selecionarAtividade, avancarAtividade:avancarAtividade, definirJurisMin:definirJurisMin,
+    JURIS: JURIS, jurisDoDia: jurisDoDia, definirJuris: definirJuris, concluirJuris: concluirJuris,
     SABADO: SABADO, ROTINA: ROTINA, REGRAS: REGRAS, AUXILIARES: AUXILIARES,
     fnv: fnv, seedDaConta: seedDaConta, blocosA: blocosA, blocosB: blocosB,
     normalizar: normalizar, vazio: vazio, temProgresso: temProgresso, seed: seed,
