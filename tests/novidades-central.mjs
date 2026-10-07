@@ -274,10 +274,8 @@ export async function testarNovidadesCentral(pageDaSuite, base, ok, ctxOpc = {})
     const soTela = ['novidFonte', 'novidTipo', 'novidColecao', 'novidDisc', 'novidRamo', 'novidPeriodo', 'novidAssunto', 'novidBuscando', 'novidBuscandoFontes', 'novidVivo', 'novidResultado', 'novidAberto', 'novidAbertos', 'novidSoNaoLidas'];
     ok(soTela.every((k) => !auto.includes("'" + k + "'")), R + '(a) estado só de tela (filtros, busca, resultado, comparação) fica fora do autosave');
     // o acordo com a sessão "Interface de atualização oficial" (01/10/2026), literal onde é literal
-    ok(host.includes('<button id="ct-of-abrir" class="ct-btn-2" onclick="{{ oficialPainelAbrir }}">Ver revisão oficial</button>')
-      && /oficialPainelAbrir = \(\)=> this\.setState\(\{oficialPainelOpen:true\}\);/.test(host),
-      R + '(a) o gancho do acordo: #ct-of-abrir com oficialPainelAbrir, que abre o diálogo "Revisão oficial" (pilha do painel)');
-    ok(/<section id="ct-fontes-oficiais"/.test(host) && host.includes(FRASE_INICIO), R + '(a) o resumo do Início é uma <section> com a frase "' + FRASE_INICIO + '"');
+    ok(host.includes('id="ct-of-abrir"') && /oficialPainelAbrir = \(\)=> this\.setState\(\{oficialPainelOpen:true\}\);/.test(host), R+'(a) a Central preserva o acesso à revisão oficial');
+    ok(!/<section id="ct-fontes-oficiais"/.test(host), R+'(a) resumo das fontes removido do Início');
     ok(host.includes(FRASE_DONA), R + '(a) a frase da dona está, literal, no template da Central');
     ok(/\n  _novidEstado\(id\)\{/.test(host) && /\n  _novidMarcar\(id, st\)\{/.test(host), R + '(a) o contrato com o painel "Revisão oficial": _novidEstado(id) e _novidMarcar(id, st)');
     ok(/novidades:\s*'jurisprudencia'/.test((reg.match(/var VIEW_EXIGE = \{[\s\S]*?\};/) || [''])[0]), R + '(a) VIEW_EXIGE: a Central exige jurisprudência (deep link e paleta passam pelo guarda)');
@@ -287,12 +285,11 @@ export async function testarNovidadesCentral(pageDaSuite, base, ok, ctxOpc = {})
     const trechos = [];
     const entre = (ini, fim) => { const i = host.indexOf(ini); const j = i < 0 ? -1 : host.indexOf(fim, i + ini.length); if (i >= 0 && j > i) trechos.push(host.slice(i, j)); return i >= 0 && j > i; };
     const achou = [
-      entre('<!-- FONTES OFICIAIS — o resumo no Início', '<!-- O BARALHO NO PAINEL.'),
       entre('<!-- ═══════════ CENTRAL DE NOVIDADES', '<!-- ================= CONQUISTAS ================= -->'),
       entre('// ===== CENTRAL DE NOVIDADES — fontes oficiais', '  redReset = '),
       entre('// ─────────── FONTES OFICIAIS: o leve, sempre', '// O QUE MUDOU ESTA SEMANA (item 7): marcados primeiro'),
     ];
-    ok(achou.every(Boolean), R + '(a) os quatro trechos da Central foram localizados para a varredura (' + achou.join(', ') + ')');
+    ok(achou.every(Boolean), R + '(a) os três trechos preservados da Central foram localizados para a varredura (' + achou.join(', ') + ')');
     const sujos = trechos.flatMap((t) => [...t.matchAll(/#[0-9a-fA-F]{3,8}\b|rgba?\(|var\(--[\w-]+\s*,\s*#/g)].map((m) => m[0]));
     ok(sujos.length === 0, R + '(a) o trecho da Central não tem cor fixa (#hex, rgba() literal, var(--x,#hex)) — ' + (sujos.slice(0, 4).join(' ') || 'nenhuma'));
   }
@@ -553,53 +550,24 @@ export async function testarNovidadesCentral(pageDaSuite, base, ok, ctxOpc = {})
       ok(aneis.length === 0, R + '(b) o anel de foco do botão do hero passa de 3:1 nas oito direções' + (aneis.length ? ' — abaixo: ' + aneis.join(', ') : ''));
       await tema(page, 'sutil', false);
 
-      // (i) Início: o resumo do acordo, "Já vi", "Abrir no LEGIS" com "Voltar ao Início", #ct-of-abrir e o meta da semana (E16)
-      await ir(page, 'inicio');
-      await page.waitForTimeout(500);
-      const ini = await page.evaluate(() => {
-        const r = document.querySelector('#ct-fontes-oficiais');
-        const meta = ((document.querySelector('#ct-semana .meta') || {}).innerText || '');
-        const cont = (k) => (((r && r.querySelector('[data-of-cont="' + k + '"] b')) || {}).textContent || '').trim();
-        const ab = document.getElementById('ct-of-abrir');
-        return { tem: !!r, tag: r ? r.tagName : '', t: r ? r.innerText : '', itens: r ? [...r.querySelectorAll('[data-novid-resumo]')].map((e) => e.getAttribute('data-novid-resumo')) : [], meta,
-          aguarda: !!document.querySelector('#ct-semana button[data-view="novidades"]'),
-          fontes: r ? [...r.querySelectorAll('[data-of-fonte]')].map((e) => e.innerText.replace(/\s+/g, ' ').trim()) : [],
-          ok: cont('ok'), falha: cont('falha'), conferir: cont('conferir'), abrir: ab ? { txt: ab.textContent.trim(), cls: ab.className, dentro: !!r && r.contains(ab) } : null };
-      });
-      ok(ini.tem && ini.tag === 'SECTION' && ini.fontes.join(' | ') === 'Planalto Detectado | STF Sem novidade | STJ Falhou',
-        R + '(i) o Início mostra a section com a situação das três fontes no vocabulário único (' + ini.fontes.join(' | ') + ')');
-      ok(ini.ok === '2' && ini.falha === '1' && ini.conferir === '4', R + '(i) os três contadores: fontes ok, com falha ou parcial, itens a conferir (' + [ini.ok, ini.falha, ini.conferir].join('/') + ')');
-      ok(ini.t.includes(FRASE_INICIO) && !!ini.abrir && ini.abrir.txt === 'Ver revisão oficial' && /\bct-btn-2\b/.test(ini.abrir.cls) && ini.abrir.dentro,
-        R + '(i) a frase "' + FRASE_INICIO + '" e o botão #ct-of-abrir "Ver revisão oficial" (.ct-btn-2) estão no resumo');
-      ok(ini.itens.join(',') === 'nv-inc,nv-rev', R + '(i) o resumo traz só as leis não vistas nem conferidas, as que pedem conferência primeiro (' + ini.itens.join(',') + ')');
-      ok(/recorte de \d{2}\/\d{2}\/\d{4}/.test(ini.meta) && ini.aguarda && /1 edição nova aguardando o acervo/.test(ini.meta),
-        R + '(i) o "O que mudou esta semana" diz o recorte e a edição que aguarda o acervo, com caminho para a Central (E16: ' + ini.meta.replace(/\s+/g, ' ') + ')');
-      const ruinsIni = [];
-      for (const dir of DIRECOES) for (const escuro of [false, true]) {
-        await tema(page, dir, escuro);
-        for (const sel of ['#ct-fontes-oficiais', '#ct-semana button[data-view="novidades"]']) {
-          const k = await page.evaluate((x) => window.__nv.contraste(x), sel);
-          if (!k.achou || !k.pior || k.pior.c < 4.5) ruinsIni.push(dir + (escuro ? '/escuro ' : '/claro ') + sel.slice(0, 20) + ' ' + JSON.stringify(k.abaixo && k.abaixo.length ? k.abaixo : k.pior));
-        }
-      }
-      ok(ruinsIni.length === 0, R + '(i) o resumo do Início e o link das edições que aguardam têm contraste ≥ 4,5:1 nas oito direções, claro e escuro' + (ruinsIni.length ? ' — abaixo: ' + ruinsIni.slice(0, 4).join(' | ') : ''));
-      await tema(page, 'sutil', false);
-      await clicar(page, '#ct-fontes-oficiais button[data-acao="lida"][data-id="nv-rev"]');
-      await page.waitForTimeout(400);
-      const depoisJaVi = await page.evaluate(() => [...document.querySelectorAll('#ct-fontes-oficiais [data-novid-resumo]')].map((e) => e.getAttribute('data-novid-resumo')));
-      ok(depoisJaVi.join(',') === 'nv-inc', R + '(i) "Já vi" tira o item do resumo (' + depoisJaVi.join(',') + ')');
-      await clicar(page, '#ct-fontes-oficiais button[data-acao="acervo"][data-id="nv-inc"]');
-      await page.waitForFunction(() => window.__catedraApp.state.view === 'legis', null, { timeout: 8000 }).catch(() => {});
-      const idaIni = await page.evaluate(() => { const s = window.__catedraApp.state; return { view: s.view, rot: s.acervoDe && s.acervoDe.rotulo }; });
-      ok(idaIni.view === 'legis' && idaIni.rot === 'Voltar ao Início', R + '(i) "Abrir no LEGIS" do Início leva a pílula "Voltar ao Início" (' + JSON.stringify(idaIni) + ')');
-      const voltaIni = await page.evaluate(async () => { const a = window.__catedraApp; a._voltarDoAcervo(a.state.acervoDe); await new Promise((x) => setTimeout(x, 500)); return a.state.view; });
-      ok(voltaIni === 'inicio', R + '(i) e a volta devolve ao Início (' + voltaIni + ')');
-      await clicar(page, '#ct-semana button[data-view="novidades"]'); await page.waitForTimeout(500);
-      ok(await page.evaluate(() => window.__catedraApp.state.view) === 'novidades', R + '(i) o link das edições que aguardam o acervo abre a Central');
-      await ir(page, 'inicio');
-      await clicar(page, '#ct-of-abrir'); await page.waitForTimeout(500);
-      ok(await page.evaluate(() => window.__catedraApp.state.view === 'inicio' && !!document.getElementById('ct-revisao-oficial')), R + '(i) "Ver revisão oficial" (#ct-of-abrir) abre o diálogo da revisão oficial sobre o Início');
-      await page.keyboard.press('Escape'); await page.waitForTimeout(300);
+      // O Início enxuto não expõe os resumos; dados e ações seguem na Central.
+      await ir(page,'inicio');
+      ok(await page.evaluate(()=>!document.querySelector('#ct-fontes-oficiais,#ct-semana,.cth-foco')),R+'(i) resumos removidos do Início');
+      const ini=await page.evaluate(()=>{const v=window.__catedraApp.renderVals();return {fontes:v.ofFontes.map(f=>f.nome+' '+f.situacao),ok:String(v.ofContOk),falha:String(v.ofContFalha),conferir:String(v.ofContConferir),itens:v.ofItens.map(x=>x.id)};});
+      ok(ini.fontes.join(' | ')==='Planalto Detectado | STF Sem novidade | STJ Falhou',R+'(i) dados das fontes continuam preservados');
+      ok(ini.ok==='2'&&ini.falha==='1'&&ini.conferir==='4',R+'(i) contadores das fontes continuam preservados');
+      ok(ini.itens.join(',')==='nv-inc,nv-rev',R+'(i) pendências de leis permanecem nos dados');
+      await ir(page,'novidades');await page.evaluate(()=>window.__catedraApp.novidLimparFiltros());await page.waitForTimeout(300);
+      await clicar(page,'[data-novid-item="nv-rev"] button[data-acao="lida"]');await page.waitForTimeout(400);
+      ok(await page.evaluate(()=>window.__catedraApp._novidEstado('nv-rev')==='lida'),R+'(i) marcar como lida continua funcionando na Central');
+      await clicar(page,'[data-novid-item="nv-inc"] button[data-acao="acervo"]');
+      await page.waitForFunction(()=>window.__catedraApp.state.view==='legis');
+      const idaEnxuta=await page.evaluate(()=>{const s=window.__catedraApp.state;return {view:s.view,rot:s.acervoDe&&s.acervoDe.rotulo};});
+      ok(idaEnxuta.view==='legis'&&idaEnxuta.rot==='Voltar à Central de novidades',R+'(i) abrir lei preserva volta à Central');
+      await page.evaluate(()=>{const a=window.__catedraApp;a._voltarDoAcervo(a.state.acervoDe);});await page.waitForTimeout(500);
+      await clicar(page,'#ct-of-abrir');await page.waitForTimeout(400);
+      ok(await page.evaluate(()=>window.__catedraApp.state.view==='novidades'&&!!document.getElementById('ct-revisao-oficial')),R+'(i) revisão oficial abre sobre a Central');
+      await page.keyboard.press('Escape');await page.waitForTimeout(300);
       ok(pedidosApi.length === 0, R + '(j) nada foi pedido a /api/sentinela sem clique no botão (' + pedidosApi.length + ')');
       ok(!erros.length, R + 'sem erro de página (' + erros.slice(0, 2).join(' | ').slice(0, 160) + ')');
     } finally { await c.close(); }
@@ -610,15 +578,8 @@ export async function testarNovidadesCentral(pageDaSuite, base, ok, ctxOpc = {})
     const { c, page, erros } = await abrir({ pacote: { geradoEm: null, fontes: {}, itens: [] } });
     try {
       await ir(page, 'inicio');
-      const r0 = await page.evaluate(() => {
-        const r = document.querySelector('#ct-fontes-oficiais'); if (!r) return { tem: false };
-        const cont = (k) => ((r.querySelector('[data-of-cont="' + k + '"] b') || {}).textContent || '').trim();
-        return { tem: true, t: r.innerText, fontes: [...r.querySelectorAll('[data-of-fonte]')].map((e) => e.innerText.replace(/\s+/g, ' ').trim()),
-          cont: [cont('ok'), cont('falha'), cont('conferir')].join('/'), itens: r.querySelectorAll('[data-novid-resumo]').length, abrir: !!r.querySelector('#ct-of-abrir') };
-      });
-      ok(r0.tem && r0.fontes.join(' | ') === 'Planalto Nunca consultada | STF Nunca consultada | STJ Nunca consultada' && r0.cont === '0/0/0' && r0.itens === 0
-        && r0.abrir && r0.t.includes(FRASE_INICIO) && /nenhuma varredura publicada/.test(r0.t),
-        R + '(i) sem varredura publicada o resumo do Início APARECE: cada fonte "Nunca consultada", contadores zerados, a frase e o botão (' + JSON.stringify(r0).slice(0, 220) + ')');
+      const r0=await page.evaluate(()=>{const v=window.__catedraApp.renderVals();return {tem:!!document.querySelector('#ct-fontes-oficiais'),fontes:v.ofFontes.map(f=>f.nome+' '+f.situacao),cont:[v.ofContOk,v.ofContFalha,v.ofContConferir].join('/'),itens:v.ofItens.length};});
+      ok(!r0.tem&&r0.fontes.join(' | ')==='Planalto Nunca consultada | STF Nunca consultada | STJ Nunca consultada'&&r0.cont==='0/0/0'&&r0.itens===0,R+'(i) sem varredura: dados honestos preservados, sem resumo no Início');
       await ir(page, 'novidades');
       const v = await page.evaluate(() => ({ t: ((document.querySelector('main .ct-estado') || {}).innerText || ''), btn: !!document.querySelector('main .ct-estado button[data-acao="buscar"]'),
         fontes: ['planalto', 'stf', 'stj'].map((f) => ((document.querySelector('[data-novid-fonte="' + f + '"]') || {}).innerText || '')) }));
@@ -683,9 +644,8 @@ export async function testarNovidadesCentral(pageDaSuite, base, ok, ctxOpc = {})
         && /1[\s\S]*a conferir/i.test(s2.hero) && !/lida/.test(s2.botoes) && /manter/.test(s2.botoes),
         R + '(m) "Marcar como conferido" grava {id, up, st:\'conferido\'} uma vez, o selo vira "Conferido", sai de "a conferir" e vira "Manter em revisão" (' + JSON.stringify(g2.ls) + ' · ' + s2.botoes + ')');
       await ir(page, 'inicio');
-      const i2 = await page.evaluate(() => ({ itens: [...document.querySelectorAll('#ct-fontes-oficiais [data-novid-resumo]')].map((e) => e.getAttribute('data-novid-resumo')).join(','),
-        conferir: ((document.querySelector('#ct-fontes-oficiais [data-of-cont="conferir"] b') || {}).textContent || '').trim() }));
-      ok(i2.itens === 'pl-parcial' && i2.conferir === '1', R + '(m) o Início deixa de fora o conferido e o que está no acervo, e conta 1 a conferir (' + JSON.stringify(i2) + ')');
+      const i2=await page.evaluate(()=>{const v=window.__catedraApp.renderVals();return {itens:v.ofItens.map(x=>x.id).join(','),conferir:String(v.ofContConferir)};});
+      ok(i2.itens==='pl-parcial'&&i2.conferir==='1',R+'(m) marcar conferido continua atualizando pendências');
       await ir(page, 'novidades');
       await clicar(page, '[data-novid-item="pl-limpo"] button[data-acao="manter"]'); await page.waitForTimeout(1400);
       const s3 = await st();
@@ -835,12 +795,8 @@ export async function testarNovidadesCentral(pageDaSuite, base, ok, ctxOpc = {})
       }
       await page.evaluate(() => new Promise((r) => window.__catedraApp.setState({ darkMode: false }, r)));
       await ir(page, 'inicio');
-      const mi = await page.evaluate(() => {
-        const r = document.querySelector('#ct-fontes-oficiais'); if (!r) return { tem: false };
-        const miudos = [...r.querySelectorAll('button')].filter((b) => b.getBoundingClientRect().height > 0 && b.getBoundingClientRect().height < 44 && !b.classList.contains('ct-alvo')).map((b) => b.textContent.trim());
-        return { tem: true, miudos, docRola: document.documentElement.scrollWidth - innerWidth };
-      });
-      ok(mi.tem && mi.miudos.length === 0 && mi.docRola <= 0, R + '(k) ' + nome + ': no resumo do Início os botões medem ≥ 44 px e nada rola de lado (' + JSON.stringify(mi) + ')');
+      const mi=await page.evaluate(()=>({tem:!!document.querySelector('#ct-fontes-oficiais'),docRola:document.documentElement.scrollWidth-innerWidth}));
+      ok(!mi.tem&&mi.docRola<=0,R+'(k) '+nome+': Início enxuto sem resumo das fontes e sem rolagem lateral');
     } finally { await c.close(); }
   }
 

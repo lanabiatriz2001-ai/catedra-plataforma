@@ -4503,24 +4503,13 @@ for (const [k, v] of Object.entries(sem)) ok(v, 'SEMANA ' + k);
     ' × acervo ' + maior('informativo_stf', false) + ')');
 }
 
-// a home mostra o bloco, e "Já vi" tira o item e persiste
-await page.goto(URL0 + '/Catedra.dc.html');
-await page.evaluate(() => { localStorage.removeItem('catedra:semanaLidos'); });
-await page.goto(URL0 + '/Catedra.dc.html');
-await page.waitForTimeout(1800);
-const home = await page.evaluate(async () => {
-  const tit = [...document.querySelectorAll('h2')].find(h => /mudou esta semana/i.test(h.textContent || ''));
-  if (!tit) return { erro: 'sem bloco' };
-  const cont = tit.closest('.cth-sec').nextElementSibling;
-  const antes = [...cont.children].filter(e => e.tagName === 'DIV').length;
-  const b = cont.querySelector('button[data-id]');
-  const id = b && b.dataset.id;
-  if (b) b.click();
-  await new Promise(r => setTimeout(r, 500));
-  return { antes, id, lidos: JSON.parse(localStorage.getItem('catedra:semanaLidos') || '[]') };
-});
-ok(!home.erro && home.antes > 0, 'SEMANA bloco aparece na home com itens');
-ok(!home.erro && home.lidos.includes(home.id), 'SEMANA "Já vi" registra e persiste (sincroniza)');
+// O bloco da semana saiu do Início; o método continua preservando marcas existentes.
+await page.goto(URL0+'/Catedra.dc.html');
+await page.evaluate(()=>localStorage.removeItem('catedra:semanaLidos'));
+await page.reload();await page.waitForTimeout(1800);
+const home=await page.evaluate(async()=>{const a=window.__catedraApp,it=a._semanaItens()[0];if(!it)return {erro:'sem itens'};a.semanaLido({currentTarget:{dataset:{id:it.id}}});await new Promise(r=>setTimeout(r,600));return {ausente:!document.querySelector('#ct-semana'),id:it.id,lidos:JSON.parse(localStorage.getItem('catedra:semanaLidos')||'[]')};});
+ok(!home.erro&&home.ausente,'SEMANA bloco foi removido do Início');
+ok(!home.erro&&home.lidos.includes(home.id),'SEMANA método de leitura continua registrando e persistindo');
 /* ============= PROVA ORAL — MODO ARGUIÇÃO (item 3) ============= */
 await page.goto(URL0 + '/tests/harness-arguicao.html');
 await page.waitForFunction(() => !!window.CT_ORAL_Q && !!window.argPool);

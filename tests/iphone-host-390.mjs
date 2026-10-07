@@ -312,15 +312,15 @@ export async function testarIphoneHost390(pageDaSuite, base, ok, opcoes = {}) {
       }, CORTADO);
       await ir(page, 'inicio'); await page.waitForTimeout(1500);
       const m = await page.evaluate(() => {
-        const t = document.querySelector('.cth-rev b.t');
+        const vals=window.__catedraApp.renderVals();const titulo=(vals.homeProxRev[0]||{}).topic;
         const foco = document.querySelector('.cth-foco');
         const btn = foco && foco.querySelector('.cth-bfsug');
         const p = foco && foco.querySelector('.tx p');
         const W = innerWidth;
         const fora = foco ? [...foco.querySelectorAll('*')].filter(e => {
           const r = e.getBoundingClientRect(); return r.width > 0 && (r.right > W + 1 || r.left < -1); }).length : -1;
-        const titulos = [...document.querySelectorAll('.cth-rev b.t')].map(b => b.textContent.trim());
-        return { titulo: t ? t.textContent.trim() : null, titulos,
+        const titulos=vals.homeProxRev.map(b=>b.topic);
+        return { titulo:titulo||null, titulos,
           temFoco: !!foco, fora,
           botao: btn ? { w: Math.round(btn.getBoundingClientRect().width), h: Math.round(btn.getBoundingClientRect().height) } : null,
           textoW: p ? Math.round(p.getBoundingClientRect().width) : 0,
@@ -331,15 +331,7 @@ export async function testarIphoneHost390(pageDaSuite, base, ok, opcoes = {}) {
       ok(!!m.titulo && !/jurí$/.test(m.titulo), R + '(h) …e não termina no meio da palavra');
       ok(m.titulos.includes('Direito Civil: prescrição e decadência no CC'),
         R + '(h) tema legítimo de 44 caracteres fica intacto (' + JSON.stringify(m.titulos) + ')');
-      ok(m.temFoco, R + '(h) o cartão "Foco sugerido" está na tela');
-      if (m.temFoco) {
-        ok(m.fora === 0, R + '(h) nada do cartão de foco passa da janela (' + m.fora + ' fora)');
-        ok(!!m.botao && m.botao.w >= 280, R + '(h) o botão do foco ocupa a linha inteira ('
-          + (m.botao ? m.botao.w : 0) + ' px), em vez de espremer o texto ao lado');
-        ok(!!m.botao && m.botao.h >= 44, R + '(h) o botão do foco tem alvo de toque ≥ 44 px ('
-          + (m.botao ? m.botao.h : 0) + ')');
-        ok(m.textoW >= 200, R + '(h) o texto do foco tem largura de leitura (' + m.textoW + ' px, não a coluna de três palavras)');
-      }
+      ok(!m.temFoco, R + '(h) Foco sugerido foi removido do Início');
       ok(m.docRola <= 0, R + '(h) a tela "inicio" não rola de lado (' + m.docRola + ' px)');
     } finally { await ctx.close(); }
   }

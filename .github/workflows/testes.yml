@@ -30,6 +30,7 @@ jobs:
         run: |
           node tests/ciclo-plataforma.mjs
           node tests/ciclo-sessao-intencional.mjs
+          node tests/inicio-enxuto.mjs
         env:
           CT_CHROME: /usr/bin/google-chrome
       - name: Testes de navegador (sync + acervo ida-e-volta)
@@ -59,6 +60,7 @@ jobs:
           node tests/ciclo-plataforma.mjs
           node tests/ciclo-retomada.mjs
           node tests/ciclo-sessao-intencional.mjs
+          node tests/inicio-enxuto.mjs
         env:
           CT_BROWSER: webkit
       - name: Prova oral → Lei seca em WebKit (http e file://)

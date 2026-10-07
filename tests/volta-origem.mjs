@@ -790,26 +790,12 @@ async function roteiroWeb(page, ok, R, origem) {
       R + 'PÍLULA VELHA a troca por __catedraGoView (notificação) também não herda a origem (display=' + l2.display + ')');
   }
 
-  /* ===== INÍCIO: "O que mudou esta semana" → JURIS tem volta ao Início (pedido da dona, 25/09) ===== */
+  /* Início enxuto: acesso às novidades permanece no menu próprio. */
   {
-    await irPeloMenu('inicio');
-    await V(() => window.__vo.naView('inicio'));
-    const temCartao = await V(async () => { const vo = window.__vo;
-      await vo.ate(() => !!document.querySelector('#dc-root button[data-t][onclick], #dc-root #ct-semana'), 6000);
-      return !![...document.querySelectorAll('#dc-root button')].find(b => (b.textContent || '').trim() === 'Abrir no JURIS' && b.dataset.t); });
-    if (!temCartao) ok(false, R + 'INÍCIO o cartão "O que mudou esta semana" oferece "Abrir no JURIS" (sem itens da semana no acervo gerado)');
-    else {
-      const abriu = await clicar(page.locator('#dc-root button[data-t]', { hasText: 'Abrir no JURIS' }).first());
-      const i1 = await V(async () => { const vo = window.__vo; await vo.naView('juris'); await vo.pronto('juris', null, 30000); await vo.w(500);
-        return { view: vo.app().state.view, de: vo.de() }; });
-      ok(abriu && i1.view === 'juris' && !!i1.de && i1.de.view === 'inicio' && i1.de.rotulo === 'Voltar ao Início',
-        R + 'INÍCIO "Abrir no JURIS" da semana grava {view:inicio, "Voltar ao Início"} (' + JSON.stringify(i1.de) + ')');
-      conferirPilula(ok, R, 'INÍCIO', 'juris', await V(() => window.__vo.pilula('juris')), 'Voltar ao Início');
-      const tocou = await tocarPilula(page, 'juris');
-      const i2 = await V(async () => { const vo = window.__vo; await vo.naView('inicio'); await vo.w(300);
-        return { view: vo.app().state.view, de: vo.app().state.acervoDe }; });
-      ok(tocou && i2.view === 'inicio' && i2.de === null, R + 'INÍCIO o toque na pílula volta ao Início e apaga a origem (view=' + i2.view + ')');
-    }
+    await irPeloMenu('inicio');await V(()=>window.__vo.naView('inicio'));
+    ok(await V(()=>!document.querySelector('#dc-root #ct-semana')),R+'INÍCIO não exibe o bloco semanal removido');
+    await irPeloMenu('novidades');await V(()=>window.__vo.naView('novidades'));
+    ok(await V(()=>window.__vo.app().state.view==='novidades'),R+'CENTRAL continua acessível pelo menu');
   }
 
   /* ===== G/H. REVISÕES: pela lista e pela sessão guiada ===== */

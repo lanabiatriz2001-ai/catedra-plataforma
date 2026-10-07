@@ -48,7 +48,7 @@ export async function testarReguaUnica(page, base, ok) {
       reviews: [], sessions, blocks: [] });
     window.__catedraGoView('inicio'); await w(900);
     const ler = () => ({
-      foco: (document.querySelector('.cth-foco .tx p') || {}).textContent || '',
+      foco: app.renderVals().focoSugestao||'',
       fraca: app._prioridade()[0] && app._prioridade()[0].disc
     });
     const antes = ler();
@@ -59,5 +59,5 @@ export async function testarReguaUnica(page, base, ok) {
   const mesma = (x) => !!x.fraca && x.foco.includes(x.fraca.replace('Direito ', ''));
   ok(mesma(m.antes), 'RÉGUA/única o Foco sugerido aponta o primeiro de "Onde estou fraca" (' + m.antes.fraca + ' | ' + m.antes.foco + ')');
   ok(mesma(m.depois), 'RÉGUA/única depois de mexer nos controles, os dois continuam juntos (' + m.depois.fraca + ' | ' + m.depois.foco + ')');
-  ok(m.antes.fraca !== m.depois.fraca, 'RÉGUA/única os controles de Ajustes mudam a régua do Início (' + m.antes.fraca + ' → ' + m.depois.fraca + ')');
+  ok(m.antes.fraca !== m.depois.fraca, 'RÉGUA/única os controles de Ajustes continuam mudando a régua de prioridade (' + m.antes.fraca + ' → ' + m.depois.fraca + ')');
 }
