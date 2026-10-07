@@ -12050,7 +12050,7 @@ class Component extends DCLogic {
     const min=this._minCronometro();if(!(min>0))return;
     this._simTimerRegistro={modal:this._registroId,geracao:this._cronometroGeracao||0,modo:this.state.timerMode};
     if(this._tick){clearInterval(this._tick);this._tick=null;}
-    this.setState({simMin:String(min),simRegistroFonte:'cronometro',timerRunning:false,pausaDesde:Date.now()},()=>this._saveTimer());
+    this.setState({simMin:String(min),simRegistroFonte:'cronometro',timerRunning:false,pausaDesde:this.state.timerRunning?Date.now():(this.state.pausaDesde||Date.now())},()=>{this._saveTimer();this._pausaVigia();});
   };
   onSimNome = (e)=> this.setState({simNome:e.currentTarget.value});
   saveSimulado = ()=>{ const s=this.state.sim||{}; const nome=(this.state.simNome||'').trim()||'Simulado';
@@ -12074,8 +12074,8 @@ class Component extends DCLogic {
     const rec={ id:'s'+Date.now(), ts:Date.now(), date:this._ymd(Date.now()-Math.min(min,600)*60000), disc:'Simulado', topico:nome, categoria:'Simulado', categorias:['Simulado'], min, questoes, acertos, erradas, brancos, liquido:acertos-erradas, foco:4, nota:notaTxt, discPct:discPctRec, countMeta:true };
     const sessions=[rec, ...this.state.sessions]; this._saveSessions(sessions);
     const ref=this._simTimerRegistro,consomeTimer=!!(ref&&this.state.sessionModalOpen&&this.state.registroModo==='simulado'&&ref.modal===this._registroId&&ref.geracao===(this._cronometroGeracao||0)&&ref.modo===this.state.timerMode);this._simTimerRegistro=null;
-    if(consomeTimer){if(this._tick){clearInterval(this._tick);this._tick=null;}try{localStorage.removeItem('ct_timer');}catch(_){}}
-    this.setState({...(consomeTimer?{timerRunning:false,timerSeconds:0,studiedSeconds:0,sessionDraft:this._freshSessionDraft(this.state.sessionDraft)}:{}),simRegistroFonte:'manual',sessions, simNome:'', simMin:'', simAba:'registro', sessionModalOpen:false, registroModo:'estudo'}, ()=>{ try{ this._reconcileStreak(); }catch(_){} try{ this._pubAtvT=0; this._publicarAtividade(); }catch(_){} }); this.flashSync();
+    if(consomeTimer){if(this._tick){clearInterval(this._tick);this._tick=null;}if(this._pausaT){clearInterval(this._pausaT);this._pausaT=null;}try{localStorage.removeItem('ct_timer');}catch(_){}}
+    this.setState({...(consomeTimer?{timerRunning:false,timerSeconds:0,studiedSeconds:0,pausaSeg:0,pausaDesde:0,pausaTique:0,pomoPhase:'foco',pomoCycles:0,sessionDraft:this._freshSessionDraft(this.state.sessionDraft)}:{}),simRegistroFonte:'manual',sessions, simNome:'', simMin:'', simAba:'registro', sessionModalOpen:false, registroModo:'estudo'}, ()=>{ try{ this._reconcileStreak(); }catch(_){} try{ this._pubAtvT=0; this._publicarAtividade(); }catch(_){} }); this.flashSync();
     this._toast('Simulado "'+nome+'" registrado no histórico ✦'); };
   onSimMin = (e)=>{ this._simSoltarTempo(); const v=e.currentTarget.value; this.setState({simMin: v===''?'':String(Math.max(0,parseInt(v,10)||0))}); };
 
