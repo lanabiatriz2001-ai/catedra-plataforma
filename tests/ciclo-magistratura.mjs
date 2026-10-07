@@ -29,6 +29,23 @@ export async function testarCicloMagistratura(page, base, ok, opcoes = {}) {
   await page.evaluate(() => window.__catedraApp.setState({ view: 'ciclo', cyclePanel: 'executar' }));
   await w(400);
 
+  // Jurisprudência: calendário nunca pula pendência; conclusão libera só amanhã.
+  const juris = await page.evaluate(() => {
+    const M=window.CT_CMAG;
+    let c=M.vazio(true); c.st.const.ass='Assunto preservado';
+    c=M.definirJuris(c, 'Súmula 12 de 20', 1);
+    const antes=M.jurisDoDia(c, '2026-10-05'), atrasado=M.jurisDoDia(c, '2026-10-09');
+    c=M.concluirJuris(c, '2026-10-09', 2);
+    const hoje=M.jurisDoDia(c, '2026-10-09');
+    const duplo=M.concluirJuris(c, '2026-10-09', 3, 0);
+    const amanha=M.jurisDoDia(JSON.parse(JSON.stringify(c)), '2026-10-10');
+    for(let i=0;i<6;i++) c=M.concluirJuris(c, M.somaDias('2026-10-09',i+1),i+4);
+    return {antes,atrasado,hoje,amanha,duplo:duplo.juris.etapa,volta:M.jurisDoDia(c,'2026-10-16'),ass:c.st.const.ass};
+  });
+  ok(juris.antes.tipo==='Súmulas STF' && juris.atrasado.tipo===juris.antes.tipo && juris.atrasado.ponto==='Súmula 12 de 20', R+'jurisprudência retém tipo e ponto de leitura apesar dos dias perdidos');
+  ok(juris.hoje.tipo==='Súmulas STJ' && juris.duplo===1 && juris.amanha.tipo==='Súmulas STJ', R+'conclusão libera o próximo tipo sem depender de data, e duplo clique da etapa antiga não avança');
+  ok(juris.volta.tipo==='Súmulas STF' && juris.ass==='Assunto preservado', R+'sete tipos retornam ao início sem alterar matérias');
+
   // 1. modos: os cinco de sempre + o novo; trocar para manual e voltar não quebra
   const lista = await page.evaluate(() => {
     const app = window.__catedraApp; app.setState({ cyclePanel: 'configurar' });
@@ -63,10 +80,61 @@ export async function testarCicloMagistratura(page, base, ok, opcoes = {}) {
     R + 'seed liga o modo com as 4 ativas, as obras e Teoria da Constituição (' + JSON.stringify(seed) + ')');
   ok(seed.denovo === false, R + 'seed rodado de novo não faz nada (idempotente)');
   await page.evaluate(() => window.__catedraApp.setState({ cyclePanel: 'executar' }));
+  await w(300);
+  const inicio=await page.evaluate(()=>({n:CT_CMAG.gerarVolta(window.__catedraApp._cm()).blocos.length,ativas:window.__catedraApp._cm().ativas}));
+  ok(inicio.n===2&&inicio.ativas===1,R+'começa com uma matéria e jurisprudência');
+  for(const n of [2,3,4,1]) {
+    await page.selectOption('select[aria-label="Matérias nesta volta"]',String(n));await w(150);
+    const v=await page.evaluate(()=>({nav:document.querySelectorAll('.cm-etapa').length,n:window.__catedraApp._cm().ativas,ass:window.__catedraApp._cm().st.const.ass}));
+    ok(v.nav===n+1&&v.n===n&&/^Teoria da Constituição/.test(v.ass),R+'editar para '+n+' matérias preserva conteúdo e atualiza volta');
+  }
+  await page.selectOption('select[aria-label="Matérias nesta volta"]','4');await w(200);
+  const etapaTempo=await page.evaluate(()=>{
+    const a=window.__catedraApp,antigas=a.state.sessions;
+    a.cmEtapaEstudar({currentTarget:{dataset:{id:'const',k:'a2'}}});
+    a.setState({timerMode:'livre',timerSeconds:600,studiedSeconds:600});a._saveTimer();
+    const timer=JSON.parse(localStorage.getItem('ct_timer'));
+    a.cmEtapaEstudar({currentTarget:{dataset:{id:'const',k:'a1'}}});
+    const protege=a.state.sessionModalOpen&&a.state.sessionDraft.cmEtapa==='a2';
+    a.setState({sessionModalOpen:false});a.finishFocus();
+    const categoria=a.state.sessionDraft.categoria,etapa=a.state.sessionDraft.cmEtapa;
+    a.saveSession();const registro=a.state.sessions[0];
+    const guia=a._cmView().cmAtivas[0];
+    a.setState({sessions:antigas,focusMode:false,sessionModalOpen:false,timerSeconds:0,studiedSeconds:0,timerRunning:false,view:'ciclo'});a._saveTimer();
+    return {protege,categoria,etapa,registro,proxima:guia.proximaK};
+  });
+  ok(etapaTempo.protege&&etapaTempo.categoria==='Teoria'&&etapaTempo.etapa==='a2'&&etapaTempo.registro.cmEtapa==='a2'&&etapaTempo.registro.min===10&&etapaTempo.proxima==='a2',R+'tempo por etapa preserva doutrina ao encerrar, protege troca para questões e não conclui conteúdo');
+
+
+  ok(await page.locator('#cm-juris-titulo').innerText()==='Jurisprudência', R+'módulo diário visível no ciclo');
+  await page.locator('input[placeholder="Ex.: súmulas 1–20 · parei na 12"]').fill('Súmula 12');
+  await w(1500);
+  ok(await page.evaluate(()=>JSON.parse(localStorage.getItem('catedra:cmag')).juris.ponto==='Súmula 12'), R+'ponto de leitura salvo no estado sincronizado');
+  await page.getByRole('button', {name:'Concluir Súmulas STF',exact:true}).click();
+  await w(400);
+  ok(await page.locator('.cm-juris .cm-sub b').innerText()==='Súmulas STJ', R+'conclusão troca o tipo na atividade de jurisprudência');
   await w(400);
 
+  // A atividade usa o mesmo cronômetro e histórico das matérias, com vínculo próprio.
+  await page.locator('.cm-juris button[data-id="juris"]').filter({hasText:'Estudar com cronômetro'}).click();
+  const focoJuris=await page.evaluate(()=>{const a=window.__catedraApp;return {foco:a.state.focusMode,rodando:a.state.timerRunning,disc:a.state.sessionDraft.disc,tipo:a.state.sessionDraft.topico,key:a.state.sessionDraft.atvKey};});
+  ok(focoJuris.foco&&focoJuris.rodando&&focoJuris.disc==='Jurisprudência'&&focoJuris.tipo==='Súmulas STJ'&&focoJuris.key==='vt|cm-juris-1', R+'jurisprudência inicia foco e cronômetro com disciplina, tipo e atividade próprios');
+  await page.evaluate(()=>{const a=window.__catedraApp;a.setState({timerMode:'livre',timerSeconds:900,studiedSeconds:900});a.finishFocus();});
+  const fimJuris=await page.evaluate(()=>{const a=window.__catedraApp;return {min:a.state.sessionDraft.minutos,tipo:a.state.sessionDraft.topico,feito:a.state.blocks[0].done,etapa:a.state.cmag.juris.etapa};});
+  ok(fimJuris.min==='15'&&fimJuris.tipo==='Súmulas STJ'&&!fimJuris.feito&&fimJuris.etapa===1,R+'encerrar cronômetro prepara 15 minutos sem concluir o tipo');
+  await page.evaluate(()=>window.__catedraApp.saveSession());
+  const tempoJuris=await page.evaluate(()=>{const a=window.__catedraApp,r=a.state.sessions[0];return {disc:r.disc,tipo:r.topico,min:r.min,key:r.atvKey,cat:r.categoria,total:a._cmView().cmJurisTempo,etapa:a.state.cmag.juris.etapa};});
+  ok(tempoJuris.disc==='Jurisprudência'&&tempoJuris.tipo==='Súmulas STJ'&&tempoJuris.min===15&&tempoJuris.key==='vt|cm-juris-1'&&tempoJuris.cat==='Jurisprudência'&&tempoJuris.total===15&&tempoJuris.etapa===1,R+'tempo salvo no histórico e somado no cartão, mantendo o conteúdo em aberto');
+  await page.evaluate(()=>{const a=window.__catedraApp;a.cmEstudar({currentTarget:{dataset:{id:'juris'}}});a.setState({timerSeconds:600,studiedSeconds:600,timerRunning:false,focusMode:false});a._saveTimer();});
+  await page.reload();await page.waitForFunction(()=>window.__catedraApp&&window.CT_CMAG);
+  const restaurado=await page.evaluate(()=>{const a=window.__catedraApp;a.cmEstudar({currentTarget:{dataset:{id:'const'}}});return {tempo:a.state.timerSeconds,key:a.state.sessionDraft.atvKey,tipo:a.state.sessionDraft.topico,modal:a.state.sessionModalOpen,etapa:a.state.cmag.juris.etapa};});
+  ok(restaurado.tempo===600&&restaurado.key==='vt|cm-juris-1'&&restaurado.tipo==='Súmulas STJ'&&restaurado.modal&&restaurado.etapa===1,R+'reabrir preserva vínculo do cronômetro; trocar de matéria pede registrar a sessão anterior');
+  await page.evaluate(()=>{const a=window.__catedraApp;a.setState({sessionModalOpen:false,timerSeconds:0,studiedSeconds:0,timerRunning:false,focusMode:false,view:'ciclo',cyclePanel:'executar'});a._saveTimer();a.cmSelecionar({currentTarget:{dataset:{id:'const'}}});});await w(300);
+  const voltaReal=await page.evaluate(()=>{const a=window.__catedraApp,M=CT_CMAG;let c=M.definirAtivas(M.vazio(true),4);const ids=[];for(let i=0;i<5;i++){ids.push(M.gerarVolta(c).blocos[0].cmagId);c=M.avancarAtividade(c);}return {ids,voltas:c.voltas,primeira:M.gerarVolta(c).blocos[0].cmagId,etapa:c.juris.etapa,nav:document.querySelectorAll('.cm-etapa').length};});
+  ok(voltaReal.ids.join(',')==='const,civ,pc,pen,juris'&&voltaReal.voltas===1&&voltaReal.primeira==='const'&&voltaReal.etapa===0&&voltaReal.nav===5,R+'cinco atividades fecham uma volta e retornam ao início sem trocar jurisprudência pendente');
+
   const dia=await page.evaluate(()=>{const a=window.__catedraApp; a.setState({orient:{...a.state.orient,metaIdeal:300}}); a._recomporDia(); return {n:a.state.blocks.length,disc:a.state.blocks[0].disc,geral:!!document.querySelector('.ct-hero-ciclo'),kind:a.state.blocks[0].kind};});
-  ok(dia.n===1&&dia.disc==='Direito Constitucional'&&!dia.geral&&dia.kind==='Estudo dirigido',R+'uma matéria com meta de 5h, sem controles de conclusão duplicados ('+JSON.stringify(dia)+')');
+  ok(dia.n===5&&dia.disc==='Direito Constitucional'&&!dia.geral&&dia.kind==='Estudo dirigido',R+'volta com quatro matérias e jurisprudência, sem conclusão de conteúdo pelo registro ('+JSON.stringify(dia)+')');
   const regressao = await page.evaluate(() => {
     const app=window.__catedraApp, M=window.CT_CMAG, c=app._cm();
     const v=M.gerarVolta(c,1,'2026-10-06'), outra=M.gerarVolta(c,2,'2026-10-07');
@@ -76,34 +144,34 @@ export async function testarCicloMagistratura(page, base, ok, opcoes = {}) {
     app.state.sessions=[legado,alheio];
     const migradas=app._cmVinculosLegados({blocos:[{...v.blocos[0],id:'v1-cm0'}]},v);
     app.state.sessions=anterior;
-    app.puxarProximo(); const soUma=app.state.blocks.length===1;
+    app.puxarProximo(); const voltaInteira=app.state.blocks.length===5;
     app.toggleBlock({currentTarget:{dataset:{i:'0'}}});
-    const registro=app.state.sessionModalOpen&&!app.state.sessionDraft.concluiu&&app.state.sessionDraft.categorias.length===0&&!app.state.blocks[0].done;
+    const registro=app.state.sessionModalOpen&&!app.state.sessionDraft.concluiu&&app.state.sessionDraft.cmEtapa==='a2'&&app.state.sessionDraft.categorias[0]==='Teoria'&&!app.state.blocks[0].done;
     app.setState({sessionModalOpen:false});
     return {idsEstaveis:v.blocos[0].id===outra.blocos[0].id,
       ocorrenciasSeparadas:v.blocos[0].id!==M.gerarVolta({...c,st:{...c.st,const:{...c.st.const,ocorrencia:123}}},1,'2026-10-06').blocos[0].id,
       migraSemApagar:migradas.length===2&&migradas[0].id===legado.id&&migradas[0].min===30&&migradas[0].atvKey==='vt|'+v.blocos[0].id&&migradas[1]===alheio,
-      soUma,registro};
+      voltaInteira,registro};
   });
   for(const [k,v] of Object.entries(regressao)) ok(v,R+k);
 
   // 3. tela: 4 matérias; B travado; A completo libera B; fechar agenda revisões
   const t0 = await page.evaluate(() => ({ mats: document.querySelectorAll('section.cm .cm-mat').length,
-    bTravado: Array.from(document.querySelectorAll('.cm-mat')[0].querySelectorAll('.cm-chk[data-k^="b"]')).every(b => b.disabled) }));
-  ok(t0.mats === 4 && t0.bTravado, R + 'quatro cartões e Turno B travado (' + JSON.stringify(t0) + ')');
+    bTravado: document.querySelectorAll('.cm-mat .cm-chk[data-k^="b"]').length===0 }));
+  ok(t0.mats === 5 && t0.bTravado, R + 'quatro matérias e jurisprudência na mesma grade, com Turno B travado (' + JSON.stringify(t0) + ')');
   const marcar = async (id, ks) => { for (const k of ks) { await page.click(`.cm-chk[data-id="${id}"][data-k="${k}"]`); await w(60); } };
   await page.fill('input.cm-pr[data-id="const"][data-campo="p:a1"]', '34/80'); await page.press('input.cm-pr[data-id="const"][data-campo="p:a1"]', 'Tab'); await w(200);
   const pr = await page.evaluate(() => ({ a1: window.__catedraApp.state.cmag.st.const.p.a1, n: document.querySelectorAll('.cm-mat')[0].querySelectorAll('input.cm-pr').length,
     rotB: Array.from(document.querySelectorAll('.cm-turno span')).some(x => /próxima vez da matéria/.test(x.textContent)) }));
-  ok(pr.a1 === '34/80' && pr.n === 2 && pr.rotB, R + 'progresso do caderno só em a1 e b2, e o Turno B fala da próxima vez da matéria (' + JSON.stringify(pr) + ')');
+  ok(pr.a1 === '34/80' && pr.n === 1 && !pr.rotB, R + 'progresso do caderno só em a1 e b2, e o Turno B fala da próxima vez da matéria (' + JSON.stringify(pr) + ')');
   await marcar('const', ['a1']);
   ok(await page.evaluate(()=>!window.__catedraApp.state.cmag.st.const.d.a1), R+'34/80 impede concluir o caderno');
   await page.fill('input.cm-pr[data-id="const"][data-campo="p:a1"]', '80/80');
   await page.press('input.cm-pr[data-id="const"][data-campo="p:a1"]', 'Tab');
   await marcar('const', ['a1', 'a2', 'a3', 'a4']);
-  ok(await page.evaluate(()=>Array.from(document.querySelectorAll('.cm-chk[data-id="const"][data-k^="b"]')).every(b=>b.disabled)), R+'A completo mantém B travado nesta passagem');
-  await page.evaluate(()=>{const a=window.__catedraApp; for(let i=0;i<4;i++)a.cmAvancar();}); await w(200);
-  const bLivre = await page.evaluate(() => Array.from(document.querySelectorAll('.cm-chk[data-id="const"][data-k^="b"]')).every(b => !b.disabled));
+  ok(await page.evaluate(()=>document.querySelectorAll('.cm-chk[data-id="const"][data-k^="b"]').length===0), R+'A completo mantém B travado nesta passagem');
+  await page.evaluate(()=>{const a=window.__catedraApp; for(let i=0;i<5;i++)a.cmAvancar();}); await w(200);
+  const bLivre = await page.evaluate(() => {const b=Array.from(document.querySelectorAll('.cm-chk[data-id="const"][data-k^="b"]'));return b.length===5&&b.every(x=>!x.disabled);});
   ok(bLivre, R + 'nova passagem libera o Turno B');
   await marcar('const', ['b1', 'b2', 'b3', 'b4', 'b5']);
   await page.click('.cm-fechar[data-id="const"]'); await w(1400);
@@ -111,10 +179,10 @@ export async function testarCicloMagistratura(page, base, ok, opcoes = {}) {
     prazos: document.querySelectorAll('.cm-prazo').length, pr: Object.keys(window.__catedraApp.state.cmag.st.const.p || {}).length, primeira: document.querySelector('.cm-mat .cm-mat-n').textContent }));
   ok(f1.revs === 1 && f1.n === 1 && f1.pr === 0 && f1.prazos === 1 && f1.primeira === 'Direito Constitucional', R + '1º assunto fechado: revisão gravada e checks zerados (' + JSON.stringify(f1) + ')');
   await marcar('const', ['a1', 'a2', 'a3', 'a4']);
-  await page.evaluate(()=>{const a=window.__catedraApp; for(let i=0;i<4;i++)a.cmAvancar();}); await w(200);
+  await page.evaluate(()=>{const a=window.__catedraApp; for(let i=0;i<5;i++)a.cmAvancar();}); await w(200);
   await marcar('const', ['b1', 'b2', 'b3', 'b4', 'b5']);
   await page.click('.cm-fechar[data-id="const"]'); await w(500);
-  const f2 = await page.evaluate(() => ({ ativas: Array.from(document.querySelectorAll('.cm-mat .cm-mat-n')).map(x => x.textContent), ultimaFila: Array.from(document.querySelectorAll('.cm-fila li')).pop().textContent }));
+  const f2 = await page.evaluate(() => ({ ativas: Array.from(document.querySelectorAll('.cm-mat:not(.cm-juris) .cm-mat-n')).map(x => x.textContent), ultimaFila: Array.from(document.querySelectorAll('.cm-fila li')).pop().textContent }));
   ok(f2.ativas.join('|') === 'Direito Civil|Processo Civil|Direito Penal|Processo Penal' && f2.ultimaFila === 'Direito Constitucional',
     R + '2º assunto fechado: a matéria vai para o fim da fila e a próxima entra (' + JSON.stringify(f2) + ')');
 
@@ -191,7 +259,7 @@ export async function testarCicloMagistratura(page, base, ok, opcoes = {}) {
   const inteiro = await page.evaluate(() => JSON.stringify(window.__catedraApp.state.cmag.st.civ.ref));
   await page.selectOption('select.cm-ed-s[data-id="civ"]', '0'); await w(200);
   await marcar('civ', ['a1', 'a2', 'a3', 'a4']);
-  await page.evaluate(()=>{const a=window.__catedraApp; for(let i=0;i<4;i++)a.cmAvancar();}); await w(200);
+  await page.evaluate(()=>{const a=window.__catedraApp; for(let i=0;i<5;i++)a.cmAvancar();}); await w(200);
   await marcar('civ', ['b1', 'b2', 'b3', 'b4', 'b5']);
   await page.click('.cm-fechar[data-id="civ"]'); await w(500);
   const ed = await page.evaluate(() => { const s = window.__catedraApp.state; const sb = s.edital[0].topics[0].subs[0];
@@ -227,11 +295,12 @@ export async function testarCicloMagistratura(page, base, ok, opcoes = {}) {
           const contraste=(el,bg)=>{const cs=getComputedStyle(el),a=+cs.opacity,fg=rgb(cs.color).map((v,i)=>v*a+bg[i]*(1-a));const l1=lum(fg),l2=lum(bg);return (Math.max(l1,l2)+.05)/(Math.min(l1,l2)+.05);};
           const bg=rgb(getComputedStyle(painel).backgroundColor);
           const textos=[...painel.querySelectorAll('.cm-kicker,.cm-h,.cm-sub')].map(el=>contraste(el,bg));
+          const juris=document.querySelector('.cm-juris'), jb=juris.querySelector('button'), ji=juris.querySelector('input');
           const botoes=[...hero.querySelectorAll('button')],h=hero.getBoundingClientRect();
           return {semRolagem:document.documentElement.scrollWidth<=innerWidth,
-            toque:botoes.every(el=>el.getBoundingClientRect().height>=44),
+            toque:botoes.every(el=>el.getBoundingClientRect().height>=44)&&jb.getBoundingClientRect().height>=44&&ji.getBoundingClientRect().height>=44,
             dentro:botoes.every(el=>{const b=el.getBoundingClientRect();return b.left>=h.left&&b.right<=h.right;}),
-            contraste:Math.min(...textos,...botoes.map(el=>contraste(el,rgb(getComputedStyle(el).backgroundColor))))};
+            contraste:Math.min(contraste(jb,rgb(getComputedStyle(jb).backgroundColor)),contraste(juris.querySelector('h3'),rgb(getComputedStyle(juris).backgroundColor)),...textos,...botoes.map(el=>contraste(el,rgb(getComputedStyle(el).backgroundColor))))};
         });
         ok(medidas.semRolagem&&medidas.toque&&medidas.dentro&&medidas.contraste>=4.5,
           R+'cabeçalho '+largura+' '+dir+' '+(darkMode?'escuro':'claro')+' — toque, caixas e contraste ≥ 4,5:1 ('+JSON.stringify(medidas)+')');
