@@ -15,7 +15,7 @@ try {
   let r=await p.evaluate(()=>{const a=window.__catedraApp,d=a.state.sessionDraft;return {running:a.state.timerRunning,min:d.minutos,k:d.cmEtapa,done:a._cm().st.const.d.a2};});
   if(r.running||r.min!=='20'||r.k!=='a2'||r.done)throw Error(JSON.stringify(r));
   await p.evaluate(()=>window.__catedraApp.saveSession());
-  await p.waitForFunction(()=>{const c=JSON.parse(localStorage.getItem('catedra:cmag')||'{}');return c.st&&c.st.const&&c.st.const.retomadas&&c.st.const.retomadas.a2&&c.st.const.retomadas.a2.ponto==='Página 42';});
+  await p.waitForFunction(()=>{const c=JSON.parse(localStorage.getItem('catedra:cmag')||'{}');return c&&c.st&&c.st.const&&c.st.const.retomadas&&c.st.const.retomadas.a2&&c.st.const.retomadas.a2.ponto==='Página 42';});
   await p.reload();await p.waitForFunction(()=>window.__catedraApp&&window.CT_CMAG);
   r=await p.evaluate(()=>{const a=window.__catedraApp;a.setState({view:'ciclo'});const v=a._cmView().cmAtivas[0];return {ponto:v.retomadaPonto,proximo:v.retomadaProximo,acao:v.retomadaAcao,min:v.A.find(x=>x.k==='a2').tempo,done:a._cm().st.const.d.a2,vez:a._cm().vez};});
   if(r.ponto!=='Página 42'||r.proximo!=='Ler o exemplo'||r.acao!=='Continuar Doutrina'||r.min!==20||r.done||r.vez!==0)throw Error(JSON.stringify(r));
