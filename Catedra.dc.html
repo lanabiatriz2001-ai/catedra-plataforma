@@ -795,13 +795,12 @@ window.ctPdfLib = (function(){
       <sc-if value="{{ capAreaMod }}" hint-placeholder-val="{{ true }}"><button data-view="areamod" aria-current="{{ navCur.areamod }}" onclick="{{ onNav }}" style="{{ navAreaMod }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3 3 8l9 5 9-5-9-5z" stroke-linejoin="round"></path><path d="M3 14l9 5 9-5" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>{{ areaModLabel }}</span></button></sc-if>
       <sc-if value="{{ capCasos }}" hint-placeholder-val="{{ false }}"><button data-view="casos" aria-current="{{ navCur.casos }}" onclick="{{ onNav }}" style="{{ navCasos }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 3h9l3 3v15H6z" stroke-linejoin="round"></path><path d="M9.5 9.5h5M9.5 13h5M9.5 16.5h3" stroke-linecap="round"></path></svg><span>{{ casosMenu }}</span></button></sc-if>
       <sc-if value="{{ capEdital }}" hint-placeholder-val="{{ true }}"><button data-view="edital" aria-current="{{ navCur.edital }}" onclick="{{ onNav }}" style="{{ navStyle.edital }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 2h9l5 5v15H6z" stroke-linejoin="round"></path><path d="M14 2v6h6M9 13h6M9 17h6" stroke-linecap="round"></path></svg><span>Edital</span></button></sc-if>
+      <sc-if value="{{ capRoteiros }}" hint-placeholder-val="{{ true }}"><button data-view="roteiros" aria-current="{{ navCur.roteiros }}" onclick="{{ onNav }}" style="{{ navRoteiros }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 3h9l4 4v14H6z" stroke-linejoin="round"></path><path d="M9 12h7M9 16h7M9 8h3" stroke-linecap="round"></path></svg><span>Roteiros e peças</span></button></sc-if>
     </nav>
     <sc-if value="{{ temGrupoFases }}" hint-placeholder-val="{{ true }}"><div style="font-size:var(--fs-2xs);letter-spacing:.14em;text-transform:uppercase;color:var(--stext);opacity:.65;font-weight:600;padding:18px 8px 8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);">{{ navGrupoFases }}</div></sc-if>
     <sc-if value="{{ temGrupoFases }}" hint-placeholder-val="{{ true }}"><nav style="display:flex;flex-direction:column;gap:3px;">
-      <sc-if value="{{ capSimulados }}" hint-placeholder-val="{{ true }}"><button data-view="simulados" aria-current="{{ navCur.simulados }}" onclick="{{ onNav }}" style="{{ navStyle.simulados }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 4h6a1 1 0 0 1 1 1v1h2v15H6V6h2V5a1 1 0 0 1 1-1Z" stroke-linejoin="round"></path><path d="M9 12l1.5 1.5L13 11" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>1ª fase · Simulados</span></button></sc-if>
-      <sc-if value="{{ capRedacao }}" hint-placeholder-val="{{ true }}"><button data-view="redacao" aria-current="{{ navCur.redacao }}" onclick="{{ onNav }}" style="{{ navRedacao }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 20h16M4 16l9.5-9.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>2ª fase · Discursivas</span></button></sc-if>
-      <sc-if value="{{ capRoteiros }}" hint-placeholder-val="{{ true }}"><button data-view="roteiros" aria-current="{{ navCur.roteiros }}" onclick="{{ onNav }}" style="{{ navRoteiros }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 3h9l4 4v14H6z" stroke-linejoin="round"></path><path d="M9 12h7M9 16h7M9 8h3" stroke-linecap="round"></path></svg><span>Roteiros e peças</span></button></sc-if>
-      <sc-if value="{{ capSegundaFase }}" hint-placeholder-val="{{ true }}"><button data-view="segundafase" aria-current="{{ navCur.segundafase }}" onclick="{{ onNav }}" style="{{ navSegundaFase }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2M9 2h6" stroke-linecap="round"></path></svg><span>Provas de 2ª fase</span></button></sc-if>
+      <sc-if value="{{ capSimulados }}" hint-placeholder-val="{{ true }}"><button data-view="simulados" aria-current="{{ navCur.simulados }}" onclick="{{ onNav }}" style="{{ navStyle.simulados }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 4h6a1 1 0 0 1 1 1v1h2v15H6V6h2V5a1 1 0 0 1 1-1Z" stroke-linejoin="round"></path><path d="M9 12l1.5 1.5L13 11" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Simulados</span></button></sc-if>
+      <sc-if value="{{ capRedacao }}" hint-placeholder-val="{{ true }}"><button data-view="redacao" aria-current="{{ navSegundaCur }}" onclick="{{ onNav }}" style="{{ navSegundaHub }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 20h16M4 16l9.5-9.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>2ª fase</span></button></sc-if>
       <sc-if value="{{ capOral }}" hint-placeholder-val="{{ true }}"><button data-view="oral" aria-current="{{ navCur.oral }}" onclick="{{ onNav }}" style="{{ navOral }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z" stroke-linejoin="round"></path><path d="M5 11a7 7 0 0 0 14 0M12 18v3" stroke-linecap="round"></path></svg><span>Prova oral</span></button></sc-if>
     </nav></sc-if>
     <div style="font-size:var(--fs-2xs);letter-spacing:.14em;text-transform:uppercase;color:var(--stext);opacity:.65;font-weight:600;padding:18px 8px 8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);">Planejamento</div>
@@ -1010,6 +1009,54 @@ window.ctPdfLib = (function(){
             </div>
             <button onclick="{{ closeSession }}" aria-label="Fechar" class="ct-reg-fechar"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"></path></svg></button>
           </div>
+          <nav class="ct-fluxo-abas" aria-label="Modo de registro"><button class="ct-btn-2" data-v="estudo" aria-pressed="{{ sessModoEstudoStr }}" onclick="{{ setRegistroModo }}">Estudo</button><button class="ct-btn-2" data-v="simulado" aria-pressed="{{ sessModoSimStr }}" onclick="{{ setRegistroModo }}">Simulado</button></nav>
+          <sc-if value="{{ sessModoSim }}"><div class="ct-reg-corpo">        <!-- form -->
+        <div class="ct-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><span class="ct-titulo">Registrar simulado</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div><label class="ct-rotulo">Nome / Banca</label><input value="{{ simNome }}" oninput="{{ onSimNome }}" placeholder="ex.: Simulado CEBRASPE 05" class="ct-campo"></div>
+            <div><label class="ct-rotulo">Tempo gasto (min)</label><input type="number" value="{{ simMin }}" oninput="{{ onSimMin }}" placeholder="opcional" class="ct-campo ct-campo-num"></div>
+            <div style="grid-column:1/-1;"><label class="ct-rotulo">Forma de análise</label><select value="{{ simAnalysis }}" aria-label="Forma de análise" onchange="{{ onSimAnalysis }}" class="ct-campo"><option value="liquida">Certo/errado — nota líquida C−E (Cespe/Cebraspe)</option><option value="me">Múltipla escolha — % bruto (FGV/FCC/Vunesp)</option><option value="disc">Discursiva / peça jurídica</option></select><div style="font-size:var(--fs-xs);color:var(--text3);margin-top:6px;line-height:1.45;">{{ anaNote }}</div></div>
+          </div>
+
+          <!-- objetiva -->
+          <sc-if value="{{ isObjetiva }}" hint-placeholder-val="{{ true }}">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;">
+              <div><label class="ct-rotulo">Total de questões</label><input type="number" data-f="total" value="{{ sim.total }}" oninput="{{ onSim }}" class="ct-campo ct-campo-num"></div>
+              <div><label class="ct-rotulo">Acertos</label><input type="number" data-f="acertos" value="{{ sim.acertos }}" oninput="{{ onSim }}" class="ct-campo ct-campo-num"></div>
+              <div><label class="ct-rotulo">Erros</label><input type="number" data-f="erros" value="{{ sim.erros }}" oninput="{{ onSim }}" class="ct-campo ct-campo-num"></div>
+              <div><label class="ct-rotulo">Brancos</label><input type="number" data-f="brancos" value="{{ sim.brancos }}" oninput="{{ onSim }}" class="ct-campo ct-campo-num"></div>
+            </div>
+            <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:14px;line-height:1.5;display:flex;gap:9px;align-items:flex-start;"><span style="color:var(--danger);font-weight:700;">!</span><span>Banca estilo CEBRASPE/CESPE: cada erro anula um acerto. A nota líquida (C−E) é o que vale.</span></div>
+          </sc-if>
+
+          <!-- discursiva / peças -->
+          <sc-if value="{{ isDisc }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:14px;">
+              <div class="ct-eb" style="display:flex;padding-bottom:8px;">
+                <span style="flex:1;">Questão / peça</span><span style="width:80px;text-align:right;">Obtida</span><span style="width:80px;text-align:right;">Máxima</span><span style="width:28px;"></span>
+              </div>
+              <sc-for list="{{ discItems }}" as="d" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;gap:8px;padding:6px 0;">
+                  <span style="flex:1;font-size:var(--fs-base);color:var(--ink);min-width:0;">{{ d.label }}</span>
+                  <input type="number" step="0.5" data-i="{{ d.i }}" data-f="obtida" value="{{ d.obtidaTxt }}" oninput="{{ onDiscItem }}" class="ct-campo ct-campo-num" style="width:80px;text-align:right;">
+                  <input type="number" step="0.5" data-i="{{ d.i }}" data-f="maxima" value="{{ d.maxima }}" oninput="{{ onDiscItem }}" class="ct-campo ct-campo-num" style="width:80px;text-align:right;color:var(--text2);">
+                  <button class="ct-alvo ct-miudo" data-i="{{ d.i }}" onclick="{{ removeDiscItem }}" title="Remover" style="width:28px;height:28px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text3);cursor:pointer;flex:none;">×</button>
+                </div>
+              </sc-for>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
+                <button onclick="{{ addDiscItem }}" class="ct-btn-2">+ Adicionar item</button>
+                <div style="font-size:var(--fs-base);color:var(--text2);">Nota: <b style="color:var(--ink);font-family:var(--mono);">{{ discObtidaTxt }} / {{ discMaxima }}</b> · <b style="color:var(--accent);">{{ discPct }}%</b></div>
+              </div>
+              <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:14px;line-height:1.5;display:flex;gap:9px;align-items:flex-start;"><span style="color:var(--accent);font-weight:700;">i</span><span>Some a nota de cada questão discursiva e peça jurídica. A pontuação total define o percentual de aproveitamento.</span></div>
+            </div>
+          </sc-if>
+          <button onclick="{{ saveSimulado }}" class="ct-btn" style="margin-top:18px;width:100%;">Registrar simulado no histórico</button>
+          <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:8px;text-align:center;">soma às suas horas, ao desempenho e aparece nos "Simulados registrados"</div>
+        </div>
+
+<button class="ct-btn-2" onclick="{{ closeSession }}">Cancelar</button></div></sc-if>
+          <sc-if value="{{ sessModoEstudo }}">
           <div class="ct-reg-efeito">
             <div class="ct-reg-efeito-t">O que esta sessão muda</div>
             <sc-if value="{{ sessEfeitosShow }}" hint-placeholder-val="{{ false }}">
@@ -1116,6 +1163,7 @@ window.ctPdfLib = (function(){
               <button onclick="{{ saveSession }}" class="ct-btn">Registrar sessão</button>
             </div>
           </div>
+          </sc-if>
         </div>
       </div>
     </sc-if>
@@ -3474,6 +3522,7 @@ window.ctPdfLib = (function(){
            bordas de 3px e sombra dura que não existem em nenhuma outra tela do Cátedra.
            Agora segue a linguagem da plataforma: superfície clara, raio do tema, sombra
            suave, gradiente do acento nos destaques. -->
+      <sc-if value="{{ isSegundaHub }}"><nav class="ct-fluxo-abas" aria-label="2ª fase"><button class="ct-btn-2" data-view="redacao" aria-current="{{ navCur.redacao }}" onclick="{{ onNav }}">Treino escrito</button><button class="ct-btn-2" data-view="segundafase" aria-current="{{ navCur.segundafase }}" onclick="{{ onNav }}">Provas oficiais</button></nav></sc-if>
       <sc-if value="{{ isRedacao }}" hint-placeholder-val="{{ false }}">
        <div style="display:flex;flex-direction:column;gap:20px;">
 
@@ -4388,6 +4437,8 @@ window.ctPdfLib = (function(){
 
       <sc-if value="{{ isSim }}" hint-placeholder-val="{{ true }}">
        <div style="display:flex;flex-direction:column;gap:18px;">
+        <nav class="ct-fluxo-abas" aria-label="Simulados"><button class="ct-btn-2" data-v="registro" aria-pressed="{{ simRegistroStr }}" onclick="{{ setSimAba }}">Registrar e Raio X</button><button class="ct-btn-2" data-v="treino" aria-pressed="{{ simTreinoStr }}" onclick="{{ setSimAba }}">Treinar 1ª fase</button></nav>
+        <sc-if value="{{ simTreino }}">
         <!-- SIMULADO JOGÁVEL — veio do CátedraJURIS. Ao encerrar, preenche o formulário
              de registro abaixo, e o resultado passa a contar no desempenho.
              O card deixou de ser uma linha discreta com botão "Abrir": simulado é a ação
@@ -4511,7 +4562,7 @@ window.ctPdfLib = (function(){
                     <div class="ct-num"><b>{{ sjBrancos }}</b><span>Em branco</span></div>
                   </div>
                   </sc-if>
-                  <div style="font-size:var(--fs-sm);color:var(--text3);line-height:1.55;margin-bottom:14px;">Os números já foram lançados no formulário abaixo — confira e clique em <b>Registrar simulado no histórico</b> para contar no seu desempenho.</div>
+                  <div style="font-size:var(--fs-sm);color:var(--text3);line-height:1.55;margin-bottom:14px;">Os números estão preparados na aba Registrar e Raio X. Confira e registre para contar no seu desempenho.</div><button class="ct-btn" data-v="registro" onclick="{{ setSimAba }}">Conferir e registrar resultado</button>
                   <button onclick="{{ novoSj }}" class="ct-btn-2" style="margin-bottom:16px;">Novo simulado</button>
                   <sc-if value="{{ sjTemRel }}" hint-placeholder-val="{{ false }}">
                     <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:18px;">
@@ -4597,6 +4648,8 @@ window.ctPdfLib = (function(){
             <span style="font-size:var(--fs-xs);color:var(--text3);">min (personalizado)</span>
           </div>
         </div>
+        </sc-if>
+        <sc-if value="{{ simRegistroTela }}">
         <div class="ct-grade-larga" style="align-items:start;">
         <!-- form -->
         <div class="ct-card">
@@ -4718,6 +4771,7 @@ window.ctPdfLib = (function(){
           </div></sc-if>
         </div>
        </div>
+        </sc-if>
        </div>
       </sc-if>
 
@@ -8257,7 +8311,7 @@ class Component extends DCLogic {
       this.setState(s=>{
         const fresh=this._freshSessionDraft(s.sessionDraft);
         return {
-        menuOpen:false, sessionModalOpen:true, pomoMenuOpen:false,   // mantém a view atual — o modal cobre tudo
+        menuOpen:false, sessionModalOpen:true, registroModo:'estudo', pomoMenuOpen:false,   // mantém a view atual — o modal cobre tudo
         sessionDraft:{
           ...fresh,
           disc: disc || fresh.disc, discCustom:false, topico: topico,
@@ -10759,7 +10813,7 @@ class Component extends DCLogic {
     if(v==='redacao') this._carregarDiscursivas().then(()=>this.setState({discCarregado:true}));
     return v;
   }
-  onNav = (e)=>{ const v=this._irPara(e.currentTarget.dataset.view); if(v!=='indisponivel') this._marcarPonto(v); };
+  onNav = (e)=>{ const alvo=e.currentTarget.dataset.view; const v=this._irPara(alvo,alvo==='simulados'?{simAba:'registro'}:{}); if(v!=='indisponivel') this._marcarPonto(v); };
 
   /* ===== VOLTA DO ACERVO: um mecanismo só =====
      A origem ("de") é JSON puro: {view, rotulo, rito?, peca?, bloco?, disc?, rev?}. Quem a
@@ -11987,6 +12041,9 @@ class Component extends DCLogic {
   editSub = (e)=>{ const el=e.currentTarget, d=+el.dataset.d, t=+el.dataset.t, i=+el.dataset.i, v=el.value; const ed=this.state.edital.slice();
     const tp=ed[d].topics.slice(); const sb=(tp[t].subs||[]).slice(); sb[i]={...this._subObj(sb[i]),name:v}; tp[t]={...tp[t],subs:sb}; ed[d]={...ed[d],topics:tp}; this.setState({edital:ed}); this.flashSync(); };
   onSim = (e)=>{ const f=e.currentTarget.dataset.f; const v=Math.max(0,parseInt(e.currentTarget.value,10)||0); this.setState(s=>({sim:{...s.sim,[f]:v}})); };
+  setSimAba = (e)=> this.setState({simAba:e.currentTarget.dataset.v==='treino'?'treino':'registro'});
+  setRegistroModo = (e)=>{ const modo=e.currentTarget.dataset.v==='simulado'?'simulado':'estudo';
+    this.setState(s=>({registroModo:modo,...(modo==='simulado'&&!s.simMin?{simMin:s.sessionDraft.minutos||'',simRegistroUsaTimer:+s.sessionDraft.minutos>0}:{})})); };
   onSimNome = (e)=> this.setState({simNome:e.currentTarget.value});
   saveSimulado = ()=>{ const s=this.state.sim||{}; const nome=(this.state.simNome||'').trim()||'Simulado';
     const min=Math.max(0, parseInt(this.state.simMin,10)||0);   // tempo REAL digitado (vazio = 0)
@@ -12008,7 +12065,9 @@ class Component extends DCLogic {
     }
     const rec={ id:'s'+Date.now(), ts:Date.now(), date:this._ymd(Date.now()-Math.min(min,600)*60000), disc:'Simulado', topico:nome, categoria:'Simulado', categorias:['Simulado'], min, questoes, acertos, erradas, brancos, liquido:acertos-erradas, foco:4, nota:notaTxt, discPct:discPctRec, countMeta:true };
     const sessions=[rec, ...this.state.sessions]; this._saveSessions(sessions);
-    this.setState({sessions, simNome:'', simMin:''}, ()=>{ try{ this._reconcileStreak(); }catch(_){} try{ this._pubAtvT=0; this._publicarAtividade(); }catch(_){} }); this.flashSync();
+    const consomeTimer=!!this.state.simRegistroUsaTimer;
+    if(consomeTimer){if(this._tick){clearInterval(this._tick);this._tick=null;}try{localStorage.removeItem('ct_timer');}catch(_){}}
+    this.setState({...(consomeTimer?{timerRunning:false,timerSeconds:0,studiedSeconds:0,sessionDraft:this._freshSessionDraft(this.state.sessionDraft)}:{}),simRegistroUsaTimer:false,sessions, simNome:'', simMin:'', simAba:'registro', sessionModalOpen:false, registroModo:'estudo'}, ()=>{ try{ this._reconcileStreak(); }catch(_){} try{ this._pubAtvT=0; this._publicarAtividade(); }catch(_){} }); this.flashSync();
     this._toast('Simulado "'+nome+'" registrado no histórico ✦'); };
   onSimMin = (e)=>{ const v=e.currentTarget.value; this.setState({simMin: v===''?'':String(Math.max(0,parseInt(v,10)||0))}); };
 
@@ -12178,7 +12237,7 @@ class Component extends DCLogic {
     // indicador e reabertura da atividade quando a sessão é excluída dependem só dele.
     return {...this._freshSessionDraft(prev), disc, topico, edTop:_edTop, edSub:b.subtopico||'', categorias:b.kind==='Estudo dirigido'?[]:[cat], categoria:b.kind==='Estudo dirigido'?'':cat,
       atvKey:this._atvChave(b), origem:'ciclo', ...(prev&&prev.atvKey===this._atvChave(b)?{cmPlanoMin:prev.cmPlanoMin,cmPlanoObjetivo:prev.cmPlanoObjetivo}:{}), ...(()=>{const ctx=this._cmContexto(b);if(!ctx)return {};const r=ctx.id!=='juris'?CT_CMAG.roteiro(this._cm(),ctx.id):null;const k=prev&&prev.atvKey===this._atvChave(b)&&prev.cmEtapa?prev.cmEtapa:ctx.etapa;const e=r&&r.etapas.find(x=>x.k===k);const v=e?(this._cm().st[ctx.id].retomadas[k]||{}):{};const mesmo=prev&&prev.atvKey===this._atvChave(b)&&prev.cmEtapa===k;return {cmEtapa:k||'',cmPonto:mesmo&&prev.cmPonto!=null?prev.cmPonto:(e?v.ponto||'':ctx.ponto),cmProximo:mesmo&&prev.cmProximo!=null?prev.cmProximo:(e?v.proximo||'':ctx.proximo),...(e?{categoria:e.categoria,categorias:[e.categoria]}:{}),agendarRevisao:false,concluiu:false};})()}; }
-  openSession = ()=>{ const _st=this.state; const pre=Math.round(((_st.timerMode==='pomo'?_st.studiedSeconds:_st.timerSeconds)||_st.studiedSeconds||0)/60); this.setState(s=>({sessionModalOpen:true, pomoMenuOpen:false, sessionDraft:{...(s.sessionDraft.atvKey?s.sessionDraft:(this._cmContexto()?this._blockToDraft(this._cmContexto().b,s.sessionDraft):this._freshSessionDraft(s.sessionDraft))), minutos: pre>0?String(pre):''}})); };
+  openSession = ()=>{ const _st=this.state; const pre=Math.round(((_st.timerMode==='pomo'?_st.studiedSeconds:_st.timerSeconds)||_st.studiedSeconds||0)/60); this.setState(s=>({sessionModalOpen:true, registroModo:'estudo', pomoMenuOpen:false, sessionDraft:{...(s.sessionDraft.atvKey?s.sessionDraft:(this._cmContexto()?this._blockToDraft(this._cmContexto().b,s.sessionDraft):this._freshSessionDraft(s.sessionDraft))), minutos: pre>0?String(pre):''}})); };
   closeSessionBackdrop = (e)=>{ if(e&&e.target!==e.currentTarget) return;   // só o clique no fundo
     const n=(this._extRegQueue||[]).length;
     if(n && !window.confirm('Há '+n+' registro'+(n>1?'s':'')+' pendente'+(n>1?'s':'')+' na fila. Descartar tudo?')) return;
@@ -16216,7 +16275,7 @@ class Component extends DCLogic {
     else { this.setState({provaRunning:true}); this._provaTimer(); } };
   finishProva = (auto)=>{ auto=auto===true;   // o clique em "Encerrar e registrar" passa o evento — só o relógio passa true
     if(this._provaT){ clearInterval(this._provaT); this._provaT=null; } try{ localStorage.removeItem('ct_prova'); }catch(_){} const elapsedMin=Math.round(this.state.provaSeconds/60);
-    this.setState(s=>({ provaMode:false, provaRunning:false, sessionModalOpen:true,
+    this.setState(s=>({ provaMode:false, provaRunning:false, sessionModalOpen:true, registroModo:'simulado', simMin:elapsedMin>0?String(elapsedMin):'', simNome:s.provaName||'Simulado cronometrado',
       sessionDraft:{...this._freshSessionDraft(s.sessionDraft), categorias:['Simulado'], categoria:'Simulado', minutos: elapsedMin>0?String(elapsedMin):'', topico: s.provaName||'Simulado cronometrado' } }));
     this._toast(auto?'Tempo esgotado — registre seu desempenho':'Prova encerrada — registre seu desempenho'); };
   exitProva = ()=>{ if(this._provaT){ clearInterval(this._provaT); this._provaT=null; } try{ localStorage.removeItem('ct_prova'); }catch(_){}
@@ -21496,10 +21555,13 @@ class Component extends DCLogic {
       // E3: a tela cheia do Modo ENAM existe em qualquer view (a prova continua se ela trocar de tela)
       provaSala:this.state.provaMode && this.state.sjModo!=='enam', enamEmProva:false,
       ...((this.state.provaMode && this.state.sjModo==='enam' && (this.state.sjItens||[]).length) ? this._enamVM() : {}),
+      isSegundaHub:['redacao','segundafase'].includes(this.state.view), navSegundaCur:['redacao','segundafase'].includes(this.state.view)?'page':'', navSegundaHub:navStyle(['redacao','segundafase'].includes(this.state.view)?this.state.view:'redacao'),
+      simTreino:this.state.simAba==='treino', simRegistroTela:this.state.simAba!=='treino'&&!(this.state.sessionModalOpen&&this.state.registroModo==='simulado'), simRegistroStr:this.state.simAba==='treino'?'false':'true',simTreinoStr:this.state.simAba==='treino'?'true':'false',setSimAba:this.setSimAba,
+      sessModoSim:this.state.registroModo==='simulado',sessModoEstudo:this.state.registroModo!=='simulado',sessModoSimStr:this.state.registroModo==='simulado'?'true':'false',sessModoEstudoStr:this.state.registroModo==='simulado'?'false':'true',setRegistroModo:this.setRegistroModo,
       isRev:this.state.view==='revisoes', isSim:this.state.view==='simulados', isAnalise:this.state.view==='analise', isConq:this.state.view==='conquistas', isConqMetas:(this.state.view==='conquistas'||this.state.view==='metas'),
       isBaralho:this.state.view==='flashcards',
       isAnki:this.state.view==='anki', isPersonal:this.state.view==='personalizacao', isAjustes:this.state.view==='ajustes', isConfig:(this.state.view==='ajustes'||this.state.view==='personalizacao'||this.state.view==='orientacao'), isDash:this.state.view==='dashboards',
-      viewTitle:({indisponivel:'Não faz parte da sua área',inicio:'Início',areamod:areaModLabel,roteiros:'Roteiros e peças',oral:'Prova oral',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',flashcards:'Baralho',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'Redação',anki:'Anki',erros:'Caderno de erros',dominio:'Desempenho · Domínio por tópico',metas:'Metas',dashboards:'Dashboards',analise:'Desempenho',novidades:(this.state.isMobile?'Novidades':'Central de novidades'),conquistas:'Metas & Conquistas',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório',admin:'Console de administração',bancas:'Bancas'}[this.state.view]),
+      viewTitle:({indisponivel:'Não faz parte da sua área',inicio:'Início',areamod:areaModLabel,roteiros:'Roteiros e peças',oral:'Prova oral',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',flashcards:'Baralho',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'2ª fase',segundafase:'2ª fase',anki:'Anki',erros:'Caderno de erros',dominio:'Desempenho · Domínio por tópico',metas:'Metas',dashboards:'Dashboards',analise:'Desempenho',novidades:(this.state.isMobile?'Novidades':'Central de novidades'),conquistas:'Metas & Conquistas',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório',admin:'Console de administração',bancas:'Bancas'}[this.state.view]),
       viewSub:({indisponivel:'Esta tela depende de um acervo que a sua área de estudo não tem',inicio:'Seu painel de hoje',ciclo:(this.state.cycleMode==='magistratura'?'Uma sequência contínua de estudo — tempo e conteúdo em cada atividade':'Uma volta pelas matérias, na ordem certa — o dia consome os próximos blocos'),edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',flashcards:'Os cartões que o seu estudo gerou — revisados pela mesma régua das revisões',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:'Simulado cronometrado e registro de resultados',redacao:'Escolha uma prova real, responda e corrija pelo espelho',anki:'Baralho da biblioteca + analisador de retenção',erros:'Registre cada erro com o motivo e transforme em revisão',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',novidades:'O que mudou nas fontes oficiais — Planalto, STF e STJ',conquistas:'Objetivos pessoais, marcos e constância',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação',admin:'Contas, IA, moderação e os interruptores do app',bancas:'Perfil de cada banca e dicas por área'}[this.state.view]),
       notLoggedIn:!this.state.loggedIn,
       // ===== U5: selo de sincronização permanente, honesto e sem travar nada ==========
