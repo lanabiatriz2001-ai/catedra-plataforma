@@ -23,7 +23,7 @@ try{
  assert.equal(r.min,25);assert.equal(r.k,'a2');assert.equal(r.nome,'Doutrina');assert.equal(r.id,'const');assert.ok(r.key);assert.ok(!r.done);assert.equal(r.point,'Página 73');assert.equal(r.revs,0);
  assert.match(await home.innerText(),/Página 73/);assert.match(await home.innerText(),/25 min registrados/);
  if(process.env.CT_CAPTURA)await home.screenshot({path:process.env.CT_CAPTURA});
- await p.waitForFunction(()=>JSON.parse(localStorage.getItem('catedra:cmag')||'{}').st?.const?.retomadas?.a2?.ponto==='Página 73');
+ await p.waitForFunction(()=>JSON.parse(localStorage.getItem('catedra:cmag')||'{}')?.st?.const?.retomadas?.a2?.ponto==='Página 73');
  await p.reload();await p.waitForFunction(()=>window.__catedraApp&&window.CT_CMAG);
  await home.waitFor();assert.match(await home.innerText(),/Retomar controle difuso/);
  await p.evaluate(()=>window.__catedraApp.toggleTimer());
@@ -40,6 +40,28 @@ try{
  await p.waitForFunction(()=>window.__catedraApp.state.sessions.length===3);
  r=await p.evaluate(()=>{const c=window.__catedraApp._cm();return c.juris;});assert.equal(r.etapa,0);assert.equal(r.ponto,'Súmula 12');
  r=await p.evaluate(()=>{const a=window.__catedraApp,s=a.state.sessions.find(s=>s.cmagId==='const');a.openHistEdit({currentTarget:{dataset:{id:s.id}}});a.setState({histEdit:{...a.state.histEdit,minutos:'35'}});a.saveHistEdit();return a._cmView().cmAtivas[0].tempo;});assert.equal(r,35);
+ // Registro programático (ex.: prova oral) com o Magistratura ativo deve continuar
+ // independente do ciclo e do cronômetro; não pode concluir ou mudar a retomada.
+ r=await p.evaluate(()=>{
+   const a=window.__catedraApp;
+   if(!a.state.blocks.some(b=>b.cmagId))throw Error('Fixture sem bloco do Magistratura');
+   a.setState({timerSeconds:420,studiedSeconds:420,timerRunning:true});
+   const antes={cm:JSON.stringify(a._cm()),draft:JSON.stringify(a.state.sessionDraft),revs:JSON.stringify(a.state.reviews),n:a.state.sessions.length};
+   const rec=a._registrarAtividadeAuto({categoria:'Prova oral',topico:'Controle de constitucionalidade',min:8,disc:'Direito Constitucional'});
+   const salvo=JSON.parse(localStorage.getItem('catedra:sessions')||'[]')[0];
+   const resultado={rec,salvo,maisUma:a.state.sessions.length===antes.n+1,cicloIgual:JSON.stringify(a._cm())===antes.cm,draftIgual:JSON.stringify(a.state.sessionDraft)===antes.draft,revsIguais:JSON.stringify(a.state.reviews)===antes.revs,cronometroPreservado:a.state.timerSeconds===420&&a.state.studiedSeconds===420&&a.state.timerRunning};
+   a.setState({timerSeconds:0,studiedSeconds:0,timerRunning:false});return resultado;
+ });
+ assert.ok(r.maisUma);assert.ok(r.cicloIgual);assert.ok(r.draftIgual);assert.ok(r.revsIguais);assert.ok(r.cronometroPreservado);
+ assert.equal(r.rec.disc,'Direito Constitucional');assert.equal(r.rec.topico,'Controle de constitucionalidade');assert.equal(r.rec.categoria,'Prova oral');assert.equal(r.rec.min,8);assert.equal(r.rec.auto,true);
+ assert.equal(r.rec.atvKey,undefined);assert.equal(r.rec.cmEtapa,undefined);assert.equal(r.rec.concluiu,undefined);assert.deepEqual(r.salvo,r.rec);
+ // O registro de simulado também mantém o ciclo independente.
+ r=await p.evaluate(()=>{
+   const a=window.__catedraApp,antes=JSON.stringify(a._cm()),n=a.state.sessions.length;
+   a.setState({simNome:'Simulado de regressão',simMin:'30',simAnalysis:'objetiva',sim:{total:10,acertos:7,erros:2,brancos:1}});
+   a.saveSimulado();return {rec:a.state.sessions[0],maisUma:a.state.sessions.length===n+1,cicloIgual:JSON.stringify(a._cm())===antes};
+ });
+ assert.ok(r.maisUma);assert.ok(r.cicloIgual);assert.equal(r.rec.categoria,'Simulado');assert.equal(r.rec.min,30);assert.equal(r.rec.questoes,10);assert.equal(r.rec.acertos,7);assert.equal(r.rec.atvKey,undefined);assert.equal(r.rec.cmEtapa,undefined);
  assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2));assert.deepEqual(erros,[]);
- console.log(motor+': início, sessão por etapa, retomada após reload, cronômetro global, sessão avulsa e jurisprudência integrados.');
+ console.log(motor+': início, sessão por etapa, retomada após reload, cronômetro global, sessão avulsa, jurisprudência e registro automático integrados.');
 }finally{await browser.close();srv.close();}

@@ -12138,12 +12138,6 @@ class Component extends DCLogic {
       notaTxt='Nota '+obTxt+' / '+mx+' ('+discPctRec+'%)';
     }
     const rec={ id:'s'+Date.now(), ts:Date.now(), date:this._ymd(Date.now()-Math.min(min,600)*60000), disc:'Simulado', topico:nome, categoria:'Simulado', categorias:['Simulado'], min, questoes, acertos, erradas, brancos, liquido:acertos-erradas, foco:4, nota:notaTxt, discPct:discPctRec, countMeta:true };
-    const cmBloco=this.state.cycleMode==='magistratura'?(this.state.blocks||[]).find(b=>b.cmagId&&this._atvChave(b)===d.atvKey&&String(b.discEdital||b.disc)===_disc):null;
-    if(cmBloco){const ctx=this._cmContexto(cmBloco),r=cmBloco.cmagId!=='juris'?CT_CMAG.roteiro(this._cm(),cmBloco.cmagId):null,e=r&&r.etapas.find(e=>e.k===rec.cmEtapa);
-      rec.cmagId=cmBloco.cmagId;rec.cmEtapaNome=e?e.nome:(ctx?ctx.titulo:'');rec.cmPonto=String(d.cmPonto!=null?d.cmPonto:(ctx&&ctx.ponto)||'').slice(0,300);rec.cmProximo=String(d.cmProximo!=null?d.cmProximo:(ctx&&ctx.proximo)||'').slice(0,500);
-      let c=this._cm();if(e){c=CT_CMAG.guardarRetomada(c,cmBloco.cmagId,e.k,'ponto',rec.cmPonto);c=CT_CMAG.guardarRetomada(c,cmBloco.cmagId,e.k,'proximo',rec.cmProximo);c=CT_CMAG.guardarRetomada(c,cmBloco.cmagId,e.k,'pausado','');this._cmSet(c);}
-      else if(cmBloco.cmagId==='juris')this._cmSet(CT_CMAG.definirJuris(c,rec.cmPonto));
-    }
     const sessions=[rec, ...this.state.sessions]; this._saveSessions(sessions);
     this.setState({sessions, simNome:'', simMin:''}, ()=>{ try{ this._reconcileStreak(); }catch(_){} try{ this._pubAtvT=0; this._publicarAtividade(); }catch(_){} }); this.flashSync();
     this._toast('Simulado "'+nome+'" registrado no histórico ✦'); };
@@ -12487,12 +12481,6 @@ class Component extends DCLogic {
     const m=Math.max(1, Math.round(min||0)||3);
     const rec={ id:'s'+Date.now(), ts:Date.now(), date:this._ymd(Date.now()), disc:disc||'Geral', topico:topico||categoria, categoria, categorias:[categoria],
       edTop:null, edSub:null, min:m, questoes:0, acertos:0, erradas:0, brancos:0, liquido:0, foco:'', nota:'', countMeta:true, auto:true };
-    const cmBloco=this.state.cycleMode==='magistratura'?(this.state.blocks||[]).find(b=>b.cmagId&&this._atvChave(b)===d.atvKey&&String(b.discEdital||b.disc)===_disc):null;
-    if(cmBloco){const ctx=this._cmContexto(cmBloco),r=cmBloco.cmagId!=='juris'?CT_CMAG.roteiro(this._cm(),cmBloco.cmagId):null,e=r&&r.etapas.find(e=>e.k===rec.cmEtapa);
-      rec.cmagId=cmBloco.cmagId;rec.cmEtapaNome=e?e.nome:(ctx?ctx.titulo:'');rec.cmPonto=String(d.cmPonto!=null?d.cmPonto:(ctx&&ctx.ponto)||'').slice(0,300);rec.cmProximo=String(d.cmProximo!=null?d.cmProximo:(ctx&&ctx.proximo)||'').slice(0,500);
-      let c=this._cm();if(e){c=CT_CMAG.guardarRetomada(c,cmBloco.cmagId,e.k,'ponto',rec.cmPonto);c=CT_CMAG.guardarRetomada(c,cmBloco.cmagId,e.k,'proximo',rec.cmProximo);c=CT_CMAG.guardarRetomada(c,cmBloco.cmagId,e.k,'pausado','');this._cmSet(c);}
-      else if(cmBloco.cmagId==='juris')this._cmSet(CT_CMAG.definirJuris(c,rec.cmPonto));
-    }
     const sessions=[rec, ...this.state.sessions]; this._saveSessions(sessions);
     this.setState({sessions}, ()=>{ try{ this._reconcileStreak(); }catch(_){} });
     return rec;
