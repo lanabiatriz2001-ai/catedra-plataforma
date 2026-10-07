@@ -2086,7 +2086,8 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 .ct-reg>.ct-fluxo-abas{padding:var(--ct-e3) var(--ct-e5) 0;margin-bottom:var(--ct-e3)}
 
 .ct-sim-registro{--ct-sim-num:calc(var(--ct-e7) + var(--ct-e6));min-width:0}
-.ct-sim-registro input,.ct-sim-registro select,.ct-sim-registro button{min-height:44px}
+.ct-sim-registro button{min-height:44px}
+.ct-sim-registro.ct-modal-panel{max-width:60rem}
 
 .ct-arg-historico{max-width:47.5rem}
 .ct-arg-conversa{min-width:0;max-width:53.75rem;margin-inline:auto;width:100%;box-sizing:border-box}

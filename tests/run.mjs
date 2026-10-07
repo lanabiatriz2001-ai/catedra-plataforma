@@ -5207,6 +5207,11 @@ const d2b = await page.evaluate(async () => {
   const views = ['areamod', 'roteiros', 'legis', 'juris', 'segundafase', 'prioridade'];
   r.seisIframes = document.querySelectorAll('iframe[data-ct-view]').length === 6;
   for (const v of views) {
+    // As provas oficiais são um destino interno da entrada única de 2ª fase.
+    if (v === 'segundafase') {
+      document.querySelector('aside button[data-view="redacao"]').click();
+      for (let t=0;t<30&&!document.querySelector('nav button[data-view="segundafase"]');t++) await w(100);
+    }
     const b = document.querySelector('button[data-view="' + v + '"]');
     if (!b) { r.telas[v] = 'sem botão no menu'; continue; }
     b.click();
@@ -5241,6 +5246,10 @@ const barra = await page.evaluate(async () => {
   const w = ms => new Promise(r => setTimeout(r, ms));
   const r = {};
   for (const [view, arquivo] of [['prioridade', 'prioridade-web.html'], ['segundafase', 'segunda-fase-web.html']]) {
+    if (view === 'segundafase') {
+      document.querySelector('aside button[data-view="redacao"]').click();
+      for (let t=0;t<30&&!document.querySelector('nav button[data-view="segundafase"]');t++) await w(100);
+    }
     const b = document.querySelector('button[data-view="' + view + '"]');
     if (!b) { r[view + 'TemBotao'] = false; continue; }
     r[view + 'TemBotao'] = true;
@@ -6983,7 +6992,8 @@ ok(orfas.length === 0, 'D14 nenhuma variável órfã no template (' + (orfas.sli
 const d14barra = await page.evaluate(() => {
   const r = {};
   for (const v of ['prioridade', 'segundafase']) {
-    const b = document.querySelector('button[data-view="' + v + '"]');
+    const entrada = v === 'segundafase' ? 'redacao' : v;
+    const b = document.querySelector('aside button[data-view="' + entrada + '"]');
     r[v + 'TemBotao'] = !!b;
     r[v + 'TemEstilo'] = !!b && (b.getAttribute('style') || '').length > 20;
   }
@@ -7385,8 +7395,8 @@ const AUDITOR = () => {
         .map(b => b.dataset.view).filter(v => acervo.includes(v));
     }, ACERVO);
   }
-  ok(ACERVO.every(v => menus.juridica.includes(v)),
-    'AREA jurídica continua com todas as telas (' + menus.juridica.length + '/' + ACERVO.length + ')');
+  ok(ACERVO.filter(v => v !== 'segundafase').every(v => menus.juridica.includes(v)),
+    'AREA jurídica mantém todas as entradas e reúne a 2ª fase (' + menus.juridica.length + '/' + (ACERVO.length-1) + ')');
   ok(!menus.saude.includes('juris') && !menus.saude.includes('roteiros')
      && !menus.saude.includes('segundafase') && !menus.saude.includes('redacao')
      && !menus.saude.includes('prioridade'),
