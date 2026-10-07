@@ -844,7 +844,7 @@ function _colher(alvos, jaVistos){
   function linha(l, cor){
     const r=el('div','lawrow'); r.style.setProperty('--lc',cor||corDe(l));
     r.dataset.s=(l.t+' '+l.r).toLowerCase(); r.dataset.id=l._id;
-    const st=est.stat[l._id]||''; const fav=est.fav[l._id];
+    const st=STAT.includes(est.stat[l._id])?est.stat[l._id]:''; const fav=est.fav[l._id];
     // fonte fora do Planalto (l.x): o leitor embutido não alcança, então só o link
     const externa=!!l.x;
     // D5: onde o leitor existe, o alvo primário é a linha — o título vira botão de verdade

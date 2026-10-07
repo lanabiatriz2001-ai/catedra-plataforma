@@ -85,6 +85,8 @@ import { testarDesignNativo } from './design-nativo.mjs';
 import { testarExclusaoContaCobertura } from './exclusao-conta-cobertura.mjs';
 import { testarWidgetDodia } from './widget-dodia.mjs';
 import { testarWidgetSwift } from './widget-swift.mjs';
+import { testarSegurancaBackup } from './seguranca-backup.mjs';
+import { testarReservaIA } from './seguranca-cota.mjs';
 import { testarWidgetCapturas } from './widget-capturas.mjs';
 import { testarWidgetBuild } from './widget-build.mjs';
 import { testarProvaEncerrarUmaVez } from './prova-encerrar-uma-vez.mjs';
@@ -3530,7 +3532,7 @@ catch (e) { ok(false, 'PROVA ENCERRAR UMA VEZ [chromium] o roteiro correu sem ex
       && /Receber, responder e resolver relatos de problema e sugestões/.test(s3) && /Legítimo interesse \(inciso IX; art\. 10, II\)/.test(s3) && /\d+ meses depois da remoção/.test(s3)
       && /lê os relatos enviados pelo app e a lista de espera/.test(s54);
     // a página pública grava e-mail, área e data, sem conta; a administração lê pela RPC admin_lista_espera
-    const sobreGrava = /fetch\(CFG\.url \+ '\/rest\/v1\/lista_espera'/.test(sobre) && /body: JSON\.stringify\(\{ email: email, area: [^}]*origem: 'sobre' \}\)/.test(sobre) && /Guardamos só o e-mail, a área e a data/.test(sobre);
+    const sobreGrava = /fetch\(CFG\.url \+ '\/rest\/v1\/rpc\/entrar_lista_espera'/.test(sobre) && /body: JSON\.stringify\(\{ p_email: email, p_area: [^}]* \}\)/.test(sobre) && /Guardamos só o e-mail, a área e a data/.test(sobre);
     r.politicaListaDeEspera = sobreGrava && /Lista de espera \(página pública, sem conta\)/.test(s2) && /Esse cadastro não tem vínculo com a conta/.test(s2)
       && /lista de espera da página pública/.test(s3) && /Consentimento \(inciso I\), dado ao enviar o formulário/.test(s3) && /não é apagada com a exclusão da conta/.test(s3)
       && !/lista_espera/.test(excl) && !/lista_espera/.test(admApagar) && /não é apagado quando a conta é excluída, nem por você nem pela administração/.test(s95) && /canal do encarregado/.test(s95);
@@ -3684,7 +3686,7 @@ catch (e) { ok(false, 'PROVA ENCERRAR UMA VEZ [chromium] o roteiro correu sem ex
     r.invalidoNaoEnvia = chamadas.length === 0 && /e-mail válido/.test(erro.textContent) && document.activeElement === inE && ok.getAttribute('data-mostra') !== '1';
     inE.value = '  Pessoa@Exemplo.com '; sel.value = 'enam'; form.requestSubmit(); await w(200);
     const c = chamadas[0];
-    r.validoInsereAnonimo = chamadas.length === 1 && /\/rest\/v1\/lista_espera$/.test(c.u) && c.o.method === 'POST' && !!c.o.headers.apikey && /^Bearer /.test(c.o.headers.Authorization) && c.o.headers.Prefer === 'return=minimal' && JSON.parse(c.o.body).email === 'pessoa@exemplo.com' && JSON.parse(c.o.body).area === 'enam' && JSON.parse(c.o.body).origem === 'sobre';
+    r.validoInsereAnonimo = chamadas.length === 1 && /\/rest\/v1\/rpc\/entrar_lista_espera$/.test(c.u) && c.o.method === 'POST' && !!c.o.headers.apikey && /^Bearer /.test(c.o.headers.Authorization) && c.o.headers.Prefer === 'return=minimal' && JSON.parse(c.o.body).p_email === 'pessoa@exemplo.com' && JSON.parse(c.o.body).p_area === 'enam';
     r.sucessoSemRedirecionar = ok.getAttribute('data-mostra') === '1' && /você está na lista/.test(ok.textContent) && /sobre\.html$/.test(location.pathname) && inE.value === '' && erro.textContent === '';
     window.fetch = async () => ({ ok: false, status: 409 });
     inE.value = 'ja@exemplo.com'; form.requestSubmit(); await w(200);
@@ -3976,7 +3978,7 @@ catch (e) { ok(false, 'PROVA ENCERRAR UMA VEZ [chromium] o roteiro correu sem ex
 
 /* ============= IA — P18: cota diária por conta nas funções da Vercel, com o fetch simulado ============= */
 // api/complete.js e api/tts.js perguntam minha_cota_ia() depois dos portões de sessão, allowlist e bloqueio; ao
-// estourar, 429 com a mensagem em português (o app mostra em toast). Falha na consulta = fail-open. Allowlist,
+// estourar, 429 com a mensagem em português (o app mostra em toast). Falha na reserva = sem gasto. Allowlist,
 // kill switch e teto por chamada ficam como estavam.
 {
   const r = {};
@@ -3987,7 +3989,7 @@ catch (e) { ok(false, 'PROVA ENCERRAR UMA VEZ [chromium] o roteiro correu sem ex
     if (/rpc\/meu_email_liberado/.test(u)) return { ok: true, json: async () => true };
     if (/rpc\/meu_acesso_bloqueado/.test(u)) return { ok: true, json: async () => false };
     if (/rpc\/minha_cota_ia/.test(u)) return cota === 'falha' ? { ok: false, json: async () => ({}) } : { ok: true, json: async () => cota };
-    if (/rpc\/registrar_uso_ia/.test(u)) return { ok: true, json: async () => null };
+    if (/rpc\/reservar_uso_ia/.test(u)) return cota === 'falha' ? {ok:false} : { ok: true, json: async () => ({...cota,reservada:cota.usadas<cota.limite}) };
     if (/api\.anthropic\.com/.test(u)) return { ok: true, status: 200, json: async () => ({ content: [{ type: 'text', text: prov || 'resposta' }] }) };
     if (/generativelanguage\.googleapis\.com/.test(u)) return { ok: true, status: 200, json: async () => ({ output_audio: { data: Buffer.from('abcd').toString('base64'), mime_type: 'audio/L16;rate=24000' } }) };
     return { ok: false, status: 500, json: async () => ({}), text: async () => '' }; }; return chamadas; };
@@ -3999,13 +4001,13 @@ catch (e) { ok(false, 'PROVA ENCERRAR UMA VEZ [chromium] o roteiro correu sem ex
   r.mensagemEmPortugues = mensagemCota({ limite: 40 }) === 'Você usou as 40 chamadas de IA de hoje. A cota volta amanhã, à meia-noite de Brasília.';
   let ch = cenario({ plano: 'beta', limite: 2, usadas: 2, restante: 0 }); let res = fakeRes();
   await complete(req({ prompt: 'olá' }), res);
-  r.estourou429 = res.codigo === 429 && /usou as 2 chamadas de IA de hoje/.test(res.corpo.error) && res.corpo.cota.restante === 0 && !ch.some(u => /anthropic/.test(u)) && !ch.some(u => /registrar_uso_ia/.test(u));
+  r.estourou429 = res.codigo === 429 && /usou as 2 chamadas de IA de hoje/.test(res.corpo.error) && res.corpo.cota.restante === 0 && !ch.some(u => /anthropic/.test(u)) && !ch.some(u => /reservar_uso_ia/.test(u));
   ch = cenario({ plano: 'beta', limite: 2, usadas: 1, restante: 1 }); res = fakeRes();
   await complete(req({ prompt: 'olá' }), res);
-  r.abaixoDaCotaPassa = res.codigo === 200 && res.corpo.completion === 'resposta' && ch.some(u => /registrar_uso_ia/.test(u)) && ch.some(u => /anthropic/.test(u));
+  r.abaixoDaCotaPassa = res.codigo === 200 && res.corpo.completion === 'resposta' && ch.some(u => /reservar_uso_ia/.test(u)) && ch.some(u => /anthropic/.test(u));
   ch = cenario('falha'); res = fakeRes();
   await complete(req({ prompt: 'olá' }), res);
-  r.falhaNaConsultaNaoBarra = res.codigo === 200;
+  r.falhaNaReservaImpedeGasto = res.codigo === 503 && !ch.some(u => /anthropic/.test(u));
   ch = cenario({ plano: 'beta', limite: 5, usadas: 5 }); res = fakeRes();
   await complete(req({ prompt: 'x'.repeat(70000) }), res);
   r.cotaAntesDoTetoPorChamada = res.codigo === 429;
@@ -10033,6 +10035,14 @@ try { await testarRevisaoOficial(browser, URL0, ok, { motor }); }
 catch (e) {
   ok(false, 'OFICIAL [' + motor + '] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+
+// Importação adulterada e reserva compartilhada: contexto independente do ciclo.
+{
+  const page = await browser.newPage();
+  try { await testarReservaIA(ok); await testarSegurancaBackup(page, URL0, ok); }
+  catch (e) { ok(false, 'SEGURANÇA [' + motor + '] exceção: ' + e.message); }
+  finally { await page.close(); }
 }
 
 await browser.close();

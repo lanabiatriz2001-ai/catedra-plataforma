@@ -10064,7 +10064,7 @@ class Component extends DCLogic {
   async _extractEditalPdf(f){
     const lib = await this._pdfLib();
     const bytes = await this._readFileBytes(f);
-    const pdf = await lib.getDocument({data:bytes.slice(0)}).promise;
+    const pdf = await lib.getDocument({data:bytes.slice(0),isEvalSupported:false}).promise;
     const pages = [];
     const maxPages = Math.min(pdf.numPages || 0, 80);
     for(let p=1;p<=maxPages;p++){
@@ -12477,8 +12477,10 @@ class Component extends DCLogic {
     return { fundo:this._accentHex(), texto:'#fff' };
   }
   _accentHex(){
-    try{ if(this.state.accent) return this.state.accent; }catch(_){}
-    try{ const v=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim(); if(v) return v; }catch(_){}
+    try{ if(/^#[0-9a-f]{6}$/i.test(this.state.accent||'')) return this.state.accent; }catch(_){}
+    // Os dois destaques por token acompanham o tema; ao PiP só chega o hex resolvido.
+    try{ const el=document.querySelector('[data-dark][data-dir]'); const v=el&&getComputedStyle(el).getPropertyValue('--accent').trim(); if(/^#[0-9a-f]{6}$/i.test(v||'')) return v; }catch(_){}
+    try{ const v=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim(); if(/^#[0-9a-f]{6}$/i.test(v)) return v; }catch(_){}
     return '#0f7a57';
   }
   _hexRgba(hex,a){ try{ let h=String(hex||'').replace('#',''); if(h.length===3) h=h.replace(/./g,'$&$&'); const n=parseInt(h.slice(0,6),16); return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')'; }catch(_){ return 'rgba(19,160,107,'+a+')'; } }
@@ -13008,7 +13010,7 @@ class Component extends DCLogic {
             if(d.provaData!=null) patch.provaData=d.provaData;
             if(d.dir&&CT_DIRS.includes(d.dir)) patch.dir=d.dir;
             if(typeof d.darkMode==='boolean') patch.darkMode=d.darkMode;
-            if(d.accent!==undefined) patch.accent=d.accent;
+            if(typeof d.accent==='string' && (/^#[0-9a-f]{6}$/i.test(d.accent) || d.accent==='var(--danger)' || d.accent==='var(--warn)')) patch.accent=d.accent;
             this.setState(patch, ()=>{ try{ if(patch.flashcards) this._saveFC(patch.flashcards); if(patch.sessions) this._saveSessions(patch.sessions); if(patch.dir) localStorage.setItem('catedra:dir',patch.dir); if('darkMode' in patch) localStorage.setItem('catedra:dark', patch.darkMode?'1':'0'); if(patch.orient) localStorage.setItem('catedra:orient', JSON.stringify(patch.orient)); if(patch.habitos) localStorage.setItem('catedra:habitos', JSON.stringify(patch.habitos)); if(patch.provaData) localStorage.setItem('catedra:prova', patch.provaData); if(patch.cycleMode) localStorage.setItem('catedra:cycleMode', patch.cycleMode); if(patch.redHistory) localStorage.setItem('catedra:red', JSON.stringify(patch.redHistory)); }catch(_){} });
             this.flashSync(); this._toast('Backup restaurado em todo o sistema ✦'); }
   // ===== Backup na nuvem PESSOAL (iCloud Drive / Google Drive) — além da conta Cátedra =====
