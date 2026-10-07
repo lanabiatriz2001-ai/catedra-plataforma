@@ -1240,6 +1240,7 @@ window.ctPdfLib = (function(){
             <div style="font-size:var(--fs-xs);letter-spacing:.24em;text-transform:uppercase;color:{{ phaseColor }};font-weight:800;">{{ focusPhaseLabel }}</div>
             <div style="font-family:var(--display);font-weight:700;color:#fff;font-size:clamp(46px,12vw,86px);line-height:1.02;margin-top:8px;letter-spacing:-.025em;font-variant-numeric:tabular-nums;">{{ sessionDisplay }}</div>
             <sc-if value="{{ pausaMostra }}" hint-placeholder-val="{{ false }}"><div class="cth-pausa" data-pausa style="margin-top:6px;">{{ pausaLabel }}</div></sc-if>
+            <sc-if value="{{ sessionDraft.cmPlanoObjetivo }}" hint-placeholder-val="{{ false }}"><p class="cm-plano-foco">{{ sessionDraft.cmPlanoObjetivo }}</p></sc-if>
             <sc-if value="{{ salaTemBloco }}" hint-placeholder-val="{{ false }}">
               <div style="font-size:var(--fs-base);color:rgba(255,255,255,.6);margin-top:8px;max-width:260px;line-height:1.4;">{{ salaBloco }}</div>
             </sc-if>
@@ -1794,9 +1795,18 @@ window.ctPdfLib = (function(){
             <div class="cm-kicker">Ciclo Magistratura · volta {{ cmVoltaNum }} · atividade {{ cmPosAtual }}/{{ cmTotalAtividades }}</div>
             <h2>{{ cmInicio.nome }}</h2><h3>{{ cmInicio.titulo }}</h3>
             <sc-if value="{{ cmInicioPonto }}"><p><b>Onde parei:</b> {{ cmInicio.ponto }}</p></sc-if>
-            <sc-if value="{{ cmInicioProximo }}"><p><b>Próxima ação:</b> {{ cmInicio.proximo }}</p></sc-if>
+            <sc-if value="{{ cmInicioProximo && !cmPlanoShow }}"><p><b>Próxima ação:</b> {{ cmInicio.proximo }}</p></sc-if>
             <div class="cm-acoes"><button class="ct-btn" onclick="{{ cmInicioEstudar }}">{{ cmInicio.acao }}</button><button class="ct-btn-2" onclick="{{ openSession }}">Registrar tempo</button><button class="ct-btn-2" data-view="ciclo" onclick="{{ onNav }}">Ver percurso</button></div>
             <p class="ct-nota">O ciclo continua de onde você parou. Registrar minutos não conclui a etapa.</p>
+            <sc-if value="{{ cmPlanoShow }}" hint-placeholder-val="{{ false }}"><section class="cm-plano" aria-label="Sessão sob medida">
+              <div class="cm-kicker">Uma sessão que cabe agora</div>
+              <div class="cm-acoes" role="group" aria-label="Tempo disponível"><span>Tenho</span><sc-for list="{{ cmPlanoJanelas }}" as="j"><button type="button" class="ct-btn-2" data-min="{{ j.min }}" aria-pressed="{{ j.on }}" onclick="{{ cmPlanoJanela }}">{{ j.label }}</button></sc-for></div>
+              <p class="cm-plano-objetivo">{{ cmPlano.objetivo }}</p>
+              <p class="ct-nota">{{ cmPlano.motivo }}</p>
+              <sc-if value="{{ cmPlanoErrosShow }}"><div class="cm-plano-diagnostico"><p>{{ cmPlano.diagnostico }}</p><button class="ct-btn-2" onclick="{{ cmPlanoErros }}">Abrir os erros deste assunto</button></div></sc-if>
+              <button class="ct-btn" onclick="{{ cmPlanoIniciar }}">{{ cmPlanoBotao }}</button>
+              <small class="ct-nota">O tempo é uma proposta. Você pode pausar, continuar ou encerrar sem concluir a etapa.</small>
+            </section></sc-if>
             <nav class="cm-sequencia" aria-label="Sequência do ciclo"><sc-for list="{{ cmSequencia }}" as="q"><button class="cm-seq" data-id="{{ q.id }}" aria-current="{{ q.atual }}" onclick="{{ cmSelecionar }}"><small>{{ q.num }}</small><b>{{ q.nome }}</b><span>{{ q.tempo }} min registrados</span></button></sc-for></nav>
           </section>
         </sc-if>
@@ -9403,7 +9413,7 @@ class Component extends DCLogic {
       localStorage.setItem('ct_timer', JSON.stringify({ sec:s.timerSeconds, studied:s.studiedSeconds,
         mode:s.timerMode, phase:s.pomoPhase, cycles:s.pomoCycles, running:s.timerRunning, ts:Date.now(),
         d:this._hoje(), pf:s.pomoFocus, pb:s.pomoBreak, ps:+s.pausaSeg||0, pd:+s.pausaDesde||0,
-        atv:s.sessionDraft.atvKey?{atvKey:s.sessionDraft.atvKey,disc:s.sessionDraft.disc,topico:s.sessionDraft.topico,cmEtapa:s.sessionDraft.cmEtapa,categoria:s.sessionDraft.categoria,categorias:s.sessionDraft.categorias}:null }));
+        atv:s.sessionDraft.atvKey?{atvKey:s.sessionDraft.atvKey,disc:s.sessionDraft.disc,topico:s.sessionDraft.topico,cmPlanoMin:s.sessionDraft.cmPlanoMin,cmPlanoObjetivo:s.sessionDraft.cmPlanoObjetivo,cmEtapa:s.sessionDraft.cmEtapa,categoria:s.sessionDraft.categoria,categorias:s.sessionDraft.categorias}:null }));
     }catch(_){}
   }
   /* Ajustes que passam a VALER: "modo padrão", "bloco padrão" e "pausa padrão" existiam
@@ -9437,7 +9447,7 @@ class Component extends DCLogic {
         const b=(this.state.blocks||[]).find(b=>this._atvChave(b)===t.atv.atvKey);
         patch.sessionDraft={...(b?this._blockToDraft(b,this.state.sessionDraft):this._freshSessionDraft(this.state.sessionDraft)),
           atvKey:t.atv.atvKey,origem:'ciclo',disc:String(t.atv.disc||''),topico:String(t.atv.topico||''),
-          cmEtapa:t.atv.cmEtapa||'',categoria:String(t.atv.categoria||''),categorias:Array.isArray(t.atv.categorias)?t.atv.categorias:[],concluiu:false};
+          cmPlanoMin:Math.max(0,Math.min(120,+t.atv.cmPlanoMin||0)),cmPlanoObjetivo:String(t.atv.cmPlanoObjetivo||'').slice(0,500),cmEtapa:t.atv.cmEtapa||'',categoria:String(t.atv.categoria||''),categorias:Array.isArray(t.atv.categorias)?t.atv.categorias:[],concluiu:false};
       }
       if(t.mode) patch.timerMode=t.mode;
       if(t.phase) patch.pomoPhase=t.phase;
@@ -11855,6 +11865,7 @@ class Component extends DCLogic {
   /* Variáveis da tela. Texto da pessoa vai cru: o template escapa {{ }} ao pintar. */
   _cmView(){
     const M=window.CT_CMAG; if(!M || this.state.cycleMode!=='magistratura') return {cmOn:false,cmTimerAlternar:this.toggleTimer};
+    const plano=this._cmPlano();
     const inicio=this._cmContexto(), sd=this.state.sessionDraft||{}, sb=(this.state.blocks||[]).find(b=>this._atvChave(b)===sd.atvKey), sr=sb&&sb.cmagId!=='juris'?M.roteiro(this._cm(),sb.cmagId):null;
     const c=this._cm(), hoje=this._hoje(), dark=!!this.state.darkMode, edit=this.state.cmLinkEdit||'';
     const dow=new Date().getDay();
@@ -11894,7 +11905,7 @@ class Component extends DCLogic {
     const revs=this._revisoesDoCicloFSRS().filter(r=>r&&r.cmagId).sort((a,b)=>String(a.dueDate).localeCompare(String(b.dueDate))).map(r=>({id:r.id,ass:r.topic,dt:fmt(((this.state.cmagRevs||[]).find(x=>x.id===r.cmagId)||{}).dt||r.dueDate),
       prazos:[{rid:r.id,d:0,rot:'FSRS',data:fmt(r.dueDate),feita:false,vencida:r.dueDate<=hoje,estado:r.dueDate<=hoje?'vencida':'agendada',feitaStr:'false',aria:'Revisar '+r.topic+' pelo FSRS'}]}));
     const vencidas=revs.reduce((a,r)=>a+r.prazos.filter(p=>p.vencida).length, 0);
-    return {cmOn:true, cmInicio:inicio,cmInicioPonto:!!(inicio&&inicio.ponto),cmInicioProximo:!!(inicio&&inicio.proximo),cmInicioEstudar:this.cmInicioEstudar,cmTimerAlternar:this.cmTimerAlternar,cmSessaoEtapa:this.cmSessaoEtapa,cmSessaoAvulsa:this.cmSessaoAvulsa,cmSessaoVinculada:!!sb,cmSessaoEtapas:sr?sr.etapas.filter(e=>!e.travado).map(e=>({k:e.k,nome:e.nome,sel:e.k===sd.cmEtapa})):[],cmSessaoTemEtapas:!!sr,cmSessaoEtapaAtual:sd.cmEtapa||'', cmVoltaNum:c.voltas+1, cmQuantidadeTexto:c.ativas===1?'Uma matéria':c.ativas+' matérias', cmTotalAtividades:c.ativas+1, cmQuantidade:String(c.ativas), cmQuantidadeMudar:this.cmQuantidadeMudar, cmPosAtual:c.jurisNaVez?c.ativas+1:c.vez+1, cmSequencia:sequencia, cmAtualId:atual.cmagId, cmJurisNaVez:c.jurisNaVez, cmJurisTempo:tempo(ju), cmJuris:M.jurisDoDia(c), cmJurisSemana:M.JURIS.map(j=>({num:j[0],tipo:j[1]})), cmJurisMin:this.cmJurisMin, cmGuardarDepois:this.cmGuardarDepois,cmRetomadaCampo:this.cmRetomadaCampo,cmEtapaEstudar:this.cmEtapaEstudar,cmEtapaRegistrar:this.cmEtapaRegistrar,cmEstudar:this.cmEstudar, cmRegistrarTempo:this.cmRegistrarTempo, cmSelecionar:this.cmSelecionar, cmJurisPonto:this.cmJurisPonto, cmJurisConcluir:this.cmJurisConcluir, cmAtivas:ativas, cmFila:fila, cmTemFila:fila.length>0, cmRevs:revs, cmTemRevs:revs.length>0,
+    return {cmOn:true,cmPlano:plano,cmPlanoBotao:'Começar sessão de '+(plano?plano.min:0)+' min',cmPlanoShow:!!(plano&&plano.possivel),cmPlanoErrosShow:!!(plano&&plano.erros),cmPlanoJanela:this.cmPlanoJanela,cmPlanoIniciar:this.cmPlanoIniciar,cmPlanoErros:this.cmPlanoErros,cmPlanoJanelas:[15,30,60].map(min=>({min,label:min+' min',on:String(min===(this.state.cmJanela|| (this._enHoje()==='baixa'?15:30)))})), cmInicio:inicio,cmInicioPonto:!!(inicio&&inicio.ponto),cmInicioProximo:!!(inicio&&inicio.proximo),cmInicioEstudar:this.cmInicioEstudar,cmTimerAlternar:this.cmTimerAlternar,cmSessaoEtapa:this.cmSessaoEtapa,cmSessaoAvulsa:this.cmSessaoAvulsa,cmSessaoVinculada:!!sb,cmSessaoEtapas:sr?sr.etapas.filter(e=>!e.travado).map(e=>({k:e.k,nome:e.nome,sel:e.k===sd.cmEtapa})):[],cmSessaoTemEtapas:!!sr,cmSessaoEtapaAtual:sd.cmEtapa||'', cmVoltaNum:c.voltas+1, cmQuantidadeTexto:c.ativas===1?'Uma matéria':c.ativas+' matérias', cmTotalAtividades:c.ativas+1, cmQuantidade:String(c.ativas), cmQuantidadeMudar:this.cmQuantidadeMudar, cmPosAtual:c.jurisNaVez?c.ativas+1:c.vez+1, cmSequencia:sequencia, cmAtualId:atual.cmagId, cmJurisNaVez:c.jurisNaVez, cmJurisTempo:tempo(ju), cmJuris:M.jurisDoDia(c), cmJurisSemana:M.JURIS.map(j=>({num:j[0],tipo:j[1]})), cmJurisMin:this.cmJurisMin, cmGuardarDepois:this.cmGuardarDepois,cmRetomadaCampo:this.cmRetomadaCampo,cmEtapaEstudar:this.cmEtapaEstudar,cmEtapaRegistrar:this.cmEtapaRegistrar,cmEstudar:this.cmEstudar, cmRegistrarTempo:this.cmRegistrarTempo, cmSelecionar:this.cmSelecionar, cmJurisPonto:this.cmJurisPonto, cmJurisConcluir:this.cmJurisConcluir, cmAtivas:ativas, cmFila:fila, cmTemFila:fila.length>0, cmRevs:revs, cmTemRevs:revs.length>0,
       cmVencidas:vencidas, cmTemVencidas:vencidas>0, cmVencidasTxt:vencidas===1?'1 revisão vencida':vencidas+' revisões vencidas',
       cmSabado:M.SABADO.map(q=>({k:q[0], txt:q[1], on:!!c.sab[q[0]], onStr:c.sab[q[0]]?'true':'false'})),
       cmEhSabado:dow===6, cmEhDomingo:dow===0,
@@ -12280,12 +12291,21 @@ class Component extends DCLogic {
     if(!st)return null; const v=e?(st.retomadas[e.k]||{}):{};
     return {id,b,nome:c.mats[id].n,etapa:e?e.k:'',titulo:e?e.nome:(r.espera?'Aguardando próxima passagem':'Assunto pronto para fechar'),ponto:v.ponto||'',proximo:v.proximo||'',acao:(v.pausado?'Continuar ':'Estudar ')+(e?e.nome:'matéria')};
   }
+  _cmPlano(){return window.CT_CMAG&&this.state.cycleMode==='magistratura'?CT_CMAG.planejarSessao(this._cm(),{janela:this.state.cmJanela,energia:this._enHoje(),sessoes:this.state.sessions,erros:this.state.errors,hoje:this._hoje()}):null;}
+  cmPlanoJanela=e=>this.setState({cmJanela:+e.currentTarget.dataset.min});
+  cmPlanoErros=()=>{const c=this._cmContexto();if(!c||c.id==='juris')return;this.setState({view:'erros',errFiltDisc:c.nome,errFiltMotivo:'todos',errStatus:'abertos',errSearch:this._cm().st[c.id].ass||''});};
+  cmPlanoIniciar=()=>{const p=this._cmPlano();if(!p||!p.possivel)return;
+    if(this.state.timerRunning||this.state.timerSeconds||this.state.studiedSeconds){this._toast('Sua sessão atual está preservada. Registre ou retome antes de começar outra.');return;}
+    this.cmInicioEstudar();
+    if(!this.state.timerRunning)return;
+    this.setState(s=>({timerMode:'pomo',pomoFocus:p.min,pomoPhase:'foco',pomoCycles:0,timerSeconds:0,sessionDraft:{...s.sessionDraft,cmPlanoMin:p.min,cmPlanoObjetivo:p.objetivo}}),()=>this._saveTimer());
+  };
   cmInicioEstudar=()=>{const c=this._cmContexto();if(!c)return;if(c.etapa)this.cmEtapaEstudar({currentTarget:{dataset:{id:c.id,k:c.etapa}}});else if(c.id==='juris')this.cmEstudar({currentTarget:{dataset:{id:c.id}}});else this.setState({view:'ciclo'});};
   cmTimerAlternar=()=>{if(this.state.cycleMode==='magistratura'&&!this.state.timerRunning&&!this.state.timerSeconds&&!this.state.studiedSeconds&&!this.state.sessionDraft.atvKey){this.cmInicioEstudar();return;}this.toggleTimer();};
-  cmSessaoAvulsa=()=>this.setState(s=>({sessionDraft:{...s.sessionDraft,atvKey:'',cmEtapa:'',cmPonto:'',cmProximo:'',origem:'manual',concluiu:false}}));
+  cmSessaoAvulsa=()=>this.setState(s=>({sessionDraft:{...s.sessionDraft,atvKey:'',cmEtapa:'',cmPonto:'',cmProximo:'',cmPlanoMin:null,cmPlanoObjetivo:'',origem:'manual',concluiu:false}}));
   cmSessaoEtapa=e=>{const sd=this.state.sessionDraft,b=(this.state.blocks||[]).find(b=>this._atvChave(b)===sd.atvKey);if(!b)return;
     const k=e.currentTarget.value,r=CT_CMAG.roteiro(this._cm(),b.cmagId),et=r&&r.etapas.find(x=>x.k===k&&!x.travado);if(!et)return;
-    const v=this._cm().st[b.cmagId].retomadas[k]||{};this.setState({sessionDraft:{...sd,cmEtapa:k,cmPonto:v.ponto||'',cmProximo:v.proximo||'',categoria:et.categoria,categorias:[et.categoria],agendarRevisao:false,concluiu:false}});
+    const v=this._cm().st[b.cmagId].retomadas[k]||{};this.setState({sessionDraft:{...sd,cmEtapa:k,cmPlanoMin:null,cmPlanoObjetivo:'',cmPonto:v.ponto||'',cmProximo:v.proximo||'',categoria:et.categoria,categorias:[et.categoria],agendarRevisao:false,concluiu:false}});
   };
   _blockToDraft(b, prev){ const cat=this._kindToCat(b.kind);
     // Se o bloco tem vínculo com o edital (disciplina + tópico da Agenda da semana),
@@ -12299,7 +12319,7 @@ class Component extends DCLogic {
     // atvKey é o fio que leva a sessão de volta à atividade: tempo parcial, origem do
     // indicador e reabertura da atividade quando a sessão é excluída dependem só dele.
     return {...this._freshSessionDraft(prev), disc, topico, edTop:_edTop, edSub:b.subtopico||'', categorias:b.kind==='Estudo dirigido'?[]:[cat], categoria:b.kind==='Estudo dirigido'?'':cat,
-      atvKey:this._atvChave(b), origem:'ciclo', ...(()=>{const ctx=this._cmContexto(b);if(!ctx)return {};const r=ctx.id!=='juris'?CT_CMAG.roteiro(this._cm(),ctx.id):null;const k=prev&&prev.atvKey===this._atvChave(b)&&prev.cmEtapa?prev.cmEtapa:ctx.etapa;const e=r&&r.etapas.find(x=>x.k===k);const v=e?(this._cm().st[ctx.id].retomadas[k]||{}):{};const mesmo=prev&&prev.atvKey===this._atvChave(b)&&prev.cmEtapa===k;return {cmEtapa:k||'',cmPonto:mesmo&&prev.cmPonto!=null?prev.cmPonto:(e?v.ponto||'':ctx.ponto),cmProximo:mesmo&&prev.cmProximo!=null?prev.cmProximo:(e?v.proximo||'':ctx.proximo),...(e?{categoria:e.categoria,categorias:[e.categoria]}:{}),agendarRevisao:false,concluiu:false};})()}; }
+      atvKey:this._atvChave(b), origem:'ciclo', ...(prev&&prev.atvKey===this._atvChave(b)?{cmPlanoMin:prev.cmPlanoMin,cmPlanoObjetivo:prev.cmPlanoObjetivo}:{}), ...(()=>{const ctx=this._cmContexto(b);if(!ctx)return {};const r=ctx.id!=='juris'?CT_CMAG.roteiro(this._cm(),ctx.id):null;const k=prev&&prev.atvKey===this._atvChave(b)&&prev.cmEtapa?prev.cmEtapa:ctx.etapa;const e=r&&r.etapas.find(x=>x.k===k);const v=e?(this._cm().st[ctx.id].retomadas[k]||{}):{};const mesmo=prev&&prev.atvKey===this._atvChave(b)&&prev.cmEtapa===k;return {cmEtapa:k||'',cmPonto:mesmo&&prev.cmPonto!=null?prev.cmPonto:(e?v.ponto||'':ctx.ponto),cmProximo:mesmo&&prev.cmProximo!=null?prev.cmProximo:(e?v.proximo||'':ctx.proximo),...(e?{categoria:e.categoria,categorias:[e.categoria]}:{}),agendarRevisao:false,concluiu:false};})()}; }
   openSession = ()=>{ const _st=this.state; const pre=Math.round(((_st.timerMode==='pomo'?_st.studiedSeconds:_st.timerSeconds)||_st.studiedSeconds||0)/60); this.setState(s=>({sessionModalOpen:true, pomoMenuOpen:false, sessionDraft:{...(s.sessionDraft.atvKey?s.sessionDraft:(this._cmContexto()?this._blockToDraft(this._cmContexto().b,s.sessionDraft):this._freshSessionDraft(s.sessionDraft))), minutos: pre>0?String(pre):''}})); };
   closeSessionBackdrop = (e)=>{ if(e&&e.target!==e.currentTarget) return;   // só o clique no fundo
     const n=(this._extRegQueue||[]).length;
@@ -12317,7 +12337,7 @@ class Component extends DCLogic {
   onSessionDisc = (e)=>{ const v=e.currentTarget.value; this.setState(s=>{ const sd=s.sessionDraft;
     // trocou de disciplina → o tópico/subtópico do edital anterior não vale mais
     const limpaTop = sd.edTop ? {edTop:'', edSub:'', topico:(sd.topico===sd.edTop||sd.topico===sd.edSub)?'':sd.topico} : {};
-    return {sessionDraft:{...sd, discCustom:v==='__outra__', disc:v==='__outra__'?'':v, ...(v!==sd.disc?{atvKey:'',cmEtapa:'',origem:'manual',concluiu:false}:{}), ...limpaTop}}; }); };
+    return {sessionDraft:{...sd, discCustom:v==='__outra__', disc:v==='__outra__'?'':v, ...(v!==sd.disc?{atvKey:'',cmEtapa:'',cmPlanoMin:null,cmPlanoObjetivo:'',origem:'manual',concluiu:false}:{}), ...limpaTop}}; }); };
   // Tópico do edital: preenche o campo de texto (fonte única das agregações) e
   // abre a lista de subtópicos daquele tópico.
   onSessionTop = (e)=>{ const v=e.currentTarget.value; this.setState(s=>{ const sd=s.sessionDraft;
@@ -12508,7 +12528,7 @@ class Component extends DCLogic {
       // do ciclo ele pertence. `concluiu` distingue "estudei um pedaço" de "fechei a
       // atividade": só a sessão que fechou reabre o bloco se for excluída depois.
       cmEtapa:/^[ab][1-5]$/.test(d.cmEtapa||'')?d.cmEtapa:null, origem:String(d.origem||'manual'), atvKey:String(d.atvKey||'')||null,
-      leiId:String(d.leiId||'')||null, concluiu:!!d.concluiu };
+      cmPlanoMin:Math.max(0,Math.min(120,+d.cmPlanoMin||0))||null,cmPlanoObjetivo:String(d.cmPlanoObjetivo||'').slice(0,500)||null,leiId:String(d.leiId||'')||null, concluiu:!!d.concluiu };
     const cmBloco=this.state.cycleMode==='magistratura'?(this.state.blocks||[]).find(b=>b.cmagId&&this._atvChave(b)===d.atvKey&&String(b.discEdital||b.disc)===_disc):null;
     if(cmBloco){const ctx=this._cmContexto(cmBloco),r=cmBloco.cmagId!=='juris'?CT_CMAG.roteiro(this._cm(),cmBloco.cmagId):null,e=r&&r.etapas.find(e=>e.k===rec.cmEtapa);
       rec.cmagId=cmBloco.cmagId;rec.cmEtapaNome=e?e.nome:(ctx?ctx.titulo:'');rec.cmPonto=String(d.cmPonto!=null?d.cmPonto:(ctx&&ctx.ponto)||'').slice(0,300);rec.cmProximo=String(d.cmProximo!=null?d.cmProximo:(ctx&&ctx.proximo)||'').slice(0,500);
@@ -17253,7 +17273,7 @@ class Component extends DCLogic {
       // editar o tópico à mão desfaz o vínculo com o edital (senão o histórico mostraria o caminho antigo)
       const _mudou=_novoTop && _novoTop!==(x.topico||'');
       return {...x, disc:(d.disc||'').trim()||x.disc||'Geral', topico:_novoTop||x.topico, categorias:cats, categoria:cats[0], min, questoes:q, acertos:a, erradas:er, brancos:br, liquido:a-er, nota:(d.nota||'').trim(), up:Date.now(),
-        ...(_mudou?{edTop:null, edSub:null}:{}), ...((_mudou||String(d.disc||'').trim()!==x.disc)&&x.cmagId?{atvKey:null,cmEtapa:null,cmEtapaNome:null,cmagId:null,origem:'manual',concluiu:false}:{})}; });
+        ...(_mudou?{edTop:null, edSub:null}:{}), ...((_mudou||String(d.disc||'').trim()!==x.disc)&&x.cmagId?{atvKey:null,cmEtapa:null,cmEtapaNome:null,cmagId:null,cmPlanoMin:null,cmPlanoObjetivo:null,origem:'manual',concluiu:false}:{})}; });
     try{ this._saveSessions(sessions); }catch(_){} this.setState({sessions, histEdit:null}, ()=>{ try{ this._reconcileStreak(); }catch(_){} try{ this._pubAtvT=0; this._publicarAtividade(); }catch(_){} }); this.flashSync(); };
   /* ===== TRILHA ENAM (E1) ===== catedra:enam é objeto escalar (carimbo por chave, sem ARRAY_ID).
      A meta é só um número (56 ou 40): o motivo do corte de 50 % é dado sensível e não é perguntado. */

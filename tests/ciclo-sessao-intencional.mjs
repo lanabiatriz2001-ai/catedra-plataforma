@@ -1,0 +1,46 @@
+import assert from 'node:assert/strict';
+import '../ciclo-magistratura.js';
+import { iniciarServidor,lancarNavegador } from './_infra.mjs';
+const M=globalThis.CT_CMAG;
+let c=M.definir(M.vazio(),'const','ass','Controle de constitucionalidade');
+c=M.guardarRetomada(c,'const','a2','proximo','Ler o exemplo da página 42');
+const b=M.gerarVolta(c,1,'2026-10-07').blocos[0],key='vt|'+b.id;
+const sessoes=[20,25,35].map((min,i)=>({id:'hist'+i,atvKey:key,cmEtapa:'a2',disc:b.disc,min,ts:100+i}));
+const erros=[{id:'alta',disc:b.disc,topico:c.st.const.ass,certeza:'alta',resultado:'erro'},{id:'chute',disc:b.disc,topico:c.st.const.ass,resultado:'chute_certo'}, {id:'resolvido',disc:b.disc,topico:c.st.const.ass,resolvido:true},{id:'outro',disc:b.disc,topico:'Outro assunto'},{id:'outra-disciplina',disc:'Direito Penal',topico:c.st.const.ass}];
+const antes=JSON.stringify(c);
+let p=M.planejarSessao(c,{sessoes,erros,janela:60,energia:'normal'});
+assert.equal(p.min,25);assert.equal(p.amostras,3);assert.equal(p.erros,2);assert.equal(p.alta,1);assert.equal(p.chutes,1);assert.equal(p.objetivo,'Ler o exemplo da página 42');assert.equal(p.k,'a2');assert.equal(JSON.stringify(c),antes);
+assert.equal(M.planejarSessao(c,{sessoes,janela:15}).min,15);
+assert.equal(M.planejarSessao(c,{sessoes,janela:60,energia:'baixa'}).min,20);
+assert.equal(M.planejarSessao(c,{sessoes:sessoes.slice(0,2),janela:60}).min,30);
+assert.equal(M.planejarSessao(c,{sessoes:sessoes.map(s=>({...s,atvKey:'outro-assunto'})),janela:60}).amostras,0);
+const j=M.selecionarAtividade(c,'juris');assert.equal(M.planejarSessao(j,{erros}).erros,0);assert.equal(M.planejarSessao(j,{}).k,'');
+const {srv,url}=await iniciarServidor(process.cwd(),+(process.env.CT_PORT||9355));
+const {browser,motor}=await lancarNavegador();
+try{
+ const page=await browser.newPage({viewport:{width:390,height:844}}),falhas=[];page.on('pageerror',e=>falhas.push(e.message));
+ await page.goto(url+'/__semente');await page.evaluate(()=>{localStorage.clear();localStorage.setItem('catedra:auth','1');localStorage.setItem('catedra:onboarded','1');localStorage.setItem('catedra:cycleMode','magistratura');});
+ await page.goto(url+'/Catedra.dc.html');await page.waitForFunction(()=>window.__catedraApp&&window.CT_CMAG);
+ await page.evaluate(({c,sessoes,erros})=>{const a=window.__catedraApp;a.setState({view:'inicio',cycleMode:'magistratura',cmag:c,sessions:sessoes,errors:erros,orient:{...a.state.orient,energia:'normal'}});a._saveSessions(sessoes);a._cmSet(c);},{c,sessoes,erros});
+ const plano=page.getByRole('region',{name:'Sessão sob medida'});await plano.waitFor();assert.match(await plano.innerText(),/Mediana de 3 sessões/);
+ await plano.getByRole('button',{name:'60 min',exact:true}).click();assert.equal(await plano.getByRole('button',{name:'60 min',exact:true}).getAttribute('aria-pressed'),'true');
+ assert.match((await plano.innerText()).replace(/\s+/g,' '),/Começar sessão de 25 min/);
+ await plano.getByRole('button',{name:'Abrir os erros deste assunto'}).click();
+ let v=await page.evaluate(()=>{const s=window.__catedraApp.state;return {view:s.view,disc:s.errFiltDisc,top:s.errSearch,status:s.errStatus};});assert.equal(v.view,'erros');assert.equal(v.disc,b.disc);assert.equal(v.top,c.st.const.ass);assert.equal(v.status,'abertos');
+ await page.evaluate(()=>window.__catedraApp.setState({view:'inicio'}));
+ if(process.env.CT_CAPTURA)await page.getByRole('region',{name:'Retomar ciclo Magistratura'}).screenshot({path:process.env.CT_CAPTURA});
+ await plano.getByRole('button',{name:'Começar sessão de 25 min'}).click();
+ v=await page.evaluate(()=>{const a=window.__catedraApp,s=a.state;return {mode:s.timerMode,min:s.pomoFocus,running:s.timerRunning,draft:s.sessionDraft,c:a._cm()};});assert.equal(v.mode,'pomo');assert.equal(v.min,25);assert.ok(v.running);assert.equal(v.draft.cmEtapa,'a2');assert.equal(v.draft.cmPlanoMin,25);assert.equal(v.draft.cmPlanoObjetivo,p.objetivo);assert.equal(JSON.stringify(v.c.st.const.d),JSON.stringify(c.st.const.d));
+ // Uma segunda proposta não reinicia a sessão em andamento.
+ await page.evaluate(()=>{const a=window.__catedraApp;a.setState({timerSeconds:123,studiedSeconds:123});a.cmPlanoIniciar();});
+ assert.ok(await page.evaluate(()=>window.__catedraApp.state.timerSeconds>=123));
+ await page.evaluate(()=>window.__catedraApp._saveTimer());
+ await page.reload();await page.waitForFunction(()=>window.__catedraApp&&window.CT_CMAG);
+ v=await page.evaluate(()=>window.__catedraApp.state.sessionDraft);assert.equal(v.cmPlanoMin,25);assert.equal(v.cmPlanoObjetivo,p.objetivo);assert.equal(v.cmEtapa,'a2');
+ await page.evaluate(()=>{const a=window.__catedraApp;a.setState({timerSeconds:300,studiedSeconds:300});a.openSession();});
+ await page.getByRole('dialog',{name:'Registrar sessão',exact:true}).getByRole('button',{name:'Registrar sessão',exact:true}).click();
+ await page.waitForFunction(()=>window.__catedraApp.state.sessions.length===4);
+ v=await page.evaluate(()=>{const a=window.__catedraApp;return {rec:a.state.sessions[0],c:a._cm()};});assert.equal(v.rec.cmPlanoMin,25);assert.equal(v.rec.cmPlanoObjetivo,p.objetivo);assert.equal(v.rec.min,5);assert.ok(!v.c.st.const.d.a2);
+ assert.deepEqual(falhas,[]);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2));
+ console.log(motor+': sessão sob medida adapta tempo, usa histórico suficiente, recorta erros, preserva retomada e salva objetivo sem concluir etapa.');
+}finally{await browser.close();srv.close();}
