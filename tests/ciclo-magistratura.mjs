@@ -146,7 +146,7 @@ export async function testarCicloMagistratura(page, base, ok, opcoes = {}) {
     app.state.sessions=anterior;
     app.puxarProximo(); const voltaInteira=app.state.blocks.length===5;
     app.toggleBlock({currentTarget:{dataset:{i:'0'}}});
-    const registro=app.state.sessionModalOpen&&!app.state.sessionDraft.concluiu&&app.state.sessionDraft.categorias.length===0&&!app.state.blocks[0].done;
+    const registro=app.state.sessionModalOpen&&!app.state.sessionDraft.concluiu&&app.state.sessionDraft.cmEtapa==='a2'&&app.state.sessionDraft.categorias[0]==='Teoria'&&!app.state.blocks[0].done;
     app.setState({sessionModalOpen:false});
     return {idsEstaveis:v.blocos[0].id===outra.blocos[0].id,
       ocorrenciasSeparadas:v.blocos[0].id!==M.gerarVolta({...c,st:{...c.st,const:{...c.st.const,ocorrencia:123}}},1,'2026-10-06').blocos[0].id,

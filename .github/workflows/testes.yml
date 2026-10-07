@@ -26,6 +26,10 @@ jobs:
         run: node scripts/verificar-design-nativo.mjs
       - name: Build da plataforma
         run: node scripts/build.mjs
+      - name: Ciclo integrado com início e registro
+        run: node tests/ciclo-plataforma.mjs
+        env:
+          CT_CHROME: /usr/bin/google-chrome
       - name: Testes de navegador (sync + acervo ida-e-volta)
         run: npm test
         env:
@@ -48,5 +52,11 @@ jobs:
         run: node scripts/build.mjs
       - name: WebKit do Playwright (com as bibliotecas de sistema)
         run: npx playwright-core install --with-deps webkit
+      - name: Ciclo integrado e retomada no WebKit
+        run: |
+          node tests/ciclo-plataforma.mjs
+          node tests/ciclo-retomada.mjs
+        env:
+          CT_BROWSER: webkit
       - name: Prova oral → Lei seca em WebKit (http e file://)
         run: npm run test:webkit
