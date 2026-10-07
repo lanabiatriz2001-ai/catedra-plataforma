@@ -14714,7 +14714,7 @@ class Component extends DCLogic {
     const emb=pool.slice(); for(let i=emb.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [emb[i],emb[j]]=[emb[j],emb[i]]; }
     const fila=emb.slice(0,5);
     this._treino && this._oralCarregarQ && this._oralCarregarQ();
-    this.setState({argSessaoId:'oral-'+Date.now(),argRespostaTexto:'',argFase:'respondendo',argOn:true, argFila:fila, argIdx:0, argRespostas:[], argFim:false,
+    this.setState({argOrigemArea:this.state.areaEstudo||'juridica',argOrigemConta:this._argConta(),argTempoExtra:0,argSessaoId:'oral-'+Date.now(),argRespostaTexto:'',argFase:'respondendo',argOn:true, argFila:fila, argIdx:0, argRespostas:[], argFim:false,
       argSeg:this.state.argMin*60, argRodando:true, oralQMostrarPadrao:false});
     this._argTick();
     this._argFalar();
@@ -14752,14 +14752,14 @@ class Component extends DCLogic {
   argResponder = ()=>{ clearInterval(this._argT);this._argCancelarVoz();
     try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(_){}
     this.setState({argFase:'comparando',argRodando:false, oralQMostrarPadrao:true}); };
-  argMaisTempo = ()=> this.setState({argSeg:this.state.argSeg+60});
+  argMaisTempo = ()=> this.setState({argSeg:this.state.argSeg+60,argTempoExtra:(this.state.argTempoExtra||0)+60});
   setArgMin = (e)=>{ const m=Math.max(1,Math.min(15,parseInt(e.currentTarget.dataset.v,10)||3));
     this.setState({argMin:m, argSeg:(this.state.argOn&&!this.state.argRodando)?this.state.argSeg:m*60}); };
   /** Autoavaliação: 'bem' | 'parcial' | 'nao'. Parcial e não sabia viram erro + revisão. */
   argAvaliar = (e)=>{
     const v=e.currentTarget.dataset.v||'nao';
     const q=this.state.argFila[this.state.argIdx]; if(!q) return;
-    const gasto=Math.max(0, this.state.argMin*60-this.state.argSeg);
+    const gasto=Math.max(0, this.state.argMin*60+(this.state.argTempoExtra||0)-this.state.argSeg);
     // `q.id` é do DOCUMENTO (malote), não da questão: 417 perguntas compartilham 190 ids.
     const reg={id:q.id+'#'+this.state.argIdx,pergunta:this._argLimpa(q.enunciado),resposta:this.state.argRespostaTexto||'', v, gasto, disc:q.disciplina||q.carreira||'Prova oral'};
     if(v!=='bem'){
@@ -14779,13 +14779,15 @@ class Component extends DCLogic {
       this.setState({argRespostas:respostas,argFase:'concluido',argFim:true,argRodando:false},()=>this._argGuardarHistorico());
       return;
     }
-    this.setState({argRespostas:respostas,argRespostaTexto:'',argFase:'respondendo',argIdx:prox, argSeg:this.state.argMin*60,
+    this.setState({argRespostas:respostas,argTempoExtra:0,argRespostaTexto:'',argFase:'respondendo',argIdx:prox, argSeg:this.state.argMin*60,
       argRodando:true, oralQMostrarPadrao:false}, ()=>{ this._argTick(); this._argFalar(); });
   };
   argHistoricoAbrir = (e)=>{const r=(this.state.sessions||[]).find(s=>s.id===e.currentTarget.dataset.id&&Array.isArray(s.oralArguicao));if(r)this.setState({argRever:r});};
   argHistoricoFechar = ()=>this.setState({argRever:null});
+  _argConta(){const u=window.CatedraAuth&&window.CatedraAuth.user;return(u&&(u.id||u.email))||this.state.authEmail||'';}
   _argGuardarHistorico(){
-    const R=(this.state.argRespostas||[]).slice(),id=this.state.argSessaoId,q=this.state.argFila[this.state.argIdx];if(this.state.argOn&&!this.state.argFim&&this.state.argRespostaTexto&&q&&!R.some(r=>r.id===q.id+'#'+this.state.argIdx))R.push({id:q.id+'#'+this.state.argIdx,v:'pendente',gasto:Math.max(0,this.state.argMin*60-this.state.argSeg),pergunta:this._argLimpa(q.enunciado),resposta:this.state.argRespostaTexto});if(!id||!R.length)return;
+    if((this.state.argOrigemArea&&this.state.argOrigemArea!==(this.state.areaEstudo||'juridica'))||(this.state.argOrigemConta!=null&&this.state.argOrigemConta!==this._argConta()))return;
+    const R=(this.state.argRespostas||[]).slice(),id=this.state.argSessaoId,q=this.state.argFila[this.state.argIdx];if(this.state.argOn&&!this.state.argFim&&this.state.argRespostaTexto&&q&&!R.some(r=>r.id===q.id+'#'+this.state.argIdx))R.push({id:q.id+'#'+this.state.argIdx,v:'pendente',gasto:Math.max(0,this.state.argMin*60+(this.state.argTempoExtra||0)-this.state.argSeg),pergunta:this._argLimpa(q.enunciado),resposta:this.state.argRespostaTexto});if(!id||!R.length)return;
     const rec={id,ts:Date.now(),date:this._hoje(),disc:'Prova oral',topico:'Arguição · '+R.length+' pergunta'+(R.length===1?'':'s'),categoria:'Prova oral',categorias:['Prova oral'],min:Math.round(R.reduce((n,r)=>n+(r.gasto||0),0)/60),questoes:0,acertos:0,erradas:0,brancos:0,countMeta:true,oralArguicao:R,origem:'arguicao'};
     const sessions=[rec,...(this.state.sessions||[]).filter(x=>x.id!==id)];this._saveSessions(sessions);this.setState({sessions});this.flashSync();
   }
@@ -16955,6 +16957,7 @@ class Component extends DCLogic {
     if(v===(this.state.areaEstudo||'')) { this.setState({areaSelOpen:false}); return; }
     this._trocarArea(v); };
   _trocarArea(v){
+    if(this.state.argOn)this.argEncerrar();this.setState({argRever:null});
     const A=CT_AREA(v); const patch={areaEstudo:v, areaSelOpen:false};
     // Caso aberto no construtor ou em treino é da área ANTERIOR. Deixá-lo aberto fazia o
     // formulário trocar de campos por baixo do texto já escrito, exibia caso clínico sob
