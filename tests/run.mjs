@@ -3708,7 +3708,8 @@ catch (e) { ok(false, 'PROVA ENCERRAR UMA VEZ [chromium] o roteiro correu sem ex
   const VT = await import('../scripts/verificar-cores-texto.mjs');
   r.scriptDeCoresTexto = typeof VT.corTexto === 'function' && VT.ratio(VT.corTexto('#0D9488', false), '#fffdf8') >= 4.5 && VT.ratio(VT.corTexto('#0D9488', true), '#201d17') >= 4.5;
   const src = fs.readFileSync(path.join(RAIZ, 'Catedra.dc.html'), 'utf8');
-  r.consumidoresTextuaisUsamCorTx = /color:\{\{ r\.colorTx \}\}/.test(src) && /color:\{\{ d\.colorTx \}\}/.test(src) && /color:\{\{ n\.corTx \}\}/.test(src) && /color:\{\{ g\.corTx \}\}/.test(src) && !/color:\{\{ r\.color \}\}/.test(src);
+  // O cartão de próximas revisões saiu do Início; os consumidores restantes mantêm cor de texto.
+  r.consumidoresTextuaisUsamCorTx = /color:\{\{ d\.colorTx \}\}/.test(src) && /color:\{\{ n\.corTx \}\}/.test(src) && /color:\{\{ g\.corTx \}\}/.test(src) && !/color:\{\{ r\.color \}\}/.test(src);
   r.buildsTravam = /verificar-cores-texto\.mjs/.test(fs.readFileSync(path.join(RAIZ, 'scripts/build.mjs'), 'utf8')) && /verificar-cores-texto\.mjs/.test(fs.readFileSync(path.join(RAIZ, 'scripts/build-macos.mjs'), 'utf8'));
   r.nenhumEmojiNovoForaDoEmbrulho = (() => { const tpl = src.slice(0, src.indexOf('\nclass Component')); const re = /[\u{1F525}\u{1F3AF}\u{1F389}✨\u{1F44B}]/gu; let m, fora = 0; while ((m = re.exec(tpl))) { const antes = tpl.slice(Math.max(0, m.index - 45), m.index); const lt = tpl.lastIndexOf('<', m.index), gt = tpl.lastIndexOf('>', m.index); if (lt > gt) continue; if (!/class="ct-emo" aria-hidden="true">$/.test(antes)) fora++; } return fora === 0; })();
   for (const [k, v] of Object.entries(r)) ok(v, 'A11Y/P16 estático ' + k);
