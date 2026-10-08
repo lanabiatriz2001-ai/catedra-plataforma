@@ -37,6 +37,7 @@ jobs:
           node tests/oab-interface.mjs
           node tests/remover-edital.mjs
           node tests/oral-conversa.mjs
+          node tests/oral-sala.mjs
         env:
           CT_CHROME: /usr/bin/google-chrome
       - name: Testes de navegador (sync + acervo ida-e-volta)
@@ -73,6 +74,7 @@ jobs:
           node tests/oab-interface.mjs
           node tests/remover-edital.mjs
           node tests/oral-conversa.mjs
+          node tests/oral-sala.mjs
         env:
           CT_BROWSER: webkit
       - name: Prova oral → Lei seca em WebKit (http e file://)

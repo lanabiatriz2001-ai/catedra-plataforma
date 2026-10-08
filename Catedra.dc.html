@@ -4087,92 +4087,32 @@ window.ctPdfLib = (function(){
           <!-- MODO ARGUIÇÃO (item 3): a banca pergunta, você responde de viva voz, o padrão
                só aparece depois. É o formato real da prova — ler o padrão antes não treina nada. -->
           <sc-if value="{{ argEmCurso }}" hint-placeholder-val="{{ false }}">
-            <section class="ct-arg-conversa" aria-label="Conversa de arguição" style="background:var(--surface);border:1px solid color-mix(in oklab, var(--accent) 38%, var(--border));border-radius:var(--radius);padding:var(--ct-e5);background-image:linear-gradient(90deg,color-mix(in oklab, var(--accent) 19%, transparent),transparent 46%);">
-              <div style="display:flex;align-items:center;gap:var(--ct-e3);flex-wrap:wrap;">
-                <span style="font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);">Arguição · pergunta {{ argPos }}</span>
-                <span style="flex:1;"></span>
-                <span style="font-family:var(--mono);font-size:calc(var(--ct-e4)*2);font-weight:700;color:{{ argRelogioCor }};font-variant-numeric:tabular-nums;line-height:1;">{{ argRelogio }}</span>
-              </div>
-              <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:8px;">{{ argRef }} · {{ argDisc }}</div>
-              <div class="ct-arg-voz" data-estado="{{ argFase }}"><span class="ct-arg-orbe" aria-hidden="true"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ct-i-scale"></use></svg></span><div role="status" aria-live="polite"><b>{{ argEstadoLabel }}</b><p class="ct-nota">{{ argEstadoNota }}</p></div></div><article class="ct-arg-mensagem"><div class="ct-eb">Banca · pergunta oficial</div><p>{{ argPergunta }}</p></article>
-              <label class="ct-rotulo" for="ct-arg-resposta">Sua resposta · texto opcional</label><textarea id="ct-arg-resposta" class="ct-campo" rows="5" value="{{ argRespostaTexto }}" oninput="{{ onArgResposta }}" placeholder="Responda em voz alta ou registre aqui. Você também pode usar o ditado do teclado."></textarea>
-              <p class="ct-nota">Você responde em voz alta. Para guardar a resposta no histórico, escreva ou use o ditado do teclado.</p>
-              <div class="ct-arg-acoes"><sc-if value="{{ !argMostrar }}"><button class="ct-btn-2" onclick="{{ argPausaToggle }}">{{ argPausaLabel }}</button><button class="ct-btn-2" onclick="{{ argMinhaVez }}">Responder em voz alta</button></sc-if><button class="ct-btn-2" onclick="{{ argEncerrar }}">Encerrar conversa</button></div>
-              <sc-if value="{{ !argMostrar }}" hint-placeholder-val="{{ true }}">
-                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;">
-                  <button onclick="{{ argResponder }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Respondi — ver o padrão</button>
-                  <button onclick="{{ argMaisTempo }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 16px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;">+1 min</button>
-                  <button onclick="{{ argVozToggle }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 16px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:8px;" aria-pressed="{{ argVozStr }}"><sc-if value="{{ argVozOn }}" hint-placeholder-val="{{ false }}"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="volume-2"><use href="#ct-i-volume-2"></use></svg></sc-if><sc-if value="{{ !argVozOn }}" hint-placeholder-val="{{ true }}"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="volume-x"><use href="#ct-i-volume-x"></use></svg></sc-if>{{ argVozLabel }}</button>
-                  <span style="flex:1;"></span>
-
+            <section class="ct-arg-conversa ct-oral-sala" aria-label="Conversa de arguição">
+              <header class="ct-oral-sala-topo"><div><div class="ct-eb">Sala de arguição · {{ argPos }}</div><h2 class="ct-titulo">{{ argDisc }}</h2><p class="ct-nota">{{ argRef }}</p></div><div class="ct-oral-relogio"><span class="ct-eb">Tempo para responder</span><strong style="color:{{ argRelogioCor }};">{{ argRelogio }}</strong></div></header>
+              <div class="ct-oral-andamento" aria-label="Andamento da sessão"><sc-for list="{{ argPassos }}" as="p"><span class="ct-oral-passo" data-estado="{{ p.estado }}" aria-label="{{ p.label }}">{{ p.numero }}</span></sc-for></div>
+              <div class="ct-oral-sala-corpo">
+                <div class="ct-oral-dialogo">
+                  <sc-if value="{{ argTemRespostas }}"><details class="ct-oral-anteriores"><summary>Perguntas anteriores · {{ argFeitas }}</summary><sc-for list="{{ argConversaAnterior }}" as="r"><article class="ct-oral-turno"><div class="ct-eb">Banca · {{ r.disc }}</div><p>{{ r.pergunta }}</p><div class="ct-oral-resposta-salva"><div class="ct-eb">Sua resposta · {{ r.avaliacao }}</div><p>{{ r.resposta }}</p></div></article></sc-for></details></sc-if>
+                  <article class="ct-oral-turno ct-oral-pergunta"><div class="ct-oral-interlocutor"><span class="ct-oral-avatar" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><use href="#ct-i-scale"></use></svg></span><div><b>Banca examinadora</b><span>Pergunta oficial</span></div></div><p>{{ argPergunta }}</p></article>
+                  <div class="ct-oral-estado" data-estado="{{ argFase }}" role="status" aria-live="polite"><span class="ct-oral-pulso" aria-hidden="true"></span><div><b>{{ argEstadoLabel }}</b><p class="ct-nota">{{ argEstadoNota }}</p></div></div>
+                  <sc-if value="{{ !argMostrar }}"><div class="ct-oral-compositor"><label class="ct-rotulo" for="ct-arg-resposta">Sua resposta · texto opcional</label><textarea id="ct-arg-resposta" class="ct-campo" rows="6" value="{{ argRespostaTexto }}" oninput="{{ onArgResposta }}" placeholder="Responda em voz alta. Se quiser guardar suas palavras, escreva ou use o ditado do teclado."></textarea><div class="ct-oral-compositor-rodape"><span class="ct-nota">{{ argTextoStatus }}</span><button class="ct-btn" onclick="{{ argResponder }}">Respondi — ver o padrão</button></div></div></sc-if>
+                  <sc-if value="{{ argMostrar }}"><section class="ct-oral-correcao" aria-label="Comparação com a banca"><div class="ct-eb">Padrão de resposta oficial</div><p class="ct-oral-texto">{{ argPadrao }}</p><sc-if value="{{ argRespostaTem }}"><details open><summary>Sua resposta registrada</summary><p class="ct-oral-texto">{{ argRespostaTexto }}</p></details></sc-if><div class="ct-oral-criterios"><b>Antes de avançar, confira</b><span>Respondi ao que foi perguntado?</span><span>Indiquei a posição e o fundamento?</span><span>Expliquei as ressalvas com clareza?</span></div><p class="ct-nota">Sua autoavaliação orienta os próximos estudos. Respostas parciais e dúvidas geram erro, cartão e revisão.</p><div class="ct-arg-acoes"><button class="ct-btn" data-v="bem" onclick="{{ argAvaliar }}">Respondi bem</button><button class="ct-btn-2" data-v="parcial" onclick="{{ argAvaliar }}">Parcial</button><button class="ct-btn-2" data-v="nao" onclick="{{ argAvaliar }}">Não sabia</button></div></section></sc-if>
                 </div>
-              </sc-if>
+                <section class="ct-oral-apoio" role="complementary" aria-label="Controles da arguição"><div class="ct-eb">Durante a conversa</div><p class="ct-nota">Ouça a pergunta. Apresente sua posição, fundamente e conclua.</p><sc-if value="{{ !argMostrar }}"><button class="ct-btn-2" onclick="{{ argPausaToggle }}">{{ argPausaLabel }}</button><button class="ct-btn-2" onclick="{{ argMinhaVez }}">Responder em voz alta</button><button class="ct-btn-2" onclick="{{ argRepetirPergunta }}">Ouvir pergunta novamente</button><button class="ct-btn-2" onclick="{{ argMaisTempo }}">+1 min</button><button class="ct-btn-2" onclick="{{ argVozToggle }}" aria-pressed="{{ argVozStr }}"><sc-if value="{{ argVozOn }}"><svg data-ico="volume-2" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="#ct-i-volume-2"></use></svg></sc-if><sc-if value="{{ !argVozOn }}"><svg data-ico="volume-x" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="#ct-i-volume-x"></use></svg></sc-if>{{ argVozLabel }}</button></sc-if><div class="ct-oral-guardar"><b>Pode parar quando precisar</b><p class="ct-nota">Pergunta, resposta e tempo ficam guardados para retomar esta sessão.</p><button class="ct-btn-2" onclick="{{ argEncerrar }}">Encerrar conversa</button></div></section>
+              </div>
             </section>
-            <sc-if value="{{ argMostrar }}" hint-placeholder-val="{{ false }}">
-              <div class="ct-card">
-                <div style="font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);">Padrão de resposta oficial</div>
-                <div style="font-size:var(--fs-base);color:var(--ink);line-height:1.7;margin-top:12px;white-space:pre-wrap;">{{ argPadrao }}</div>
-                <div style="border-top:1px solid var(--border);margin-top:18px;padding-top:16px;">
-                  <div style="font-size:var(--fs-sm);color:var(--text3);margin-bottom:10px;">Como foi? O que não fechou vira erro, flashcard e revisão.</div>
-                  <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                    <button data-v="bem" onclick="{{ argAvaliar }}" style="background:var(--ok);color:var(--onOk);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Respondi bem</button>
-                    <button data-v="parcial" onclick="{{ argAvaliar }}" style="background:var(--warn);color:var(--onWarn);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Parcial</button>
-                    <button data-v="nao" onclick="{{ argAvaliar }}" style="background:var(--danger);color:var(--onDanger);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Não sabia</button>
-                  </div>
-                </div>
-              </div>
-            </sc-if>
           </sc-if>
 
-          <sc-if value="{{ argFim }}" hint-placeholder-val="{{ false }}">
-            <div class="ct-card">
-              <div style="font-family:var(--display);font-size:24px;font-weight:700;color:var(--ink);">Fim da arguição</div>
-              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-top:16px;">
-                <div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--ink);">{{ argResumo.n }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">perguntas</div></div>
-                <div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--ok);">{{ argResumo.bem }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">respondi bem</div></div>
-                <div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--warn);">{{ argResumo.parcial }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">parciais</div></div>
-                <div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--danger);">{{ argResumo.nao }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">não sabia</div></div>
-                <div><div style="font-family:var(--mono);font-size:24px;font-weight:700;color:var(--ink);">{{ argResumo.media }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">tempo médio</div></div>
-              </div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;">
-                <button onclick="{{ iniciarArguicao }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Nova arguição</button>
-                <button onclick="{{ argEncerrar }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 18px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;">Voltar ao material</button>
-              </div>
-            </div>
-          </sc-if>
+          <sc-if value="{{ argFim }}"><section class="ct-oral-fecho ct-card" aria-label="Resultado da arguição"><div class="ct-eb">Sua conversa, registrada</div><h2>Fim da arguição</h2><p class="ct-nota">Veja o que conseguiu explicar e o que merece voltar ao seu estudo.</p><div class="ct-oral-resultados"><div><strong>{{ argResumo.n }}</strong><span>perguntas respondidas</span></div><div><strong>{{ argResumo.bem }}</strong><span>respondi bem</span></div><div><strong>{{ argResumo.parcial }}</strong><span>respostas parciais</span></div><div><strong>{{ argResumo.nao }}</strong><span>não sabia</span></div><div><strong>{{ argResumo.media }}</strong><span>tempo médio</span></div></div><div class="ct-oral-criterios"><b>Seu próximo passo</b><p class="ct-nota">Volte aos fundamentos das respostas parciais e às dúvidas. Os registros estão no histórico; os pontos que não fecharam seguem para erros, cartões e revisão.</p></div><div class="ct-arg-acoes"><button class="ct-btn" onclick="{{ iniciarArguicao }}">Nova arguição</button><button class="ct-btn-2" data-id="{{ argSessaoAtual }}" onclick="{{ argHistoricoAbrir }}">Revisar respostas</button><button class="ct-btn-2" onclick="{{ argEncerrar }}">Voltar ao material</button></div></section></sc-if>
 
         <sc-if value="{{ !argOn }}">
         <!-- BANCADA · o hero é o FOCO (o que você vai treinar); a grade "o que você veio
              fazer aqui", logo abaixo, é a FILA. Sem apoio inventado: a Oral não tem um
              material fixo por sessão — ele nasce da escolha do acervo. -->
-        <div class="ct-bc-foco" style="background:var(--heroGrad);color:#fff;border-color:transparent;min-height:0;padding:22px;display:block;">
-          <h3 style="font-family:var(--display);font-weight:700;font-size:clamp(21px,2.6vw,27px);letter-spacing:-.02em;line-height:1.1;margin:0;color:#fff;">Prova oral</h3>
-          <div style="font-size:var(--fs-sm);opacity:.9;margin-top:4px;max-width:640px;line-height:1.55;">{{ oralIntroTxt }}</div>
-          <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
-            <sc-if value="{{ capJuris }}" hint-placeholder-val="{{ true }}"><button data-m="juris" onclick="{{ setOralModo }}" style="{{ oralAbaJuris }}">Jurisprudência</button></sc-if>
-            <button data-m="lei" onclick="{{ setOralModo }}" style="{{ oralAbaLei }}">{{ oralAbaLeiRot }}</button>
-            <sc-if value="{{ capOralBancas }}" hint-placeholder-val="{{ true }}"><button data-m="bancas" onclick="{{ setOralModo }}" style="{{ oralAbaBancas }}">Bancas reais</button></sc-if>
-          </div>
-        </div>
-
-        <!-- O QUE VOCÊ VEIO FAZER AQUI. Os três nomes acima são acervos; estes são atos.
-             Some depois da escolha — os filtros detalhados continuam logo abaixo. -->
-        <sc-if value="{{ oralIntencoesShow }}" hint-placeholder-val="{{ true }}">
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;">
-          <button data-i="treinar" onclick="{{ oralIntencao }}" style="text-align:left;cursor:pointer;font-family:inherit;background:var(--surface);border:1px solid var(--accent);border-radius:var(--radius);padding:18px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 8px 22px rgba(16,24,40,.06);">
-            <span style="display:block;font-weight:700;color:var(--ink);font-size:var(--fs-lg);">Treinar arguição agora</span>
-            <span style="display:block;font-size:var(--fs-sm);color:var(--text3);margin-top:5px;line-height:1.5;">A banca pergunta, o relógio corre e você responde de viva voz. O padrão de resposta só aparece no fim.</span>
-          </button>
-          <button data-i="responder" onclick="{{ oralIntencao }}" style="text-align:left;cursor:pointer;font-family:inherit;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 8px 22px rgba(16,24,40,.06);">
-            <span style="display:block;font-weight:700;color:var(--ink);font-size:var(--fs-lg);">Responder questão de banca</span>
-            <span style="display:block;font-size:var(--fs-sm);color:var(--text3);margin-top:5px;line-height:1.5;">Uma pergunta que a banca fez de verdade, sem cronômetro, com o padrão de resposta ao lado para conferir.</span>
-          </button>
-          <button data-i="consultar" onclick="{{ oralIntencao }}" style="text-align:left;cursor:pointer;font-family:inherit;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 8px 22px rgba(16,24,40,.06);">
-            <span style="display:block;font-weight:700;color:var(--ink);font-size:var(--fs-lg);">Consultar concursos e documentos</span>
-            <span style="display:block;font-size:var(--fs-sm);color:var(--text3);margin-top:5px;line-height:1.5;">Pontos sorteáveis, editais e critérios de cada concurso — para ler, não para treinar.</span>
-          </button>
-        </div>
-        </sc-if>
+        <section class="ct-oral-preparo" aria-label="Preparar arguição"><div class="ct-oral-preparo-intro"><div class="ct-eb">Fase Oral · presença, fundamento e clareza</div><h2>Entre na sala.<br>Construa sua resposta.</h2><p>Uma pergunta de cada vez, com tempo para organizar o raciocínio. Responda primeiro; confira o critério publicado pela banca depois.</p></div><div class="ct-oral-preparo-painel"><div class="ct-eb">Sua próxima conversa</div><sc-if value="{{ capOralBancas }}"><label class="ct-rotulo">Carreira<select class="ct-campo" aria-label="Carreira da arguição" value="{{ oralQCarrValor }}" onchange="{{ setOralQCarr }}"><sc-for list="{{ oralQCarrOpts }}" as="o"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></label><label class="ct-rotulo">Disciplina<select class="ct-campo" aria-label="Disciplina da arguição" value="{{ oralQDiscValor }}" onchange="{{ setOralQDisc }}"><sc-for list="{{ oralQDiscOpts }}" as="o"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></label><div class="ct-oral-preparo-dupla"><label class="ct-rotulo">Perguntas<select class="ct-campo" aria-label="Quantidade de perguntas" value="{{ argQtdValor }}" onchange="{{ setArgQtd }}"><option value="3">3 perguntas</option><option value="5">5 perguntas</option><option value="10">10 perguntas</option></select></label><label class="ct-rotulo">Tempo por resposta<select class="ct-campo" aria-label="Tempo por resposta" value="{{ argMinValor }}" onchange="{{ setArgMin }}"><option value="3">3 minutos</option><option value="5">5 minutos</option><option value="10">10 minutos</option></select></label></div><button class="ct-btn" data-i="treinar" onclick="{{ oralIntencao }}"><b>Treinar arguição agora</b><span>A banca pergunta, você responde em voz alta e compara com o padrão oficial. Perguntas sorteadas, tempo de resposta e uma conversa guardada.</span></button></sc-if><sc-if value="{{ !capOralBancas }}"><p class="ct-nota">Treine a explicação a partir das fontes normativas da sua área, no material abaixo.</p></sc-if></div></section>
+        <sc-if value="{{ argRetomarTem }}"><section class="ct-oral-retomada" aria-label="Arguição para retomar"><div><div class="ct-eb">Sua conversa ficou aqui</div><b>{{ argRetomarLabel }}</b><p class="ct-nota">Retome com o tempo pausado e a resposta preservada.</p></div><button class="ct-btn-2" data-id="{{ argRetomarId }}" onclick="{{ argRetomar }}">Retomar arguição</button></section></sc-if>
+        <sc-if value="{{ oralIntencoesShow }}"><div class="ct-oral-caminhos"><button class="ct-oral-caminho" data-i="responder" onclick="{{ oralIntencao }}"><b>Responder questão de banca</b><span>Escolha uma pergunta real para desenvolver a resposta no seu ritmo, com o padrão de correção disponível depois.</span></button><button class="ct-oral-caminho" data-i="consultar" onclick="{{ oralIntencao }}"><b>Consultar concursos e documentos</b><span>Explore os pontos sorteáveis, editais e critérios publicados. Prepare seus fundamentos antes da próxima conversa.</span></button></div></sc-if>
+        <section class="ct-oral-fontes" aria-label="Material para a Fase Oral"><div><div class="ct-eb">Aprofundar o estudo</div><h3 class="ct-titulo">Fontes e perguntas</h3></div><nav class="ct-fluxo-abas" aria-label="Fontes da prova oral"><sc-if value="{{ capJuris }}"><button class="ct-btn-2" data-m="juris" onclick="{{ setOralModo }}">Jurisprudência</button></sc-if><button class="ct-btn-2" data-m="lei" onclick="{{ setOralModo }}">{{ oralAbaLeiRot }}</button><sc-if value="{{ capOralBancas }}"><button class="ct-btn-2" data-m="bancas" onclick="{{ setOralModo }}">Bancas reais</button></sc-if></nav></section>
 
         <sc-if value="{{ oralErro }}" hint-placeholder-val="{{ false }}">
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;color:var(--danger);font-size:var(--fs-base);">{{ oralErro }}</div>
@@ -7671,7 +7611,7 @@ class Component extends DCLogic {
       oralLeisPronto:false, oralLeiSig:'', oralArt:null, oralArtVariante:0,
       // bancas reais: as 999 perguntas com padrão de resposta (oral-conteudo.js)
       oralQPronto:false, oralQDisc:'', oralQCarr:'', oralQAtual:null, oralQMostrarPadrao:false, oralQResposta:'',
-      argRespostaTexto:'',argFase:'respondendo',argSessaoId:'',argOn:false, argFila:[], argIdx:0, argSeg:180, argRodando:false, argMin:3, argRespostas:[], argFim:false, argVoz:false, discCarregado:false, discErro:false,
+      argQtd:5,argRespostaTexto:'',argFase:'respondendo',argSessaoId:'',argOn:false, argFila:[], argIdx:0, argSeg:180, argRodando:false, argMin:3, argRespostas:[], argFim:false, argVoz:false, discCarregado:false, discErro:false,
       perfMode:'liquido',
       viewBloqueada:'',   // qual view foi barrada pelo guarda de área (só para a tela explicar)
       areaPreview:'',     // área PROPOSTA, aguardando confirmação (não é a ativa)
@@ -10812,6 +10752,10 @@ class Component extends DCLogic {
   }
   /** Troca de view com o guarda aplicado. Devolve a view que REALMENTE abriu. */
   _irPara(v, extra){
+    if(v!=='oral'&&this.state.view==='oral'&&this.state.argOn&&!this.state.argFim){
+      clearInterval(this._argT);this._argCancelarVoz();
+      this.setState({argFase:'pausado',argRodando:false},()=>this._argGuardarHistorico());
+    }
     // sair da Redação pausa o cronômetro da resposta na hora (o tique é só a rede de segurança)
     if(v!=='redacao' && this._redCronoDesde){ try{ this._redCronoPausar(); }catch(_){} }
     if(v!=='redacao' && this.state.redFoco){ try{ this._redFocoPor(false); }catch(_){} }
@@ -10852,6 +10796,7 @@ class Component extends DCLogic {
         else this._oralCarregarAcervo();
       }catch(_){ this._oralCarregarAcervo(); }
     }
+    if(v==='oral'&&window.CT_AREA_REG&&window.CT_AREA_REG.tem(this.state.areaEstudo||'juridica','provaOralBancas'))this._oralPromBancas().catch(()=>{});
     if(v==='redacao') this._carregarDiscursivas().then(()=>this.setState({discCarregado:true}));
     return v;
   }
@@ -13803,6 +13748,9 @@ class Component extends DCLogic {
       oralQResposta:st.oralQResposta, oralQMostrarPadrao:st.oralQMostrarPadrao,
       // ---- modo arguição (item 3)
       argHistorico:(st.sessions||[]).filter(s=>Array.isArray(s.oralArguicao)).slice(0,20).map(s=>({id:s.id,label:(s.topico||'Arguição')+' · '+new Date(s.ts||0).toLocaleDateString('pt-BR')})),argHistoricoTem:(st.sessions||[]).some(s=>Array.isArray(s.oralArguicao)),argHistoricoAbrir:this.argHistoricoAbrir,argHistoricoFechar:this.argHistoricoFechar,argReverTem:!!st.argRever,argReverRespostas:((st.argRever||{}).oralArguicao||[]).map(r=>({...r,resposta:r.resposta||'Nenhuma resposta escrita registrada.',avaliacao:({bem:'Respondi bem',parcial:'Resposta parcial',nao:'Não soube',pendente:'Sem autoavaliação'})[r.v]||'Sem autoavaliação'})),
+      oralQCarrValor:st.oralQCarr||'',oralQDiscValor:st.oralQDisc||'',setOralQCarr:this.setOralQCarr,setOralQDisc:this.setOralQDisc,argQtdValor:String(st.argQtd||5),argMinValor:String(st.argMin||3),setArgQtd:this.setArgQtd,argRepetirPergunta:this.argRepetirPergunta,
+      argTemRespostas:!!st.argRespostas.length,argFeitas:st.argRespostas.length,argConversaAnterior:st.argRespostas.map(r=>({...r,resposta:r.resposta||'Resposta em voz alta, sem registro escrito.',avaliacao:({bem:'Respondi bem',parcial:'Parcial',nao:'Não sabia'})[r.v]||''})),argPassos:st.argFila.map((q,i)=>({numero:i+1,estado:i<st.argIdx?'feito':i===st.argIdx?'atual':'proximo',label:'Pergunta '+(i+1)+(i<st.argIdx?' respondida':i===st.argIdx?' atual':' a seguir')})),argRespostaTem:!!st.argRespostaTexto,argTextoStatus:st.argRespostaTexto?'Rascunho guardado nesta sessão':'Responda em voz alta ou registre suas palavras aqui.',
+      argRetomarTem:(st.sessions||[]).some(s=>s.oralEstado&&!s.oralEstado.concluido&&s.oralEstado.area===(st.areaEstudo||'juridica')&&s.oralEstado.conta===this._argConta()),argRetomarId:((st.sessions||[]).find(s=>s.oralEstado&&!s.oralEstado.concluido&&s.oralEstado.area===(st.areaEstudo||'juridica')&&s.oralEstado.conta===this._argConta())||{}).id||'',argRetomarLabel:((st.sessions||[]).find(s=>s.oralEstado&&!s.oralEstado.concluido&&s.oralEstado.area===(st.areaEstudo||'juridica')&&s.oralEstado.conta===this._argConta())||{}).topico||'',argRetomar:this.argRetomar,argSessaoAtual:st.argSessaoId||'',
       argFase:st.argFase||'respondendo',argRespostaTexto:st.argRespostaTexto||'',onArgResposta:this.onArgResposta,argPausaToggle:this.argPausaToggle,argMinhaVez:this.argMinhaVez,argPausaLabel:st.argFase==='pausado'?'Continuar conversa':'Pausar conversa',argEstadoLabel:st.oralQMostrarPadrao?'Compare com a banca':st.argFase==='ouvindo'?'Ouvindo a banca':st.argFase==='pausado'?'Conversa pausada':'Sua vez de responder',argEstadoNota:st.argFase==='pausado'?'Pergunta, resposta e tempo ficam guardados nesta conversa.':st.argFase==='ouvindo'?'O tempo de resposta começa quando a leitura termina.':'Responda com suas palavras; veja o padrão quando terminar.',
       argOn:st.argOn, argFim:(st.argOn&&st.argFim), argEmCurso:(st.argOn&&!st.argFim),
       argPergunta:_argQ?this._argLimpa(_argQ.enunciado):'',
@@ -14683,8 +14631,10 @@ class Component extends DCLogic {
   }
   oralIntencao = (e)=>{
     const i=e.currentTarget.dataset.i;
+    const area=this.state.areaEstudo||'juridica',conta=this._argConta();
     this.setState({oralIntencao:i, oralModo:'bancas', oralCorrecao:null});
     this._oralPromBancas().then(()=>{
+      if(area!==(this.state.areaEstudo||'juridica')||conta!==this._argConta()||this.state.view!=='oral')return;
       // treinar = modo arguição, que já tem relógio, +1 min, voz e autoavaliação; não se
       // cria outro cronômetro aqui. responder = a pergunta escrita com padrão de resposta.
       if(i==='treinar') this.iniciarArguicao();
@@ -14785,22 +14735,23 @@ class Component extends DCLogic {
   }
   /** Começa uma sessão: N perguntas sorteadas SEM repetição (a banca não repete ponto). */
   iniciarArguicao = ()=>{
+    if(window.CT_AREA_REG&&!window.CT_AREA_REG.tem(this.state.areaEstudo||'juridica','provaOralBancas'))return;
     const pool=this._argPool();
     if(pool.length<3){ this._toast('Poucas perguntas com esses filtros — tire um filtro'); return; }
     const emb=pool.slice(); for(let i=emb.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [emb[i],emb[j]]=[emb[j],emb[i]]; }
-    const fila=emb.slice(0,5);
+    const fila=emb.slice(0,Math.max(3,Math.min(10,+this.state.argQtd||5)));
     this._treino && this._oralCarregarQ && this._oralCarregarQ();
     this.setState({argOrigemArea:this.state.areaEstudo||'juridica',argOrigemConta:this._argConta(),argTempoExtra:0,argSessaoId:'oral-'+Date.now(),argRespostaTexto:'',argFase:'respondendo',argOn:true, argFila:fila, argIdx:0, argRespostas:[], argFim:false,
-      argSeg:this.state.argMin*60, argRodando:true, oralQMostrarPadrao:false});
-    this._argTick();
-    this._argFalar();
+      argSeg:this.state.argMin*60, argRodando:true, oralQMostrarPadrao:false},()=>{
+      this._argTick();this._argFalar();this._argGuardarHistorico();this._argTopo();
+    });
   };
   _argTick(){
     clearInterval(this._argT);
     this._argT=setInterval(()=>{
       if(!this.state.argRodando) return;
       const s=this.state.argSeg-1;
-      if(s<=0){ clearInterval(this._argT); this.setState({argFase:'comparando',argSeg:0, argRodando:false, oralQMostrarPadrao:true}); return; }
+      if(s<=0){ clearInterval(this._argT);this._argCancelarVoz();this.setState({argFase:'comparando',argSeg:0,argRodando:false,oralQMostrarPadrao:true},()=>this._argGuardarHistorico());return; }
       this.setState({argSeg:s});
     }, 1000);
   }
@@ -14821,24 +14772,25 @@ class Component extends DCLogic {
   argMinhaVez = ()=>{this._argCancelarVoz();if(this.state.oralQMostrarPadrao)return;this.setState({argFase:'respondendo',argRodando:true},()=>this._argTick());};
   argPausaToggle = ()=>{if(this.state.oralQMostrarPadrao)return;
     if(this.state.argFase==='pausado'){this.argMinhaVez();return;}
-    clearInterval(this._argT);this._argCancelarVoz();this.setState({argFase:'pausado',argRodando:false});};
+    clearInterval(this._argT);this._argCancelarVoz();this.setState({argFase:'pausado',argRodando:false},()=>this._argGuardarHistorico());};
   argVozToggle = ()=>{ const v=!this.state.argVoz;
     if(!v){this._argCancelarVoz();if(this.state.argFase==='ouvindo')this.argMinhaVez();}
     this.setState({argVoz:v}, ()=>{ if(v) this._argFalar(); }); };
   /** "Respondi" (ou o tempo acabou): revela o padrão da banca. */
   argResponder = ()=>{ clearInterval(this._argT);this._argCancelarVoz();
     try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(_){}
-    this.setState({argFase:'comparando',argRodando:false, oralQMostrarPadrao:true}); };
-  argMaisTempo = ()=> this.setState({argSeg:this.state.argSeg+60,argTempoExtra:(this.state.argTempoExtra||0)+60});
-  setArgMin = (e)=>{ const m=Math.max(1,Math.min(15,parseInt(e.currentTarget.dataset.v,10)||3));
+    this.setState({argFase:'comparando',argRodando:false,oralQMostrarPadrao:true},()=>{this._argGuardarHistorico();this._argComparacaoTopo();}); };
+  argMaisTempo = ()=> this.setState({argSeg:this.state.argSeg+60,argTempoExtra:(this.state.argTempoExtra||0)+60},()=>this._argGuardarHistorico());
+  setArgMin = (e)=>{ const m=Math.max(1,Math.min(15,parseInt(e.currentTarget.dataset.v||e.currentTarget.value,10)||3));
     this.setState({argMin:m, argSeg:(this.state.argOn&&!this.state.argRodando)?this.state.argSeg:m*60}); };
   /** Autoavaliação: 'bem' | 'parcial' | 'nao'. Parcial e não sabia viram erro + revisão. */
   argAvaliar = (e)=>{
+    if(!this.state.argOn||this.state.argFim||!this.state.oralQMostrarPadrao)return;
     const v=e.currentTarget.dataset.v||'nao';
     const q=this.state.argFila[this.state.argIdx]; if(!q) return;
     const gasto=Math.max(0, this.state.argMin*60+(this.state.argTempoExtra||0)-this.state.argSeg);
     // `q.id` é do DOCUMENTO (malote), não da questão: 417 perguntas compartilham 190 ids.
-    const reg={id:q.id+'#'+this.state.argIdx,pergunta:this._argLimpa(q.enunciado),resposta:this.state.argRespostaTexto||'', v, gasto, disc:q.disciplina||q.carreira||'Prova oral'};
+    const reg={id:q.id+'#'+this.state.argIdx,pergunta:this._argLimpa(q.enunciado),resposta:this.state.argRespostaTexto||'', v, gasto, disc:q.disciplina||q.carreira||'Prova oral',padrao:String(q.padrao||''),fonte:q.url||''};
     if(v!=='bem'){
       // mesmo caminho do item 2: o que não soube vira erro, flashcard e revisão
       try{
@@ -14853,19 +14805,25 @@ class Component extends DCLogic {
     const prox=this.state.argIdx+1;
     if(prox>=this.state.argFila.length){
       clearInterval(this._argT);
-      this.setState({argRespostas:respostas,argFase:'concluido',argFim:true,argRodando:false},()=>this._argGuardarHistorico());
+      this.setState({argRespostas:respostas,argFase:'concluido',argFim:true,argRodando:false},()=>{this._argGuardarHistorico();this._argTopo();});
       return;
     }
     this.setState({argRespostas:respostas,argTempoExtra:0,argRespostaTexto:'',argFase:'respondendo',argIdx:prox, argSeg:this.state.argMin*60,
-      argRodando:true, oralQMostrarPadrao:false}, ()=>{ this._argTick(); this._argFalar(); });
+      argRodando:true, oralQMostrarPadrao:false}, ()=>{ this._argTick();this._argFalar();this._argGuardarHistorico();this._argTopo(); });
   };
+  _argTopo(){requestAnimationFrame(()=>{const sala=document.querySelector('.ct-oral-sala,.ct-oral-fecho'),cab=document.querySelector('.ct-topbar');if(sala){const altura=(cab&&cab.getBoundingClientRect().height)||0;sala.style.setProperty('--ct-oral-cabecalho',altura+'px');sala.style.scrollMarginTop=altura+'px';sala.scrollIntoView({block:'start',behavior:'auto'});}});}
+  _argComparacaoTopo(){requestAnimationFrame(()=>{const comparacao=document.querySelector('.ct-oral-correcao'),cab=document.querySelector('.ct-topbar'),topo=document.querySelector('.ct-oral-sala-topo');if(comparacao){comparacao.style.scrollMarginTop=(((cab&&cab.getBoundingClientRect().height)||0)+((topo&&topo.getBoundingClientRect().height)||0))+'px';comparacao.scrollIntoView({block:'start',behavior:'auto'});}});}
+  setArgQtd=(e)=>this.setState({argQtd:[3,5,10].includes(+e.currentTarget.value)?+e.currentTarget.value:5});
+  argRepetirPergunta=()=>{if(!this.state.argOn||this.state.oralQMostrarPadrao)return;this.setState({argVoz:true},()=>this._argFalar());};
+  argRetomar=(e)=>{const s=(this.state.sessions||[]).find(s=>s.id===e.currentTarget.dataset.id),r=s&&s.oralEstado;if(!r||r.concluido||!Array.isArray(r.fila)||!r.fila[r.idx]||r.area!==(this.state.areaEstudo||'juridica')||r.conta!==this._argConta())return;clearInterval(this._argT);this._argCancelarVoz();this.setState({view:'oral',argSessaoId:s.id,argOrigemArea:r.area,argOrigemConta:r.conta,argFila:r.fila,argIdx:r.idx,argSeg:r.seg,argMin:r.min,argTempoExtra:r.extra||0,argRespostaTexto:r.resposta||'',argRespostas:r.respostas||[],argOn:true,argFim:false,argRodando:false,argFase:r.mostrar?'comparando':'pausado',oralQMostrarPadrao:!!r.mostrar},()=>this._argTopo());};
   argHistoricoAbrir = (e)=>{const r=(this.state.sessions||[]).find(s=>s.id===e.currentTarget.dataset.id&&Array.isArray(s.oralArguicao));if(r)this.setState({argRever:r});};
   argHistoricoFechar = ()=>this.setState({argRever:null});
   _argConta(){const u=window.CatedraAuth&&window.CatedraAuth.user;return(u&&(u.id||u.email))||this.state.authEmail||'';}
   _argGuardarHistorico(){
     if((this.state.argOrigemArea&&this.state.argOrigemArea!==(this.state.areaEstudo||'juridica'))||(this.state.argOrigemConta!=null&&this.state.argOrigemConta!==this._argConta()))return;
-    const R=(this.state.argRespostas||[]).slice(),id=this.state.argSessaoId,q=this.state.argFila[this.state.argIdx];if(this.state.argOn&&!this.state.argFim&&q&&(this.state.argRespostaTexto||(this.state.sessions||[]).some(s=>s.id===id&&(s.oralArguicao||[]).some(r=>r.id===q.id+'#'+this.state.argIdx&&r.v==='pendente')))&&!R.some(r=>r.id===q.id+'#'+this.state.argIdx))R.push({id:q.id+'#'+this.state.argIdx,v:'pendente',gasto:Math.max(0,this.state.argMin*60+(this.state.argTempoExtra||0)-this.state.argSeg),pergunta:this._argLimpa(q.enunciado),resposta:this.state.argRespostaTexto});if(!id||!R.length)return;
-    const rec={id,up:Date.now(),ts:Date.now(),date:this._hoje(),disc:'Prova oral',topico:'Arguição · '+R.length+' pergunta'+(R.length===1?'':'s'),categoria:'Prova oral',categorias:['Prova oral'],min:Math.round(R.reduce((n,r)=>n+(r.gasto||0),0)/60),questoes:0,acertos:0,erradas:0,brancos:0,countMeta:true,oralArguicao:R,origem:'arguicao'};
+    const R=(this.state.argRespostas||[]).slice(),id=this.state.argSessaoId,q=this.state.argFila[this.state.argIdx];if(this.state.argOn&&!this.state.argFim&&q&&(this.state.argRespostaTexto||this.state.argMin*60+(this.state.argTempoExtra||0)>this.state.argSeg||(this.state.sessions||[]).some(s=>s.id===id&&(s.oralArguicao||[]).some(r=>r.id===q.id+'#'+this.state.argIdx&&r.v==='pendente')))&&!R.some(r=>r.id===q.id+'#'+this.state.argIdx))R.push({id:q.id+'#'+this.state.argIdx,v:'pendente',gasto:Math.max(0,this.state.argMin*60+(this.state.argTempoExtra||0)-this.state.argSeg),pergunta:this._argLimpa(q.enunciado),resposta:this.state.argRespostaTexto});if(!id)return;
+    const anterior=(this.state.sessions||[]).find(s=>s.id===id);
+    const rec={id,up:Date.now(),ts:(anterior&&anterior.ts)||Date.now(),date:R.length?((anterior&&anterior.date)||this._hoje()):'',disc:'Prova oral',topico:this.state.argFim?('Arguição · '+R.length+' pergunta'+(R.length===1?'':'s')):('Arguição em pausa · pergunta '+(this.state.argIdx+1)+' de '+this.state.argFila.length),categoria:'Prova oral',categorias:['Prova oral'],min:Math.round(R.reduce((n,r)=>n+(r.gasto||0),0)/60),questoes:0,acertos:0,erradas:0,brancos:0,countMeta:R.length>0,oralArguicao:R,oralEstado:{fila:this.state.argFila,idx:this.state.argIdx,seg:this.state.argSeg,min:this.state.argMin,extra:this.state.argTempoExtra||0,resposta:this.state.argRespostaTexto||'',mostrar:!!this.state.oralQMostrarPadrao,concluido:!!this.state.argFim,respostas:this.state.argRespostas||[],area:this.state.areaEstudo||'juridica',conta:this._argConta()},origem:'arguicao'};
     const sessions=[rec,...(this.state.sessions||[]).filter(x=>x.id!==id)];this._saveSessions(sessions);this.setState({sessions});this.flashSync();
   }
   argEncerrar = ()=>{ clearTimeout(this._argRascunhoT);clearInterval(this._argT);this._argCancelarVoz();this._argGuardarHistorico();
