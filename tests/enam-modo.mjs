@@ -40,8 +40,8 @@ export async function testarEnamModo(page, base, ok, opcoes = {}) {
       const w = ms => new Promise(res => setTimeout(res, ms));
       const r = {}, app = window.__catedraApp;
       window.__catedraGoView('simulados'); await w(700);
-      for(let i=0;i<100&&!document.querySelector('main button[data-v="treino"]');i++)await w(50);
-      document.querySelector('main button[data-v="treino"]').click();
+      for(let i=0;i<100&&!document.querySelector('aside button[data-view="simulados"][data-simaba="treino"]');i++)await w(50);
+      document.querySelector('aside button[data-view="simulados"][data-simaba="treino"]').click();
       for(let i=0;i<100&&!document.querySelector('main button[data-v="enam"]');i++)await w(50);
       const chip = document.querySelector('main button[data-v="enam"]');
       r.chipExiste = !!chip && /Modo ENAM/.test(chip.textContent);
