@@ -7654,7 +7654,7 @@ const AUDITOR = () => {
     return {
       nenhumAtalhoParaTelaBarrada: atalhos.every(v => !barrada.includes(v)),
       // o grupo só existe quando tem item embaixo — e em Saúde agora tem (simulado e oral)
-      grupoCoerenteComOsItens: (/TREINO/i.test(aside))
+      grupoCoerenteComOsItens: (/Fases do concurso/i.test(aside))
         === [...document.querySelectorAll('aside button[data-view]')]
           .some(b => ['simulados', 'redacao', 'roteiros', 'segundafase', 'oral'].includes(b.dataset.view)),
       aindaTemOQueEDela: atalhos.includes('areamod') || atalhos.includes('ciclo'),
@@ -7664,8 +7664,8 @@ const AUDITOR = () => {
   await saudeCtx2.close();
   // e Jurídica NÃO perde o cabeçalho do grupo
   const juridicaMantem = await areaPg.evaluate(() =>
-    /fases da magistratura/i.test((document.querySelector('aside') || {}).innerText || ''));
-  ok(juridicaMantem, 'AREA jurídica mantém o grupo "Fases da Magistratura"');
+    /fases do concurso/i.test((document.querySelector('aside') || {}).innerText || ''));
+  ok(juridicaMantem, 'AREA jurídica mantém o grupo "Fases do concurso"');
 
   // 9) todo satélite recebe a área — cinco dos sete não tinham como saber onde estavam
   const contextoSat = await areaPg.evaluate(async () => {
