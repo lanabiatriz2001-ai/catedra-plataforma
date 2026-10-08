@@ -7277,7 +7277,9 @@ const AUDITOR = () => {
     const antesDeAbrir = mais ? mais.getAttribute('aria-expanded') : null;
     if (mais) { mais.click(); await w(400); }
     const mais2 = document.querySelector('button[aria-label="Mostrar mais opções"]');
-    const views = [...document.querySelectorAll('aside button[data-view]')].map(b => b.getAttribute('data-view'));
+    const botoes = [...document.querySelectorAll('aside button[data-view]')];
+    const views = botoes.map(b => b.getAttribute('data-view'));
+    const faseObjetiva = botoes.findIndex(b => b.dataset.view === 'simulados' && b.dataset.simaba === 'treino');
     const rotulos = [...document.querySelectorAll('aside div')]
       .map(d => (d.textContent || '').trim()).filter(t => t.length < 30 && t.length > 3);
     const ordem = (v) => views.indexOf(v);
@@ -7287,10 +7289,11 @@ const AUDITOR = () => {
         'redacao','oral','prioridade','bancas','analise','historico','ajustes'].every(v => views.includes(v)),
       // a rotina vem primeiro, depois o acervo base, depois as fases, depois o planejamento
       hojeAntesDoAcervo: ordem('inicio') < ordem('legis'),
-      acervoAntesDasFases: ordem('legis') < ordem('simulados'),
-      fasesAntesDoPlanejamento: ordem('simulados') < ordem('prioridade'),
+      acervoAntesDasFases: faseObjetiva >= 0 && ordem('legis') < faseObjetiva,
+      registroAntesDasFases: ordem('simulados') === ordem('ciclo') + 1 && ordem('simulados') < faseObjetiva,
+      fasesAntesDoPlanejamento: faseObjetiva >= 0 && faseObjetiva < ordem('prioridade'),
       // os rótulos dizem a fase
-      dizFases: rotulos.some(t => /fases da magistratura|treino/i.test(t)),
+      dizFases: rotulos.some(t => /^fases do concurso$/i.test(t)),
       dizEstudoBase: rotulos.some(t => /estudo base/i.test(t)),
       dizPlanejamento: rotulos.some(t => /planejamento/i.test(t)),
       // o expansor conta o seu estado
