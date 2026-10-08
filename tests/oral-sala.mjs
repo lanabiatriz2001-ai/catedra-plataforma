@@ -14,7 +14,7 @@ try {
  await p.evaluate(()=>window.__catedraGoView('oral'));
  const preparo=p.getByRole('region',{name:'Preparar arguição'});
  await preparo.waitFor();
- await p.waitForFunction(()=>window.__catedraApp.state.oralQPronto);
+ await p.waitForFunction(()=>window.__catedraApp.state.oralQPronto&&document.querySelectorAll('[aria-label="Carreira da arguição"] option').length>1);
  assert.ok((await preparo.getByRole('combobox',{name:'Carreira da arguição'}).locator('option').count())>1);
  await preparo.getByRole('combobox',{name:'Quantidade de perguntas'}).selectOption('3');
  await preparo.getByRole('combobox',{name:'Tempo por resposta'}).selectOption('5');
