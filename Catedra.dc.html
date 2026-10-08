@@ -20945,7 +20945,7 @@ class Component extends DCLogic {
         ? `position:fixed;top:0;left:0;bottom:0;flex:none;width:248px;background:var(--sbg);display:flex;flex-direction:column;padding:20px 16px calc(20px + env(safe-area-inset-bottom));overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;z-index:50;transition:transform .28s ease;transform:translateX(${this.state.menuOpen?'0':'-110%'});box-shadow:${this.state.menuOpen?'0 0 40px rgba(0,0,0,.4)':'none'};`
         : `position:sticky;top:0;align-self:flex-start;height:100vh;overflow-y:auto;flex:none;width:248px;background:var(--sbg);display:flex;flex-direction:column;padding:20px 16px;z-index:50;`,
       showBackdrop: this.state.isMobile && this.state.menuOpen,
-      navStyle:{ inicio:navStyle('inicio'), ciclo:navStyle('ciclo'), edital:navStyle('edital'), revisoes:navStyle('revisoes'), flashcards:navStyle('flashcards'), simulados:navStyle('simulados'), analise:navStyle('analise'), novidades:navStyle('novidades'), conquistas:navStyle('conquistas'), ajustes:navStyle('ajustes') },
+      navStyle:{ inicio:navStyle('inicio'), ciclo:navStyle('ciclo'), edital:navStyle('edital'), revisoes:navStyle('revisoes'), flashcards:navStyle('flashcards'), analise:navStyle('analise'), novidades:navStyle('novidades'), conquistas:navStyle('conquistas'), ajustes:navStyle('ajustes') },
       navShowMore, navToggleShow, navMoreLabel, navChevStyle, toggleNav:this.toggleNav,
       dirStyle:CT_DIRS.reduce((o,d)=>{ o[d]=dirBtn(d); return o; },{}),
       onNav:this.onNav, onDir:this.onDir, toggleMenu:this.toggleMenu,
