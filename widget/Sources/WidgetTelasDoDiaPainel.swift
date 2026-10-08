@@ -14,10 +14,26 @@ struct TelaDoDia: View {
         if let r = e.resumo, !r.juridico {
             EstadoTexto(icone: "building.columns", titulo: "Conteúdo da área jurídica", texto: "A lei do dia aparece quando a área de estudo é jurídica.")
         } else if let i = e.item {
-            DoDiaCartao(i: i, grande: familia == .systemLarge)
+            if familia == .systemSmall { DoDiaPequeno(i: i) }
+            else { DoDiaCartao(i: i, grande: familia == .systemLarge) }
         } else {
             EstadoTexto(icone: "book.closed", titulo: "Lei do dia", texto: "Abra o Cátedra para carregar o acervo.")
         }
+    }
+}
+
+struct DoDiaPequeno: View {
+    let i: WidgetItemDoDia
+    var body: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            Eyebrow(texto: i.tipo == "artigo" ? "Lei do dia" : "Súmula do dia")
+            TextoMateria(texto: i.tipo == "artigo" ? "\(i.titulo) · \(i.diploma)" : i.titulo,
+                         cor: i.cor, corD: i.corD, fonte: .system(size: 14, weight: .heavy), linhas: 2)
+            Text(i.texto).font(.system(size: 12, design: .serif)).lineLimit(3)
+            Spacer(minLength: 0)
+            Text("Abrir texto completo").font(.system(size: 11, weight: .semibold)).lineLimit(1)
+        }.foregroundStyle(.primary)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 }
 

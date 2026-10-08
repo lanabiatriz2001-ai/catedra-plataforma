@@ -56,6 +56,18 @@ export async function testarWidgetCapturas(ok) {
       else if (inf.distintos < 12) lisas.push(it.arquivo);
     }
     ok(indice.length >= 60, R + 'há capturas de todas as telas e variantes (' + indice.length + ')');
+    const arquivos = new Set(indice.map(it => it.arquivo));
+    const modelosNovos = ['prova-medio', 'prova-grande', 'semana-grande', 'ritmo-pequeno', 'ritmo-medio', 'revisoes-pequeno', 'revisoes-medio', 'revisoes-grande'];
+    const faltando = [];
+    for (const modelo of modelosNovos) for (const caso of ['normal', 'longo', 'baixa', 'vazio']) for (const tema of ['', '-escuro']) {
+      const nome = modelo + '-' + caso + tema + '.png';
+      if (!arquivos.has(nome)) faltando.push(nome);
+    }
+    for (const caso of ['primeiro', 'mais-longo']) for (const tema of ['', '-escuro']) {
+      const nome = 'dodia-pequeno-' + caso + tema + '.png';
+      if (!arquivos.has(nome)) faltando.push(nome);
+    }
+    ok(!faltando.length, R + 'novos modelos e tamanhos têm capturas com dados, nomes longos, baixa estimulação e vazio, no claro e escuro' + (faltando.length ? ' — faltam: ' + faltando.join(', ') : ''));
     ok(!tamErrado.length, R + 'toda captura tem o tamanho da família ×2' + (tamErrado.length ? ' — erradas: ' + tamErrado.slice(0, 4).join(', ') : ''));
     ok(!lisas.length, R + 'nenhuma captura sai lisa (todas pintam)' + (lisas.length ? ' — lisas: ' + lisas.slice(0, 4).join(', ') : ''));
     console.log('  capturas para olhar: ' + saida);

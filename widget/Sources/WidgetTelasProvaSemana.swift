@@ -12,11 +12,54 @@ struct TelaProva: View {
     @ViewBuilder var conteudo: some View {
         if let h = e.hoje {
             #if os(iOS)
-            if familia == .accessoryCircular { ProvaCirculo(h: h) } else { ProvaPequeno(h: h) }
+            if familia == .accessoryCircular { ProvaCirculo(h: h) }
+            else if familia == .accessoryRectangular {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(h.diasProva.map { "\($0) dias até a prova" } ?? "Defina a data da prova").font(.system(size: 15, weight: .bold)).lineLimit(1)
+                    Text(h.nomeProva).font(.system(size: 12)).lineLimit(1)
+                }.widgetAccentable()
+            } else { sistema(h) }
             #else
-            ProvaPequeno(h: h)
+            sistema(h)
             #endif
         } else { EstadoEntrar() }
+    }
+    @ViewBuilder func sistema(_ h: WidgetHoje) -> some View {
+        switch familia {
+        case .systemMedium: ProvaAmpla(h: h, grande: false)
+        case .systemLarge: ProvaAmpla(h: h, grande: true)
+        default: ProvaPequeno(h: h)
+        }
+    }
+}
+
+struct ProvaAmpla: View {
+    let h: WidgetHoje
+    let grande: Bool
+    var body: some View {
+        let tinta: Color = h.baixa ? .primary : .white
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(alignment: .top, spacing: 18) {
+                ProvaPequeno(h: h).frame(maxWidth: .infinity)
+                VStack(alignment: .leading, spacing: 8) {
+                    Eyebrow(texto: "Sua preparação")
+                    Text(h.nomeProva.isEmpty ? "Cadastre seu concurso no Edital" : h.nomeProva)
+                        .font(.system(size: 16, weight: .heavy, design: .rounded)).lineLimit(grande ? 4 : 3).minimumScaleFactor(0.8)
+                    Spacer(minLength: 0)
+                    Text("\(Estilo.horas(h.semanaMin)) nesta semana").font(.system(size: 12, weight: .semibold)).lineLimit(2)
+                }.frame(maxWidth: .infinity, alignment: .leading)
+            }
+            if grande {
+                BarraProgresso(pct: h.semanaPct, tinta: tinta, rotulo: "Meta da semana")
+                Text(h.metaSemanaMin > 0 ? "Meta semanal: \(Estilo.horas(h.metaSemanaMin))" : "Defina uma meta no app")
+                    .font(.system(size: 13, weight: .semibold))
+                Eyebrow(texto: "Próximo estudo")
+                if let b = h.proximo { LinhaBloco(b: b, tinta: tinta) }
+                else { Text("Monte seu ciclo de estudo").font(.system(size: 13)) }
+                Spacer(minLength: 0)
+                RotuloVelho(h: h, tinta: tinta)
+            }
+        }.foregroundStyle(tinta)
     }
 }
 
@@ -54,11 +97,41 @@ struct TelaSemana: View {
         if let h = e.hoje {
             #if os(iOS)
             if familia == .accessoryCircular { SemanaCirculo(h: h) }
-            else if familia == .systemMedium { SemanaMedio(h: h) } else { SemanaPequeno(h: h) }
+            else { sistema(h) }
             #else
-            if familia == .systemMedium { SemanaMedio(h: h) } else { SemanaPequeno(h: h) }
+            sistema(h)
             #endif
         } else { EstadoEntrar() }
+    }
+    @ViewBuilder func sistema(_ h: WidgetHoje) -> some View {
+        switch familia {
+        case .systemLarge: SemanaGrande(h: h)
+        case .systemMedium: SemanaMedio(h: h)
+        default: SemanaPequeno(h: h)
+        }
+    }
+}
+
+struct SemanaGrande: View {
+    let h: WidgetHoje
+    var body: some View {
+        let tinta: Color = h.baixa ? .primary : .white
+        VStack(alignment: .leading, spacing: 14) {
+            Eyebrow(texto: "Sua semana de estudo")
+            HStack(spacing: 16) {
+                AnelMeta(pct: h.semanaPct, tinta: tinta, espessura: 8).frame(width: 88, height: 88)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(Estilo.horas(h.semanaMin)).font(Estilo.numero(30)).minimumScaleFactor(0.7).lineLimit(1)
+                    Text(h.metaSemanaMin > 0 ? "de \(Estilo.horas(h.metaSemanaMin))" : "Defina a meta semanal").font(.system(size: 13, weight: .semibold))
+                }
+            }
+            BarrasSemana(dias: h.semana, meta: h.metaHojeMin, tinta: tinta).frame(maxHeight: .infinity)
+            HStack {
+                Text("Hoje: \(Estilo.horas(h.minHoje))").font(.system(size: 13, weight: .bold))
+                Spacer(minLength: 0)
+                RotuloVelho(h: h, tinta: tinta)
+            }
+        }.foregroundStyle(tinta)
     }
 }
 
