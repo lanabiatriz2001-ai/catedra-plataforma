@@ -32,6 +32,7 @@ jobs:
           node tests/ciclo-sessao-intencional.mjs
           node tests/inicio-enxuto.mjs
           node tests/fluxo-telas.mjs
+          node tests/remover-edital.mjs
           node tests/oral-conversa.mjs
         env:
           CT_CHROME: /usr/bin/google-chrome
@@ -64,6 +65,7 @@ jobs:
           node tests/ciclo-sessao-intencional.mjs
           node tests/inicio-enxuto.mjs
           node tests/fluxo-telas.mjs
+          node tests/remover-edital.mjs
           node tests/oral-conversa.mjs
         env:
           CT_BROWSER: webkit
