@@ -2099,3 +2099,7 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 .ct-arg-acoes{display:flex;gap:var(--ct-e2);flex-wrap:wrap;margin-top:var(--ct-e4)}
 .ct-arg-acoes button{min-height:44px}
 
+
+/* OAB: controles confortáveis também com mouse e no histórico. */
+.ct-oab :is(button,input,select,a,summary){min-height:44px;}
+.ct-oab summary{cursor:pointer;padding-block:12px;}
