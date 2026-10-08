@@ -2818,6 +2818,9 @@ for (const [k, v] of Object.entries(la6p)) ok(v, 'LEITURA/ONDE-MAIS prioridade '
       { id: 'lei|Código Civil|Art. 1.241|z', origem: 'lei', enunciado: 'Terceiro, errado e sem leitura.', certo: true, original: 'Terceiro.', ref: 'Código Civil · Art. 1.241', ramo: 'Código Civil', tema: 'Art. 1.241', url: CC, contexto: 'z' },
     ];
     window.__catedraGoView('simulados'); await w(400);
+      for(let i=0;i<100&&!document.querySelector('main button[data-v="treino"]');i++)await w(50);
+      document.querySelector('main button[data-v="treino"]').click();
+      for(let i=0;i<100&&!document.querySelector('main button[data-v="enam"]');i++)await w(50);
     // respostas: errou o 1.239 (marcou certo), acertou o 1.240, errou o 1.241 (marcou errado)
     const resp = {}; resp[itens[0].id] = true; resp[itens[1].id] = true; resp[itens[2].id] = false;
     // o painel do simulado misto precisa estar aberto; o encerramento real monta o relatório e o gabarito
@@ -3120,6 +3123,9 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     const r = {}, app = window.__catedraApp;
     r.chaveNoAutosave = app._autosaveKeys().includes('enamSim');
     window.__catedraGoView('simulados'); await w(600);
+      for(let i=0;i<100&&!document.querySelector('main button[data-v="treino"]');i++)await w(50);
+      document.querySelector('main button[data-v="treino"]').click();
+      for(let i=0;i<100&&!document.querySelector('main button[data-v="enam"]');i++)await w(50);
     document.querySelector('main button[data-v="enam"]').click(); await w(200);
     const abrir = [...document.querySelectorAll('main button')].find(b => /^(Começar|Fechar)$/.test(b.textContent.trim())); if (abrir.textContent.trim() === 'Começar') { abrir.click(); await w(400); }
     // sem o banco: explica o que falta e NÃO monta itens Certo/Errado
@@ -3255,6 +3261,9 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     const corToken = (t) => { const p = document.createElement('span'); p.style.color = 'var(' + t + ')'; document.querySelector('main').appendChild(p); const c = getComputedStyle(p).color; p.remove(); return c; };
     const montar = async () => {
       window.__catedraGoView('simulados'); await w(500);
+      for(let i=0;i<100&&!document.querySelector('main button[data-v="treino"]');i++)await w(50);
+      document.querySelector('main button[data-v="treino"]').click();
+      for(let i=0;i<100&&!document.querySelector('main button[data-v="enam"]');i++)await w(50);
       const chip = document.querySelector('main button[data-v="enam"]'); if (chip.getAttribute('aria-pressed') !== 'true') { chip.click(); await w(200); }
       const abrir = [...document.querySelectorAll('main button')].find(b => /^(Começar|Fechar)$/.test(b.textContent.trim())); if (abrir && abrir.textContent.trim() === 'Começar') { abrir.click(); await w(400); }
       const novo = [...document.querySelectorAll('main button')].find(b => /Novo simulado/.test(b.textContent)); if (novo) { novo.click(); await w(300); }
@@ -3708,7 +3717,8 @@ catch (e) { ok(false, 'PROVA ENCERRAR UMA VEZ [chromium] o roteiro correu sem ex
   const VT = await import('../scripts/verificar-cores-texto.mjs');
   r.scriptDeCoresTexto = typeof VT.corTexto === 'function' && VT.ratio(VT.corTexto('#0D9488', false), '#fffdf8') >= 4.5 && VT.ratio(VT.corTexto('#0D9488', true), '#201d17') >= 4.5;
   const src = fs.readFileSync(path.join(RAIZ, 'Catedra.dc.html'), 'utf8');
-  r.consumidoresTextuaisUsamCorTx = /color:\{\{ r\.colorTx \}\}/.test(src) && /color:\{\{ d\.colorTx \}\}/.test(src) && /color:\{\{ n\.corTx \}\}/.test(src) && /color:\{\{ g\.corTx \}\}/.test(src) && !/color:\{\{ r\.color \}\}/.test(src);
+  // O cartão de próximas revisões saiu do Início; os consumidores restantes mantêm cor de texto.
+  r.consumidoresTextuaisUsamCorTx = /color:\{\{ d\.colorTx \}\}/.test(src) && /color:\{\{ n\.corTx \}\}/.test(src) && /color:\{\{ g\.corTx \}\}/.test(src) && !/color:\{\{ r\.color \}\}/.test(src);
   r.buildsTravam = /verificar-cores-texto\.mjs/.test(fs.readFileSync(path.join(RAIZ, 'scripts/build.mjs'), 'utf8')) && /verificar-cores-texto\.mjs/.test(fs.readFileSync(path.join(RAIZ, 'scripts/build-macos.mjs'), 'utf8'));
   r.nenhumEmojiNovoForaDoEmbrulho = (() => { const tpl = src.slice(0, src.indexOf('\nclass Component')); const re = /[\u{1F525}\u{1F3AF}\u{1F389}✨\u{1F44B}]/gu; let m, fora = 0; while ((m = re.exec(tpl))) { const antes = tpl.slice(Math.max(0, m.index - 45), m.index); const lt = tpl.lastIndexOf('<', m.index), gt = tpl.lastIndexOf('>', m.index); if (lt > gt) continue; if (!/class="ct-emo" aria-hidden="true">$/.test(antes)) fora++; } return fora === 0; })();
   for (const [k, v] of Object.entries(r)) ok(v, 'A11Y/P16 estático ' + k);
@@ -4503,24 +4513,13 @@ for (const [k, v] of Object.entries(sem)) ok(v, 'SEMANA ' + k);
     ' × acervo ' + maior('informativo_stf', false) + ')');
 }
 
-// a home mostra o bloco, e "Já vi" tira o item e persiste
-await page.goto(URL0 + '/Catedra.dc.html');
-await page.evaluate(() => { localStorage.removeItem('catedra:semanaLidos'); });
-await page.goto(URL0 + '/Catedra.dc.html');
-await page.waitForTimeout(1800);
-const home = await page.evaluate(async () => {
-  const tit = [...document.querySelectorAll('h2')].find(h => /mudou esta semana/i.test(h.textContent || ''));
-  if (!tit) return { erro: 'sem bloco' };
-  const cont = tit.closest('.cth-sec').nextElementSibling;
-  const antes = [...cont.children].filter(e => e.tagName === 'DIV').length;
-  const b = cont.querySelector('button[data-id]');
-  const id = b && b.dataset.id;
-  if (b) b.click();
-  await new Promise(r => setTimeout(r, 500));
-  return { antes, id, lidos: JSON.parse(localStorage.getItem('catedra:semanaLidos') || '[]') };
-});
-ok(!home.erro && home.antes > 0, 'SEMANA bloco aparece na home com itens');
-ok(!home.erro && home.lidos.includes(home.id), 'SEMANA "Já vi" registra e persiste (sincroniza)');
+// O bloco da semana saiu do Início; o método continua preservando marcas existentes.
+await page.goto(URL0+'/Catedra.dc.html');
+await page.evaluate(()=>localStorage.removeItem('catedra:semanaLidos'));
+await page.reload();await page.waitForTimeout(1800);
+const home=await page.evaluate(async()=>{const a=window.__catedraApp,it=a._semanaItens()[0];if(!it)return {erro:'sem itens'};a.semanaLido({currentTarget:{dataset:{id:it.id}}});await new Promise(r=>setTimeout(r,600));return {ausente:!document.querySelector('#ct-semana'),id:it.id,lidos:JSON.parse(localStorage.getItem('catedra:semanaLidos')||'[]')};});
+ok(!home.erro&&home.ausente,'SEMANA bloco foi removido do Início');
+ok(!home.erro&&home.lidos.includes(home.id),'SEMANA método de leitura continua registrando e persistindo');
 /* ============= PROVA ORAL — MODO ARGUIÇÃO (item 3) ============= */
 await page.goto(URL0 + '/tests/harness-arguicao.html');
 await page.waitForFunction(() => !!window.CT_ORAL_Q && !!window.argPool);
@@ -5208,6 +5207,11 @@ const d2b = await page.evaluate(async () => {
   const views = ['areamod', 'roteiros', 'legis', 'juris', 'segundafase', 'prioridade'];
   r.seisIframes = document.querySelectorAll('iframe[data-ct-view]').length === 6;
   for (const v of views) {
+    // As provas oficiais são um destino interno da entrada única de 2ª fase.
+    if (v === 'segundafase') {
+      document.querySelector('aside button[data-view="redacao"]').click();
+      for (let t=0;t<30&&!document.querySelector('nav button[data-view="segundafase"]');t++) await w(100);
+    }
     const b = document.querySelector('button[data-view="' + v + '"]');
     if (!b) { r.telas[v] = 'sem botão no menu'; continue; }
     b.click();
@@ -5242,6 +5246,10 @@ const barra = await page.evaluate(async () => {
   const w = ms => new Promise(r => setTimeout(r, ms));
   const r = {};
   for (const [view, arquivo] of [['prioridade', 'prioridade-web.html'], ['segundafase', 'segunda-fase-web.html']]) {
+    if (view === 'segundafase') {
+      document.querySelector('aside button[data-view="redacao"]').click();
+      for (let t=0;t<30&&!document.querySelector('nav button[data-view="segundafase"]');t++) await w(100);
+    }
     const b = document.querySelector('button[data-view="' + view + '"]');
     if (!b) { r[view + 'TemBotao'] = false; continue; }
     r[view + 'TemBotao'] = true;
@@ -6984,7 +6992,8 @@ ok(orfas.length === 0, 'D14 nenhuma variável órfã no template (' + (orfas.sli
 const d14barra = await page.evaluate(() => {
   const r = {};
   for (const v of ['prioridade', 'segundafase']) {
-    const b = document.querySelector('button[data-view="' + v + '"]');
+    const entrada = v === 'segundafase' ? 'redacao' : v;
+    const b = document.querySelector('aside button[data-view="' + entrada + '"]');
     r[v + 'TemBotao'] = !!b;
     r[v + 'TemEstilo'] = !!b && (b.getAttribute('style') || '').length > 20;
   }
@@ -7386,8 +7395,8 @@ const AUDITOR = () => {
         .map(b => b.dataset.view).filter(v => acervo.includes(v));
     }, ACERVO);
   }
-  ok(ACERVO.every(v => menus.juridica.includes(v)),
-    'AREA jurídica continua com todas as telas (' + menus.juridica.length + '/' + ACERVO.length + ')');
+  ok(ACERVO.filter(v => v !== 'segundafase').every(v => menus.juridica.includes(v)),
+    'AREA jurídica mantém todas as entradas e reúne a 2ª fase (' + menus.juridica.length + '/' + (ACERVO.length-1) + ')');
   ok(!menus.saude.includes('juris') && !menus.saude.includes('roteiros')
      && !menus.saude.includes('segundafase') && !menus.saude.includes('redacao')
      && !menus.saude.includes('prioridade'),

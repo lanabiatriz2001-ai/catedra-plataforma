@@ -64,16 +64,16 @@ async function roteiro(page, base, ok, R, arquivo) {
     window.__catedraGoView('inicio'); await w(900);
     const bt = document.querySelector('.cth-baralho');
     const menu = [...document.querySelectorAll('button[data-view="flashcards"]')][0];
-    return { temNoPainel: !!bt, txt: bt ? (bt.innerText || '').replace(/\n/g, ' ') : '', temNoMenu: !!menu };
+    return { temNoPainel: !bt, txt: String(window.__catedraApp.renderVals().fcDueStr), temNoMenu: !!menu };
   });
   ok(painel.temNoPainel && /^2\b/.test(painel.txt.trim()),
-    R + 'Início: o painel mostra 2 cartões vencidos — o vencido de ontem e o novo, nunca o de depois de amanhã (' + painel.txt.trim().slice(0, 40) + ')');
+    R + 'Início sem bloco de Baralho; fila mantém 2 cartões vencidos (' + painel.txt.trim().slice(0, 40) + ')');
   ok(painel.temNoMenu, R + 'o Baralho tem entrada no menu (a tela existia só como dado antes)');
 
   // ---- 2) estudar: virar, "Sei" empurra para frente, "Não sei" devolve à rodada
   const estudo = await page.evaluate(async () => {
     const w = ms => new Promise(r => setTimeout(r, ms));
-    document.querySelector('.cth-baralho').click(); await w(900);
+    window.__catedraGoView('flashcards'); await w(300); document.querySelector('button.ct-bc-acao').click(); await w(900);
     const sala = () => document.querySelector('.ct-fc-sala');
     const r = { abriu: !!sala() };
     r.versoEscondido = !document.querySelector('.ct-fc-verso');
@@ -179,6 +179,6 @@ async function roteiro(page, base, ok, R, arquivo) {
     const c2 = FC.find(c => c.id === 'c2') || {};
     return { c2due: String(c2.dueDate || ''), painel: !!document.querySelector('.cth-baralho') };
   });
-  ok(persist.c2due && persist.painel,
-    R + 'reabrindo o app: o agendamento de cada cartão sobreviveu e o painel segue mostrando o que resta');
+  ok(persist.c2due && !persist.painel,
+    R + 'reabrindo o app: o agendamento de cada cartão sobreviveu e o Início permanece sem o bloco removido');
 }

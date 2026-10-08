@@ -795,13 +795,12 @@ window.ctPdfLib = (function(){
       <sc-if value="{{ capAreaMod }}" hint-placeholder-val="{{ true }}"><button data-view="areamod" aria-current="{{ navCur.areamod }}" onclick="{{ onNav }}" style="{{ navAreaMod }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3 3 8l9 5 9-5-9-5z" stroke-linejoin="round"></path><path d="M3 14l9 5 9-5" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>{{ areaModLabel }}</span></button></sc-if>
       <sc-if value="{{ capCasos }}" hint-placeholder-val="{{ false }}"><button data-view="casos" aria-current="{{ navCur.casos }}" onclick="{{ onNav }}" style="{{ navCasos }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 3h9l3 3v15H6z" stroke-linejoin="round"></path><path d="M9.5 9.5h5M9.5 13h5M9.5 16.5h3" stroke-linecap="round"></path></svg><span>{{ casosMenu }}</span></button></sc-if>
       <sc-if value="{{ capEdital }}" hint-placeholder-val="{{ true }}"><button data-view="edital" aria-current="{{ navCur.edital }}" onclick="{{ onNav }}" style="{{ navStyle.edital }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 2h9l5 5v15H6z" stroke-linejoin="round"></path><path d="M14 2v6h6M9 13h6M9 17h6" stroke-linecap="round"></path></svg><span>Edital</span></button></sc-if>
+      <sc-if value="{{ capRoteiros }}" hint-placeholder-val="{{ true }}"><button data-view="roteiros" aria-current="{{ navCur.roteiros }}" onclick="{{ onNav }}" style="{{ navRoteiros }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 3h9l4 4v14H6z" stroke-linejoin="round"></path><path d="M9 12h7M9 16h7M9 8h3" stroke-linecap="round"></path></svg><span>Roteiros e peças</span></button></sc-if>
     </nav>
     <sc-if value="{{ temGrupoFases }}" hint-placeholder-val="{{ true }}"><div style="font-size:var(--fs-2xs);letter-spacing:.14em;text-transform:uppercase;color:var(--stext);opacity:.65;font-weight:600;padding:18px 8px 8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);">{{ navGrupoFases }}</div></sc-if>
     <sc-if value="{{ temGrupoFases }}" hint-placeholder-val="{{ true }}"><nav style="display:flex;flex-direction:column;gap:3px;">
-      <sc-if value="{{ capSimulados }}" hint-placeholder-val="{{ true }}"><button data-view="simulados" aria-current="{{ navCur.simulados }}" onclick="{{ onNav }}" style="{{ navStyle.simulados }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 4h6a1 1 0 0 1 1 1v1h2v15H6V6h2V5a1 1 0 0 1 1-1Z" stroke-linejoin="round"></path><path d="M9 12l1.5 1.5L13 11" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>1ª fase · Simulados</span></button></sc-if>
-      <sc-if value="{{ capRedacao }}" hint-placeholder-val="{{ true }}"><button data-view="redacao" aria-current="{{ navCur.redacao }}" onclick="{{ onNav }}" style="{{ navRedacao }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 20h16M4 16l9.5-9.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>2ª fase · Discursivas</span></button></sc-if>
-      <sc-if value="{{ capRoteiros }}" hint-placeholder-val="{{ true }}"><button data-view="roteiros" aria-current="{{ navCur.roteiros }}" onclick="{{ onNav }}" style="{{ navRoteiros }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 3h9l4 4v14H6z" stroke-linejoin="round"></path><path d="M9 12h7M9 16h7M9 8h3" stroke-linecap="round"></path></svg><span>Roteiros e peças</span></button></sc-if>
-      <sc-if value="{{ capSegundaFase }}" hint-placeholder-val="{{ true }}"><button data-view="segundafase" aria-current="{{ navCur.segundafase }}" onclick="{{ onNav }}" style="{{ navSegundaFase }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2M9 2h6" stroke-linecap="round"></path></svg><span>Provas de 2ª fase</span></button></sc-if>
+      <sc-if value="{{ capSimulados }}" hint-placeholder-val="{{ true }}"><button data-view="simulados" aria-current="{{ navCur.simulados }}" onclick="{{ onNav }}" style="{{ navStyle.simulados }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 4h6a1 1 0 0 1 1 1v1h2v15H6V6h2V5a1 1 0 0 1 1-1Z" stroke-linejoin="round"></path><path d="M9 12l1.5 1.5L13 11" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Simulados</span></button></sc-if>
+      <sc-if value="{{ capRedacao }}" hint-placeholder-val="{{ true }}"><button data-view="redacao" aria-current="{{ navSegundaCur }}" onclick="{{ onNav }}" style="{{ navSegundaHub }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 20h16M4 16l9.5-9.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>2ª fase</span></button></sc-if>
       <sc-if value="{{ capOral }}" hint-placeholder-val="{{ true }}"><button data-view="oral" aria-current="{{ navCur.oral }}" onclick="{{ onNav }}" style="{{ navOral }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z" stroke-linejoin="round"></path><path d="M5 11a7 7 0 0 0 14 0M12 18v3" stroke-linecap="round"></path></svg><span>Prova oral</span></button></sc-if>
     </nav></sc-if>
     <div style="font-size:var(--fs-2xs);letter-spacing:.14em;text-transform:uppercase;color:var(--stext);opacity:.65;font-weight:600;padding:18px 8px 8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);">Planejamento</div>
@@ -999,7 +998,7 @@ window.ctPdfLib = (function(){
          saveSession e o _brain usam. A cor da MATÉRIA veste o cabeçalho; tudo por token.
          Contratos preservados: role/aria-label do dialog e a classe .ct-modal-panel (focus
          trap), data-k/data-v dos handlers, aria-label de todo select, textos dos testes. -->
-    <sc-if value="{{ sessionModalOpen }}" hint-placeholder-val="{{ false }}">
+    <sc-if value="{{ sessModalEstudoOpen }}" hint-placeholder-val="{{ false }}">
       <div onclick="{{ closeSessionBackdrop }}" style="position:fixed;inset:0;background:rgba(16,24,40,.45);z-index:100;display:flex;align-items:center;justify-content:center;padding:18px;">
         <div onclick="{{ stop }}" role="dialog" aria-modal="true" aria-label="Registrar sessão" class="ct-modal-panel ct-modal-caixa ct-reg" style="{{ sessCorStyle }}">
           <div class="ct-reg-cab">
@@ -1010,6 +1009,8 @@ window.ctPdfLib = (function(){
             </div>
             <button onclick="{{ closeSession }}" aria-label="Fechar" class="ct-reg-fechar"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"></path></svg></button>
           </div>
+          <nav class="ct-fluxo-abas" aria-label="Modo de registro"><button class="ct-btn-2" data-v="estudo" aria-pressed="{{ sessModoEstudoStr }}" onclick="{{ setRegistroModo }}">Estudo</button><button class="ct-btn-2" data-v="simulado" aria-pressed="{{ sessModoSimStr }}" onclick="{{ setRegistroModo }}">Simulado</button></nav>
+          <sc-if value="{{ sessModoEstudo }}">
           <div class="ct-reg-efeito">
             <div class="ct-reg-efeito-t">O que esta sessão muda</div>
             <sc-if value="{{ sessEfeitosShow }}" hint-placeholder-val="{{ false }}">
@@ -1116,6 +1117,7 @@ window.ctPdfLib = (function(){
               <button onclick="{{ saveSession }}" class="ct-btn">Registrar sessão</button>
             </div>
           </div>
+          </sc-if>
         </div>
       </div>
     </sc-if>
@@ -1990,149 +1992,6 @@ window.ctPdfLib = (function(){
 
         <!-- REVISÕES -->
         <!-- ONDE ESTOU FRACA (item 1): a decisão nº 1 do dia, com o porquê -->
-        <!-- SEUS CONCURSOS (Fase 4). Cobertura calculada sobre o acervo comum: estudar uma
-             disciplina avança todo concurso que a tem. Só com dois concursos ou mais. -->
-        <sc-if value="{{ concPainelTem }}" hint-placeholder-val="{{ false }}">
-          <div class="cth-sec"><h2>Seus concursos</h2><span class="rule"></span><span class="meta">o estudo de uma disciplina vale em cada concurso que a tem</span></div>
-          <div class="ct-conc-grade">
-            <sc-for list="{{ concPainel }}" as="c" hint-placeholder-count="2">
-              <button class="ct-item ct-conc-card" data-id="{{ c.id }}" aria-pressed="{{ c.ativoStr }}" onclick="{{ abrirConcurso }}" aria-label="{{ c.nome }}: {{ c.pctStr }} do edital coberto; abrir o edital deste concurso">
-                <span class="ct-item-corpo">
-                  <span class="ct-item-tit">{{ c.nome }}</span>
-                  <span class="ct-item-nota">{{ c.discTxt }} · {{ c.tempoTxt }} nesta semana<sc-if value="{{ c.temCompart }}" hint-placeholder-val="{{ false }}"> · {{ c.compartStr }} em comum</sc-if></span>
-                  <span class="ct-conc-barra" aria-hidden="true"><i style="--pct:{{ c.pctStr }};"></i></span>
-                </span>
-                <span class="ct-item-fim"><b class="ct-conc-pct">{{ c.pctStr }}</b></span>
-              </button>
-            </sc-for>
-          </div>
-        </sc-if>
-        <div class="cth-sec"><h2>Onde estou fraca</h2><span class="rule"></span><span class="meta">erros, revisões vencidas, tempo parada e peso do edital</span></div>
-        <sc-if value="{{ prioTem }}" hint-placeholder-val="{{ true }}">
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-bottom:26px;">
-            <sc-for list="{{ prioLista }}" as="p" hint-placeholder-count="3">
-              <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;">
-                <div style="display:flex;align-items:baseline;gap:10px;">
-                  <span style="flex:1;min-width:0;font-weight:600;color:var(--ink);">{{ p.disc }}</span>
-                  <span style="font-family:var(--display);font-size:var(--fs-xl);font-weight:700;color:{{ p.cor }};">{{ p.nota }}</span>
-                </div>
-                <span style="display:block;height:7px;border-radius:99px;background:var(--surface2);overflow:hidden;margin:9px 0 10px;"><i style="{{ p.barra }}"></i></span>
-                <div style="font-size:var(--fs-sm);color:var(--text3);line-height:1.5;">{{ p.motivo }}</div>
-                <sc-if value="{{ p.temDados }}" hint-placeholder-val="{{ true }}">
-                  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
-                    <button data-d="{{ p.disc }}" onclick="{{ prioRevisar }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:8px 13px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;">Revisar agora</button>
-                    <button data-d="{{ p.disc }}" onclick="{{ prioErros }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:8px 13px;font-size:var(--fs-sm);color:var(--text2);cursor:pointer;font-family:inherit;">Ver desempenho</button>
-                    <button data-d="{{ p.disc }}" onclick="{{ prioEstudar }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:8px 13px;font-size:var(--fs-sm);color:var(--text2);cursor:pointer;font-family:inherit;">Estudar</button>
-                    <!-- C2: sai do diagnóstico direto para a prática, na plataforma que ela assina -->
-                    <button data-d="{{ p.disc }}" data-a="{{ p.assunto }}" onclick="{{ praticarDisciplina }}" title="{{ praticarTitulo }}" style="background:transparent;border:1px dashed var(--border);border-radius:var(--r-md);padding:8px 13px;font-size:var(--fs-sm);color:var(--text3);cursor:pointer;font-family:inherit;">{{ praticarLabel }} ↗</button>
-                  </div>
-                </sc-if>
-              </div>
-            </sc-for>
-          </div>
-        </sc-if>
-        <sc-if value="{{ prioVazio }}" hint-placeholder-val="{{ false }}">
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;color:var(--text3);font-size:var(--fs-sm);line-height:1.6;margin-bottom:26px;">
-            Aqui vão aparecer as disciplinas do seu edital ordenadas por prioridade — quem tem mais erros recentes,
-            revisões vencidas e mais tempo sem estudo sobe. <b style="color:var(--text2);">Cadastre o edital</b> e registre
-            uma sessão para o diagnóstico começar.
-          </div>
-        </sc-if>
-        <!-- O QUE MUDOU ESTA SEMANA (item 7) -->
-        <sc-if value="{{ semanaTem }}" hint-placeholder-val="{{ true }}">
-          <div id="ct-semana" class="cth-sec"><h2>O que mudou esta semana</h2><span class="rule"></span><span class="meta">informativos recentes do STF, STJ e TSE{{ semanaRecorteTxt }} · <button class="ct-alvo" onclick="{{ semanaVerTudo }}" style="background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:0;">ver todos →</button><sc-if value="{{ semanaAguardaAcervo }}" hint-placeholder-val="{{ false }}"><span aria-hidden="true"> · </span><button class="ct-alvo" data-view="novidades" onclick="{{ onNav }}" style="background:transparent;border:none;color:color-mix(in srgb, var(--accentD) 62%, var(--ink));font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:0;">{{ semanaAguardaLabel }}</button></sc-if></span></div>
-          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:26px;">
-            <sc-for list="{{ semanaLista }}" as="s" hint-placeholder-count="4">
-              <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
-                <div style="flex:1;min-width:0;">
-                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                    <sc-if value="{{ s.temSelo }}" hint-placeholder-val="{{ true }}">
-                      <span style="{{ s.seloStyle }}font-size:var(--fs-3xs);font-weight:800;letter-spacing:.04em;text-transform:uppercase;border-radius:99px;padding:3px 9px;">{{ s.selo }}</span>
-                    </sc-if>
-                    <span style="font-weight:600;color:var(--ink);font-size:var(--fs-base);">{{ s.titulo }}</span>
-                    <span style="font-size:var(--fs-xs);color:var(--text3);">{{ s.ondeQuem }} · {{ s.quando }}</span>
-                  </div>
-                  <div style="font-size:var(--fs-sm);color:var(--text2);line-height:1.55;margin-top:6px;">{{ s.tese }}</div>
-                  <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
-                    <button data-t="{{ s.titulo }}" onclick="{{ semanaAbrir }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 12px;font-size:var(--fs-sm);font-weight:600;color:var(--accentD);cursor:pointer;font-family:inherit;">Abrir no JURIS</button>
-                    <button data-id="{{ s.id }}" onclick="{{ semanaLido }}" style="background:transparent;border:1px solid var(--border);border-radius:var(--r-md);padding:7px 12px;font-size:var(--fs-sm);color:var(--text3);cursor:pointer;font-family:inherit;">Já vi</button>
-                  </div>
-                </div>
-              </div>
-            </sc-for>
-            <sc-if value="{{ semanaTemMais }}" hint-placeholder-val="{{ true }}">
-              <button class="ct-alvo" onclick="{{ semanaMais }}" style="align-self:flex-start;background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:4px 0;">{{ semanaMaisLabel }}</button>
-            </sc-if>
-          </div>
-        </sc-if>
-        <!-- FONTES OFICIAIS — o resumo no Início, no desenho acordado com a sessão "Interface de
-             atualização oficial" (01/10/2026): a saúde de cada fonte no vocabulário único, três
-             contadores (fontes ok / com falha ou parcial / itens a conferir), a frase da casa, até
-             três mudanças de LEI ainda não vistas e o botão #ct-of-abrir. Aparece SEMPRE nas áreas
-             com jurisprudência — sem varredura, cada fonte diz "Nunca consultada". Neste PR o botão
-             leva à Central de novidades; a pilha do painel "Revisão oficial" troca o handler. -->
-        <sc-if value="{{ ofMostrar }}" hint-placeholder-val="{{ false }}">
-          <section id="ct-fontes-oficiais" aria-labelledby="ct-of-tit" style="margin-bottom:var(--ct-e5);min-width:0;">
-            <div class="cth-sec"><h2 id="ct-of-tit">Fontes oficiais</h2><span class="rule"></span><span class="meta">{{ ofMeta }}</span></div>
-            <div class="ct-card" style="display:flex;flex-direction:column;gap:var(--ct-e3);margin-top:var(--ct-e3);min-width:0;">
-              <div role="list" aria-label="Situação de cada fonte oficial" style="display:flex;gap:var(--ct-e2) var(--ct-e4);flex-wrap:wrap;align-items:center;">
-                <sc-for list="{{ ofFontes }}" as="f" hint-placeholder-count="3"><span role="listitem" data-of-fonte="{{ f.id }}" style="display:inline-flex;align-items:center;gap:var(--ct-e2);font-size:var(--fs-sm);font-weight:700;color:var(--ink);">{{ f.nome }}<span class="ct-selo" style="{{ f.estilo }}">{{ f.situacao }}</span></span></sc-for>
-              </div>
-              <div role="list" aria-label="Contadores das fontes oficiais" style="display:flex;gap:var(--ct-e2) var(--ct-e5);flex-wrap:wrap;align-items:baseline;">
-                <span role="listitem" data-of-cont="ok" style="display:inline-flex;align-items:baseline;gap:var(--ct-e1);"><b style="font-family:var(--display);font-size:var(--fs-xl);color:var(--ink);">{{ ofContOk }}</b><span style="font-size:var(--fs-sm);color:var(--text2);">fontes ok</span></span>
-                <span role="listitem" data-of-cont="falha" style="display:inline-flex;align-items:baseline;gap:var(--ct-e1);"><b style="font-family:var(--display);font-size:var(--fs-xl);color:var(--ink);">{{ ofContFalha }}</b><span style="font-size:var(--fs-sm);color:var(--text2);">com falha ou parcial</span></span>
-                <span role="listitem" data-of-cont="conferir" style="display:inline-flex;align-items:baseline;gap:var(--ct-e1);"><b style="font-family:var(--display);font-size:var(--fs-xl);color:var(--ink);">{{ ofContConferir }}</b><span style="font-size:var(--fs-sm);color:var(--text2);">itens a conferir</span></span>
-              </div>
-              <p class="ct-nota" style="margin:0;">Detecção automática, publicação assistida.</p>
-              <sc-if value="{{ ofTemItens }}" hint-placeholder-val="{{ true }}">
-                <ul aria-label="Mudanças de lei ainda não conferidas" style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;min-width:0;">
-                  <sc-for list="{{ ofItens }}" as="n" hint-placeholder-count="3">
-                    <li data-novid-resumo="{{ n.id }}" style="display:flex;align-items:center;gap:var(--ct-e2);flex-wrap:wrap;padding:var(--ct-e2) 0;border-top:1px dashed var(--border);min-width:0;">
-                      <span class="ct-selo" style="{{ n.tipoEstilo }}">{{ n.tipoLabel }}</span>
-                      <span class="ct-selo" style="{{ n.stEstilo }}">{{ n.stLabel }}</span>
-                      <span id="ct-of-t-{{ n.id }}" style="flex:1 1 160px;min-width:0;font-weight:600;color:var(--ink);font-size:var(--fs-base);overflow-wrap:anywhere;">{{ n.titulo }}</span>
-                      <span style="display:flex;gap:var(--ct-e2);flex-wrap:wrap;">
-                        <sc-if value="{{ n.temAcervo }}" hint-placeholder-val="{{ true }}"><button type="button" class="ct-btn-2" data-acao="acervo" data-id="{{ n.id }}" aria-describedby="ct-of-t-{{ n.id }}" onclick="{{ novidAbrirAcervo }}">{{ n.acervoLabel }}</button></sc-if>
-                        <button type="button" class="ct-btn-2" data-acao="lida" data-id="{{ n.id }}" aria-describedby="ct-of-t-{{ n.id }}" onclick="{{ novidMarcarLida }}" style="border-color:transparent;">Já vi</button>
-                      </span>
-                    </li>
-                  </sc-for>
-                </ul>
-              </sc-if>
-              <div><button id="ct-of-abrir" class="ct-btn-2" onclick="{{ oficialPainelAbrir }}">Ver revisão oficial</button></div>
-            </div>
-          </section>
-        </sc-if>
-        <!-- O BARALHO NO PAINEL. Os cartões eram gerados por três caminhos e não apareciam em
-             lugar nenhum: o painel dizia que o dia estava em dia com uma pilha vencida ao lado. -->
-        <sc-if value="{{ fcTemDue }}" hint-placeholder-val="{{ false }}">
-          <div class="cth-sec"><h2>Baralho</h2><span class="rule"></span><span class="meta"><b>{{ fcDueStr }}</b> para revisar</span></div>
-          <button onclick="{{ fcEstudar }}" class="cth-baralho">
-            <span class="n">{{ fcDueStr }}</span>
-            <span class="tx"><b>cartões vencidos</b><small>de {{ fcTotalStr }} no baralho — do quiz do JURIS, da leitura da lei e dos seus erros</small></span>
-            <span class="ir">Revisar →</span>
-          </button>
-        </sc-if>
-        <div class="cth-sec"><h2>Próximas revisões</h2><span class="rule"></span><span class="meta"><b style="color:#e0479d;">{{ revHojeLabel }}</b> · <button class="ct-alvo" data-view="revisoes" onclick="{{ onNav }}" style="background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:0;">ver todas →</button></span></div>
-        <sc-if value="{{ homeProxTem }}" hint-placeholder-val="{{ false }}">
-          <div class="cth-revs">
-            <sc-for list="{{ homeProxRev }}" as="r" hint-placeholder-count="5">
-              <div class="cth-rev">
-                <i class="rail" style="background:{{ r.color }};"></i>
-                <span class="mat" style="color:{{ r.colorTx }};"><i style="background:{{ r.color }};"></i>{{ r.short }}</span>
-                <b class="t">{{ r.topic }}</b>
-                <div class="foot"><span class="int">{{ r.intLabel }}</span><span style="{{ r.chipStyle }}">{{ r.dueLabel }}</span></div>
-              </div>
-            </sc-for>
-          </div>
-        </sc-if>
-        <sc-if value="{{ homeProxVazio }}" hint-placeholder-val="{{ true }}"><div class="cth-card" style="text-align:center;color:var(--text3);font-size:var(--fs-base);">Nenhuma revisão agendada.</div></sc-if>
-        <div class="cth-foco">
-          <span class="ico ct-emo" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="target"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span>
-          <div class="tx"><small>Foco sugerido</small><p>{{ focoSugestao }}</p></div>
-          <button data-view="{{ focoView }}" onclick="{{ onNav }}" class="cth-bfsug">{{ focoBtnLabel }}</button>
-        </div>
-
         <div class="cth-sec" style="margin-top:34px;"><h2>Números e dashboards</h2><span class="rule"></span></div>
         <!-- L6 · Desempenho por disciplina -->
         <sc-if value="{{ paDesempShow }}" hint-placeholder-val="{{ false }}">
@@ -3190,6 +3049,7 @@ window.ctPdfLib = (function(){
               </sc-for>
               <button class="ct-btn-clara ct-concurso-novo" onclick="{{ novoConcurso }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke-linecap="round"></path></svg>Novo concurso</button>
               <button class="ct-concurso-ren" onclick="{{ renomearConcurso }}">Renomear “{{ concursoNome }}”</button>
+              <button class="ct-concurso-ren" onclick="{{ removerConcurso }}">Remover “{{ concursoNome }}”</button>
             </div>
           </section>
           <sc-if value="{{ concursoTemFora }}" hint-placeholder-val="{{ false }}">
@@ -3197,6 +3057,7 @@ window.ctPdfLib = (function(){
           </sc-if>
         </sc-if>
 
+        <sc-if value="{{ concursoRemovidoTem }}"><div class="ct-card" role="status"><b>“{{ concursoRemovidoNome }}” removido dos seus concursos.</b><p class="ct-nota">Seu acervo, sessões, cartões e estudo compartilhado foram preservados.</p><button class="ct-btn-2" onclick="{{ desfazerRemoverConcurso }}">Desfazer remoção</button></div></sc-if>
         <!-- Modelo pré-cadastrado: o edital não precisa começar do zero -->
         <div style="border:1px solid transparent;border-radius:var(--radius);background:linear-gradient(var(--surface),var(--surface)) padding-box,var(--heroVivo) border-box;padding:18px 20px;">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
@@ -3617,6 +3478,7 @@ window.ctPdfLib = (function(){
            bordas de 3px e sombra dura que não existem em nenhuma outra tela do Cátedra.
            Agora segue a linguagem da plataforma: superfície clara, raio do tema, sombra
            suave, gradiente do acento nos destaques. -->
+      <sc-if value="{{ isSegundaHub }}"><nav class="ct-fluxo-abas" aria-label="2ª fase"><button class="ct-btn-2" data-view="redacao" aria-current="{{ navCur.redacao }}" onclick="{{ onNav }}">Treino escrito</button><button class="ct-btn-2" data-view="segundafase" aria-current="{{ navCur.segundafase }}" onclick="{{ onNav }}">Provas oficiais</button></nav></sc-if>
       <sc-if value="{{ isRedacao }}" hint-placeholder-val="{{ false }}">
        <div style="display:flex;flex-direction:column;gap:20px;">
 
@@ -4202,8 +4064,67 @@ window.ctPdfLib = (function(){
        </div>
       </sc-if>
 
+<sc-if value="{{ argReverTem }}"><div class="ct-modal-fundo" onclick="{{ argHistoricoFechar }}" style="position:fixed;inset:0;background:color-mix(in srgb,var(--ink) 45%,transparent);z-index:110;display:flex;align-items:center;justify-content:center;padding:var(--ct-e4);"><section class="ct-modal-panel ct-card ct-arg-historico" role="dialog" aria-modal="true" aria-label="Histórico de arguição" onclick="{{ stop }}" style="width:100%;max-height:85vh;overflow:auto;box-sizing:border-box;"><div class="ct-arg-acoes"><h2 class="ct-titulo" style="flex:1;">Arguição registrada</h2><button class="ct-btn-2" onclick="{{ argHistoricoFechar }}">Fechar histórico</button></div><sc-for list="{{ argReverRespostas }}" as="r"><article class="ct-arg-mensagem"><b>{{ r.avaliacao }}</b><p>{{ r.pergunta }}</p><div class="ct-eb">Sua resposta registrada</div><p>{{ r.resposta }}</p></article></sc-for></section></div></sc-if>
 <sc-if value="{{ isOral }}" hint-placeholder-val="{{ false }}">
        <div style="display:flex;flex-direction:column;gap:16px;">
+          <!-- MODO ARGUIÇÃO (item 3): a banca pergunta, você responde de viva voz, o padrão
+               só aparece depois. É o formato real da prova — ler o padrão antes não treina nada. -->
+          <sc-if value="{{ argEmCurso }}" hint-placeholder-val="{{ false }}">
+            <section class="ct-arg-conversa" aria-label="Conversa de arguição" style="background:var(--surface);border:1px solid color-mix(in oklab, var(--accent) 38%, var(--border));border-radius:var(--radius);padding:var(--ct-e5);background-image:linear-gradient(90deg,color-mix(in oklab, var(--accent) 19%, transparent),transparent 46%);">
+              <div style="display:flex;align-items:center;gap:var(--ct-e3);flex-wrap:wrap;">
+                <span style="font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);">Arguição · pergunta {{ argPos }}</span>
+                <span style="flex:1;"></span>
+                <span style="font-family:var(--mono);font-size:calc(var(--ct-e4)*2);font-weight:700;color:{{ argRelogioCor }};font-variant-numeric:tabular-nums;line-height:1;">{{ argRelogio }}</span>
+              </div>
+              <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:8px;">{{ argRef }} · {{ argDisc }}</div>
+              <div class="ct-arg-voz" data-estado="{{ argFase }}"><span class="ct-arg-orbe" aria-hidden="true"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ct-i-scale"></use></svg></span><div role="status" aria-live="polite"><b>{{ argEstadoLabel }}</b><p class="ct-nota">{{ argEstadoNota }}</p></div></div><article class="ct-arg-mensagem"><div class="ct-eb">Banca · pergunta oficial</div><p>{{ argPergunta }}</p></article>
+              <label class="ct-rotulo" for="ct-arg-resposta">Sua resposta · texto opcional</label><textarea id="ct-arg-resposta" class="ct-campo" rows="5" value="{{ argRespostaTexto }}" oninput="{{ onArgResposta }}" placeholder="Responda em voz alta ou registre aqui. Você também pode usar o ditado do teclado."></textarea>
+              <p class="ct-nota">Você responde em voz alta. Para guardar a resposta no histórico, escreva ou use o ditado do teclado.</p>
+              <div class="ct-arg-acoes"><sc-if value="{{ !argMostrar }}"><button class="ct-btn-2" onclick="{{ argPausaToggle }}">{{ argPausaLabel }}</button><button class="ct-btn-2" onclick="{{ argMinhaVez }}">Responder em voz alta</button></sc-if><button class="ct-btn-2" onclick="{{ argEncerrar }}">Encerrar conversa</button></div>
+              <sc-if value="{{ !argMostrar }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;">
+                  <button onclick="{{ argResponder }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Respondi — ver o padrão</button>
+                  <button onclick="{{ argMaisTempo }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 16px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;">+1 min</button>
+                  <button onclick="{{ argVozToggle }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 16px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:8px;" aria-pressed="{{ argVozStr }}"><sc-if value="{{ argVozOn }}" hint-placeholder-val="{{ false }}"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="volume-2"><use href="#ct-i-volume-2"></use></svg></sc-if><sc-if value="{{ !argVozOn }}" hint-placeholder-val="{{ true }}"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="volume-x"><use href="#ct-i-volume-x"></use></svg></sc-if>{{ argVozLabel }}</button>
+                  <span style="flex:1;"></span>
+
+                </div>
+              </sc-if>
+            </section>
+            <sc-if value="{{ argMostrar }}" hint-placeholder-val="{{ false }}">
+              <div class="ct-card">
+                <div style="font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);">Padrão de resposta oficial</div>
+                <div style="font-size:var(--fs-base);color:var(--ink);line-height:1.7;margin-top:12px;white-space:pre-wrap;">{{ argPadrao }}</div>
+                <div style="border-top:1px solid var(--border);margin-top:18px;padding-top:16px;">
+                  <div style="font-size:var(--fs-sm);color:var(--text3);margin-bottom:10px;">Como foi? O que não fechou vira erro, flashcard e revisão.</div>
+                  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button data-v="bem" onclick="{{ argAvaliar }}" style="background:var(--ok);color:var(--onOk);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Respondi bem</button>
+                    <button data-v="parcial" onclick="{{ argAvaliar }}" style="background:var(--warn);color:var(--onWarn);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Parcial</button>
+                    <button data-v="nao" onclick="{{ argAvaliar }}" style="background:var(--danger);color:var(--onDanger);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Não sabia</button>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+          </sc-if>
+
+          <sc-if value="{{ argFim }}" hint-placeholder-val="{{ false }}">
+            <div class="ct-card">
+              <div style="font-family:var(--display);font-size:24px;font-weight:700;color:var(--ink);">Fim da arguição</div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-top:16px;">
+                <div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--ink);">{{ argResumo.n }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">perguntas</div></div>
+                <div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--ok);">{{ argResumo.bem }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">respondi bem</div></div>
+                <div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--warn);">{{ argResumo.parcial }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">parciais</div></div>
+                <div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--danger);">{{ argResumo.nao }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">não sabia</div></div>
+                <div><div style="font-family:var(--mono);font-size:24px;font-weight:700;color:var(--ink);">{{ argResumo.media }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">tempo médio</div></div>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;">
+                <button onclick="{{ iniciarArguicao }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Nova arguição</button>
+                <button onclick="{{ argEncerrar }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 18px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;">Voltar ao material</button>
+              </div>
+            </div>
+          </sc-if>
+
+        <sc-if value="{{ !argOn }}">
         <!-- BANCADA · o hero é o FOCO (o que você vai treinar); a grade "o que você veio
              fazer aqui", logo abaixo, é a FILA. Sem apoio inventado: a Oral não tem um
              material fixo por sessão — ele nasce da escolha do acervo. -->
@@ -4382,60 +4303,6 @@ window.ctPdfLib = (function(){
               <div style="font-size:var(--fs-base);color:var(--text3);margin-top:12px;">Carregando as perguntas das bancas…</div>
             </sc-if>
           </div>
-          <!-- MODO ARGUIÇÃO (item 3): a banca pergunta, você responde de viva voz, o padrão
-               só aparece depois. É o formato real da prova — ler o padrão antes não treina nada. -->
-          <sc-if value="{{ argEmCurso }}" hint-placeholder-val="{{ false }}">
-            <div style="background:var(--surface);border:1px solid color-mix(in oklab, var(--accent) 38%, var(--border));border-radius:var(--radius);padding:22px;background-image:linear-gradient(90deg,color-mix(in oklab, var(--accent) 19%, transparent),transparent 46%);">
-              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-                <span style="font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);">Arguição · pergunta {{ argPos }}</span>
-                <span style="flex:1;"></span>
-                <span style="font-family:var(--mono);font-size:32px;font-weight:700;color:{{ argRelogioCor }};font-variant-numeric:tabular-nums;line-height:1;">{{ argRelogio }}</span>
-              </div>
-              <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:8px;">{{ argRef }} · {{ argDisc }}</div>
-              <div style="font-size:var(--fs-xl);color:var(--ink);line-height:1.6;margin-top:16px;white-space:pre-wrap;">{{ argPergunta }}</div>
-              <sc-if value="{{ argRodando }}" hint-placeholder-val="{{ true }}">
-                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;">
-                  <button onclick="{{ argResponder }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Respondi — ver o padrão</button>
-                  <button onclick="{{ argMaisTempo }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 16px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;">+1 min</button>
-                  <button onclick="{{ argVozToggle }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 16px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:8px;" aria-pressed="{{ argVozStr }}"><sc-if value="{{ argVozOn }}" hint-placeholder-val="{{ false }}"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="volume-2"><use href="#ct-i-volume-2"></use></svg></sc-if><sc-if value="{{ !argVozOn }}" hint-placeholder-val="{{ true }}"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="volume-x"><use href="#ct-i-volume-x"></use></svg></sc-if>{{ argVozLabel }}</button>
-                  <span style="flex:1;"></span>
-                  <button onclick="{{ argEncerrar }}" style="background:transparent;border:1px solid var(--border);border-radius:var(--r-md);padding:11px 16px;font-size:var(--fs-base);color:var(--text3);cursor:pointer;font-family:inherit;">Encerrar</button>
-                </div>
-              </sc-if>
-            </div>
-            <sc-if value="{{ argMostrar }}" hint-placeholder-val="{{ false }}">
-              <div class="ct-card">
-                <div style="font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);">Padrão de resposta oficial</div>
-                <div style="font-size:var(--fs-base);color:var(--ink);line-height:1.7;margin-top:12px;white-space:pre-wrap;">{{ argPadrao }}</div>
-                <div style="border-top:1px solid var(--border);margin-top:18px;padding-top:16px;">
-                  <div style="font-size:var(--fs-sm);color:var(--text3);margin-bottom:10px;">Como foi? O que não fechou vira erro, flashcard e revisão.</div>
-                  <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                    <button data-v="bem" onclick="{{ argAvaliar }}" style="background:var(--ok);color:var(--onOk);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Respondi bem</button>
-                    <button data-v="parcial" onclick="{{ argAvaliar }}" style="background:var(--warn);color:var(--onWarn);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Parcial</button>
-                    <button data-v="nao" onclick="{{ argAvaliar }}" style="background:var(--danger);color:var(--onDanger);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Não sabia</button>
-                  </div>
-                </div>
-              </div>
-            </sc-if>
-          </sc-if>
-
-          <sc-if value="{{ argFim }}" hint-placeholder-val="{{ false }}">
-            <div class="ct-card">
-              <div style="font-family:var(--display);font-size:24px;font-weight:700;color:var(--ink);">Fim da arguição</div>
-              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-top:16px;">
-                <div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--ink);">{{ argResumo.n }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">perguntas</div></div>
-                <div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--ok);">{{ argResumo.bem }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">respondi bem</div></div>
-                <div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--warn);">{{ argResumo.parcial }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">parciais</div></div>
-                <div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--danger);">{{ argResumo.nao }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">não sabia</div></div>
-                <div><div style="font-family:var(--mono);font-size:24px;font-weight:700;color:var(--ink);">{{ argResumo.media }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">tempo médio</div></div>
-              </div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;">
-                <button onclick="{{ iniciarArguicao }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Nova arguição</button>
-                <button onclick="{{ argEncerrar }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 18px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;">Voltar ao material</button>
-              </div>
-            </div>
-          </sc-if>
-
           <sc-if value="{{ oralQTem }}" hint-placeholder-val="{{ false }}">
             <div style="background:var(--surface);border:1px solid color-mix(in oklab, var(--accent) 38%, var(--border));border-radius:var(--radius);padding:20px;background-image:linear-gradient(90deg,color-mix(in oklab, var(--accent) 19%, transparent),transparent 46%);">
               <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
@@ -4526,11 +4393,15 @@ window.ctPdfLib = (function(){
             </div>
           </sc-if>
         </sc-if>
+        <sc-if value="{{ argHistoricoTem }}"><section class="ct-card" aria-label="Histórico de arguições"><h3 class="ct-titulo">Suas arguições</h3><sc-for list="{{ argHistorico }}" as="h"><button class="ct-btn-2" style="width:100%;margin-top:8px;text-align:left;" data-id="{{ h.id }}" onclick="{{ argHistoricoAbrir }}">{{ h.label }}</button></sc-for></section></sc-if>
+        </sc-if>
        </div>
       </sc-if>
 
       <sc-if value="{{ isSim }}" hint-placeholder-val="{{ true }}">
        <div style="display:flex;flex-direction:column;gap:18px;">
+        <nav class="ct-fluxo-abas" aria-label="Simulados"><button class="ct-btn-2" data-v="registro" aria-pressed="{{ simRegistroStr }}" onclick="{{ setSimAba }}">Registrar e Raio X</button><button class="ct-btn-2" data-v="treino" aria-pressed="{{ simTreinoStr }}" onclick="{{ setSimAba }}">Treinar 1ª fase</button></nav>
+        <sc-if value="{{ simTreino }}">
         <!-- SIMULADO JOGÁVEL — veio do CátedraJURIS. Ao encerrar, preenche o formulário
              de registro abaixo, e o resultado passa a contar no desempenho.
              O card deixou de ser uma linha discreta com botão "Abrir": simulado é a ação
@@ -4654,7 +4525,7 @@ window.ctPdfLib = (function(){
                     <div class="ct-num"><b>{{ sjBrancos }}</b><span>Em branco</span></div>
                   </div>
                   </sc-if>
-                  <div style="font-size:var(--fs-sm);color:var(--text3);line-height:1.55;margin-bottom:14px;">Os números já foram lançados no formulário abaixo — confira e clique em <b>Registrar simulado no histórico</b> para contar no seu desempenho.</div>
+                  <div style="font-size:var(--fs-sm);color:var(--text3);line-height:1.55;margin-bottom:14px;">Os números estão preparados na aba Registrar e Raio X. Confira e registre para contar no seu desempenho.</div><button class="ct-btn" data-v="registro" onclick="{{ setSimAba }}">Conferir e registrar resultado</button>
                   <button onclick="{{ novoSj }}" class="ct-btn-2" style="margin-bottom:16px;">Novo simulado</button>
                   <sc-if value="{{ sjTemRel }}" hint-placeholder-val="{{ false }}">
                     <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:18px;">
@@ -4740,56 +4611,61 @@ window.ctPdfLib = (function(){
             <span style="font-size:var(--fs-xs);color:var(--text3);">min (personalizado)</span>
           </div>
         </div>
+        </sc-if>
+       </div>
+      </sc-if>
+      <sc-if value="{{ simRegistroVisible }}"><div style="{{ simRegistroFundoStyle }}" onclick="{{ closeSessionBackdrop }}"><section class="{{ simRegistroClasse }}" role="{{ simRegistroRole }}" aria-modal="{{ simRegistroAriaModal }}" aria-label="{{ simRegistroAriaLabel }}" style="{{ simRegistroPainelStyle }}" onclick="{{ stop }}">
+        <sc-if value="{{ sessModoSim }}"><div class="ct-fluxo-abas" style="margin-bottom:var(--ct-e4);"><h2 class="ct-titulo" style="flex:1;">Registrar sessão · Simulado</h2><button class="ct-btn-2" onclick="{{ closeSession }}" aria-label="Fechar">Fechar</button></div><nav class="ct-fluxo-abas" aria-label="Modo de registro"><button class="ct-btn-2" data-v="estudo" aria-pressed="false" onclick="{{ setRegistroModo }}">Estudo</button><button class="ct-btn-2" data-v="simulado" aria-pressed="true" onclick="{{ setRegistroModo }}">Simulado</button></nav><p class="ct-nota" role="status">{{ simRegistroTempoLabel }}</p><sc-if value="{{ simTemTempoCrono }}"><button class="ct-btn-2" onclick="{{ usarTempoSimulado }}">Usar tempo do cronômetro ({{ simTempoCrono }} min)</button></sc-if></sc-if>
         <div class="ct-grade-larga" style="align-items:start;">
-        <!-- form -->
+        <!-- Formulário único de registro -->
         <div class="ct-card">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><span class="ct-titulo">Registrar simulado</span></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--ct-e4);"><span class="ct-titulo">Registrar simulado</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--ct-e4);">
             <div><label class="ct-rotulo">Nome / Banca</label><input value="{{ simNome }}" oninput="{{ onSimNome }}" placeholder="ex.: Simulado CEBRASPE 05" class="ct-campo"></div>
             <div><label class="ct-rotulo">Tempo gasto (min)</label><input type="number" value="{{ simMin }}" oninput="{{ onSimMin }}" placeholder="opcional" class="ct-campo ct-campo-num"></div>
-            <div style="grid-column:1/-1;"><label class="ct-rotulo">Forma de análise</label><select value="{{ simAnalysis }}" aria-label="Forma de análise" onchange="{{ onSimAnalysis }}" class="ct-campo"><option value="liquida">Certo/errado — nota líquida C−E (Cespe/Cebraspe)</option><option value="me">Múltipla escolha — % bruto (FGV/FCC/Vunesp)</option><option value="disc">Discursiva / peça jurídica</option></select><div style="font-size:var(--fs-xs);color:var(--text3);margin-top:6px;line-height:1.45;">{{ anaNote }}</div></div>
+            <div style="grid-column:1/-1;"><label class="ct-rotulo">Forma de análise</label><select value="{{ simAnalysis }}" aria-label="Forma de análise" onchange="{{ onSimAnalysis }}" class="ct-campo"><option value="liquida">Certo/errado — nota líquida C−E (Cespe/Cebraspe)</option><option value="me">Múltipla escolha — % bruto (FGV/FCC/Vunesp)</option><option value="disc">Discursiva / peça jurídica</option></select><div style="font-size:var(--fs-xs);color:var(--text3);margin-top:var(--ct-e2);line-height:1.45;">{{ anaNote }}</div></div>
           </div>
 
           <!-- objetiva -->
           <sc-if value="{{ isObjetiva }}" hint-placeholder-val="{{ true }}">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--ct-e4);margin-top:var(--ct-e4);">
               <div><label class="ct-rotulo">Total de questões</label><input type="number" data-f="total" value="{{ sim.total }}" oninput="{{ onSim }}" class="ct-campo ct-campo-num"></div>
               <div><label class="ct-rotulo">Acertos</label><input type="number" data-f="acertos" value="{{ sim.acertos }}" oninput="{{ onSim }}" class="ct-campo ct-campo-num"></div>
               <div><label class="ct-rotulo">Erros</label><input type="number" data-f="erros" value="{{ sim.erros }}" oninput="{{ onSim }}" class="ct-campo ct-campo-num"></div>
               <div><label class="ct-rotulo">Brancos</label><input type="number" data-f="brancos" value="{{ sim.brancos }}" oninput="{{ onSim }}" class="ct-campo ct-campo-num"></div>
             </div>
-            <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:14px;line-height:1.5;display:flex;gap:9px;align-items:flex-start;"><span style="color:var(--danger);font-weight:700;">!</span><span>Banca estilo CEBRASPE/CESPE: cada erro anula um acerto. A nota líquida (C−E) é o que vale.</span></div>
+            <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:var(--ct-e4);line-height:1.5;display:flex;gap:var(--ct-e2);align-items:flex-start;"><span style="color:var(--danger);font-weight:700;">!</span><span>Banca estilo CEBRASPE/CESPE: cada erro anula um acerto. A nota líquida (C−E) é o que vale.</span></div>
           </sc-if>
 
           <!-- discursiva / peças -->
           <sc-if value="{{ isDisc }}" hint-placeholder-val="{{ false }}">
-            <div style="margin-top:14px;">
-              <div class="ct-eb" style="display:flex;padding-bottom:8px;">
-                <span style="flex:1;">Questão / peça</span><span style="width:80px;text-align:right;">Obtida</span><span style="width:80px;text-align:right;">Máxima</span><span style="width:28px;"></span>
+            <div style="margin-top:var(--ct-e4);">
+              <div class="ct-eb" style="display:flex;padding-bottom:var(--ct-e2);">
+                <span style="flex:1;">Questão / peça</span><span style="width:var(--ct-sim-num);text-align:right;">Obtida</span><span style="width:var(--ct-sim-num);text-align:right;">Máxima</span><span style="width:var(--ct-e7);"></span>
               </div>
               <sc-for list="{{ discItems }}" as="d" hint-placeholder-count="3">
-                <div style="display:flex;align-items:center;gap:8px;padding:6px 0;">
+                <div style="display:flex;align-items:center;gap:var(--ct-e2);padding:var(--ct-e2) 0;">
                   <span style="flex:1;font-size:var(--fs-base);color:var(--ink);min-width:0;">{{ d.label }}</span>
-                  <input type="number" step="0.5" data-i="{{ d.i }}" data-f="obtida" value="{{ d.obtidaTxt }}" oninput="{{ onDiscItem }}" class="ct-campo ct-campo-num" style="width:80px;text-align:right;">
-                  <input type="number" step="0.5" data-i="{{ d.i }}" data-f="maxima" value="{{ d.maxima }}" oninput="{{ onDiscItem }}" class="ct-campo ct-campo-num" style="width:80px;text-align:right;color:var(--text2);">
-                  <button class="ct-alvo ct-miudo" data-i="{{ d.i }}" onclick="{{ removeDiscItem }}" title="Remover" style="width:28px;height:28px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text3);cursor:pointer;flex:none;">×</button>
+                  <input type="number" step="0.5" data-i="{{ d.i }}" data-f="obtida" value="{{ d.obtidaTxt }}" oninput="{{ onDiscItem }}" class="ct-campo ct-campo-num" style="width:var(--ct-sim-num);text-align:right;">
+                  <input type="number" step="0.5" data-i="{{ d.i }}" data-f="maxima" value="{{ d.maxima }}" oninput="{{ onDiscItem }}" class="ct-campo ct-campo-num" style="width:var(--ct-sim-num);text-align:right;color:var(--text2);">
+                  <button class="ct-alvo ct-miudo" data-i="{{ d.i }}" onclick="{{ removeDiscItem }}" title="Remover" style="width:var(--ct-e7);height:var(--ct-e7);border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text3);cursor:pointer;flex:none;">×</button>
                 </div>
               </sc-for>
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:var(--ct-e3);">
                 <button onclick="{{ addDiscItem }}" class="ct-btn-2">+ Adicionar item</button>
                 <div style="font-size:var(--fs-base);color:var(--text2);">Nota: <b style="color:var(--ink);font-family:var(--mono);">{{ discObtidaTxt }} / {{ discMaxima }}</b> · <b style="color:var(--accent);">{{ discPct }}%</b></div>
               </div>
-              <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:14px;line-height:1.5;display:flex;gap:9px;align-items:flex-start;"><span style="color:var(--accent);font-weight:700;">i</span><span>Some a nota de cada questão discursiva e peça jurídica. A pontuação total define o percentual de aproveitamento.</span></div>
+              <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:var(--ct-e4);line-height:1.5;display:flex;gap:var(--ct-e2);align-items:flex-start;"><span style="color:var(--accent);font-weight:700;">i</span><span>Some a nota de cada questão discursiva e peça jurídica. A pontuação total define o percentual de aproveitamento.</span></div>
             </div>
           </sc-if>
-          <button onclick="{{ saveSimulado }}" class="ct-btn" style="margin-top:18px;width:100%;">Registrar simulado no histórico</button>
-          <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:8px;text-align:center;">soma às suas horas, ao desempenho e aparece nos "Simulados registrados"</div>
+          <button onclick="{{ saveSimulado }}" class="ct-btn" style="margin-top:var(--ct-e5);width:100%;">Registrar simulado no histórico</button>
+          <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:var(--ct-e2);text-align:center;">soma às suas horas, ao desempenho e aparece nos "Simulados registrados"</div>
         </div>
 
         <!-- raio-x ao vivo -->
         <div class="ct-card">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><span class="ct-titulo">Raio-X do simulado</span><span class="ct-selo ct-selo-hoje" style="display:inline-flex;align-items:center;gap:5px;"><span style="width:6px;height:6px;border-radius:99px;background:var(--accent);"></span>ao vivo</span></div>
-          <div style="display:flex;align-items:center;gap:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--ct-e4);"><span class="ct-titulo">Raio-X do simulado</span><span class="ct-selo ct-selo-hoje" style="display:inline-flex;align-items:center;gap:var(--ct-e1);"><span style="width:var(--ct-e2);height:var(--ct-e2);border-radius:99px;background:var(--accent);"></span>ao vivo</span></div>
+          <div style="display:flex;align-items:center;gap:var(--ct-e5);">
             <div style="position:relative;flex:none;width:108px;height:108px;">
               <svg width="108" height="108" viewBox="0 0 168 168" style="transform:rotate(-90deg);">
                 <circle cx="84" cy="84" r="72" fill="none" stroke="var(--surface2)" stroke-width="15"></circle>
@@ -4799,38 +4675,42 @@ window.ctPdfLib = (function(){
             </div>
             <div style="flex:1;min-width:0;">
               <div style="font-weight:600;font-size:var(--fs-lg);color:var(--ink);">{{ diagTitle }}</div>
-              <p style="margin:5px 0 0;font-size:var(--fs-sm);color:var(--text2);line-height:1.5;">{{ diagText }}</p>
+              <p style="margin:var(--ct-e1) 0 0;font-size:var(--fs-sm);color:var(--text2);line-height:1.5;">{{ diagText }}</p>
             </div>
           </div>
           <sc-if value="{{ isObjetiva }}" hint-placeholder-val="{{ true }}">
-            <div style="display:flex;gap:10px;margin-top:16px;">
+            <div style="display:flex;gap:var(--ct-e3);margin-top:var(--ct-e4);">
               <div class="ct-num" style="flex:1;"><b>{{ brutoPct }}%</b><span>Bruto · acertos/total</span></div>
               <div class="ct-num ct-num-forte" style="flex:1;"><b>{{ liquidoPct }}%</b><span>Líquido · (C−E)/total</span></div>
             </div>
-            <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:8px;line-height:1.45;">Bancas que punem erro (Cebraspe) valem pelo <b style="color:var(--ink);">líquido</b>. FGV/FCC não punem: vale o <b style="color:var(--ink);">bruto</b>. Olhe sempre os dois.</div>
+            <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:var(--ct-e2);line-height:1.45;">Bancas que punem erro (Cebraspe) valem pelo <b style="color:var(--ink);">líquido</b>. FGV/FCC não punem: vale o <b style="color:var(--ink);">bruto</b>. Olhe sempre os dois.</div>
           </sc-if>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;">
+          <div style="display:flex;gap:var(--ct-e2);flex-wrap:wrap;margin-top:var(--ct-e4);">
             <span class="ct-selo" style="color:{{ levelColor }};">Nível: {{ level }}</span>
             <span class="ct-selo">Líquido: {{ liquido }} ({{ liquidoPct }}%)</span>
             <span class="ct-selo ct-selo-hoje">Ação: {{ action }}</span>
           </div>
-          <div class="ct-nums" style="margin-top:18px;">
+          <div class="ct-nums" style="margin-top:var(--ct-e5);">
             <div class="ct-num"><b>{{ sim.total }}</b><span>questões</span></div>
             <div class="ct-num ct-num-risco"><b>{{ loss }}</b><span>erros+brancos</span></div>
             <div class="ct-num"><b>{{ simTempoLabel }}</b><span>tempo</span></div>
           </div>
-          <div style="margin-top:18px;">
-            <div class="ct-eb" style="margin-bottom:10px;">Pontos fracos a atacar</div>
+          <div style="margin-top:var(--ct-e5);">
+            <div class="ct-eb" style="margin-bottom:var(--ct-e3);">Pontos fracos a atacar</div>
             <sc-for list="{{ simBars }}" as="x" hint-placeholder-count="3">
-              <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">
+              <div style="display:flex;align-items:center;gap:var(--ct-e3);margin-bottom:var(--ct-e2);">
                 <span style="width:96px;font-size:var(--fs-sm);color:var(--text2);flex:none;">{{ x.disc }}</span>
-                <div style="flex:1;height:8px;border-radius:99px;background:var(--surface2);overflow:hidden;"><i style="display:block;height:100%;width:{{ x.pct }}%;background:{{ x.color }};border-radius:99px;"></i></div>
+                <div style="flex:1;height:var(--ct-e2);border-radius:99px;background:var(--surface2);overflow:hidden;"><i style="display:block;height:100%;width:{{ x.pct }}%;background:{{ x.color }};border-radius:99px;"></i></div>
                 <span style="font-family:var(--mono);font-size:var(--fs-xs);color:var(--text2);width:34px;text-align:right;">{{ x.pct }}%</span>
               </div>
             </sc-for>
           </div>
         </div>
 
+        </div>
+        <sc-if value="{{ sessModoSim }}"><button class="ct-btn-2" onclick="{{ closeSession }}">Cancelar</button></sc-if>
+      </section></div></sc-if>
+      <sc-if value="{{ isSim }}"><sc-if value="{{ simRegistroTela }}"><div class="ct-grade-larga" style="align-items:start;">
         <!-- histórico + evolução -->
         <div class="ct-card">
           <div class="ct-esp-cab">O que os simulados já mediram</div>
@@ -4861,7 +4741,7 @@ window.ctPdfLib = (function(){
           </div></sc-if>
         </div>
        </div>
-       </div>
+        </sc-if>
       </sc-if>
 
       <!-- ================= ANÁLISE ================= -->
@@ -5139,6 +5019,7 @@ window.ctPdfLib = (function(){
               <div class="ct-kpi"><b>{{ novidRevisaoStr }}</b><span style="color:inherit;">a conferir</span></div>
             </div>
             <div style="display:flex;gap:var(--ct-e2);flex-wrap:wrap;align-items:center;">
+              <button id="ct-of-abrir" type="button" class="ct-btn-clara" style="background:color-mix(in srgb, var(--sbg) 42%, transparent);" onclick="{{ oficialPainelAbrir }}">Ver revisão oficial</button>
               <button type="button" class="ct-btn-clara" data-acao="buscar" data-fonte="planalto,stf,stj" onclick="{{ novidBuscar }}" disabled="{{ novidBuscando }}" aria-busy="{{ novidBuscandoTodas }}" style="background:color-mix(in srgb, var(--sbg) 42%, transparent);">{{ novidBuscarLabel }}</button>
             </div>
           </div>
@@ -7674,6 +7555,7 @@ class Component extends DCLogic {
       cmagRevs:this._load('cmagRevs', []),                 // revisões D+7/30/90 do Ciclo Magistratura (array com id/up: merge por id)
       edital: this._load('edital', []),
       // concursos por cima do acervo (ver _editaisComMigracao). editalAtivo '' = o primeiro.
+      editaisGerenciados:this._load('editaisGerenciados',false), concursoRemovido:null,
       editais: this._load('editais', []), editalAtivo: this._load('editalAtivo', ''),
       reviews: this._load('reviews', []),
       // leitura ativa da lei (LA1): um item por dispositivo lido, sem o texto da lei
@@ -7771,7 +7653,7 @@ class Component extends DCLogic {
       oralLeisPronto:false, oralLeiSig:'', oralArt:null, oralArtVariante:0,
       // bancas reais: as 999 perguntas com padrão de resposta (oral-conteudo.js)
       oralQPronto:false, oralQDisc:'', oralQCarr:'', oralQAtual:null, oralQMostrarPadrao:false, oralQResposta:'',
-      argOn:false, argFila:[], argIdx:0, argSeg:180, argRodando:false, argMin:3, argRespostas:[], argFim:false, argVoz:false, discCarregado:false, discErro:false,
+      argRespostaTexto:'',argFase:'respondendo',argSessaoId:'',argOn:false, argFila:[], argIdx:0, argSeg:180, argRodando:false, argMin:3, argRespostas:[], argFim:false, argVoz:false, discCarregado:false, discErro:false,
       perfMode:'liquido',
       viewBloqueada:'',   // qual view foi barrada pelo guarda de área (só para a tela explicar)
       areaPreview:'',     // área PROPOSTA, aguardando confirmação (não é a ativa)
@@ -7832,6 +7714,8 @@ class Component extends DCLogic {
   // Cadastra a disciplina "Código Civil - Lei Seca" no edital (idempotente). Mesmo padrão
   // do Direito Civil: roda no mount e a cada sync, sobrevive à nuvem (edital vence local).
   componentDidMount(){
+    this._argSaida=()=>{clearTimeout(this._argRascunhoT);if(this.state.argOn)this._argGuardarHistorico();};
+    window.addEventListener("pagehide",this._argSaida);
     this._baixaRaiz();           // o <html> precisa do espelho desde o primeiro quadro
     this._avisarAreaAoNativo();   // a casca nativa precisa saber a área já na abertura
     // O construtor já carregou o estado DO localStorage: nada mudou ainda. Sem esta
@@ -7894,7 +7778,7 @@ class Component extends DCLogic {
           if(k==='Escape'){ e.preventDefault(); this.enamDescartar(); return; }
         }
       }
-      if(e.key==='Escape'){ if(this.state.oficialPainelOpen) this.oficialPainelFechar(); else if(this.state.menuOpen) this.setState({menuOpen:false}); else if(this.state.atalhosOpen) this.setState({atalhosOpen:false}); else if(this.state.paletteOpen) this.setState({paletteOpen:false, paletteQuery:''}); else if(this.state.treino) this.setState({treino:null}); else if(this.state.revSession) this.setState({revSession:null}); else if(this.state.focusMode) this.exitFocus(); else if(this.state.provaMode) this.exitProva(); else if(this.state.sessionModalOpen) this.closeSession(); else if(this.state.histEdit) this.setState({histEdit:null}); }
+      if(e.key==='Escape'){ if(this.state.argRever)this.argHistoricoFechar();else if(this.state.oficialPainelOpen) this.oficialPainelFechar(); else if(this.state.menuOpen) this.setState({menuOpen:false}); else if(this.state.atalhosOpen) this.setState({atalhosOpen:false}); else if(this.state.paletteOpen) this.setState({paletteOpen:false, paletteQuery:''}); else if(this.state.treino) this.setState({treino:null}); else if(this.state.revSession) this.setState({revSession:null}); else if(this.state.focusMode) this.exitFocus(); else if(this.state.provaMode) this.exitProva(); else if(this.state.sessionModalOpen) this.closeSession(); else if(this.state.histEdit) this.setState({histEdit:null}); }
       // D13: dentro da sala, espaço pausa/retoma e F sai. Fora dela, F entra. Nada disso
       // vale enquanto ela digita — senão um espaço no meio da redação pararia o cronômetro.
       const _dig=(()=>{ try{ const el=document.activeElement; if(!el) return false;
@@ -8281,7 +8165,7 @@ class Component extends DCLogic {
       if(ini && ini.email) this.setState({authEmail:ini.email});
       window.addEventListener('catedra:authuser', (ev)=>{
         const d=(ev && ev.detail)||null;
-        this.setState({authEmail:(d && d.email)||''});
+        this.setState({authEmail:(d && d.email)||'',concursoRemovido:null});
         // A sessão mudou: reperguntar se ESTA conta é administradora. Antes a pergunta
         // era feita uma única vez, no mount — se ela chegasse antes da sessão, ou
         // falhasse, a conta admin ficava indistinguível de uma comum até fechar o app.
@@ -8399,7 +8283,7 @@ class Component extends DCLogic {
       this.setState(s=>{
         const fresh=this._freshSessionDraft(s.sessionDraft);
         return {
-        menuOpen:false, sessionModalOpen:true, pomoMenuOpen:false,   // mantém a view atual — o modal cobre tudo
+        menuOpen:false, sessionModalOpen:true, registroModo:'estudo', pomoMenuOpen:false,   // mantém a view atual — o modal cobre tudo
         sessionDraft:{
           ...fresh,
           disc: disc || fresh.disc, discCustom:false, topico: topico,
@@ -8936,7 +8820,7 @@ class Component extends DCLogic {
       try{ localStorage.setItem('catedra:schemaVersion', String(V)); }catch(_){}
     }catch(_){ }
   }
-  componentWillUnmount(){ if(this._redFocoEsc){ try{ document.removeEventListener('keydown', this._redFocoEsc); document.documentElement.removeAttribute('data-red-foco'); }catch(_){} this._redFocoEsc=null; } if(this._redCronoT) clearInterval(this._redCronoT); if(this._redCorrT) clearInterval(this._redCorrT); try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onSelChange){ document.removeEventListener('selectionchange', this._onSelChange); clearTimeout(this._selChangeT); } ['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev, this._acDespertar)); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._areaMsg) window.removeEventListener('message', this._areaMsg); if(this._acervoMsg) window.removeEventListener('message', this._acervoMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._pausaT) clearInterval(this._pausaT); if(this._revT) clearInterval(this._revT);
+  componentWillUnmount(){ clearTimeout(this._argRascunhoT);if(this._argSaida)window.removeEventListener("pagehide",this._argSaida); if(this._redFocoEsc){ try{ document.removeEventListener('keydown', this._redFocoEsc); document.documentElement.removeAttribute('data-red-foco'); }catch(_){} this._redFocoEsc=null; } if(this._redCronoT) clearInterval(this._redCronoT); if(this._redCorrT) clearInterval(this._redCorrT); try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onSelChange){ document.removeEventListener('selectionchange', this._onSelChange); clearTimeout(this._selChangeT); } ['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev, this._acDespertar)); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._areaMsg) window.removeEventListener('message', this._areaMsg); if(this._acervoMsg) window.removeEventListener('message', this._acervoMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._pausaT) clearInterval(this._pausaT); if(this._revT) clearInterval(this._revT);
     try{ if(this._mqDark && this._onMqDark){ if(this._mqDark.removeEventListener) this._mqDark.removeEventListener('change', this._onMqDark); else if(this._mqDark.removeListener) this._mqDark.removeListener(this._onMqDark); } }catch(_){}
     if(this._pipMsgT) clearTimeout(this._pipMsgT); if(this._bkpAutoT) clearInterval(this._bkpAutoT); if(this._salaT) clearTimeout(this._salaT); this._pipStop(); this._closeDocPiP();  }
   componentDidUpdate(){ if(this.state.view==='redacao'){ this._redVigiarFolha();
@@ -9087,7 +8971,7 @@ class Component extends DCLogic {
     'redProvaId','ajPerfis','lastPonto','lastPontoDispensado','provaDurationMin','sessions','sessionsLixeira',
     'hl','fc','casos',
     // os concursos projetam o `edital`, que é da área: ficam na mesma área que ele
-    'editais','editalAtivo']);
+    'editais','editalAtivo','editaisGerenciados']);
   /** A área ativa, legível ANTES de this.state existir (o construtor usa _load). */
   /** Forma canônica da área e do concurso: o que o _chave trata como o mesmo caderno. */
   _areaCanon(a){ a=a||''; return a==='juridica' ? '' : a; }
@@ -9221,7 +9105,7 @@ class Component extends DCLogic {
   // Chaves que o app salva sozinho. Lista ÚNICA: o _autosave grava a partir dela e
   // o _rehydrateFromLocal recarrega a partir dela — se as duas divergirem, o que vem
   // da nuvem é sobrescrito pela memória velha deste aparelho.
-  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'editais', 'editalAtivo', 'reviews', 'leituras', 'enam', 'enamSim', 'aceite', 'iaConsentimento', 'blocks', 'blocksDate', 'cicloVolta', 'manualVoltaN', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs','redTempoMs', 'redGabarito', 'redEnunciado', 'redMarcas', 'redDisciplina', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'novidLidas', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis', 'cmag', 'cmagRevs']; }
+  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'editais', 'editalAtivo', 'editaisGerenciados', 'reviews', 'leituras', 'enam', 'enamSim', 'aceite', 'iaConsentimento', 'blocks', 'blocksDate', 'cicloVolta', 'manualVoltaN', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs','redTempoMs', 'redGabarito', 'redEnunciado', 'redMarcas', 'redDisciplina', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'novidLidas', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis', 'cmag', 'cmagRevs']; }
   /** Grava JÁ o que está pendente, sem esperar o debounce de 500 ms.
       PENDENTE é só o que a memória mudou desde o último salvamento (a mesma régua do
       _autosave). O resto já está no disco — e o disco pode ter acabado de receber a nuvem:
@@ -9349,12 +9233,12 @@ class Component extends DCLogic {
       this.setState({timerRunning:false, pausaDesde:Date.now()}, ()=>{ this._saveTimer(); this._pausaVigia(); this._ofertarRegistro(_min); }); }
     else { if(!this.state.sessionDraft.atvKey&&!this.state.timerSeconds&&!this.state.studiedSeconds){const ctx=this._cmContexto();if(ctx)this.setState({sessionDraft:this._blockToDraft(ctx.b,this.state.sessionDraft)});}
       this._tickLast=Date.now(); this._tick = setInterval(this.tick, 1000);
-      const s=this.state, zerado=!s.timerSeconds && !s.studiedSeconds;   // sessão nova começa sem pausa herdada
+      const s=this.state, zerado=!s.timerSeconds && !s.studiedSeconds;if(zerado)this._cronometroGeracao=(this._cronometroGeracao||0)+1;   // sessão nova começa sem pausa herdada
       const pausaSeg=zerado?0:this._pausaTotal(s);
       if(this._pausaT){ clearInterval(this._pausaT); this._pausaT=null; }
       this.setState({timerRunning:true, pausaSeg, pausaDesde:0}, ()=>this._saveTimer()); }
   };
-  resetTimer = ()=>{ if(this._tick) clearInterval(this._tick); this._tick=null; try{ localStorage.removeItem('ct_timer'); }catch(_){}
+  resetTimer = ()=>{this._cronometroGeracao=(this._cronometroGeracao||0)+1;this._simSoltarTempo(); if(this._tick) clearInterval(this._tick); this._tick=null; try{ localStorage.removeItem('ct_timer'); }catch(_){}
     const _min=this._minCronometro();   // lido ANTES de zerar, senão a oferta viria com 0
     this.setState({timerRunning:false, timerSeconds:0, studiedSeconds:0, pomoPhase:'foco', pomoCycles:0}, ()=>this._ofertarRegistro(_min, true)); };
 
@@ -10215,6 +10099,7 @@ class Component extends DCLogic {
   _editaisComMigracao(){
     const eds=this.state.editais;
     if(Array.isArray(eds) && eds.length) return eds;
+    if(this.state.editaisGerenciados) return [];
     const pool=this.state.edital||[];
     if(!pool.length) return [];
     const discs={};
@@ -10388,6 +10273,28 @@ class Component extends DCLogic {
     // o edital que já existia fica com os concursos que já existiam: o novo começa com o edital DELE
     this._virarConcurso(C.id, [...eds, C], this._edFecharLegado(this.state.edital||[], eds.map(e=>e.id)));
     this._toast('Concurso "'+nome+'" criado, com ciclo próprio — marque as disciplinas que caem nele');
+  };
+  _contaConcurso(){const u=window.CatedraAuth&&window.CatedraAuth.user;return (u&&(u.id||u.email))||this.state.authEmail||'';}
+  removerConcurso = ()=>{
+    const C=this._concursoAtivo();if(!C) return;
+    if(!window.confirm('Remover o concurso “'+C.nome+'”?\n\nSessões, cartões, acervo e estudo compartilhado serão preservados. Você pode desfazer a remoção.')) return;
+    this._edCapturar();this._salvarAgora();
+    const eds=this._editaisComMigracao(), alvo=eds.find(e=>e.id===C.id)||C,restantes=eds.filter(e=>e.id!==C.id);
+    if(restantes.length) this._virarConcurso(restantes[0].id,restantes);
+    else{
+      // Nenhum ciclo ou conteúdo é apagado: apenas sai a meta e o seu espelho ativo.
+      this.state.editalAtivo='';this._edSig=null;
+      this.setState({editais:[],editalAtivo:'',edital:(this.state.edital||[]).map(d=>({...d,foraDoConcurso:true,peso:'',questoes:'',_esp:''}))});
+    }
+    this.setState({editaisGerenciados:true,concursoRemovido:{...alvo,_origemArea:this.state.areaEstudo||'juridica',_origemConta:this._contaConcurso()}},()=>{this._salvarAgora();this.flashSync();});
+    // _salvarAgora usa setItem: a camada auth registra a lápide do id removido.
+  };
+  desfazerRemoverConcurso = ()=>{
+    const undo=this.state.concursoRemovido;if(!undo)return;if(undo._origemArea!==(this.state.areaEstudo||'juridica')||undo._origemConta!==this._contaConcurso()){this.setState({concursoRemovido:null});return;}const {_origemArea,_origemConta,...C}=undo;
+    const eds=this._editaisComMigracao();if(eds.some(e=>e.id===C.id)){this.setState({concursoRemovido:null});return;}
+    this._virarConcurso(C.id,[...eds,{...C,up:Date.now()}]);
+    this.setState({concursoRemovido:null,editaisGerenciados:true},()=>{this._salvarAgora();this.flashSync();});
+    // Recriar o mesmo id pelo setItem normal limpa a lápide, como as demais ações de desfazer.
   };
   renomearConcurso = ()=>{
     const C=this._concursoAtivo(); if(!C) return;
@@ -10901,7 +10808,7 @@ class Component extends DCLogic {
     if(v==='redacao') this._carregarDiscursivas().then(()=>this.setState({discCarregado:true}));
     return v;
   }
-  onNav = (e)=>{ const v=this._irPara(e.currentTarget.dataset.view); if(v!=='indisponivel') this._marcarPonto(v); };
+  onNav = (e)=>{ const alvo=e.currentTarget.dataset.view; const v=this._irPara(alvo,alvo==='simulados'?{simAba:'registro'}:{}); if(v!=='indisponivel') this._marcarPonto(v); };
 
   /* ===== VOLTA DO ACERVO: um mecanismo só =====
      A origem ("de") é JSON puro: {view, rotulo, rito?, peca?, bloco?, disc?, rev?}. Quem a
@@ -12129,6 +12036,17 @@ class Component extends DCLogic {
   editSub = (e)=>{ const el=e.currentTarget, d=+el.dataset.d, t=+el.dataset.t, i=+el.dataset.i, v=el.value; const ed=this.state.edital.slice();
     const tp=ed[d].topics.slice(); const sb=(tp[t].subs||[]).slice(); sb[i]={...this._subObj(sb[i]),name:v}; tp[t]={...tp[t],subs:sb}; ed[d]={...ed[d],topics:tp}; this.setState({edital:ed}); this.flashSync(); };
   onSim = (e)=>{ const f=e.currentTarget.dataset.f; const v=Math.max(0,parseInt(e.currentTarget.value,10)||0); this.setState(s=>({sim:{...s.sim,[f]:v}})); };
+  setSimAba = (e)=> this.setState({simAba:e.currentTarget.dataset.v==='treino'?'treino':'registro'});
+  _simSoltarTempo(){this._simTimerRegistro=null;this.setState({simRegistroFonte:'manual'});}
+  setRegistroModo = (e)=>{const modo=e.currentTarget.dataset.v==='simulado'?'simulado':'estudo';
+    this._simSoltarTempo();this.setState({registroModo:modo},()=>{if(modo==='simulado'&&!this.state.simMin)this.usarTempoSimulado();});};
+  usarTempoSimulado = ()=>{
+    if(!this.state.sessionModalOpen||this.state.registroModo!=='simulado')return;
+    const min=this._minCronometro();if(!(min>0))return;
+    this._simTimerRegistro={modal:this._registroId,geracao:this._cronometroGeracao||0,modo:this.state.timerMode};
+    if(this._tick){clearInterval(this._tick);this._tick=null;}
+    this.setState({simMin:String(min),simRegistroFonte:'cronometro',timerRunning:false,pausaDesde:this.state.timerRunning?Date.now():(this.state.pausaDesde||Date.now())},()=>{this._saveTimer();this._pausaVigia();});
+  };
   onSimNome = (e)=> this.setState({simNome:e.currentTarget.value});
   saveSimulado = ()=>{ const s=this.state.sim||{}; const nome=(this.state.simNome||'').trim()||'Simulado';
     const min=Math.max(0, parseInt(this.state.simMin,10)||0);   // tempo REAL digitado (vazio = 0)
@@ -12150,9 +12068,11 @@ class Component extends DCLogic {
     }
     const rec={ id:'s'+Date.now(), ts:Date.now(), date:this._ymd(Date.now()-Math.min(min,600)*60000), disc:'Simulado', topico:nome, categoria:'Simulado', categorias:['Simulado'], min, questoes, acertos, erradas, brancos, liquido:acertos-erradas, foco:4, nota:notaTxt, discPct:discPctRec, countMeta:true };
     const sessions=[rec, ...this.state.sessions]; this._saveSessions(sessions);
-    this.setState({sessions, simNome:'', simMin:''}, ()=>{ try{ this._reconcileStreak(); }catch(_){} try{ this._pubAtvT=0; this._publicarAtividade(); }catch(_){} }); this.flashSync();
+    const ref=this._simTimerRegistro,consomeTimer=!!(ref&&this.state.sessionModalOpen&&this.state.registroModo==='simulado'&&ref.modal===this._registroId&&ref.geracao===(this._cronometroGeracao||0)&&ref.modo===this.state.timerMode);this._simTimerRegistro=null;
+    if(consomeTimer){if(this._tick){clearInterval(this._tick);this._tick=null;}if(this._pausaT){clearInterval(this._pausaT);this._pausaT=null;}try{localStorage.removeItem('ct_timer');}catch(_){}}
+    this.setState({...(consomeTimer?{timerRunning:false,timerSeconds:0,studiedSeconds:0,pausaSeg:0,pausaDesde:0,pausaTique:0,pomoPhase:'foco',pomoCycles:0,sessionDraft:this._freshSessionDraft(this.state.sessionDraft)}:{}),simRegistroFonte:'manual',sessions, simNome:'', simMin:'', simAba:'registro', sessionModalOpen:false, registroModo:'estudo'}, ()=>{ try{ this._reconcileStreak(); }catch(_){} try{ this._pubAtvT=0; this._publicarAtividade(); }catch(_){} }); this.flashSync();
     this._toast('Simulado "'+nome+'" registrado no histórico ✦'); };
-  onSimMin = (e)=>{ const v=e.currentTarget.value; this.setState({simMin: v===''?'':String(Math.max(0,parseInt(v,10)||0))}); };
+  onSimMin = (e)=>{ this._simSoltarTempo(); const v=e.currentTarget.value; this.setState({simMin: v===''?'':String(Math.max(0,parseInt(v,10)||0))}); };
 
   // ===== análise: sub-abas =====
   // Hub "Desempenho": as abas navegam entre a Análise (com anaTab) e o Domínio por tópico,
@@ -12163,7 +12083,7 @@ class Component extends DCLogic {
 
   // ===== cronômetro: pomodoro + modal sessão =====
   togglePomoMenu = ()=> this.setState(s=>({pomoMenuOpen:!s.pomoMenuOpen}));
-  setTimerMode = (e)=>{ const m=e.currentTarget.dataset.mode; const f=+e.currentTarget.dataset.f||25, b=+e.currentTarget.dataset.b||5;
+  setTimerMode = (e)=>{this._cronometroGeracao=(this._cronometroGeracao||0)+1;this._simSoltarTempo(); const m=e.currentTarget.dataset.mode; const f=+e.currentTarget.dataset.f||25, b=+e.currentTarget.dataset.b||5;
     if(this._tick) clearInterval(this._tick); this._tick=null;
     this.setState({timerMode:m, pomoFocus:f, pomoBreak:b, pomoMenuOpen:false, timerRunning:false, timerSeconds:0, pomoPhase:'foco', pomoCycles:0}); };
   _saveSessions(s){ try{ localStorage.setItem(this._chave('sessions'), JSON.stringify(s)); }catch(_){} }
@@ -12320,12 +12240,12 @@ class Component extends DCLogic {
     // indicador e reabertura da atividade quando a sessão é excluída dependem só dele.
     return {...this._freshSessionDraft(prev), disc, topico, edTop:_edTop, edSub:b.subtopico||'', categorias:b.kind==='Estudo dirigido'?[]:[cat], categoria:b.kind==='Estudo dirigido'?'':cat,
       atvKey:this._atvChave(b), origem:'ciclo', ...(prev&&prev.atvKey===this._atvChave(b)?{cmPlanoMin:prev.cmPlanoMin,cmPlanoObjetivo:prev.cmPlanoObjetivo}:{}), ...(()=>{const ctx=this._cmContexto(b);if(!ctx)return {};const r=ctx.id!=='juris'?CT_CMAG.roteiro(this._cm(),ctx.id):null;const k=prev&&prev.atvKey===this._atvChave(b)&&prev.cmEtapa?prev.cmEtapa:ctx.etapa;const e=r&&r.etapas.find(x=>x.k===k);const v=e?(this._cm().st[ctx.id].retomadas[k]||{}):{};const mesmo=prev&&prev.atvKey===this._atvChave(b)&&prev.cmEtapa===k;return {cmEtapa:k||'',cmPonto:mesmo&&prev.cmPonto!=null?prev.cmPonto:(e?v.ponto||'':ctx.ponto),cmProximo:mesmo&&prev.cmProximo!=null?prev.cmProximo:(e?v.proximo||'':ctx.proximo),...(e?{categoria:e.categoria,categorias:[e.categoria]}:{}),agendarRevisao:false,concluiu:false};})()}; }
-  openSession = ()=>{ const _st=this.state; const pre=Math.round(((_st.timerMode==='pomo'?_st.studiedSeconds:_st.timerSeconds)||_st.studiedSeconds||0)/60); this.setState(s=>({sessionModalOpen:true, pomoMenuOpen:false, sessionDraft:{...(s.sessionDraft.atvKey?s.sessionDraft:(this._cmContexto()?this._blockToDraft(this._cmContexto().b,s.sessionDraft):this._freshSessionDraft(s.sessionDraft))), minutos: pre>0?String(pre):''}})); };
+  openSession = ()=>{this._registroId=(this._registroId||0)+1;this._simTimerRegistro=null; const _st=this.state; const pre=Math.round(((_st.timerMode==='pomo'?_st.studiedSeconds:_st.timerSeconds)||_st.studiedSeconds||0)/60); this.setState(s=>({sessionModalOpen:true, registroModo:'estudo', pomoMenuOpen:false, sessionDraft:{...(s.sessionDraft.atvKey?s.sessionDraft:(this._cmContexto()?this._blockToDraft(this._cmContexto().b,s.sessionDraft):this._freshSessionDraft(s.sessionDraft))), minutos: pre>0?String(pre):''}})); };
   closeSessionBackdrop = (e)=>{ if(e&&e.target!==e.currentTarget) return;   // só o clique no fundo
     const n=(this._extRegQueue||[]).length;
     if(n && !window.confirm('Há '+n+' registro'+(n>1?'s':'')+' pendente'+(n>1?'s':'')+' na fila. Descartar tudo?')) return;
     this.closeSession(); };
-  closeSession = ()=>{
+  closeSession = ()=>{this._simSoltarTempo();
     // Fechar no X descarta os registros restantes da fila (LEGIS/JURIS multi-matéria).
     if(this._extRegQueue && this._extRegQueue.length){
       const n=this._extRegQueue.length; this._extRegQueue=[];
@@ -12505,7 +12425,7 @@ class Component extends DCLogic {
     this.setState({sessions}, ()=>{ try{ this._reconcileStreak(); }catch(_){} });
     return rec;
   };
-  saveSession = ()=>{
+  saveSession = ()=>{this._simSoltarTempo();
     const d=this.state.sessionDraft;
     const min=Math.max(0, parseInt(d.minutos,10)||0);
     const a=Math.max(0, parseInt(d.acertos,10)||0);
@@ -13320,7 +13240,7 @@ class Component extends DCLogic {
   // sair de verdade, recarrega a página. Aqui não se mexe em loggedIn — o app já mostrava a
   // tela de login antiga ("Entrar no protótipo") ANTES da pergunta, e quem cancelava ficava com
   // a sessão viva atrás de um login falso. Sem CatedraAuth (site sem auth, testes), o de sempre.
-  logout = ()=>{
+  logout = ()=>{this.setState({concursoRemovido:null});
     try{ if(window.CatedraAuth && typeof window.CatedraAuth.logout==='function'){ window.CatedraAuth.logout(); return; } }catch(_){}
     try{ localStorage.removeItem('catedra:auth'); }catch(_){} this.setState({loggedIn:false, view:'inicio'}); };
 
@@ -13835,6 +13755,8 @@ class Component extends DCLogic {
       oralQUrl:st.oralQAtual?st.oralQAtual.url:'',
       oralQResposta:st.oralQResposta, oralQMostrarPadrao:st.oralQMostrarPadrao,
       // ---- modo arguição (item 3)
+      argHistorico:(st.sessions||[]).filter(s=>Array.isArray(s.oralArguicao)).slice(0,20).map(s=>({id:s.id,label:(s.topico||'Arguição')+' · '+new Date(s.ts||0).toLocaleDateString('pt-BR')})),argHistoricoTem:(st.sessions||[]).some(s=>Array.isArray(s.oralArguicao)),argHistoricoAbrir:this.argHistoricoAbrir,argHistoricoFechar:this.argHistoricoFechar,argReverTem:!!st.argRever,argReverRespostas:((st.argRever||{}).oralArguicao||[]).map(r=>({...r,resposta:r.resposta||'Nenhuma resposta escrita registrada.',avaliacao:({bem:'Respondi bem',parcial:'Resposta parcial',nao:'Não soube',pendente:'Sem autoavaliação'})[r.v]||'Sem autoavaliação'})),
+      argFase:st.argFase||'respondendo',argRespostaTexto:st.argRespostaTexto||'',onArgResposta:this.onArgResposta,argPausaToggle:this.argPausaToggle,argMinhaVez:this.argMinhaVez,argPausaLabel:st.argFase==='pausado'?'Continuar conversa':'Pausar conversa',argEstadoLabel:st.oralQMostrarPadrao?'Compare com a banca':st.argFase==='ouvindo'?'Ouvindo a banca':st.argFase==='pausado'?'Conversa pausada':'Sua vez de responder',argEstadoNota:st.argFase==='pausado'?'Pergunta, resposta e tempo ficam guardados nesta conversa.':st.argFase==='ouvindo'?'O tempo de resposta começa quando a leitura termina.':'Responda com suas palavras; veja o padrão quando terminar.',
       argOn:st.argOn, argFim:(st.argOn&&st.argFim), argEmCurso:(st.argOn&&!st.argFim),
       argPergunta:_argQ?this._argLimpa(_argQ.enunciado):'',
       argRef:_argQ?[_argQ.orgao,_argQ.ano,_argQ.cargo,_argQ.banca].filter(Boolean).join(' · '):'',
@@ -14013,7 +13935,7 @@ class Component extends DCLogic {
     // setState aqui é síncrono: calcular `abre` ANTES, senão a checagem lê o valor já novo
     // e o acervo nunca começa a carregar.
     const abre=!this.state.sjAberto;
-    this.setState({sjAberto:abre});
+    this.setState({simAba:'treino',sjAberto:abre});
     if(abre && !this.state.sjPronto){
       /* Fora das áreas com jurisprudência o simulado sorteava crime doloso de perigo
          comum para quem estuda Enfermagem: o acervo jurídico subia junto e o sorteio não
@@ -14129,7 +14051,7 @@ class Component extends DCLogic {
       this._provaDurAntes=t.durAntes||this.state.provaDurationMin; this._enamAvisos={m60:(cap-sec)<=3600, m15:(cap-sec)<=900};
       try{ localStorage.removeItem('ct_prova'); }catch(_){}
       const n=itens.filter(x=>resp[x.id]!==undefined).length;
-      this.setState({sjModo:'enam', sjAberto:true, sjItens:itens, sjResp:resp, sjRev:(t.rev&&typeof t.rev==='object')?t.rev:{}, sjAtual:Math.max(0,Math.min(itens.length-1,+t.atual||0)), sjFim:false, sjRel:null, sjIni:+t.ini||Date.now(),
+      this.setState({simAba:'treino',sjModo:'enam', sjAberto:true, sjItens:itens, sjResp:resp, sjRev:(t.rev&&typeof t.rev==='object')?t.rev:{}, sjAtual:Math.max(0,Math.min(itens.length-1,+t.atual||0)), sjFim:false, sjRel:null, sjIni:+t.ini||Date.now(),
         sjComPausa:true, enamMont:Array.isArray(t.porArea)?t.porArea:null, enamErro:'',
         provaMode:true, provaRunning:false, provaDurationMin:E.DURACAO_MIN, provaSeconds:sec, provaName:t.nome||this._enamNome()}, ()=>{ this._saveEnamProva(); try{ this._irPara('simulados'); }catch(_){} });
       this._toast('Simulado ENAM retomado onde parou — '+n+' respondida'+(n===1?'':'s')+'; aperte Retomar para seguir');
@@ -14368,7 +14290,7 @@ class Component extends DCLogic {
     if(acao==='reta'){ this._irPara('reta-final'); return; }
     if(acao==='revisar'){ this._irPara('revisoes'); return; }
     if(acao==='estudar'){ this.enamEstudarArea(e); return; }
-    this.setState({sjModo:'enam', sjAberto:true, enamErro:''}); this._irPara('simulados');
+    this.setState({simAba:'treino',sjModo:'enam', sjAberto:true, enamErro:''}); this._irPara('simulados');
   };
   _enamVM(){
     const st=this.state, E=window.CT_ENAM, its=st.sjItens||[], r=st.sjResp||{}, rv=st.sjRev||{};
@@ -14820,7 +14742,7 @@ class Component extends DCLogic {
     const emb=pool.slice(); for(let i=emb.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [emb[i],emb[j]]=[emb[j],emb[i]]; }
     const fila=emb.slice(0,5);
     this._treino && this._oralCarregarQ && this._oralCarregarQ();
-    this.setState({argOn:true, argFila:fila, argIdx:0, argRespostas:[], argFim:false,
+    this.setState({argOrigemArea:this.state.areaEstudo||'juridica',argOrigemConta:this._argConta(),argTempoExtra:0,argSessaoId:'oral-'+Date.now(),argRespostaTexto:'',argFase:'respondendo',argOn:true, argFila:fila, argIdx:0, argRespostas:[], argFim:false,
       argSeg:this.state.argMin*60, argRodando:true, oralQMostrarPadrao:false});
     this._argTick();
     this._argFalar();
@@ -14830,38 +14752,45 @@ class Component extends DCLogic {
     this._argT=setInterval(()=>{
       if(!this.state.argRodando) return;
       const s=this.state.argSeg-1;
-      if(s<=0){ clearInterval(this._argT); this.setState({argSeg:0, argRodando:false, oralQMostrarPadrao:true}); return; }
+      if(s<=0){ clearInterval(this._argT); this.setState({argFase:'comparando',argSeg:0, argRodando:false, oralQMostrarPadrao:true}); return; }
       this.setState({argSeg:s});
     }, 1000);
   }
   /** Voz: a banca fala. speechSynthesis é nativo do navegador e do WKWebView — sem dependência. */
+  _argCancelarVoz(){this._argVozToken=(this._argVozToken||0)+1;try{window.speechSynthesis&&window.speechSynthesis.cancel();}catch(_){}}
   _argFalar(){
-    if(!this.state.argVoz) return;
-    try{
-      const q=this.state.argFila[this.state.argIdx]; if(!q||!window.speechSynthesis) return;
-      window.speechSynthesis.cancel();
-      const u=new SpeechSynthesisUtterance(this._argLimpa(q.enunciado).slice(0,600));
-      u.lang='pt-BR'; u.rate=0.95;
-      window.speechSynthesis.speak(u);
-    }catch(_){}
+    if(!this.state.argVoz)return;
+    const q=this.state.argFila[this.state.argIdx];if(!q||!window.speechSynthesis||!window.SpeechSynthesisUtterance)return;
+    this._argCancelarVoz();const token=this._argVozToken;
+    try{const u=new SpeechSynthesisUtterance(this._argLimpa(q.enunciado));u.lang='pt-BR';u.rate=0.95;
+      clearInterval(this._argT);this.setState({argFase:'ouvindo',argRodando:false});
+      const fim=()=>{if(token!==this._argVozToken||!this.state.argOn||this.state.oralQMostrarPadrao)return;this.setState({argFase:'respondendo',argRodando:true},()=>this._argTick());};
+      u.onend=fim;u.onerror=fim;window.speechSynthesis.speak(u);
+    }catch(_){this.setState({argFase:'respondendo',argRodando:true},()=>this._argTick());}
   }
+  // O rascunho usa o mesmo id do histórico: salvar de novo substitui a sessão.
+  onArgResposta = (e)=>this.setState({argRespostaTexto:String(e.currentTarget.value||'').slice(0,12000)},()=>{clearTimeout(this._argRascunhoT);this._argRascunhoT=setTimeout(()=>{if(this.state.argOn)this._argGuardarHistorico();},400);});
+  argMinhaVez = ()=>{this._argCancelarVoz();if(this.state.oralQMostrarPadrao)return;this.setState({argFase:'respondendo',argRodando:true},()=>this._argTick());};
+  argPausaToggle = ()=>{if(this.state.oralQMostrarPadrao)return;
+    if(this.state.argFase==='pausado'){this.argMinhaVez();return;}
+    clearInterval(this._argT);this._argCancelarVoz();this.setState({argFase:'pausado',argRodando:false});};
   argVozToggle = ()=>{ const v=!this.state.argVoz;
-    if(!v){ try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(_){} }
+    if(!v){this._argCancelarVoz();if(this.state.argFase==='ouvindo')this.argMinhaVez();}
     this.setState({argVoz:v}, ()=>{ if(v) this._argFalar(); }); };
   /** "Respondi" (ou o tempo acabou): revela o padrão da banca. */
-  argResponder = ()=>{ clearInterval(this._argT);
+  argResponder = ()=>{ clearInterval(this._argT);this._argCancelarVoz();
     try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(_){}
-    this.setState({argRodando:false, oralQMostrarPadrao:true}); };
-  argMaisTempo = ()=> this.setState({argSeg:this.state.argSeg+60});
+    this.setState({argFase:'comparando',argRodando:false, oralQMostrarPadrao:true}); };
+  argMaisTempo = ()=> this.setState({argSeg:this.state.argSeg+60,argTempoExtra:(this.state.argTempoExtra||0)+60});
   setArgMin = (e)=>{ const m=Math.max(1,Math.min(15,parseInt(e.currentTarget.dataset.v,10)||3));
     this.setState({argMin:m, argSeg:(this.state.argOn&&!this.state.argRodando)?this.state.argSeg:m*60}); };
   /** Autoavaliação: 'bem' | 'parcial' | 'nao'. Parcial e não sabia viram erro + revisão. */
   argAvaliar = (e)=>{
     const v=e.currentTarget.dataset.v||'nao';
     const q=this.state.argFila[this.state.argIdx]; if(!q) return;
-    const gasto=Math.max(0, this.state.argMin*60-this.state.argSeg);
+    const gasto=Math.max(0, this.state.argMin*60+(this.state.argTempoExtra||0)-this.state.argSeg);
     // `q.id` é do DOCUMENTO (malote), não da questão: 417 perguntas compartilham 190 ids.
-    const reg={id:q.id+'#'+this.state.argIdx, v, gasto, disc:q.disciplina||q.carreira||'Prova oral'};
+    const reg={id:q.id+'#'+this.state.argIdx,pergunta:this._argLimpa(q.enunciado),resposta:this.state.argRespostaTexto||'', v, gasto, disc:q.disciplina||q.carreira||'Prova oral'};
     if(v!=='bem'){
       // mesmo caminho do item 2: o que não soube vira erro, flashcard e revisão
       try{
@@ -14876,13 +14805,22 @@ class Component extends DCLogic {
     const prox=this.state.argIdx+1;
     if(prox>=this.state.argFila.length){
       clearInterval(this._argT);
-      this.setState({argRespostas:respostas, argFim:true, argRodando:false});
+      this.setState({argRespostas:respostas,argFase:'concluido',argFim:true,argRodando:false},()=>this._argGuardarHistorico());
       return;
     }
-    this.setState({argRespostas:respostas, argIdx:prox, argSeg:this.state.argMin*60,
+    this.setState({argRespostas:respostas,argTempoExtra:0,argRespostaTexto:'',argFase:'respondendo',argIdx:prox, argSeg:this.state.argMin*60,
       argRodando:true, oralQMostrarPadrao:false}, ()=>{ this._argTick(); this._argFalar(); });
   };
-  argEncerrar = ()=>{ clearInterval(this._argT);
+  argHistoricoAbrir = (e)=>{const r=(this.state.sessions||[]).find(s=>s.id===e.currentTarget.dataset.id&&Array.isArray(s.oralArguicao));if(r)this.setState({argRever:r});};
+  argHistoricoFechar = ()=>this.setState({argRever:null});
+  _argConta(){const u=window.CatedraAuth&&window.CatedraAuth.user;return(u&&(u.id||u.email))||this.state.authEmail||'';}
+  _argGuardarHistorico(){
+    if((this.state.argOrigemArea&&this.state.argOrigemArea!==(this.state.areaEstudo||'juridica'))||(this.state.argOrigemConta!=null&&this.state.argOrigemConta!==this._argConta()))return;
+    const R=(this.state.argRespostas||[]).slice(),id=this.state.argSessaoId,q=this.state.argFila[this.state.argIdx];if(this.state.argOn&&!this.state.argFim&&q&&(this.state.argRespostaTexto||(this.state.sessions||[]).some(s=>s.id===id&&(s.oralArguicao||[]).some(r=>r.id===q.id+'#'+this.state.argIdx&&r.v==='pendente')))&&!R.some(r=>r.id===q.id+'#'+this.state.argIdx))R.push({id:q.id+'#'+this.state.argIdx,v:'pendente',gasto:Math.max(0,this.state.argMin*60+(this.state.argTempoExtra||0)-this.state.argSeg),pergunta:this._argLimpa(q.enunciado),resposta:this.state.argRespostaTexto});if(!id||!R.length)return;
+    const rec={id,up:Date.now(),ts:Date.now(),date:this._hoje(),disc:'Prova oral',topico:'Arguição · '+R.length+' pergunta'+(R.length===1?'':'s'),categoria:'Prova oral',categorias:['Prova oral'],min:Math.round(R.reduce((n,r)=>n+(r.gasto||0),0)/60),questoes:0,acertos:0,erradas:0,brancos:0,countMeta:true,oralArguicao:R,origem:'arguicao'};
+    const sessions=[rec,...(this.state.sessions||[]).filter(x=>x.id!==id)];this._saveSessions(sessions);this.setState({sessions});this.flashSync();
+  }
+  argEncerrar = ()=>{ clearTimeout(this._argRascunhoT);clearInterval(this._argT);this._argCancelarVoz();this._argGuardarHistorico();
     try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(_){}
     this.setState({argOn:false, argFim:false, argRodando:false, oralQMostrarPadrao:false}); };
 
@@ -16358,7 +16296,7 @@ class Component extends DCLogic {
     else { this.setState({provaRunning:true}); this._provaTimer(); } };
   finishProva = (auto)=>{ auto=auto===true;   // o clique em "Encerrar e registrar" passa o evento — só o relógio passa true
     if(this._provaT){ clearInterval(this._provaT); this._provaT=null; } try{ localStorage.removeItem('ct_prova'); }catch(_){} const elapsedMin=Math.round(this.state.provaSeconds/60);
-    this.setState(s=>({ provaMode:false, provaRunning:false, sessionModalOpen:true,
+    this.setState(s=>({ provaMode:false, provaRunning:false, sessionModalOpen:true, registroModo:'simulado', simMin:elapsedMin>0?String(elapsedMin):'', simNome:s.provaName||'Simulado cronometrado',
       sessionDraft:{...this._freshSessionDraft(s.sessionDraft), categorias:['Simulado'], categoria:'Simulado', minutos: elapsedMin>0?String(elapsedMin):'', topico: s.provaName||'Simulado cronometrado' } }));
     this._toast(auto?'Tempo esgotado — registre seu desempenho':'Prova encerrada — registre seu desempenho'); };
   exitProva = ()=>{ if(this._provaT){ clearInterval(this._provaT); this._provaT=null; } try{ localStorage.removeItem('ct_prova'); }catch(_){}
@@ -17048,7 +16986,9 @@ class Component extends DCLogic {
     if(v===(this.state.areaEstudo||'')) { this.setState({areaSelOpen:false}); return; }
     this._trocarArea(v); };
   _trocarArea(v){
-    const A=CT_AREA(v); const patch={areaEstudo:v, areaSelOpen:false};
+    if(this.state.argOn)this.argEncerrar();
+    this.setState({argRever:null});
+    const A=CT_AREA(v); const patch={areaEstudo:v, areaSelOpen:false, concursoRemovido:null};
     // Caso aberto no construtor ou em treino é da área ANTERIOR. Deixá-lo aberto fazia o
     // formulário trocar de campos por baixo do texto já escrito, exibia caso clínico sob
     // rótulo socioassistencial, e o "Apagar" prometia remover algo que não estava mais na
@@ -19100,7 +19040,7 @@ class Component extends DCLogic {
       // não tem como marcar nada como visto, isto é, não satisfaz a condição de sumir.
       const _naoLidos=(areaJuris ? (this._semanaItens()||[]) : []);
       if(_naoLidos.length){
-        return { tipo:'leitura', view:'inicio', action:'semana',
+        return { tipo:'leitura', view:'novidades', action:'',
           titulo:'Ler o que mudou esta semana',
           motivo:'Jurisprudência nova entra em prova antes de virar rotina.',
           meta:(_naoLidos.length+(_naoLidos.length===1?' novidade':' novidades')), cta:'Ver as novidades' };
@@ -21638,10 +21578,14 @@ class Component extends DCLogic {
       // E3: a tela cheia do Modo ENAM existe em qualquer view (a prova continua se ela trocar de tela)
       provaSala:this.state.provaMode && this.state.sjModo!=='enam', enamEmProva:false,
       ...((this.state.provaMode && this.state.sjModo==='enam' && (this.state.sjItens||[]).length) ? this._enamVM() : {}),
+      isSegundaHub:['redacao','segundafase'].includes(this.state.view), navSegundaCur:['redacao','segundafase'].includes(this.state.view)?'page':'', navSegundaHub:navStyle(['redacao','segundafase'].includes(this.state.view)?this.state.view:'redacao'),
+      simTreino:this.state.simAba==='treino', simRegistroTela:this.state.simAba!=='treino'&&!(this.state.sessionModalOpen&&this.state.registroModo==='simulado'), simRegistroStr:this.state.simAba==='treino'?'false':'true',simTreinoStr:this.state.simAba==='treino'?'true':'false',setSimAba:this.setSimAba,
+      sessModalEstudoOpen:this.state.sessionModalOpen&&this.state.registroModo!=='simulado',simRegistroVisible:(this.state.view==='simulados'&&this.state.simAba!=='treino')||(this.state.sessionModalOpen&&this.state.registroModo==='simulado'),simRegistroRole:this.state.sessionModalOpen&&this.state.registroModo==='simulado'?'dialog':'region',simRegistroAriaLabel:this.state.sessionModalOpen&&this.state.registroModo==='simulado'?'Registrar sessão':'Registro de simulado',simRegistroAriaModal:this.state.sessionModalOpen&&this.state.registroModo==='simulado'?'true':'false',simRegistroClasse:this.state.sessionModalOpen&&this.state.registroModo==='simulado'?'ct-sim-registro ct-modal-panel ct-card':'ct-sim-registro',simRegistroFundoStyle:this.state.sessionModalOpen&&this.state.registroModo==='simulado'?'position:fixed;inset:0;background:color-mix(in srgb,var(--ink) 45%,transparent);z-index:100;display:flex;align-items:center;justify-content:center;padding:var(--ct-e4);':'',simRegistroPainelStyle:this.state.sessionModalOpen&&this.state.registroModo==='simulado'?'width:100%;max-height:90vh;overflow:auto;box-sizing:border-box;':'',
+      sessModoSim:this.state.sessionModalOpen&&this.state.registroModo==='simulado',sessModoEstudo:this.state.registroModo!=='simulado',sessModoSimStr:this.state.registroModo==='simulado'?'true':'false',sessModoEstudoStr:this.state.registroModo==='simulado'?'false':'true',setRegistroModo:this.setRegistroModo,usarTempoSimulado:this.usarTempoSimulado,simTemTempoCrono:this._minCronometro()>0,simTempoCrono:this._minCronometro(),simRegistroTempoLabel:this.state.simRegistroFonte==='cronometro'?'Tempo líquido copiado do cronômetro pausado. Registrar consome esse tempo; cancelar preserva a sessão.':'Tempo preenchido manualmente. O cronômetro da sua sessão não será alterado.',
       isRev:this.state.view==='revisoes', isSim:this.state.view==='simulados', isAnalise:this.state.view==='analise', isConq:this.state.view==='conquistas', isConqMetas:(this.state.view==='conquistas'||this.state.view==='metas'),
       isBaralho:this.state.view==='flashcards',
       isAnki:this.state.view==='anki', isPersonal:this.state.view==='personalizacao', isAjustes:this.state.view==='ajustes', isConfig:(this.state.view==='ajustes'||this.state.view==='personalizacao'||this.state.view==='orientacao'), isDash:this.state.view==='dashboards',
-      viewTitle:({indisponivel:'Não faz parte da sua área',inicio:'Início',areamod:areaModLabel,roteiros:'Roteiros e peças',oral:'Prova oral',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',flashcards:'Baralho',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'Redação',anki:'Anki',erros:'Caderno de erros',dominio:'Desempenho · Domínio por tópico',metas:'Metas',dashboards:'Dashboards',analise:'Desempenho',novidades:(this.state.isMobile?'Novidades':'Central de novidades'),conquistas:'Metas & Conquistas',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório',admin:'Console de administração',bancas:'Bancas'}[this.state.view]),
+      viewTitle:({indisponivel:'Não faz parte da sua área',inicio:'Início',areamod:areaModLabel,roteiros:'Roteiros e peças',oral:'Prova oral',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',flashcards:'Baralho',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'2ª fase',segundafase:'2ª fase',anki:'Anki',erros:'Caderno de erros',dominio:'Desempenho · Domínio por tópico',metas:'Metas',dashboards:'Dashboards',analise:'Desempenho',novidades:(this.state.isMobile?'Novidades':'Central de novidades'),conquistas:'Metas & Conquistas',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório',admin:'Console de administração',bancas:'Bancas'}[this.state.view]),
       viewSub:({indisponivel:'Esta tela depende de um acervo que a sua área de estudo não tem',inicio:'Seu painel de hoje',ciclo:(this.state.cycleMode==='magistratura'?'Uma sequência contínua de estudo — tempo e conteúdo em cada atividade':'Uma volta pelas matérias, na ordem certa — o dia consome os próximos blocos'),edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',flashcards:'Os cartões que o seu estudo gerou — revisados pela mesma régua das revisões',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:'Simulado cronometrado e registro de resultados',redacao:'Escolha uma prova real, responda e corrija pelo espelho',anki:'Baralho da biblioteca + analisador de retenção',erros:'Registre cada erro com o motivo e transforme em revisão',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',novidades:'O que mudou nas fontes oficiais — Planalto, STF e STJ',conquistas:'Objetivos pessoais, marcos e constância',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação',admin:'Contas, IA, moderação e os interruptores do app',bancas:'Perfil de cada banca e dicas por área'}[this.state.view]),
       notLoggedIn:!this.state.loggedIn,
       // ===== U5: selo de sincronização permanente, honesto e sem travar nada ==========
@@ -21767,7 +21711,8 @@ class Component extends DCLogic {
       sessEfeitos, sessEfeitosShow, sessEfeitoVazio, sessCorStyle, sessDiscTitulo, sessSubtitulo,
       sessRevAria:String(!!_sd0.agendarRevisao), sessMetaAria:String(_sd0.contarMeta!==false), sessMarcarAria:String(!!_sd0.marcarEdital),
       sessMarcarShow:!!_sd0.edTop && _sdTopics.some(t=>String(t.name||'').trim()===String(_sd0.edTop).trim()),
-      sessionDraft:this.state.sessionDraft, sessCats, focoDots, focoLabel, sdSegOk, sdSegErr, sdSegBr, sessMinFmt, sdBrutoPct, sdBrutoLabel, sdAccColor, sdLiquido, sdLiqColor, sdLiqLabel, sdTotalLabel, sessionSummary,
+      sessionDraft:this.state.sessionDraft, concursoRemovidoTem:!!this.state.concursoRemovido,concursoRemovidoNome:(this.state.concursoRemovido||{}).nome||'',removerConcurso:this.removerConcurso,desfazerRemoverConcurso:this.desfazerRemoverConcurso,
+      sessCats, focoDots, focoLabel, sdSegOk, sdSegErr, sdSegBr, sessMinFmt, sdBrutoPct, sdBrutoLabel, sdAccColor, sdLiquido, sdLiqColor, sdLiqLabel, sdTotalLabel, sessionSummary,
       sessLeiOpts, sessJurisOpts, sessShowLeis, sessShowJuris, sessLeiSel, sessJurisSel, sessLeiVazio, sessJurisVazio, onSessionLei:this.onSessionLei, onSessionJuris:this.onSessionJuris,
       sessTrechoShow, sessTrechoOpts, sessTrechoSel, sessTrechoVazio, sessTrechoLivre, sessTrechoLabel, sessTrechoPh,
       sessTrechoTemOpts:sessTrechoOpts.length>0, onSessionTrecho:this.onSessionTrecho,
