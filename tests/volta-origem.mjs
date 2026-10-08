@@ -906,6 +906,7 @@ async function roteiroWeb(page, ok, R, origem) {
 
   /* ===== J. SIMULADO MISTO — "Ler ativamente" no gabarito ===== */
   await V(() => window.__catedraGoView('simulados'));
+  await page.getByRole('button',{name:'Treinar 1ª fase',exact:true}).click();
   const j0 = await V(async (CC) => {
     const vo = window.__vo, app = vo.app(); await vo.naView('simulados');
     const itens = [
@@ -942,6 +943,7 @@ async function roteiroWeb(page, ok, R, origem) {
 
   /* ===== K. MODO ENAM — "Ver no JURIS" e "Estudar esta área" na correção ===== */
   await V(() => window.__catedraGoView('simulados'));
+  await page.getByRole('button',{name:'Treinar 1ª fase',exact:true}).click();
   const k0 = await V(async () => {
     const vo = window.__vo, app = vo.app(); await vo.naView('simulados');
     const area = { area: 'administrativo', nome: 'Direito Administrativo', ok: 1, cota: 6, alvo: 4, alvoInt: 4, deficit: 3 };

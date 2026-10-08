@@ -2818,6 +2818,9 @@ for (const [k, v] of Object.entries(la6p)) ok(v, 'LEITURA/ONDE-MAIS prioridade '
       { id: 'lei|Código Civil|Art. 1.241|z', origem: 'lei', enunciado: 'Terceiro, errado e sem leitura.', certo: true, original: 'Terceiro.', ref: 'Código Civil · Art. 1.241', ramo: 'Código Civil', tema: 'Art. 1.241', url: CC, contexto: 'z' },
     ];
     window.__catedraGoView('simulados'); await w(400);
+      for(let i=0;i<100&&!document.querySelector('main button[data-v="treino"]');i++)await w(50);
+      document.querySelector('main button[data-v="treino"]').click();
+      for(let i=0;i<100&&!document.querySelector('main button[data-v="enam"]');i++)await w(50);
     // respostas: errou o 1.239 (marcou certo), acertou o 1.240, errou o 1.241 (marcou errado)
     const resp = {}; resp[itens[0].id] = true; resp[itens[1].id] = true; resp[itens[2].id] = false;
     // o painel do simulado misto precisa estar aberto; o encerramento real monta o relatório e o gabarito
@@ -3120,6 +3123,9 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     const r = {}, app = window.__catedraApp;
     r.chaveNoAutosave = app._autosaveKeys().includes('enamSim');
     window.__catedraGoView('simulados'); await w(600);
+      for(let i=0;i<100&&!document.querySelector('main button[data-v="treino"]');i++)await w(50);
+      document.querySelector('main button[data-v="treino"]').click();
+      for(let i=0;i<100&&!document.querySelector('main button[data-v="enam"]');i++)await w(50);
     document.querySelector('main button[data-v="enam"]').click(); await w(200);
     const abrir = [...document.querySelectorAll('main button')].find(b => /^(Começar|Fechar)$/.test(b.textContent.trim())); if (abrir.textContent.trim() === 'Começar') { abrir.click(); await w(400); }
     // sem o banco: explica o que falta e NÃO monta itens Certo/Errado
@@ -3255,6 +3261,9 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     const corToken = (t) => { const p = document.createElement('span'); p.style.color = 'var(' + t + ')'; document.querySelector('main').appendChild(p); const c = getComputedStyle(p).color; p.remove(); return c; };
     const montar = async () => {
       window.__catedraGoView('simulados'); await w(500);
+      for(let i=0;i<100&&!document.querySelector('main button[data-v="treino"]');i++)await w(50);
+      document.querySelector('main button[data-v="treino"]').click();
+      for(let i=0;i<100&&!document.querySelector('main button[data-v="enam"]');i++)await w(50);
       const chip = document.querySelector('main button[data-v="enam"]'); if (chip.getAttribute('aria-pressed') !== 'true') { chip.click(); await w(200); }
       const abrir = [...document.querySelectorAll('main button')].find(b => /^(Começar|Fechar)$/.test(b.textContent.trim())); if (abrir && abrir.textContent.trim() === 'Começar') { abrir.click(); await w(400); }
       const novo = [...document.querySelectorAll('main button')].find(b => /Novo simulado/.test(b.textContent)); if (novo) { novo.click(); await w(300); }
@@ -5198,6 +5207,11 @@ const d2b = await page.evaluate(async () => {
   const views = ['areamod', 'roteiros', 'legis', 'juris', 'segundafase', 'prioridade'];
   r.seisIframes = document.querySelectorAll('iframe[data-ct-view]').length === 6;
   for (const v of views) {
+    // As provas oficiais são um destino interno da entrada única de 2ª fase.
+    if (v === 'segundafase') {
+      document.querySelector('aside button[data-view="redacao"]').click();
+      for (let t=0;t<30&&!document.querySelector('nav button[data-view="segundafase"]');t++) await w(100);
+    }
     const b = document.querySelector('button[data-view="' + v + '"]');
     if (!b) { r.telas[v] = 'sem botão no menu'; continue; }
     b.click();
@@ -5232,6 +5246,10 @@ const barra = await page.evaluate(async () => {
   const w = ms => new Promise(r => setTimeout(r, ms));
   const r = {};
   for (const [view, arquivo] of [['prioridade', 'prioridade-web.html'], ['segundafase', 'segunda-fase-web.html']]) {
+    if (view === 'segundafase') {
+      document.querySelector('aside button[data-view="redacao"]').click();
+      for (let t=0;t<30&&!document.querySelector('nav button[data-view="segundafase"]');t++) await w(100);
+    }
     const b = document.querySelector('button[data-view="' + view + '"]');
     if (!b) { r[view + 'TemBotao'] = false; continue; }
     r[view + 'TemBotao'] = true;
@@ -6974,7 +6992,8 @@ ok(orfas.length === 0, 'D14 nenhuma variável órfã no template (' + (orfas.sli
 const d14barra = await page.evaluate(() => {
   const r = {};
   for (const v of ['prioridade', 'segundafase']) {
-    const b = document.querySelector('button[data-view="' + v + '"]');
+    const entrada = v === 'segundafase' ? 'redacao' : v;
+    const b = document.querySelector('aside button[data-view="' + entrada + '"]');
     r[v + 'TemBotao'] = !!b;
     r[v + 'TemEstilo'] = !!b && (b.getAttribute('style') || '').length > 20;
   }
@@ -7376,8 +7395,8 @@ const AUDITOR = () => {
         .map(b => b.dataset.view).filter(v => acervo.includes(v));
     }, ACERVO);
   }
-  ok(ACERVO.every(v => menus.juridica.includes(v)),
-    'AREA jurídica continua com todas as telas (' + menus.juridica.length + '/' + ACERVO.length + ')');
+  ok(ACERVO.filter(v => v !== 'segundafase').every(v => menus.juridica.includes(v)),
+    'AREA jurídica mantém todas as entradas e reúne a 2ª fase (' + menus.juridica.length + '/' + (ACERVO.length-1) + ')');
   ok(!menus.saude.includes('juris') && !menus.saude.includes('roteiros')
      && !menus.saude.includes('segundafase') && !menus.saude.includes('redacao')
      && !menus.saude.includes('prioridade'),

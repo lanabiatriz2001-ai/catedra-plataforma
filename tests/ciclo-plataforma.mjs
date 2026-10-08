@@ -36,8 +36,12 @@ try{
  r=await p.evaluate(()=>window.__catedraApp.state.sessions[0]);assert.equal(r.atvKey,null);assert.equal(r.cmEtapa,null);
  await p.evaluate(()=>{const a=window.__catedraApp;a.cmSelecionar({currentTarget:{dataset:{id:'juris'}}});a.openSession();});
  r=await p.evaluate(()=>window.__catedraApp.state.sessionDraft);assert.equal(r.disc,'Jurisprudência');assert.equal(r.agendarRevisao,false);assert.ok(r.atvKey.startsWith('vt|cm-juris-'));
- await dlg.getByRole('textbox',{name:'Onde parei nesta sessão'}).fill('Súmula 12');await dlg.getByRole('spinbutton',{name:'Minutos de estudo'}).fill('15');await dlg.getByRole('button',{name:'Registrar sessão',exact:true}).click();
- await p.waitForFunction(()=>window.__catedraApp.state.sessions.length===3);
+ await dlg.getByRole('textbox',{name:'Onde parei nesta sessão'}).fill('Súmula 12');
+ await p.waitForFunction(()=>window.__catedraApp.state.sessionDraft.cmPonto==='Súmula 12');
+ await dlg.getByRole('spinbutton',{name:'Minutos de estudo'}).fill('15');
+ await p.waitForFunction(()=>window.__catedraApp.state.sessionDraft.minutos==='15');
+ await dlg.getByRole('button',{name:'Registrar sessão',exact:true}).click();
+ await p.waitForFunction(()=>window.__catedraApp.state.sessions.length===3&&window.__catedraApp._cm().juris.ponto==='Súmula 12');
  r=await p.evaluate(()=>{const c=window.__catedraApp._cm();return c.juris;});assert.equal(r.etapa,0);assert.equal(r.ponto,'Súmula 12');
  r=await p.evaluate(()=>{const a=window.__catedraApp,s=a.state.sessions.find(s=>s.cmagId==='const');a.openHistEdit({currentTarget:{dataset:{id:s.id}}});a.setState({histEdit:{...a.state.histEdit,minutos:'35'}});a.saveHistEdit();return a._cmView().cmAtivas[0].tempo;});assert.equal(r,35);
  // Registro programático (ex.: prova oral) com o Magistratura ativo deve continuar
