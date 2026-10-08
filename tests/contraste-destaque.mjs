@@ -117,25 +117,18 @@ export async function testarContrasteDestaque(pageDaSuite, base, ok, opcoes = {}
     ok(bannerMedidos === bannerCasos.length * 2 + 4, R + 'BANNER: todos os casos foram medidos (' + bannerMedidos + '/' + (bannerCasos.length * 2 + 4) + ')');
     await page.setViewportSize({ width: 1280, height: 900 });
 
-    /* ---- SELOS DE ALERTA: texto sobre --danger/--warn/--ok, nos dois modos ---- */
+    /* ---- ALERTAS VISÍVEIS: sino no Início e selos do Desempenho, nos dois modos.
+       O bloco semanal saiu do Início; não criar uma fixture de elementos removidos. ---- */
     for (const escuro of [false, true]) {
       const modo = escuro ? 'no escuro' : 'no claro';
       await page.evaluate(esc => new Promise(r => { const app = window.__catedraApp;
-        window.CT_SEMANA = { itens: [
-          { id: 'cd-sup', titulo: 'Tema 1.234 — revisão da tese', tese: 'Tese superada.', quando: 'hoje', tribunal: 'STJ', ramo: 'Civil', marcador: 'superacao' },
-          { id: 'cd-div', titulo: 'Prescrição intercorrente', tese: 'STF e STJ divergem.', quando: 'hoje', tribunal: 'STF', ramo: 'Civil', marcador: 'divergencia' }] };
-        app.setState({ dir: 'sutil', accent: null, darkMode: esc, semanaLidos: [] }, () => { try { app._temaBroadcast(); } catch (_) {} window.__catedraGoView('inicio'); r(); }); }), escuro);
+        app.setState({ dir: 'sutil', accent: null, darkMode: esc }, () => { try { app._temaBroadcast(); } catch (_) {} window.__catedraGoView('inicio'); r(); }); }), escuro);
       await page.waitForTimeout(500);
       const sel = await page.evaluate(() => window.__cd.selos());
-      const nomes = sel.map(x => x.rot);
-      for (const alvo of ['entendimento superado', 'divergência STF × STJ']) {
-        const x = sel.find(y => y.rot.toLowerCase() === alvo.toLowerCase());
-        ok(!!x && x.pior >= PONTOS_MIN, R + 'SELO «' + alvo + '» ' + modo + ': ' + (x ? x.pior + ':1 (' + x.texto + ' sobre ' + x.fundos + ')' : 'não apareceu (' + nomes.join(' | ') + ')'));
-      }
       const sino = sel.find(y => y.sino);
       ok(!!sino && sino.pior >= PONTOS_MIN, R + 'SINO de notificação ' + modo + ': ' + (sino ? sino.pior + ':1 (' + sino.texto + ' sobre ' + sino.fundos + ')' : 'o contador não apareceu'));
       const ruins = sel.filter(y => y.pior < PONTOS_MIN);
-      ok(sel.length >= 3 && !ruins.length, R + 'todo texto sobre --danger/--warn/--ok no Início ' + modo + ' passa (' + sel.length + ' medidos' + (ruins.length ? '; abaixo: ' + ruins.map(y => '«' + y.rot + '» ' + y.pior).join(', ') : '') + ')');
+      ok(sel.length >= 1 && !ruins.length, R + 'todo texto sobre --danger/--warn/--ok no Início ' + modo + ' passa (' + sel.length + ' medidos' + (ruins.length ? '; abaixo: ' + ruins.map(y => '«' + y.rot + '» ' + y.pior).join(', ') : '') + ')');
       // os selos de situação do Desempenho: "Risco/Atenção/Sólido" por disciplina e "Crítico/Alto/Médio"
       for (const tab of ['disciplina', 'risco']) {
         await page.evaluate(t => new Promise(r => window.__catedraApp.setState({ anaTab: t }, () => { window.__catedraGoView('analise'); r(); })), tab);
