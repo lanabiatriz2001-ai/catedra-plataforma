@@ -1656,7 +1656,7 @@ window.ctPdfLib = (function(){
      <div style="{{ contentInnerStyle }}">
 
       <!-- ================= INÍCIO (Vitrine Editorial · Take 1 aprovado) ================= -->
-      <sc-if value="{{ oabTela }}"><section class="ct-card" aria-label="Percurso OAB" style="padding:var(--ct-e5);display:flex;flex-direction:column;gap:var(--ct-e4);">
+      <sc-if value="{{ oabTela }}"><section class="ct-card ct-oab" aria-label="Percurso OAB" style="padding:var(--ct-e5);display:flex;flex-direction:column;gap:var(--ct-e4);">
         <div><div class="ct-eb">OAB · seu caderno de preparação</div><h2 class="ct-titulo">{{ oabTitulo }}</h2><p class="ct-nota">{{ oabRegra }}</p></div>
         <nav class="ct-fluxo-abas" aria-label="Fase OAB"><button class="ct-btn-2" data-v="1" onclick="{{ oabFase }}" aria-pressed="{{ oabFase1 }}">1ª fase</button><button class="ct-btn-2" data-v="2" onclick="{{ oabFase }}" aria-pressed="{{ oabFase2 }}">2ª fase</button></nav>
         <sc-if value="{{ oabSegunda }}"><label class="ct-rotulo">Área da segunda fase<select class="ct-campo" aria-label="Área da segunda fase OAB" value="{{ oabArea }}" onchange="{{ oabAreaTrocar }}"><sc-for list="{{ oabAreas }}" as="a"><option value="{{ a.id }}" selected="{{ a.sel }}">{{ a.nome }}</option></sc-for></select></label></sc-if>
@@ -1668,7 +1668,7 @@ window.ctPdfLib = (function(){
         <label class="ct-rotulo">Minutos estudados nesta sessão<input class="ct-campo" aria-label="Minutos OAB" type="number" min="0" max="600" data-k="min" value="{{ oabMin }}" oninput="{{ oabCampo }}"></label>
         <div style="display:flex;gap:var(--ct-e3);flex-wrap:wrap;"><button class="ct-btn" onclick="{{ oabGuardar }}">Guardar por hoje</button><button class="ct-btn-2" data-id="{{ oabAtividadeId }}" onclick="{{ oabConcluir }}">Concluir atividade e avançar</button></div><p class="ct-nota">Guardar registra os minutos e mantém esta atividade. O ciclo só avança quando você conclui. Respostas e pontos de retomada ficam separados por fase e área.</p>
         <sc-if value="{{ oabHistoricoTem }}"><details><summary>Treinos concluídos</summary><sc-for list="{{ oabHistorico }}" as="h"><details class="ct-card" style="padding:var(--ct-e3);"><summary>{{ h.rotulo }}</summary><p style="white-space:pre-wrap;overflow-wrap:anywhere;">{{ h.enunciado }}</p><div class="ct-eb">Sua resposta</div><p style="white-space:pre-wrap;overflow-wrap:anywhere;">{{ h.resposta }}</p><div class="ct-eb">Espelho do material</div><p style="white-space:pre-wrap;overflow-wrap:anywhere;">{{ h.espelho }}</p><p>{{ h.ponto }}</p></details></sc-for></details></sc-if>
-        <a class="ct-nota" href="https://s.oab.org.br/arquivos/2026/09/fb43fb37-838e-4d33-a863-99fa1f98b921.pdf" target="_blank" rel="noopener noreferrer">Regras: edital oficial do 48º Exame, itens 3 e 4</a>
+        <a class="ct-btn-2" href="https://s.oab.org.br/arquivos/2026/09/fb43fb37-838e-4d33-a863-99fa1f98b921.pdf" target="_blank" rel="noopener noreferrer">Regras: edital oficial do 48º Exame, itens 3 e 4</a>
       </section></sc-if>
       <sc-if value="{{ isInicio }}" hint-placeholder-val="{{ true }}">
        <div style="display:flex;flex-direction:column;gap:14px;">
@@ -18823,7 +18823,7 @@ class Component extends DCLogic {
       const cur=done?null:this.state.reviews.find(r=>r.id===RS.queue[idx]);
       const _iv=(q)=>cur?this.fsrs(cur,q,false).intervalo:0, _refAlvo=cur?this._alvoAcervoAberto(cur.ref):'';
       revRun={ active:true, total, pos:Math.min(idx+1,total), pct: total?Math.round(idx/total*100):0, revealed:RS.revealed, done,
-        id:cur?cur.id:'', disc: cur?cur.disc:'', discShort: cur?cur.disc.replace('Direito ',''):'', topic: cur?cur.topic:'', color: cur?cur.color:'#0f7a57',
+        id:cur?cur.id:'', disc: cur?cur.disc:'', discShort: cur?String(cur.disc||'').replace('Direito ',''):'', topic: cur?cur.topic:'', color: cur?cur.color:'#0f7a57',
         refTem:!!_refAlvo, refLabel:_refAlvo==='juris'?'Abrir no JURIS':'Abrir no LEGIS',
         intervalo: (cur&&cur.intervalo)||0, ef: cur&&cur.fsrs?Number(cur.fsrs.difficulty).toFixed(2):'—', reps: (cur&&cur.repeticoes)||0,
         opts: cur?[ {q:2,label:'Errei',sub:'hoje',color:'var(--danger)'},{q:3,label:'Difícil',sub:_iv(3)+'d',color:'var(--warn)'},{q:4,label:'Bom',sub:_iv(4)+'d',color:'var(--ok)'},{q:5,label:'Fácil',sub:_iv(5)+'d',color:'#0f7a57'} ]:[],
@@ -19282,7 +19282,7 @@ class Component extends DCLogic {
     // não o store paralelo orient.al* — assim ligar/desligar um alerta realmente vale.
     const _alerts = this.state.prefs||{};
     const _liveNotifs=[];
-    if(_alerts.notifRevisao!==false && revOverdue.length){ _liveNotifs.push({id:'rev-overdue', tipo:'revisao', ico:'alarm-clock', titulo:revOverdue.length+' revis'+(revOverdue.length>1?'ões atrasadas':'ão atrasada'), texto:revOverdue.slice(0,2).map(r=>r.disc.replace('Direito ','')).join(', ')+(revOverdue.length>2?' e mais':'')+' passaram da data.', tempo:'agora', view:'revisoes'}); }
+    if(_alerts.notifRevisao!==false && revOverdue.length){ _liveNotifs.push({id:'rev-overdue', tipo:'revisao', ico:'alarm-clock', titulo:revOverdue.length+' revis'+(revOverdue.length>1?'ões atrasadas':'ão atrasada'), texto:revOverdue.slice(0,2).map(r=>String(r.disc||'Revisão').replace('Direito ','')).join(', ')+(revOverdue.length>2?' e mais':'')+' passaram da data.', tempo:'agora', view:'revisoes'}); }
     if(_alerts.notifRevisao!==false && revToday.length){ _liveNotifs.push({id:'rev-today', tipo:'revisao', ico:'repeat', titulo:revToday.length+' revis'+(revToday.length>1?'ões para hoje':'ão para hoje'), texto:'Faça sua sessão de "Revisar agora" para manter o ciclo.', tempo:'hoje', view:'revisoes'}); }
     const _metaThresh = _cob==='leve'?50 : (_cob==='rigido'?100 : 85);
     if(_alerts.alSemanal!==false && B.totalMin>0 && metaPct<_metaThresh){ _liveNotifs.push({id:'meta', tipo:'meta', ico:'target', titulo:'Faltam '+metaFaltamH+'h para a meta da semana', texto:'Você está em '+metaPct+'% das '+_metaAlvoH+'h planejadas.', tempo:'hoje', view:'inicio'}); }
