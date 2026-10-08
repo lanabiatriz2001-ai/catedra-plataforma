@@ -32,12 +32,13 @@ try{
  await dlg.getByRole('button',{name:'Registrar fora do ciclo'}).click();
  assert.equal(await dlg.getByRole('combobox',{name:'Etapa do ciclo'}).count(),0);
  await dlg.getByRole('button',{name:'Registrar sessão',exact:true}).click();
- await p.waitForFunction(()=>window.__catedraApp.state.sessions.length===2);
+ await p.waitForFunction(()=>window.__catedraApp.state.sessions.length===2);await dlg.waitFor({state:'hidden'});
  r=await p.evaluate(()=>window.__catedraApp.state.sessions[0]);assert.equal(r.atvKey,null);assert.equal(r.cmEtapa,null);
- await p.evaluate(()=>{const a=window.__catedraApp;a.cmSelecionar({currentTarget:{dataset:{id:'juris'}}});a.openSession();});
+ await home.locator('.cm-seq[data-id="juris"]').click();await home.getByRole('heading',{name:'Jurisprudência',exact:true}).waitFor();
+ await home.getByRole('button',{name:'Registrar tempo',exact:true}).click();await dlg.getByRole('heading',{name:'Jurisprudência',exact:true}).waitFor();
  r=await p.evaluate(()=>window.__catedraApp.state.sessionDraft);assert.equal(r.disc,'Jurisprudência');assert.equal(r.agendarRevisao,false);assert.ok(r.atvKey.startsWith('vt|cm-juris-'));
  await dlg.getByRole('textbox',{name:'Onde parei nesta sessão'}).fill('Súmula 12');
- await p.waitForFunction(()=>window.__catedraApp.state.sessionDraft.cmPonto==='Súmula 12');
+ await p.waitForFunction(()=>window.__catedraApp.state.sessionDraft.cmPonto==='Súmula 12').catch(async e=>{console.log('Diagnóstico do ponto:',await p.evaluate(()=>({draft:window.__catedraApp.state.sessionDraft,campo:document.querySelector('[data-k="cmPonto"]')?.value,aberto:window.__catedraApp.state.sessionModalOpen})));throw e;});
  await dlg.getByRole('spinbutton',{name:'Minutos de estudo'}).fill('15');
  await p.waitForFunction(()=>window.__catedraApp.state.sessionDraft.minutos==='15');
  await dlg.getByRole('button',{name:'Registrar sessão',exact:true}).click();

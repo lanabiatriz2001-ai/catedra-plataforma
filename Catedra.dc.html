@@ -4065,7 +4065,66 @@ window.ctPdfLib = (function(){
       </sc-if>
 
 <sc-if value="{{ isOral }}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{ argReverTem }}"><div class="ct-modal-fundo" onclick="{{ argHistoricoFechar }}" style="position:fixed;inset:0;background:color-mix(in srgb,var(--ink) 45%,transparent);z-index:110;display:flex;align-items:center;justify-content:center;padding:var(--ct-e4);"><section class="ct-modal-panel ct-card ct-arg-historico" role="dialog" aria-modal="true" aria-label="Histórico de arguição" onclick="{{ stop }}" style="width:100%;max-height:85vh;overflow:auto;box-sizing:border-box;"><div class="ct-arg-acoes"><h2 class="ct-titulo" style="flex:1;">Arguição registrada</h2><button class="ct-btn-2" onclick="{{ argHistoricoFechar }}">Fechar histórico</button></div><sc-for list="{{ argReverRespostas }}" as="r"><article class="ct-arg-mensagem"><b>{{ r.avaliacao }}</b><p>{{ r.pergunta }}</p><div class="ct-eb">Sua resposta registrada</div><p>{{ r.resposta }}</p></article></sc-for></section></div></sc-if>
        <div style="display:flex;flex-direction:column;gap:16px;">
+          <!-- MODO ARGUIÇÃO (item 3): a banca pergunta, você responde de viva voz, o padrão
+               só aparece depois. É o formato real da prova — ler o padrão antes não treina nada. -->
+          <sc-if value="{{ argEmCurso }}" hint-placeholder-val="{{ false }}">
+            <section class="ct-arg-conversa" aria-label="Conversa de arguição" style="background:var(--surface);border:1px solid color-mix(in oklab, var(--accent) 38%, var(--border));border-radius:var(--radius);padding:var(--ct-e5);background-image:linear-gradient(90deg,color-mix(in oklab, var(--accent) 19%, transparent),transparent 46%);">
+              <div style="display:flex;align-items:center;gap:var(--ct-e3);flex-wrap:wrap;">
+                <span style="font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);">Arguição · pergunta {{ argPos }}</span>
+                <span style="flex:1;"></span>
+                <span style="font-family:var(--mono);font-size:calc(var(--ct-e4)*2);font-weight:700;color:{{ argRelogioCor }};font-variant-numeric:tabular-nums;line-height:1;">{{ argRelogio }}</span>
+              </div>
+              <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:8px;">{{ argRef }} · {{ argDisc }}</div>
+              <div class="ct-arg-voz" data-estado="{{ argFase }}"><span class="ct-arg-orbe" aria-hidden="true"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ct-i-scale"></use></svg></span><div role="status" aria-live="polite"><b>{{ argEstadoLabel }}</b><p class="ct-nota">{{ argEstadoNota }}</p></div></div><article class="ct-arg-mensagem"><div class="ct-eb">Banca · pergunta oficial</div><p>{{ argPergunta }}</p></article>
+              <label class="ct-rotulo" for="ct-arg-resposta">Sua resposta · texto opcional</label><textarea id="ct-arg-resposta" class="ct-campo" rows="5" value="{{ argRespostaTexto }}" oninput="{{ onArgResposta }}" placeholder="Responda em voz alta ou registre aqui. Você também pode usar o ditado do teclado."></textarea>
+              <p class="ct-nota">Você responde em voz alta. Para guardar a resposta no histórico, escreva ou use o ditado do teclado.</p>
+              <div class="ct-arg-acoes"><sc-if value="{{ !argMostrar }}"><button class="ct-btn-2" onclick="{{ argPausaToggle }}">{{ argPausaLabel }}</button><button class="ct-btn-2" onclick="{{ argMinhaVez }}">Responder em voz alta</button></sc-if><button class="ct-btn-2" onclick="{{ argEncerrar }}">Encerrar conversa</button></div>
+              <sc-if value="{{ !argMostrar }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;">
+                  <button onclick="{{ argResponder }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Respondi — ver o padrão</button>
+                  <button onclick="{{ argMaisTempo }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 16px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;">+1 min</button>
+                  <button onclick="{{ argVozToggle }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 16px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:8px;" aria-pressed="{{ argVozStr }}"><sc-if value="{{ argVozOn }}" hint-placeholder-val="{{ false }}"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="volume-2"><use href="#ct-i-volume-2"></use></svg></sc-if><sc-if value="{{ !argVozOn }}" hint-placeholder-val="{{ true }}"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="volume-x"><use href="#ct-i-volume-x"></use></svg></sc-if>{{ argVozLabel }}</button>
+                  <span style="flex:1;"></span>
+
+                </div>
+              </sc-if>
+            </section>
+            <sc-if value="{{ argMostrar }}" hint-placeholder-val="{{ false }}">
+              <div class="ct-card">
+                <div style="font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);">Padrão de resposta oficial</div>
+                <div style="font-size:var(--fs-base);color:var(--ink);line-height:1.7;margin-top:12px;white-space:pre-wrap;">{{ argPadrao }}</div>
+                <div style="border-top:1px solid var(--border);margin-top:18px;padding-top:16px;">
+                  <div style="font-size:var(--fs-sm);color:var(--text3);margin-bottom:10px;">Como foi? O que não fechou vira erro, flashcard e revisão.</div>
+                  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button data-v="bem" onclick="{{ argAvaliar }}" style="background:var(--ok);color:var(--onOk);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Respondi bem</button>
+                    <button data-v="parcial" onclick="{{ argAvaliar }}" style="background:var(--warn);color:var(--onWarn);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Parcial</button>
+                    <button data-v="nao" onclick="{{ argAvaliar }}" style="background:var(--danger);color:var(--onDanger);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Não sabia</button>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+          </sc-if>
+
+          <sc-if value="{{ argFim }}" hint-placeholder-val="{{ false }}">
+            <div class="ct-card">
+              <div style="font-family:var(--display);font-size:24px;font-weight:700;color:var(--ink);">Fim da arguição</div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-top:16px;">
+                <div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--ink);">{{ argResumo.n }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">perguntas</div></div>
+                <div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--ok);">{{ argResumo.bem }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">respondi bem</div></div>
+                <div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--warn);">{{ argResumo.parcial }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">parciais</div></div>
+                <div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--danger);">{{ argResumo.nao }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">não sabia</div></div>
+                <div><div style="font-family:var(--mono);font-size:24px;font-weight:700;color:var(--ink);">{{ argResumo.media }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">tempo médio</div></div>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;">
+                <button onclick="{{ iniciarArguicao }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Nova arguição</button>
+                <button onclick="{{ argEncerrar }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 18px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;">Voltar ao material</button>
+              </div>
+            </div>
+          </sc-if>
+
+        <sc-if value="{{ !argOn }}">
         <!-- BANCADA · o hero é o FOCO (o que você vai treinar); a grade "o que você veio
              fazer aqui", logo abaixo, é a FILA. Sem apoio inventado: a Oral não tem um
              material fixo por sessão — ele nasce da escolha do acervo. -->
@@ -4244,60 +4303,6 @@ window.ctPdfLib = (function(){
               <div style="font-size:var(--fs-base);color:var(--text3);margin-top:12px;">Carregando as perguntas das bancas…</div>
             </sc-if>
           </div>
-          <!-- MODO ARGUIÇÃO (item 3): a banca pergunta, você responde de viva voz, o padrão
-               só aparece depois. É o formato real da prova — ler o padrão antes não treina nada. -->
-          <sc-if value="{{ argEmCurso }}" hint-placeholder-val="{{ false }}">
-            <div style="background:var(--surface);border:1px solid color-mix(in oklab, var(--accent) 38%, var(--border));border-radius:var(--radius);padding:22px;background-image:linear-gradient(90deg,color-mix(in oklab, var(--accent) 19%, transparent),transparent 46%);">
-              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-                <span style="font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);">Arguição · pergunta {{ argPos }}</span>
-                <span style="flex:1;"></span>
-                <span style="font-family:var(--mono);font-size:32px;font-weight:700;color:{{ argRelogioCor }};font-variant-numeric:tabular-nums;line-height:1;">{{ argRelogio }}</span>
-              </div>
-              <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:8px;">{{ argRef }} · {{ argDisc }}</div>
-              <div style="font-size:var(--fs-xl);color:var(--ink);line-height:1.6;margin-top:16px;white-space:pre-wrap;">{{ argPergunta }}</div>
-              <sc-if value="{{ argRodando }}" hint-placeholder-val="{{ true }}">
-                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;">
-                  <button onclick="{{ argResponder }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Respondi — ver o padrão</button>
-                  <button onclick="{{ argMaisTempo }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 16px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;">+1 min</button>
-                  <button onclick="{{ argVozToggle }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 16px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:8px;" aria-pressed="{{ argVozStr }}"><sc-if value="{{ argVozOn }}" hint-placeholder-val="{{ false }}"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="volume-2"><use href="#ct-i-volume-2"></use></svg></sc-if><sc-if value="{{ !argVozOn }}" hint-placeholder-val="{{ true }}"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="volume-x"><use href="#ct-i-volume-x"></use></svg></sc-if>{{ argVozLabel }}</button>
-                  <span style="flex:1;"></span>
-                  <button onclick="{{ argEncerrar }}" style="background:transparent;border:1px solid var(--border);border-radius:var(--r-md);padding:11px 16px;font-size:var(--fs-base);color:var(--text3);cursor:pointer;font-family:inherit;">Encerrar</button>
-                </div>
-              </sc-if>
-            </div>
-            <sc-if value="{{ argMostrar }}" hint-placeholder-val="{{ false }}">
-              <div class="ct-card">
-                <div style="font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);">Padrão de resposta oficial</div>
-                <div style="font-size:var(--fs-base);color:var(--ink);line-height:1.7;margin-top:12px;white-space:pre-wrap;">{{ argPadrao }}</div>
-                <div style="border-top:1px solid var(--border);margin-top:18px;padding-top:16px;">
-                  <div style="font-size:var(--fs-sm);color:var(--text3);margin-bottom:10px;">Como foi? O que não fechou vira erro, flashcard e revisão.</div>
-                  <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                    <button data-v="bem" onclick="{{ argAvaliar }}" style="background:var(--ok);color:var(--onOk);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Respondi bem</button>
-                    <button data-v="parcial" onclick="{{ argAvaliar }}" style="background:var(--warn);color:var(--onWarn);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Parcial</button>
-                    <button data-v="nao" onclick="{{ argAvaliar }}" style="background:var(--danger);color:var(--onDanger);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Não sabia</button>
-                  </div>
-                </div>
-              </div>
-            </sc-if>
-          </sc-if>
-
-          <sc-if value="{{ argFim }}" hint-placeholder-val="{{ false }}">
-            <div class="ct-card">
-              <div style="font-family:var(--display);font-size:24px;font-weight:700;color:var(--ink);">Fim da arguição</div>
-              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-top:16px;">
-                <div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--ink);">{{ argResumo.n }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">perguntas</div></div>
-                <div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--ok);">{{ argResumo.bem }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">respondi bem</div></div>
-                <div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--warn);">{{ argResumo.parcial }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">parciais</div></div>
-                <div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--danger);">{{ argResumo.nao }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">não sabia</div></div>
-                <div><div style="font-family:var(--mono);font-size:24px;font-weight:700;color:var(--ink);">{{ argResumo.media }}</div><div style="font-size:var(--fs-xs);color:var(--text3);">tempo médio</div></div>
-              </div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;">
-                <button onclick="{{ iniciarArguicao }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Nova arguição</button>
-                <button onclick="{{ argEncerrar }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 18px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;">Voltar ao material</button>
-              </div>
-            </div>
-          </sc-if>
-
           <sc-if value="{{ oralQTem }}" hint-placeholder-val="{{ false }}">
             <div style="background:var(--surface);border:1px solid color-mix(in oklab, var(--accent) 38%, var(--border));border-radius:var(--radius);padding:20px;background-image:linear-gradient(90deg,color-mix(in oklab, var(--accent) 19%, transparent),transparent 46%);">
               <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
@@ -4387,6 +4392,8 @@ window.ctPdfLib = (function(){
               <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:10px;line-height:1.5;">Resolução CNJ 75/2009, arts. 63 a 66 — vale para a magistratura. Nas demais carreiras, confira o regulamento do próprio edital, listado acima quando publicado.</div>
             </div>
           </sc-if>
+        </sc-if>
+        <sc-if value="{{ argHistoricoTem }}"><section class="ct-card" aria-label="Histórico de arguições"><h3 class="ct-titulo">Suas arguições</h3><sc-for list="{{ argHistorico }}" as="h"><button class="ct-btn-2" style="width:100%;margin-top:8px;text-align:left;" data-id="{{ h.id }}" onclick="{{ argHistoricoAbrir }}">{{ h.label }}</button></sc-for></section></sc-if>
         </sc-if>
        </div>
       </sc-if>
@@ -7646,7 +7653,7 @@ class Component extends DCLogic {
       oralLeisPronto:false, oralLeiSig:'', oralArt:null, oralArtVariante:0,
       // bancas reais: as 999 perguntas com padrão de resposta (oral-conteudo.js)
       oralQPronto:false, oralQDisc:'', oralQCarr:'', oralQAtual:null, oralQMostrarPadrao:false, oralQResposta:'',
-      argOn:false, argFila:[], argIdx:0, argSeg:180, argRodando:false, argMin:3, argRespostas:[], argFim:false, argVoz:false, discCarregado:false, discErro:false,
+      argRespostaTexto:'',argFase:'respondendo',argSessaoId:'',argOn:false, argFila:[], argIdx:0, argSeg:180, argRodando:false, argMin:3, argRespostas:[], argFim:false, argVoz:false, discCarregado:false, discErro:false,
       perfMode:'liquido',
       viewBloqueada:'',   // qual view foi barrada pelo guarda de área (só para a tela explicar)
       areaPreview:'',     // área PROPOSTA, aguardando confirmação (não é a ativa)
@@ -7707,6 +7714,8 @@ class Component extends DCLogic {
   // Cadastra a disciplina "Código Civil - Lei Seca" no edital (idempotente). Mesmo padrão
   // do Direito Civil: roda no mount e a cada sync, sobrevive à nuvem (edital vence local).
   componentDidMount(){
+    this._argSaida=()=>{clearTimeout(this._argRascunhoT);if(this.state.argOn)this._argGuardarHistorico();};
+    window.addEventListener("pagehide",this._argSaida);
     this._baixaRaiz();           // o <html> precisa do espelho desde o primeiro quadro
     this._avisarAreaAoNativo();   // a casca nativa precisa saber a área já na abertura
     // O construtor já carregou o estado DO localStorage: nada mudou ainda. Sem esta
@@ -7769,7 +7778,7 @@ class Component extends DCLogic {
           if(k==='Escape'){ e.preventDefault(); this.enamDescartar(); return; }
         }
       }
-      if(e.key==='Escape'){ if(this.state.oficialPainelOpen) this.oficialPainelFechar(); else if(this.state.menuOpen) this.setState({menuOpen:false}); else if(this.state.atalhosOpen) this.setState({atalhosOpen:false}); else if(this.state.paletteOpen) this.setState({paletteOpen:false, paletteQuery:''}); else if(this.state.treino) this.setState({treino:null}); else if(this.state.revSession) this.setState({revSession:null}); else if(this.state.focusMode) this.exitFocus(); else if(this.state.provaMode) this.exitProva(); else if(this.state.sessionModalOpen) this.closeSession(); else if(this.state.histEdit) this.setState({histEdit:null}); }
+      if(e.key==='Escape'){ if(this.state.argRever)this.argHistoricoFechar();else if(this.state.oficialPainelOpen) this.oficialPainelFechar(); else if(this.state.menuOpen) this.setState({menuOpen:false}); else if(this.state.atalhosOpen) this.setState({atalhosOpen:false}); else if(this.state.paletteOpen) this.setState({paletteOpen:false, paletteQuery:''}); else if(this.state.treino) this.setState({treino:null}); else if(this.state.revSession) this.setState({revSession:null}); else if(this.state.focusMode) this.exitFocus(); else if(this.state.provaMode) this.exitProva(); else if(this.state.sessionModalOpen) this.closeSession(); else if(this.state.histEdit) this.setState({histEdit:null}); }
       // D13: dentro da sala, espaço pausa/retoma e F sai. Fora dela, F entra. Nada disso
       // vale enquanto ela digita — senão um espaço no meio da redação pararia o cronômetro.
       const _dig=(()=>{ try{ const el=document.activeElement; if(!el) return false;
@@ -8811,7 +8820,7 @@ class Component extends DCLogic {
       try{ localStorage.setItem('catedra:schemaVersion', String(V)); }catch(_){}
     }catch(_){ }
   }
-  componentWillUnmount(){ if(this._redFocoEsc){ try{ document.removeEventListener('keydown', this._redFocoEsc); document.documentElement.removeAttribute('data-red-foco'); }catch(_){} this._redFocoEsc=null; } if(this._redCronoT) clearInterval(this._redCronoT); if(this._redCorrT) clearInterval(this._redCorrT); try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onSelChange){ document.removeEventListener('selectionchange', this._onSelChange); clearTimeout(this._selChangeT); } ['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev, this._acDespertar)); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._areaMsg) window.removeEventListener('message', this._areaMsg); if(this._acervoMsg) window.removeEventListener('message', this._acervoMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._pausaT) clearInterval(this._pausaT); if(this._revT) clearInterval(this._revT);
+  componentWillUnmount(){ clearTimeout(this._argRascunhoT);if(this._argSaida)window.removeEventListener("pagehide",this._argSaida); if(this._redFocoEsc){ try{ document.removeEventListener('keydown', this._redFocoEsc); document.documentElement.removeAttribute('data-red-foco'); }catch(_){} this._redFocoEsc=null; } if(this._redCronoT) clearInterval(this._redCronoT); if(this._redCorrT) clearInterval(this._redCorrT); try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onSelChange){ document.removeEventListener('selectionchange', this._onSelChange); clearTimeout(this._selChangeT); } ['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev, this._acDespertar)); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._areaMsg) window.removeEventListener('message', this._areaMsg); if(this._acervoMsg) window.removeEventListener('message', this._acervoMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._pausaT) clearInterval(this._pausaT); if(this._revT) clearInterval(this._revT);
     try{ if(this._mqDark && this._onMqDark){ if(this._mqDark.removeEventListener) this._mqDark.removeEventListener('change', this._onMqDark); else if(this._mqDark.removeListener) this._mqDark.removeListener(this._onMqDark); } }catch(_){}
     if(this._pipMsgT) clearTimeout(this._pipMsgT); if(this._bkpAutoT) clearInterval(this._bkpAutoT); if(this._salaT) clearTimeout(this._salaT); this._pipStop(); this._closeDocPiP();  }
   componentDidUpdate(){ if(this.state.view==='redacao'){ this._redVigiarFolha();
@@ -13746,6 +13755,8 @@ class Component extends DCLogic {
       oralQUrl:st.oralQAtual?st.oralQAtual.url:'',
       oralQResposta:st.oralQResposta, oralQMostrarPadrao:st.oralQMostrarPadrao,
       // ---- modo arguição (item 3)
+      argHistorico:(st.sessions||[]).filter(s=>Array.isArray(s.oralArguicao)).slice(0,20).map(s=>({id:s.id,label:(s.topico||'Arguição')+' · '+new Date(s.ts||0).toLocaleDateString('pt-BR')})),argHistoricoTem:(st.sessions||[]).some(s=>Array.isArray(s.oralArguicao)),argHistoricoAbrir:this.argHistoricoAbrir,argHistoricoFechar:this.argHistoricoFechar,argReverTem:!!st.argRever,argReverRespostas:((st.argRever||{}).oralArguicao||[]).map(r=>({...r,resposta:r.resposta||'Nenhuma resposta escrita registrada.',avaliacao:({bem:'Respondi bem',parcial:'Resposta parcial',nao:'Não soube',pendente:'Sem autoavaliação'})[r.v]||'Sem autoavaliação'})),
+      argFase:st.argFase||'respondendo',argRespostaTexto:st.argRespostaTexto||'',onArgResposta:this.onArgResposta,argPausaToggle:this.argPausaToggle,argMinhaVez:this.argMinhaVez,argPausaLabel:st.argFase==='pausado'?'Continuar conversa':'Pausar conversa',argEstadoLabel:st.oralQMostrarPadrao?'Compare com a banca':st.argFase==='ouvindo'?'Ouvindo a banca':st.argFase==='pausado'?'Conversa pausada':'Sua vez de responder',argEstadoNota:st.argFase==='pausado'?'Pergunta, resposta e tempo ficam guardados nesta conversa.':st.argFase==='ouvindo'?'O tempo de resposta começa quando a leitura termina.':'Responda com suas palavras; veja o padrão quando terminar.',
       argOn:st.argOn, argFim:(st.argOn&&st.argFim), argEmCurso:(st.argOn&&!st.argFim),
       argPergunta:_argQ?this._argLimpa(_argQ.enunciado):'',
       argRef:_argQ?[_argQ.orgao,_argQ.ano,_argQ.cargo,_argQ.banca].filter(Boolean).join(' · '):'',
@@ -14731,7 +14742,7 @@ class Component extends DCLogic {
     const emb=pool.slice(); for(let i=emb.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [emb[i],emb[j]]=[emb[j],emb[i]]; }
     const fila=emb.slice(0,5);
     this._treino && this._oralCarregarQ && this._oralCarregarQ();
-    this.setState({argOn:true, argFila:fila, argIdx:0, argRespostas:[], argFim:false,
+    this.setState({argOrigemArea:this.state.areaEstudo||'juridica',argOrigemConta:this._argConta(),argTempoExtra:0,argSessaoId:'oral-'+Date.now(),argRespostaTexto:'',argFase:'respondendo',argOn:true, argFila:fila, argIdx:0, argRespostas:[], argFim:false,
       argSeg:this.state.argMin*60, argRodando:true, oralQMostrarPadrao:false});
     this._argTick();
     this._argFalar();
@@ -14741,38 +14752,45 @@ class Component extends DCLogic {
     this._argT=setInterval(()=>{
       if(!this.state.argRodando) return;
       const s=this.state.argSeg-1;
-      if(s<=0){ clearInterval(this._argT); this.setState({argSeg:0, argRodando:false, oralQMostrarPadrao:true}); return; }
+      if(s<=0){ clearInterval(this._argT); this.setState({argFase:'comparando',argSeg:0, argRodando:false, oralQMostrarPadrao:true}); return; }
       this.setState({argSeg:s});
     }, 1000);
   }
   /** Voz: a banca fala. speechSynthesis é nativo do navegador e do WKWebView — sem dependência. */
+  _argCancelarVoz(){this._argVozToken=(this._argVozToken||0)+1;try{window.speechSynthesis&&window.speechSynthesis.cancel();}catch(_){}}
   _argFalar(){
-    if(!this.state.argVoz) return;
-    try{
-      const q=this.state.argFila[this.state.argIdx]; if(!q||!window.speechSynthesis) return;
-      window.speechSynthesis.cancel();
-      const u=new SpeechSynthesisUtterance(this._argLimpa(q.enunciado).slice(0,600));
-      u.lang='pt-BR'; u.rate=0.95;
-      window.speechSynthesis.speak(u);
-    }catch(_){}
+    if(!this.state.argVoz)return;
+    const q=this.state.argFila[this.state.argIdx];if(!q||!window.speechSynthesis||!window.SpeechSynthesisUtterance)return;
+    this._argCancelarVoz();const token=this._argVozToken;
+    try{const u=new SpeechSynthesisUtterance(this._argLimpa(q.enunciado));u.lang='pt-BR';u.rate=0.95;
+      clearInterval(this._argT);this.setState({argFase:'ouvindo',argRodando:false});
+      const fim=()=>{if(token!==this._argVozToken||!this.state.argOn||this.state.oralQMostrarPadrao)return;this.setState({argFase:'respondendo',argRodando:true},()=>this._argTick());};
+      u.onend=fim;u.onerror=fim;window.speechSynthesis.speak(u);
+    }catch(_){this.setState({argFase:'respondendo',argRodando:true},()=>this._argTick());}
   }
+  // O rascunho usa o mesmo id do histórico: salvar de novo substitui a sessão.
+  onArgResposta = (e)=>this.setState({argRespostaTexto:String(e.currentTarget.value||'').slice(0,12000)},()=>{clearTimeout(this._argRascunhoT);this._argRascunhoT=setTimeout(()=>{if(this.state.argOn)this._argGuardarHistorico();},400);});
+  argMinhaVez = ()=>{this._argCancelarVoz();if(this.state.oralQMostrarPadrao)return;this.setState({argFase:'respondendo',argRodando:true},()=>this._argTick());};
+  argPausaToggle = ()=>{if(this.state.oralQMostrarPadrao)return;
+    if(this.state.argFase==='pausado'){this.argMinhaVez();return;}
+    clearInterval(this._argT);this._argCancelarVoz();this.setState({argFase:'pausado',argRodando:false});};
   argVozToggle = ()=>{ const v=!this.state.argVoz;
-    if(!v){ try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(_){} }
+    if(!v){this._argCancelarVoz();if(this.state.argFase==='ouvindo')this.argMinhaVez();}
     this.setState({argVoz:v}, ()=>{ if(v) this._argFalar(); }); };
   /** "Respondi" (ou o tempo acabou): revela o padrão da banca. */
-  argResponder = ()=>{ clearInterval(this._argT);
+  argResponder = ()=>{ clearInterval(this._argT);this._argCancelarVoz();
     try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(_){}
-    this.setState({argRodando:false, oralQMostrarPadrao:true}); };
-  argMaisTempo = ()=> this.setState({argSeg:this.state.argSeg+60});
+    this.setState({argFase:'comparando',argRodando:false, oralQMostrarPadrao:true}); };
+  argMaisTempo = ()=> this.setState({argSeg:this.state.argSeg+60,argTempoExtra:(this.state.argTempoExtra||0)+60});
   setArgMin = (e)=>{ const m=Math.max(1,Math.min(15,parseInt(e.currentTarget.dataset.v,10)||3));
     this.setState({argMin:m, argSeg:(this.state.argOn&&!this.state.argRodando)?this.state.argSeg:m*60}); };
   /** Autoavaliação: 'bem' | 'parcial' | 'nao'. Parcial e não sabia viram erro + revisão. */
   argAvaliar = (e)=>{
     const v=e.currentTarget.dataset.v||'nao';
     const q=this.state.argFila[this.state.argIdx]; if(!q) return;
-    const gasto=Math.max(0, this.state.argMin*60-this.state.argSeg);
+    const gasto=Math.max(0, this.state.argMin*60+(this.state.argTempoExtra||0)-this.state.argSeg);
     // `q.id` é do DOCUMENTO (malote), não da questão: 417 perguntas compartilham 190 ids.
-    const reg={id:q.id+'#'+this.state.argIdx, v, gasto, disc:q.disciplina||q.carreira||'Prova oral'};
+    const reg={id:q.id+'#'+this.state.argIdx,pergunta:this._argLimpa(q.enunciado),resposta:this.state.argRespostaTexto||'', v, gasto, disc:q.disciplina||q.carreira||'Prova oral'};
     if(v!=='bem'){
       // mesmo caminho do item 2: o que não soube vira erro, flashcard e revisão
       try{
@@ -14787,13 +14805,22 @@ class Component extends DCLogic {
     const prox=this.state.argIdx+1;
     if(prox>=this.state.argFila.length){
       clearInterval(this._argT);
-      this.setState({argRespostas:respostas, argFim:true, argRodando:false});
+      this.setState({argRespostas:respostas,argFase:'concluido',argFim:true,argRodando:false},()=>this._argGuardarHistorico());
       return;
     }
-    this.setState({argRespostas:respostas, argIdx:prox, argSeg:this.state.argMin*60,
+    this.setState({argRespostas:respostas,argTempoExtra:0,argRespostaTexto:'',argFase:'respondendo',argIdx:prox, argSeg:this.state.argMin*60,
       argRodando:true, oralQMostrarPadrao:false}, ()=>{ this._argTick(); this._argFalar(); });
   };
-  argEncerrar = ()=>{ clearInterval(this._argT);
+  argHistoricoAbrir = (e)=>{const r=(this.state.sessions||[]).find(s=>s.id===e.currentTarget.dataset.id&&Array.isArray(s.oralArguicao));if(r)this.setState({argRever:r});};
+  argHistoricoFechar = ()=>this.setState({argRever:null});
+  _argConta(){const u=window.CatedraAuth&&window.CatedraAuth.user;return(u&&(u.id||u.email))||this.state.authEmail||'';}
+  _argGuardarHistorico(){
+    if((this.state.argOrigemArea&&this.state.argOrigemArea!==(this.state.areaEstudo||'juridica'))||(this.state.argOrigemConta!=null&&this.state.argOrigemConta!==this._argConta()))return;
+    const R=(this.state.argRespostas||[]).slice(),id=this.state.argSessaoId,q=this.state.argFila[this.state.argIdx];if(this.state.argOn&&!this.state.argFim&&q&&(this.state.argRespostaTexto||(this.state.sessions||[]).some(s=>s.id===id&&(s.oralArguicao||[]).some(r=>r.id===q.id+'#'+this.state.argIdx&&r.v==='pendente')))&&!R.some(r=>r.id===q.id+'#'+this.state.argIdx))R.push({id:q.id+'#'+this.state.argIdx,v:'pendente',gasto:Math.max(0,this.state.argMin*60+(this.state.argTempoExtra||0)-this.state.argSeg),pergunta:this._argLimpa(q.enunciado),resposta:this.state.argRespostaTexto});if(!id||!R.length)return;
+    const rec={id,up:Date.now(),ts:Date.now(),date:this._hoje(),disc:'Prova oral',topico:'Arguição · '+R.length+' pergunta'+(R.length===1?'':'s'),categoria:'Prova oral',categorias:['Prova oral'],min:Math.round(R.reduce((n,r)=>n+(r.gasto||0),0)/60),questoes:0,acertos:0,erradas:0,brancos:0,countMeta:true,oralArguicao:R,origem:'arguicao'};
+    const sessions=[rec,...(this.state.sessions||[]).filter(x=>x.id!==id)];this._saveSessions(sessions);this.setState({sessions});this.flashSync();
+  }
+  argEncerrar = ()=>{ clearTimeout(this._argRascunhoT);clearInterval(this._argT);this._argCancelarVoz();this._argGuardarHistorico();
     try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(_){}
     this.setState({argOn:false, argFim:false, argRodando:false, oralQMostrarPadrao:false}); };
 
@@ -16959,7 +16986,9 @@ class Component extends DCLogic {
     if(v===(this.state.areaEstudo||'')) { this.setState({areaSelOpen:false}); return; }
     this._trocarArea(v); };
   _trocarArea(v){
-    const A=CT_AREA(v); const patch={areaEstudo:v,areaSelOpen:false,concursoRemovido:null};
+    if(this.state.argOn)this.argEncerrar();
+    this.setState({argRever:null});
+    const A=CT_AREA(v); const patch={areaEstudo:v, areaSelOpen:false, concursoRemovido:null};
     // Caso aberto no construtor ou em treino é da área ANTERIOR. Deixá-lo aberto fazia o
     // formulário trocar de campos por baixo do texto já escrito, exibia caso clínico sob
     // rótulo socioassistencial, e o "Apagar" prometia remover algo que não estava mais na
