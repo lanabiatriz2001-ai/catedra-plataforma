@@ -29,6 +29,9 @@ jobs:
       - name: Ciclo integrado com início e registro
         run: |
           node tests/ciclo-plataforma.mjs
+          node tests/ciclo-registro-layout.mjs
+          node tests/inicio-visual.mjs
+          node tests/design-plataforma.mjs
           node tests/ciclo-sessao-intencional.mjs
           node tests/inicio-enxuto.mjs
           node tests/fluxo-telas.mjs
@@ -65,6 +68,9 @@ jobs:
       - name: Ciclo integrado e retomada no WebKit
         run: |
           node tests/ciclo-plataforma.mjs
+          node tests/ciclo-registro-layout.mjs
+          node tests/inicio-visual.mjs
+          node tests/design-plataforma.mjs
           node tests/ciclo-retomada.mjs
           node tests/ciclo-sessao-intencional.mjs
           node tests/inicio-enxuto.mjs

@@ -1014,24 +1014,9 @@ window.ctPdfLib = (function(){
           </div>
           <nav class="ct-fluxo-abas" aria-label="Modo de registro"><button class="ct-btn-2" data-v="estudo" aria-pressed="{{ sessModoEstudoStr }}" onclick="{{ setRegistroModo }}">Estudo</button><button class="ct-btn-2" data-v="simulado" aria-pressed="{{ sessModoSimStr }}" onclick="{{ setRegistroModo }}">Simulado</button></nav>
           <sc-if value="{{ sessModoEstudo }}">
-          <div class="ct-reg-efeito">
-            <div class="ct-reg-efeito-t">O que esta sessão muda</div>
-            <sc-if value="{{ sessEfeitosShow }}" hint-placeholder-val="{{ false }}">
-              <div class="ct-reg-fxs"><sc-for list="{{ sessEfeitos }}" as="f" hint-placeholder-count="3"><span class="ct-reg-fx" style="{{ f.style }}">{{ f.t }}</span></sc-for></div>
-            </sc-if>
-            <sc-if value="{{ !sessEfeitosShow }}" hint-placeholder-val="{{ true }}">
-              <div class="ct-reg-fx-vazio">{{ sessEfeitoVazio }}</div>
-            </sc-if>
-          </div>
-          <div class="ct-reg-corpo">
-            <sc-if value="{{ cmSessaoVinculada }}" hint-placeholder-val="{{ false }}"><section class="cm-session" aria-label="Vínculo com o ciclo"><div class="cm-acoes"><b>Ciclo Magistratura</b><button type="button" class="ct-btn-2" onclick="{{ cmSessaoAvulsa }}">Registrar fora do ciclo</button></div><sc-if value="{{ cmSessaoTemEtapas }}"><label class="ct-rotulo">Etapa estudada<select class="ct-campo" aria-label="Etapa do ciclo" value="{{ cmSessaoEtapaAtual }}" onchange="{{ cmSessaoEtapa }}"><sc-for list="{{ cmSessaoEtapas }}" as="e"><option value="{{ e.k }}" selected="{{ e.sel }}">{{ e.nome }}</option></sc-for></select></label></sc-if><label class="ct-rotulo">Onde parei<input class="ct-campo" aria-label="Onde parei nesta sessão" data-k="cmPonto" value="{{ sessionDraft.cmPonto }}" oninput="{{ onSessionField }}" maxlength="300" placeholder="Página, trecho ou questão"></label><label class="ct-rotulo">Próxima ação<input class="ct-campo" aria-label="Próxima ação desta sessão" data-k="cmProximo" value="{{ sessionDraft.cmProximo }}" oninput="{{ onSessionField }}" maxlength="500" placeholder="O que vou retomar"></label><p class="ct-nota">Os minutos entram nesta atividade. A etapa continua até você marcar sua conclusão no percurso.</p></section></sc-if>
-
-
-            <div>
-              <div class="ct-rotulo">Tipos de sessão <span class="ct-rotulo-nota">· selecione um ou mais</span></div>
-              <div class="ct-reg-chips"><sc-for list="{{ sessCats }}" as="c" hint-placeholder-count="6"><button data-v="{{ c.v }}" onclick="{{ setSessionCat }}" aria-label="{{ c.v }}" aria-pressed="{{ c.onStr }}" class="ct-reg-chip" style="{{ c.chipStyle }}"><sc-if value="{{ c.on }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>{{ c.v }}</button></sc-for></div>
-            </div>
-
+          <div class="ct-reg-corpo ct-reg-novo">
+            <div class="ct-reg-essenciais">
+              <section class="ct-reg-identidade" aria-label="Conteúdo estudado"><div class="ct-reg-secao-t">O que você estudou</div>
             <div class="ct-reg-campos">
               <div><label class="ct-rotulo">Disciplina <span class="ct-rotulo-nota">(do seu edital)</span></label><select value="{{ sessDiscSelVal }}" aria-label="Disciplina" title="{{ sessDiscTitle }}" onchange="{{ onSessionDisc }}" class="ct-campo"><sc-for list="{{ sessDiscOpts }}" as="o" hint-placeholder-count="6"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.v }}</option></sc-for><option value="__outra__" selected="{{ sessDiscCustom }}">Outra…</option></select>
                 <sc-if value="{{ sessDiscCustom }}" hint-placeholder-val="{{ false }}"><input data-k="disc" value="{{ sessionDraft.disc }}" oninput="{{ onSessionField }}" placeholder="Digite o nome da disciplina" aria-label="Nome da disciplina" class="ct-campo" style="margin-top:8px;border-color:var(--accent);"></sc-if>
@@ -1066,8 +1051,10 @@ window.ctPdfLib = (function(){
               </sc-if>
             </div>
 
+              </section>
+              <section class="ct-reg-duracao" aria-label="Duração da sessão">
             <div>
-              <div class="ct-rotulo">Tempo de estudo</div>
+              <div class="ct-reg-secao-t">Tempo de estudo</div><p class="ct-nota">Registre o tempo dedicado a esta sessão.</p>
               <div class="ct-reg-tempo">
                 <div class="ct-reg-min"><input type="number" data-k="minutos" value="{{ sessionDraft.minutos }}" oninput="{{ onSessionField }}" placeholder="0" aria-label="Minutos de estudo"><span>min</span></div>
                 <button data-add="15" onclick="{{ sessionQuickMin }}" class="ct-dia-chip">+15</button>
@@ -1075,6 +1062,17 @@ window.ctPdfLib = (function(){
                 <button data-add="60" onclick="{{ sessionQuickMin }}" class="ct-dia-chip">+60</button>
                 <span class="ct-dado">{{ sessMinFmt }}</span>
               </div>
+            </div>
+
+              <sc-if value="{{ cmSessaoVinculada }}"><p class="ct-reg-aviso">Guardar a sessão soma os minutos e mantém sua etapa em aberto.</p></sc-if>
+              </section>
+            </div>
+            <sc-if value="{{ cmSessaoVinculada }}" hint-placeholder-val="{{ false }}"><section class="cm-session" aria-label="Vínculo com o ciclo"><div class="cm-acoes"><b>Ciclo Magistratura</b><button type="button" class="ct-btn-2" onclick="{{ cmSessaoAvulsa }}">Registrar fora do ciclo</button></div><sc-if value="{{ cmSessaoTemEtapas }}"><label class="ct-rotulo">Etapa estudada<select class="ct-campo" aria-label="Etapa do ciclo" value="{{ cmSessaoEtapaAtual }}" onchange="{{ cmSessaoEtapa }}"><sc-for list="{{ cmSessaoEtapas }}" as="e"><option value="{{ e.k }}" selected="{{ e.sel }}">{{ e.nome }}</option></sc-for></select></label></sc-if><label class="ct-rotulo">Onde parei<input class="ct-campo" aria-label="Onde parei nesta sessão" data-k="cmPonto" value="{{ sessionDraft.cmPonto }}" oninput="{{ onSessionField }}" maxlength="300" placeholder="Página, trecho ou questão"></label><label class="ct-rotulo">Próxima ação<input class="ct-campo" aria-label="Próxima ação desta sessão" data-k="cmProximo" value="{{ sessionDraft.cmProximo }}" oninput="{{ onSessionField }}" maxlength="500" placeholder="O que vou retomar"></label><p class="ct-nota">Os minutos entram nesta atividade. A etapa continua até você marcar sua conclusão no percurso.</p></section></sc-if>
+
+
+            <div>
+              <div class="ct-rotulo">Tipos de sessão <span class="ct-rotulo-nota">· selecione um ou mais</span></div>
+              <div class="ct-reg-chips"><sc-for list="{{ sessCats }}" as="c" hint-placeholder-count="6"><button data-v="{{ c.v }}" onclick="{{ setSessionCat }}" aria-label="{{ c.v }}" aria-pressed="{{ c.onStr }}" class="ct-reg-chip" style="{{ c.chipStyle }}"><sc-if value="{{ c.on }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l4 4 10-11" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>{{ c.v }}</button></sc-for></div>
             </div>
 
             <button onclick="{{ toggleSessMais }}" aria-expanded="{{ sessMaisAria }}" class="ct-reg-mais">{{ sessMaisRotulo }}</button>
@@ -1112,6 +1110,15 @@ window.ctPdfLib = (function(){
             </div>
             </sc-if>
 
+          </div>
+          <div class="ct-reg-efeito">
+            <div class="ct-reg-efeito-t">O que esta sessão muda</div>
+            <sc-if value="{{ sessEfeitosShow }}" hint-placeholder-val="{{ false }}">
+              <div class="ct-reg-fxs"><sc-for list="{{ sessEfeitos }}" as="f" hint-placeholder-count="3"><span class="ct-reg-fx" style="{{ f.style }}">{{ f.t }}</span></sc-for></div>
+            </sc-if>
+            <sc-if value="{{ !sessEfeitosShow }}" hint-placeholder-val="{{ true }}">
+              <div class="ct-reg-fx-vazio">{{ sessEfeitoVazio }}</div>
+            </sc-if>
           </div>
           <div class="ct-reg-rodape">
             <span class="ct-nota">{{ sessionSummary }}</span>
@@ -1652,7 +1659,7 @@ window.ctPdfLib = (function(){
          por dentro e a página do app rolava por fora ao mesmo tempo — no iPad um dedo
          arrastava as duas, e o conteúdo do acervo escapava por baixo. Agora a moldura do
          iframe estica até o fim do espaço útil (flex) e só o scroll de dentro existe. -->
-    <div class="ct-scroll" style="{{ contentBoxStyle }}">
+    <div class="ct-scroll" data-design-view="{{ designView }}" style="{{ contentBoxStyle }}">
      <div style="{{ contentInnerStyle }}">
 
       <!-- ================= INÍCIO (Vitrine Editorial · Take 1 aprovado) ================= -->
@@ -1671,7 +1678,22 @@ window.ctPdfLib = (function(){
         <a class="ct-btn-2" href="https://s.oab.org.br/arquivos/2026/09/fb43fb37-838e-4d33-a863-99fa1f98b921.pdf" target="_blank" rel="noopener noreferrer">Regras: edital oficial do 48º Exame, itens 3 e 4</a>
       </section></sc-if>
       <sc-if value="{{ isInicio }}" hint-placeholder-val="{{ true }}">
-       <div style="display:flex;flex-direction:column;gap:14px;">
+       <div class="cth-inicio">
+        <header class="cth-welcome">
+
+              <sc-if value="{{ heroObjShow }}" hint-placeholder-val="{{ false }}"><span class="cth-kicker"><svg class="ct-emo" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="target"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg> Objetivo · {{ prefObjetivo }}</span></sc-if>
+              <h1 class="cth-h1">{{ greeting }}, {{ userFirstName }}.</h1>
+              <p class="cth-sub">{{ dateLabel }}<sc-if value="{{ homeRoteiroShow }}" hint-placeholder-val="{{ false }}"> · {{ manualFixedRoteiroAtual }}</sc-if><sc-if value="{{ homeLeituraShow }}" hint-placeholder-val="{{ false }}"> · Tabela Dia {{ homeLeitura.num }}</sc-if></p>
+              <div class="cth-chips">
+                <span class="cth-chip ct-gam" role="img" aria-label="Ofensiva: {{ sidebarStreak }} dias seguidos" title="Ofensiva: {{ sidebarStreak }} dias seguidos"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg> <b>{{ sidebarStreak }}</b></span>
+                <sc-if value="{{ escudoOn }}" hint-placeholder-val="{{ false }}"><span class="cth-chip ct-gam"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="shield"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path></svg> <b>{{ escudos }}</b> escudos</span></sc-if>
+                <sc-if value="{{ capSimulados }}" hint-placeholder-val="{{ false }}"><button data-view="simulados" onclick="{{ onNav }}" class="cth-chip" style="cursor:pointer;border:none;font:inherit;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg> {{ simNudge }}</button></sc-if>
+                <sc-if value="{{ cdOn }}" hint-placeholder-val="{{ false }}"><span class="cth-chip"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="calendar-days"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path><path d="M8 18h.01"></path><path d="M12 18h.01"></path><path d="M16 18h.01"></path></svg> <b>{{ cdDias }}</b> dias p/ prova</span></sc-if>
+                <!-- E1: o ENAM tem contagem própria (não reaproveita catedra:prova: pode haver concurso e ENAM no mesmo semestre) -->
+                <sc-if value="{{ enamOn }}" hint-placeholder-val="{{ false }}"><span class="cth-chip" title="{{ enamHora }}" aria-label="ENAM {{ enamEdicao }}: {{ enamDiasLabel }}; {{ enamHora }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/></svg> ENAM {{ enamEdicao }} · <b>{{ enamDiasLabel }}</b><small style="opacity:.85;">· {{ enamChipSub }}</small></span></sc-if>
+              </div>
+                    </header>
+
 
         <!-- BANCADA · FOCO. "Continuar de onde parei" e "Próxima ação" eram duas primeiras
              decisões; agora são uma: a sessão interrompida (se houver) é a primeira linha do
@@ -1692,34 +1714,22 @@ window.ctPdfLib = (function(){
              começo do dia é uma só — "o que eu faço agora" — e a tela respondia com cinco
              coisas ao mesmo tempo. Prioridade visual pela cor de destaque, sem vermelho:
              isto é um convite, não uma cobrança. -->
-        <div data-proxima-acao="{{ paTipo }}" style="{{ paEstilo }}">
-          <div style="flex:1;min-width:220px;">
-            <div style="font-family:var(--display);font-size:clamp(21px,2.6vw,27px);font-weight:700;color:var(--ink);letter-spacing:-.02em;line-height:1.15;">{{ paTitulo }}</div>
-            <div style="font-size:var(--fs-sm);color:var(--text2);margin-top:4px;line-height:1.5;">{{ paMotivo }}</div>
-          </div>
-          <sc-if value="{{ paTemMeta }}" hint-placeholder-val="{{ false }}">
-            <span style="flex:none;font-size:var(--fs-xs);font-weight:700;color:var(--text2);background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:5px 12px;">{{ paMeta }}</span>
-          </sc-if>
-          <button data-view="{{ paView }}" data-acao="{{ paAcao }}" onclick="{{ paIr }}" style="flex:none;background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:12px 22px;font-size:var(--fs-base);font-weight:700;cursor:pointer;font-family:inherit;">{{ paCta }}</button>
-        </div>
-
-        <!-- HERO: manchete + cronômetro em vidro -->
-        <div class="cth-hero">
-          <div class="cth-hero-grid">
-            <div>
-              <sc-if value="{{ heroObjShow }}" hint-placeholder-val="{{ false }}"><span class="cth-kicker"><svg class="ct-emo" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="target"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg> Objetivo · {{ prefObjetivo }}</span></sc-if>
-              <h1 class="cth-h1">{{ greeting }}, {{ userFirstName }}.</h1>
-              <p class="cth-sub">{{ dateLabel }}<sc-if value="{{ homeRoteiroShow }}" hint-placeholder-val="{{ false }}"> · {{ manualFixedRoteiroAtual }}</sc-if><sc-if value="{{ homeLeituraShow }}" hint-placeholder-val="{{ false }}"> · Tabela Dia {{ homeLeitura.num }}</sc-if></p>
-              <div class="cth-chips">
-                <span class="cth-chip ct-gam" role="img" aria-label="Ofensiva: {{ sidebarStreak }} dias seguidos" title="Ofensiva: {{ sidebarStreak }} dias seguidos"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg> <b>{{ sidebarStreak }}</b></span>
-                <sc-if value="{{ escudoOn }}" hint-placeholder-val="{{ false }}"><span class="cth-chip ct-gam"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="shield"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path></svg> <b>{{ escudos }}</b> escudos</span></sc-if>
-                <sc-if value="{{ capSimulados }}" hint-placeholder-val="{{ false }}"><button data-view="simulados" onclick="{{ onNav }}" class="cth-chip" style="cursor:pointer;border:none;font:inherit;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg> {{ simNudge }}</button></sc-if>
-                <sc-if value="{{ cdOn }}" hint-placeholder-val="{{ false }}"><span class="cth-chip"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="calendar-days"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path><path d="M8 18h.01"></path><path d="M12 18h.01"></path><path d="M16 18h.01"></path></svg> <b>{{ cdDias }}</b> dias p/ prova</span></sc-if>
-                <!-- E1: o ENAM tem contagem própria (não reaproveita catedra:prova: pode haver concurso e ENAM no mesmo semestre) -->
-                <sc-if value="{{ enamOn }}" hint-placeholder-val="{{ false }}"><span class="cth-chip" title="{{ enamHora }}" aria-label="ENAM {{ enamEdicao }}: {{ enamDiasLabel }}; {{ enamHora }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/></svg> ENAM {{ enamEdicao }} · <b>{{ enamDiasLabel }}</b><small style="opacity:.85;">· {{ enamChipSub }}</small></span></sc-if>
-              </div>
-            </div>
-            <div class="cth-timer">
+        <div class="cth-bancada cth-hero">
+        <sc-if value="{{ cmOn }}" hint-placeholder-val="{{ false }}">
+          <section class="cth-card cm-home cth-estudo" aria-label="Retomar ciclo Magistratura">
+            <div class="cm-kicker">Ciclo Magistratura · volta {{ cmVoltaNum }} · atividade {{ cmPosAtual }}/{{ cmTotalAtividades }}</div>
+            <div class="cth-estudo-titulo"><h2>{{ cmInicio.nome }}</h2><span class="cth-etapa-selo">{{ cmInicio.titulo }}</span></div>
+            <sc-if value="{{ cmInicioAssunto }}"><p class="cth-assunto">{{ cmInicioAssunto }}</p></sc-if>
+            <sc-if value="{{ cmInicioPonto }}"><p class="cth-ponto"><b>Onde parei:</b> {{ cmInicio.ponto }}</p></sc-if>
+            <sc-if value="{{ cmInicioProximo }}"><p class="cth-proxima"><b>Próxima ação:</b> {{ cmInicio.proximo }}</p></sc-if>
+            <div class="cm-acoes"><button class="ct-btn" onclick="{{ cmInicioEstudar }}">{{ cmInicio.acao }}</button><button class="ct-btn-2" onclick="{{ openSession }}">Registrar tempo</button><button class="ct-btn-2" data-view="ciclo" onclick="{{ onNav }}">Ver percurso</button></div>
+            <p class="ct-nota">O ciclo continua de onde você parou. Registrar minutos não conclui a etapa.</p>
+            <nav class="cm-sequencia" aria-label="Sequência do ciclo"><sc-for list="{{ cmSequencia }}" as="q"><button class="cm-seq" data-id="{{ q.id }}" aria-current="{{ q.atual }}" onclick="{{ cmSelecionar }}"><small>{{ q.num }}</small><b>{{ q.nome }}</b><span>{{ q.estado }} · {{ q.tempo }} min registrados</span></button></sc-for></nav>
+          </section>
+        </sc-if>
+        <sc-if value="{{ !cmOn }}"><section class="cth-card cth-estudo cth-estudo-livre" aria-label="Próxima sessão"><h2>{{ paTitulo }}</h2><p>{{ paMotivo }}</p><button class="ct-btn" data-view="{{ paView }}" data-acao="{{ paAcao }}" onclick="{{ paIr }}">{{ paCta }}</button><p class="ct-nota">Seu ciclo, suas revisões e seu acervo estão nas páginas de estudo.</p></section></sc-if>
+          <aside class="cth-apoio" aria-label="Tempo e registro">
+            <div class="cth-timer cth-relogio">
               <div class="cth-timer-top">
                 <sc-if value="{{ timerRunning }}" hint-placeholder-val="{{ false }}"><span class="cth-live"><i></i> Sessão em andamento</span></sc-if>
                 <sc-if value="{{ timerIdle }}" hint-placeholder-val="{{ true }}"><span class="cth-idle">Cronômetro</span></sc-if>
@@ -1727,7 +1737,7 @@ window.ctPdfLib = (function(){
               </div>
               <div class="cth-clock">{{ sessionDisplay }}</div>
               <sc-if value="{{ pausaMostra }}" hint-placeholder-val="{{ false }}"><div class="cth-pausa" data-pausa>{{ pausaLabel }}</div></sc-if>
-              <sc-if value="{{ isPomo }}" hint-placeholder-val="{{ false }}"><div style="height:5px;border-radius:99px;background:rgba(255,255,255,.16);overflow:hidden;margin:2px 0 4px;"><i style="display:block;height:100%;border-radius:99px;background:#fff;width:100%;transform:translateX(calc({{ phasePct }}% - 100%));transition:transform .9s linear;will-change:transform;"></i></div></sc-if>
+              <sc-if value="{{ isPomo }}" hint-placeholder-val="{{ false }}"><div style="height:5px;border-radius:99px;background:var(--surface2);overflow:hidden;margin:2px 0 4px;"><i style="display:block;height:100%;border-radius:99px;background:var(--accentSolid);width:100%;transform:translateX(calc({{ phasePct }}% - 100%));transition:transform .9s linear;will-change:transform;"></i></div></sc-if>
               <div class="cth-ritmos">
                 <button data-mode="livre" onclick="{{ setTimerMode }}" style="{{ homePmLivre }}">Livre</button>
                 <button data-mode="pomo" data-f="25" data-b="5" onclick="{{ setTimerMode }}" style="{{ homePm25 }}">25·5</button>
@@ -1758,11 +1768,33 @@ window.ctPdfLib = (function(){
                   </sc-if>
                 </div>
               </sc-if>
-            </div>
-          </div>
+            </div>            <div class="cth-hoje-resumo"><span>Estudado hoje <b>{{ homeHojeMin }} min</b></span><span>Meta <b>{{ homeMetaHojeAlvo }} min</b></span></div>
+          </aside>
         </div>
 
-        <!-- KPIs sobrepostos ao hero -->
+        <sc-if value="{{ cmOn }}"><div class="cth-detalhes">            <sc-if value="{{ cmPlanoShow }}" hint-placeholder-val="{{ false }}"><section class="cm-plano" aria-label="Sessão sob medida">
+              <div class="cm-kicker">Uma sessão que cabe agora</div>
+              <div class="cm-acoes" role="group" aria-label="Tempo disponível"><span>Tenho</span><sc-for list="{{ cmPlanoJanelas }}" as="j"><button type="button" class="ct-btn-2" data-min="{{ j.min }}" aria-pressed="{{ j.on }}" onclick="{{ cmPlanoJanela }}">{{ j.label }}</button></sc-for></div>
+              <p class="cm-plano-objetivo">{{ cmPlano.objetivo }}</p>
+              <p class="ct-nota">{{ cmPlano.motivo }}</p>
+              <sc-if value="{{ cmPlanoErrosShow }}"><div class="cm-plano-diagnostico"><p>{{ cmPlano.diagnostico }}</p><button class="ct-btn-2" onclick="{{ cmPlanoErros }}">Abrir os erros deste assunto</button></div></sc-if>
+              <button class="ct-btn" onclick="{{ cmPlanoIniciar }}">{{ cmPlanoBotao }}</button>
+              <small class="ct-nota">O tempo é uma proposta. Você pode pausar, continuar ou encerrar sem concluir a etapa.</small>
+            </section></sc-if>
+            <sc-if value="{{ cmInicioTemEtapas }}"><section class="cth-etapas" aria-label="Etapas do assunto"><div class="cth-etapas-cab"><h3>Etapas do assunto</h3><button class="ct-btn-2" data-view="ciclo" onclick="{{ onNav }}">Ver percurso</button></div><ul><sc-for list="{{ cmInicioEtapas }}" as="e"><li aria-current="{{ e.atual }}" data-feito="{{ e.feito }}"><b>{{ e.nome }}</b><span>{{ e.estado }}</span><small>{{ e.tempo }} min</small></li></sc-for></ul></section></sc-if>
+</div></sc-if>
+        <div class="cth-recomendacao" data-proxima-acao="{{ paTipo }}" style="{{ paEstilo }}">
+          <div style="flex:1;min-width:220px;">
+            <div style="font-family:var(--display);font-size:clamp(21px,2.6vw,27px);font-weight:700;color:var(--ink);letter-spacing:-.02em;line-height:1.15;">{{ paTitulo }}</div>
+            <div style="font-size:var(--fs-sm);color:var(--text2);margin-top:4px;line-height:1.5;">{{ paMotivo }}</div>
+          </div>
+          <sc-if value="{{ paTemMeta }}" hint-placeholder-val="{{ false }}">
+            <span style="flex:none;font-size:var(--fs-xs);font-weight:700;color:var(--text2);background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:5px 12px;">{{ paMeta }}</span>
+          </sc-if>
+          <button data-view="{{ paView }}" data-acao="{{ paAcao }}" onclick="{{ paIr }}" style="flex:none;background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:12px 22px;font-size:var(--fs-base);font-weight:700;cursor:pointer;font-family:inherit;">{{ paCta }}</button>
+        </div>
+
+        <!-- Metas e cobertura preservadas -->
         <div class="cth-kpis">
           <!-- D4: métrica zerada não vira número — vira o convite de como sair do zero (título, descrição e ação) -->
           <div class="cth-gcard cth-kpi" data-kpi="edital" data-vazio="{{ paEdEstado }}">
@@ -1809,26 +1841,6 @@ window.ctPdfLib = (function(){
           </div>
         </div>
 
-        <sc-if value="{{ cmOn }}" hint-placeholder-val="{{ false }}">
-          <section class="cth-card cm-home" aria-label="Retomar ciclo Magistratura">
-            <div class="cm-kicker">Ciclo Magistratura · volta {{ cmVoltaNum }} · atividade {{ cmPosAtual }}/{{ cmTotalAtividades }}</div>
-            <h2>{{ cmInicio.nome }}</h2><h3>{{ cmInicio.titulo }}</h3>
-            <sc-if value="{{ cmInicioPonto }}"><p><b>Onde parei:</b> {{ cmInicio.ponto }}</p></sc-if>
-            <sc-if value="{{ cmInicioProximo && !cmPlanoShow }}"><p><b>Próxima ação:</b> {{ cmInicio.proximo }}</p></sc-if>
-            <div class="cm-acoes"><button class="ct-btn" onclick="{{ cmInicioEstudar }}">{{ cmInicio.acao }}</button><button class="ct-btn-2" onclick="{{ openSession }}">Registrar tempo</button><button class="ct-btn-2" data-view="ciclo" onclick="{{ onNav }}">Ver percurso</button></div>
-            <p class="ct-nota">O ciclo continua de onde você parou. Registrar minutos não conclui a etapa.</p>
-            <sc-if value="{{ cmPlanoShow }}" hint-placeholder-val="{{ false }}"><section class="cm-plano" aria-label="Sessão sob medida">
-              <div class="cm-kicker">Uma sessão que cabe agora</div>
-              <div class="cm-acoes" role="group" aria-label="Tempo disponível"><span>Tenho</span><sc-for list="{{ cmPlanoJanelas }}" as="j"><button type="button" class="ct-btn-2" data-min="{{ j.min }}" aria-pressed="{{ j.on }}" onclick="{{ cmPlanoJanela }}">{{ j.label }}</button></sc-for></div>
-              <p class="cm-plano-objetivo">{{ cmPlano.objetivo }}</p>
-              <p class="ct-nota">{{ cmPlano.motivo }}</p>
-              <sc-if value="{{ cmPlanoErrosShow }}"><div class="cm-plano-diagnostico"><p>{{ cmPlano.diagnostico }}</p><button class="ct-btn-2" onclick="{{ cmPlanoErros }}">Abrir os erros deste assunto</button></div></sc-if>
-              <button class="ct-btn" onclick="{{ cmPlanoIniciar }}">{{ cmPlanoBotao }}</button>
-              <small class="ct-nota">O tempo é uma proposta. Você pode pausar, continuar ou encerrar sem concluir a etapa.</small>
-            </section></sc-if>
-            <nav class="cm-sequencia" aria-label="Sequência do ciclo"><sc-for list="{{ cmSequencia }}" as="q"><button class="cm-seq" data-id="{{ q.id }}" aria-current="{{ q.atual }}" onclick="{{ cmSelecionar }}"><small>{{ q.num }}</small><b>{{ q.nome }}</b><span>{{ q.tempo }} min registrados</span></button></sc-for></nav>
-          </section>
-        </sc-if>
         <!-- O DIA EM CAMPO -->
         <div class="cth-sec"><h2>O dia em campo</h2><span class="rule"></span></div>
         <div class="cth-cols">
@@ -2203,14 +2215,24 @@ window.ctPdfLib = (function(){
             </div>
           </header>
 
-          <nav class="cm-volta" aria-label="Sequência da volta do ciclo">
-            <div class="cm-volta-topo"><b>A volta do ciclo</b><span>Selecione uma atividade para retomar</span></div>
-            <div class="cm-volta-corpo">
-            <div class="cm-anel" aria-hidden="true"><svg viewBox="0 0 220 220"><circle cx="110" cy="110" r="92" fill="none" stroke="var(--border)" stroke-width="8"/><sc-for list="{{ cmSequencia }}" as="q"><circle cx="110" cy="110" r="92" fill="none" stroke="{{ q.cor }}" stroke-width="{{ q.largura }}" stroke-dasharray="{{ q.traco }}" stroke-dashoffset="{{ q.offset }}" transform="rotate(-90 110 110)" stroke-linecap="round"/></sc-for></svg><div class="cm-anel-centro"><span>Atividade {{ cmPosAtual }} / {{ cmTotalAtividades }}</span><b>{{ cmHoje }}</b><small>Volta {{ cmVoltaNum }}</small></div></div>
-            <ol class="cm-orbita"><sc-for list="{{ cmSequencia }}" as="q">
-              <li><button class="cm-etapa" data-id="{{ q.id }}" aria-current="{{ q.atual }}" onclick="{{ cmSelecionar }}"><span class="cm-etapa-num">{{ q.num }}</span><b>{{ q.nome }}</b><small>{{ q.min }} min previstos · {{ q.tempo }} min registrados</small><span class="cm-etapa-estado">{{ q.estado }}</span></button></li>
-            </sc-for></ol></div>
-            <p class="cm-retorno"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 10a9 9 0 1 1 2 9M3 4v6h6"/></svg>Depois da jurisprudência, a volta retorna à primeira matéria. Pendências continuam no próximo encontro.</p>
+          <nav class="cm-volta cm-mapa" aria-label="Sequência da volta do ciclo">
+            <div class="cm-volta-topo"><div><div class="cm-kicker">Seu ciclo contínuo</div><h3>A volta do ciclo</h3></div><span>Volta {{ cmVoltaNum }} · {{ cmTotalAtividades }} atividades</span></div>
+            <div class="cm-mapa-corpo">
+              <section class="cm-mapa-ativas" aria-label="Atividades desta volta">
+                <div class="cm-mapa-legenda"><b>Nesta volta</b><span>Selecione para retomar</span></div>
+                <ol class="cm-orbita"><sc-for list="{{ cmSequencia }}" as="q">
+                  <li><button class="cm-etapa" data-id="{{ q.id }}" aria-current="{{ q.atual }}" onclick="{{ cmSelecionar }}"><span class="cm-etapa-num">{{ q.num }}</span><div class="cm-etapa-info"><b>{{ q.nome }}</b><span class="cm-etapa-estado">{{ q.estado }}</span><small>{{ q.min }} min previstos · {{ q.tempo }} min registrados</small></div><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 5 7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></li>
+                </sc-for></ol>
+                <p class="cm-retorno"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 10a9 9 0 1 1 2 9M3 4v6h6"/></svg>Depois da jurisprudência, a volta retorna à primeira matéria. Pendências continuam no próximo encontro.</p>
+              </section>
+              <sc-if value="{{ cmTemFila }}" hint-placeholder-val="{{ true }}">
+                <aside class="cm-mapa-fila" aria-label="Matérias que entrarão depois">
+                  <div class="cm-mapa-legenda"><b>Fila</b><span>Entram depois</span></div>
+                  <p class="ct-nota">Ao fechar os dois assuntos de uma matéria, ela vai para o fim da fila e a próxima entra na volta.</p>
+                  <ol class="cm-fila"><sc-for list="{{ cmFila }}" as="f" hint-placeholder-count="6"><li style="{{ f.estilo }}">{{ f.nome }}</li></sc-for></ol>
+                </aside>
+              </sc-if>
+            </div>
           </nav>
 
           <div class="cm-grade">
@@ -2297,12 +2319,6 @@ window.ctPdfLib = (function(){
                 <details><summary>Sequência dos tipos</summary><sc-for list="{{ cmJurisSemana }}" as="j"><p class="cm-sub">{{ j.num }} · {{ j.tipo }}</p></sc-for></details>
               </article>
           </div>
-
-          <sc-if value="{{ cmTemFila }}" hint-placeholder-val="{{ true }}">
-            <div class="ct-card cm-sec"><h3 class="cm-sec-h">Fila</h3>
-              <ol class="cm-fila"><sc-for list="{{ cmFila }}" as="f" hint-placeholder-count="6"><li style="{{ f.estilo }}">{{ f.nome }}</li></sc-for></ol>
-            </div>
-          </sc-if>
 
           <div class="ct-card cm-sec"><h3 class="cm-sec-h">Revisões pelo FSRS</h3>
             <sc-if value="{{ cmTemRevs }}" hint-placeholder-val="{{ false }}">
@@ -3044,6 +3060,7 @@ window.ctPdfLib = (function(){
 
       <!-- ================= EDITAL ================= -->
       <sc-if value="{{ isEdital }}" hint-placeholder-val="{{ true }}">
+        <sc-if value="{{ !temConcurso }}"><section class="ct-design-hero" aria-label="Painel do edital"><div class="ct-design-intro"><div class="ct-design-ey">EDITAL · MAPA DA PREPARAÇÃO</div><h2>Veja o que já construiu.</h2><p>Seu edital organizado por disciplina, assunto e progresso.</p></div><div class="ct-design-numeros"><div><b>{{ edTotal }}</b><span>tópicos</span></div><div><b>{{ edDone }}</b><span>estudados</span></div></div></section></sc-if>
        <div style="display:flex;flex-direction:column;gap:16px;">
 
         <!-- CONCURSOS — a faixa de chamada do Edital. Uma tela tem UM primeiro lugar, e aqui ele é
@@ -3051,7 +3068,7 @@ window.ctPdfLib = (function(){
              cobertura) é deste concurso. A troca é por pílulas sobre o gradiente — com dois a
              quatro concursos, ver todos de uma vez vale mais que abrir um seletor. -->
         <sc-if value="{{ temConcurso }}" hint-placeholder-val="{{ false }}">
-          <section class="ct-hero ct-concurso-hero" aria-label="Concurso ativo">
+          <section class="ct-hero ct-concurso-hero ct-design-hero" aria-label="Concurso ativo">
             <div class="ct-hero-eb">Concurso ativo<sc-if value="{{ concursoVarios }}" hint-placeholder-val="{{ false }}"> · {{ concursoN }} no total</sc-if></div>
             <h2 class="ct-hero-tit">{{ concursoNome }}</h2>
             <p class="ct-hero-sub">Pesos, questões e o ciclo de estudos são deste concurso. O que você estuda numa disciplina vale para todos os concursos que a têm.</p>
@@ -3301,7 +3318,9 @@ window.ctPdfLib = (function(){
       <!-- ================= BARALHO (flashcards) =================
            O baralho existia como DADO e não como tela: o quiz do JURIS, a leitura ativa e a
            colheita de erros gravavam cartões que ninguém podia rever. Aqui eles voltam. -->
-      <sc-if value="{{ isBaralho }}" hint-placeholder-val="{{ false }}">
+      <sc-if value="{{ isBaralho }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ fcParado }}">
+        <section class="ct-design-hero" aria-label="Painel de isBaralho"><div class="ct-design-intro"><div class="ct-design-ey">BARALHO · ESTUDO ATIVO</div><h2>Conhecimento que fica.</h2><p>Revise seus cartões e consolide o que aprendeu.</p></div><div class="ct-design-numeros"><div><b>{{ fcDueStr }}</b><span>para estudar</span></div><div><b>{{ fcTotalStr }}</b><span>cartões</span></div></div></section>
+</sc-if>
        <div style="display:flex;flex-direction:column;gap:18px;">
         <sc-if value="{{ fcParado }}" hint-placeholder-val="{{ true }}">
           <div class="ct-bc">
@@ -3367,6 +3386,8 @@ window.ctPdfLib = (function(){
 
       <!-- ================= REVISÕES ================= -->
       <sc-if value="{{ isRev }}" hint-placeholder-val="{{ false }}">
+        <section class="ct-design-hero" aria-label="Painel de isRev"><div class="ct-design-intro"><div class="ct-design-ey">REVISÕES · MEMÓRIA DE LONGO PRAZO</div><h2>Retome. Consolide. Avance.</h2><p>Os assuntos que você já estudou, no momento de revisitar.</p></div><div class="ct-design-numeros"><div><b>{{ revPendStr }}</b><span>pendentes</span></div><div><b>{{ revHoje }}</b><span>para hoje</span></div></div></section>
+
        <div style="display:flex;flex-direction:column;gap:18px;">
         <!-- BANCADA · foco (revisar agora) + apoio (o tamanho da fila). A fila em si são
              os grupos Atrasadas/Hoje/Próximas logo abaixo — as três zonas de sempre. -->
@@ -4702,6 +4723,8 @@ window.ctPdfLib = (function(){
 
       <!-- ================= ANÁLISE ================= -->
       <sc-if value="{{ isAnalise }}" hint-placeholder-val="{{ true }}">
+        <section class="ct-design-hero" aria-label="Painel de isAnalise"><div class="ct-design-intro"><div class="ct-design-ey">DESEMPENHO · SUA EVOLUÇÃO</div><h2>Enxergue o próximo avanço.</h2><p>Tempo, questões e disciplinas para orientar seu estudo.</p></div><div class="ct-design-numeros"><div><b>{{ heroSemTotal }}</b><span>nesta semana</span></div><div><b>{{ edPct }}%</b><span>edital coberto</span></div></div></section>
+
        <div style="display:flex;flex-direction:column;gap:16px;">
         <div class="rel-noprint ct-rolo" style="--ct-rolo-bg:var(--surface2);display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:5px;overflow-x:auto;">
           <button data-d="visao" onclick="{{ navDesemp }}" style="{{ desempTabStyle.visao }}">Visão geral</button>
@@ -5214,6 +5237,8 @@ window.ctPdfLib = (function(){
 
       <!-- ================= CALENDÁRIO ================= -->
       <sc-if value="{{ isCalendario }}" hint-placeholder-val="{{ false }}">
+        <section class="ct-design-hero" aria-label="Painel de isCalendario"><div class="ct-design-intro"><div class="ct-design-ey">CALENDÁRIO · SEU RITMO</div><h2>Planeje com espaço para viver.</h2><p>Revisões, provas e compromissos no mesmo lugar.</p></div><div class="ct-design-numeros"><div><b>{{ revPendStr }}</b><span>revisões pendentes</span></div><div><b>{{ calTitle }}</b><span>mês selecionado</span></div></div></section>
+
        <!-- EXCEÇÃO DECLARADA à gramática: o calendário JÁ É um eixo de tempo. Pôr a régua
             do espelho aqui seria dizer a mesma coisa duas vezes, e a grade do mês é a forma
             certa para a tarefa (achar um dia). Nem espelho, nem bancada. -->
@@ -11804,7 +11829,7 @@ class Component extends DCLogic {
     const revs=this._revisoesDoCicloFSRS().filter(r=>r&&r.cmagId).sort((a,b)=>String(a.dueDate).localeCompare(String(b.dueDate))).map(r=>({id:r.id,ass:r.topic,dt:fmt(((this.state.cmagRevs||[]).find(x=>x.id===r.cmagId)||{}).dt||r.dueDate),
       prazos:[{rid:r.id,d:0,rot:'FSRS',data:fmt(r.dueDate),feita:false,vencida:r.dueDate<=hoje,estado:r.dueDate<=hoje?'vencida':'agendada',feitaStr:'false',aria:'Revisar '+r.topic+' pelo FSRS'}]}));
     const vencidas=revs.reduce((a,r)=>a+r.prazos.filter(p=>p.vencida).length, 0);
-    return {cmOn:true,cmPlano:plano,cmPlanoBotao:'Começar sessão de '+(plano?plano.min:0)+' min',cmPlanoShow:!!(plano&&plano.possivel),cmPlanoErrosShow:!!(plano&&plano.erros),cmPlanoJanela:this.cmPlanoJanela,cmPlanoIniciar:this.cmPlanoIniciar,cmPlanoErros:this.cmPlanoErros,cmPlanoJanelas:[15,30,60].map(min=>({min,label:min+' min',on:String(min===(this.state.cmJanela|| (this._enHoje()==='baixa'?15:30)))})), cmInicio:inicio,cmInicioPonto:!!(inicio&&inicio.ponto),cmInicioProximo:!!(inicio&&inicio.proximo),cmInicioEstudar:this.cmInicioEstudar,cmTimerAlternar:this.cmTimerAlternar,cmSessaoEtapa:this.cmSessaoEtapa,cmSessaoAvulsa:this.cmSessaoAvulsa,cmSessaoVinculada:!!sb,cmSessaoEtapas:sr?sr.etapas.filter(e=>!e.travado).map(e=>({k:e.k,nome:e.nome,sel:e.k===sd.cmEtapa})):[],cmSessaoTemEtapas:!!sr,cmSessaoEtapaAtual:sd.cmEtapa||'', cmVoltaNum:c.voltas+1, cmQuantidadeTexto:c.ativas===1?'Uma matéria':c.ativas+' matérias', cmTotalAtividades:c.ativas+1, cmQuantidade:String(c.ativas), cmQuantidadeMudar:this.cmQuantidadeMudar, cmPosAtual:c.jurisNaVez?c.ativas+1:c.vez+1, cmSequencia:sequencia, cmAtualId:atual.cmagId, cmJurisNaVez:c.jurisNaVez, cmJurisTempo:tempo(ju), cmJuris:M.jurisDoDia(c), cmJurisSemana:M.JURIS.map(j=>({num:j[0],tipo:j[1]})), cmJurisMin:this.cmJurisMin, cmGuardarDepois:this.cmGuardarDepois,cmRetomadaCampo:this.cmRetomadaCampo,cmEtapaEstudar:this.cmEtapaEstudar,cmEtapaRegistrar:this.cmEtapaRegistrar,cmEstudar:this.cmEstudar, cmRegistrarTempo:this.cmRegistrarTempo, cmSelecionar:this.cmSelecionar, cmJurisPonto:this.cmJurisPonto, cmJurisConcluir:this.cmJurisConcluir, cmAtivas:ativas, cmFila:fila, cmTemFila:fila.length>0, cmRevs:revs, cmTemRevs:revs.length>0,
+    return {cmOn:true,cmPlano:plano,cmPlanoBotao:'Começar sessão de '+(plano?plano.min:0)+' min',cmPlanoShow:!!(plano&&plano.possivel),cmPlanoErrosShow:!!(plano&&plano.erros),cmPlanoJanela:this.cmPlanoJanela,cmPlanoIniciar:this.cmPlanoIniciar,cmPlanoErros:this.cmPlanoErros,cmPlanoJanelas:[15,30,60].map(min=>({min,label:min+' min',on:String(min===(this.state.cmJanela|| (this._enHoje()==='baixa'?15:30)))})), cmInicioAssunto:inicio&&inicio.id!=='juris'?c.st[inicio.id].ass:'',cmInicioTemEtapas:!!(inicio&&inicio.id!=='juris'),cmInicioEtapas:(inicio&&inicio.id!=='juris'?ativas.find(a=>a.id===inicio.id).roteiro.etapas.filter(e=>e.k[0]==='a'||M.turnoBLiberado(c,inicio.id)).map(e=>({nome:e.nome,feito:String(e.feito),atual:e.k===inicio.etapa?'step':'false',estado:e.feito?'Concluída':e.k===inicio.etapa?'Em andamento':'A seguir',tempo:registros(volta.blocos.find(b=>b.cmagId===inicio.id)).filter(r=>r.cmEtapa===e.k).reduce((n,r)=>n+(+r.min||0),0)})):[]),cmInicio:inicio,cmInicioPonto:!!(inicio&&inicio.ponto),cmInicioProximo:!!(inicio&&inicio.proximo),cmInicioEstudar:this.cmInicioEstudar,cmTimerAlternar:this.cmTimerAlternar,cmSessaoEtapa:this.cmSessaoEtapa,cmSessaoAvulsa:this.cmSessaoAvulsa,cmSessaoVinculada:!!sb,cmSessaoEtapas:sr?sr.etapas.filter(e=>!e.travado).map(e=>({k:e.k,nome:e.nome,sel:e.k===sd.cmEtapa})):[],cmSessaoTemEtapas:!!sr,cmSessaoEtapaAtual:sd.cmEtapa||'', cmVoltaNum:c.voltas+1, cmQuantidadeTexto:c.ativas===1?'Uma matéria':c.ativas+' matérias', cmTotalAtividades:c.ativas+1, cmQuantidade:String(c.ativas), cmQuantidadeMudar:this.cmQuantidadeMudar, cmPosAtual:c.jurisNaVez?c.ativas+1:c.vez+1, cmSequencia:sequencia, cmAtualId:atual.cmagId, cmJurisNaVez:c.jurisNaVez, cmJurisTempo:tempo(ju), cmJuris:M.jurisDoDia(c), cmJurisSemana:M.JURIS.map(j=>({num:j[0],tipo:j[1]})), cmJurisMin:this.cmJurisMin, cmGuardarDepois:this.cmGuardarDepois,cmRetomadaCampo:this.cmRetomadaCampo,cmEtapaEstudar:this.cmEtapaEstudar,cmEtapaRegistrar:this.cmEtapaRegistrar,cmEstudar:this.cmEstudar, cmRegistrarTempo:this.cmRegistrarTempo, cmSelecionar:this.cmSelecionar, cmJurisPonto:this.cmJurisPonto, cmJurisConcluir:this.cmJurisConcluir, cmAtivas:ativas, cmFila:fila, cmTemFila:fila.length>0, cmRevs:revs, cmTemRevs:revs.length>0,
       cmVencidas:vencidas, cmTemVencidas:vencidas>0, cmVencidasTxt:vencidas===1?'1 revisão vencida':vencidas+' revisões vencidas',
       cmSabado:M.SABADO.map(q=>({k:q[0], txt:q[1], on:!!c.sab[q[0]], onStr:c.sab[q[0]]?'true':'false'})),
       cmEhSabado:dow===6, cmEhDomingo:dow===0,
@@ -17760,14 +17785,14 @@ class Component extends DCLogic {
        sumiria sobre a superfície. Com cor personalizada, o banner parte do destaque aprofundado o mínimo
        (mesmo matiz) até o branco dar 5:1 — folga para o realce claro do canto. Se a cor já
        passa, é o desenho de antes (escurece 32% até a outra ponta); se precisou aprofundar, a
-       cor pura volta no canto de baixo, atrás do cronômetro, onde não há texto direto. */
+       mesmo matiz reaparece na outra ponta com contraste suficiente para texto em qualquer coluna. */
     const heroVivo = this.state.accent ? `linear-gradient(135deg,${accHex||this.state.accent},${this.darken(_accB,0.32)})` : (T.heroVivo||T.heroGrad);
     let heroGrad = T.heroGrad;
     if(this.state.accent){
       let h1 = accHex;
       try{ if(h1){ for(let f=0.02; f<=0.9001 && CT_RATIO('#ffffff',h1)<5; f+=0.02) h1=this.darkenHex(accHex,f); } }catch(_){ h1=''; }
       heroGrad = !h1 ? heroVivo : (h1===accHex ? `linear-gradient(135deg,${h1},${this.darkenHex(h1,0.32)})`
-        : `linear-gradient(135deg,${h1} 0%,${this.darkenHex(h1,0.2)} 58%,${accHex} 115%)`);
+        : `linear-gradient(135deg,${h1} 0%,${this.darkenHex(h1,0.2)} 58%,${h1} 115%)`);
     }
     const sbgVal = this.state.accent ? this.mixDark(_accB, T.isDark?0.82:0.80) : T.sidebarBg;
     const bgVal = this.state.accent ? (T.isDark ? this.mixDark(_accB,0.90) : this.mixWhite(_accB,0.93)) : T.bg;
@@ -18101,7 +18126,7 @@ class Component extends DCLogic {
     // sozinho, e sem largura definida o iframe de dentro cairia para os 300px do padrão.
     const contentInnerStyle = _ehFrameView
       ? ('max-width:'+contentMax+';margin:0 auto;width:100%;flex:1;min-height:0;display:flex;flex-direction:column;')
-      : ('max-width:'+contentMax+';margin:0 auto;');
+      : ('width:100%;max-width:'+contentMax+';min-width:0;');
 
     /* O item ativo do menu só se distinguia pela cor: leitor de tela lia 23 botões
        iguais, sem dizer em qual tela a pessoa está. aria-current="page" resolve, e
@@ -19224,7 +19249,7 @@ class Component extends DCLogic {
       ? ('Pomodoro · '+(isPausa?'pausa '+this.state.pomoBreak:'foco '+this.state.pomoFocus)+'′')
       : 'Cronômetro de estudo · livre';
     // chips do cronômetro no hero de gradiente: vidro escuro + ativo em branco sólido
-    const _homePmBtn=(on)=>`background:${on?'#fff':'rgba(8,7,15,.30)'};color:${on?'#0c0b14':'rgba(255,255,255,.85)'};border:1px solid ${on?'#fff':'rgba(255,255,255,.26)'};border-radius:99px;padding:6px 13px;font-size:var(--fs-sm);font-weight:700;cursor:pointer;font-family:var(--mono);white-space:nowrap;${on?'box-shadow:0 4px 18px -4px rgba(255,255,255,.5);':''}`;
+    const _homePmBtn=(on)=>`background:${on?'var(--accentSolid)':'var(--surface)'};color:${on?'var(--onAccent)':'var(--text2)'};border:1px solid ${on?'var(--accentSolid)':'var(--border)'};border-radius:var(--r-sm);padding:var(--ct-e2) var(--ct-e3);font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:var(--mono);white-space:nowrap;min-height:var(--ct-alvo-toque);`;
     const homePmLivre=_homePmBtn(this.state.timerMode==='livre');
     const homePm25=_homePmBtn(isPomo && this.state.pomoFocus===25);
     const homePm50=_homePmBtn(isPomo && this.state.pomoFocus===50);
@@ -21855,7 +21880,7 @@ class Component extends DCLogic {
       prefs:this.state.prefs, togglePref:this.togglePref, copiarRelatorio:this.copiarRelatorio, enviarFeedback:this.enviarFeedback, buildLabel:((window.CATEDRA_BUILD&&('versão '+window.CATEDRA_BUILD.versao+' · '+window.CATEDRA_BUILD.alvo))||'versão de desenvolvimento'), exportJSON:this.exportJSON, backupICloud:this.backupICloudBotao, restaurarICloud:this.restaurarICloud, backupDrive:this.backupDriveBotao, restaurarDrive:this.restaurarDrive, backupNativoShow:this._nativoBackup(), driveShow:(!this._nativoBackup()&&!!this._gdriveCfg()), backupNuvemShow:(this._nativoBackup()||!!this._gdriveCfg()), backupNuvemDica:(this._nativoBackup()?'Uma cópia sua, fora da conta Cátedra. No Mac vai para a pasta Cátedra do iCloud Drive; no iPad você escolhe a pasta em Arquivos (o iCloud Drive aparece lá).':'Uma cópia sua, fora da conta Cátedra, guardada no seu Google Drive (arquivo catedra-backup.json).'), backupNuvemStatus:((()=>{ const a=this._bkpCarimbo('catedra:_bkpICloud'), b=this._bkpCarimbo('catedra:_bkpDrive'); return [a?('iCloud Drive: último backup '+a):'', b?('Google Drive: último backup '+b):''].filter(Boolean).join(' · ')||'Nenhum backup feito ainda neste aparelho.'; })()), exportFlashcardsCSV:this.exportFlashcardsCSV, exportICS:this.exportICS, exportEditalTXT:this.exportEditalTXT, exportEditalPDF:this.exportEditalPDF,
       togRevisao:togStyle(this.state.prefs.notifRevisao), togRevisaoKnob:togKnob(this.state.prefs.notifRevisao),
       togMeta:togStyle(this.state.prefs.notifMeta), togMetaKnob:togKnob(this.state.prefs.notifMeta),
-      contentMax, contentBoxStyle, contentInnerStyle,
+      designView:this.state.view, contentMax, contentBoxStyle, contentInnerStyle,
       // planejamento
       navCur,
       isPlanej:this.state.view==='planejamento', navPlanej:navStyle('planejamento'), planRows, planHoras:this.state.planHoras, setPlanHoras:this.setPlanHoras,

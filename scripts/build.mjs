@@ -322,7 +322,13 @@ if (fontsHref) {
 
 writeFileSync(join(pub, 'index.html'), out);
 
-for (const f of COPIAR) copyFileSync(join(ROOT, f), join(pub, f));
+for (const f of COPIAR) {
+  if (f === 'catedra-ui.css') {
+    // Comentários ficam no fonte; o CSS publicado mantém as regras sem ocupar o precache.
+    const css = readFileSync(join(ROOT, f), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+    writeFileSync(join(pub, f), css);
+  } else copyFileSync(join(ROOT, f), join(pub, f));
+}
 /* Arquivos APOSENTADOS: saíram do repositório, mas um public/ de build antigo ainda os
    teria, e o deploy (e o precache do worker) voltaria a servi-los. Os mapas das Súmulas
    Vinculantes saíram em 25/09/2026, por decisão da dona. */

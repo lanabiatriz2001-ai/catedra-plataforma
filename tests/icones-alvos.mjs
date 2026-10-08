@@ -146,16 +146,16 @@ export async function testarIconesAlvos(pageDaSuite, base, ok, opcoes = {}) {
         rot + ': todo controle visível do Início tem alvo ≥ 44×44 (' + r.total + ' medidos; abaixo: ' + (r.pequenos.join(' / ') || 'nenhum') + ')');
     } finally { await ctx.close(); }
   }
-  /* ---------------- (b) desktop: o desenho não muda ---------------- */
+  /* ---------------- (b) desktop: controles do painel aprovado ---------------- */
   {
     const { ctx, page } = await abrir({ width: 1280, height: 1000 }, false);
     try {
       const r = await page.evaluate(medirAlvos);
       ok(!r.toque, R + '(b) desktop: sem data-toque (mouse)');
-      ok(r.ritmos.length >= 4 && r.ritmos.every(b => b.h < 36 && b.pad === '6px 13px' && (b.minH === '0px' || b.minH === 'auto')),
-        R + '(b) desktop: os ritmos seguem pílulas baixas, sem min-height (' + r.ritmos.map(b => b.t + ' ' + b.w + '×' + b.h + ' pad ' + b.pad + ' min ' + b.minH).join(', ') + ')');
-      ok(r.acoes.length >= 3 && r.acoes.filter(b => b.cls === 'cth-bghost').every(b => b.h < ALVO && b.pad === '10px 16px' && (b.minH === '0px' || b.minH === 'auto')),
-        R + '(b) desktop: Iniciar/Zerar com o padding de sempre e sem min-height (' + r.acoes.map(b => b.t + ' ' + b.w + '×' + b.h + ' pad ' + b.pad + ' min ' + b.minH).join(', ') + ')');
+      ok(r.ritmos.length >= 4 && r.ritmos.every(b => b.h >= ALVO && b.w >= ALVO),
+        R + '(b) desktop: os ritmos têm alvo ≥ 44×44 (' + r.ritmos.map(b => b.t + ' ' + b.w + '×' + b.h + ' pad ' + b.pad + ' min ' + b.minH).join(', ') + ')');
+      ok(r.acoes.length >= 3 && r.acoes.every(b => b.h >= ALVO && b.w >= ALVO),
+        R + '(b) desktop: Iniciar/Zerar/Registrar têm alvo ≥ 44×44 (' + r.acoes.map(b => b.t + ' ' + b.w + '×' + b.h + ' pad ' + b.pad + ' min ' + b.minH).join(', ') + ')');
     } finally { await ctx.close(); }
   }
 
@@ -446,10 +446,10 @@ function varrerIcones() {
   const svgInfo = s => { if (!s) return null; const b = s.getBoundingClientRect();
     return { ico: s.getAttribute('data-ico'), w: Math.round(b.width * 10) / 10, h: Math.round(b.height * 10) / 10,
       ariaHidden: s.getAttribute('aria-hidden'), oculto: s.getAttribute('aria-hidden') === 'true', stroke: s.getAttribute('stroke') }; };
-  const chips = [...document.querySelectorAll('.cth-hero .cth-chip')];
+  const chips = [...document.querySelectorAll('.cth-inicio .cth-chip')];
   const porTexto = re => chips.find(c => re.test(c.textContent));
-  const kicker = document.querySelector('.cth-hero .cth-kicker');
-  const ofensiva = document.querySelector('.cth-hero .cth-chip.ct-gam');
+  const kicker = document.querySelector('.cth-inicio .cth-kicker');
+  const ofensiva = document.querySelector('.cth-inicio .cth-chip.ct-gam');
   const escudos = porTexto(/escudos/), prova = porTexto(/dias p\/ prova/);
   const banner = { objetivo: svgInfo(kicker && kicker.querySelector('svg')), ofensiva: svgInfo(ofensiva && ofensiva.querySelector('svg')),
     escudos: svgInfo(escudos && escudos.querySelector('svg')), prova: svgInfo(prova && prova.querySelector('svg')),
