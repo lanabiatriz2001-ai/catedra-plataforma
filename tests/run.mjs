@@ -4571,7 +4571,9 @@ const fluxo = await page.evaluate(async () => {
   if (!cartao) return { erro: 'sem cartão de arguição' };
   const comecar = [...cartao.closest('div[style*="surface2"]').querySelectorAll('button')].find(b => b.textContent.trim() === 'Começar');
   comecar.click(); await w(1000);
-  const abriu = /ARGUIÇÃO · PERGUNTA 1 DE 5|Arguição · pergunta 1 de 5/i.test(M());
+  const sala = document.querySelector('section[aria-label="Conversa de arguição"]');
+  const abriu = !!sala && /Sala de arguição · 1 de 5/i.test(sala.innerText)
+    && !!sala.querySelector('.ct-oral-pergunta p')?.textContent.trim();
   // sinal exato: os botões de autoavaliação só existem DENTRO do bloco do padrão — o texto
   // "padrão de resposta" também aparece na apresentação da página, e enganava o teste
   const temPadrao = () => !!document.querySelector('main button[data-v="bem"]');
