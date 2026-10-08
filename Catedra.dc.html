@@ -3049,6 +3049,7 @@ window.ctPdfLib = (function(){
               </sc-for>
               <button class="ct-btn-clara ct-concurso-novo" onclick="{{ novoConcurso }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke-linecap="round"></path></svg>Novo concurso</button>
               <button class="ct-concurso-ren" onclick="{{ renomearConcurso }}">Renomear “{{ concursoNome }}”</button>
+              <button class="ct-concurso-ren" onclick="{{ removerConcurso }}">Remover “{{ concursoNome }}”</button>
             </div>
           </section>
           <sc-if value="{{ concursoTemFora }}" hint-placeholder-val="{{ false }}">
@@ -3056,6 +3057,7 @@ window.ctPdfLib = (function(){
           </sc-if>
         </sc-if>
 
+        <sc-if value="{{ concursoRemovidoTem }}"><div class="ct-card" role="status"><b>“{{ concursoRemovidoNome }}” removido dos seus concursos.</b><p class="ct-nota">Seu acervo, sessões, cartões e estudo compartilhado foram preservados.</p><button class="ct-btn-2" onclick="{{ desfazerRemoverConcurso }}">Desfazer remoção</button></div></sc-if>
         <!-- Modelo pré-cadastrado: o edital não precisa começar do zero -->
         <div style="border:1px solid transparent;border-radius:var(--radius);background:linear-gradient(var(--surface),var(--surface)) padding-box,var(--heroVivo) border-box;padding:18px 20px;">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
@@ -7546,6 +7548,7 @@ class Component extends DCLogic {
       cmagRevs:this._load('cmagRevs', []),                 // revisões D+7/30/90 do Ciclo Magistratura (array com id/up: merge por id)
       edital: this._load('edital', []),
       // concursos por cima do acervo (ver _editaisComMigracao). editalAtivo '' = o primeiro.
+      editaisGerenciados:this._load('editaisGerenciados',false), concursoRemovido:null,
       editais: this._load('editais', []), editalAtivo: this._load('editalAtivo', ''),
       reviews: this._load('reviews', []),
       // leitura ativa da lei (LA1): um item por dispositivo lido, sem o texto da lei
@@ -8153,7 +8156,7 @@ class Component extends DCLogic {
       if(ini && ini.email) this.setState({authEmail:ini.email});
       window.addEventListener('catedra:authuser', (ev)=>{
         const d=(ev && ev.detail)||null;
-        this.setState({authEmail:(d && d.email)||''});
+        this.setState({authEmail:(d && d.email)||'',concursoRemovido:null});
         // A sessão mudou: reperguntar se ESTA conta é administradora. Antes a pergunta
         // era feita uma única vez, no mount — se ela chegasse antes da sessão, ou
         // falhasse, a conta admin ficava indistinguível de uma comum até fechar o app.
@@ -8959,7 +8962,7 @@ class Component extends DCLogic {
     'redProvaId','ajPerfis','lastPonto','lastPontoDispensado','provaDurationMin','sessions','sessionsLixeira',
     'hl','fc','casos',
     // os concursos projetam o `edital`, que é da área: ficam na mesma área que ele
-    'editais','editalAtivo']);
+    'editais','editalAtivo','editaisGerenciados']);
   /** A área ativa, legível ANTES de this.state existir (o construtor usa _load). */
   /** Forma canônica da área e do concurso: o que o _chave trata como o mesmo caderno. */
   _areaCanon(a){ a=a||''; return a==='juridica' ? '' : a; }
@@ -9093,7 +9096,7 @@ class Component extends DCLogic {
   // Chaves que o app salva sozinho. Lista ÚNICA: o _autosave grava a partir dela e
   // o _rehydrateFromLocal recarrega a partir dela — se as duas divergirem, o que vem
   // da nuvem é sobrescrito pela memória velha deste aparelho.
-  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'editais', 'editalAtivo', 'reviews', 'leituras', 'enam', 'enamSim', 'aceite', 'iaConsentimento', 'blocks', 'blocksDate', 'cicloVolta', 'manualVoltaN', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs','redTempoMs', 'redGabarito', 'redEnunciado', 'redMarcas', 'redDisciplina', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'novidLidas', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis', 'cmag', 'cmagRevs']; }
+  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'editais', 'editalAtivo', 'editaisGerenciados', 'reviews', 'leituras', 'enam', 'enamSim', 'aceite', 'iaConsentimento', 'blocks', 'blocksDate', 'cicloVolta', 'manualVoltaN', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs','redTempoMs', 'redGabarito', 'redEnunciado', 'redMarcas', 'redDisciplina', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'novidLidas', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis', 'cmag', 'cmagRevs']; }
   /** Grava JÁ o que está pendente, sem esperar o debounce de 500 ms.
       PENDENTE é só o que a memória mudou desde o último salvamento (a mesma régua do
       _autosave). O resto já está no disco — e o disco pode ter acabado de receber a nuvem:
@@ -10087,6 +10090,7 @@ class Component extends DCLogic {
   _editaisComMigracao(){
     const eds=this.state.editais;
     if(Array.isArray(eds) && eds.length) return eds;
+    if(this.state.editaisGerenciados) return [];
     const pool=this.state.edital||[];
     if(!pool.length) return [];
     const discs={};
@@ -10260,6 +10264,28 @@ class Component extends DCLogic {
     // o edital que já existia fica com os concursos que já existiam: o novo começa com o edital DELE
     this._virarConcurso(C.id, [...eds, C], this._edFecharLegado(this.state.edital||[], eds.map(e=>e.id)));
     this._toast('Concurso "'+nome+'" criado, com ciclo próprio — marque as disciplinas que caem nele');
+  };
+  _contaConcurso(){const u=window.CatedraAuth&&window.CatedraAuth.user;return (u&&(u.id||u.email))||this.state.authEmail||'';}
+  removerConcurso = ()=>{
+    const C=this._concursoAtivo();if(!C) return;
+    if(!window.confirm('Remover o concurso “'+C.nome+'”?\n\nSessões, cartões, acervo e estudo compartilhado serão preservados. Você pode desfazer a remoção.')) return;
+    this._edCapturar();this._salvarAgora();
+    const eds=this._editaisComMigracao(), alvo=eds.find(e=>e.id===C.id)||C,restantes=eds.filter(e=>e.id!==C.id);
+    if(restantes.length) this._virarConcurso(restantes[0].id,restantes);
+    else{
+      // Nenhum ciclo ou conteúdo é apagado: apenas sai a meta e o seu espelho ativo.
+      this.state.editalAtivo='';this._edSig=null;
+      this.setState({editais:[],editalAtivo:'',edital:(this.state.edital||[]).map(d=>({...d,foraDoConcurso:true,peso:'',questoes:'',_esp:''}))});
+    }
+    this.setState({editaisGerenciados:true,concursoRemovido:{...alvo,_origemArea:this.state.areaEstudo||'juridica',_origemConta:this._contaConcurso()}},()=>{this._salvarAgora();this.flashSync();});
+    // _salvarAgora usa setItem: a camada auth registra a lápide do id removido.
+  };
+  desfazerRemoverConcurso = ()=>{
+    const undo=this.state.concursoRemovido;if(!undo)return;if(undo._origemArea!==(this.state.areaEstudo||'juridica')||undo._origemConta!==this._contaConcurso()){this.setState({concursoRemovido:null});return;}const {_origemArea,_origemConta,...C}=undo;
+    const eds=this._editaisComMigracao();if(eds.some(e=>e.id===C.id)){this.setState({concursoRemovido:null});return;}
+    this._virarConcurso(C.id,[...eds,{...C,up:Date.now()}]);
+    this.setState({concursoRemovido:null,editaisGerenciados:true},()=>{this._salvarAgora();this.flashSync();});
+    // Recriar o mesmo id pelo setItem normal limpa a lápide, como as demais ações de desfazer.
   };
   renomearConcurso = ()=>{
     const C=this._concursoAtivo(); if(!C) return;
@@ -13205,7 +13231,7 @@ class Component extends DCLogic {
   // sair de verdade, recarrega a página. Aqui não se mexe em loggedIn — o app já mostrava a
   // tela de login antiga ("Entrar no protótipo") ANTES da pergunta, e quem cancelava ficava com
   // a sessão viva atrás de um login falso. Sem CatedraAuth (site sem auth, testes), o de sempre.
-  logout = ()=>{
+  logout = ()=>{this.setState({concursoRemovido:null});
     try{ if(window.CatedraAuth && typeof window.CatedraAuth.logout==='function'){ window.CatedraAuth.logout(); return; } }catch(_){}
     try{ localStorage.removeItem('catedra:auth'); }catch(_){} this.setState({loggedIn:false, view:'inicio'}); };
 
@@ -16933,7 +16959,7 @@ class Component extends DCLogic {
     if(v===(this.state.areaEstudo||'')) { this.setState({areaSelOpen:false}); return; }
     this._trocarArea(v); };
   _trocarArea(v){
-    const A=CT_AREA(v); const patch={areaEstudo:v, areaSelOpen:false};
+    const A=CT_AREA(v); const patch={areaEstudo:v,areaSelOpen:false,concursoRemovido:null};
     // Caso aberto no construtor ou em treino é da área ANTERIOR. Deixá-lo aberto fazia o
     // formulário trocar de campos por baixo do texto já escrito, exibia caso clínico sob
     // rótulo socioassistencial, e o "Apagar" prometia remover algo que não estava mais na
@@ -21656,7 +21682,8 @@ class Component extends DCLogic {
       sessEfeitos, sessEfeitosShow, sessEfeitoVazio, sessCorStyle, sessDiscTitulo, sessSubtitulo,
       sessRevAria:String(!!_sd0.agendarRevisao), sessMetaAria:String(_sd0.contarMeta!==false), sessMarcarAria:String(!!_sd0.marcarEdital),
       sessMarcarShow:!!_sd0.edTop && _sdTopics.some(t=>String(t.name||'').trim()===String(_sd0.edTop).trim()),
-      sessionDraft:this.state.sessionDraft, sessCats, focoDots, focoLabel, sdSegOk, sdSegErr, sdSegBr, sessMinFmt, sdBrutoPct, sdBrutoLabel, sdAccColor, sdLiquido, sdLiqColor, sdLiqLabel, sdTotalLabel, sessionSummary,
+      sessionDraft:this.state.sessionDraft, concursoRemovidoTem:!!this.state.concursoRemovido,concursoRemovidoNome:(this.state.concursoRemovido||{}).nome||'',removerConcurso:this.removerConcurso,desfazerRemoverConcurso:this.desfazerRemoverConcurso,
+      sessCats, focoDots, focoLabel, sdSegOk, sdSegErr, sdSegBr, sessMinFmt, sdBrutoPct, sdBrutoLabel, sdAccColor, sdLiquido, sdLiqColor, sdLiqLabel, sdTotalLabel, sessionSummary,
       sessLeiOpts, sessJurisOpts, sessShowLeis, sessShowJuris, sessLeiSel, sessJurisSel, sessLeiVazio, sessJurisVazio, onSessionLei:this.onSessionLei, onSessionJuris:this.onSessionJuris,
       sessTrechoShow, sessTrechoOpts, sessTrechoSel, sessTrechoVazio, sessTrechoLivre, sessTrechoLabel, sessTrechoPh,
       sessTrechoTemOpts:sessTrechoOpts.length>0, onSessionTrecho:this.onSessionTrecho,
