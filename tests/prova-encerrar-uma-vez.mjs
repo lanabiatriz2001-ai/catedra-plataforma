@@ -41,8 +41,8 @@ export async function testarProvaEncerrarUmaVez(page, base, ok, opcoes = {}) {
     try {
       // ── Modo ENAM ──
       window.__catedraGoView('simulados');
-      for(let i=0;i<100&&!document.querySelector('main button[data-v="treino"]');i++)await w(50);
-      document.querySelector('main button[data-v="treino"]').click();
+      for(let i=0;i<100&&!document.querySelector('aside button[data-view="simulados"][data-simaba="treino"]');i++)await w(50);
+      document.querySelector('aside button[data-view="simulados"][data-simaba="treino"]').click();
       for(let i=0;i<100&&!document.querySelector('main button[data-v="enam"]');i++)await w(50);
       for (let i = 0; i < 160 && !document.querySelector('main button[data-v="enam"]'); i++) await w(50);
       const chip = document.querySelector('main button[data-v="enam"]');
