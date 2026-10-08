@@ -4052,13 +4052,13 @@ catch (e) {
 }
 
 /* ============= ÁREAS — P19: foco de escopo para o beta público ============= */
-// CT_AREA_REG.PUBLICAS (só 'juridica') manda em quem ESCOLHE área — onboarding e Ajustes. A conta que já usa
+// CT_AREA_REG.PUBLICAS (Jurídica e OAB) manda em quem ESCOLHE área — onboarding e Ajustes. A conta que já usa
 // outra área continua nela; com a lista completa, tudo volta. Nenhum código ou dado removido.
 {
   const r = {};
   const R = (await import('../area-registry.js')).default || globalThis.CT_AREA_REG;
-  r.constanteInicial = Array.isArray(R.PUBLICAS) && R.PUBLICAS.length === 1 && R.PUBLICAS[0] === 'juridica';
-  r.publicaPura = R.publica('juridica') === true && R.publica('saude') === false && R.publica('saude', 'saude') === true && R.publica('policial', 'saude') === false;
+  r.constanteInicial = Array.isArray(R.PUBLICAS) && R.PUBLICAS.length === 2 && R.PUBLICAS.includes('juridica') && R.PUBLICAS.includes('oab');
+  r.publicaPura = R.publica('juridica') === true && R.publica('oab') === true && R.publica('saude') === false && R.publica('saude', 'saude') === true && R.publica('policial', 'saude') === false;
   r.registroIntacto = Object.keys(R.AREAS).length >= 8 && !!R.AREAS.saude && !!R.AREAS.policial;
   for (const [k, v] of Object.entries(r)) ok(v, 'ÁREAS/P19 puro ' + k);
   const host = URL0 + '/Catedra.dc.html';
@@ -4068,22 +4068,22 @@ catch (e) {
   const h = await page.evaluate(async () => {
     const w = ms => new Promise(res => setTimeout(res, ms));
     const r = {}, app = window.__catedraApp, R = window.CT_AREA_REG;
-    // conta nova: o onboarding oferece só a área jurídica
+    // conta nova: o onboarding oferece Jurídica e OAB
     app.setState({ onboardStep: 2 }); await w(400);   // o passo 2 é a área
     const cards = () => [...document.querySelectorAll('button[data-a]')].map(b => b.dataset.a).filter((v, i, l) => l.indexOf(v) === i);
-    r.onboardingSoJuridica = cards().length === 1 && cards()[0] === 'juridica';
+    r.onboardingJuridicaEOab = cards().length === 2 && cards().includes('juridica') && cards().includes('oab');
     // com a lista completa, tudo volta
     const pubAntes = R.PUBLICAS.slice(); R.PUBLICAS.push('saude', 'social', 'policial', 'fiscal', 'contas', 'administrativa', 'educacao', 'tecnologia', 'militar', 'outra'); app.setState({}); await w(300);
     r.listaCompletaTrazTudo = cards().length >= 10 && cards().includes('saude');
     R.PUBLICAS.length = 0; pubAntes.forEach(x => R.PUBLICAS.push(x)); app.setState({}); await w(300);
-    r.voltaAoFoco = cards().length === 1;
+    r.voltaAoFoco = cards().length === 2;
     // conta que já usa outra área continua vendo a sua (e só a sua fora da lista)
     app.setState({ onboardStep: 0, areaEstudo: 'saude' }); await w(400);
     window.__catedraGoView('ajustes'); await w(600);
     const abaPerfil = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => b.dataset.s === 'perfil'); if (abaPerfil) { abaPerfil.click(); await w(400); }
     app.setState({ areaSelOpen: true }); await w(400);   // o seletor de área de Ajustes abre sob demanda
     const emAjustes = cards();
-    r.contaAntigaContinua = emAjustes.includes('saude') && emAjustes.includes('juridica') && emAjustes.length === 2 && app.state.areaEstudo === 'saude';
+    r.contaAntigaContinua = emAjustes.includes('saude') && emAjustes.includes('juridica') && emAjustes.includes('oab') && emAjustes.length === 3 && app.state.areaEstudo === 'saude';
     app.setState({ areaEstudo: 'juridica', areaSelOpen: false }); await w(300);
     return r;
   });
