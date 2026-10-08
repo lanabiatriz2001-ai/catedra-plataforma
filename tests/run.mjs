@@ -2818,8 +2818,8 @@ for (const [k, v] of Object.entries(la6p)) ok(v, 'LEITURA/ONDE-MAIS prioridade '
       { id: 'lei|Código Civil|Art. 1.241|z', origem: 'lei', enunciado: 'Terceiro, errado e sem leitura.', certo: true, original: 'Terceiro.', ref: 'Código Civil · Art. 1.241', ramo: 'Código Civil', tema: 'Art. 1.241', url: CC, contexto: 'z' },
     ];
     window.__catedraGoView('simulados'); await w(400);
-      for(let i=0;i<100&&!document.querySelector('main button[data-v="treino"]');i++)await w(50);
-      document.querySelector('main button[data-v="treino"]').click();
+      for(let i=0;i<100&&!document.querySelector('aside button[data-view="simulados"][data-simaba="treino"]');i++)await w(50);
+      document.querySelector('aside button[data-view="simulados"][data-simaba="treino"]').click();
       for(let i=0;i<100&&!document.querySelector('main button[data-v="enam"]');i++)await w(50);
     // respostas: errou o 1.239 (marcou certo), acertou o 1.240, errou o 1.241 (marcou errado)
     const resp = {}; resp[itens[0].id] = true; resp[itens[1].id] = true; resp[itens[2].id] = false;
@@ -3123,8 +3123,8 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     const r = {}, app = window.__catedraApp;
     r.chaveNoAutosave = app._autosaveKeys().includes('enamSim');
     window.__catedraGoView('simulados'); await w(600);
-      for(let i=0;i<100&&!document.querySelector('main button[data-v="treino"]');i++)await w(50);
-      document.querySelector('main button[data-v="treino"]').click();
+      for(let i=0;i<100&&!document.querySelector('aside button[data-view="simulados"][data-simaba="treino"]');i++)await w(50);
+      document.querySelector('aside button[data-view="simulados"][data-simaba="treino"]').click();
       for(let i=0;i<100&&!document.querySelector('main button[data-v="enam"]');i++)await w(50);
     document.querySelector('main button[data-v="enam"]').click(); await w(200);
     const abrir = [...document.querySelectorAll('main button')].find(b => /^(Começar|Fechar)$/.test(b.textContent.trim())); if (abrir.textContent.trim() === 'Começar') { abrir.click(); await w(400); }
@@ -3261,8 +3261,8 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     const corToken = (t) => { const p = document.createElement('span'); p.style.color = 'var(' + t + ')'; document.querySelector('main').appendChild(p); const c = getComputedStyle(p).color; p.remove(); return c; };
     const montar = async () => {
       window.__catedraGoView('simulados'); await w(500);
-      for(let i=0;i<100&&!document.querySelector('main button[data-v="treino"]');i++)await w(50);
-      document.querySelector('main button[data-v="treino"]').click();
+      for(let i=0;i<100&&!document.querySelector('aside button[data-view="simulados"][data-simaba="treino"]');i++)await w(50);
+      document.querySelector('aside button[data-view="simulados"][data-simaba="treino"]').click();
       for(let i=0;i<100&&!document.querySelector('main button[data-v="enam"]');i++)await w(50);
       const chip = document.querySelector('main button[data-v="enam"]'); if (chip.getAttribute('aria-pressed') !== 'true') { chip.click(); await w(200); }
       const abrir = [...document.querySelectorAll('main button')].find(b => /^(Começar|Fechar)$/.test(b.textContent.trim())); if (abrir && abrir.textContent.trim() === 'Começar') { abrir.click(); await w(400); }
@@ -4052,13 +4052,13 @@ catch (e) {
 }
 
 /* ============= ÁREAS — P19: foco de escopo para o beta público ============= */
-// CT_AREA_REG.PUBLICAS (só 'juridica') manda em quem ESCOLHE área — onboarding e Ajustes. A conta que já usa
+// CT_AREA_REG.PUBLICAS (Jurídica e OAB) manda em quem ESCOLHE área — onboarding e Ajustes. A conta que já usa
 // outra área continua nela; com a lista completa, tudo volta. Nenhum código ou dado removido.
 {
   const r = {};
   const R = (await import('../area-registry.js')).default || globalThis.CT_AREA_REG;
-  r.constanteInicial = Array.isArray(R.PUBLICAS) && R.PUBLICAS.length === 1 && R.PUBLICAS[0] === 'juridica';
-  r.publicaPura = R.publica('juridica') === true && R.publica('saude') === false && R.publica('saude', 'saude') === true && R.publica('policial', 'saude') === false;
+  r.constanteInicial = Array.isArray(R.PUBLICAS) && R.PUBLICAS.length === 2 && R.PUBLICAS.includes('juridica') && R.PUBLICAS.includes('oab');
+  r.publicaPura = R.publica('juridica') === true && R.publica('oab') === true && R.publica('saude') === false && R.publica('saude', 'saude') === true && R.publica('policial', 'saude') === false;
   r.registroIntacto = Object.keys(R.AREAS).length >= 8 && !!R.AREAS.saude && !!R.AREAS.policial;
   for (const [k, v] of Object.entries(r)) ok(v, 'ÁREAS/P19 puro ' + k);
   const host = URL0 + '/Catedra.dc.html';
@@ -4068,22 +4068,22 @@ catch (e) {
   const h = await page.evaluate(async () => {
     const w = ms => new Promise(res => setTimeout(res, ms));
     const r = {}, app = window.__catedraApp, R = window.CT_AREA_REG;
-    // conta nova: o onboarding oferece só a área jurídica
+    // conta nova: o onboarding oferece Jurídica e OAB
     app.setState({ onboardStep: 2 }); await w(400);   // o passo 2 é a área
     const cards = () => [...document.querySelectorAll('button[data-a]')].map(b => b.dataset.a).filter((v, i, l) => l.indexOf(v) === i);
-    r.onboardingSoJuridica = cards().length === 1 && cards()[0] === 'juridica';
+    r.onboardingJuridicaEOab = cards().length === 2 && cards().includes('juridica') && cards().includes('oab');
     // com a lista completa, tudo volta
     const pubAntes = R.PUBLICAS.slice(); R.PUBLICAS.push('saude', 'social', 'policial', 'fiscal', 'contas', 'administrativa', 'educacao', 'tecnologia', 'militar', 'outra'); app.setState({}); await w(300);
     r.listaCompletaTrazTudo = cards().length >= 10 && cards().includes('saude');
     R.PUBLICAS.length = 0; pubAntes.forEach(x => R.PUBLICAS.push(x)); app.setState({}); await w(300);
-    r.voltaAoFoco = cards().length === 1;
+    r.voltaAoFoco = cards().length === 2;
     // conta que já usa outra área continua vendo a sua (e só a sua fora da lista)
     app.setState({ onboardStep: 0, areaEstudo: 'saude' }); await w(400);
     window.__catedraGoView('ajustes'); await w(600);
     const abaPerfil = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => b.dataset.s === 'perfil'); if (abaPerfil) { abaPerfil.click(); await w(400); }
     app.setState({ areaSelOpen: true }); await w(400);   // o seletor de área de Ajustes abre sob demanda
     const emAjustes = cards();
-    r.contaAntigaContinua = emAjustes.includes('saude') && emAjustes.includes('juridica') && emAjustes.length === 2 && app.state.areaEstudo === 'saude';
+    r.contaAntigaContinua = emAjustes.includes('saude') && emAjustes.includes('juridica') && emAjustes.includes('oab') && emAjustes.length === 3 && app.state.areaEstudo === 'saude';
     app.setState({ areaEstudo: 'juridica', areaSelOpen: false }); await w(300);
     return r;
   });
@@ -7277,7 +7277,9 @@ const AUDITOR = () => {
     const antesDeAbrir = mais ? mais.getAttribute('aria-expanded') : null;
     if (mais) { mais.click(); await w(400); }
     const mais2 = document.querySelector('button[aria-label="Mostrar mais opções"]');
-    const views = [...document.querySelectorAll('aside button[data-view]')].map(b => b.getAttribute('data-view'));
+    const botoes = [...document.querySelectorAll('aside button[data-view]')];
+    const views = botoes.map(b => b.getAttribute('data-view'));
+    const faseObjetiva = botoes.findIndex(b => b.dataset.view === 'simulados' && b.dataset.simaba === 'treino');
     const rotulos = [...document.querySelectorAll('aside div')]
       .map(d => (d.textContent || '').trim()).filter(t => t.length < 30 && t.length > 3);
     const ordem = (v) => views.indexOf(v);
@@ -7287,10 +7289,11 @@ const AUDITOR = () => {
         'redacao','oral','prioridade','bancas','analise','historico','ajustes'].every(v => views.includes(v)),
       // a rotina vem primeiro, depois o acervo base, depois as fases, depois o planejamento
       hojeAntesDoAcervo: ordem('inicio') < ordem('legis'),
-      acervoAntesDasFases: ordem('legis') < ordem('simulados'),
-      fasesAntesDoPlanejamento: ordem('simulados') < ordem('prioridade'),
+      acervoAntesDasFases: faseObjetiva >= 0 && ordem('legis') < faseObjetiva,
+      registroAntesDasFases: ordem('simulados') === ordem('ciclo') + 1 && ordem('simulados') < faseObjetiva,
+      fasesAntesDoPlanejamento: faseObjetiva >= 0 && faseObjetiva < ordem('prioridade'),
       // os rótulos dizem a fase
-      dizFases: rotulos.some(t => /fases da magistratura|treino/i.test(t)),
+      dizFases: rotulos.some(t => /^fases do concurso$/i.test(t)),
       dizEstudoBase: rotulos.some(t => /estudo base/i.test(t)),
       dizPlanejamento: rotulos.some(t => /planejamento/i.test(t)),
       // o expansor conta o seu estado
@@ -7654,7 +7657,7 @@ const AUDITOR = () => {
     return {
       nenhumAtalhoParaTelaBarrada: atalhos.every(v => !barrada.includes(v)),
       // o grupo só existe quando tem item embaixo — e em Saúde agora tem (simulado e oral)
-      grupoCoerenteComOsItens: (/TREINO/i.test(aside))
+      grupoCoerenteComOsItens: (/Fases do concurso/i.test(aside))
         === [...document.querySelectorAll('aside button[data-view]')]
           .some(b => ['simulados', 'redacao', 'roteiros', 'segundafase', 'oral'].includes(b.dataset.view)),
       aindaTemOQueEDela: atalhos.includes('areamod') || atalhos.includes('ciclo'),
@@ -7664,8 +7667,8 @@ const AUDITOR = () => {
   await saudeCtx2.close();
   // e Jurídica NÃO perde o cabeçalho do grupo
   const juridicaMantem = await areaPg.evaluate(() =>
-    /fases da magistratura/i.test((document.querySelector('aside') || {}).innerText || ''));
-  ok(juridicaMantem, 'AREA jurídica mantém o grupo "Fases da Magistratura"');
+    /fases do concurso/i.test((document.querySelector('aside') || {}).innerText || ''));
+  ok(juridicaMantem, 'AREA jurídica mantém o grupo "Fases do concurso"');
 
   // 9) todo satélite recebe a área — cinco dos sete não tinham como saber onde estavam
   const contextoSat = await areaPg.evaluate(async () => {

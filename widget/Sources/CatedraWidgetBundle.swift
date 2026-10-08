@@ -7,14 +7,18 @@ import SwiftUI
 enum Familias {
     #if os(iOS)
     static let agora: [WidgetFamily] = [.systemSmall, .systemMedium, .systemLarge, .accessoryRectangular, .accessoryInline]
-    static let prova: [WidgetFamily] = [.systemSmall, .accessoryCircular]
-    static let semana: [WidgetFamily] = [.systemSmall, .systemMedium, .accessoryCircular]
+    static let prova: [WidgetFamily] = [.systemSmall, .systemMedium, .systemLarge, .accessoryCircular, .accessoryRectangular]
+    static let semana: [WidgetFamily] = [.systemSmall, .systemMedium, .systemLarge, .accessoryCircular]
+    static let revisoes: [WidgetFamily] = [.systemSmall, .systemMedium, .systemLarge, .accessoryRectangular, .accessoryInline]
+    static let ritmo: [WidgetFamily] = [.systemSmall, .systemMedium, .accessoryCircular]
     #else
     static let agora: [WidgetFamily] = [.systemSmall, .systemMedium, .systemLarge]
-    static let prova: [WidgetFamily] = [.systemSmall]
-    static let semana: [WidgetFamily] = [.systemSmall, .systemMedium]
+    static let prova: [WidgetFamily] = [.systemSmall, .systemMedium, .systemLarge]
+    static let semana: [WidgetFamily] = [.systemSmall, .systemMedium, .systemLarge]
+    static let revisoes: [WidgetFamily] = [.systemSmall, .systemMedium, .systemLarge]
+    static let ritmo: [WidgetFamily] = [.systemSmall, .systemMedium]
     #endif
-    static let dodia: [WidgetFamily] = [.systemMedium, .systemLarge]
+    static let dodia: [WidgetFamily] = [.systemSmall, .systemMedium, .systemLarge]
     static let painel: [WidgetFamily] = [.systemExtraLarge]
 }
 
@@ -59,6 +63,24 @@ struct CatedraWidgetPainel: Widget {
     }
 }
 
+struct CatedraWidgetRevisoes: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "revisoes", provider: ProvedorCatedra()) { TelaRevisoes(e: $0) }
+            .configurationDisplayName("Revisões")
+            .description("As revisões de hoje e a agenda dos próximos dias.")
+            .supportedFamilies(Familias.revisoes)
+    }
+}
+
+struct CatedraWidgetRitmo: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "ritmo", provider: ProvedorCatedra()) { TelaRitmo(e: $0) }
+            .configurationDisplayName("Ritmo de hoje")
+            .description("Seu tempo estudado, a meta do dia e o próximo bloco.")
+            .supportedFamilies(Familias.ritmo)
+    }
+}
+
 @main
 struct CatedraWidgets: WidgetBundle {
     var body: some Widget {
@@ -67,5 +89,7 @@ struct CatedraWidgets: WidgetBundle {
         CatedraWidgetSemana()
         CatedraWidgetDoDia()
         CatedraWidgetPainel()
+        CatedraWidgetRevisoes()
+        CatedraWidgetRitmo()
     }
 }

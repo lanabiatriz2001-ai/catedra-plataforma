@@ -784,6 +784,7 @@ window.ctPdfLib = (function(){
     <nav style="display:flex;flex-direction:column;gap:3px;">
       <button data-view="inicio" aria-current="{{ navCur.inicio }}" onclick="{{ onNav }}" style="{{ navStyle.inicio }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 12 12 3l9 9M5 10v10h14V10" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Início</span></button>
       <button data-view="ciclo" aria-current="{{ navCur.ciclo }}" onclick="{{ onNav }}" style="{{ navStyle.ciclo }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 4h16v4H4zM4 10h16v4H4zM4 16h16v4H4z" stroke-linejoin="round"></path></svg><span>Ciclo de Estudos</span></button>
+      <sc-if value="{{ capRegistroSim }}" hint-placeholder-val="{{ true }}"><button data-view="simulados" data-simaba="registro" aria-current="{{ navSimRegistroCur }}" onclick="{{ onNav }}" style="{{ navSimRegistro }}"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 4h6a1 1 0 0 1 1 1v1h2v15H6V6h2V5a1 1 0 0 1 1-1Z" stroke-linejoin="round"></path><path d="M9 12l1.5 1.5L13 11" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Registrar Raio X</span></button></sc-if>
       <button data-view="revisoes" aria-current="{{ navCur.revisoes }}" onclick="{{ onNav }}" style="{{ navStyle.revisoes }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v4h-4" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Revisões</span><sc-if value="{{ revHasPend }}" hint-placeholder-val="{{ false }}"><span style="margin-left:auto;background:var(--accentSolid);color:var(--onAccent);font-size:var(--fs-xs);font-weight:700;min-width:20px;height:20px;border-radius:99px;display:flex;align-items:center;justify-content:center;padding:0 5px;">{{ revPendStr }}</span></sc-if></button>
       <button data-view="flashcards" aria-current="{{ navCur.flashcards }}" onclick="{{ onNav }}" style="{{ navStyle.flashcards }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M8 6h11a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2zM3 16V5a2 2 0 0 1 2-2h11" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Baralho</span><sc-if value="{{ fcTemDue }}" hint-placeholder-val="{{ false }}"><span style="margin-left:auto;background:var(--accentSolid);color:var(--onAccent);font-size:var(--fs-xs);font-weight:700;min-width:20px;height:20px;border-radius:99px;display:flex;align-items:center;justify-content:center;padding:0 5px;">{{ fcDueStr }}</span></sc-if></button>
       <button data-view="calendario" aria-current="{{ navCur.calendario }}" onclick="{{ onNav }}" style="{{ navCalendario }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M3 9h18M8 2v4M16 2v4" stroke-linecap="round"></path></svg><span>Calendário</span></button>
@@ -799,9 +800,11 @@ window.ctPdfLib = (function(){
     </nav>
     <sc-if value="{{ temGrupoFases }}" hint-placeholder-val="{{ true }}"><div style="font-size:var(--fs-2xs);letter-spacing:.14em;text-transform:uppercase;color:var(--stext);opacity:.65;font-weight:600;padding:18px 8px 8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);">{{ navGrupoFases }}</div></sc-if>
     <sc-if value="{{ temGrupoFases }}" hint-placeholder-val="{{ true }}"><nav style="display:flex;flex-direction:column;gap:3px;">
-      <sc-if value="{{ capSimulados }}" hint-placeholder-val="{{ true }}"><button data-view="simulados" aria-current="{{ navCur.simulados }}" onclick="{{ onNav }}" style="{{ navStyle.simulados }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 4h6a1 1 0 0 1 1 1v1h2v15H6V6h2V5a1 1 0 0 1 1-1Z" stroke-linejoin="round"></path><path d="M9 12l1.5 1.5L13 11" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Simulados</span></button></sc-if>
-      <sc-if value="{{ capRedacao }}" hint-placeholder-val="{{ true }}"><button data-view="redacao" aria-current="{{ navSegundaCur }}" onclick="{{ onNav }}" style="{{ navSegundaHub }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 20h16M4 16l9.5-9.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>2ª fase</span></button></sc-if>
-      <sc-if value="{{ capOral }}" hint-placeholder-val="{{ true }}"><button data-view="oral" aria-current="{{ navCur.oral }}" onclick="{{ onNav }}" style="{{ navOral }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z" stroke-linejoin="round"></path><path d="M5 11a7 7 0 0 0 14 0M12 18v3" stroke-linecap="round"></path></svg><span>Prova oral</span></button></sc-if>
+      <sc-if value="{{ capOab }}"><button class="ct-btn-2" data-view="oab" data-oabfase="1" onclick="{{ onNav }}" style="{{ navOabObjetiva }}" aria-current="{{ navOabObjetivaCur }}">Fase Objetiva</button><button class="ct-btn-2" data-view="oab" data-oabfase="2" onclick="{{ onNav }}" style="{{ navOabPratica }}" aria-current="{{ navOabPraticaCur }}">Fase Prático-profissional</button></sc-if>
+
+      <sc-if value="{{ capSimulados }}" hint-placeholder-val="{{ true }}"><button data-view="simulados" data-simaba="treino" aria-current="{{ navSimTreinoCur }}" onclick="{{ onNav }}" style="{{ navSimTreino }}"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 4h6a1 1 0 0 1 1 1v1h2v15H6V6h2V5a1 1 0 0 1 1-1Z" stroke-linejoin="round"></path><path d="M9 12l1.5 1.5L13 11" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Fase Objetiva</span></button></sc-if>
+      <sc-if value="{{ capRedacao }}" hint-placeholder-val="{{ true }}"><button data-view="redacao" aria-current="{{ navSegundaCur }}" onclick="{{ onNav }}" style="{{ navSegundaHub }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 20h16M4 16l9.5-9.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Fase Discursiva</span></button></sc-if>
+      <sc-if value="{{ capOral }}" hint-placeholder-val="{{ true }}"><button data-view="oral" aria-current="{{ navCur.oral }}" onclick="{{ onNav }}" style="{{ navOral }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z" stroke-linejoin="round"></path><path d="M5 11a7 7 0 0 0 14 0M12 18v3" stroke-linecap="round"></path></svg><span>Fase Oral</span></button></sc-if>
     </nav></sc-if>
     <div style="font-size:var(--fs-2xs);letter-spacing:.14em;text-transform:uppercase;color:var(--stext);opacity:.65;font-weight:600;padding:18px 8px 8px;margin-top:8px;border-top:1px solid rgba(255,255,255,.08);">Planejamento</div>
     <nav style="display:flex;flex-direction:column;gap:3px;">
@@ -1653,6 +1656,20 @@ window.ctPdfLib = (function(){
      <div style="{{ contentInnerStyle }}">
 
       <!-- ================= INÍCIO (Vitrine Editorial · Take 1 aprovado) ================= -->
+      <sc-if value="{{ oabTela }}"><section class="ct-card ct-oab" aria-label="Percurso OAB" style="padding:var(--ct-e5);display:flex;flex-direction:column;gap:var(--ct-e4);">
+        <div><div class="ct-eb">OAB · seu caderno de preparação</div><h2 class="ct-titulo">{{ oabTitulo }}</h2><p class="ct-nota">{{ oabRegra }}</p></div>
+        <nav class="ct-fluxo-abas" aria-label="Fase OAB"><button class="ct-btn-2" data-v="1" onclick="{{ oabFase }}" aria-pressed="{{ oabFase1 }}">1ª fase</button><button class="ct-btn-2" data-v="2" onclick="{{ oabFase }}" aria-pressed="{{ oabFase2 }}">2ª fase</button></nav>
+        <sc-if value="{{ oabSegunda }}"><label class="ct-rotulo">Área da segunda fase<select class="ct-campo" aria-label="Área da segunda fase OAB" value="{{ oabArea }}" onchange="{{ oabAreaTrocar }}"><sc-for list="{{ oabAreas }}" as="a"><option value="{{ a.id }}" selected="{{ a.sel }}">{{ a.nome }}</option></sc-for></select></label></sc-if>
+        <div class="ct-surface" style="padding:var(--ct-e4);"><div class="ct-eb">Agora no seu ciclo · {{ oabPos }}</div><h3>{{ oabAtividade }}</h3><p class="ct-nota">{{ oabPontoResumo }}</p></div>
+        <div style="display:flex;gap:var(--ct-e3);flex-wrap:wrap;"><button class="ct-btn-2" onclick="{{ oabModelo }}">Adicionar edital desta fase</button><a class="ct-btn-2" href="https://examedeordem.oab.org.br/EditaisProvas?NumeroExame=17734" target="_blank" rel="noopener noreferrer">Provas e espelhos oficiais</a></div>
+        <sc-if value="{{ oabPrimeira }}"><p class="ct-nota">Resolva o caderno oficial ou suas questões no material de preferência. Use seu caderno de questões e registre acertos e erros em Registrar Raio X.</p><button class="ct-btn-2" onclick="{{ oabRegistro }}">Registrar resultado objetivo</button></sc-if>
+        <sc-if value="{{ oabSegunda }}"><label class="ct-rotulo">Enunciado do seu treino<textarea class="ct-campo" aria-label="Enunciado OAB" data-k="enunciado" oninput="{{ oabCampo }}" value="{{ oabEnunciado }}" rows="3" placeholder="Cole a peça ou uma questão da área escolhida"></textarea></label><label class="ct-rotulo">Sua resposta<textarea class="ct-campo" aria-label="Resposta OAB" data-k="resposta" oninput="{{ oabCampo }}" value="{{ oabResposta }}" rows="8" placeholder="Escreva antes de conferir o espelho"></textarea></label><button class="ct-btn-2" onclick="{{ oabComparar }}">{{ oabCompararLabel }}</button><sc-if value="{{ oabConferindo }}"><label class="ct-rotulo">Espelho do seu material<textarea class="ct-campo" aria-label="Espelho OAB" data-k="espelho" oninput="{{ oabCampo }}" value="{{ oabEspelho }}" rows="5" placeholder="Cole os critérios do espelho e compare com a sua resposta"></textarea></label><p class="ct-nota">Confira identificação da peça, fundamento legal e cada item pontuável. A comparação é sua; o Cátedra não atribui nota oficial.</p></sc-if></sc-if>
+        <label class="ct-rotulo">Onde parei<input class="ct-campo" aria-label="Onde parei OAB" data-k="ponto" value="{{ oabPonto }}" oninput="{{ oabCampo }}" placeholder="Página, questão ou próximo parágrafo"></label>
+        <label class="ct-rotulo">Minutos estudados nesta sessão<input class="ct-campo" aria-label="Minutos OAB" type="number" min="0" max="600" data-k="min" value="{{ oabMin }}" oninput="{{ oabCampo }}"></label>
+        <div style="display:flex;gap:var(--ct-e3);flex-wrap:wrap;"><button class="ct-btn" onclick="{{ oabGuardar }}">Guardar por hoje</button><button class="ct-btn-2" data-id="{{ oabAtividadeId }}" onclick="{{ oabConcluir }}">Concluir atividade e avançar</button></div><p class="ct-nota">Guardar registra os minutos e mantém esta atividade. O ciclo só avança quando você conclui. Respostas e pontos de retomada ficam separados por fase e área.</p>
+        <sc-if value="{{ oabHistoricoTem }}"><details><summary>Treinos concluídos</summary><sc-for list="{{ oabHistorico }}" as="h"><details class="ct-card" style="padding:var(--ct-e3);"><summary>{{ h.rotulo }}</summary><p style="white-space:pre-wrap;overflow-wrap:anywhere;">{{ h.enunciado }}</p><div class="ct-eb">Sua resposta</div><p style="white-space:pre-wrap;overflow-wrap:anywhere;">{{ h.resposta }}</p><div class="ct-eb">Espelho do material</div><p style="white-space:pre-wrap;overflow-wrap:anywhere;">{{ h.espelho }}</p><p>{{ h.ponto }}</p></details></sc-for></details></sc-if>
+        <a class="ct-btn-2" href="https://s.oab.org.br/arquivos/2026/09/fb43fb37-838e-4d33-a863-99fa1f98b921.pdf" target="_blank" rel="noopener noreferrer">Regras: edital oficial do 48º Exame, itens 3 e 4</a>
+      </section></sc-if>
       <sc-if value="{{ isInicio }}" hint-placeholder-val="{{ true }}">
        <div style="display:flex;flex-direction:column;gap:14px;">
 
@@ -3478,7 +3495,7 @@ window.ctPdfLib = (function(){
            bordas de 3px e sombra dura que não existem em nenhuma outra tela do Cátedra.
            Agora segue a linguagem da plataforma: superfície clara, raio do tema, sombra
            suave, gradiente do acento nos destaques. -->
-      <sc-if value="{{ isSegundaHub }}"><nav class="ct-fluxo-abas" aria-label="2ª fase"><button class="ct-btn-2" data-view="redacao" aria-current="{{ navCur.redacao }}" onclick="{{ onNav }}">Treino escrito</button><button class="ct-btn-2" data-view="segundafase" aria-current="{{ navCur.segundafase }}" onclick="{{ onNav }}">Provas oficiais</button></nav></sc-if>
+      <sc-if value="{{ isSegundaHub }}"><nav class="ct-fluxo-abas" aria-label="Fase Discursiva"><button class="ct-btn-2" data-view="redacao" aria-current="{{ navCur.redacao }}" onclick="{{ onNav }}">Treino escrito</button><button class="ct-btn-2" data-view="segundafase" aria-current="{{ navCur.segundafase }}" onclick="{{ onNav }}">Provas oficiais</button></nav></sc-if>
       <sc-if value="{{ isRedacao }}" hint-placeholder-val="{{ false }}">
        <div style="display:flex;flex-direction:column;gap:20px;">
 
@@ -4400,7 +4417,6 @@ window.ctPdfLib = (function(){
 
       <sc-if value="{{ isSim }}" hint-placeholder-val="{{ true }}">
        <div style="display:flex;flex-direction:column;gap:18px;">
-        <nav class="ct-fluxo-abas" aria-label="Simulados"><button class="ct-btn-2" data-v="registro" aria-pressed="{{ simRegistroStr }}" onclick="{{ setSimAba }}">Registrar e Raio X</button><button class="ct-btn-2" data-v="treino" aria-pressed="{{ simTreinoStr }}" onclick="{{ setSimAba }}">Treinar 1ª fase</button></nav>
         <sc-if value="{{ simTreino }}">
         <!-- SIMULADO JOGÁVEL — veio do CátedraJURIS. Ao encerrar, preenche o formulário
              de registro abaixo, e o resultado passa a contar no desempenho.
@@ -4525,7 +4541,7 @@ window.ctPdfLib = (function(){
                     <div class="ct-num"><b>{{ sjBrancos }}</b><span>Em branco</span></div>
                   </div>
                   </sc-if>
-                  <div style="font-size:var(--fs-sm);color:var(--text3);line-height:1.55;margin-bottom:14px;">Os números estão preparados na aba Registrar e Raio X. Confira e registre para contar no seu desempenho.</div><button class="ct-btn" data-v="registro" onclick="{{ setSimAba }}">Conferir e registrar resultado</button>
+                  <div style="font-size:var(--fs-sm);color:var(--text3);line-height:1.55;margin-bottom:14px;">Os números estão preparados em Registrar Raio X. Confira e registre para contar no seu desempenho.</div><button class="ct-btn" data-v="registro" onclick="{{ setSimAba }}">Conferir e registrar resultado</button>
                   <button onclick="{{ novoSj }}" class="ct-btn-2" style="margin-bottom:16px;">Novo simulado</button>
                   <sc-if value="{{ sjTemRel }}" hint-placeholder-val="{{ false }}">
                     <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:18px;">
@@ -7243,10 +7259,11 @@ const AJ_SECOES = [
 ];
 
 const CT_AREAS = [
-  {id:'juridica', essenciais:[{v:'legis',ico:'scale',t:'Lei seca',d:'CátedraLEGIS já aberto na legislação da área'},{v:'juris',ico:'landmark',t:'Jurisprudência',d:'súmulas e teses — 15 mil verbetes'},{v:'redacao',ico:'pen-line',t:'2ª fase',d:'provas reais com espelho oficial da banca'},{v:'oral',ico:'mic',t:'Prova oral',d:'perguntas que as bancas já fizeram'},{v:'areamod',ico:'compass',t:'Processo e peças',d:'ritos com desvios e peças penduradas'}], ico:'scale', label:'Jurídica', desc:'Magistratura, MP, Defensoria, Procuradorias, tribunais, OAB',
+  {id:'juridica', essenciais:[{v:'legis',ico:'scale',t:'Lei seca',d:'CátedraLEGIS já aberto na legislação da área'},{v:'juris',ico:'landmark',t:'Jurisprudência',d:'súmulas e teses — 15 mil verbetes'},{v:'redacao',ico:'pen-line',t:'2ª fase',d:'provas reais com espelho oficial da banca'},{v:'oral',ico:'mic',t:'Prova oral',d:'perguntas que as bancas já fizeram'},{v:'areamod',ico:'compass',t:'Processo e peças',d:'ritos com desvios e peças penduradas'}], ico:'scale', label:'Jurídica', desc:'Magistratura, MP, Defensoria, Procuradorias e tribunais',
    juridico:true, juris:true, modulo:'Processo e peças', cats:['Lei seca','Jurisprudência'],
    discs:['Direito Constitucional','Direito Administrativo','Direito Civil','Direito Processual Civil','Direito Penal','Direito Processual Penal'],
    modelos:['magistratura','enam','promotor','defensor','procurador','juizfederal','tribunais','tj','consultor','oab1','oab2Administrativo','oab2Civil','oab2Constitucional','oab2Empresarial','oab2Penal','oab2Trabalho','oab2Tributario','juizTJBA','juizTJPE','juizTJRS','juizTJGO','juizFederalTRF5','procuradorManaus','trt8Analista','tjceAnalista','tjscAnalistaJuridico','tjscOficialJustica','dpepbAnalista']},
+  {id:'oab',ico:'graduation-cap',label:'OAB',desc:'1ª e 2ª fases · caderno e ciclo próprios',juridico:true,juris:true,modulo:'',cats:['Lei seca','Jurisprudência'],discs:['Ética Profissional','Direito Constitucional','Direito Administrativo','Direito Civil','Direito Processual Civil','Direito Penal','Direito Processual Penal','Direito do Trabalho','Direito Processual do Trabalho','Direito Empresarial','Direito Tributário'],modelos:['oab1','oab2Administrativo','oab2Civil','oab2Constitucional','oab2Empresarial','oab2Penal','oab2Trabalho','oab2Tributario'],essenciais:[{v:'oab',ico:'graduation-cap',t:'Meu percurso OAB',d:'Ciclo contínuo e retomada do treino escrito'},{v:'edital',ico:'list-checks',t:'Edital OAB',d:'Modelos da primeira fase e das sete áreas da segunda'}]},
   {id:'saude', essenciais:[{v:'areamod',ico:'heart-pulse',t:'Corpo humano',d:'o módulo de estudo da área'},{v:'simulados',ico:'clipboard-list',t:'Simulados',d:'treino por questões com relatório final'},{v:'ciclo',ico:'refresh-cw',t:'Ciclo',d:'roteiro de estudo com caso clínico e protocolo'},{v:'edital',ico:'scroll-text',t:'Edital',d:'pesos e cobertura por disciplina'},{v:'revisoes',ico:'repeat',t:'Revisões',d:'espaçadas, no ritmo FSRS'}], ico:'stethoscope', label:'Saúde e Medicina', desc:'Residência, Revalida, enfermagem, farmácia, odontologia, concursos da saúde',
    juridico:false, juris:false, modulo:'Corpo humano', cats:['Caso clínico','Protocolo/diretriz'],
    discs:['Clínica Médica','Cirurgia','Pediatria','Ginecologia e Obstetrícia','Medicina Preventiva','Saúde Pública / SUS'],
@@ -7537,7 +7554,7 @@ class Component extends DCLogic {
       cicloVolta: this._load('cicloVolta', null),          // a VOLTA do ciclo (modos automáticos): blocos em ordem, com done/doneDate
       manualVoltaN: this._load('manualVoltaN', 1),         // nº da volta do ciclo manual
       cicloExtrasFora: null,                                // extras do dia tirados pela pessoa (só de tela)
-      cycleMode: (typeof localStorage!=='undefined' && localStorage.getItem('catedra:cycleMode')) || 'sugestao',
+      cycleMode:this._cycleModeLoad(),
       // Aba do Ciclo: executar (a rotina do dia) ou configurar (como o ciclo é montado).
       // NÃO entra em _autosaveKeys: é estado de tela, e a tela tem de abrir sempre pronta
       // para executar — quem configurou ontem quer estudar hoje, não reabrir o construtor.
@@ -7551,6 +7568,7 @@ class Component extends DCLogic {
       rotPointer:this._load('rotPointer', 0),
       manualFixedRoteiroAtual:this._load('manualFixedRoteiroAtual', ''),
       agendaFeitas:this._load('agendaFeitas', {}),
+      oabPlano:this._load('oabPlano', null),oabHist:this._load('oabHist', []),
       cmag:this._load('cmag', null),                       // Ciclo Magistratura (ciclo-magistratura.js); null = método nunca usado
       cmagRevs:this._load('cmagRevs', []),                 // revisões D+7/30/90 do Ciclo Magistratura (array com id/up: merge por id)
       edital: this._load('edital', []),
@@ -8420,7 +8438,7 @@ class Component extends DCLogic {
         patch.orient=o; } } }catch(_){}
     try{ const _h=localStorage.getItem('catedra:habitos'); if(_h){ const p=JSON.parse(_h); if(p&&typeof p==='object') patch.habitos={...this.state.habitos, ...p}; } }catch(_){}
     try{ const _pv=localStorage.getItem('catedra:prova'); patch.provaData=_pv||null; }catch(_){}
-    try{ const _cm=localStorage.getItem('catedra:cycleMode'); if(_cm) patch.cycleMode=_cm; }catch(_){}
+    try{ const _cm=localStorage.getItem(this._chave('cycleMode')); if(_cm) patch.cycleMode=_cm; }catch(_){}
     try{ patch.flashcards=this._loadFC(); }catch(_){}
     // TODAS as outras chaves que o _autosave gerencia. Sem isto, o que a nuvem
     // acabou de mesclar (ciclo, prefs, perfil, simulado, redação…) era regravado
@@ -8670,6 +8688,7 @@ class Component extends DCLogic {
   // O ciclo tem "dia": ao virar a data, zera os blocos concluídos (o ciclo recomeça) e,
   // no modo manual, avança o rodízio — como diz a UI "ao concluir o dia, o rodízio avança".
   _reconcileCiclo(){
+    if(this.state.areaEstudo==='oab'){this._oabSincronizar();return;}
     try{
       const hoje=this._hoje(); const prev=this.state.blocksDate;
       // Modo MANUAL: os blocos são DERIVADOS de manualFixed + agendaFeitas p/ HOJE (inclui as
@@ -8969,7 +8988,7 @@ class Component extends DCLogic {
     'planHoras','simAnalysis','multiFmt','multiSrc','mfGen','ankiImported','bancaDicas',
     'bancaAreaSel','bancaSel','bancaAreaConc','bancaAssunto','semanaLidos','espelhosSugeridos',
     'redProvaId','ajPerfis','lastPonto','lastPontoDispensado','provaDurationMin','sessions','sessionsLixeira',
-    'hl','fc','casos',
+    'hl','fc','casos','oabPlano','oabHist','cmag','cmagRevs',
     // os concursos projetam o `edital`, que é da área: ficam na mesma área que ele
     'editais','editalAtivo','editaisGerenciados']);
   /** A área ativa, legível ANTES de this.state existir (o construtor usa _load). */
@@ -9001,6 +9020,7 @@ class Component extends DCLogic {
     }catch(_){ return ''; }
   }
   _chave(k){
+    if(k==='cycleMode' && this._areaAtiva()==='oab') return 'catedra:cycleMode@oab';
     let c;
     if(!this.AREA_PROPRIA.has(k)) c='catedra:'+k;
     else { const a=this._areaAtiva(); c=(!a || a==='juridica') ? ('catedra:'+k) : ('catedra:'+k+'@'+a); }   // as chaves de sempre, intocadas
@@ -9105,7 +9125,7 @@ class Component extends DCLogic {
   // Chaves que o app salva sozinho. Lista ÚNICA: o _autosave grava a partir dela e
   // o _rehydrateFromLocal recarrega a partir dela — se as duas divergirem, o que vem
   // da nuvem é sobrescrito pela memória velha deste aparelho.
-  _autosaveKeys(){ return ['areaEstudo', 'casos', 'edital', 'editais', 'editalAtivo', 'editaisGerenciados', 'reviews', 'leituras', 'enam', 'enamSim', 'aceite', 'iaConsentimento', 'blocks', 'blocksDate', 'cicloVolta', 'manualVoltaN', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs','redTempoMs', 'redGabarito', 'redEnunciado', 'redMarcas', 'redDisciplina', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'novidLidas', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis', 'cmag', 'cmagRevs']; }
+  _autosaveKeys(){ return ['areaEstudo', 'oabPlano', 'oabHist', 'casos', 'edital', 'editais', 'editalAtivo', 'editaisGerenciados', 'reviews', 'leituras', 'enam', 'enamSim', 'aceite', 'iaConsentimento', 'blocks', 'blocksDate', 'cicloVolta', 'manualVoltaN', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs','redTempoMs', 'redGabarito', 'redEnunciado', 'redMarcas', 'redDisciplina', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'novidLidas', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis', 'cmag', 'cmagRevs']; }
   /** Grava JÁ o que está pendente, sem esperar o debounce de 500 ms.
       PENDENTE é só o que a memória mudou desde o último salvamento (a mesma régua do
       _autosave). O resto já está no disco — e o disco pode ter acabado de receber a nuvem:
@@ -9129,7 +9149,32 @@ class Component extends DCLogic {
   }
   /** O vazio certo de cada chave — array, objeto ou escalar. Sem isto, um caderno novo
       nasceria com `undefined` onde a tela espera lista. */
+  _oabPlano(){const {historico,...p}=this.state.oabPlano||{};return {fase:'1',area:'Civil',pos:{},rascunhos:{},feitos:{},voltas:{},concursos:{},...p};}
+  _oabChave(p){return p.fase==='2'?'2-'+p.area:'1';}
+  _oabFila(p){
+    const key=this._oabChave(p),f=(disc,etapa,categoria)=>({id:key+'|'+disc+'|'+etapa,disc,etapa,categoria,nome:disc+' · '+etapa});
+    if(p.fase==='2'){const disc=p.area==='Trabalho'?'Direito do Trabalho':p.area==='Tributario'?'Direito Tributário':'Direito '+p.area;return [f(disc,'Leitura da área','Doutrina'),f(disc,'Identificação e redação da peça','Redação'),...Array.from({length:4},(_,i)=>f(disc,'Questão discursiva '+(i+1),'Questões')),f(disc,'Revisão dos erros e cartões','Revisão')];}
+    const modelo=this._modeloDiscs('oab1'),ed=((p.concursos['1']===this.state.editalAtivo||(!Object.keys(p.concursos).length&&!/OAB.*2ª/.test((this._concursoAtivo()||{}).nome||'')))?this._edVista():[]).filter(d=>!d.foraDoConcurso&&(d.topics||[]).length),fallback=['Estatuto da Advocacia e da OAB, Regulamento Geral e Código de Ética e Disciplina','Direito Administrativo','Direito Civil','Direito Processual Civil','Direito Constitucional','Direito do Trabalho','Direito Processual do Trabalho','Direito Empresarial','Direito Penal','Direito Processual Penal','Direito Tributário e Processual Tributário','Direito do Consumidor','Direito da Criança e do Adolescente','Direito Ambiental','Direito Financeiro','Direito Previdenciário','Direito Eleitoral','Direitos Humanos','Filosofia do Direito','Direito Internacional'];
+    const discs=ed.length?ed.map(d=>d.disc):modelo.length?modelo.map(d=>d[0]):fallback;
+    return [...new Set(discs)].flatMap(disc=>[f(disc,'Leitura da doutrina','Doutrina'),f(disc,'Questões','Questões'),f(disc,'Revisão dos erros e cartões','Revisão')]);
+  }
+  _oabAtual(p){const fila=this._oabFila(p),key=this._oabChave(p);return fila.find(a=>a.id===p.pos[key])||fila.find(a=>!p.feitos[a.id])||fila[0];}
+  _oabRascunhoKey(p){return this._oabAtual(p).id;}
+  _oabSincronizar(){if(this.state.areaEstudo!=='oab')return;const p=this._oabPlano(),legado=(this.state.oabPlano||{}).historico;const oabHist=Array.isArray(legado)?[...new Map([...legado.map(h=>({...h,up:h.up||h.ts||Date.now()})),...(this.state.oabHist||[])].map(h=>[h.id,h])).values()]:this.state.oabHist;const fila=this._oabFila(p),atual=this._oabAtual(p),i=fila.findIndex(a=>a.id===atual.id),ordem=fila.slice(i).concat(fila.slice(0,i)),velhos=new Map((this.state.blocks||[]).map(b=>[b.id,b]));const blocks=ordem.map(a=>({...velhos.get(a.id),id:a.id,disc:a.nome,discEdital:a.disc,min:30,done:!!p.feitos[a.id],categoria:a.categoria,oab:true}));this.setState({oabPlano:p,oabHist,blocks,blocksDate:this._hoje(),cycleMode:'manual'},()=>this._salvarAgora());}
+  _oabVM(navStyle){const p=this._oabPlano(),k=this._oabRascunhoKey(p),fila=this._oabFila(p),a=this._oabAtual(p),d=p.rascunhos[k]||{};return {oabTela:this.state.areaEstudo==='oab'&&['inicio','ciclo','oab'].includes(this.state.view),oabPrimeira:p.fase==='1',oabSegunda:p.fase==='2',oabFase1:p.fase==='1'?'true':'false',oabFase2:p.fase==='2'?'true':'false',oabTitulo:p.fase==='1'?'Primeira fase · construir acertos':'Segunda fase · '+p.area,oabRegra:p.fase==='1'?'80 questões · aprovação a partir de 40 acertos · 5 horas':'Uma peça e quatro questões · aprovação a partir de 6 pontos · 5 horas',oabArea:p.area,oabAreas:['Administrativo','Civil','Constitucional','Empresarial','Penal','Trabalho','Tributario'].map(id=>({id,nome:id==='Tributario'?'Direito Tributário':id==='Trabalho'?'Direito do Trabalho':'Direito '+id,sel:p.area===id})),oabPos:(fila.findIndex(x=>x.id===a.id)+1)+'/'+fila.length,oabAtividade:a.nome,oabAtividadeId:a.id,oabPontoResumo:d.ponto?'Retomar: '+d.ponto:({Doutrina:'Leia seu material e guarde a página quando precisar parar.',Questões:'Responda esta atividade com suas palavras e confira depois.',Redação:'Identifique a peça e redija antes de conferir o espelho.',Revisão:'Revise os erros e cartões desta matéria.'}[a.categoria]),oabPonto:d.ponto||'',oabMin:d.min||'',oabEnunciado:d.enunciado||'',oabResposta:d.resposta||'',oabEspelho:d.espelho||'',oabConferindo:!!d.conferindo,oabCompararLabel:d.conferindo?'Ocultar espelho':'Conferir com o espelho',oabHistorico:(this.state.oabHist||[]).map(h=>({...h,...h.rascunho,rotulo:h.atividade+' · '+new Date(h.ts).toLocaleDateString('pt-BR')})),oabHistoricoTem:(this.state.oabHist||[]).length>0,oabFase:this.oabFase,oabAreaTrocar:this.oabAreaTrocar,oabCampo:this.oabCampo,oabModelo:this.oabModelo,oabRegistro:this.oabRegistro,oabComparar:this.oabComparar,oabGuardar:this.oabGuardar,oabConcluir:this.oabConcluir,navOabObjetiva:navStyle(p.fase==='1'?'oab':'oab-outra'),navOabPratica:navStyle(p.fase==='2'?'oab':'oab-outra'),navOabObjetivaCur:this.state.view==='oab'&&p.fase==='1'?'page':'false',navOabPraticaCur:this.state.view==='oab'&&p.fase==='2'?'page':'false'};}
+  oabFase=(e)=>{if(this.state.areaEstudo!=='oab')return;const fase=e.currentTarget.dataset.v==='2'?'2':'1';this._oabTrocaToken=(this._oabTrocaToken||0)+1;this.setState({oabPlano:{...this._oabPlano(),fase}},()=>this._oabConcursoSelecionar());};
+  oabAreaTrocar=(e)=>{const area=e.target.value;if(!['Administrativo','Civil','Constitucional','Empresarial','Penal','Trabalho','Tributario'].includes(area)||this.state.areaEstudo!=='oab')return;this._oabTrocaToken=(this._oabTrocaToken||0)+1;this.setState({oabPlano:{...this._oabPlano(),area}},()=>this._oabConcursoSelecionar());};
+  oabCampo=(e)=>{if(this.state.areaEstudo!=='oab')return;const campo=e.currentTarget.dataset.k;if(!['enunciado','resposta','espelho','ponto','min'].includes(campo))return;const p=this._oabPlano(),k=this._oabRascunhoKey(p);this.setState({oabPlano:{...p,rascunhos:{...p.rascunhos,[k]:{...p.rascunhos[k],[campo]:e.target.value}}}},()=>this._salvarAgora());};
+  oabComparar=()=>{if(this.state.areaEstudo!=='oab')return;const p=this._oabPlano(),k=this._oabRascunhoKey(p),d=p.rascunhos[k]||{};this.setState({oabPlano:{...p,rascunhos:{...p.rascunhos,[k]:{...d,conferindo:!d.conferindo}}}},()=>this._salvarAgora());};
+  oabRegistro=()=>this._irPara('simulados',{simAba:'registro'});
+  _oabConcursoSelecionar(){const p=this._oabPlano(),key=this._oabChave(p),id=p.concursos[key];if(id&&!(this.state.editais||[]).some(e=>e.id===id)){const concursos={...p.concursos};delete concursos[key];this.setState({oabPlano:{...p,concursos}});}if(id&&id!==this.state.editalAtivo&&(this.state.editais||[]).some(e=>e.id===id))this._virarConcurso(id,this.state.editais,this.state.edital);this._oabSincronizar();}
+  oabModelo=()=>{if(this.state.areaEstudo!=='oab')return;const p=this._oabPlano(),id=p.fase==='2'?'oab2'+p.area:'oab1',origem=this._oabChave(p),conta=this._contaConcurso(),token=this._oabTrocaToken||0;const valido=()=>this.state.areaEstudo==='oab'&&this._oabChave(this._oabPlano())===origem&&this._contaConcurso()===conta&&(this._oabTrocaToken||0)===token;this._carregarModelos().then(()=>{if(!valido())return;const atual=this._oabPlano(),existente=atual.concursos[origem];if(existente&&(this.state.editais||[]).some(e=>e.id===existente)){this._virarConcurso(existente,this.state.editais,this.state.edital);this._oabSincronizar();return;}this.setState({modeloId:id,modeloSel:this._modeloDiscs(id).map((_,i)=>i)},()=>{if(!valido())return;this.aplicarModeloNovoConcurso();const ativo=this.state.editalAtivo;this.setState({oabPlano:{...this._oabPlano(),concursos:{...this._oabPlano().concursos,[origem]:ativo}}},()=>{this._oabSincronizar();this._salvarAgora();});});});};
+  _oabGuardar(avancar){if(this.state.areaEstudo!=='oab')return;const p=this._oabPlano(),key=this._oabChave(p),a=this._oabAtual(p),k=a.id,d=p.rascunhos[k]||{},min=Math.max(0,Math.min(600,+d.min||0)),ts=Date.now();if(min){const rec={id:'oab-'+ts+'-'+Math.random().toString(36).slice(2,8),ts,up:ts,disc:a.disc,topico:'OAB · '+a.etapa,categoria:a.categoria,min,countMeta:true,oabFase:p.fase,oabArea:p.area,oabAtividade:a.id,oabPonto:d.ponto||''};const sessions=[rec,...this.state.sessions];this._saveSessions(sessions);this.setState({sessions});}let feitos={...p.feitos},pos={...p.pos},historico=this.state.oabHist||[],voltas={...p.voltas};if(avancar){feitos[a.id]=ts;historico=[{id:'oab-concluida-'+ts+'-'+Math.random().toString(36).slice(2,8),ts,up:ts,fase:p.fase,area:p.area,atividade:a.nome,atvId:a.id,min,rascunho:{...d,min:''}},...historico];const fila=this._oabFila(p),prox=fila.find(x=>!feitos[x.id]);if(prox)pos[key]=prox.id;else{voltas[key]=(+voltas[key]||1)+1;fila.forEach(x=>delete feitos[x.id]);pos[key]=fila[0].id;}}this.setState({oabPlano:{...p,rascunhos:{...p.rascunhos,[k]:{...d,min:''}},pos,feitos,voltas},oabHist:historico},()=>{this._oabSincronizar();this._salvarAgora();this._toast(avancar?'Próxima atividade do ciclo OAB':'Progresso guardado · retome daqui');});}
+  oabGuardar=()=>this._oabGuardar(false);
+  oabConcluir=(e)=>{if(e?.currentTarget?.dataset.id!==this._oabAtual(this._oabPlano()).id)return;this._oabGuardar(true);};
+  _cycleModeLoad(){try{return localStorage.getItem(this._chave('cycleMode'))||(this._areaAtiva()==='oab'?'manual':'sugestao');}catch(_){return 'sugestao';}}
   _vazioDe(k){
+    if(['oabPlano','cmag'].includes(k)) return null;
     const v=this.state[k];
     if(Array.isArray(v)) return [];
     if(v && typeof v==='object') return {};
@@ -10777,6 +10822,8 @@ class Component extends DCLogic {
       return 'indisponivel';
     }
     const x={...(extra||{})};
+    if(this.state.areaEstudo==='oab' && v==='simulados'){if(x.simAba==='treino'){v='oab';x.oabPlano={...this._oabPlano(),fase:'1'};}else x.simAba='registro';}
+    if(v==='oab' && x.oabFase){this._oabTrocaToken=(this._oabTrocaToken||0)+1;x.oabPlano={...this._oabPlano(),fase:x.oabFase};delete x.oabFase;}
     // Pílula velha: entrar no LEGIS/JURIS sem dizer de onde veio (menu, paleta, "continuar
     // de onde parei", notificação) apaga a origem guardada — senão a pílula acendia numa
     // visita solta e devolvia a um ponto antigo. Quem tem origem passa `acervoDe` explícito.
@@ -10808,7 +10855,7 @@ class Component extends DCLogic {
     if(v==='redacao') this._carregarDiscursivas().then(()=>this.setState({discCarregado:true}));
     return v;
   }
-  onNav = (e)=>{ const alvo=e.currentTarget.dataset.view; const v=this._irPara(alvo,alvo==='simulados'?{simAba:'registro'}:{}); if(v!=='indisponivel') this._marcarPonto(v); };
+  onNav = (e)=>{ const alvo=e.currentTarget.dataset.view; const v=this._irPara(alvo,alvo==='simulados'?{simAba:e.currentTarget.dataset.simaba==='treino'?'treino':'registro'}:alvo==='oab'?{oabFase:e.currentTarget.dataset.oabfase||this._oabPlano().fase}:{}); if(v!=='indisponivel') this._marcarPonto(v); if(v==='oab')this._oabSincronizar(); };
 
   /* ===== VOLTA DO ACERVO: um mecanismo só =====
      A origem ("de") é JSON puro: {view, rotulo, rito?, peca?, bloco?, disc?, rev?}. Quem a
@@ -11442,7 +11489,7 @@ class Component extends DCLogic {
     if(m==='manual') return this.composeManual(this.state.manualFixed, this.state.manualRot||[], this._rotPonteiro(this.state.manualRot||[]));
     return this._comporDia(this._genVolta(m, 1), []); }
   // Meta/energia mudaram: a fatia do dia segue a nova régua; a volta em si não é refeita.
-  _recomporDia(){ if(this.state.cycleMode==='manual'){ this.syncManual({}); return; }
+  _recomporDia(){ if(this.state.areaEstudo==='oab'){this._oabSincronizar();return;} if(this.state.cycleMode==='manual'){ this.syncManual({}); return; }
     const V=this.state.cicloVolta; if(!V||!(V.blocos||[]).length) return; this.setState({blocks:this._comporDia(V, this.state.blocks)}); }
   /* Nível/estratégia mudaram: refaz só o que AINDA NÃO foi feito na volta. Os concluídos (e
      os pulados) ficam com id, conteúdo e data; os pendentes vêm de uma volta nova pela regra
@@ -11607,7 +11654,7 @@ class Component extends DCLogic {
     if(alvo!==this.state.cyclePanel) this.setState({cyclePanel:alvo});
     const id = alvo==='configurar' ? 'ct-cycle-tab-configurar' : 'ct-cycle-tab-executar';
     setTimeout(()=>{ const b=document.getElementById(id); if(b) b.focus(); }, 0); };
-  setCycleMode = (e)=>{ const m=e.currentTarget.dataset.mode; if(m===this.state.cycleMode) return; try{ localStorage.setItem('catedra:cycleMode', m); }catch(_){}
+  setCycleMode = (e)=>{ const m=e.currentTarget.dataset.mode; if(m===this.state.cycleMode) return; try{ localStorage.setItem(this._chave('cycleMode'), m); }catch(_){}
     if(m==='manual'){ this.setState({cycleMode:m, blocks:this.composeManual(this.state.manualFixed, this.state.manualRot, this.state.rotPointer)}); return; }
     const falta=this._cycleFalta(m); if(falta) this._toast(falta);
     if(m==='magistratura' && !this.state.cmag && window.CT_CMAG) this.state.cmag=CT_CMAG.vazio(true);   // setState síncrono do support.js: o _genVolta abaixo já vê
@@ -11647,7 +11694,7 @@ class Component extends DCLogic {
     const tag=M.seedDaConta(S.email); if(!tag) return false;
     if(M.temProgresso(this.state.cmag, this.state.cmagRevs)) return false;
     const c=M.seed(tag, Date.now());
-    try{ localStorage.setItem('catedra:cycleMode', 'magistratura'); }catch(_){}
+    try{ localStorage.setItem(this._chave('cycleMode'), 'magistratura'); }catch(_){}
     this.state.cmag=c; this.state.cycleMode='magistratura';
     const V=this._genVolta('magistratura', 1);
     this.setState({cmag:c, cycleMode:'magistratura', cicloVolta:V, blocks:this._comporDia(V, []), blocksDate:this._hoje()});
@@ -12036,7 +12083,7 @@ class Component extends DCLogic {
   editSub = (e)=>{ const el=e.currentTarget, d=+el.dataset.d, t=+el.dataset.t, i=+el.dataset.i, v=el.value; const ed=this.state.edital.slice();
     const tp=ed[d].topics.slice(); const sb=(tp[t].subs||[]).slice(); sb[i]={...this._subObj(sb[i]),name:v}; tp[t]={...tp[t],subs:sb}; ed[d]={...ed[d],topics:tp}; this.setState({edital:ed}); this.flashSync(); };
   onSim = (e)=>{ const f=e.currentTarget.dataset.f; const v=Math.max(0,parseInt(e.currentTarget.value,10)||0); this.setState(s=>({sim:{...s.sim,[f]:v}})); };
-  setSimAba = (e)=> this.setState({simAba:e.currentTarget.dataset.v==='treino'?'treino':'registro'});
+  setSimAba = (e)=> this._irPara('simulados',{simAba:e.currentTarget.dataset.v==='treino'?'treino':'registro'});
   _simSoltarTempo(){this._simTimerRegistro=null;this.setState({simRegistroFonte:'manual'});}
   setRegistroModo = (e)=>{const modo=e.currentTarget.dataset.v==='simulado'?'simulado':'estudo';
     this._simSoltarTempo();this.setState({registroModo:modo},()=>{if(modo==='simulado'&&!this.state.simMin)this.usarTempoSimulado();});};
@@ -13076,7 +13123,7 @@ class Component extends DCLogic {
             if(d.dir&&CT_DIRS.includes(d.dir)) patch.dir=d.dir;
             if(typeof d.darkMode==='boolean') patch.darkMode=d.darkMode;
             if(typeof d.accent==='string' && (/^#[0-9a-f]{6}$/i.test(d.accent) || d.accent==='var(--danger)' || d.accent==='var(--warn)')) patch.accent=d.accent;
-            this.setState(patch, ()=>{ try{ if(patch.flashcards) this._saveFC(patch.flashcards); if(patch.sessions) this._saveSessions(patch.sessions); if(patch.dir) localStorage.setItem('catedra:dir',patch.dir); if('darkMode' in patch) localStorage.setItem('catedra:dark', patch.darkMode?'1':'0'); if(patch.orient) localStorage.setItem('catedra:orient', JSON.stringify(patch.orient)); if(patch.habitos) localStorage.setItem('catedra:habitos', JSON.stringify(patch.habitos)); if(patch.provaData) localStorage.setItem('catedra:prova', patch.provaData); if(patch.cycleMode) localStorage.setItem('catedra:cycleMode', patch.cycleMode); if(patch.redHistory) localStorage.setItem('catedra:red', JSON.stringify(patch.redHistory)); }catch(_){} });
+            this.setState(patch, ()=>{ try{ if(patch.flashcards) this._saveFC(patch.flashcards); if(patch.sessions) this._saveSessions(patch.sessions); if(patch.dir) localStorage.setItem('catedra:dir',patch.dir); if('darkMode' in patch) localStorage.setItem('catedra:dark', patch.darkMode?'1':'0'); if(patch.orient) localStorage.setItem('catedra:orient', JSON.stringify(patch.orient)); if(patch.habitos) localStorage.setItem('catedra:habitos', JSON.stringify(patch.habitos)); if(patch.provaData) localStorage.setItem('catedra:prova', patch.provaData); if(patch.cycleMode) localStorage.setItem(this._chave('cycleMode'), patch.cycleMode); if(patch.redHistory) localStorage.setItem('catedra:red', JSON.stringify(patch.redHistory)); }catch(_){} });
             this.flashSync(); this._toast('Backup restaurado em todo o sistema ✦'); }
   // ===== Backup na nuvem PESSOAL (iCloud Drive / Google Drive) — além da conta Cátedra =====
   // Nativo (Mac/iPad): a ponte catedraBackup grava/lê o arquivo (Mac: pasta Cátedra do iCloud
@@ -13932,6 +13979,7 @@ class Component extends DCLogic {
     +(on?'var(--accentSolid)':'var(--border)')+';background:'+(on?'var(--accentSolid)':'var(--surface)')+';color:'+(on?'var(--onAccent)':'var(--ink)')+';'; }
 
   abrirSimuladoJogo = ()=>{
+    if(this.state.areaEstudo==='oab'){this._irPara('oab',{oabFase:'1'});return;}
     // setState aqui é síncrono: calcular `abre` ANTES, senão a checagem lê o valor já novo
     // e o acervo nunca começa a carregar.
     const abre=!this.state.sjAberto;
@@ -16986,9 +17034,10 @@ class Component extends DCLogic {
     if(v===(this.state.areaEstudo||'')) { this.setState({areaSelOpen:false}); return; }
     this._trocarArea(v); };
   _trocarArea(v){
+    this._oabTrocaToken=(this._oabTrocaToken||0)+1;
     if(this.state.argOn)this.argEncerrar();
     this.setState({argRever:null});
-    const A=CT_AREA(v); const patch={areaEstudo:v, areaSelOpen:false, concursoRemovido:null};
+    const A=CT_AREA(v); const patch={areaEstudo:v, areaSelOpen:false, concursoRemovido:null,simAba:'registro',sjAberto:false,sjItens:[],sjPronto:false,sjFim:false};
     // Caso aberto no construtor ou em treino é da área ANTERIOR. Deixá-lo aberto fazia o
     // formulário trocar de campos por baixo do texto já escrito, exibia caso clínico sob
     // rótulo socioassistencial, e o "Apagar" prometia remover algo que não estava mais na
@@ -17023,12 +17072,15 @@ class Component extends DCLogic {
     // o índice da busca é da ÁREA: mantê-lo faria a paleta continuar oferecendo súmula
     this._palIndice=null; this._palCarregando=false;
     this.setState(patch, ()=>{
+      // Persiste a escolha antes de alinhar _lastSaved; um caderno novo pode não disparar autosave.
+      try{localStorage.setItem('catedra:areaEstudo',JSON.stringify(v));}catch(_){}
       const recarregado={};
       this._autosaveKeys().forEach(k=>{
         if(!this.AREA_PROPRIA.has(k)) return;  // preferência e identidade não são por área
         recarregado[k]=this._load(k, this._vazioDe(k));
       });
       // o que tem gravação própria e não está em _autosaveKeys, mas é do caderno
+      recarregado.cycleMode=this._cycleModeLoad();
       recarregado.sessions=this._load('sessions', []);
       recarregado.sessionsLixeira=this._load('sessionsLixeira', []);
       try{ recarregado.flashcards=this._loadFC(); }catch(_){}
@@ -17037,6 +17089,7 @@ class Component extends DCLogic {
         // gravação acha que tudo mudou e escreve por cima
         const L=this._lastSaved||(this._lastSaved={});
         this._autosaveKeys().forEach(k=>{ L[k]=this.state[k]; });
+        if(v==='oab'){this._oabSincronizar();this._irPara('oab');}
         this.flashSync();
       });
     });
@@ -18770,7 +18823,7 @@ class Component extends DCLogic {
       const cur=done?null:this.state.reviews.find(r=>r.id===RS.queue[idx]);
       const _iv=(q)=>cur?this.fsrs(cur,q,false).intervalo:0, _refAlvo=cur?this._alvoAcervoAberto(cur.ref):'';
       revRun={ active:true, total, pos:Math.min(idx+1,total), pct: total?Math.round(idx/total*100):0, revealed:RS.revealed, done,
-        id:cur?cur.id:'', disc: cur?cur.disc:'', discShort: cur?cur.disc.replace('Direito ',''):'', topic: cur?cur.topic:'', color: cur?cur.color:'#0f7a57',
+        id:cur?cur.id:'', disc: cur?cur.disc:'', discShort: cur?String(cur.disc||'').replace('Direito ',''):'', topic: cur?cur.topic:'', color: cur?cur.color:'#0f7a57',
         refTem:!!_refAlvo, refLabel:_refAlvo==='juris'?'Abrir no JURIS':'Abrir no LEGIS',
         intervalo: (cur&&cur.intervalo)||0, ef: cur&&cur.fsrs?Number(cur.fsrs.difficulty).toFixed(2):'—', reps: (cur&&cur.repeticoes)||0,
         opts: cur?[ {q:2,label:'Errei',sub:'hoje',color:'var(--danger)'},{q:3,label:'Difícil',sub:_iv(3)+'d',color:'var(--warn)'},{q:4,label:'Bom',sub:_iv(4)+'d',color:'var(--ok)'},{q:5,label:'Fácil',sub:_iv(5)+'d',color:'#0f7a57'} ]:[],
@@ -19229,7 +19282,7 @@ class Component extends DCLogic {
     // não o store paralelo orient.al* — assim ligar/desligar um alerta realmente vale.
     const _alerts = this.state.prefs||{};
     const _liveNotifs=[];
-    if(_alerts.notifRevisao!==false && revOverdue.length){ _liveNotifs.push({id:'rev-overdue', tipo:'revisao', ico:'alarm-clock', titulo:revOverdue.length+' revis'+(revOverdue.length>1?'ões atrasadas':'ão atrasada'), texto:revOverdue.slice(0,2).map(r=>r.disc.replace('Direito ','')).join(', ')+(revOverdue.length>2?' e mais':'')+' passaram da data.', tempo:'agora', view:'revisoes'}); }
+    if(_alerts.notifRevisao!==false && revOverdue.length){ _liveNotifs.push({id:'rev-overdue', tipo:'revisao', ico:'alarm-clock', titulo:revOverdue.length+' revis'+(revOverdue.length>1?'ões atrasadas':'ão atrasada'), texto:revOverdue.slice(0,2).map(r=>String(r.disc||'Revisão').replace('Direito ','')).join(', ')+(revOverdue.length>2?' e mais':'')+' passaram da data.', tempo:'agora', view:'revisoes'}); }
     if(_alerts.notifRevisao!==false && revToday.length){ _liveNotifs.push({id:'rev-today', tipo:'revisao', ico:'repeat', titulo:revToday.length+' revis'+(revToday.length>1?'ões para hoje':'ão para hoje'), texto:'Faça sua sessão de "Revisar agora" para manter o ciclo.', tempo:'hoje', view:'revisoes'}); }
     const _metaThresh = _cob==='leve'?50 : (_cob==='rigido'?100 : 85);
     if(_alerts.alSemanal!==false && B.totalMin>0 && metaPct<_metaThresh){ _liveNotifs.push({id:'meta', tipo:'meta', ico:'target', titulo:'Faltam '+metaFaltamH+'h para a meta da semana', texto:'Você está em '+metaPct+'% das '+_metaAlvoH+'h planejadas.', tempo:'hoje', view:'inicio'}); }
@@ -20892,7 +20945,7 @@ class Component extends DCLogic {
         ? `position:fixed;top:0;left:0;bottom:0;flex:none;width:248px;background:var(--sbg);display:flex;flex-direction:column;padding:20px 16px calc(20px + env(safe-area-inset-bottom));overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;z-index:50;transition:transform .28s ease;transform:translateX(${this.state.menuOpen?'0':'-110%'});box-shadow:${this.state.menuOpen?'0 0 40px rgba(0,0,0,.4)':'none'};`
         : `position:sticky;top:0;align-self:flex-start;height:100vh;overflow-y:auto;flex:none;width:248px;background:var(--sbg);display:flex;flex-direction:column;padding:20px 16px;z-index:50;`,
       showBackdrop: this.state.isMobile && this.state.menuOpen,
-      navStyle:{ inicio:navStyle('inicio'), ciclo:navStyle('ciclo'), edital:navStyle('edital'), revisoes:navStyle('revisoes'), flashcards:navStyle('flashcards'), simulados:navStyle('simulados'), analise:navStyle('analise'), novidades:navStyle('novidades'), conquistas:navStyle('conquistas'), ajustes:navStyle('ajustes') },
+      navStyle:{ inicio:navStyle('inicio'), ciclo:navStyle('ciclo'), edital:navStyle('edital'), revisoes:navStyle('revisoes'), flashcards:navStyle('flashcards'), analise:navStyle('analise'), novidades:navStyle('novidades'), conquistas:navStyle('conquistas'), ajustes:navStyle('ajustes') },
       navShowMore, navToggleShow, navMoreLabel, navChevStyle, toggleNav:this.toggleNav,
       dirStyle:CT_DIRS.reduce((o,d)=>{ o[d]=dirBtn(d); return o; },{}),
       onNav:this.onNav, onDir:this.onDir, toggleMenu:this.toggleMenu,
@@ -21156,7 +21209,7 @@ class Component extends DCLogic {
       homeRevLegis:String((this.state.nativeRev&&this.state.nativeRev.legis&&this.state.nativeRev.legis.due)||0),
       homeRevJuris:String((this.state.nativeRev&&this.state.nativeRev.juris&&this.state.nativeRev.juris.due)||0),
       homeTimerDot:(this.state.timerRunning?'#34d399':'#5f7a6e'), homeTimerSub:(this.state.timerRunning?'EM CURSO · TOQUE P/ PAUSAR':'PARADO · TOQUE P/ INICIAR'),
-      isInicio:this.state.view==='inicio', isCiclo:this.state.view==='ciclo', isEdital:this.state.view==='edital',
+      isInicio:this.state.view==='inicio'&&this.state.areaEstudo!=='oab', isCiclo:this.state.view==='ciclo'&&this.state.areaEstudo!=='oab', isEdital:this.state.view==='edital',
       // ===== concursos no painel (Fase 4) =====
       ...(()=>{ const R=this._resumoConcursos(), tot=this._tempoUnico();
         const painel=R.map(c=>({...c, ativoStr:c.ativo?'true':'false', pctStr:c.pct+'%', discTxt:(c.discN===1?'1 disciplina':c.discN+' disciplinas'), tempoTxt:this._fmtMin(c.min),
@@ -21207,7 +21260,7 @@ class Component extends DCLogic {
         return EX[id]||'ex.: um tópico do seu edital'; })(),
 
       capLegis:_podeView('legis'), capJuris:_podeView('juris'), capAreaMod:_podeView('areamod'),
-      capEdital:_podeView('edital'), capSimulados:_podeView('simulados'), capRedacao:_podeView('redacao'),
+      capEdital:_podeView('edital'), capSimulados:_area.id!=='oab'&&_podeView('simulados'), capRedacao:_podeView('redacao'),
       capRoteiros:_podeView('roteiros'), capSegundaFase:_podeView('segundafase'), capOral:_podeView('oral'),
       capPrioridade:_podeView('prioridade'), capBancas:_podeView('bancas'), capNovidades:_nvPode,
       // --- casos da área (estrutura própria por área, conteúdo da pessoa) ---
@@ -21579,14 +21632,17 @@ class Component extends DCLogic {
       provaSala:this.state.provaMode && this.state.sjModo!=='enam', enamEmProva:false,
       ...((this.state.provaMode && this.state.sjModo==='enam' && (this.state.sjItens||[]).length) ? this._enamVM() : {}),
       isSegundaHub:['redacao','segundafase'].includes(this.state.view), navSegundaCur:['redacao','segundafase'].includes(this.state.view)?'page':'', navSegundaHub:navStyle(['redacao','segundafase'].includes(this.state.view)?this.state.view:'redacao'),
+      capOab:this.state.areaEstudo==='oab',capRegistroSim:this.state.areaEstudo==='oab'||this._podeAbrir('simulados'),
+      ...this._oabVM(navStyle),
+      navSimRegistro:navStyle(this.state.simAba==='treino'?'sim-registro':'simulados'),navSimTreino:navStyle(this.state.simAba==='treino'?'simulados':'sim-treino'),navSimRegistroCur:this.state.view==='simulados'&&this.state.simAba!=='treino'?'page':'false',navSimTreinoCur:this.state.view==='simulados'&&this.state.simAba==='treino'?'page':'false',
       simTreino:this.state.simAba==='treino', simRegistroTela:this.state.simAba!=='treino'&&!(this.state.sessionModalOpen&&this.state.registroModo==='simulado'), simRegistroStr:this.state.simAba==='treino'?'false':'true',simTreinoStr:this.state.simAba==='treino'?'true':'false',setSimAba:this.setSimAba,
       sessModalEstudoOpen:this.state.sessionModalOpen&&this.state.registroModo!=='simulado',simRegistroVisible:(this.state.view==='simulados'&&this.state.simAba!=='treino')||(this.state.sessionModalOpen&&this.state.registroModo==='simulado'),simRegistroRole:this.state.sessionModalOpen&&this.state.registroModo==='simulado'?'dialog':'region',simRegistroAriaLabel:this.state.sessionModalOpen&&this.state.registroModo==='simulado'?'Registrar sessão':'Registro de simulado',simRegistroAriaModal:this.state.sessionModalOpen&&this.state.registroModo==='simulado'?'true':'false',simRegistroClasse:this.state.sessionModalOpen&&this.state.registroModo==='simulado'?'ct-sim-registro ct-modal-panel ct-card':'ct-sim-registro',simRegistroFundoStyle:this.state.sessionModalOpen&&this.state.registroModo==='simulado'?'position:fixed;inset:0;background:color-mix(in srgb,var(--ink) 45%,transparent);z-index:100;display:flex;align-items:center;justify-content:center;padding:var(--ct-e4);':'',simRegistroPainelStyle:this.state.sessionModalOpen&&this.state.registroModo==='simulado'?'width:100%;max-height:90vh;overflow:auto;box-sizing:border-box;':'',
       sessModoSim:this.state.sessionModalOpen&&this.state.registroModo==='simulado',sessModoEstudo:this.state.registroModo!=='simulado',sessModoSimStr:this.state.registroModo==='simulado'?'true':'false',sessModoEstudoStr:this.state.registroModo==='simulado'?'false':'true',setRegistroModo:this.setRegistroModo,usarTempoSimulado:this.usarTempoSimulado,simTemTempoCrono:this._minCronometro()>0,simTempoCrono:this._minCronometro(),simRegistroTempoLabel:this.state.simRegistroFonte==='cronometro'?'Tempo líquido copiado do cronômetro pausado. Registrar consome esse tempo; cancelar preserva a sessão.':'Tempo preenchido manualmente. O cronômetro da sua sessão não será alterado.',
       isRev:this.state.view==='revisoes', isSim:this.state.view==='simulados', isAnalise:this.state.view==='analise', isConq:this.state.view==='conquistas', isConqMetas:(this.state.view==='conquistas'||this.state.view==='metas'),
       isBaralho:this.state.view==='flashcards',
       isAnki:this.state.view==='anki', isPersonal:this.state.view==='personalizacao', isAjustes:this.state.view==='ajustes', isConfig:(this.state.view==='ajustes'||this.state.view==='personalizacao'||this.state.view==='orientacao'), isDash:this.state.view==='dashboards',
-      viewTitle:({indisponivel:'Não faz parte da sua área',inicio:'Início',areamod:areaModLabel,roteiros:'Roteiros e peças',oral:'Prova oral',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',flashcards:'Baralho',calendario:'Calendário',planejamento:'Planejamento',simulados:'Simulados',redacao:'2ª fase',segundafase:'2ª fase',anki:'Anki',erros:'Caderno de erros',dominio:'Desempenho · Domínio por tópico',metas:'Metas',dashboards:'Dashboards',analise:'Desempenho',novidades:(this.state.isMobile?'Novidades':'Central de novidades'),conquistas:'Metas & Conquistas',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório',admin:'Console de administração',bancas:'Bancas'}[this.state.view]),
-      viewSub:({indisponivel:'Esta tela depende de um acervo que a sua área de estudo não tem',inicio:'Seu painel de hoje',ciclo:(this.state.cycleMode==='magistratura'?'Uma sequência contínua de estudo — tempo e conteúdo em cada atividade':'Uma volta pelas matérias, na ordem certa — o dia consome os próximos blocos'),edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',flashcards:'Os cartões que o seu estudo gerou — revisados pela mesma régua das revisões',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:'Simulado cronometrado e registro de resultados',redacao:'Escolha uma prova real, responda e corrija pelo espelho',anki:'Baralho da biblioteca + analisador de retenção',erros:'Registre cada erro com o motivo e transforme em revisão',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',novidades:'O que mudou nas fontes oficiais — Planalto, STF e STJ',conquistas:'Objetivos pessoais, marcos e constância',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação',admin:'Contas, IA, moderação e os interruptores do app',bancas:'Perfil de cada banca e dicas por área'}[this.state.view]),
+      viewTitle:({oab:'Meu percurso OAB',indisponivel:'Não faz parte da sua área',inicio:'Início',areamod:areaModLabel,roteiros:'Roteiros e peças',oral:'Fase Oral',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',flashcards:'Baralho',calendario:'Calendário',planejamento:'Planejamento',simulados:(this.state.simAba==='treino'?'Fase Objetiva':'Registrar Raio X'),redacao:'Fase Discursiva',segundafase:'Fase Discursiva',anki:'Anki',erros:'Caderno de erros',dominio:'Desempenho · Domínio por tópico',metas:'Metas',dashboards:'Dashboards',analise:'Desempenho',novidades:(this.state.isMobile?'Novidades':'Central de novidades'),conquistas:'Metas & Conquistas',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório',admin:'Console de administração',bancas:'Bancas'}[this.state.view]),
+      viewSub:({indisponivel:'Esta tela depende de um acervo que a sua área de estudo não tem',inicio:'Seu painel de hoje',ciclo:(this.state.cycleMode==='magistratura'?'Uma sequência contínua de estudo — tempo e conteúdo em cada atividade':'Uma volta pelas matérias, na ordem certa — o dia consome os próximos blocos'),edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',flashcards:'Os cartões que o seu estudo gerou — revisados pela mesma régua das revisões',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:(this.state.simAba==='treino'?'Treine a primeira fase com questões e tempo de prova':'Registre resultados, identifique erros e acompanhe sua evolução'),redacao:'Escolha uma prova real, responda e corrija pelo espelho',anki:'Baralho da biblioteca + analisador de retenção',erros:'Registre cada erro com o motivo e transforme em revisão',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',novidades:'O que mudou nas fontes oficiais — Planalto, STF e STJ',conquistas:'Objetivos pessoais, marcos e constância',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação',admin:'Contas, IA, moderação e os interruptores do app',bancas:'Perfil de cada banca e dicas por área'}[this.state.view]),
       notLoggedIn:!this.state.loggedIn,
       // ===== U5: selo de sincronização permanente, honesto e sem travar nada ==========
       // O estado vem do auth.js (local|enviando|salvo|offline|erro). O texto diz o que
@@ -21876,10 +21932,10 @@ class Component extends DCLogic {
       onboardActive:(this.state.onboardStep>0 && this.state.loggedIn),
       // TASK 5: quem estuda para magistratura pensa em FASES; quem estuda para outra área,
       // não. O agrupamento é o mesmo; só o rótulo se adapta.
-      navGrupoFases:(_area.id==='juridica' ? 'Fases da Magistratura' : 'Treino'),
+      navGrupoFases:this.state.areaEstudo==='oab'?'Fases do Exame':'Fases do concurso',
       // Cabeçalho de grupo sem um único item embaixo é ruído: em Saúde sobrava um
       // "TREINO" solto, com borda e tudo, sem nada dentro.
-      temGrupoFases:(_podeView('simulados')||_podeView('redacao')||_podeView('roteiros')
+      temGrupoFases:(_area.id==='oab'||_podeView('simulados')||_podeView('redacao')||_podeView('roteiros')
         ||_podeView('segundafase')||_podeView('oral')),
       // navShowMore é DERIVADO (navExpanded OU estar numa das views de "mais opções") —
       // ler this.state.navShowMore devolvia undefined e o aria ficava sempre 'false'.
