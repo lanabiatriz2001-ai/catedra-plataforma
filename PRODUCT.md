@@ -82,3 +82,7 @@ Conteúdo real, verificado, já no repositório — nada aqui precisa ser invent
 ## Accessibility & Inclusion
 
 Sem necessidade pessoal declarada. Padrão alvo: **WCAG 2.1 AA** como higiene — contraste de texto ≥ 4,5:1, alvos de toque ≥ 44px no iPad, `prefers-reduced-motion` respeitado, foco visível. Tratar como piso de qualidade, não como restrição de produto que justifique recuar na direção "vitrine".
+
+## Preparação para OAB
+
+O modo OAB possui caderno separado de Magistratura: edital, ciclo, sessões, revisões FSRS, cartões e rascunhos. Contempla a primeira fase e as sete áreas da prova prático-profissional. O ciclo segue o edital ativo; cada atividade guarda o ponto de retomada e só avança por conclusão explícita. Os treinos escritos usam enunciado e espelho trazidos pela pessoa, com comparação própria e histórico completo. Provas/espelhos de Magistratura e arguição oral não pertencem a este modo. O banco oficial OAB não está integrado: o acesso às provas oficiais é externo e os resultados entram pelo Raio X. Regras exibidas conferidas no edital oficial do 48º Exame, itens 3 e 4.

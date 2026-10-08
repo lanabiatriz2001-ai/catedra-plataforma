@@ -33,6 +33,7 @@ jobs:
           node tests/inicio-enxuto.mjs
           node tests/fluxo-telas.mjs
           node tests/menu-fases.mjs
+          node tests/modo-oab.mjs
           node tests/remover-edital.mjs
           node tests/oral-conversa.mjs
         env:
@@ -67,6 +68,7 @@ jobs:
           node tests/inicio-enxuto.mjs
           node tests/fluxo-telas.mjs
           node tests/menu-fases.mjs
+          node tests/modo-oab.mjs
           node tests/remover-edital.mjs
           node tests/oral-conversa.mjs
         env:

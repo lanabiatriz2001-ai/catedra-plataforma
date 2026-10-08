@@ -28,6 +28,7 @@
   /* As capacidades. Cada uma corresponde a um acervo ou a um fluxo que existe no
      repositório — nenhuma é aspiracional. */
   var CAPACIDADES = [
+    'modoOab',              // caderno próprio, ciclo e treino escrito com material da pessoa
     'fontesNormativas',      // CátedraLEGIS: texto de lei/norma/protocolo da área
     'jurisprudencia',        // CátedraJURIS: 15 mil verbetes de STF/STJ/TSE/tribunais de contas
     'moduloArea',            // o módulo de estudo próprio (area-modulos.js / ritos-web)
@@ -82,6 +83,7 @@
   }
 
   var AREAS = {
+    oab: {rotulo:'OAB',prontidao:PARCIAL,capacidades:base({modoOab:true,fontesNormativas:true,jurisprudencia:true}),termos:{fonte:'lei',fontePlural:'leis',dispositivo:'artigo',acervo:'legislação',genero:'f'},emPreparo:['Banco de questões oficial integrado: use os cadernos OAB/FGV e registre seus resultados.']},
     juridica: {
       rotulo: 'Jurídica',
       prontidao: COMPLETA,
@@ -169,6 +171,7 @@
      por isso a proteção passa a valer para o deep link e para o "continuar de onde
      parei", e não só para o botão do menu. */
   var VIEW_EXIGE = {
+    oab:'modoOab',
     legis: 'fontesNormativas',
     juris: 'jurisprudencia',
     areamod: 'moduloArea',
@@ -195,6 +198,7 @@
   }
   /** A view pode abrir nesta área? View sem exigência declarada é universal. */
   function podeAbrir(id, view) {
+    if(id==='oab' && view==='simulados') return true; // registro, sem banco de prova de Magistratura
     var exige = VIEW_EXIGE[view];
     if (!exige) return true;
     return tem(id, exige);
@@ -212,7 +216,7 @@
   /* P19 — foco de escopo do beta público. Só as áreas desta lista aparecem para quem ESCOLHE área
      (onboarding, Ajustes, seletor). Quem já usa outra área continua nela: nada é removido, nem código
      nem dados — a área ativa entra na lista por si. Para reabrir tudo, basta listar os demais ids. */
-  var PUBLICAS = ['juridica'];
+  var PUBLICAS = ['juridica','oab'];
   function publica(id, ativa) { return PUBLICAS.indexOf(id) >= 0 || (!!ativa && id === ativa); }
 
   var api = {
