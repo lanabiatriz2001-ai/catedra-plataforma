@@ -74,11 +74,12 @@ export async function testarRevisaoOficial(browser, base, ok, { motor = 'chromiu
   {
     const ctx = await novoCtx(FIX, 'juridica'); const pg = await ctx.newPage();
     await abrirApp(pg);
-    // o botão do resumo do Início (#175) abre ESTE diálogo, não a Central
-    const btn = await pg.$('#ct-fontes-oficiais #ct-of-abrir');
+    // O acesso permanece na Central de novidades.
+    await pg.evaluate(()=>window.__catedraGoView('novidades')); await pg.waitForTimeout(400);
+    const btn = await pg.$('#ct-of-abrir');
     if (btn) { await btn.click(); await pg.waitForTimeout(400); }
-    ok(!!btn && await pg.evaluate(() => !!document.getElementById('ct-revisao-oficial') && window.__catedraApp.state.view === 'inicio'),
-      `${tag} 1 "Ver revisão oficial" do Início abre o diálogo da revisão oficial`);
+    ok(!!btn && await pg.evaluate(() => !!document.getElementById('ct-revisao-oficial') && window.__catedraApp.state.view === 'novidades'),
+      `${tag} 1 "Ver revisão oficial" da Central abre o diálogo da revisão oficial`);
     if (!btn) { await pg.evaluate(() => window.__catedraApp.oficialPainelAbrir()); await pg.waitForTimeout(400); }
     const p = await pg.evaluate((SEM) => {
       const d = document.getElementById('ct-revisao-oficial'); if (!d) return { aberto: false };

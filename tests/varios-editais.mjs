@@ -309,12 +309,9 @@ async function painel(page, base, ok, R, arquivo) {
   const m = await page.evaluate(async () => {
     const w = ms => new Promise(r => setTimeout(r, ms));
     window.__catedraGoView('inicio'); await w(1000);
-    const cards = [...document.querySelectorAll('.ct-conc-card')];
+    const app=window.__catedraApp, cards=app.renderVals().concPainel;
     const txt = el => (el ? el.textContent : '').replace(/\s+/g, ' ').trim();
-    const r = { nCards: cards.length, cards: cards.map(c => ({ id: c.dataset.id, pct: txt(c.querySelector('.ct-conc-pct')), nota: txt(c.querySelector('.ct-item-nota')), ativo: c.getAttribute('aria-pressed') })) };
-    const barra = document.querySelector('.ct-conc-card .ct-conc-barra i');
-    r.barraTransform = barra ? getComputedStyle(barra).transform : '';
-    const c0 = cards[0]; if (c0) { const cs = getComputedStyle(c0); r.esq = cs.borderLeftWidth; r.topo = cs.borderTopWidth; }
+    const r={nCards:document.querySelectorAll('.ct-conc-card').length,cards:cards.map(c=>({id:c.id,pct:c.pctStr,nota:c.discTxt+' · '+c.tempoTxt+' nesta semana',ativo:c.ativoStr}))};
     // Desempenho: o total uma vez só, e o aviso de que a soma passa dele
     window.__catedraGoView('analise'); await w(1000);
     const sec = document.querySelector('.ct-conc-desemp');
@@ -322,25 +319,22 @@ async function painel(page, base, ok, R, arquivo) {
     r.linhas = sec ? [...sec.querySelectorAll('.ct-conc-linha')].map(l => txt(l)) : [];
     // tocar no TJSP leva ao Edital do TJSP
     window.__catedraGoView('inicio'); await w(800);
-    const sp = document.querySelector('.ct-conc-card[data-id="ed-sp"]'); if (sp) { sp.click(); await w(1100); }
-    const app = window.__catedraApp;
+    window.__catedraGoView('edital');await w(400);const sp=document.querySelector('.ct-concurso-pilula[data-id="ed-sp"]');if(sp){sp.click();await w(1100);}
     r.viewDepois = app.state.view; r.ativoDepois = app.state.editalAtivo;
     return r;
   });
   const go = m.cards.find(c => c.id === 'ed-principal') || {}, sp = m.cards.find(c => c.id === 'ed-sp') || {};
-  ok(m.nCards === 2, R + 'Início: com dois concursos, aparece "Seus concursos" com um cartão para cada (' + m.nCards + ')');
+  ok(m.nCards === 0, R + 'Início: Seus concursos permanece removido, com dados preservados (' + m.nCards + ')');
   ok(go.pct === '33%' && sp.pct === '50%', R + 'cobertura por concurso sobre o acervo comum: TJGO 33%, TJSP 50% (' + go.pct + ' / ' + sp.pct + ')');
   ok(/1h30 nesta semana/.test(go.nota) && /1h nesta semana/.test(sp.nota),
     R + 'tempo da semana por concurso: TJGO 1h30, TJSP 1h — a sessão de 20 dias atrás não entra (' + go.nota + ' | ' + sp.nota + ')');
   ok(/^1 disciplina ·/.test(sp.nota) && /^2 disciplinas ·/.test(go.nota), R + 'singular e plural certos: "1 disciplina", "2 disciplinas" (' + sp.nota.split(' ·')[0] + ')');
   ok(go.ativo === 'true' && sp.ativo === 'false', R + 'o cartão do concurso ativo se marca em aria-pressed');
-  ok(m.barraTransform && m.barraTransform !== 'none', R + 'DESIGN.md: a barra do cartão anda por transform, não por largura (' + m.barraTransform + ')');
-  ok(m.esq === m.topo, R + 'DESIGN.md: cartão sem faixa lateral colorida (esq ' + m.esq + ' = topo ' + m.topo + ')');
   ok(/1h30 no total/.test(m.desempTxt) && /soma das linhas pode passar de 1h30/.test(m.desempTxt),
     R + 'Desempenho: o tempo total aparece UMA vez (1h30) e a tela avisa que a soma dos concursos passa dele');
   ok(m.linhas.length === 2 && m.linhas.some(l => /TJGO 2026\s*1h30/.test(l)) && m.linhas.some(l => /TJSP 2026\s*1h$/.test(l)),
     R + 'Desempenho: TJGO 1h30 e TJSP 1h — somam 2h30 sobre 1h30 estudadas, e isso é certo (' + m.linhas.join(' | ') + ')');
-  ok(m.viewDepois === 'edital' && m.ativoDepois === 'ed-sp', R + 'tocar no cartão do TJSP abre o Edital já no TJSP');
+  ok(m.viewDepois === 'edital' && m.ativoDepois === 'ed-sp', R + 'seletor da tela Edital abre o concurso TJSP');
 
   // com UM concurso só, a seção não existe (não há o que comparar)
   const um = await page.evaluate(async () => {

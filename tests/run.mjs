@@ -3708,7 +3708,8 @@ catch (e) { ok(false, 'PROVA ENCERRAR UMA VEZ [chromium] o roteiro correu sem ex
   const VT = await import('../scripts/verificar-cores-texto.mjs');
   r.scriptDeCoresTexto = typeof VT.corTexto === 'function' && VT.ratio(VT.corTexto('#0D9488', false), '#fffdf8') >= 4.5 && VT.ratio(VT.corTexto('#0D9488', true), '#201d17') >= 4.5;
   const src = fs.readFileSync(path.join(RAIZ, 'Catedra.dc.html'), 'utf8');
-  r.consumidoresTextuaisUsamCorTx = /color:\{\{ r\.colorTx \}\}/.test(src) && /color:\{\{ d\.colorTx \}\}/.test(src) && /color:\{\{ n\.corTx \}\}/.test(src) && /color:\{\{ g\.corTx \}\}/.test(src) && !/color:\{\{ r\.color \}\}/.test(src);
+  // O cartão de próximas revisões saiu do Início; os consumidores restantes mantêm cor de texto.
+  r.consumidoresTextuaisUsamCorTx = /color:\{\{ d\.colorTx \}\}/.test(src) && /color:\{\{ n\.corTx \}\}/.test(src) && /color:\{\{ g\.corTx \}\}/.test(src) && !/color:\{\{ r\.color \}\}/.test(src);
   r.buildsTravam = /verificar-cores-texto\.mjs/.test(fs.readFileSync(path.join(RAIZ, 'scripts/build.mjs'), 'utf8')) && /verificar-cores-texto\.mjs/.test(fs.readFileSync(path.join(RAIZ, 'scripts/build-macos.mjs'), 'utf8'));
   r.nenhumEmojiNovoForaDoEmbrulho = (() => { const tpl = src.slice(0, src.indexOf('\nclass Component')); const re = /[\u{1F525}\u{1F3AF}\u{1F389}✨\u{1F44B}]/gu; let m, fora = 0; while ((m = re.exec(tpl))) { const antes = tpl.slice(Math.max(0, m.index - 45), m.index); const lt = tpl.lastIndexOf('<', m.index), gt = tpl.lastIndexOf('>', m.index); if (lt > gt) continue; if (!/class="ct-emo" aria-hidden="true">$/.test(antes)) fora++; } return fora === 0; })();
   for (const [k, v] of Object.entries(r)) ok(v, 'A11Y/P16 estático ' + k);
@@ -4503,24 +4504,13 @@ for (const [k, v] of Object.entries(sem)) ok(v, 'SEMANA ' + k);
     ' × acervo ' + maior('informativo_stf', false) + ')');
 }
 
-// a home mostra o bloco, e "Já vi" tira o item e persiste
-await page.goto(URL0 + '/Catedra.dc.html');
-await page.evaluate(() => { localStorage.removeItem('catedra:semanaLidos'); });
-await page.goto(URL0 + '/Catedra.dc.html');
-await page.waitForTimeout(1800);
-const home = await page.evaluate(async () => {
-  const tit = [...document.querySelectorAll('h2')].find(h => /mudou esta semana/i.test(h.textContent || ''));
-  if (!tit) return { erro: 'sem bloco' };
-  const cont = tit.closest('.cth-sec').nextElementSibling;
-  const antes = [...cont.children].filter(e => e.tagName === 'DIV').length;
-  const b = cont.querySelector('button[data-id]');
-  const id = b && b.dataset.id;
-  if (b) b.click();
-  await new Promise(r => setTimeout(r, 500));
-  return { antes, id, lidos: JSON.parse(localStorage.getItem('catedra:semanaLidos') || '[]') };
-});
-ok(!home.erro && home.antes > 0, 'SEMANA bloco aparece na home com itens');
-ok(!home.erro && home.lidos.includes(home.id), 'SEMANA "Já vi" registra e persiste (sincroniza)');
+// O bloco da semana saiu do Início; o método continua preservando marcas existentes.
+await page.goto(URL0+'/Catedra.dc.html');
+await page.evaluate(()=>localStorage.removeItem('catedra:semanaLidos'));
+await page.reload();await page.waitForTimeout(1800);
+const home=await page.evaluate(async()=>{const a=window.__catedraApp,it=a._semanaItens()[0];if(!it)return {erro:'sem itens'};a.semanaLido({currentTarget:{dataset:{id:it.id}}});await new Promise(r=>setTimeout(r,600));return {ausente:!document.querySelector('#ct-semana'),id:it.id,lidos:JSON.parse(localStorage.getItem('catedra:semanaLidos')||'[]')};});
+ok(!home.erro&&home.ausente,'SEMANA bloco foi removido do Início');
+ok(!home.erro&&home.lidos.includes(home.id),'SEMANA método de leitura continua registrando e persistindo');
 /* ============= PROVA ORAL — MODO ARGUIÇÃO (item 3) ============= */
 await page.goto(URL0 + '/tests/harness-arguicao.html');
 await page.waitForFunction(() => !!window.CT_ORAL_Q && !!window.argPool);

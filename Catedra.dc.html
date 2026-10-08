@@ -1990,149 +1990,6 @@ window.ctPdfLib = (function(){
 
         <!-- REVISÕES -->
         <!-- ONDE ESTOU FRACA (item 1): a decisão nº 1 do dia, com o porquê -->
-        <!-- SEUS CONCURSOS (Fase 4). Cobertura calculada sobre o acervo comum: estudar uma
-             disciplina avança todo concurso que a tem. Só com dois concursos ou mais. -->
-        <sc-if value="{{ concPainelTem }}" hint-placeholder-val="{{ false }}">
-          <div class="cth-sec"><h2>Seus concursos</h2><span class="rule"></span><span class="meta">o estudo de uma disciplina vale em cada concurso que a tem</span></div>
-          <div class="ct-conc-grade">
-            <sc-for list="{{ concPainel }}" as="c" hint-placeholder-count="2">
-              <button class="ct-item ct-conc-card" data-id="{{ c.id }}" aria-pressed="{{ c.ativoStr }}" onclick="{{ abrirConcurso }}" aria-label="{{ c.nome }}: {{ c.pctStr }} do edital coberto; abrir o edital deste concurso">
-                <span class="ct-item-corpo">
-                  <span class="ct-item-tit">{{ c.nome }}</span>
-                  <span class="ct-item-nota">{{ c.discTxt }} · {{ c.tempoTxt }} nesta semana<sc-if value="{{ c.temCompart }}" hint-placeholder-val="{{ false }}"> · {{ c.compartStr }} em comum</sc-if></span>
-                  <span class="ct-conc-barra" aria-hidden="true"><i style="--pct:{{ c.pctStr }};"></i></span>
-                </span>
-                <span class="ct-item-fim"><b class="ct-conc-pct">{{ c.pctStr }}</b></span>
-              </button>
-            </sc-for>
-          </div>
-        </sc-if>
-        <div class="cth-sec"><h2>Onde estou fraca</h2><span class="rule"></span><span class="meta">erros, revisões vencidas, tempo parada e peso do edital</span></div>
-        <sc-if value="{{ prioTem }}" hint-placeholder-val="{{ true }}">
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-bottom:26px;">
-            <sc-for list="{{ prioLista }}" as="p" hint-placeholder-count="3">
-              <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;">
-                <div style="display:flex;align-items:baseline;gap:10px;">
-                  <span style="flex:1;min-width:0;font-weight:600;color:var(--ink);">{{ p.disc }}</span>
-                  <span style="font-family:var(--display);font-size:var(--fs-xl);font-weight:700;color:{{ p.cor }};">{{ p.nota }}</span>
-                </div>
-                <span style="display:block;height:7px;border-radius:99px;background:var(--surface2);overflow:hidden;margin:9px 0 10px;"><i style="{{ p.barra }}"></i></span>
-                <div style="font-size:var(--fs-sm);color:var(--text3);line-height:1.5;">{{ p.motivo }}</div>
-                <sc-if value="{{ p.temDados }}" hint-placeholder-val="{{ true }}">
-                  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
-                    <button data-d="{{ p.disc }}" onclick="{{ prioRevisar }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:8px 13px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;">Revisar agora</button>
-                    <button data-d="{{ p.disc }}" onclick="{{ prioErros }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:8px 13px;font-size:var(--fs-sm);color:var(--text2);cursor:pointer;font-family:inherit;">Ver desempenho</button>
-                    <button data-d="{{ p.disc }}" onclick="{{ prioEstudar }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:8px 13px;font-size:var(--fs-sm);color:var(--text2);cursor:pointer;font-family:inherit;">Estudar</button>
-                    <!-- C2: sai do diagnóstico direto para a prática, na plataforma que ela assina -->
-                    <button data-d="{{ p.disc }}" data-a="{{ p.assunto }}" onclick="{{ praticarDisciplina }}" title="{{ praticarTitulo }}" style="background:transparent;border:1px dashed var(--border);border-radius:var(--r-md);padding:8px 13px;font-size:var(--fs-sm);color:var(--text3);cursor:pointer;font-family:inherit;">{{ praticarLabel }} ↗</button>
-                  </div>
-                </sc-if>
-              </div>
-            </sc-for>
-          </div>
-        </sc-if>
-        <sc-if value="{{ prioVazio }}" hint-placeholder-val="{{ false }}">
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;color:var(--text3);font-size:var(--fs-sm);line-height:1.6;margin-bottom:26px;">
-            Aqui vão aparecer as disciplinas do seu edital ordenadas por prioridade — quem tem mais erros recentes,
-            revisões vencidas e mais tempo sem estudo sobe. <b style="color:var(--text2);">Cadastre o edital</b> e registre
-            uma sessão para o diagnóstico começar.
-          </div>
-        </sc-if>
-        <!-- O QUE MUDOU ESTA SEMANA (item 7) -->
-        <sc-if value="{{ semanaTem }}" hint-placeholder-val="{{ true }}">
-          <div id="ct-semana" class="cth-sec"><h2>O que mudou esta semana</h2><span class="rule"></span><span class="meta">informativos recentes do STF, STJ e TSE{{ semanaRecorteTxt }} · <button class="ct-alvo" onclick="{{ semanaVerTudo }}" style="background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:0;">ver todos →</button><sc-if value="{{ semanaAguardaAcervo }}" hint-placeholder-val="{{ false }}"><span aria-hidden="true"> · </span><button class="ct-alvo" data-view="novidades" onclick="{{ onNav }}" style="background:transparent;border:none;color:color-mix(in srgb, var(--accentD) 62%, var(--ink));font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:0;">{{ semanaAguardaLabel }}</button></sc-if></span></div>
-          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:26px;">
-            <sc-for list="{{ semanaLista }}" as="s" hint-placeholder-count="4">
-              <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
-                <div style="flex:1;min-width:0;">
-                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                    <sc-if value="{{ s.temSelo }}" hint-placeholder-val="{{ true }}">
-                      <span style="{{ s.seloStyle }}font-size:var(--fs-3xs);font-weight:800;letter-spacing:.04em;text-transform:uppercase;border-radius:99px;padding:3px 9px;">{{ s.selo }}</span>
-                    </sc-if>
-                    <span style="font-weight:600;color:var(--ink);font-size:var(--fs-base);">{{ s.titulo }}</span>
-                    <span style="font-size:var(--fs-xs);color:var(--text3);">{{ s.ondeQuem }} · {{ s.quando }}</span>
-                  </div>
-                  <div style="font-size:var(--fs-sm);color:var(--text2);line-height:1.55;margin-top:6px;">{{ s.tese }}</div>
-                  <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
-                    <button data-t="{{ s.titulo }}" onclick="{{ semanaAbrir }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 12px;font-size:var(--fs-sm);font-weight:600;color:var(--accentD);cursor:pointer;font-family:inherit;">Abrir no JURIS</button>
-                    <button data-id="{{ s.id }}" onclick="{{ semanaLido }}" style="background:transparent;border:1px solid var(--border);border-radius:var(--r-md);padding:7px 12px;font-size:var(--fs-sm);color:var(--text3);cursor:pointer;font-family:inherit;">Já vi</button>
-                  </div>
-                </div>
-              </div>
-            </sc-for>
-            <sc-if value="{{ semanaTemMais }}" hint-placeholder-val="{{ true }}">
-              <button class="ct-alvo" onclick="{{ semanaMais }}" style="align-self:flex-start;background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:4px 0;">{{ semanaMaisLabel }}</button>
-            </sc-if>
-          </div>
-        </sc-if>
-        <!-- FONTES OFICIAIS — o resumo no Início, no desenho acordado com a sessão "Interface de
-             atualização oficial" (01/10/2026): a saúde de cada fonte no vocabulário único, três
-             contadores (fontes ok / com falha ou parcial / itens a conferir), a frase da casa, até
-             três mudanças de LEI ainda não vistas e o botão #ct-of-abrir. Aparece SEMPRE nas áreas
-             com jurisprudência — sem varredura, cada fonte diz "Nunca consultada". Neste PR o botão
-             leva à Central de novidades; a pilha do painel "Revisão oficial" troca o handler. -->
-        <sc-if value="{{ ofMostrar }}" hint-placeholder-val="{{ false }}">
-          <section id="ct-fontes-oficiais" aria-labelledby="ct-of-tit" style="margin-bottom:var(--ct-e5);min-width:0;">
-            <div class="cth-sec"><h2 id="ct-of-tit">Fontes oficiais</h2><span class="rule"></span><span class="meta">{{ ofMeta }}</span></div>
-            <div class="ct-card" style="display:flex;flex-direction:column;gap:var(--ct-e3);margin-top:var(--ct-e3);min-width:0;">
-              <div role="list" aria-label="Situação de cada fonte oficial" style="display:flex;gap:var(--ct-e2) var(--ct-e4);flex-wrap:wrap;align-items:center;">
-                <sc-for list="{{ ofFontes }}" as="f" hint-placeholder-count="3"><span role="listitem" data-of-fonte="{{ f.id }}" style="display:inline-flex;align-items:center;gap:var(--ct-e2);font-size:var(--fs-sm);font-weight:700;color:var(--ink);">{{ f.nome }}<span class="ct-selo" style="{{ f.estilo }}">{{ f.situacao }}</span></span></sc-for>
-              </div>
-              <div role="list" aria-label="Contadores das fontes oficiais" style="display:flex;gap:var(--ct-e2) var(--ct-e5);flex-wrap:wrap;align-items:baseline;">
-                <span role="listitem" data-of-cont="ok" style="display:inline-flex;align-items:baseline;gap:var(--ct-e1);"><b style="font-family:var(--display);font-size:var(--fs-xl);color:var(--ink);">{{ ofContOk }}</b><span style="font-size:var(--fs-sm);color:var(--text2);">fontes ok</span></span>
-                <span role="listitem" data-of-cont="falha" style="display:inline-flex;align-items:baseline;gap:var(--ct-e1);"><b style="font-family:var(--display);font-size:var(--fs-xl);color:var(--ink);">{{ ofContFalha }}</b><span style="font-size:var(--fs-sm);color:var(--text2);">com falha ou parcial</span></span>
-                <span role="listitem" data-of-cont="conferir" style="display:inline-flex;align-items:baseline;gap:var(--ct-e1);"><b style="font-family:var(--display);font-size:var(--fs-xl);color:var(--ink);">{{ ofContConferir }}</b><span style="font-size:var(--fs-sm);color:var(--text2);">itens a conferir</span></span>
-              </div>
-              <p class="ct-nota" style="margin:0;">Detecção automática, publicação assistida.</p>
-              <sc-if value="{{ ofTemItens }}" hint-placeholder-val="{{ true }}">
-                <ul aria-label="Mudanças de lei ainda não conferidas" style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;min-width:0;">
-                  <sc-for list="{{ ofItens }}" as="n" hint-placeholder-count="3">
-                    <li data-novid-resumo="{{ n.id }}" style="display:flex;align-items:center;gap:var(--ct-e2);flex-wrap:wrap;padding:var(--ct-e2) 0;border-top:1px dashed var(--border);min-width:0;">
-                      <span class="ct-selo" style="{{ n.tipoEstilo }}">{{ n.tipoLabel }}</span>
-                      <span class="ct-selo" style="{{ n.stEstilo }}">{{ n.stLabel }}</span>
-                      <span id="ct-of-t-{{ n.id }}" style="flex:1 1 160px;min-width:0;font-weight:600;color:var(--ink);font-size:var(--fs-base);overflow-wrap:anywhere;">{{ n.titulo }}</span>
-                      <span style="display:flex;gap:var(--ct-e2);flex-wrap:wrap;">
-                        <sc-if value="{{ n.temAcervo }}" hint-placeholder-val="{{ true }}"><button type="button" class="ct-btn-2" data-acao="acervo" data-id="{{ n.id }}" aria-describedby="ct-of-t-{{ n.id }}" onclick="{{ novidAbrirAcervo }}">{{ n.acervoLabel }}</button></sc-if>
-                        <button type="button" class="ct-btn-2" data-acao="lida" data-id="{{ n.id }}" aria-describedby="ct-of-t-{{ n.id }}" onclick="{{ novidMarcarLida }}" style="border-color:transparent;">Já vi</button>
-                      </span>
-                    </li>
-                  </sc-for>
-                </ul>
-              </sc-if>
-              <div><button id="ct-of-abrir" class="ct-btn-2" onclick="{{ oficialPainelAbrir }}">Ver revisão oficial</button></div>
-            </div>
-          </section>
-        </sc-if>
-        <!-- O BARALHO NO PAINEL. Os cartões eram gerados por três caminhos e não apareciam em
-             lugar nenhum: o painel dizia que o dia estava em dia com uma pilha vencida ao lado. -->
-        <sc-if value="{{ fcTemDue }}" hint-placeholder-val="{{ false }}">
-          <div class="cth-sec"><h2>Baralho</h2><span class="rule"></span><span class="meta"><b>{{ fcDueStr }}</b> para revisar</span></div>
-          <button onclick="{{ fcEstudar }}" class="cth-baralho">
-            <span class="n">{{ fcDueStr }}</span>
-            <span class="tx"><b>cartões vencidos</b><small>de {{ fcTotalStr }} no baralho — do quiz do JURIS, da leitura da lei e dos seus erros</small></span>
-            <span class="ir">Revisar →</span>
-          </button>
-        </sc-if>
-        <div class="cth-sec"><h2>Próximas revisões</h2><span class="rule"></span><span class="meta"><b style="color:#e0479d;">{{ revHojeLabel }}</b> · <button class="ct-alvo" data-view="revisoes" onclick="{{ onNav }}" style="background:transparent;border:none;color:var(--accentD);font-weight:700;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);padding:0;">ver todas →</button></span></div>
-        <sc-if value="{{ homeProxTem }}" hint-placeholder-val="{{ false }}">
-          <div class="cth-revs">
-            <sc-for list="{{ homeProxRev }}" as="r" hint-placeholder-count="5">
-              <div class="cth-rev">
-                <i class="rail" style="background:{{ r.color }};"></i>
-                <span class="mat" style="color:{{ r.colorTx }};"><i style="background:{{ r.color }};"></i>{{ r.short }}</span>
-                <b class="t">{{ r.topic }}</b>
-                <div class="foot"><span class="int">{{ r.intLabel }}</span><span style="{{ r.chipStyle }}">{{ r.dueLabel }}</span></div>
-              </div>
-            </sc-for>
-          </div>
-        </sc-if>
-        <sc-if value="{{ homeProxVazio }}" hint-placeholder-val="{{ true }}"><div class="cth-card" style="text-align:center;color:var(--text3);font-size:var(--fs-base);">Nenhuma revisão agendada.</div></sc-if>
-        <div class="cth-foco">
-          <span class="ico ct-emo" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="target"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span>
-          <div class="tx"><small>Foco sugerido</small><p>{{ focoSugestao }}</p></div>
-          <button data-view="{{ focoView }}" onclick="{{ onNav }}" class="cth-bfsug">{{ focoBtnLabel }}</button>
-        </div>
-
         <div class="cth-sec" style="margin-top:34px;"><h2>Números e dashboards</h2><span class="rule"></span></div>
         <!-- L6 · Desempenho por disciplina -->
         <sc-if value="{{ paDesempShow }}" hint-placeholder-val="{{ false }}">
@@ -5139,6 +4996,7 @@ window.ctPdfLib = (function(){
               <div class="ct-kpi"><b>{{ novidRevisaoStr }}</b><span style="color:inherit;">a conferir</span></div>
             </div>
             <div style="display:flex;gap:var(--ct-e2);flex-wrap:wrap;align-items:center;">
+              <button id="ct-of-abrir" type="button" class="ct-btn-clara" style="background:color-mix(in srgb, var(--sbg) 42%, transparent);" onclick="{{ oficialPainelAbrir }}">Ver revisão oficial</button>
               <button type="button" class="ct-btn-clara" data-acao="buscar" data-fonte="planalto,stf,stj" onclick="{{ novidBuscar }}" disabled="{{ novidBuscando }}" aria-busy="{{ novidBuscandoTodas }}" style="background:color-mix(in srgb, var(--sbg) 42%, transparent);">{{ novidBuscarLabel }}</button>
             </div>
           </div>
@@ -19100,7 +18958,7 @@ class Component extends DCLogic {
       // não tem como marcar nada como visto, isto é, não satisfaz a condição de sumir.
       const _naoLidos=(areaJuris ? (this._semanaItens()||[]) : []);
       if(_naoLidos.length){
-        return { tipo:'leitura', view:'inicio', action:'semana',
+        return { tipo:'leitura', view:'novidades', action:'',
           titulo:'Ler o que mudou esta semana',
           motivo:'Jurisprudência nova entra em prova antes de virar rotina.',
           meta:(_naoLidos.length+(_naoLidos.length===1?' novidade':' novidades')), cta:'Ver as novidades' };
