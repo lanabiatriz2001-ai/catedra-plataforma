@@ -1,4 +1,4 @@
-/* P20 — uma primeira pintura antes do React e dos acervos, sem prazo artificial.
+/* P20 — uma primeira pintura antes do React e dos acervos, sem liberar conteúdo por um prazo artificial.
    Não contém dados do estudo nem botões de navegação de mentira. */
 (function () {
   if (document.getElementById('ct-carregamento')) return;
@@ -24,14 +24,43 @@
     + '<div class="ct-carga-bancada" aria-hidden="true"><div class="ct-carga-bloco">' + linhas + '</div><div class="ct-carga-bloco">' + linhas + '</div></div>'
     + '<div class="ct-carga-bloco ct-carga-fila" aria-hidden="true">' + linhas + '</div></div>';
   (document.body || document.documentElement).appendChild(el);
+  // Só números e estados efêmeros: nada em storage, rede, notas ou identificação.
+  var medidas = window.CT_ABERTURA_METRICAS = { inicio: performance.now(), estado: 'carregando' };
+  var raizProtegida = null, inertAnterior = false;
+  var prazo = setTimeout(demorou, 20000);
   var observador = new MutationObserver(conferir);
+  function proteger() {
+    var raiz = document.getElementById('dc-root');
+    if (raiz && raiz !== raizProtegida) {
+      raizProtegida = raiz; inertAnterior = raiz.hasAttribute('inert');
+      raiz.setAttribute('inert', '');
+    }
+  }
+  function recuperar() {
+    if (el.querySelector('button')) return;
+    var b = document.createElement('button'); b.type = 'button'; b.textContent = 'Tentar novamente';
+    b.onclick = function () { location.reload(); };
+    el.querySelector('[role="status"]').appendChild(b);
+  }
+  function demorou() {
+    if (!el.parentNode) return;
+    medidas.estado = 'demorado';
+    var estado = el.querySelector('[role="status"]');
+    estado.querySelector('h1').textContent = 'A abertura está levando mais tempo';
+    estado.querySelector('p').textContent = 'Você pode aguardar ou tentar novamente. Seus registros continuam guardados neste aparelho.';
+    recuperar();
+  }
   function conferir() {
+    proteger();
     // O contêiner vazio do React ainda não é uma tela. Aguarda o main real, inclusive
     // quando ele está protegido pelo portão de acesso (que tem prioridade própria).
     // No artefato gerado, aguarda também o CSS completo: retirar a casca antes dele
     // exporia por um instante toda a interface sem estilo.
     if (!document.querySelector('#dc-root #ct-main')) return;
     if (window.CT_CSS_ESPERADO && !window.CT_CSS_PRONTO) return;
+    clearTimeout(prazo);
+    medidas.pronto = performance.now(); medidas.duracao = medidas.pronto - medidas.inicio; medidas.estado = 'pronto';
+    if (raizProtegida && !inertAnterior) raizProtegida.removeAttribute('inert');
     observador.disconnect();
     window.removeEventListener('error', falhou);
     window.removeEventListener('unhandledrejection', falhou);
@@ -40,12 +69,12 @@
     if (el.parentNode) el.parentNode.removeChild(el);
   }
   function falhou() {
-    if (!el.parentNode || el.querySelector('button')) return;
+    if (!el.parentNode) return;
+    clearTimeout(prazo); medidas.estado = 'falhou';
     var estado = el.querySelector('[role="status"]');
     estado.querySelector('h1').textContent = 'Não foi possível concluir a abertura';
     estado.querySelector('p').textContent = 'Seus registros não foram apagados. Tente abrir a plataforma novamente.';
-    var b = document.createElement('button'); b.type = 'button'; b.textContent = 'Tentar novamente';
-    b.onclick = function () { location.reload(); }; estado.appendChild(b);
+    recuperar();
   }
   observador.observe(document.documentElement, { childList: true, subtree: true });
   window.addEventListener('error', falhou);

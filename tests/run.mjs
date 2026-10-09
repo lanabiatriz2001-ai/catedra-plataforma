@@ -60,7 +60,7 @@ import { testarAuthAbertura } from './auth-abertura.mjs';
 import { testarAuthHidratacao } from './auth-hidratacao.mjs';
 import { testarAuthFechamento } from './auth-fechamento.mjs';
 import { testarWidgetResumo } from './widget-resumo.mjs';
-import { testarCarregamentoInicial, testarAberturaEmbutida } from './carregamento-inicial.mjs';
+import { testarCarregamentoInicial, testarAberturaEmbutida, testarAberturaPendente } from './carregamento-inicial.mjs';
 import { testarSelectHost } from './select-host.mjs';
 import { testarAjustesRitmo } from './ajustes-ritmo.mjs';
 import { testarCicloNivelEstrategia } from './ciclo-nivel-estrategia.mjs';
@@ -9896,6 +9896,7 @@ catch (e) {
 
 // Login e sincronização no iPad (tests/auth-ipad.mjs): portão, teclado, sessão expirada, boot sem rede
 await testarAuthAbertura(page, URL0, ok);
+await testarAberturaPendente(browser, URL0, ok, {motor});
 await testarCarregamentoInicial(page, URL0, ok);
 await testarAberturaEmbutida(ok);
 try { await testarAuthIpad(page, URL0, ok, { motor, origem: 'http' }); }

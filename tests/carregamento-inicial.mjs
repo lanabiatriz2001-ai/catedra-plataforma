@@ -1,6 +1,6 @@
 export async function testarCarregamentoInicial(page, base, ok) {
   const browser = page.context().browser();
-  for (const [dir, dark, largura] of [['sutil', false, 1280], ['sutil', true, 390], ['aurora', false, 390], ['aurora', true, 1280]]) {
+  for (const [dir, dark, largura] of ['sutil','premium','clean','moderno','aurora','solar','terminal','holo'].flatMap(dir => [[dir, false, 1280], [dir, true, 390]])) {
     const baixa = dir === 'aurora' && dark;
     const ctx = await browser.newContext({ viewport: { width: largura, height: 900 }, reducedMotion: baixa ? 'no-preference' : 'reduce' });
     const p = await ctx.newPage();
@@ -59,4 +59,37 @@ export async function testarAberturaEmbutida(ok) {
   ok(head.indexOf('CT_CSS_ESPERADO=true') < head.indexOf('id = \'ct-carregamento\''), 'ABERTURA BUILD avisa a casca que deve aguardar o CSS completo');
   ok(/<link rel="stylesheet" href="\.\/carregamento-inicial\.css">/.test(fonte), 'ABERTURA BUILD mantém a fonte editável com arquivos separados');
   ok(/<link rel="stylesheet" href="\.\/catedra-ui\.css">/.test(fonte), 'ABERTURA BUILD mantém o CSS bloqueante na fonte aberta diretamente');
+}
+
+// Recurso sem resposta (não há error/rejection): o prazo nunca libera o app nem mexe em dados.
+export async function testarAberturaPendente(browser, base, ok, {motor='chromium'}={}) {
+  const ctx = await browser.newContext({viewport:{width:820,height:1180},reducedMotion:'reduce'});
+  const p = await ctx.newPage();
+  try {
+    await p.goto(base+'/__semente');
+    await p.evaluate(() => localStorage.setItem('catedra:edital', '[{"id":"preservar"}]'));
+    await p.clock.install();
+    await p.route('**/support.js', r => r.fulfill({contentType:'text/javascript',body:'/* recurso silenciosamente indisponível */'}));
+    await p.goto(base+'/Catedra.dc.html');
+    await p.evaluate(() => {const root=document.createElement('div');root.id='dc-root';root.innerHTML='<main id="ct-main"><button>Estudo protegido</button></main>';document.body.appendChild(root);window.CT_CSS_ESPERADO=true;window.CT_CSS_PRONTO=false;});
+    await p.clock.runFor(21000);
+    const rot='ABERTURA PENDENTE ['+motor+']: ';
+    ok(await p.locator('#ct-carregamento').isVisible(),rot+'prazo conserva a proteção da tela');
+    ok(await p.locator('#dc-root').getAttribute('inert') !== null,rot+'teclado não entra no conteúdo atrás da casca');
+    const b=p.getByRole('button',{name:'Tentar novamente'});
+    ok(await b.isVisible() && (await b.boundingBox()).height>=44,rot+'recuperação acionável após 20s');
+    await b.focus();ok(await b.evaluate(e=>e===document.activeElement),rot+'recuperação recebe foco de teclado');
+    ok(await p.evaluate(()=>localStorage.getItem('catedra:edital'))==='[{"id":"preservar"}]',rot+'dados intactos');
+    if(process.env.CT_CAPTURAS_ABERTURA)await p.screenshot({path:process.env.CT_CAPTURAS_ABERTURA+'/pendente-'+motor+'.png'});
+    await p.evaluate(()=>{window.CT_CSS_PRONTO=true;window.dispatchEvent(new Event('ct-css-pronto'));});
+    await p.waitForFunction(()=>!document.getElementById('ct-carregamento'));
+    ok(await p.locator('#dc-root').getAttribute('inert')===null,rot+'resposta tardia restaura interação');
+    ok(await p.evaluate(()=>window.CT_ABERTURA_METRICAS.estado==='pronto' && window.CT_ABERTURA_METRICAS.duracao>=20000),rot+'mede duração sem dados pessoais');
+    await p.clock.runFor(21000);
+    ok(await p.locator('#ct-carregamento').count()===0,rot+'limpa prazo após sucesso');
+    await p.reload(); await p.clock.runFor(21000);
+    const navegou=p.waitForEvent('framenavigated', {predicate:f=>f===p.mainFrame()});
+    await p.getByRole('button',{name:'Tentar novamente'}).click();await navegou;
+    ok(await p.evaluate(()=>localStorage.getItem('catedra:edital'))==='[{"id":"preservar"}]',rot+'botão recarrega de verdade sem apagar o estudo');
+  } finally {await ctx.close();}
 }
