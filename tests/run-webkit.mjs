@@ -34,7 +34,7 @@ import { testarAuthAbertura } from './auth-abertura.mjs';
 import { testarAuthHidratacao } from './auth-hidratacao.mjs';
 import { testarAuthFechamento } from './auth-fechamento.mjs';
 import { testarWidgetResumo } from './widget-resumo.mjs';
-import { testarCarregamentoInicial, testarAberturaEmbutida } from './carregamento-inicial.mjs';
+import { testarCarregamentoInicial, testarAberturaEmbutida, testarAberturaPendente } from './carregamento-inicial.mjs';
 import { testarTemplateFileUrl } from './template-file-url.mjs';
 import { testarAuthModoLocal } from './auth-modo-local.mjs';
 import { testarSyncMemoriaVelha } from './sync-memoria-velha.mjs';
@@ -179,6 +179,7 @@ for (const [base, origem, arquivo] of ORIGENS) {
       ok(false, 'PROVA ENCERRAR UMA VEZ [' + motor + '] o roteiro correu sem exceção ('
         + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
     }
+    await testarAberturaPendente(browser, URL0, ok, {motor});
     await testarCarregamentoInicial(page, base, ok);
     await testarAberturaEmbutida(ok);
     try { await testarPrioridadeDiscursiva(page, base, ok); } catch(e) { ok(false, 'DISCURSIVA exceção: '+e.message); }

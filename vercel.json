@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "git": { "deploymentEnabled": { "codex/mission-001-abertura": false } },
   "buildCommand": "node scripts/build.mjs",
   "outputDirectory": "public",
   "rewrites": [

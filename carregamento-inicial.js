@@ -1,4 +1,4 @@
-/* P20 — uma primeira pintura antes do React e dos acervos, sem prazo artificial.
+/* P20 — uma primeira pintura antes do React e dos acervos, sem liberar conteúdo por um prazo artificial.
    Não contém dados do estudo nem botões de navegação de mentira. */
 (function () {
   if (document.getElementById('ct-carregamento')) return;
@@ -24,34 +24,82 @@
     + '<div class="ct-carga-bancada" aria-hidden="true"><div class="ct-carga-bloco">' + linhas + '</div><div class="ct-carga-bloco">' + linhas + '</div></div>'
     + '<div class="ct-carga-bloco ct-carga-fila" aria-hidden="true">' + linhas + '</div></div>';
   (document.body || document.documentElement).appendChild(el);
+  // Só números e estados efêmeros: nada em storage, rede, notas ou identificação.
+  var medidas = window.CT_ABERTURA_METRICAS = { inicio: performance.now(), estado: 'carregando' };
+  var raizProtegida = null, inertAnterior = false;
+  var prazo = setTimeout(demorou, 20000);
   var observador = new MutationObserver(conferir);
+  // O portão de autenticação é dono do inert do aplicativo: nunca o antecipar,
+  // ou auth.js registra como original um lock temporário desta casca e depois o restaura.
+  // O <script> detecta auth.js mesmo antes de o gate ser criado pelo script defer.
+  function authGerenciaFundo() {
+    return !!document.getElementById('catedra-auth-gate')
+      || !!document.querySelector('script[src*="auth.js"]');
+  }
+  function proteger() {
+    var raiz = document.getElementById('dc-root');
+    if (!raiz || raiz === raizProtegida || authGerenciaFundo()) return;
+    raizProtegida = raiz; inertAnterior = raiz.hasAttribute('inert');
+    raiz.setAttribute('inert', '');
+  }
+  // Com o login presente, ele isola o fundo enquanto aberto. Se fechar antes do fim
+  // do carregamento, a casca intercepta foco sem disputar o atributo inert com auth.js.
+  function manterFocoNaCasca(e) {
+    if (!el.parentNode) return;
+    var raiz = document.getElementById('dc-root');
+    if (!raiz || !raiz.contains(e.target)) return;
+    var gate = document.getElementById('catedra-auth-gate');
+    if (gate && gate.style.display !== 'none') return;
+    el.tabIndex = -1;
+    try { el.focus({ preventScroll: true }); } catch (_) { try { el.focus(); } catch (__) {} }
+  }
+  function recuperar() {
+    if (el.querySelector('button')) return;
+    var b = document.createElement('button'); b.type = 'button'; b.textContent = 'Tentar novamente';
+    b.onclick = function () { location.reload(); };
+    el.querySelector('[role="status"]').appendChild(b);
+  }
+  function demorou() {
+    if (!el.parentNode) return;
+    medidas.estado = 'demorado';
+    var estado = el.querySelector('[role="status"]');
+    estado.querySelector('h1').textContent = 'A abertura está levando mais tempo';
+    estado.querySelector('p').textContent = 'Você pode aguardar ou tentar novamente. Seus registros continuam guardados neste aparelho.';
+    recuperar();
+  }
   function conferir() {
+    proteger();
     // O contêiner vazio do React ainda não é uma tela. Aguarda o main real, inclusive
     // quando ele está protegido pelo portão de acesso (que tem prioridade própria).
     // No artefato gerado, aguarda também o CSS completo: retirar a casca antes dele
     // exporia por um instante toda a interface sem estilo.
     if (!document.querySelector('#dc-root #ct-main')) return;
     if (window.CT_CSS_ESPERADO && !window.CT_CSS_PRONTO) return;
+    clearTimeout(prazo);
+    medidas.pronto = performance.now(); medidas.duracao = medidas.pronto - medidas.inicio; medidas.estado = 'pronto';
+    if (raizProtegida && !inertAnterior) raizProtegida.removeAttribute('inert');
     observador.disconnect();
     window.removeEventListener('error', falhou);
     window.removeEventListener('unhandledrejection', falhou);
     window.removeEventListener('ct-css-pronto', conferir);
     window.removeEventListener('ct-css-falhou', falhou);
+    document.removeEventListener('focusin', manterFocoNaCasca, true);
     if (el.parentNode) el.parentNode.removeChild(el);
   }
   function falhou() {
-    if (!el.parentNode || el.querySelector('button')) return;
+    if (!el.parentNode) return;
+    clearTimeout(prazo); medidas.estado = 'falhou';
     var estado = el.querySelector('[role="status"]');
     estado.querySelector('h1').textContent = 'Não foi possível concluir a abertura';
     estado.querySelector('p').textContent = 'Seus registros não foram apagados. Tente abrir a plataforma novamente.';
-    var b = document.createElement('button'); b.type = 'button'; b.textContent = 'Tentar novamente';
-    b.onclick = function () { location.reload(); }; estado.appendChild(b);
+    recuperar();
   }
   observador.observe(document.documentElement, { childList: true, subtree: true });
   window.addEventListener('error', falhou);
   window.addEventListener('unhandledrejection', falhou);
   window.addEventListener('ct-css-pronto', conferir);
   window.addEventListener('ct-css-falhou', falhou);
+  document.addEventListener('focusin', manterFocoNaCasca, true);
   document.addEventListener('DOMContentLoaded', function () {
     if (el.parentNode && document.body && el.parentNode !== document.body) document.body.appendChild(el);
     conferir();
