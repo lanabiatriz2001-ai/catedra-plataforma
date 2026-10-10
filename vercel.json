@@ -1,28 +1,61 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "git": { "deploymentEnabled": { "codex/mission-001-abertura": false } },
+  "git": {
+    "deploymentEnabled": {
+      "codex/mission-001-abertura": false,
+      "mission-002-prontidao": false
+    }
+  },
   "buildCommand": "node scripts/build.mjs",
   "outputDirectory": "public",
   "rewrites": [
-    { "source": "/termos", "destination": "/termos.html" },
-    { "source": "/privacidade", "destination": "/privacidade.html" },
-    { "source": "/sobre", "destination": "/sobre.html" }
+    {
+      "source": "/termos",
+      "destination": "/termos.html"
+    },
+    {
+      "source": "/privacidade",
+      "destination": "/privacidade.html"
+    },
+    {
+      "source": "/sobre",
+      "destination": "/sobre.html"
+    }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "Content-Security-Policy", "value": "frame-ancestors 'self'" },
-        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "camera=(), geolocation=(), microphone=()" }
+        {
+          "key": "Content-Security-Policy",
+          "value": "frame-ancestors 'self'"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), geolocation=(), microphone=()"
+        }
       ]
     }
   ],
   "functions": {
-    "api/complete.js": { "maxDuration": 60 },
-    "api/law.js": { "maxDuration": 30 },
+    "api/complete.js": {
+      "maxDuration": 60
+    },
+    "api/law.js": {
+      "maxDuration": 30
+    },
     "api/sentinela.js": {
       "maxDuration": 60,
       "includeFiles": "{leis-seca.js,juris-index.js,novidades.js,sentinela/retratos.json}"
