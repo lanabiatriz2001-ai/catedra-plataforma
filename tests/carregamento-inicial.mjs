@@ -91,5 +91,47 @@ export async function testarAberturaPendente(browser, base, ok, {motor='chromium
     const navegou=p.waitForEvent('framenavigated', {predicate:f=>f===p.mainFrame()});
     await p.getByRole('button',{name:'Tentar novamente'}).click();await navegou;
     ok(await p.evaluate(()=>localStorage.getItem('catedra:edital'))==='[{"id":"preservar"}]',rot+'botão recarrega de verdade sem apagar o estudo');
+
+    // Regressão P1: a autenticação e a casca não podem disputar a propriedade de inert.
+    // Portão e root são sintéticos; o teste exercita o contrato da casca sem conta real.
+    await p.evaluate(() => {
+      const gate = document.createElement('div'); gate.id='catedra-auth-gate'; gate.style.display='flex';
+      document.body.appendChild(gate);
+      const root = document.createElement('div'); root.id='dc-root';
+      root.innerHTML='<main id="ct-main"><button id="ct-controle-estudo">Estudar</button></main>';
+      document.body.appendChild(root);
+      window.CT_CSS_ESPERADO=true; window.CT_CSS_PRONTO=false;
+    });
+    await p.clock.runFor(20);
+    const originalAuth = await p.evaluate(() => {
+      const root = document.getElementById('dc-root');
+      const original = root.inert;
+      root.inert = true; // auth.js passa a gerir o fundo
+      return original;
+    });
+    ok(originalAuth === false, rot+'login captura inert original, sem lock antecipado da casca');
+    await p.evaluate(() => {
+      const gate = document.getElementById('catedra-auth-gate');
+      gate.style.display='none'; // login concluiu antes do CSS
+      document.getElementById('dc-root').inert=false;
+      document.getElementById('ct-controle-estudo').focus();
+    });
+    ok(await p.evaluate(()=>document.activeElement?.id==='ct-carregamento'),
+      rot+'casca intercepta foco enquanto CSS não ficou pronto');
+    await p.evaluate(() => {
+      document.getElementById('catedra-auth-gate').style.display='flex';
+      document.getElementById('dc-root').inert=true; // autenticação reabriu
+      window.CT_CSS_PRONTO=true;
+      window.dispatchEvent(new Event('ct-css-pronto'));
+    });
+    await p.waitForFunction(()=>!document.getElementById('ct-carregamento'));
+    ok(await p.evaluate(()=>document.getElementById('dc-root').inert),
+      rot+'saída da casca não desfaz o inert do login ainda aberto');
+    await p.evaluate(() => {
+      document.getElementById('catedra-auth-gate').style.display='none';
+      document.getElementById('dc-root').inert=false;
+    });
+    ok(await p.evaluate(()=>!document.getElementById('dc-root').inert),
+      rot+'após o login, o aplicativo não fica permanentemente inerte');
   } finally {await ctx.close();}
 }
