@@ -6,8 +6,8 @@ Unir funcionalidades solicitadas pela dona em uma **página independente** do C�
 ## Acesso
 - No ambiente de desenvolvimento: `/estudio-materiais.html`
 - No build web: `/estudio-materiais.html`
-- Mac/iPad: arquivo incluído na cópia do bundle nativo; **ainda sem item próprio na navegação do host**.
-- Não está publicado em produção enquanto o PR não for aprovado e incorporado.
+- Mac/iPad: arquivo incluído na cópia do bundle nativo, com entrada **Estúdio de Materiais** no menu lateral e link de retorno ao Cátedra.
+- O arquivo só estará publicado em produção depois de incorporar o PR. No site, o acesso direto será `/estudio-materiais.html`.
 
 ## Funcionalidades reais desta etapa
 1. Importação local de PDF de até 40 MB; renderização de página com PDF.js congelado do repositório; navegação por setas e botões.
@@ -32,13 +32,13 @@ Unir funcionalidades solicitadas pela dona em uma **página independente** do C�
 - `catedra-ui.css` e `vendor/pdfjs/pdf.min.js` são dependências locais já versionadas.
 
 ## Validação
-- Teste de navegador `node tests/estudio-materiais.mjs` conectado à CI do PR.
+- Teste de navegador `node tests/estudio-materiais.mjs` conectado à CI do PR, incluindo geração de PDF textual válido e renderização por PDF.js, extração de texto, launcher e botão de retorno.
 - Rodar `node scripts/build.mjs` e `node scripts/build-macos.mjs`; confirmar arquivo em ambos os bundles.
 - Rodar `npm test` e `npm run test:webkit` para regressão.
 - Teste físico de áudio e leitura de arquivo no Mac e no iPad ainda pendente; nenhuma instalação física foi feita neste ambiente.
 - Analisar comportamento de PDF com texto e PDF escaneado.
 
 ## Próximas decisões
-- Aprovar ou não a entrada no menu principal do Cátedra após testes.
+- Verificar o item no menu do Mac/iPad após instalação física; o acesso no menu lateral já está implementado na versão de build.
 - Decidir se a experiência de leitura deve ser evoluída para flipbook 3D real.
 - Estudar integração com pipeline de verificação de requisitos da engenharia do Cátedra, sem duplicar a governança do Mission Control.
