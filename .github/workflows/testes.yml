@@ -24,6 +24,8 @@ jobs:
         run: node scripts/verificar-segredos.mjs
       - name: Dívida visual do LEGIS/JURIS nativos só desce
         run: node scripts/verificar-design-nativo.mjs
+      - name: Métricas da abertura (sem navegador)
+        run: node --test tests/metricas-abertura.test.mjs
       - name: Build da plataforma
         run: node scripts/build.mjs
       - name: Ciclo integrado com início e registro
