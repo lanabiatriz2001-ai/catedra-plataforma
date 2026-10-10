@@ -49,6 +49,7 @@ details{border-top:1px solid var(--e-line);padding:12px 0}summary{cursor:pointer
 </header>
 <main>
 <div class="toolbar">
+<a href="./index.html" class="file-label" aria-label="Voltar ao Cátedra">← Voltar ao Cátedra</a>
 <label class="file-label">Escolher PDF <input id="pdf" type="file" accept="application/pdf,.pdf" aria-label="Escolher PDF do dispositivo"></label>
 <button id="clear" type="button">Limpar documento</button>
 <span class="counter" id="documento">Nenhum PDF selecionado</span>
@@ -132,6 +133,7 @@ details{border-top:1px solid var(--e-line);padding:12px 0}summary{cursor:pointer
 </div>
 </main>
 <script src="./vendor/pdfjs/pdf.min.js"></script>
+<script>if(window.pdfjsLib && window.pdfjsLib.GlobalWorkerOptions){window.pdfjsLib.GlobalWorkerOptions.workerSrc="./vendor/pdfjs/pdf.worker.min.js";}</script>
 <script>
 (function(){
 'use strict';
