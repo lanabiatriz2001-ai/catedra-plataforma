@@ -1,1 +1,237 @@
-{"geradoEm":null,"fontes":{}}
+{
+  "geradoEm": "2026-10-09T17:39:58.604Z",
+  "fontes": {
+    "planalto": {
+      "rotulo": "Planalto — texto compilado das normas",
+      "monitora": "o texto compilado das normas cadastradas no acervo de lei seca do Cátedra, artigo a artigo",
+      "limites": [
+        "só as 14 normas do acervo de lei seca, listadas aqui, são conferidas artigo a artigo: as outras 254 leis do catálogo do CátedraLEGIS — entre elas as 35 leis secas das demais áreas de estudo — não são vigiadas, e mudança nelas não aparece nesta central",
+        "não descobre normas novas sozinho: o índice de legislação do Planalto está atrás de escudo anti-robô (F5/TSPD) e não responde de forma confiável — norma nova entra pelo catálogo do CátedraLEGIS",
+        "a data de entrada em vigor só é afirmada quando a própria página traz a anotação; fora disso o item fica como vigência não informada, pendente de conferência",
+        "produção de efeitos é tratada à parte da vigência: quando a página marca \"(Produção de efeito)\" sem trazer a data, o item avisa que a norma produz efeitos em data própria e fica pendente de conferência",
+        "revogação só é apontada quando a própria página anota \"(Revogado pela…)\" no caput do artigo; artigo que some do texto compilado é tratado como leitura suspeita daquela norma, não como revogação"
+      ],
+      "normas": [
+        {
+          "sigla": "CF",
+          "nome": "Constituição Federal"
+        },
+        {
+          "sigla": "CC",
+          "nome": "Código Civil"
+        },
+        {
+          "sigla": "CPC",
+          "nome": "Código de Processo Civil"
+        },
+        {
+          "sigla": "CP",
+          "nome": "Código Penal"
+        },
+        {
+          "sigla": "CPP",
+          "nome": "Código de Processo Penal"
+        },
+        {
+          "sigla": "CDC",
+          "nome": "Código de Defesa do Consumidor"
+        },
+        {
+          "sigla": "CTN",
+          "nome": "Código Tributário Nacional"
+        },
+        {
+          "sigla": "CLT",
+          "nome": "Consolidação das Leis do Trabalho (CLT)"
+        },
+        {
+          "sigla": "LIA",
+          "nome": "Lei de Improbidade Administrativa"
+        },
+        {
+          "sigla": "Lei 14.133/2021",
+          "nome": "Lei de Licitações e Contratos"
+        },
+        {
+          "sigla": "ECA",
+          "nome": "Estatuto da Criança e do Adolescente"
+        },
+        {
+          "sigla": "LEP",
+          "nome": "Lei de Execução Penal"
+        },
+        {
+          "sigla": "Maria da Penha",
+          "nome": "Lei Maria da Penha"
+        },
+        {
+          "sigla": "Lei de Drogas",
+          "nome": "Lei de Drogas"
+        }
+      ],
+      "ultimaTentativa": "2026-10-09T17:39:58.604Z",
+      "ultimoSucesso": "2026-10-09T17:39:58.604Z",
+      "ultimaLeituraCompleta": "2026-10-09T17:39:58.604Z",
+      "resultado": "novidades",
+      "erro": null,
+      "detalhe": "14/14 normas lidas",
+      "novidadesNaConsulta": 51
+    },
+    "stf": {
+      "rotulo": "STF — Informativo, repercussão geral e súmulas",
+      "monitora": "o Informativo de Jurisprudência, a lista oficial de temas de repercussão geral e as listas de súmulas e súmulas vinculantes do STF",
+      "limites": [
+        "uma decisão mais recente não significa, sozinha, superação da anterior: o sentinela registra o que a fonte mudou e nunca reclassifica precedente",
+        "Informativo: cobre o Informativo, não o inteiro teor do acórdão",
+        "Repercussão geral: a linha de base é a lista oficial de 25/09/2026, a mesma de que o acervo foi montado: tema que já estava fora do CátedraJURIS antes disso (667 temas oficiais, 501 com tese) não vira novidade sozinho — é lacuna do acervo, tratada na auditoria",
+        "Repercussão geral: a lista oficial corta a tese em 8.000 caracteres: nas teses mais longas só o começo é comparado, e o item sai como comparação parcial",
+        "Repercussão geral: as datas de julgamento, de publicação do acórdão e do trânsito em julgado vêm dos andamentos do processo e só são lidas na rotina diária; pelo botão \"Buscar atualizações agora\", o item pode chegar sem elas",
+        "Repercussão geral: modulação de efeitos não é detectada: a lista oficial não tem esse campo, e a observação da fonte só aparece junto da tese",
+        "Repercussão geral: relator e título do tema não são comparados: o relator da lista é o atual, não o do julgamento",
+        "Súmulas: revisão de texto sem marca na lista não é detectada: o texto do portal difere do acervo só na forma em 21 das 63 vinculantes, e comparar o texto acusaria mudança que não houve",
+        "Súmulas: situação anotada só no acervo (as súmulas \"Superada\" que o próprio Cátedra registra) não vira item: vale apenas a marca oficial",
+        "Súmulas: a data de publicação mostrada é a do portal do STF, que pode diferir da registrada no acervo"
+      ],
+      "ultimaTentativa": "2026-10-09T10:41:46.390Z",
+      "ultimoSucesso": "2026-10-09T10:41:46.390Z",
+      "ultimaLeituraCompleta": "2026-10-09T10:41:46.390Z",
+      "resultado": "novidades",
+      "erro": null,
+      "detalhe": "Informativo: a partir da edição 1231; 4 páginas consultadas, contando a conferência da última edição do acervo · planilha oficial: sem mudança desde a última leitura (304); 1 edição(ões) recente(s) com nota faltando no acervo (1225) · Repercussão geral: 1481 temas lidos na lista oficial (até o Tema 1487), comparados com a leitura de 07/10/2026; datas oficiais lidas em 1 de 1 tema(s) · Súmulas: 736 súmulas e 63 vinculantes conferidas nas listas oficiais",
+      "novidadesNaConsulta": 17,
+      "colecoes": {
+        "informativo": {
+          "rotulo": "STF — Informativo de Jurisprudência",
+          "rotuloCurto": "Informativo",
+          "monitora": "edições novas do Informativo, a partir da última já presente no acervo do CátedraJURIS",
+          "limites": [
+            "cobre o Informativo, não o inteiro teor do acórdão"
+          ],
+          "resultado": "novidades",
+          "ultimaTentativa": "2026-10-09T10:41:46.390Z",
+          "ultimoSucesso": "2026-10-09T10:41:46.390Z",
+          "ultimaLeituraCompleta": "2026-10-09T10:41:46.390Z",
+          "erro": null,
+          "detalhe": "a partir da edição 1231; 4 páginas consultadas, contando a conferência da última edição do acervo · planilha oficial: sem mudança desde a última leitura (304); 1 edição(ões) recente(s) com nota faltando no acervo (1225)",
+          "novidadesNaConsulta": 2
+        },
+        "rg": {
+          "rotulo": "STF — Repercussão geral",
+          "rotuloCurto": "Repercussão geral",
+          "monitora": "a lista oficial de temas de repercussão geral do STF (todos os temas numa leitura): tema novo, mudança de situação, julgamento de mérito, tese fixada ou alterada e acórdão de mérito publicado, comparados com a última leitura registrada",
+          "limites": [
+            "a linha de base é a lista oficial de 25/09/2026, a mesma de que o acervo foi montado: tema que já estava fora do CátedraJURIS antes disso (667 temas oficiais, 501 com tese) não vira novidade sozinho — é lacuna do acervo, tratada na auditoria",
+            "a lista oficial corta a tese em 8.000 caracteres: nas teses mais longas só o começo é comparado, e o item sai como comparação parcial",
+            "as datas de julgamento, de publicação do acórdão e do trânsito em julgado vêm dos andamentos do processo e só são lidas na rotina diária; pelo botão \"Buscar atualizações agora\", o item pode chegar sem elas",
+            "modulação de efeitos não é detectada: a lista oficial não tem esse campo, e a observação da fonte só aparece junto da tese",
+            "relator e título do tema não são comparados: o relator da lista é o atual, não o do julgamento"
+          ],
+          "resultado": "novidades",
+          "ultimaTentativa": "2026-10-09T10:41:46.390Z",
+          "ultimoSucesso": "2026-10-09T10:41:46.390Z",
+          "ultimaLeituraCompleta": "2026-10-09T10:41:46.390Z",
+          "erro": null,
+          "detalhe": "1481 temas lidos na lista oficial (até o Tema 1487), comparados com a leitura de 07/10/2026; datas oficiais lidas em 1 de 1 tema(s)",
+          "novidadesNaConsulta": 15
+        },
+        "sumulas": {
+          "rotulo": "STF — Súmulas e súmulas vinculantes",
+          "rotuloCurto": "Súmulas",
+          "monitora": "as listas oficiais de súmulas e de súmulas vinculantes do portal do STF: número novo e marca nova (cancelada, revogada, alterada, superada), comparados com o acervo do CátedraJURIS",
+          "limites": [
+            "revisão de texto sem marca na lista não é detectada: o texto do portal difere do acervo só na forma em 21 das 63 vinculantes, e comparar o texto acusaria mudança que não houve",
+            "situação anotada só no acervo (as súmulas \"Superada\" que o próprio Cátedra registra) não vira item: vale apenas a marca oficial",
+            "a data de publicação mostrada é a do portal do STF, que pode diferir da registrada no acervo"
+          ],
+          "resultado": "sem-novidade",
+          "ultimaTentativa": "2026-10-09T10:41:46.390Z",
+          "ultimoSucesso": "2026-10-09T10:41:46.390Z",
+          "ultimaLeituraCompleta": "2026-10-09T10:41:46.390Z",
+          "erro": null,
+          "detalhe": "736 súmulas e 63 vinculantes conferidas nas listas oficiais",
+          "novidadesNaConsulta": 0
+        }
+      }
+    },
+    "stj": {
+      "rotulo": "STJ — Informativo, repetitivos e súmulas",
+      "monitora": "o Informativo de Jurisprudência (edições ordinárias e extraordinárias), as fichas dos recursos repetitivos e a lista oficial de súmulas do STJ",
+      "limites": [
+        "uma decisão mais recente não significa, sozinha, superação da anterior: o sentinela registra o que a fonte mudou e nunca reclassifica precedente",
+        "Informativo: cobre o Informativo, não o inteiro teor do acórdão nem a Jurisprudência em Teses",
+        "Repetitivos: o botão \"Buscar atualizações agora\" lê só os temas acima do último conhecido (temas novos); a varredura completa, que acha julgamento, tese e publicação nos temas já existentes, roda só na rotina diária",
+        "Repetitivos: a linha de base é a leitura oficial de 25/09/2026, a mesma de que o acervo foi montado: tema que já estava fora do CátedraJURIS antes disso (406 temas, 72 com tese) não vira novidade sozinho — é lacuna do acervo, tratada na auditoria",
+        "Repetitivos: modulação só aparece quando o STJ a registra nas anotações do tema, com o título \"Modulação de efeitos\"; a falta do registro não prova que não houve modulação",
+        "Repetitivos: o campo \"Tese Firmada\" com o aviso de que se aguarda a publicação do acórdão não é tratado como tese",
+        "Repetitivos: as datas são as do processo paradigma principal; a \"Última atualização\" da ficha não é usada como sinal de mudança",
+        "Súmulas: o STJ atualiza a lista oficial com atraso de semanas a meses (última versão de 05/12/2025), e o Informativo não publica todas as súmulas (643 a 645, 663 e 664 nunca saíram nele): súmula nova pode levar esse tempo para aparecer aqui",
+        "Súmulas: o SCON segue bloqueado para consulta automatizada e não é usado; a BDJur não tem um registro por súmula",
+        "Súmulas: pelo botão \"Buscar atualizações agora\", a lista oficial só é conferida quanto a ter mudado desde a última leitura; a leitura completa dela roda na rotina diária",
+        "Súmulas: superação de súmula não é detectada: o STJ não a marca, e uma decisão mais recente não significa superação",
+        "Súmulas: edição do Informativo incorporada fora da rotina não tem o bloco de súmulas relido; a lista oficial cobre essa falta mais tarde"
+      ],
+      "ultimaTentativa": "2026-10-09T10:44:26.624Z",
+      "ultimoSucesso": "2026-10-09T10:44:26.624Z",
+      "ultimaLeituraCompleta": "2026-10-07T10:40:25.872Z",
+      "resultado": "parcial",
+      "erro": "Informativo: edição 904: tempo esgotado ao ler a fonte; Súmulas: bloco \"Súmulas\" lido só nas edições do Informativo que responderam",
+      "detalhe": "Informativo: a partir da edição 904 e da extraordinária 34; 7 páginas consultadas, contando a conferência da última edição do acervo · Repetitivos: 50 temas lidos em 2 faixa(s); comparados com a leitura de 08/10/2026 · filtrada pelo CSV oficial de dados abertos (gravado em 08/10/2026): 2 de 31 faixa(s) lida(s) (Tema 1229: \"Acórdão Publicado - RE Pendente\" → \"Trânsito em Julgado\") · Súmulas: lista oficial lida: 676 súmulas (versão de 05/12/2025) · bloco \"Súmulas\" de 0 edição(ões) nova(s) do Informativo",
+      "novidadesNaConsulta": 1,
+      "colecoes": {
+        "informativo": {
+          "rotulo": "STJ — Informativo de Jurisprudência",
+          "rotuloCurto": "Informativo",
+          "monitora": "edições novas do Informativo (ordinárias e extraordinárias), a partir da última já no acervo",
+          "limites": [
+            "cobre o Informativo, não o inteiro teor do acórdão nem a Jurisprudência em Teses"
+          ],
+          "resultado": "parcial",
+          "ultimaTentativa": "2026-10-09T10:44:26.624Z",
+          "ultimoSucesso": "2026-10-09T10:44:26.624Z",
+          "ultimaLeituraCompleta": "2026-10-08T11:07:40.939Z",
+          "erro": "edição 904: tempo esgotado ao ler a fonte",
+          "detalhe": "a partir da edição 904 e da extraordinária 34; 7 páginas consultadas, contando a conferência da última edição do acervo",
+          "novidadesNaConsulta": 0
+        },
+        "repetitivos": {
+          "rotulo": "STJ — Recursos repetitivos",
+          "rotuloCurto": "Repetitivos",
+          "monitora": "a ficha oficial de cada tema repetitivo no portal de precedentes do STJ: tema afetado, julgamento, tese firmada ou alterada, acórdão publicado, trânsito, revisão, cancelamento e o registro de modulação, comparados com a última leitura registrada",
+          "limites": [
+            "o botão \"Buscar atualizações agora\" lê só os temas acima do último conhecido (temas novos); a varredura completa, que acha julgamento, tese e publicação nos temas já existentes, roda só na rotina diária",
+            "a linha de base é a leitura oficial de 25/09/2026, a mesma de que o acervo foi montado: tema que já estava fora do CátedraJURIS antes disso (406 temas, 72 com tese) não vira novidade sozinho — é lacuna do acervo, tratada na auditoria",
+            "modulação só aparece quando o STJ a registra nas anotações do tema, com o título \"Modulação de efeitos\"; a falta do registro não prova que não houve modulação",
+            "o campo \"Tese Firmada\" com o aviso de que se aguarda a publicação do acórdão não é tratado como tese",
+            "as datas são as do processo paradigma principal; a \"Última atualização\" da ficha não é usada como sinal de mudança"
+          ],
+          "resultado": "novidades",
+          "ultimaTentativa": "2026-10-09T10:44:26.624Z",
+          "ultimoSucesso": "2026-10-09T10:44:26.624Z",
+          "ultimaLeituraCompleta": "2026-10-07T10:40:25.872Z",
+          "erro": null,
+          "detalhe": "50 temas lidos em 2 faixa(s); comparados com a leitura de 08/10/2026 · filtrada pelo CSV oficial de dados abertos (gravado em 08/10/2026): 2 de 31 faixa(s) lida(s) (Tema 1229: \"Acórdão Publicado - RE Pendente\" → \"Trânsito em Julgado\")",
+          "novidadesNaConsulta": 1
+        },
+        "sumulas": {
+          "rotulo": "STJ — Súmulas",
+          "rotuloCurto": "Súmulas",
+          "monitora": "a lista oficial \"Enunciados das Súmulas do STJ\" (PDF do portal do STJ) e o bloco \"Súmulas\" de cada Informativo novo: súmula nova, cancelada, revogada ou alterada, comparada com o acervo do CátedraJURIS",
+          "limites": [
+            "o STJ atualiza a lista oficial com atraso de semanas a meses (última versão de 05/12/2025), e o Informativo não publica todas as súmulas (643 a 645, 663 e 664 nunca saíram nele): súmula nova pode levar esse tempo para aparecer aqui",
+            "o SCON segue bloqueado para consulta automatizada e não é usado; a BDJur não tem um registro por súmula",
+            "pelo botão \"Buscar atualizações agora\", a lista oficial só é conferida quanto a ter mudado desde a última leitura; a leitura completa dela roda na rotina diária",
+            "superação de súmula não é detectada: o STJ não a marca, e uma decisão mais recente não significa superação",
+            "edição do Informativo incorporada fora da rotina não tem o bloco de súmulas relido; a lista oficial cobre essa falta mais tarde"
+          ],
+          "resultado": "parcial",
+          "ultimaTentativa": "2026-10-09T10:44:26.624Z",
+          "ultimoSucesso": "2026-10-09T10:44:26.624Z",
+          "ultimaLeituraCompleta": "2026-10-08T11:07:40.939Z",
+          "erro": "bloco \"Súmulas\" lido só nas edições do Informativo que responderam",
+          "detalhe": "lista oficial lida: 676 súmulas (versão de 05/12/2025) · bloco \"Súmulas\" de 0 edição(ões) nova(s) do Informativo",
+          "novidadesNaConsulta": 0
+        }
+      }
+    }
+  }
+}
