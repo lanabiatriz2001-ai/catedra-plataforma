@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Cátedra | Estúdio de Materiais</title>
+<link rel="stylesheet" href="./catedra-ui.css">
+<style>
+:root{--e-bg:var(--bg,#f4f1ea);--e-panel:var(--surface,#fffdf8);--e-ink:var(--ink,#1f1c17);--e-sub:var(--text2,#5c564a);--e-line:var(--border,#e3ddce);--e-accent:var(--accent,#0f7a57);--e-soft:var(--accent-soft,#e6f0ea)}
+*{box-sizing:border-box}body{background:var(--e-bg);color:var(--e-ink);font:15px/1.55 Inter,system-ui,sans-serif;margin:0}
+header{padding:26px max(24px,calc((100vw - 1260px)/2));background:var(--e-panel);border-bottom:1px solid var(--e-line)}
+h1,h2,h3{font-family:Spectral,Georgia,serif;line-height:1.18}h1{font-size:clamp(30px,5vw,54px);margin:10px 0}h2{font-size:27px;margin:0 0 8px}
+.eyebrow{font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--e-accent)}
+.sub{color:var(--e-sub);max-width:70ch}main{max-width:1260px;padding:24px;margin:auto}
+.layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(290px,1fr);gap:18px;align-items:start}
+.card{background:var(--e-panel);border:1px solid var(--e-line);border-radius:var(--radius,16px);padding:22px;min-width:0}
+.stack{display:grid;gap:18px}.toolbar,.row,.tabs{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+button,.file-label{background:var(--e-panel);border:1px solid var(--e-line);border-radius:var(--radius,12px);padding:10px 14px;color:var(--e-ink);min-height:44px;font:inherit;cursor:pointer}
+button:focus-visible,.file-label:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--e-accent);outline-offset:2px}
+button:hover,.file-label:hover{border-color:var(--e-accent)}button.primary{background:var(--e-accent);color:white;border-color:var(--e-accent);font-weight:700}
+button[disabled]{opacity:.46;cursor:not-allowed}
+.file-label{display:inline-flex;align-items:center;gap:8px;font-weight:700;position:relative;overflow:hidden}
+.file-label input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.tabs{margin:22px 0}.tabs button[aria-selected="true"]{background:var(--e-soft);border-color:var(--e-accent);font-weight:700}
+.view[hidden]{display:none}.source{font-size:12px;color:var(--e-sub);margin:10px 0}.paper{background:white;color:#27251f;min-height:350px;box-shadow:0 9px 30px rgba(0,0,0,.08);border:1px solid #dedad2;border-radius:5px;display:flex;justify-content:center;align-items:center;overflow:hidden;perspective:1100px}
+.paper canvas{max-width:100%;height:auto;display:block}.paper .placeholder{max-width:47ch;padding:45px;font:22px/1.6 Georgia,serif}
+.paper.turning{animation:turn .26s ease-in-out}@keyframes turn{from{transform:rotateY(-6deg);opacity:.7}to{transform:rotateY(0);opacity:1}}
+textarea,input[type=text]{width:100%;min-height:44px;background:var(--e-panel);color:var(--e-ink);border:1px solid var(--e-line);border-radius:10px;padding:12px;font:inherit}
+textarea{resize:vertical;min-height:115px}label.field{display:block;font-size:13px;font-weight:700;margin:14px 0 7px}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}
+details{border-top:1px solid var(--e-line);padding:12px 0}summary{cursor:pointer;font-weight:700}
+.status{background:var(--e-soft);padding:12px;border-radius:10px;color:var(--e-ink)}
+.callout{border-left:3px solid var(--e-accent);padding:8px 14px;margin:16px 0;background:var(--e-soft)}
+.cloze{padding:18px;background:var(--e-soft);border-radius:12px;white-space:pre-wrap;overflow-wrap:anywhere}
+.muted{color:var(--e-sub)}.counter{font:600 12px ui-monospace,monospace}.answer{font-weight:700;color:var(--e-accent)}
+.checks p{margin:8px 0;border-bottom:1px solid var(--e-line);padding-bottom:8px}
+#mindmap{display:grid;gap:10px}#mindmap article{border:1px solid var(--e-line);border-radius:12px;padding:14px;background:var(--e-soft)}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+@media(max-width:850px){.layout{grid-template-columns:1fr}header{padding:24px}main{padding:16px}.card{padding:16px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+<div class="eyebrow">Cátedra / Laboratório experimental</div>
+<h1>Estúdio de Materiais</h1>
+<p class="sub">Leia seu PDF em páginas, ouça trechos e crie exercícios a partir do próprio texto. Tudo acontece neste dispositivo, sem enviar seus arquivos para servidores.</p>
+</header>
+<main>
+<div class="toolbar">
+<label class="file-label">Escolher PDF <input id="pdf" type="file" accept="application/pdf,.pdf" aria-label="Escolher PDF do dispositivo"></label>
+<button id="clear" type="button">Limpar documento</button>
+<span class="counter" id="documento">Nenhum PDF selecionado</span>
+</div>
+<div class="tabs" role="tablist" aria-label="Modos do estúdio">
+<button type="button" role="tab" id="tab-leitor" aria-controls="leitor" aria-selected="true" data-tab="leitor">Leitor</button>
+<button type="button" role="tab" id="tab-audio" aria-controls="audio" aria-selected="false" data-tab="audio">Áudio</button>
+<button type="button" role="tab" id="tab-ativo" aria-controls="ativo" aria-selected="false" data-tab="ativo">Estudo ativo</button>
+<button type="button" role="tab" id="tab-qa" aria-controls="qa" aria-selected="false" data-tab="qa">Conferência</button>
+</div>
+<div class="layout">
+<section class="stack">
+<div class="view card" id="leitor" role="tabpanel" aria-labelledby="tab-leitor">
+<h2>Leitura por páginas</h2>
+<p class="sub">A visualização usa a biblioteca PDF.js já distribuída pelo Cátedra. PDFs digitalizados podem não oferecer texto selecionável para os outros modos.</p>
+<div id="paper" class="paper"><div class="placeholder">Selecione um PDF para abrir a primeira página. O documento não é enviado para a nuvem.</div></div>
+<div class="toolbar" style="margin-top:15px">
+<button id="prev" disabled>Página anterior</button>
+<span id="pagina" class="counter" aria-live="polite">— / —</span>
+<button id="next" disabled>Próxima página</button>
+</div>
+<div class="source" id="sourceStatus" role="status">Sem documento carregado.</div>
+</div>
+<div class="view card" id="audio" role="tabpanel" aria-labelledby="tab-audio" hidden>
+<h2>Revisão em áudio</h2>
+<p class="sub">Use a voz disponível no navegador. O modo de duas vozes alterna entre vozes instaladas, quando existirem; não é um podcast gerado por IA.</p>
+<label for="fala" class="field">Texto para ouvir</label>
+<textarea id="fala" placeholder="Cole seu resumo, ou carregue uma página textual do PDF."></textarea>
+<div class="row">
+<label for="vel">Velocidade</label><select id="vel"><option value="0.85">0,85×</option><option value="1" selected>1×</option><option value="1.15">1,15×</option><option value="1.3">1,3×</option></select>
+<label><input type="checkbox" id="duas"> Alternar vozes</label>
+</div>
+<div class="toolbar" style="margin-top:15px">
+<button class="primary" id="ouvir">Ouvir</button><button id="parar">Parar</button>
+<button id="copiar">Usar texto da página atual</button>
+</div>
+<p id="speechStatus" class="source" role="status" aria-live="polite">Nenhuma reprodução em andamento.</p>
+</div>
+<div class="view card" id="ativo" role="tabpanel" aria-labelledby="tab-ativo" hidden>
+<h2>Estudo ativo</h2>
+<p class="sub">O exercício usa exclusivamente o conteúdo da página atual ou o trecho que você colar. Sem gerar doutrina, legislação ou jurisprudência.</p>
+<label class="field" for="trecho">Texto-base</label>
+<textarea id="trecho" placeholder="Cole um trecho ou use 'Importar página'"></textarea>
+<div class="toolbar"><button id="importar">Importar página</button></div>
+<label class="field" for="termo">Termo essencial a ocultar</label>
+<input type="text" id="termo" placeholder="Ex.: anterioridade">
+<div class="toolbar" style="margin:12px 0">
+<button id="gerar" class="primary">Criar lacuna</button><button id="revelar" disabled>Revelar resposta</button>
+</div>
+<div class="cloze" id="lacuna" aria-live="polite">Seu exercício aparecerá aqui.</div>
+<h3>Quadro de distinções</h3>
+<label class="field" for="regra">Regra geral</label><textarea id="regra" placeholder="Transcreva a regra do seu material"></textarea>
+<label class="field" for="excecao">Exceção ou ressalva</label><textarea id="excecao" placeholder="Transcreva a exceção, se existir"></textarea>
+<button id="comparar">Visualizar comparação</button>
+<div id="mindmap" style="margin-top:14px" aria-live="polite"></div>
+</div>
+<div class="view card" id="qa" role="tabpanel" aria-labelledby="tab-qa" hidden>
+<h2>Conferência da entrega</h2>
+<p class="sub">Checklist local inspirado em conferência de requisitos. Ele compara itens textuais exatamente; não substitui testes automatizados nem analisa semanticamente o código.</p>
+<label class="field" for="requisitos">Requisitos solicitados (um por linha)</label>
+<textarea id="requisitos" placeholder="Ex.: Importar PDF&#10;Ex.: Ouvir página"></textarea>
+<label class="field" for="entregue">Itens efetivamente verificados (um por linha)</label>
+<textarea id="entregue" placeholder="Liste apenas o que você testou"></textarea>
+<button class="primary" id="conferir">Conferir requisitos</button>
+<div id="resultadoQA" role="status" aria-live="polite" class="checks"></div>
+</div>
+</section>
+<aside class="stack">
+<section class="card">
+<div class="eyebrow">Fonte controlada</div><h2>O texto é a base</h2>
+<p class="sub">Os exercícios são derivados do documento selecionado ou do que você colar. Sempre confira a vigência e a procedência de leis e precedentes antes de estudar.</p>
+<div class="callout"><strong>Privacidade:</strong> esta versão mantém o arquivo somente na memória da página. Não sincroniza o PDF, não altera o acervo e não acessa serviços externos.</div>
+</section>
+<section class="card"><h3>Estado do módulo</h3><div id="diagnostico" class="checks" aria-live="polite"></div></section>
+<section class="card"><h3>Limites desta versão</h3>
+<details><summary>PDFs escaneados</summary><p>Sem OCR: algumas páginas só podem ser visualizadas, não narradas nem transformadas em lacunas automaticamente.</p></details>
+<details><summary>Áudio no iPad e Mac</summary><p>A reprodução depende do suporte do WKWebView a síntese de voz e das vozes instaladas. Se indisponível, o conteúdo permanece legível.</p></details>
+<details><summary>Conversão para apostila 3D</summary><p>Este piloto apresenta páginas com transição leve. Não importa nem instala o projeto externo OpenZine.</p></details>
+</section>
+</aside>
+</div>
+</main>
+<script src="./vendor/pdfjs/pdf.min.js"></script>
+<script>
+(function(){
+'use strict';
+var id=function(x){return document.getElementById(x);}, pdf=null, pageNo=1, busy=false, pageText='', answer='', chunks=[], pos=0, spoken=false;
+var synth=window.speechSynthesis||null, voices=[], fileToken=0;
+function status(t){id('sourceStatus').textContent=t;diagnostics();}
+function diagnostics(){
+var list=[['Biblioteca PDF.js',!!window.pdfjsLib],['PDF selecionado',!!pdf],['Texto disponível nesta página',!!pageText.trim()],['Síntese de voz',!!synth]];
+id('diagnostico').textContent='';
+list.forEach(function(v){var p=document.createElement('p');p.textContent=(v[1]?'Disponível: ':'Indisponível: ')+v[0];id('diagnostico').appendChild(p);});
+}
+function stop(){chunks=[];pos=0;spoken=false;if(synth)synth.cancel();id('speechStatus').textContent='Reprodução interrompida.';}
+function reset(){
+fileToken++;stop();pdf=null;pageNo=1;pageText='';id('pdf').value='';id('paper').textContent='Selecione um PDF para começar.';id('documento').textContent='Nenhum PDF selecionado';renderControls();status('Sem documento carregado.');
+}
+function renderControls(){id('prev').disabled=!pdf||busy||pageNo<=1;id('next').disabled=!pdf||busy||pageNo>=pdf.numPages;id('pagina').textContent=pdf?pageNo+' / '+pdf.numPages:'— / —';}
+function choosePage(n){if(!pdf||busy||n<1||n>pdf.numPages)return;stop();pageNo=n;draw();}
+async function draw(){
+if(!pdf)return;busy=true;renderControls();
+var current=fileToken, which=pageNo;
+try{
+var page=await pdf.getPage(which);if(current!==fileToken)return;
+var vp=page.getViewport({scale:1.35}),canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');
+if(!ctx)throw new Error('Canvas indisponível.');
+canvas.width=Math.ceil(vp.width);canvas.height=Math.ceil(vp.height);
+await page.render({canvasContext:ctx,viewport:vp}).promise;if(current!==fileToken)return;
+id('paper').textContent='';id('paper').appendChild(canvas);id('paper').classList.remove('turning');void id('paper').offsetWidth;id('paper').classList.add('turning');
+var tc=await page.getTextContent();if(current!==fileToken)return;
+pageText=tc.items.map(function(x){return x.str||'';}).join(' ').replace(/\s+/g,' ').trim();
+status(pageText?'Página carregada. Texto extraído: '+pageText.length+' caracteres.':'Página exibida, mas sem texto selecionável nesta página.');
+}catch(e){if(current===fileToken){pageText='';id('paper').textContent='Não foi possível renderizar esta página.';status('Erro na leitura: '+String(e.message||e));}}
+finally{if(current===fileToken){busy=false;renderControls();}}
+}
+id('pdf').addEventListener('change',function(e){
+var f=e.target.files&&e.target.files[0];if(!f)return;
+reset();id('documento').textContent=f.name;
+if(!/pdf/i.test(f.type)&&!/\.pdf$/i.test(f.name)){status('Selecione um arquivo PDF.');return;}
+if(f.size>40*1024*1024){status('Arquivo acima do limite de 40 MB deste piloto.');return;}
+if(!window.pdfjsLib){status('Biblioteca PDF.js local indisponível.');return;}
+var current=++fileToken,reader=new FileReader();
+reader.onerror=function(){status('Erro ao ler o arquivo no dispositivo.');};
+reader.onload=async function(){
+try{
+var task=window.pdfjsLib.getDocument({data:new Uint8Array(reader.result)});
+var result=await task.promise;if(current!==fileToken){await result.destroy();return;}
+pdf=result;pageNo=1;await draw();
+}catch(err){status('Não foi possível abrir o PDF: '+String(err.message||err));}};
+reader.readAsArrayBuffer(f);
+});
+id('clear').onclick=reset;id('prev').onclick=function(){choosePage(pageNo-1);};id('next').onclick=function(){choosePage(pageNo+1);};
+document.addEventListener('keydown',function(e){if(e.target&&/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;if(id('leitor').hidden)return;if(e.key==='ArrowRight')choosePage(pageNo+1);if(e.key==='ArrowLeft')choosePage(pageNo-1);});
+Array.prototype.forEach.call(document.querySelectorAll('[data-tab]'),function(btn){btn.addEventListener('click',function(){
+stop();Array.prototype.forEach.call(document.querySelectorAll('[data-tab]'),function(b){var active=b===btn;b.setAttribute('aria-selected',active?'true':'false');id(b.dataset.tab).hidden=!active;});
+});});
+id('copiar').onclick=function(){if(!pageText){id('speechStatus').textContent='Página sem texto extraível. Cole o texto manualmente.';return;}id('fala').value=pageText;id('speechStatus').textContent='Texto importado da página '+pageNo+'.';};
+function loadVoices(){voices=synth?synth.getVoices().filter(function(v){return /^pt/i.test(v.lang);}):[];}
+if(synth){loadVoices();synth.onvoiceschanged=loadVoices;}
+function nextSpeech(){
+if(!spoken||!synth||pos>=chunks.length){spoken=false;id('speechStatus').textContent='Leitura concluída.';return;}
+var u=new SpeechSynthesisUtterance(chunks[pos]),alt=id('duas').checked&&voices.length>1,voice=voices[alt?pos%2:0];
+if(voice)u.voice=voice;u.lang=voice?voice.lang:'pt-BR';u.rate=Number(id('vel').value)||1;
+u.onend=function(){if(spoken){pos++;nextSpeech();}};
+u.onerror=function(){spoken=false;id('speechStatus').textContent='A voz não pôde reproduzir o texto neste dispositivo.';};
+id('speechStatus').textContent='Lendo trecho '+(pos+1)+' de '+chunks.length;
+synth.speak(u);
+}
+id('ouvir').onclick=function(){
+stop();if(!synth){id('speechStatus').textContent='Síntese de voz não oferecida neste navegador.';return;}
+var t=id('fala').value.trim();if(!t){id('speechStatus').textContent='Insira um texto antes de ouvir.';return;}
+chunks=(t.match(/[^.!?]+[.!?]*/g)||[t]).map(function(s){return s.trim();}).filter(Boolean);
+if(chunks.length>200)chunks=chunks.slice(0,200);
+pos=0;spoken=true;nextSpeech();
+};
+id('parar').onclick=stop;
+id('importar').onclick=function(){if(!pageText){id('lacuna').textContent='Sem texto selecionável nesta página; cole seu trecho.';return;}id('trecho').value=pageText;id('lacuna').textContent='Trecho importado. Escolha um termo essencial.';};
+id('gerar').onclick=function(){
+var text=id('trecho').value.trim(),term=id('termo').value.trim();answer='';id('revelar').disabled=true;
+if(!text||!term){id('lacuna').textContent='Preencha o texto-base e o termo.';return;}
+var i=text.toLocaleLowerCase('pt-BR').indexOf(term.toLocaleLowerCase('pt-BR'));
+if(i<0){id('lacuna').textContent='O termo não foi encontrado literalmente no texto-base. Não foi criada nenhuma lacuna.';return;}
+answer=text.slice(i,i+term.length);var out=text.slice(0,i)+'[ ... ]'+text.slice(i+term.length);
+id('lacuna').textContent=out;id('revelar').disabled=false;
+};
+id('revelar').onclick=function(){if(!answer)return;id('lacuna').textContent=id('lacuna').textContent.replace('[ ... ]','['+answer+']');id('revelar').disabled=true;};
+id('comparar').onclick=function(){
+id('mindmap').textContent='';
+[['Regra geral',id('regra').value.trim()],['Exceção / ressalva',id('excecao').value.trim()]].forEach(function(item){
+var article=document.createElement('article'),h=document.createElement('strong'),p=document.createElement('p');
+h.textContent=item[0];p.textContent=item[1]||'Ainda não preenchido.';article.appendChild(h);article.appendChild(p);id('mindmap').appendChild(article);
+});};
+id('conferir').onclick=function(){
+var parse=function(s){return s.split('\n').map(function(x){return x.trim().toLocaleLowerCase('pt-BR');}).filter(Boolean);};
+var a=parse(id('requisitos').value),b=parse(id('entregue').value),out=id('resultadoQA');out.textContent='';
+if(!a.length){out.textContent='Informe pelo menos um requisito.';return;}
+a.forEach(function(x){var p=document.createElement('p'),ok=b.indexOf(x)>=0;p.textContent=(ok?'Conferido: ':'Pendente: ')+x;out.appendChild(p);});
+var p=document.createElement('p');p.className='status';p.textContent=a.filter(function(x){return b.indexOf(x)>=0;}).length+' de '+a.length+' itens com correspondência textual exata.';out.appendChild(p);
+};
+diagnostics();
+})();
+</script>
+</body></html>
