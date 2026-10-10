@@ -90,6 +90,10 @@ export async function testarAberturaPendente(browser, base, ok, {motor='chromium
     await p.reload(); await p.clock.runFor(21000);
     const navegou=p.waitForEvent('framenavigated', {predicate:f=>f===p.mainFrame()});
     await p.getByRole('button',{name:'Tentar novamente'}).click();await navegou;
+    // framenavigated ocorre antes de o parser criar <body>; aguardar o DOM evita
+    // introduzir a fixture P1 na página enquanto ela ainda está sendo recarregada.
+    await p.waitForLoadState('domcontentloaded');
+    await p.waitForFunction(() => !!document.body);
     ok(await p.evaluate(()=>localStorage.getItem('catedra:edital'))==='[{"id":"preservar"}]',rot+'botão recarrega de verdade sem apagar o estudo');
 
     // Regressão P1: a autenticação e a casca não podem disputar a propriedade de inert.
