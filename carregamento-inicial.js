@@ -29,12 +29,29 @@
   var raizProtegida = null, inertAnterior = false;
   var prazo = setTimeout(demorou, 20000);
   var observador = new MutationObserver(conferir);
+  // O portão de autenticação é dono do inert do aplicativo: nunca o antecipar,
+  // ou auth.js registra como original um lock temporário desta casca e depois o restaura.
+  // O <script> detecta auth.js mesmo antes de o gate ser criado pelo script defer.
+  function authGerenciaFundo() {
+    return !!document.getElementById('catedra-auth-gate')
+      || !!document.querySelector('script[src*="auth.js"]');
+  }
   function proteger() {
     var raiz = document.getElementById('dc-root');
-    if (raiz && raiz !== raizProtegida) {
-      raizProtegida = raiz; inertAnterior = raiz.hasAttribute('inert');
-      raiz.setAttribute('inert', '');
-    }
+    if (!raiz || raiz === raizProtegida || authGerenciaFundo()) return;
+    raizProtegida = raiz; inertAnterior = raiz.hasAttribute('inert');
+    raiz.setAttribute('inert', '');
+  }
+  // Com o login presente, ele isola o fundo enquanto aberto. Se fechar antes do fim
+  // do carregamento, a casca intercepta foco sem disputar o atributo inert com auth.js.
+  function manterFocoNaCasca(e) {
+    if (!el.parentNode) return;
+    var raiz = document.getElementById('dc-root');
+    if (!raiz || !raiz.contains(e.target)) return;
+    var gate = document.getElementById('catedra-auth-gate');
+    if (gate && gate.style.display !== 'none') return;
+    el.tabIndex = -1;
+    try { el.focus({ preventScroll: true }); } catch (_) { try { el.focus(); } catch (__) {} }
   }
   function recuperar() {
     if (el.querySelector('button')) return;
@@ -66,6 +83,7 @@
     window.removeEventListener('unhandledrejection', falhou);
     window.removeEventListener('ct-css-pronto', conferir);
     window.removeEventListener('ct-css-falhou', falhou);
+    document.removeEventListener('focusin', manterFocoNaCasca, true);
     if (el.parentNode) el.parentNode.removeChild(el);
   }
   function falhou() {
@@ -81,6 +99,7 @@
   window.addEventListener('unhandledrejection', falhou);
   window.addEventListener('ct-css-pronto', conferir);
   window.addEventListener('ct-css-falhou', falhou);
+  document.addEventListener('focusin', manterFocoNaCasca, true);
   document.addEventListener('DOMContentLoaded', function () {
     if (el.parentNode && document.body && el.parentNode !== document.body) document.body.appendChild(el);
     conferir();
