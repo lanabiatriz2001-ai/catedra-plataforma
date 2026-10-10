@@ -43,6 +43,10 @@ jobs:
           node tests/oral-sala.mjs
         env:
           CT_CHROME: /usr/bin/google-chrome
+      - name: Estúdio de Materiais (PDF.js, estudo ativo e conferência)
+        run: node tests/estudio-materiais.mjs
+        env:
+          CT_CHROME: /usr/bin/google-chrome
       - name: Testes de navegador (sync + acervo ida-e-volta)
         run: npm test
         env:
