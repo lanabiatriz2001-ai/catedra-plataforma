@@ -1,0 +1,455 @@
+{
+  "schemaVersion": 1,
+  "data": "2026-10-20",
+  "repositorio": "lanabiatriz2001-ai/catedra-plataforma",
+  "pr": 242,
+  "branch": "mission-002-prontidao",
+  "main": "bbc76eef40ad10f5de24a7ace93d93e782d12a39",
+  "base": "c2104c50fcef3cf1efc13034b5a902c9896e877c",
+  "ambiente": {
+    "maquina": "Mac16,12",
+    "arquitetura": "arm64",
+    "sistema": "macOS 27.2 (26B5101f)",
+    "chrome": "155.0.8059.85",
+    "lighthouse": {
+      "viewport": "390x844",
+      "dpr": 1,
+      "mobile": true,
+      "throttlingMethod": "devtools",
+      "cpu": 4,
+      "latenciaMs": 150,
+      "downloadKbps": 1600,
+      "uploadKbps": 750,
+      "favicon": "ícone real public/icon-180.png servido para pedido automático /favicon.ico; mesmo harness nos dois braços"
+    },
+    "node": "24.16.0",
+    "execucao": "serial por navegador, contextos/perfis descartáveis; sem conta; sem benchmarks, builds ou suítes de navegador concorrentes nas amostras aceitas; leituras e verificações leves no host",
+    "servidor": "HTTP localhost estático sem compressão",
+    "cdp": {
+      "viewport": "390x844",
+      "cpu": 4,
+      "latenciaMs": 150,
+      "downloadBytesSegundo": 200000,
+      "uploadBytesSegundo": 93750,
+      "serviceWorker": "bloqueado",
+      "redeExterna": "bloqueada"
+    }
+  },
+  "escopo": {
+    "alteracao": "compactar corpo text/x-dc somente no artefato web; esbuild 0.27.0 só no build, identificadores e simplificações desativados",
+    "inalterados": [
+      "Catedra.dc.html",
+      "auth.js",
+      "support.js",
+      "catedra-ui.css",
+      "scripts/build-macos.mjs",
+      "mac/",
+      "ios/",
+      "vercel.json"
+    ],
+    "cena": "contexto virgem com portão de login; não mede autenticação, sync ou sessão disponível",
+    "prontidao": "instante absoluto desde performance.timeOrigin: main montado, CSS sinalizado pronto e casca removida; pode estar atrás do login",
+    "lcp": "observado até fontes prontas e 1s sem pedidos locais; elemento final é parágrafo do login",
+    "limitacao": "tempos locais sem compressão e amostra pequena; não são garantia de produção ou aparelho físico"
+  },
+  "artefatos": {
+    "baseline": {
+      "commit": "c2104c50fcef3cf1efc13034b5a902c9896e877c",
+      "main": "bbc76eef40ad10f5de24a7ace93d93e782d12a39",
+      "sha256": "8a08ed24cc497d1152112f099ce75773f6218ebf16d4f62cd25ce61217abb9aa",
+      "bytes": 2165044,
+      "metodo": "servidor estático local sem compressão HTTP; Chrome155.0.8059.85; Lighthouse12.8.2; Mac16,12 arm64 macOS27.2",
+      "capturedAt": "2026-10-20T19:48:09.732Z"
+    },
+    "variante": {
+      "parentCommit": "c2104c50fcef3cf1efc13034b5a902c9896e877c",
+      "bytes": 1799898,
+      "sha256": "53f226d0f270e01dca95df1de2eaac0e156767ea479e55028ca80b72ac642d59",
+      "arquivos": {
+        "scripts/build.mjs": "7eb2f5217fd169ba4319e5941dd5953c60a9b0a99e6dca5348a3566cda56c891",
+        "scripts/compactar-logica.mjs": "49e4ce2e2be58577c298ae97f8ce1e2dd47e5b15ce4a0c42a52dd71a86d65c0f",
+        "package.json": "f58958ab894a63e922d3d3c84f4ebf425d7f05302d534d5b22c2e6b62b1d9083",
+        "package-lock.json": "001a37c47ee064b35451e2475434d5aae483a85670ef62d065c12c86c909a232"
+      },
+      "capturedAt": "2026-10-20T19:52:47.103Z"
+    }
+  },
+  "cdp": {
+    "baseline": {
+      "resumo": {
+        "total": 3,
+        "validas": 3,
+        "invalidas": 0,
+        "medianasMs": {
+          "prontidaoMs": 17774,
+          "prontidaoNavegacaoMs": 18166.100000023842,
+          "fcpMs": 576,
+          "lcpMs": 18708,
+          "domContentLoadedMs": 17079.899999976158,
+          "bloqueioLongTasksMs": 1549
+        },
+        "denominadores": {
+          "prontidaoMs": 3,
+          "prontidaoNavegacaoMs": 3,
+          "fcpMs": 3,
+          "lcpMs": 3,
+          "domContentLoadedMs": 3,
+          "bloqueioLongTasksMs": 3
+        }
+      },
+      "amostras": [
+        {
+          "rodada": 1,
+          "prontidaoNavegacaoMs": 18090.80000001192,
+          "prontidaoCascaMs": 17690.700000047684,
+          "fcpMs": 576,
+          "lcpMs": 18708,
+          "lcpElemento": {
+            "tag": "p",
+            "id": "",
+            "classe": "",
+            "texto": "Ciclo inteligente, revisão espaçada FSRS, simulados com raio-X e prognóstico de aprovação — tudo em "
+          },
+          "domContentLoadedMs": 16985.69999998808,
+          "bloqueioLongTasksMs": 1476,
+          "fimDocumentoMs": 16320.399999976158,
+          "bytesDocumento": 2165044,
+          "recursosLocais": 33,
+          "recursosFalhos": 0,
+          "recursosPendentes": 0,
+          "fontesProntas": true,
+          "fontesFalhas": 0,
+          "errosDePagina": 0,
+          "timeout": false,
+          "falhas": [],
+          "trace": "work/mission-002/baseline-traces/1792525351331-33590-amostra-01.trace.json"
+        },
+        {
+          "rodada": 2,
+          "prontidaoNavegacaoMs": 18166.100000023842,
+          "prontidaoCascaMs": 17774,
+          "fcpMs": 580,
+          "lcpMs": 18396,
+          "lcpElemento": {
+            "tag": "p",
+            "id": "",
+            "classe": "",
+            "texto": "Ciclo inteligente, revisão espaçada FSRS, simulados com raio-X e prognóstico de aprovação — tudo em "
+          },
+          "domContentLoadedMs": 17079.899999976158,
+          "bloqueioLongTasksMs": 1549,
+          "fimDocumentoMs": 16319.399999976158,
+          "bytesDocumento": 2165044,
+          "recursosLocais": 33,
+          "recursosFalhos": 0,
+          "recursosPendentes": 0,
+          "fontesProntas": true,
+          "fontesFalhas": 0,
+          "errosDePagina": 0,
+          "timeout": false,
+          "falhas": [],
+          "trace": "work/mission-002/baseline-traces/1792525351331-33590-amostra-02.trace.json"
+        },
+        {
+          "rodada": 3,
+          "prontidaoNavegacaoMs": 18907.100000023842,
+          "prontidaoCascaMs": 18516.600000023842,
+          "fcpMs": 564,
+          "lcpMs": 19148,
+          "lcpElemento": {
+            "tag": "p",
+            "id": "",
+            "classe": "",
+            "texto": "Ciclo inteligente, revisão espaçada FSRS, simulados com raio-X e prognóstico de aprovação — tudo em "
+          },
+          "domContentLoadedMs": 17415.200000047684,
+          "bloqueioLongTasksMs": 2239,
+          "fimDocumentoMs": 16318.400000035763,
+          "bytesDocumento": 2165044,
+          "recursosLocais": 33,
+          "recursosFalhos": 0,
+          "recursosPendentes": 0,
+          "fontesProntas": true,
+          "fontesFalhas": 0,
+          "errosDePagina": 0,
+          "timeout": false,
+          "falhas": [],
+          "trace": "work/mission-002/baseline-traces/1792525351331-33590-amostra-03.trace.json"
+        }
+      ]
+    },
+    "variante": {
+      "resumo": {
+        "total": 3,
+        "validas": 3,
+        "invalidas": 0,
+        "medianasMs": {
+          "prontidaoMs": 15927.800000011921,
+          "prontidaoNavegacaoMs": 16329.400000035763,
+          "fcpMs": 580,
+          "lcpMs": 16564,
+          "domContentLoadedMs": 15226.100000023842,
+          "bloqueioLongTasksMs": 1530
+        },
+        "denominadores": {
+          "prontidaoMs": 3,
+          "prontidaoNavegacaoMs": 3,
+          "fcpMs": 3,
+          "lcpMs": 3,
+          "domContentLoadedMs": 3,
+          "bloqueioLongTasksMs": 3
+        }
+      },
+      "amostras": [
+        {
+          "rodada": 1,
+          "prontidaoNavegacaoMs": 16304.699999988079,
+          "prontidaoCascaMs": 15911.399999976158,
+          "fcpMs": 588,
+          "lcpMs": 16560,
+          "lcpElemento": {
+            "tag": "p",
+            "id": "",
+            "classe": "",
+            "texto": "Ciclo inteligente, revisão espaçada FSRS, simulados com raio-X e prognóstico de aprovação — tudo em "
+          },
+          "domContentLoadedMs": 15198.199999988079,
+          "bloqueioLongTasksMs": 1510,
+          "fimDocumentoMs": 14497.199999988079,
+          "bytesDocumento": 1799898,
+          "recursosLocais": 33,
+          "recursosFalhos": 0,
+          "recursosPendentes": 0,
+          "fontesProntas": true,
+          "fontesFalhas": 0,
+          "errosDePagina": 0,
+          "timeout": false,
+          "falhas": [],
+          "trace": "work/mission-002/variante-traces/1792525727575-36580-amostra-01.trace.json"
+        },
+        {
+          "rodada": 2,
+          "prontidaoNavegacaoMs": 16331.799999952316,
+          "prontidaoCascaMs": 15942.599999964237,
+          "fcpMs": 568,
+          "lcpMs": 16576,
+          "lcpElemento": {
+            "tag": "p",
+            "id": "",
+            "classe": "",
+            "texto": "Ciclo inteligente, revisão espaçada FSRS, simulados com raio-X e prognóstico de aprovação — tudo em "
+          },
+          "domContentLoadedMs": 15232.899999976158,
+          "bloqueioLongTasksMs": 1538,
+          "fimDocumentoMs": 14496,
+          "bytesDocumento": 1799898,
+          "recursosLocais": 33,
+          "recursosFalhos": 0,
+          "recursosPendentes": 0,
+          "fontesProntas": true,
+          "fontesFalhas": 0,
+          "errosDePagina": 0,
+          "timeout": false,
+          "falhas": [],
+          "trace": "work/mission-002/variante-traces/1792525727575-36580-amostra-02.trace.json"
+        },
+        {
+          "rodada": 3,
+          "prontidaoNavegacaoMs": 16329.400000035763,
+          "prontidaoCascaMs": 15927.800000011921,
+          "fcpMs": 580,
+          "lcpMs": 16564,
+          "lcpElemento": {
+            "tag": "p",
+            "id": "",
+            "classe": "",
+            "texto": "Ciclo inteligente, revisão espaçada FSRS, simulados com raio-X e prognóstico de aprovação — tudo em "
+          },
+          "domContentLoadedMs": 15226.100000023842,
+          "bloqueioLongTasksMs": 1530,
+          "fimDocumentoMs": 14501,
+          "bytesDocumento": 1799898,
+          "recursosLocais": 33,
+          "recursosFalhos": 0,
+          "recursosPendentes": 0,
+          "fontesProntas": true,
+          "fontesFalhas": 0,
+          "errosDePagina": 0,
+          "timeout": false,
+          "falhas": [],
+          "trace": "work/mission-002/variante-traces/1792525727575-36580-amostra-03.trace.json"
+        }
+      ]
+    }
+  },
+  "lighthouse": {
+    "baseline": {
+      "resumo": {
+        "total": 3,
+        "validas": 3,
+        "invalidas": 0,
+        "medianas": {
+          "first-contentful-paint": 569.749,
+          "largest-contentful-paint": 18093.388,
+          "total-blocking-time": 589.2889999999989,
+          "cumulative-layout-shift": 0.004011384860731237
+        }
+      },
+      "amostras": [
+        {
+          "rodada": 2,
+          "arquivo": "baseline-lighthouse-valido/2.lhr.json",
+          "versao": "12.8.2",
+          "metricas": {
+            "first-contentful-paint": 556.905,
+            "largest-contentful-paint": 18127.065,
+            "total-blocking-time": 612.0100000000002,
+            "cumulative-layout-shift": 0.004011384860731237
+          },
+          "bytes": 5606392,
+          "falhas": [],
+          "avisosTemplate": 6
+        },
+        {
+          "rodada": 3,
+          "arquivo": "baseline-lighthouse-valido/3.lhr.json",
+          "versao": "12.8.2",
+          "metricas": {
+            "first-contentful-paint": 575.148,
+            "largest-contentful-paint": 18093.388,
+            "total-blocking-time": 582.4889999999978,
+            "cumulative-layout-shift": 0.004011384860731237
+          },
+          "bytes": 5606392,
+          "falhas": [],
+          "avisosTemplate": 6
+        },
+        {
+          "rodada": 1,
+          "arquivo": "baseline-lighthouse-reposicao/1.lhr.json",
+          "versao": "12.8.2",
+          "metricas": {
+            "first-contentful-paint": 569.749,
+            "largest-contentful-paint": 18073.346,
+            "total-blocking-time": 589.2889999999989,
+            "cumulative-layout-shift": 0.004011384860731237
+          },
+          "bytes": 5606392,
+          "falhas": [],
+          "avisosTemplate": 6
+        }
+      ]
+    },
+    "variante": {
+      "resumo": {
+        "total": 3,
+        "validas": 3,
+        "invalidas": 0,
+        "medianas": {
+          "first-contentful-paint": 567.248,
+          "largest-contentful-paint": 16417.713,
+          "total-blocking-time": 627.152,
+          "cumulative-layout-shift": 0.004011384860731237
+        }
+      },
+      "amostras": [
+        {
+          "rodada": 1,
+          "versao": "12.8.2",
+          "metricas": {
+            "first-contentful-paint": 586.722,
+            "largest-contentful-paint": 16417.713,
+            "total-blocking-time": 627.152,
+            "cumulative-layout-shift": 0.004011384860731237
+          },
+          "bytes": 4876100,
+          "falhas": [],
+          "avisosTemplate": 6
+        },
+        {
+          "rodada": 2,
+          "versao": "12.8.2",
+          "metricas": {
+            "first-contentful-paint": 567.248,
+            "largest-contentful-paint": 16326.891,
+            "total-blocking-time": 558.0789999999997,
+            "cumulative-layout-shift": 0.004011384860731237
+          },
+          "bytes": 4876100,
+          "falhas": [],
+          "avisosTemplate": 6
+        },
+        {
+          "rodada": 3,
+          "versao": "12.8.2",
+          "metricas": {
+            "first-contentful-paint": 564.403,
+            "largest-contentful-paint": 16448.143,
+            "total-blocking-time": 648.3110000000033,
+            "cumulative-layout-shift": 0.004011384860731237
+          },
+          "bytes": 4876100,
+          "falhas": [],
+          "avisosTemplate": 6
+        }
+      ]
+    }
+  },
+  "comparacao": {
+    "htmlBytes": {
+      "antes": 2165044,
+      "depois": 1799898,
+      "delta": -365146,
+      "percentual": -16.865523287286543
+    },
+    "lcpCdpMs": {
+      "antes": 18708,
+      "depois": 16564,
+      "delta": -2144,
+      "percentual": -11.460337823391065
+    },
+    "prontidaoCdpMs": {
+      "antes": 18166.100000023842,
+      "depois": 16329.400000035763,
+      "delta": -1836.699999988079,
+      "percentual": -10.110590605499636
+    },
+    "fcpCdpMs": {
+      "antes": 576,
+      "depois": 580,
+      "delta": 4,
+      "percentual": 0.694444444444442
+    },
+    "lcpLighthouseMs": {
+      "antes": 18093.388,
+      "depois": 16417.713,
+      "delta": -1675.6749999999993,
+      "percentual": -9.261256100847447
+    },
+    "tbtLighthouseMs": {
+      "antes": 589.2889999999989,
+      "depois": 627.152,
+      "delta": 37.86300000000119,
+      "percentual": 6.425200538275999
+    }
+  },
+  "exclusoes": [
+    {
+      "serie": "baseline-lighthouse",
+      "rodadas": [
+        1,
+        2,
+        3
+      ],
+      "motivo": "favicon404; protocolo corrigido no harness; não usadas nas medianas"
+    },
+    {
+      "serie": "baseline-lighthouse-valido",
+      "rodadas": [
+        1
+      ],
+      "motivo": "coleta com análise auxiliar local de compilação; substituída por amostra serial sem carga concorrente"
+    }
+  ],
+  "conclusao": "Redução de bytes e de latência de LCP/prontidão neste perfil; FCP equivalente; TBT Lighthouse +37,9ms (+6,4%), sem evidência de ganho de CPU. Não alegar sessão autenticada pronta nem validação física."
+}

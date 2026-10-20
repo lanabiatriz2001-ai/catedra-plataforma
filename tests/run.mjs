@@ -3000,8 +3000,14 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
 
 // (b) o host: sem catedra:enam nada aparece e Ajustes convida; ativar cria a chave, o chip e a régua; a meta muda só o número
 {
+  // As duas provas da fixture precisam estar no futuro. Relógio e storage próprios
+  // evitam que o caso expire em 15/10/2026 ou altere os módulos seguintes da suíte.
+  const ctxE1 = await browser.newContext({ viewport: { width: 1280, height: 900 }, timezoneId: 'America/Porto_Velho' });
+  const page = await ctxE1.newPage();
+  try {
+  await page.clock.install({ time: new Date('2026-09-02T12:00:00-03:00') });
   const host = URL0 + '/Catedra.dc.html';
-  await page.goto(host);
+  await page.goto(URL0 + '/__semente');
   await page.evaluate(() => {
     localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
     localStorage.removeItem('catedra:enam'); localStorage.removeItem('catedra:prova');
@@ -3062,6 +3068,7 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     return r;
   });
   for (const [k, v] of Object.entries(h)) ok(v, 'ENAM/E1 ' + k);
+  } finally { await ctxE1.close(); }
 }
 
 /* ============= ENAM — E3: o simulado no formato da prova ============= */

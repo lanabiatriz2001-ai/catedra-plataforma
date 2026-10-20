@@ -20,9 +20,21 @@ export function validarAmostra(a) {
   const falhas = [];
   if (!a || !a.mainPronto || a.casCaPresente) falhas.push('conteudo_nao_pronto');
   if (!a || !Number.isFinite(a.prontidaoMs) || a.prontidaoMs < 0) falhas.push('tempo_de_prontidao_ausente');
+  if (!a || !Number.isFinite(a.prontidaoNavegacaoMs) || a.prontidaoNavegacaoMs < 0) falhas.push('prontidao_de_navegacao_ausente');
+  for (const chave of ['fcpMs', 'lcpMs', 'domContentLoadedMs']) {
+    if (!a || !Number.isFinite(a[chave]) || a[chave] <= 0) falhas.push(chave + '_ausente');
+  }
+  if (a && a.timeout) falhas.push('timeout');
+  if (a && a.erroColeta) falhas.push('erro_de_coleta');
+  if (a && a.erroTrace) falhas.push('erro_de_trace');
   if (a && a.cargaCssEsperada && !a.cargaCssPronta) falhas.push('css_nao_pronto');
   if (a && a.errosDePagina > 0) falhas.push('erro_javascript');
+  if (!a || !['recursosLocaisFalhos', 'recursosLocaisPendentes'].every(k => Number.isInteger(a[k]) && a[k] >= 0)) falhas.push('diagnostico_de_rede_ausente');
   if (a && a.recursosLocaisFalhos > 0) falhas.push('recurso_local_falhou');
+  if (a && a.recursosLocaisPendentes > 0) falhas.push('recurso_local_pendente');
+  if (!a || a.fontesProntas !== true) falhas.push('fontes_nao_prontas');
+  if (!a || !Number.isInteger(a.fontesFalhas) || a.fontesFalhas < 0) falhas.push('diagnostico_de_fontes_ausente');
+  if (a && a.fontesFalhas > 0) falhas.push('fonte_falhou');
   return [...new Set(falhas)];
 }
 
@@ -35,8 +47,10 @@ export function resumoAmostras(amostras) {
     invalidas: validadas.length - boas.length,
     medianasMs: {}
   };
-  for (const chave of ['prontidaoMs','fcpMs','lcpMs','domContentLoadedMs','bloqueioLongTasksMs']) {
+  const denominadores = resumo.denominadores = {};
+  for (const chave of ['prontidaoMs','prontidaoNavegacaoMs','fcpMs','lcpMs','domContentLoadedMs','bloqueioLongTasksMs']) {
     resumo.medianasMs[chave] = mediana(boas.map(a => a[chave]));
+    denominadores[chave] = boas.filter(a => Number.isFinite(a[chave]) && a[chave] >= 0).length;
   }
   return { resumo, amostras: validadas };
 }
