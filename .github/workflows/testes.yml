@@ -24,8 +24,16 @@ jobs:
         run: node scripts/verificar-segredos.mjs
       - name: Dívida visual do LEGIS/JURIS nativos só desce
         run: node scripts/verificar-design-nativo.mjs
+      - name: Métricas da abertura (sem navegador)
+        run: node --test tests/metricas-abertura.test.mjs
+      - name: Compactação da lógica preserva comportamento
+        run: npm run test:compactacao-logica
       - name: Build da plataforma
         run: node scripts/build.mjs
+      - name: Lógica publicada em oito temas e arquivo local sem HTTP
+        run: node tests/logica-publicada.mjs
+        env:
+          CT_CHROME: /usr/bin/google-chrome
       - name: Ciclo integrado com início e registro
         run: |
           node tests/ciclo-plataforma.mjs
@@ -65,6 +73,13 @@ jobs:
         run: node scripts/build.mjs
       - name: WebKit do Playwright (com as bibliotecas de sistema)
         run: npx playwright-core install --with-deps webkit
+      - name: Lógica publicada no WebKit HTTP em oito temas
+        run: node tests/logica-publicada.mjs
+        env:
+          CT_BROWSER: webkit
+          # A releitura file:// real requer a preferência do WKWebView nativo.
+          # O proxy Playwright a bloqueia; não declarar esse alvo como PASS.
+          CT_PUBLICADA_ORIGEM: http
       - name: Ciclo integrado e retomada no WebKit
         run: |
           node tests/ciclo-plataforma.mjs

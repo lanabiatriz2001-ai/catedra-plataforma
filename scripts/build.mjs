@@ -25,13 +25,15 @@ import './verificar-cores-leitura.mjs';   // trava: grade de leitura ativa legí
 import './verificar-cores-texto.mjs';   // trava: cor de ramo como texto ≥ 4,5:1 (P16)
 import './build-juridico.mjs';   // Termos e Política: docs/juridico/*.md → termos.html, privacidade.html, juridico.js
 import { prepararAbertura } from './build-abertura.mjs';   // primeira pintura usa as paletas reais do host
+import { compactarLogica } from './compactar-logica.mjs';   // só a lógica inerte perde whitespace na saída
 import { lerVendor, PDFJS } from './vendor-libs.mjs';   // React, ReactDOM, supabase-js e PDF.js congelados em vendor/ (sha256)
 import { versaoDoCache, MARCADOR_VERSAO, linhaVersao } from './sw-versao.mjs';   // versão do cache do worker = hash do deploy
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (f) => readFileSync(join(ROOT, f), 'utf8');
 
-const src = read('Catedra.dc.html');
+// Compilar antes de limpar public/: lógica ausente, duplicada ou inválida preserva a saída anterior.
+const src = compactarLogica(read('Catedra.dc.html'));
 
 // Supabase (login real + sincronização). URL e chave PUBLISHABLE são PÚBLICAS
 // por design — podem ficar no código do navegador. (A secreta, sb_secret_*,
