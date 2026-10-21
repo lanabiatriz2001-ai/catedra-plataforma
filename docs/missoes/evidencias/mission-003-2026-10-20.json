@@ -1,0 +1,235 @@
+{
+  "mission": "003",
+  "scope": "Rascunho da sessão em andamento no mesmo dia",
+  "date_local": "2026-10-20",
+  "timezone": "America/Porto_Velho",
+  "scope_source": "https://chatgpt.com/share/6ad81eb3-0d38-83e9-9c3c-cbb1db7c9a27",
+  "scope_note": "Jornada iniciar/retomar adotada e comunicada nesta execução; conversa sem briefing Mission003 numerado.",
+  "baseline": {
+    "commit": "9ae54c01d63abcf37b4fb6c95a639984311ad3f4",
+    "source_sha256": "7d7939b0d011a3db897cd04da3b62d8b574dae3a409887cc5deb71842b915a16",
+    "engines": [
+      "chromium",
+      "webkit"
+    ],
+    "principal_exit_codes": {
+      "chromium": 1,
+      "webkit": 1
+    },
+    "observed": "Dois textos novos digitados em inputs reais são substituídos pelo checkpoint antigo após reload; timer pausado600s, vínculo e dados registrados preservados."
+  },
+  "candidate": {
+    "branch": "mission-003",
+    "source_file": "Catedra.dc.html",
+    "source_sha256": "419b7dfc41c6a0c9562ca472f55d83a545c004a5173dfef019d51d4636341201",
+    "test_file": "tests/retomada-sessao-pendente.mjs",
+    "test_sha256": "a850f8e14f4731980f410d523ce381eacb2e1303885b82a74476eba59f5b58d5",
+    "observed": "Dois textos novos preservados após input/reload/reabertura nos dois motores; sem registro automático."
+  },
+  "focused_regression": {
+    "engines": {
+      "chromium": {
+        "status": "PASS",
+        "groups": 9,
+        "log_sha256": "8b1a73f4487af5fcc0823c8e96895784c0d2834eacf9014cf7f18883be49f786",
+        "exit_code": 0,
+        "seconds": 120.41
+      },
+      "webkit": {
+        "status": "PASS",
+        "groups": 9,
+        "log_sha256": "feff08e28f55b5beaec950a80688c0b1dfba3cc6ee804add4fdee1db42f438a0",
+        "exit_code": 0,
+        "seconds": 105.67
+      }
+    },
+    "groups": [
+      "principal",
+      "apagar",
+      "legado",
+      "limites",
+      "guardas",
+      "origemViva",
+      "desvincular",
+      "etapa",
+      "salvar"
+    ],
+    "conditions": {
+      "timer_seconds": 600,
+      "timer_running": false,
+      "viewport": [
+        820,
+        1180
+      ],
+      "clock": "Mesmo dia,14h America/Porto_Velho",
+      "data": "Somente fixtures sintéticas, sem login/sync reais",
+      "network": "Runtime real; React local vendorizado pela infra de teste e restante externo bloqueado"
+    },
+    "invariants": [
+      "tempo",
+      "vínculo",
+      "etapa",
+      "cmag confirmado",
+      "sessions anteriores",
+      "edital",
+      "sem avanço automático"
+    ],
+    "saved_session": "Uma sessão de10min após confirmação; ct_timer removido; teste aguarda autosave existente do checkpoint antes de recarregar.",
+    "source_and_test_stable": true
+  },
+  "supplementary_baseline": {
+    "journeys": 12,
+    "engines": [
+      "chromium",
+      "webkit"
+    ],
+    "widths": [
+      390,
+      1024,
+      1280
+    ],
+    "observations": 84,
+    "runtime_errors": 0,
+    "horizontal_overflow": 0,
+    "deferred_findings": [
+      "Começar sessão durante pausa oferece aviso em vez de iniciar",
+      "WebKit1024: sobreposição visual rótulo/matéria"
+    ]
+  },
+  "review": {
+    "status": "Nenhum blocker novo comprovado",
+    "additional_probe": "Etapa diferente da próxima, mesma etapa e reload; zero sessões criadas e pageerrors"
+  },
+  "limits": [
+    "Snapshot local ao aparelho, sem sincronização",
+    "Outro dia ou zero tempo mantém descarte preexistente",
+    "Troca conta/área/concurso interrompe rascunho até revincular atividade",
+    "Registro síncrono da sessão; checkpoint no ciclo mantém autosave preexistente",
+    "WebKit Playwright file estrito mantém limite de CORS documentado na Mission002",
+    "Compilações sintéticas não são instalação ou validação física",
+    "Sem medição nem alegação de ganho de desempenho nesta missão"
+  ],
+  "intermediate_runs": [
+    {
+      "result": "FAIL",
+      "reason": "Caso salvar recarregou antes do debounce existente do checkpoint; sessão já estava durável. Fixture passa a aguardar autosave, sem gravar por método interno."
+    },
+    {
+      "scope": "Regressão pré-owner",
+      "result": "Exit0 em ambos, não usada como rodada final",
+      "reason": "Fixture foi reforçada com dono anterior não vazio; recibo final usa somente teste estável a850f8e1."
+    },
+    {
+      "scope": "npm test pré-freeze",
+      "result": "Interrompido pelo responsável; exit1 com Target closed durante encerramento",
+      "reason": "Iniciou antes dos últimos ajustes de produto; excluído para repetir integralmente com fonte congelada. Não é PASS nem falha atribuída ao produto."
+    },
+    {
+      "scope": "Primeira compilação sintética Mac",
+      "result": "Interrompida; exit143",
+      "reason": "Freeze ainda não estabelecido; excluída. Compilações finais têm recibo próprio."
+    }
+  ],
+  "release": {
+    "preview_branch_enabled": false,
+    "merge": "NOT RUN; autorização específica necessária",
+    "production_deploy": "NOT RUN; autorização específica necessária",
+    "full_suites_native_and_ci": "Consultar descrição atualizada do PR e relatório de execução; não inferir PASS deste recibo focado."
+  },
+  "environment": {
+    "node": "24.16.0",
+    "platform": "darwin arm64",
+    "playwright": "1.62.1",
+    "esbuild": "0.27.0"
+  },
+  "native_compile": {
+    "status": "PASS_COMPILE_ONLY_SYNTHETIC",
+    "source_sha256": "419b7dfc41c6a0c9562ca472f55d83a545c004a5173dfef019d51d4636341201",
+    "native_logic_sha256": "5b3cdd1eaafe29811d15c74df8f8bb9ff49e8058cdbef2925ed7b5b171cabf96",
+    "native_logic_bytes": 1325197,
+    "build_stamp_note": "9ae54c0 identifica HEAD antes do commit; a candidata é identificada pelos hashes congelados. Artefatos não são distribuição.",
+    "installed_mac_unchanged": true,
+    "runtime_execution": "NOT_RUN",
+    "physical_device": "NOT_RUN",
+    "apple_signing_provisioning_notarization": "NOT_RUN",
+    "external_optional_juris_corpus": "INTENTIONALLY_ABSENT_IN_HARNESS",
+    "receipt_sha256": "4d9a2445a23d2ac5c1e7aa148bf839a3b4bc9a8bf9f582642de8fbb673d2ead1",
+    "platforms": {
+      "mac": {
+        "build_exit": 0,
+        "bundle_id": "com.catedra.mission003.mac",
+        "architectures": "arm64",
+        "minimum_os": "14.0",
+        "signature": "ad-hoc",
+        "signature_verify_exit": 0,
+        "logic_identical_to_freeze": true,
+        "fonts": 20,
+        "installed": false,
+        "executed": false,
+        "compiler_warnings_new_vs_m002": []
+      },
+      "ipad": {
+        "build_exit": 0,
+        "bundle_id": "com.catedra.mission003.ipad",
+        "architectures": "arm64",
+        "minimum_os": "17.0",
+        "signature": "ad-hoc",
+        "signature_verify_exit": 0,
+        "logic_identical_to_freeze": true,
+        "fonts": 20,
+        "installed": false,
+        "executed": false,
+        "compiler_warnings_new_vs_m002": []
+      }
+    }
+  },
+  "local_validation": {
+    "build-final": {
+      "exit_code": 0,
+      "log_sha256": "183ff4e2ad8674c440d2ef1aae111856a4772aff22efd36b1bf137822ab29ef2"
+    },
+    "unidades": {
+      "exit_code": 0,
+      "log_sha256": "578634443cdb1f2760d613dcc42306dc3aca91bfe8195a6890ee2dd2c53d5839"
+    },
+    "segredos-final": {
+      "exit_code": 0,
+      "log_sha256": "3a327857f6a69f79a6a9b6a8f59427a0f3754e5269c997933a4c45ec716c7909"
+    },
+    "artefato-chromium": {
+      "exit_code": 0,
+      "log_sha256": "8648862bcd1e6ab2e7330034371f8ff9e467f16dfd16a00dd079364d2e33b149"
+    },
+    "artefato-webkit": {
+      "exit_code": 0,
+      "log_sha256": "924a6f2f424d47c7307ef260268c54d89c93d2d4ca362f72b6fd1f04dbf8091e"
+    },
+    "npm-test-final": {
+      "exit_code": 0,
+      "log_sha256": "e2be376e6357bb3ef7a503115d5aa70956bfbb783a554ae83afb046a84d1021b",
+      "assertions_passed": 5402
+    },
+    "npm-webkit-final": {
+      "exit_code": 0,
+      "log_sha256": "2ce737946fbf0140965fc88e056082001f2f46542628855ecb7aec180f0836c5",
+      "assertions_passed": 2909
+    },
+    "native-mac-build": {
+      "exit_code": 0,
+      "log_sha256": "5680c2fba80aa2bcdbbc0b3f756ba1819b657470229e98445f2a2259df10c782"
+    },
+    "native-ipad-build": {
+      "exit_code": 0,
+      "log_sha256": "cc97e65f4e81575146cc10cb5ff2dd8b467da4bfa0c7bd4e763f4251ed485751"
+    },
+    "runtime_sources_stable_during_chromium": true
+  },
+  "browser_limits": {
+    "historical_webkit_assertions_passed": 2909,
+    "historical_webkit_pageerror_log_lines": 11,
+    "messages_already_present_in_m002": true,
+    "strict_published_webkit_file": "NOT_RUN_THIS_MISSION; previously blocked by local-file proxy",
+    "no_personal_account_or_physical_device": true,
+    "receipt_sha256": "52085bd74cfa5ad84c5a6f869b4a58e07c7ec007eeb44e93d3def166b2371f3d"
+  }
+}

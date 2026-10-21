@@ -41,6 +41,7 @@ jobs:
           node tests/inicio-visual.mjs
           node tests/design-plataforma.mjs
           node tests/ciclo-sessao-intencional.mjs
+          node tests/retomada-sessao-pendente.mjs
           node tests/inicio-enxuto.mjs
           node tests/fluxo-telas.mjs
           node tests/menu-fases.mjs
@@ -88,6 +89,7 @@ jobs:
           node tests/design-plataforma.mjs
           node tests/ciclo-retomada.mjs
           node tests/ciclo-sessao-intencional.mjs
+          node tests/retomada-sessao-pendente.mjs
           node tests/inicio-enxuto.mjs
           node tests/fluxo-telas.mjs
           node tests/menu-fases.mjs
