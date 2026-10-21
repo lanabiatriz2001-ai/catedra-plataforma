@@ -3,7 +3,8 @@
   "git": {
     "deploymentEnabled": {
       "codex/mission-001-abertura": false,
-      "mission-002-prontidao": false
+      "mission-002-prontidao": false,
+      "mission-003": false
     }
   },
   "buildCommand": "node scripts/build.mjs",

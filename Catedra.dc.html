@@ -8807,7 +8807,13 @@ class Component extends DCLogic {
   componentWillUnmount(){ clearTimeout(this._argRascunhoT);if(this._argSaida)window.removeEventListener("pagehide",this._argSaida); if(this._redFocoEsc){ try{ document.removeEventListener('keydown', this._redFocoEsc); document.documentElement.removeAttribute('data-red-foco'); }catch(_){} this._redFocoEsc=null; } if(this._redCronoT) clearInterval(this._redCronoT); if(this._redCorrT) clearInterval(this._redCorrT); try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onSelChange){ document.removeEventListener('selectionchange', this._onSelChange); clearTimeout(this._selChangeT); } ['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev, this._acDespertar)); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._areaMsg) window.removeEventListener('message', this._areaMsg); if(this._acervoMsg) window.removeEventListener('message', this._acervoMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._pausaT) clearInterval(this._pausaT); if(this._revT) clearInterval(this._revT);
     try{ if(this._mqDark && this._onMqDark){ if(this._mqDark.removeEventListener) this._mqDark.removeEventListener('change', this._onMqDark); else if(this._mqDark.removeListener) this._mqDark.removeListener(this._onMqDark); } }catch(_){}
     if(this._pipMsgT) clearTimeout(this._pipMsgT); if(this._bkpAutoT) clearInterval(this._bkpAutoT); if(this._salaT) clearTimeout(this._salaT); this._pipStop(); this._closeDocPiP();  }
-  componentDidUpdate(){ if(this.state.view==='redacao'){ this._redVigiarFolha();
+  componentDidUpdate(){
+    // Conta/área/concurso podem mudar sem desmontar o app. Nunca reatribuir as notas
+    // pendentes ao novo contexto; o cronômetro e seus contadores seguem a regra antiga.
+    const sd=this.state.sessionDraft;
+    if(sd._cmRascunhoOrigem && !this._cmMesmoRascunho(sd._cmRascunhoOrigem,sd))
+      this.setState({sessionDraft:{...sd,cmPonto:'',cmProximo:'',_cmRascunhoOrigem:null}},()=>this._saveTimer());
+    if(this.state.view==='redacao'){ this._redVigiarFolha();
       // texto que muda sem tecla (zerar o rascunho, chegar da nuvem) também precisa remedir a folha
       if(this.state.redText!==this._redTextoMedido){ const _antes=this._redTextoMedido; this._redTextoMedido=this.state.redText; try{ requestAnimationFrame(this._redMedirFolha); }catch(_){}
         // Rascunho que chega depois do boot (nuvem): o modo só era decidido no construtor, e a tela ficava
@@ -9301,13 +9307,33 @@ class Component extends DCLogic {
   }
   // Cronômetro persistente: NÃO zera ao fechar o app. Guardado LOCAL (chave sem
   // 'catedra:' → não sobe na nuvem, é do aparelho). Restaurado no boot.
+  _cmOrigemRascunho(atvKey,etapa){
+    const u=window.CatedraAuth&&window.CatedraAuth.user;
+    let conta=(u&&(u.id||u.email))||'';
+    // No boot offline o auth pode resolver depois do timer. O dono local é o mesmo
+    // identificador já usado pelo auth; conta desconhecida continua explícita ('').
+    if(!conta){try{conta=localStorage.getItem('catedra:_owner')||'';}catch(_){}}
+    return {conta,escopo:this._chave('blocks'),atvKey,etapa:etapa||''};
+  }
+  _cmMesmoRascunho(origem,draft){
+    if(!origem||!draft||!draft.atvKey)return false;
+    const atual=this._cmOrigemRascunho(draft.atvKey,draft.cmEtapa);
+    return ['conta','escopo','atvKey','etapa'].every(k=>origem[k]===atual[k]);
+  }
   _saveTimer(){
     try{ const s=this.state;
       if(!s.timerRunning && !s.timerSeconds && !s.studiedSeconds){ localStorage.removeItem('ct_timer'); return; }
+      const sd=s.sessionDraft;
+      // A proveniência nasce ao vincular a atividade, nunca no tick/pagehide. Assim
+      // uma mudança de conta não carimba o texto antigo com o dono novo.
+      const cmRascunho=this._cmMesmoRascunho(sd._cmRascunhoOrigem,sd)?{
+        ...sd._cmRascunhoOrigem,
+        ...(typeof sd.cmPonto==='string'?{ponto:sd.cmPonto.slice(0,300)}:{}),
+        ...(typeof sd.cmProximo==='string'?{proximo:sd.cmProximo.slice(0,500)}:{})}:undefined;
       localStorage.setItem('ct_timer', JSON.stringify({ sec:s.timerSeconds, studied:s.studiedSeconds,
         mode:s.timerMode, phase:s.pomoPhase, cycles:s.pomoCycles, running:s.timerRunning, ts:Date.now(),
         d:this._hoje(), pf:s.pomoFocus, pb:s.pomoBreak, ps:+s.pausaSeg||0, pd:+s.pausaDesde||0,
-        atv:s.sessionDraft.atvKey?{atvKey:s.sessionDraft.atvKey,disc:s.sessionDraft.disc,topico:s.sessionDraft.topico,cmPlanoMin:s.sessionDraft.cmPlanoMin,cmPlanoObjetivo:s.sessionDraft.cmPlanoObjetivo,cmEtapa:s.sessionDraft.cmEtapa,categoria:s.sessionDraft.categoria,categorias:s.sessionDraft.categorias}:null }));
+        atv:sd.atvKey?{atvKey:sd.atvKey,disc:sd.disc,topico:sd.topico,cmPlanoMin:sd.cmPlanoMin,cmPlanoObjetivo:sd.cmPlanoObjetivo,cmEtapa:sd.cmEtapa,categoria:sd.categoria,categorias:sd.categorias,cmRascunho}:null }));
     }catch(_){}
   }
   /* Ajustes que passam a VALER: "modo padrão", "bloco padrão" e "pausa padrão" existiam
@@ -9339,9 +9365,18 @@ class Component extends DCLogic {
       const patch={ timerSeconds:+t.sec||0, studiedSeconds:+t.studied||0, timerRunning:false };
       if(t.atv&&typeof t.atv.atvKey==='string'){
         const b=(this.state.blocks||[]).find(b=>this._atvChave(b)===t.atv.atvKey);
-        patch.sessionDraft={...(b?this._blockToDraft(b,this.state.sessionDraft):this._freshSessionDraft(this.state.sessionDraft)),
+        patch.sessionDraft={...(b?this._blockToDraft(b,{...this.state.sessionDraft,atvKey:t.atv.atvKey,cmEtapa:t.atv.cmEtapa,_cmRascunhoOrigem:null}):this._freshSessionDraft(this.state.sessionDraft)),
           atvKey:t.atv.atvKey,origem:'ciclo',disc:String(t.atv.disc||''),topico:String(t.atv.topico||''),
           cmPlanoMin:Math.max(0,Math.min(120,+t.atv.cmPlanoMin||0)),cmPlanoObjetivo:String(t.atv.cmPlanoObjetivo||'').slice(0,500),cmEtapa:t.atv.cmEtapa||'',categoria:String(t.atv.categoria||''),categorias:Array.isArray(t.atv.categorias)?t.atv.categorias:[],concluiu:false};
+        if(b)patch.sessionDraft._cmRascunhoOrigem=this._cmOrigemRascunho(patch.sessionDraft.atvKey,patch.sessionDraft.cmEtapa);
+        const r=t.atv.cmRascunho;
+        if(b && this._cmMesmoRascunho(r,patch.sessionDraft)){
+          // Ausência/tipo inválido conserva o checkpoint legado. String vazia é uma
+          // limpeza intencional e não deve ressuscitar o ponto anterior.
+          if(typeof r.ponto==='string')patch.sessionDraft.cmPonto=r.ponto.slice(0,300);
+          if(typeof r.proximo==='string')patch.sessionDraft.cmProximo=r.proximo.slice(0,500);
+          patch.sessionDraft._cmRascunhoOrigem=this._cmOrigemRascunho(patch.sessionDraft.atvKey,patch.sessionDraft.cmEtapa);
+        }
       }
       if(t.mode) patch.timerMode=t.mode;
       if(t.phase) patch.pomoPhase=t.phase;
@@ -11771,7 +11806,7 @@ class Component extends DCLogic {
     if(tempo&&(sd.atvKey!==this._atvChave(b)||sd.cmEtapa!==d.k)){this.openSession();this._toast('Registre o tempo da etapa anterior antes de trocar.');return;}
     if(!registrar){const r0=this._cm().st[d.id].retomadas[d.k]||{};this._cmSet(CT_CMAG.guardarRetomada(this._cm(),d.id,d.k,'ponto',r0.ponto||''));}
     if(registrar) this.cmRegistrarTempo(e); else this.cmEstudar(e);
-    this.setState(s=>({sessionDraft:{...s.sessionDraft,cmEtapa:d.k,categoria:etapa.categoria,categorias:[etapa.categoria],concluiu:false,agendarRevisao:false}}),()=>this._saveTimer());
+    this.setState(s=>{const v=this._cm().st[d.id].retomadas[d.k]||{},mesmo=s.sessionDraft.cmEtapa===d.k;return {sessionDraft:{...s.sessionDraft,cmEtapa:d.k,_cmRascunhoOrigem:this._cmOrigemRascunho(this._atvChave(b),d.k),cmPonto:mesmo?s.sessionDraft.cmPonto:v.ponto||'',cmProximo:mesmo?s.sessionDraft.cmProximo:v.proximo||'',categoria:etapa.categoria,categorias:[etapa.categoria],concluiu:false,agendarRevisao:false}};},()=>this._saveTimer());
   }
   cmEtapaEstudar=e=>this._cmEtapa(e,false);
   cmEtapaRegistrar=e=>this._cmEtapa(e,true);
@@ -12239,10 +12274,10 @@ class Component extends DCLogic {
   };
   cmInicioEstudar=()=>{const c=this._cmContexto();if(!c)return;if(c.etapa)this.cmEtapaEstudar({currentTarget:{dataset:{id:c.id,k:c.etapa}}});else if(c.id==='juris')this.cmEstudar({currentTarget:{dataset:{id:c.id}}});else this.setState({view:'ciclo'});};
   cmTimerAlternar=()=>{if(this.state.cycleMode==='magistratura'&&!this.state.timerRunning&&!this.state.timerSeconds&&!this.state.studiedSeconds&&!this.state.sessionDraft.atvKey){this.cmInicioEstudar();return;}this.toggleTimer();};
-  cmSessaoAvulsa=()=>this.setState(s=>({sessionDraft:{...s.sessionDraft,atvKey:'',cmEtapa:'',cmPonto:'',cmProximo:'',cmPlanoMin:null,cmPlanoObjetivo:'',origem:'manual',concluiu:false}}));
+  cmSessaoAvulsa=()=>this.setState(s=>({sessionDraft:{...s.sessionDraft,atvKey:'',cmEtapa:'',cmPonto:'',cmProximo:'',_cmRascunhoOrigem:null,cmPlanoMin:null,cmPlanoObjetivo:'',origem:'manual',concluiu:false}}),()=>this._saveTimer());
   cmSessaoEtapa=e=>{const sd=this.state.sessionDraft,b=(this.state.blocks||[]).find(b=>this._atvChave(b)===sd.atvKey);if(!b)return;
     const k=e.currentTarget.value,r=CT_CMAG.roteiro(this._cm(),b.cmagId),et=r&&r.etapas.find(x=>x.k===k&&!x.travado);if(!et)return;
-    const v=this._cm().st[b.cmagId].retomadas[k]||{};this.setState({sessionDraft:{...sd,cmEtapa:k,cmPlanoMin:null,cmPlanoObjetivo:'',cmPonto:v.ponto||'',cmProximo:v.proximo||'',categoria:et.categoria,categorias:[et.categoria],agendarRevisao:false,concluiu:false}});
+    const v=this._cm().st[b.cmagId].retomadas[k]||{};this.setState({sessionDraft:{...sd,cmEtapa:k,_cmRascunhoOrigem:this._cmOrigemRascunho(sd.atvKey,k),cmPlanoMin:null,cmPlanoObjetivo:'',cmPonto:v.ponto||'',cmProximo:v.proximo||'',categoria:et.categoria,categorias:[et.categoria],agendarRevisao:false,concluiu:false}},()=>this._saveTimer());
   };
   _blockToDraft(b, prev){ const cat=this._kindToCat(b.kind);
     // Se o bloco tem vínculo com o edital (disciplina + tópico da Agenda da semana),
@@ -12256,7 +12291,7 @@ class Component extends DCLogic {
     // atvKey é o fio que leva a sessão de volta à atividade: tempo parcial, origem do
     // indicador e reabertura da atividade quando a sessão é excluída dependem só dele.
     return {...this._freshSessionDraft(prev), disc, topico, edTop:_edTop, edSub:b.subtopico||'', categorias:b.kind==='Estudo dirigido'?[]:[cat], categoria:b.kind==='Estudo dirigido'?'':cat,
-      atvKey:this._atvChave(b), origem:'ciclo', ...(prev&&prev.atvKey===this._atvChave(b)?{cmPlanoMin:prev.cmPlanoMin,cmPlanoObjetivo:prev.cmPlanoObjetivo}:{}), ...(()=>{const ctx=this._cmContexto(b);if(!ctx)return {};const r=ctx.id!=='juris'?CT_CMAG.roteiro(this._cm(),ctx.id):null;const k=prev&&prev.atvKey===this._atvChave(b)&&prev.cmEtapa?prev.cmEtapa:ctx.etapa;const e=r&&r.etapas.find(x=>x.k===k);const v=e?(this._cm().st[ctx.id].retomadas[k]||{}):{};const mesmo=prev&&prev.atvKey===this._atvChave(b)&&prev.cmEtapa===k;return {cmEtapa:k||'',cmPonto:mesmo&&prev.cmPonto!=null?prev.cmPonto:(e?v.ponto||'':ctx.ponto),cmProximo:mesmo&&prev.cmProximo!=null?prev.cmProximo:(e?v.proximo||'':ctx.proximo),...(e?{categoria:e.categoria,categorias:[e.categoria]}:{}),agendarRevisao:false,concluiu:false};})()}; }
+      atvKey:this._atvChave(b), origem:'ciclo', ...(prev&&prev.atvKey===this._atvChave(b)?{cmPlanoMin:prev.cmPlanoMin,cmPlanoObjetivo:prev.cmPlanoObjetivo}:{}), ...(()=>{const ctx=this._cmContexto(b);if(!ctx)return {};const r=ctx.id!=='juris'?CT_CMAG.roteiro(this._cm(),ctx.id):null;const k=prev&&prev.atvKey===this._atvChave(b)&&prev.cmEtapa?prev.cmEtapa:ctx.etapa;const e=r&&r.etapas.find(x=>x.k===k);const v=e?(this._cm().st[ctx.id].retomadas[k]||{}):{};const mesmo=prev&&prev.atvKey===this._atvChave(b)&&prev.cmEtapa===k&&this._cmMesmoRascunho(prev._cmRascunhoOrigem,prev);return {cmEtapa:k||'',_cmRascunhoOrigem:this._cmOrigemRascunho(this._atvChave(b),k),cmPonto:mesmo&&prev.cmPonto!=null?prev.cmPonto:(e?v.ponto||'':ctx.ponto),cmProximo:mesmo&&prev.cmProximo!=null?prev.cmProximo:(e?v.proximo||'':ctx.proximo),...(e?{categoria:e.categoria,categorias:[e.categoria]}:{}),agendarRevisao:false,concluiu:false};})()}; }
   openSession = ()=>{this._registroId=(this._registroId||0)+1;this._simTimerRegistro=null; const _st=this.state; const pre=Math.round(((_st.timerMode==='pomo'?_st.studiedSeconds:_st.timerSeconds)||_st.studiedSeconds||0)/60); this.setState(s=>({sessionModalOpen:true, registroModo:'estudo', pomoMenuOpen:false, sessionDraft:{...(s.sessionDraft.atvKey?s.sessionDraft:(this._cmContexto()?this._blockToDraft(this._cmContexto().b,s.sessionDraft):this._freshSessionDraft(s.sessionDraft))), minutos: pre>0?String(pre):''}})); };
   closeSessionBackdrop = (e)=>{ if(e&&e.target!==e.currentTarget) return;   // só o clique no fundo
     const n=(this._extRegQueue||[]).length;
@@ -12270,11 +12305,11 @@ class Component extends DCLogic {
     }
     this.setState({sessionModalOpen:false});
   };
-  onSessionField = (e)=>{ const k=e.currentTarget.dataset.k; const v=e.currentTarget.value; this.setState(s=>({sessionDraft:{...s.sessionDraft,[k]:v}})); };
+  onSessionField = (e)=>{ const k=e.currentTarget.dataset.k; const v=e.currentTarget.value; this.setState(s=>({sessionDraft:{...s.sessionDraft,[k]:v}}),()=>{if(k==='cmPonto'||k==='cmProximo')this._saveTimer();}); };
   onSessionDisc = (e)=>{ const v=e.currentTarget.value; this.setState(s=>{ const sd=s.sessionDraft;
     // trocou de disciplina → o tópico/subtópico do edital anterior não vale mais
     const limpaTop = sd.edTop ? {edTop:'', edSub:'', topico:(sd.topico===sd.edTop||sd.topico===sd.edSub)?'':sd.topico} : {};
-    return {sessionDraft:{...sd, discCustom:v==='__outra__', disc:v==='__outra__'?'':v, ...(v!==sd.disc?{atvKey:'',cmEtapa:'',cmPlanoMin:null,cmPlanoObjetivo:'',origem:'manual',concluiu:false}:{}), ...limpaTop}}; }); };
+    return {sessionDraft:{...sd, discCustom:v==='__outra__', disc:v==='__outra__'?'':v, ...(v!==sd.disc?{atvKey:'',cmEtapa:'',cmPonto:'',cmProximo:'',_cmRascunhoOrigem:null,cmPlanoMin:null,cmPlanoObjetivo:'',origem:'manual',concluiu:false}:{}), ...limpaTop}}; },()=>this._saveTimer()); };
   // Tópico do edital: preenche o campo de texto (fonte única das agregações) e
   // abre a lista de subtópicos daquele tópico.
   onSessionTop = (e)=>{ const v=e.currentTarget.value; this.setState(s=>{ const sd=s.sessionDraft;
