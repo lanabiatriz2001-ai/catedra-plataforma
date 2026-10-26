@@ -1,5 +1,5 @@
 {
-  "geradoEm": "2026-10-24T10:43:31.735Z",
+  "geradoEm": "2026-10-25T10:40:29.312Z",
   "fontes": {
     "planalto": {
       "rotulo": "Planalto — texto compilado das normas",
@@ -92,13 +92,13 @@
         "Súmulas: situação anotada só no acervo (as súmulas \"Superada\" que o próprio Cátedra registra) não vira item: vale apenas a marca oficial",
         "Súmulas: a data de publicação mostrada é a do portal do STF, que pode diferir da registrada no acervo"
       ],
-      "ultimaTentativa": "2026-10-24T10:43:31.736Z",
+      "ultimaTentativa": "2026-10-25T10:40:29.314Z",
       "ultimoSucesso": "2026-10-24T10:43:31.736Z",
       "ultimaLeituraCompleta": "2026-10-24T10:43:31.736Z",
-      "resultado": "novidades",
-      "erro": null,
-      "detalhe": "Informativo: a partir da edição 1231; 6 páginas consultadas, contando a conferência da última edição do acervo · planilha oficial: sem mudança desde a última leitura (304); 1 edição(ões) recente(s) com nota faltando no acervo (1225) · Repercussão geral: 1488 temas lidos na lista oficial (até o Tema 1494), comparados com a leitura de 23/10/2026; datas oficiais lidas em 1 de 1 tema(s) · Súmulas: 736 súmulas e 63 vinculantes conferidas nas listas oficiais",
-      "novidadesNaConsulta": 7,
+      "resultado": "falha",
+      "erro": "Informativo: edição 1234: a fonte encerrou a conexão no meio da leitura — www.stf.jus.br (ECONNRESET); Repercussão geral: a lista oficial de repercussão geral não pôde ser lida: a fonte encerrou a conexão no meio da leitura — portal.stf.jus.br (ECONNRESET)",
+      "detalhe": "Informativo: a partir da edição 1231; 6 páginas consultadas, contando a conferência da última edição do acervo · planilha oficial: sem mudança desde a última leitura (304); 1 edição(ões) recente(s) com nota faltando no acervo (1225) · Súmulas: 736 súmulas e 63 vinculantes conferidas nas listas oficiais",
+      "novidadesNaConsulta": 4,
       "colecoes": {
         "informativo": {
           "rotulo": "STF — Informativo de Jurisprudência",
@@ -107,11 +107,11 @@
           "limites": [
             "cobre o Informativo, não o inteiro teor do acórdão"
           ],
-          "resultado": "novidades",
-          "ultimaTentativa": "2026-10-24T10:43:31.736Z",
-          "ultimoSucesso": "2026-10-24T10:43:31.736Z",
+          "resultado": "parcial",
+          "ultimaTentativa": "2026-10-25T10:40:29.314Z",
+          "ultimoSucesso": "2026-10-25T10:40:29.314Z",
           "ultimaLeituraCompleta": "2026-10-24T10:43:31.736Z",
-          "erro": null,
+          "erro": "edição 1234: a fonte encerrou a conexão no meio da leitura — www.stf.jus.br (ECONNRESET)",
           "detalhe": "a partir da edição 1231; 6 páginas consultadas, contando a conferência da última edição do acervo · planilha oficial: sem mudança desde a última leitura (304); 1 edição(ões) recente(s) com nota faltando no acervo (1225)",
           "novidadesNaConsulta": 4
         },
@@ -126,13 +126,13 @@
             "modulação de efeitos não é detectada: a lista oficial não tem esse campo, e a observação da fonte só aparece junto da tese",
             "relator e título do tema não são comparados: o relator da lista é o atual, não o do julgamento"
           ],
-          "resultado": "novidades",
-          "ultimaTentativa": "2026-10-24T10:43:31.736Z",
+          "resultado": "falha",
+          "ultimaTentativa": "2026-10-25T10:40:29.314Z",
           "ultimoSucesso": "2026-10-24T10:43:31.736Z",
           "ultimaLeituraCompleta": "2026-10-24T10:43:31.736Z",
-          "erro": null,
-          "detalhe": "1488 temas lidos na lista oficial (até o Tema 1494), comparados com a leitura de 23/10/2026; datas oficiais lidas em 1 de 1 tema(s)",
-          "novidadesNaConsulta": 3
+          "erro": "a lista oficial de repercussão geral não pôde ser lida: a fonte encerrou a conexão no meio da leitura — portal.stf.jus.br (ECONNRESET)",
+          "detalhe": "",
+          "novidadesNaConsulta": 0
         },
         "sumulas": {
           "rotulo": "STF — Súmulas e súmulas vinculantes",
@@ -144,9 +144,9 @@
             "a data de publicação mostrada é a do portal do STF, que pode diferir da registrada no acervo"
           ],
           "resultado": "sem-novidade",
-          "ultimaTentativa": "2026-10-24T10:43:31.736Z",
-          "ultimoSucesso": "2026-10-24T10:43:31.736Z",
-          "ultimaLeituraCompleta": "2026-10-24T10:43:31.736Z",
+          "ultimaTentativa": "2026-10-25T10:40:29.314Z",
+          "ultimoSucesso": "2026-10-25T10:40:29.314Z",
+          "ultimaLeituraCompleta": "2026-10-25T10:40:29.314Z",
           "erro": null,
           "detalhe": "736 súmulas e 63 vinculantes conferidas nas listas oficiais",
           "novidadesNaConsulta": 0
@@ -170,13 +170,13 @@
         "Súmulas: superação de súmula não é detectada: o STJ não a marca, e uma decisão mais recente não significa superação",
         "Súmulas: edição do Informativo incorporada fora da rotina não tem o bloco de súmulas relido; a lista oficial cobre essa falta mais tarde"
       ],
-      "ultimaTentativa": "2026-10-24T11:03:33.353Z",
+      "ultimaTentativa": "2026-10-25T11:03:08.007Z",
       "ultimoSucesso": "2026-10-14T10:44:42.328Z",
       "ultimaLeituraCompleta": "2026-10-07T10:40:25.872Z",
       "resultado": "falha",
-      "erro": "Informativo: a fonte não respondeu à edição 903, que já está no acervo: a fonte encerrou a conexão no meio da leitura — processo.stj.jus.br (ECONNRESET); Repetitivos: nenhuma faixa dos repetitivos pôde ser lida: faixa 1–50: a fonte encerrou a conexão no meio da leitura — processo.stj.jus.br (ECONNRESET); faixa 51–100: tempo esgotado ao ler a fonte; faixa 101–150: tempo esgotado ao ler a fonte; Súmulas: bloco \"Súmulas\" do Informativo não lido: a coleção do Informativo não rodou ou falhou",
-      "detalhe": "Repetitivos: 0 temas lidos em 31 faixa(s), 31 com falha; comparados com a leitura de 14/10/2026 · o CSV oficial está sem regravação há 14 dias; varredura completa · Súmulas: lista oficial lida: 676 súmulas (versão de 05/12/2025)",
-      "novidadesNaConsulta": 0,
+      "erro": "Informativo: edição 906: tempo esgotado ao ler a fonte; Repetitivos: nenhuma faixa dos repetitivos pôde ser lida: faixa 1–50: tempo esgotado ao ler a fonte; faixa 51–100: a fonte encerrou a conexão no meio da leitura — processo.stj.jus.br (ECONNRESET); faixa 101–150: página sem o contador \"Temas (N)\"/\"N documentos encontrados\": o portal mudou de formato ou não respondeu a pesquisa; Súmulas: bloco \"Súmulas\" lido só nas edições do Informativo que responderam",
+      "detalhe": "Informativo: a partir da edição 904 e da extraordinária 34; 9 páginas consultadas, contando a conferência da última edição do acervo · Repetitivos: 0 temas lidos em 31 faixa(s), 31 com falha; comparados com a leitura de 14/10/2026 · o CSV oficial não pôde ser lido (tempo esgotado ao ler a fonte); varredura completa · Súmulas: lista oficial lida: 676 súmulas (versão de 05/12/2025) · bloco \"Súmulas\" de 2 edição(ões) nova(s) do Informativo",
+      "novidadesNaConsulta": 2,
       "colecoes": {
         "informativo": {
           "rotulo": "STJ — Informativo de Jurisprudência",
@@ -185,13 +185,13 @@
           "limites": [
             "cobre o Informativo, não o inteiro teor do acórdão nem a Jurisprudência em Teses"
           ],
-          "resultado": "falha",
-          "ultimaTentativa": "2026-10-24T11:03:33.353Z",
-          "ultimoSucesso": "2026-10-23T10:40:18.412Z",
+          "resultado": "parcial",
+          "ultimaTentativa": "2026-10-25T11:03:08.007Z",
+          "ultimoSucesso": "2026-10-25T11:03:08.007Z",
           "ultimaLeituraCompleta": "2026-10-23T10:40:18.412Z",
-          "erro": "a fonte não respondeu à edição 903, que já está no acervo: a fonte encerrou a conexão no meio da leitura — processo.stj.jus.br (ECONNRESET)",
-          "detalhe": "",
-          "novidadesNaConsulta": 0
+          "erro": "edição 906: tempo esgotado ao ler a fonte",
+          "detalhe": "a partir da edição 904 e da extraordinária 34; 9 páginas consultadas, contando a conferência da última edição do acervo",
+          "novidadesNaConsulta": 2
         },
         "repetitivos": {
           "rotulo": "STJ — Recursos repetitivos",
@@ -205,11 +205,11 @@
             "as datas são as do processo paradigma principal; a \"Última atualização\" da ficha não é usada como sinal de mudança"
           ],
           "resultado": "falha",
-          "ultimaTentativa": "2026-10-24T11:03:33.353Z",
+          "ultimaTentativa": "2026-10-25T11:03:08.007Z",
           "ultimoSucesso": "2026-10-14T10:44:42.328Z",
           "ultimaLeituraCompleta": "2026-10-07T10:40:25.872Z",
-          "erro": "nenhuma faixa dos repetitivos pôde ser lida: faixa 1–50: a fonte encerrou a conexão no meio da leitura — processo.stj.jus.br (ECONNRESET); faixa 51–100: tempo esgotado ao ler a fonte; faixa 101–150: tempo esgotado ao ler a fonte",
-          "detalhe": "0 temas lidos em 31 faixa(s), 31 com falha; comparados com a leitura de 14/10/2026 · o CSV oficial está sem regravação há 14 dias; varredura completa",
+          "erro": "nenhuma faixa dos repetitivos pôde ser lida: faixa 1–50: tempo esgotado ao ler a fonte; faixa 51–100: a fonte encerrou a conexão no meio da leitura — processo.stj.jus.br (ECONNRESET); faixa 101–150: página sem o contador \"Temas (N)\"/\"N documentos encontrados\": o portal mudou de formato ou não respondeu a pesquisa",
+          "detalhe": "0 temas lidos em 31 faixa(s), 31 com falha; comparados com a leitura de 14/10/2026 · o CSV oficial não pôde ser lido (tempo esgotado ao ler a fonte); varredura completa",
           "novidadesNaConsulta": 0
         },
         "sumulas": {
@@ -224,11 +224,11 @@
             "edição do Informativo incorporada fora da rotina não tem o bloco de súmulas relido; a lista oficial cobre essa falta mais tarde"
           ],
           "resultado": "parcial",
-          "ultimaTentativa": "2026-10-24T11:03:33.353Z",
-          "ultimoSucesso": "2026-10-24T11:03:33.353Z",
+          "ultimaTentativa": "2026-10-25T11:03:08.007Z",
+          "ultimoSucesso": "2026-10-25T11:03:08.007Z",
           "ultimaLeituraCompleta": "2026-10-23T10:40:18.412Z",
-          "erro": "bloco \"Súmulas\" do Informativo não lido: a coleção do Informativo não rodou ou falhou",
-          "detalhe": "lista oficial lida: 676 súmulas (versão de 05/12/2025)",
+          "erro": "bloco \"Súmulas\" lido só nas edições do Informativo que responderam",
+          "detalhe": "lista oficial lida: 676 súmulas (versão de 05/12/2025) · bloco \"Súmulas\" de 2 edição(ões) nova(s) do Informativo",
           "novidadesNaConsulta": 0
         }
       }
