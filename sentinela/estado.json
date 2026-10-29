@@ -1,5 +1,5 @@
 {
-  "geradoEm": "2026-10-28T10:43:55.519Z",
+  "geradoEm": "2026-10-29T10:40:10.367Z",
   "fontes": {
     "planalto": {
       "rotulo": "Planalto — texto compilado das normas",
@@ -92,13 +92,13 @@
         "Súmulas: situação anotada só no acervo (as súmulas \"Superada\" que o próprio Cátedra registra) não vira item: vale apenas a marca oficial",
         "Súmulas: a data de publicação mostrada é a do portal do STF, que pode diferir da registrada no acervo"
       ],
-      "ultimaTentativa": "2026-10-28T10:43:55.520Z",
-      "ultimoSucesso": "2026-10-28T10:43:55.520Z",
-      "ultimaLeituraCompleta": "2026-10-28T10:43:55.520Z",
+      "ultimaTentativa": "2026-10-29T10:40:10.369Z",
+      "ultimoSucesso": "2026-10-29T10:40:10.369Z",
+      "ultimaLeituraCompleta": "2026-10-29T10:40:10.369Z",
       "resultado": "novidades",
       "erro": null,
-      "detalhe": "Informativo: a partir da edição 1231; 7 páginas consultadas, contando a conferência da última edição do acervo · planilha oficial: sem mudança desde a última leitura (304); 1 edição(ões) recente(s) com nota faltando no acervo (1225) · Repercussão geral: 1488 temas lidos na lista oficial (até o Tema 1494), comparados com a leitura de 27/10/2026; datas oficiais lidas em 0 de 0 tema(s) · Súmulas: 736 súmulas e 63 vinculantes conferidas nas listas oficiais",
-      "novidadesNaConsulta": 5,
+      "detalhe": "Informativo: a partir da edição 1231; 7 páginas consultadas, contando a conferência da última edição do acervo · planilha oficial: sem mudança desde a última leitura (304); 1 edição(ões) recente(s) com nota faltando no acervo (1225) · Repercussão geral: 1488 temas lidos na lista oficial (até o Tema 1494), comparados com a leitura de 28/10/2026; datas oficiais lidas em 1 de 2 tema(s) · Súmulas: 736 súmulas e 63 vinculantes conferidas nas listas oficiais",
+      "novidadesNaConsulta": 7,
       "colecoes": {
         "informativo": {
           "rotulo": "STF — Informativo de Jurisprudência",
@@ -108,9 +108,9 @@
             "cobre o Informativo, não o inteiro teor do acórdão"
           ],
           "resultado": "novidades",
-          "ultimaTentativa": "2026-10-28T10:43:55.520Z",
-          "ultimoSucesso": "2026-10-28T10:43:55.520Z",
-          "ultimaLeituraCompleta": "2026-10-28T10:43:55.520Z",
+          "ultimaTentativa": "2026-10-29T10:40:10.369Z",
+          "ultimoSucesso": "2026-10-29T10:40:10.369Z",
+          "ultimaLeituraCompleta": "2026-10-29T10:40:10.369Z",
           "erro": null,
           "detalhe": "a partir da edição 1231; 7 páginas consultadas, contando a conferência da última edição do acervo · planilha oficial: sem mudança desde a última leitura (304); 1 edição(ões) recente(s) com nota faltando no acervo (1225)",
           "novidadesNaConsulta": 5
@@ -126,13 +126,13 @@
             "modulação de efeitos não é detectada: a lista oficial não tem esse campo, e a observação da fonte só aparece junto da tese",
             "relator e título do tema não são comparados: o relator da lista é o atual, não o do julgamento"
           ],
-          "resultado": "sem-novidade",
-          "ultimaTentativa": "2026-10-28T10:43:55.520Z",
-          "ultimoSucesso": "2026-10-28T10:43:55.520Z",
-          "ultimaLeituraCompleta": "2026-10-28T10:43:55.520Z",
+          "resultado": "novidades",
+          "ultimaTentativa": "2026-10-29T10:40:10.369Z",
+          "ultimoSucesso": "2026-10-29T10:40:10.369Z",
+          "ultimaLeituraCompleta": "2026-10-29T10:40:10.369Z",
           "erro": null,
-          "detalhe": "1488 temas lidos na lista oficial (até o Tema 1494), comparados com a leitura de 27/10/2026; datas oficiais lidas em 0 de 0 tema(s)",
-          "novidadesNaConsulta": 0
+          "detalhe": "1488 temas lidos na lista oficial (até o Tema 1494), comparados com a leitura de 28/10/2026; datas oficiais lidas em 1 de 2 tema(s)",
+          "novidadesNaConsulta": 2
         },
         "sumulas": {
           "rotulo": "STF — Súmulas e súmulas vinculantes",
@@ -144,9 +144,9 @@
             "a data de publicação mostrada é a do portal do STF, que pode diferir da registrada no acervo"
           ],
           "resultado": "sem-novidade",
-          "ultimaTentativa": "2026-10-28T10:43:55.520Z",
-          "ultimoSucesso": "2026-10-28T10:43:55.520Z",
-          "ultimaLeituraCompleta": "2026-10-28T10:43:55.520Z",
+          "ultimaTentativa": "2026-10-29T10:40:10.369Z",
+          "ultimoSucesso": "2026-10-29T10:40:10.369Z",
+          "ultimaLeituraCompleta": "2026-10-29T10:40:10.369Z",
           "erro": null,
           "detalhe": "736 súmulas e 63 vinculantes conferidas nas listas oficiais",
           "novidadesNaConsulta": 0
@@ -170,13 +170,13 @@
         "Súmulas: superação de súmula não é detectada: o STJ não a marca, e uma decisão mais recente não significa superação",
         "Súmulas: edição do Informativo incorporada fora da rotina não tem o bloco de súmulas relido; a lista oficial cobre essa falta mais tarde"
       ],
-      "ultimaTentativa": "2026-10-28T10:44:32.422Z",
+      "ultimaTentativa": "2026-10-29T10:40:34.074Z",
       "ultimoSucesso": "2026-10-14T10:44:42.328Z",
       "ultimaLeituraCompleta": "2026-10-07T10:40:25.872Z",
       "resultado": "falha",
-      "erro": "Informativo: edição 904: tempo esgotado ao ler a fonte; Repetitivos: nenhuma faixa dos repetitivos pôde ser lida: faixa 1–50: página sem o contador \"Temas (N)\"/\"N documentos encontrados\": o portal mudou de formato ou não respondeu a pesquisa; faixa 51–100: tempo esgotado ao ler a fonte; faixa 101–150: página sem o contador \"Temas (N)\"/\"N documentos encontrados\": o portal mudou de formato ou não respondeu a pesquisa; Súmulas: bloco \"Súmulas\" lido só nas edições do Informativo que responderam",
-      "detalhe": "Informativo: a partir da edição 904 e da extraordinária 34; 10 páginas consultadas, contando a conferência da última edição do acervo · Repetitivos: 0 temas lidos em 31 faixa(s), 31 com falha; comparados com a leitura de 14/10/2026 · varredura completa semanal (quarta-feira) · Súmulas: lista oficial lida: 676 súmulas (versão de 05/12/2025) · bloco \"Súmulas\" de 3 edição(ões) nova(s) do Informativo",
-      "novidadesNaConsulta": 3,
+      "erro": "Informativo: a régua não reconheceu a edição 903, que já está no acervo: a página mudou de formato; Repetitivos: nenhuma faixa dos repetitivos pôde ser lida: faixa 1–50: página sem o contador \"Temas (N)\"/\"N documentos encontrados\": o portal mudou de formato ou não respondeu a pesquisa; faixa 51–100: página sem o contador \"Temas (N)\"/\"N documentos encontrados\": o portal mudou de formato ou não respondeu a pesquisa; faixa 101–150: página sem o contador \"Temas (N)\"/\"N documentos encontrados\": o portal mudou de formato ou não respondeu a pesquisa; Súmulas: bloco \"Súmulas\" do Informativo não lido: a coleção do Informativo não rodou ou falhou",
+      "detalhe": "Repetitivos: 0 temas lidos em 31 faixa(s), 31 com falha; comparados com a leitura de 14/10/2026 · o CSV oficial está sem regravação há 3 dias; varredura completa · Súmulas: lista oficial lida: 676 súmulas (versão de 05/12/2025)",
+      "novidadesNaConsulta": 0,
       "colecoes": {
         "informativo": {
           "rotulo": "STJ — Informativo de Jurisprudência",
@@ -185,13 +185,13 @@
           "limites": [
             "cobre o Informativo, não o inteiro teor do acórdão nem a Jurisprudência em Teses"
           ],
-          "resultado": "parcial",
-          "ultimaTentativa": "2026-10-28T10:44:32.422Z",
+          "resultado": "falha",
+          "ultimaTentativa": "2026-10-29T10:40:34.074Z",
           "ultimoSucesso": "2026-10-28T10:44:32.422Z",
           "ultimaLeituraCompleta": "2026-10-23T10:40:18.412Z",
-          "erro": "edição 904: tempo esgotado ao ler a fonte",
-          "detalhe": "a partir da edição 904 e da extraordinária 34; 10 páginas consultadas, contando a conferência da última edição do acervo",
-          "novidadesNaConsulta": 3
+          "erro": "a régua não reconheceu a edição 903, que já está no acervo: a página mudou de formato",
+          "detalhe": "",
+          "novidadesNaConsulta": 0
         },
         "repetitivos": {
           "rotulo": "STJ — Recursos repetitivos",
@@ -205,11 +205,11 @@
             "as datas são as do processo paradigma principal; a \"Última atualização\" da ficha não é usada como sinal de mudança"
           ],
           "resultado": "falha",
-          "ultimaTentativa": "2026-10-28T10:44:32.422Z",
+          "ultimaTentativa": "2026-10-29T10:40:34.074Z",
           "ultimoSucesso": "2026-10-14T10:44:42.328Z",
           "ultimaLeituraCompleta": "2026-10-07T10:40:25.872Z",
-          "erro": "nenhuma faixa dos repetitivos pôde ser lida: faixa 1–50: página sem o contador \"Temas (N)\"/\"N documentos encontrados\": o portal mudou de formato ou não respondeu a pesquisa; faixa 51–100: tempo esgotado ao ler a fonte; faixa 101–150: página sem o contador \"Temas (N)\"/\"N documentos encontrados\": o portal mudou de formato ou não respondeu a pesquisa",
-          "detalhe": "0 temas lidos em 31 faixa(s), 31 com falha; comparados com a leitura de 14/10/2026 · varredura completa semanal (quarta-feira)",
+          "erro": "nenhuma faixa dos repetitivos pôde ser lida: faixa 1–50: página sem o contador \"Temas (N)\"/\"N documentos encontrados\": o portal mudou de formato ou não respondeu a pesquisa; faixa 51–100: página sem o contador \"Temas (N)\"/\"N documentos encontrados\": o portal mudou de formato ou não respondeu a pesquisa; faixa 101–150: página sem o contador \"Temas (N)\"/\"N documentos encontrados\": o portal mudou de formato ou não respondeu a pesquisa",
+          "detalhe": "0 temas lidos em 31 faixa(s), 31 com falha; comparados com a leitura de 14/10/2026 · o CSV oficial está sem regravação há 3 dias; varredura completa",
           "novidadesNaConsulta": 0
         },
         "sumulas": {
@@ -224,11 +224,11 @@
             "edição do Informativo incorporada fora da rotina não tem o bloco de súmulas relido; a lista oficial cobre essa falta mais tarde"
           ],
           "resultado": "parcial",
-          "ultimaTentativa": "2026-10-28T10:44:32.422Z",
-          "ultimoSucesso": "2026-10-28T10:44:32.422Z",
+          "ultimaTentativa": "2026-10-29T10:40:34.074Z",
+          "ultimoSucesso": "2026-10-29T10:40:34.074Z",
           "ultimaLeituraCompleta": "2026-10-23T10:40:18.412Z",
-          "erro": "bloco \"Súmulas\" lido só nas edições do Informativo que responderam",
-          "detalhe": "lista oficial lida: 676 súmulas (versão de 05/12/2025) · bloco \"Súmulas\" de 3 edição(ões) nova(s) do Informativo",
+          "erro": "bloco \"Súmulas\" do Informativo não lido: a coleção do Informativo não rodou ou falhou",
+          "detalhe": "lista oficial lida: 676 súmulas (versão de 05/12/2025)",
           "novidadesNaConsulta": 0
         }
       }
