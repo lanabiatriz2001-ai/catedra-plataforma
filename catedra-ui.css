@@ -2325,3 +2325,30 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 .cth-inicio .cth-estudo-livre :is(h2,p){color:var(--ct-hero-ink)}
 :root{--ct-hero-shade:rgba(0,0,0,.06)}
 .cth-inicio .cth-bancada,.cm-hero,.ct-design-hero,.ct-reg .ct-reg-cab{background-image:linear-gradient(var(--ct-hero-shade),var(--ct-hero-shade)),var(--heroGrad)}
+
+/* Prova oral: status por forma e rótulo; sobrescritas apenas na sessão. */
+.ct-oral-pontos { color:var(--ink); font-size:var(--fs-base); }
+.ct-oral-pontos h3 { font-family:var(--display); font-size:var(--fs-xl); }
+.ct-oral-pontos p { line-height:1.6; }
+.ct-oral-barra { display:flex; height:var(--ct-e3); overflow:hidden; border-radius:var(--r-sm); background:var(--surface2); }
+.ct-oral-barra span { display:block; height:100%; flex:none; }
+.ct-oral-barra [data-st="coberto"] { background:var(--ok); }
+.ct-oral-barra [data-st="parcial"] { background:var(--warn); }
+.ct-oral-barra [data-st="faltou"] { background:var(--danger); }
+.ct-oral-ponto { border:1px solid var(--border); border-radius:var(--r-md); padding:var(--ct-e4); margin-top:var(--ct-e3); }
+.ct-oral-ponto button { min-height:44px; white-space:normal; color:var(--ink); background:var(--surface2); }
+.ct-oral-forma { display:inline-block; width:var(--ct-e3); height:var(--ct-e3); background:currentColor; }
+.ct-oral-forma[data-forma="círculo"] { border-radius:50%; }
+.ct-oral-forma[data-forma="triângulo"] { clip-path:polygon(50% 0,100% 100%,0 100%); }
+.ct-oral-resposta { white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.7; }
+.ct-oral-resposta u { text-decoration-thickness:.12em; text-underline-offset:.2em; }
+
+.ct-oral-material { color:var(--ink); line-height:1.6; overflow-wrap:anywhere; }
+.ct-oral-material summary { min-height:var(--ct-e7); cursor:pointer; font-size:var(--fs-lg); font-weight:700; }
+.ct-oral-material .ct-campo { width:100%; box-sizing:border-box; margin-block:var(--ct-e2); min-height:var(--ct-e7); }
+.ct-oral-material button { min-height:var(--ct-e7); white-space:normal; }
+.ct-oral-literal { white-space:pre-wrap; overflow-wrap:anywhere; }
+.ct-oral-material h3 { font-family:var(--display); font-size:var(--fs-xl); }
+
+.ct-oral-incluir { display:flex; align-items:center; gap:var(--ct-e2); min-height:var(--ct-e7); color:var(--ink); font-size:var(--fs-base); cursor:pointer; }
+.ct-oral-incluir input { flex:none; width:var(--ct-e4); height:var(--ct-e4); }

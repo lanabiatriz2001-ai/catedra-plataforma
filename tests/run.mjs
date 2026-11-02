@@ -18,6 +18,7 @@ import path from 'path';
 import { createHash } from 'crypto';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { iniciarServidor, lancarNavegador } from './_infra.mjs';
+import { testarOralPontos } from './oral-pontos.mjs';
 import { testarOralLeiSeca } from './oral-lei-seca.mjs';
 import { testarPastaSincronizada } from './pasta-sincronizada.mjs';
 import { testarPiiVerificador, testarPiiBuildSemTrecho } from './pii-verificador.mjs';
@@ -7033,7 +7034,14 @@ for (const [k, v] of Object.entries(d14barra)) ok(v, 'D14 ' + k);
       try { window.__catedraGoView(v); } catch (_) { continue; }
       await w(1100);
       const campos = [...document.querySelectorAll('textarea, input[type="text"], input:not([type])')]
-        .filter(e => !e.readOnly && !e.disabled && e.offsetParent !== null);
+        .filter(e => {
+          // No Chromium, um campo em details fechado ainda pode ter offsetParent e caixa.
+          // O resumo é visível; os demais descendentes não podem receber digitação.
+          const fechado=e.closest('details:not([open])'), resumo=fechado&&fechado.querySelector('summary');
+          return !e.readOnly&&!e.disabled&&e.offsetParent!==null
+            &&(!fechado||(resumo&&resumo.contains(e)))
+            &&(typeof e.checkVisibility!=='function'||e.checkVisibility());
+        });
       for (const e of campos.slice(0, 12)) {
         const antes = e.value;
         e.focus();
@@ -9751,7 +9759,7 @@ ok(depoisDoEnd === antesDeRolar, 'GATE a tecla End não rola o app atrás do log
 /* ============= ORAL LEI SECA — A ABA QUE ABRIA VAZIA NO IPAD ============= */
 // O roteiro vive em tests/oral-lei-seca.mjs para rodar também no WebKit (run-webkit.mjs);
 // aqui cobre o par Chromium × http, para a suíte principal também acusar a lista vazia.
-try { await testarOralLeiSeca(page, URL0, ok, { motor, origem: 'http' }); }
+try { await testarOralLeiSeca(page, URL0, ok, { motor, origem: 'http' }); await testarOralPontos(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'ORAL LEI SECA [' + motor + '] [http] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');

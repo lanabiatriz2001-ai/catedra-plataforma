@@ -412,6 +412,11 @@ para fevereiro/2027); ciclo 2027.1 com edital previsto para março e prova para 
 
 ## Decisões minhas (o Code não decide)
 
+- [x] **Prova oral · origem dos pontos** — Lana escolheu **C (ambos)** em 02/11/2026: material colado com fonte e pontos derivados literalmente dos padrões oficiais, com prévia editável e conferência humana antes do uso. Material e confirmação ficam somente na sessão; nenhum ponto é publicado no catálogo por este fluxo.
+- [x] **Prova oral · alcance da regra** — Lana escolheu **B** em 02/11/2026: aplicar também em `corrigirPorEspelho` a comparação sem acento e por radical, coberto com pelo menos 60% dos termos, parcial com algum termo e não atendido sem termos encontrados. Pontuação oficial e veredito final humano preservados; auditoria de dispositivos permanece separada.
+- **Prova oral · voz**: fora deste pedido; permanece sem alterações e não exige decisão nesta etapa.
+
+
 - [ ] **Controlador dos dados**: pessoa física por enquanto ou constituir a sociedade
       limitada com administrador que não seja eu (LC 68/1992, art. 155, X; LOMAN, art.
       36, I e II; CF, art. 95, parágrafo único, I). Preencher `controlador`, `cnpjCpf` e
