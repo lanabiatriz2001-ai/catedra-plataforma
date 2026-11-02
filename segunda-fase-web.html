@@ -430,7 +430,7 @@ function telaCorrecao(){
       +'<div class="ver"><div class="vb">'
         +['atendeu','parcial','nao'].map(x=>'<button type="button" data-v="'+x+'" class="'+(v===x?'on':'')+'">'
           +(x==='atendeu'?'Atendeu':x==='parcial'?'Parcial':'Não atendeu')+'</button>').join('')
-        +'</div><span class="sug">sugestão da máquina: '+(q.sugestao==='atendeu'?'atendeu':q.sugestao==='parcial'?'parcial':'não atendeu')+'</span>'
+        +'</div><span class="sug">sugestão por vocabulário (60% dos termos; não prova o raciocínio): '+(q.sugestao==='atendeu'?'atendeu':q.sugestao==='parcial'?'parcial':'não atendeu')+'</span>'
       +'</div></article>';
   }).join('');
 

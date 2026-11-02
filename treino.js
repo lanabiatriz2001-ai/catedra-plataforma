@@ -590,6 +590,193 @@
     };
   }
 
+  // Vocabulário por ponto, conforme Anexo A. Não avalia raciocínio jurídico.
+  // Lana aprovou material colado e derivação literal, com conferência humana (02/11/2026).
+  var oralPontos = (function () {
+/*PURE-START*/
+var STOP = new Set('de da do das dos e em no na nos nas a o as os um uma para por com que se ao aos ou como mais mas sua seu suas seus ser ter foi sao esta este essa esse isso entre sobre sem sob ate cada pela pelo pelas pelos quando onde qual quais ja nao nem tambem deve devem podem pode so apenas ha ele ela eles elas lhe lhes sera serao tem'.split(' '));
+var SYN = {artigo:'art',artigos:'art',arts:'art',paragrafo:'par',paragrafos:'par',inciso:'inc',incisos:'inc'};
+var TAGS = {
+  lei:{label:'Lei seca'}, regra:{label:'Regra'}, excecao:{label:'Exceção'}, vedacao:{label:'Vedação'},
+  conceito:{label:'Conceito'}, termo:{label:'Termo'}, juris:{label:'Jurisprudência'}, prazo:{label:'Número ou prazo'}
+};
+var TAG_ALIAS = {
+  lei:'lei', leiseca:'lei', literal:'lei', regra:'regra', excecao:'excecao', vedacao:'vedacao', nulidade:'vedacao',
+  conceito:'conceito', definicao:'conceito', termo:'termo', estrutura:'termo', juris:'juris', jurisprudencia:'juris',
+  sumula:'juris', tema:'juris', prazo:'prazo', numero:'prazo', numeros:'prazo'
+};
+
+
+
+function plain(s){ return String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
+function normWord(w){
+  var s = plain(w).replace(/[ºª°]/g,'');
+  return SYN[s] || s;
+}
+function tokenize(text){
+  var re = /§|[\p{L}\p{N}]+/gu, out = [], m, s = String(text == null ? '' : text);
+  while ((m = re.exec(s))) {
+    out.push({raw:m[0], n:(m[0] === '§' ? 'par' : normWord(m[0])), i:m.index});
+  }
+  return out;
+}
+function sameWord(a, b){
+  if (a === b) return true;
+  if (a.length < 5 || b.length < 5) return false;
+  var n = Math.min(a.length, b.length, 7);
+  return a.slice(0, n) === b.slice(0, n);
+}
+function prepTerm(label){
+  var all = tokenize(label).map(function(t){ return t.n; }).filter(Boolean);
+  var toks = all.filter(function(n){ return !STOP.has(n) && (n.length > 1 || /\d/.test(n)); });
+  return {label:label, toks: toks.length ? toks : all};
+}
+function matchTerm(term, ans){
+  var hits = [];
+  if (!term.toks.length) return {found:false, idx:[]};
+  for (var k = 0; k < term.toks.length; k++) {
+    var idx = [];
+    for (var j = 0; j < ans.length; j++) if (sameWord(term.toks[k], ans[j].n)) idx.push(j);
+    if (!idx.length) return {found:false, idx:[]};
+    hits = hits.concat(idx);
+  }
+  return {found:true, idx:hits};
+}
+function deriveTerms(text){
+  var seen = {}, out = [], toks = tokenize(text);
+  toks.forEach(function(t){
+    if (STOP.has(t.n) || seen[t.n]) return;
+    if (!(t.n.length >= 5 || /^\d+$/.test(t.n))) return;
+    seen[t.n] = 1; out.push(t.raw);
+  });
+  if (!out.length) {
+    toks.forEach(function(t){
+      if (STOP.has(t.n) || seen[t.n] || t.n.length < 3) return;
+      seen[t.n] = 1; out.push(t.raw);
+    });
+  }
+  return out.slice(0, 5);
+}
+function need(n){ return Math.ceil(n * 0.6 - 1e-9); }
+function scorePoint(p, ans){
+  var terms = p.terms.map(function(label){
+    var r = matchTerm(prepTerm(label), ans);
+    return {label:label, found:r.found, idx:r.idx};
+  });
+  var f = terms.filter(function(t){ return t.found; }).length;
+  var st = f === 0 ? 'faltou' : (f >= need(terms.length) ? 'coberto' : 'parcial');
+  return {terms:terms, found:f, total:terms.length, status:st, manual:false};
+}
+function evaluate(items, answers, ov){
+  var tot = {coberto:0, parcial:0, faltou:0, total:0};
+  var qs = items.map(function(it, qi){
+    var ans = tokenize(answers[qi] || ''), hl = {};
+    var pts = it.points.map(function(p, pi){
+      var r = scorePoint(p, ans);
+      r.terms.forEach(function(t){ if (t.found) t.idx.forEach(function(j){ hl[j] = 1; }); });
+      if (ov && ov[qi + ':' + pi] && r.status !== 'coberto') { r.status = 'coberto'; r.manual = true; }
+      tot[r.status]++; tot.total++;
+      return r;
+    });
+    var c = 0, pa = 0, fa = 0;
+    pts.forEach(function(r){ if (r.status === 'coberto') c++; else if (r.status === 'parcial') pa++; else fa++; });
+    return {pts:pts, covered:c, partial:pa, missed:fa, total:pts.length, hl:hl, tokens:ans};
+  });
+  return {qs:qs, tot:tot};
+}
+function addPoint(q, s, n, warns){
+  var tag = '', m = s.match(/^\[([^\]]*)\]\s*(.*)$/);
+  if (m) {
+    var k = TAG_ALIAS[plain(m[1]).replace(/[^a-z]/g, '')];
+    if (k) tag = k; else warns.push('Linha ' + n + ': etiqueta [' + m[1] + '] desconhecida. O ponto ficou sem cor.');
+    s = m[2];
+  }
+  var parts = s.split('::'), text = parts[0].trim();
+  var terms = parts.length > 1 ? parts.slice(1).join('::').split(',').map(function(x){ return x.trim(); }).filter(Boolean) : [];
+  if (!text && terms.length) text = terms.join(', ');
+  if (!text) { warns.push('Linha ' + n + ': ponto vazio. Ignorado.'); return; }
+  var derived = false;
+  if (!terms.length) { terms = deriveTerms(text); derived = true; }
+  if (!terms.length) terms = [text];
+  q.points.push({text:text, tag:tag, terms:terms, derived:derived});
+}
+function parseMaterial(text){
+  var lines = String(text || '').replace(/\r/g, '').split('\n');
+  var items = [], warns = [], title = '', cur = null;
+  lines.forEach(function(raw, ix){
+    var line = raw.trim(), n = ix + 1;
+    if (!line) return;
+    var c = line.charAt(0), bm;
+    if (c === '#') { if (!title) title = line.replace(/^#+\s*/, ''); return; }
+    if (c === '?') { cur = {q:line.slice(1).trim(), points:[], ref:'', line:n}; items.push(cur); return; }
+    if (c === '>') {
+      if (!cur) { warns.push('Linha ' + n + ': fundamento sem pergunta antes dele. Ignorado.'); return; }
+      var r = line.slice(1).trim();
+      if (r) cur.ref += (cur.ref ? ' · ' : '') + r;
+      return;
+    }
+    bm = line.match(/^[-•*–—]\s*(.*)$/);
+    if (bm) {
+      if (!cur) { warns.push('Linha ' + n + ': ponto sem pergunta antes dele. Ignorado.'); return; }
+      addPoint(cur, bm[1], n, warns);
+      return;
+    }
+    if (cur && cur.points.length === 0 && !cur.ref) { cur.q += ' ' + line; return; }
+    warns.push('Linha ' + n + ': não entendi. Comece a linha com ?, - ou >. Ignorada.');
+  });
+  var ok = items.filter(function(it){
+    if (!it.q) { warns.push('Linha ' + it.line + ': pergunta vazia. Ignorada.'); return false; }
+    if (!it.points.length) { warns.push('Linha ' + it.line + ': a pergunta não tem pontos (linhas com -). Ignorada.'); return false; }
+    return true;
+  });
+  return {title:title, items:ok, warns:warns};
+}
+    return {evaluate:evaluate, parseMaterial:parseMaterial, deriveTerms:deriveTerms,
+      tokenize:tokenize, matchTerm:matchTerm, prepTerm:prepTerm};
+  })();
+  /** Prévia somente: fonte informada não equivale a fonte conferida. */
+  function prepararMaterialOral(texto) {
+    var r = oralPontos.parseMaterial(texto);
+    r.items.forEach(function(it) {
+      if (!it.ref) r.warns.push('Informe a fonte da pergunta: '+it.q);
+    });
+    r.prontoParaConferir = r.items.length > 0 && r.items.every(function(it) { return !!it.ref; });
+    return r;
+  }
+  /** Recorta parágrafos do padrão existente, sem acrescentar ou resumir conteúdo jurídico. */
+  function prepararPontosDoPadrao(q) {
+    if (!q || !q.id || !q.padrao || !q.url || !q.enunciado) return null;
+    var original = String(q.padrao), partes = original.split(/\n\s*\n/).filter(function(t) { return !!t.trim(); });
+    if (!partes.length) return null;
+    var pos = 0;
+    var pontos = partes.map(function(t) {
+      var inicio = original.indexOf(t, pos); pos = inicio+t.length;
+      var termos = oralPontos.deriveTerms(t);
+      return {text:t, tag:'termo', terms:termos.length?termos:[t], derived:true, inicio:inicio, fim:pos};
+    });
+    return {items:[{q:q.enunciado,ref:q.url+(q.fonte?' · '+q.fonte:''),points:pontos}],
+      warns:['Prévia extraída literalmente. Confira os recortes, os termos e a atualidade do padrão antes de usar.'],
+      prontoParaConferir:true, origemId:q.id, origemUrl:q.url, padraoOriginal:original};
+  }
+
+  /** pontos: [{text, tag, terms}]; sobrescritas: mapa por índice, somente na sessão. */
+  function corrigirOralPorPontos(pontos, resposta, sobrescritas) {
+    var texto = String(resposta == null ? '' : resposta);
+    var ov = {};
+    (pontos || []).forEach(function(p, i) { if (sobrescritas && sobrescritas[i]) ov['0:'+i] = true; });
+    var e = oralPontos.evaluate([{points:pontos || []}], [texto], ov), q = e.qs[0];
+    q.porPontos = true; q.tot = e.tot; q.resposta = texto;
+    q.pts.forEach(function(r,i) { r.text=pontos[i].text; r.tag=pontos[i].tag; r.i=i; });
+    var segs=[], pos=0;
+    q.tokens.forEach(function(t,i) {
+      if(t.i>pos) segs.push({t:texto.slice(pos,t.i),marca:false,liso:true});
+      segs.push({t:t.raw,marca:!!q.hl[i],liso:!q.hl[i]}); pos=t.i+t.raw.length;
+    });
+    if(pos<texto.length) segs.push({t:texto.slice(pos),marca:false,liso:true});
+    q.segmentos=segs;
+    return q;
+  }
+
   // ================================================================ 2ª FASE
   // Simulado de segunda fase corrigido pelo ESPELHO OFICIAL da própria prova.
   // Nada aqui inventa critério: os quesitos, a exigência literal da banca, a
@@ -669,15 +856,17 @@
     reconhecer:1,indicar:1,apontar:1,mencionar:1,citar:1,abordar:1,fundamentar:1,concluir:1,exposicao:1 };
 
   /** Palavras que a exigência da banca cobra e que a folha de resposta trouxe. */
-  function coberturaExigencia(exig, textoNorm) {
+  function coberturaExigencia(exig, texto, termos) {
     var chave = [], vis = {};
-    norm(exig).split(/[^a-z0-9]+/).forEach(function (t) {
-      if (t.length >= 6 && !STOP_ESP[t] && !vis[t] && chave.length < 18) { vis[t] = 1; chave.push(t); }
+    if (Array.isArray(termos) && termos.length) chave = termos.slice();
+    else oralPontos.tokenize(exig).forEach(function(t) {
+      if ((t.n.length >= 5 || /^\d+$/.test(t.n)) && !STOP_ESP[t.n] && !vis[t.n]) { vis[t.n]=1; chave.push(t.raw); }
     });
-    if (!chave.length) return { pct: 0, achou: [], faltou: [] };
-    var achou = chave.filter(function (t) { return textoNorm.indexOf(t) >= 0; });
-    return { pct: Math.round(achou.length / chave.length * 100), achou: achou,
-             faltou: chave.filter(function (t) { return textoNorm.indexOf(t) < 0; }) };
+    if (!chave.length) chave = oralPontos.deriveTerms(exig);
+    var pts = corrigirOralPorPontos([{text:exig,terms:chave}], texto, {}).pts[0];
+    return {pct:pts.total?Math.round(pts.found/pts.total*100):0, status:pts.status,
+      achou:pts.terms.filter(function(t){return t.found;}).map(function(t){return t.label;}),
+      faltou:pts.terms.filter(function(t){return !t.found;}).map(function(t){return t.label;})};
   }
 
   /**
@@ -693,16 +882,16 @@
       var alvos = (q.disp || []).map(alvoDoDispositivo);
       var cit = alvos.map(function (a) { return { rotulo: a.rotulo, citado: citou(a, tn) }; });
       var nCit = cit.filter(function (c) { return c.citado; }).length;
-      var cob = coberturaExigencia(q.exig, tn);
-      // sugestão: dispositivo citado pesa mais que vocabulário, porque é o que a
-      // banca confere primeiro — mas nenhum dos dois prova que o mérito foi enfrentado
-      var forca = (cit.length ? (nCit / cit.length) * 0.6 : 0) + (cob.pct / 100) * (cit.length ? 0.4 : 1);
+      var cob = coberturaExigencia(q.exig, texto, q.terms || q.termos);
+      // Sugestão por vocabulário: 60% coberto; algum termo, parcial; nenhum, não.
+      // Os dispositivos continuam auditados separadamente; a nota depende do veredito humano.
       return {
         i: i, rot: q.rot, disc: q.disc, tema: q.tema, exig: q.exig,
         pont: q.pont, valor: q.valor, incerto: q.incerto, desconto: q.desconto,
         dispositivos: cit, dispCitados: nCit, dispTotal: cit.length,
         cobertura: cob.pct, faltou: cob.faltou,
-        sugestao: forca >= 0.6 ? 'atendeu' : forca >= 0.3 ? 'parcial' : 'nao'
+        sugestao: cob.status === 'coberto' ? 'atendeu' : cob.status === 'parcial' ? 'parcial' : 'nao',
+        criterioVocabulario:'60% dos termos; comparação sem acento e por radical'
       };
     });
     var somaveis = itens.filter(function (q) { return !q.desconto && q.valor != null; });
@@ -743,7 +932,8 @@
     simuladoJuris: simuladoJuris, simuladoLeis: simuladoLeis,
     simuladoMisto: simuladoMisto, simuladoLeisEmbutidas: simuladoLeisEmbutidas, relatorio: relatorio,
     artigosDaLei: artigosDaLei, proposicoesDoArtigo: proposicoesDoArtigo,
-    perguntaOral: perguntaOral, corrigirOral: corrigirOral,
+    perguntaOral: perguntaOral, corrigirOral: corrigirOral, corrigirOralPorPontos: corrigirOralPorPontos,
+    prepararMaterialOral:prepararMaterialOral, prepararPontosDoPadrao:prepararPontosDoPadrao,
     acervoEspelhos: acervoEspelhos, provasEspelho: provasEspelho,
     corrigirPorEspelho: corrigirPorEspelho, notaPorEspelho: notaPorEspelho,
     alvoDoDispositivo: alvoDoDispositivo, citou: citou,

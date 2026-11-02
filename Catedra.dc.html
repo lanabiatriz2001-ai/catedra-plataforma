@@ -4139,6 +4139,52 @@ window.ctPdfLib = (function(){
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;color:var(--danger);font-size:var(--fs-base);">{{ oralErro }}</div>
         </sc-if>
 
+
+        <details class="ct-card ct-oral-material" data-oral="editor">
+          <summary>Correção por pontos · colar material</summary>
+          <p>Use uma pergunta por linha com ?, pontos com - [etiqueta] descrição :: termo, termo e a fonte com &gt;. O material fica somente nesta sessão.</p>
+          <label class="ct-rotulo">Material e fontes<textarea class="ct-campo" data-oral="material" rows="7" value="{{ oralPontosMaterial }}" oninput="{{ onOralPontosMaterial }}"></textarea></label>
+          <button class="ct-btn-2" data-oral="preparar" onclick="{{ previaMaterialOral }}">Pré-visualizar material</button>
+        </details>
+        <sc-if value="{{ oralPontosTemPrevia }}">
+          <section class="ct-card ct-oral-material" data-oral="previa" aria-label="Conferir pontos antes do uso">
+            <h3>Confira os pontos e os termos</h3>
+            <p>Os recortes vêm do material informado. Confirme a fonte, o conteúdo e a atualidade. A extração não é revisão jurídica.</p>
+            <p role="status">{{ oralPontosAvisos }}</p>
+            <sc-for list="{{ oralPontosPreviaItens }}" as="it"><article>
+              <h4>{{ it.q }}</h4><p>Fonte informada: {{ it.ref }}</p>
+              <sc-for list="{{ it.pontos }}" as="p"><div class="ct-oral-ponto"><label class="ct-oral-incluir"><input type="checkbox" data-oral="incluir" data-qi="{{ p.qi }}" data-pi="{{ p.pi }}" checked="{{ p.incluido }}" onchange="{{ incluirPontoOral }}">Usar este ponto na correção</label><p class="ct-oral-literal">{{ p.text }}</p>
+                <label class="ct-rotulo">Termos a procurar, separados por vírgula<input class="ct-campo" data-oral="termos" data-qi="{{ p.qi }}" data-pi="{{ p.pi }}" value="{{ p.termos }}" oninput="{{ editarTermosOral }}"></label>
+              </div></sc-for>
+            </article></sc-for>
+            <sc-if value="{{ oralPontosPodeConfirmar }}"><button class="ct-btn" data-oral="confirmar" onclick="{{ confirmarPontosOral }}">Conferi a fonte, os pontos e os termos · usar nesta sessão</button></sc-if>
+          </section>
+        </sc-if>
+        <sc-if value="{{ oralPontosAtivos }}"><section class="ct-card ct-oral-material" data-oral="material-ativo">
+          <div class="ct-arg-acoes"><sc-for list="{{ oralPontosPerguntas }}" as="it"><button class="ct-btn-2" data-i="{{ it.i }}" aria-pressed="{{ it.atual }}" onclick="{{ escolherPontoPerguntaOral }}">{{ it.q }}</button></sc-for></div>
+          <h3>{{ oralPontosPergunta }}</h3><p>Fonte conferida nesta sessão: {{ oralPontosFonte }}</p>
+          <label class="ct-rotulo">Sua resposta<textarea class="ct-campo" rows="7" data-oral="resposta-material" value="{{ oralPontosResposta }}" oninput="{{ onOralPontosResposta }}"></textarea></label>
+          <div class="ct-arg-acoes"><button class="ct-btn" data-oral="corrigir-material" onclick="{{ corrigirMaterialOral }}">Corrigir por pontos</button><button class="ct-btn-2" onclick="{{ fecharMaterialOral }}">Encerrar este treino por pontos</button></div>
+        </section></sc-if>
+        <sc-if value="{{ oralTemPontos }}" hint-placeholder-val="{{ false }}">
+          <section class="ct-card ct-oral-pontos" data-oral="pontos" aria-label="Correção por pontos">
+            <h3>Correção por pontos</h3>
+            <p>O casamento prova presença de vocabulário, não raciocínio jurídico.</p>
+            <p data-oral="resumo" role="status">{{ oralPontosResumo }}</p>
+            <div class="ct-oral-barra" aria-hidden="true"><sc-for list="{{ oralPontosBarras }}" as="b"><span data-st="{{ b.k }}" style="{{ b.style }}"></span></sc-for></div>
+            <sc-if value="{{ oralPontosRevisar }}" hint-placeholder-val="{{ false }}"><p><b>Revise primeiro:</b> {{ oralPontosRevisar }}</p></sc-if>
+            <sc-for list="{{ oralPontosLista }}" as="p">
+              <div class="ct-oral-ponto" data-st="{{ p.status }}">
+                <b><span class="ct-oral-forma" data-forma="{{ p.forma }}" aria-hidden="true"></span> {{ p.rotulo }}</b>
+                <sc-if value="{{ p.etiqueta }}" hint-placeholder-val="{{ false }}"><p>{{ p.etiqueta }}</p></sc-if><p>{{ p.text }}</p><p>{{ p.termos }}</p>
+                <button class="ct-btn-2" data-oral="manual" data-i="{{ p.i }}" aria-pressed="{{ p.manual }}" onclick="{{ sobrescreverPontoOral }}">{{ p.manualLabel }}</button>
+              </div>
+            </sc-for>
+            <h3>Sua resposta · termos encontrados</h3>
+            <div class="ct-oral-resposta"><sc-for list="{{ oralPontosSegmentos }}" as="s"><sc-if value="{{ s.liso }}" hint-placeholder-val="{{ true }}"><span>{{ s.t }}</span></sc-if><sc-if value="{{ s.marca }}" hint-placeholder-val="{{ false }}"><u>{{ s.t }}</u></sc-if></sc-for></div>
+          </section>
+        </sc-if>
+
         <!-- ARGUIÇÃO SOBRE JURISPRUDÊNCIA -->
         <sc-if value="{{ oralEhJuris }}" hint-placeholder-val="{{ true }}">
           <div class="ct-card">
@@ -4304,7 +4350,7 @@ window.ctPdfLib = (function(){
             <sc-if value="{{ oralQMostrarPadrao }}" hint-placeholder-val="{{ false }}">
               <div style="background:var(--surface);border:1px solid color-mix(in oklab, var(--ok) 38%, var(--border));border-radius:var(--radius);padding:20px;background-image:linear-gradient(90deg,color-mix(in oklab, var(--ok) 19%, transparent),transparent 46%);">
                 <div style="font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.08em;color:var(--ok);font-weight:800;">Padrão de resposta — o que a banca esperava ouvir</div>
-                <div style="font-size:var(--fs-base);color:var(--ink);line-height:1.7;margin-top:12px;white-space:pre-wrap;">{{ oralQPadrao }}</div>
+                <div style="font-size:var(--fs-base);color:var(--ink);line-height:1.7;margin-top:12px;white-space:pre-wrap;">{{ oralQPadrao }}</div><button class="ct-btn-2" data-oral="derivar" onclick="{{ derivarPontosOral }}">Preparar pontos deste padrão para conferência</button>
               </div>
             </sc-if>
           </sc-if>
@@ -7630,7 +7676,7 @@ class Component extends DCLogic {
       // sjComPausa marca a tentativa que pausou (a prova real não tem pausa); enamMont é a montagem por área.
       sjModo:'misto', sjRev:{}, sjComPausa:false, enamMont:null, enamErro:'', enamCarregando:false, enamCor:null,   // enamCor: a correção E4 da última prova
       oralModo:'juris', oralIntencao:'',   // corrigido no 1º render para um modo que a área tenha oralPronto:false, oralErro:'', oralRamo:'', oralTribunal:'', oralAlvo:null, oralVariante:0,
-      oralPergunta:'', oralResposta:'', oralCorrecao:null, oralHist:[],
+      oralPergunta:'', oralResposta:'', oralPontosSobrescritas:{}, oralPontosMaterial:'', oralPontosPrevia:null, oralPontosItens:[], oralPontosTentativas:{}, oralPontosIdx:0, oralPontosResposta:'', oralCorrecao:null, oralHist:[],
       oralBancasPronto:false, oralBancaCarr:'', oralBancaBanca:'', oralBancaQ:'', oralBancaSoOuro:true, oralBancaSel:null,
       // lei seca: artigo sorteado das 14 leis embutidas (leis-seca.js)
       oralLeisPronto:false, oralLeiSig:'', oralArt:null, oralArtVariante:0,
@@ -13728,7 +13774,7 @@ class Component extends DCLogic {
     const vs=(st.oralPronto&&T)?T.verbetes():[];
     const cont=(campo)=>{ const m={}; vs.forEach(v=>{ const k=v[campo]; if(k) m[k]=(m[k]||0)+1; });
       return Object.keys(m).sort((a,b)=>m[b]-m[a]).slice(0,14).map(k=>({v:k,label:k+' ('+m[k]+')'})); };
-    const alvo=st.oralAlvo, c=st.oralCorrecao;
+    const alvo=st.oralAlvo, cp=st.oralCorrecao&&st.oralCorrecao.porPontos?st.oralCorrecao:null, c=cp?null:st.oralCorrecao;
     const CO=(window.CT_ORAL)||[];
     const q=(st.oralBancaQ||'').trim().toLowerCase();
     const conc=CO.filter(x=>(!st.oralBancaCarr||x.subarea===st.oralBancaCarr)
@@ -13751,7 +13797,7 @@ class Component extends DCLogic {
     })();
 
     return {
-      oralModo:st.oralModo, oralEhJuris:st.oralModo==='juris', oralEhLei:st.oralModo==='lei', oralEhBancas:st.oralModo==='bancas',
+      oralModo:st.oralModo, oralEhJuris:st.oralModo==='juris'&&!st.oralPontosItens.length, oralEhLei:st.oralModo==='lei'&&!st.oralPontosItens.length, oralEhBancas:st.oralModo==='bancas'&&!st.oralPontosItens.length,
       // O template resolve NOMES, não expressões: estilos condicionais saem prontos daqui.
       oralAbaJuris:aba(st.oralModo==='juris'), oralAbaLei:aba(st.oralModo==='lei'), oralAbaBancas:aba(st.oralModo==='bancas'),
       oralOuroLabel:st.oralBancaSoOuro?'Só com padrão de resposta ✓':'Só com padrão de resposta',
@@ -13773,6 +13819,23 @@ class Component extends DCLogic {
       oralAlvoTexto:alvo?String(alvo.texto).slice(0,1600):'',
       oralPergunta:st.oralPergunta, oralResposta:st.oralResposta,
       oralTemCorrecao:!!c,
+      oralPontosMaterial:st.oralPontosMaterial, oralPontosResposta:st.oralPontosResposta,
+      oralPontosTemPrevia:!!st.oralPontosPrevia,
+      oralPontosAvisos:st.oralPontosPrevia?(st.oralPontosPrevia.warns||[]).join(' · '):'',
+      oralPontosPodeConfirmar:!!(st.oralPontosPrevia&&st.oralPontosPrevia.prontoParaConferir),
+      oralPontosPreviaItens:st.oralPontosPrevia?st.oralPontosPrevia.items.map((it,qi)=>({...it,qi,
+        pontos:it.points.map((p,pi)=>({...p,qi,pi,incluido:!p.excluir,termos:p.termosEditados!==undefined?p.termosEditados:p.terms.join(', ')}))})):[],
+      oralPontosAtivos:!!st.oralPontosItens.length,
+      oralPontosPerguntas:st.oralPontosItens.map((it,i)=>({i,q:it.q,atual:i===st.oralPontosIdx})),
+      oralPontosPergunta:(st.oralPontosItens[st.oralPontosIdx]||{}).q||'',
+      oralPontosFonte:(st.oralPontosItens[st.oralPontosIdx]||{}).ref||'',
+      oralTemPontos:!!cp,
+      oralPontosResumo:cp?cp.covered+' coberto(s) · '+cp.partial+' parcial(is) · '+cp.missed+' faltou · '+cp.total+' ponto(s)':'',
+      oralPontosBarras:cp?['coberto','parcial','faltou'].map(k=>({k,style:'width:'+(cp.total?cp.tot[k]/cp.total*100:0)+'%;'})):[],
+      oralPontosLista:cp?cp.pts.map(p=>({...p,rotulo:({coberto:'Coberto',parcial:'Parcial',faltou:'Faltou'})[p.status],forma:({coberto:'círculo',parcial:'triângulo',faltou:'quadrado'})[p.status],
+        termos:p.terms.map(t=>(t.found?'Presente: ':'Ausente: ')+t.label).join(' · '),etiqueta:({lei:'Lei seca',regra:'Regra',excecao:'Exceção',vedacao:'Vedação',conceito:'Conceito',termo:'Termo',juris:'Jurisprudência',prazo:'Número ou prazo'})[p.tag]||'',manualLabel:p.manual?'Manual · Desfazer':'Eu cobri, com outras palavras'})):[],
+      oralPontosRevisar:cp?cp.pts.filter(p=>p.status!=='coberto').map(p=>p.text).join(' · '):'',
+      oralPontosSegmentos:cp?cp.segmentos:[],
       oralNotaLabel:c?(c.nota==='boa'?'Resposta consistente':c.nota==='media'?'Resposta parcial':'Resposta insuficiente'):'',
       oralNotaCor:c?(c.nota==='boa'?'var(--ok)':c.nota==='media'?'var(--warn)':'var(--danger)'):'',
       oralCobertura:c?c.cobertura:0,
@@ -13780,7 +13843,7 @@ class Component extends DCLogic {
       oralFundAusentes:c&&c.fundAusentes.length?c.fundAusentes.join(' · '):'',
       oralAcertou:c&&c.acertou.length?c.acertou.slice(0,8).join(', '):'',
       oralFaltou:c&&c.faltou.length?c.faltou.slice(0,8).join(', '):'',
-      oralHistLabel:(st.oralHist||[]).slice(0,10).map(h=>h.titulo.slice(0,28)+' '+(h.nota==='boa'?'✓':h.nota==='media'?'~':'✗')).join('   '),
+      oralHistLabel:(st.oralHist||[]).slice(0,10).map(h=>h.titulo.slice(0,28)+' '+(h.pontos|| (h.nota==='boa'?'✓':h.nota==='media'?'~':'✗'))).join('   '),
       // lei seca
       oralLeisPronto:st.oralLeisPronto,
       oralLeiOpts:_chipz([{v:'',label:'Todas as leis',sel:!st.oralLeiSig}].concat(((w.CT_LEIS)||[]).map(l=>({v:l.sigla,label:l.sigla+' — '+l.nome.slice(0,34)+' ('+l.artigos.length+')',sel:st.oralLeiSig===l.sigla})))),
@@ -14692,7 +14755,7 @@ class Component extends DCLogic {
   oralIntencao = (e)=>{
     const i=e.currentTarget.dataset.i;
     const area=this.state.areaEstudo||'juridica',conta=this._argConta();
-    this.setState({oralIntencao:i, oralModo:'bancas', oralCorrecao:null});
+    this.setState({oralIntencao:i, oralModo:'bancas', oralCorrecao:null, oralPontosSobrescritas:{}});
     this._oralPromBancas().then(()=>{
       if(area!==(this.state.areaEstudo||'juridica')||conta!==this._argConta()||this.state.view!=='oral')return;
       // treinar = modo arguição, que já tem relógio, +1 min, voz e autoavaliação; não se
@@ -14702,7 +14765,7 @@ class Component extends DCLogic {
       else setTimeout(()=>{ const el=document.getElementById('ct-oral-consulta'); if(el) el.scrollIntoView({block:'start', behavior:this._rolagem()}); }, 60);
     }).catch(()=>{});
   };
-  setOralModo = (e)=>{ const m=e.currentTarget.getAttribute('data-m'); this.setState({oralModo:m, oralCorrecao:null});
+  setOralModo = (e)=>{ const m=e.currentTarget.getAttribute('data-m'); this.setState({oralModo:m, oralCorrecao:null, oralPontosSobrescritas:{}});
     if(m==='bancas'){ this._oralCarregarBancas(); this._oralCarregarQ(); } else if(m==='lei') this._oralCarregarLeis(); else this._oralCarregarAcervo(); };
   _oralCarregarAcervo(){
     if(this.state.oralPronto) return;
@@ -14722,21 +14785,71 @@ class Component extends DCLogic {
       && (!this.state.oralTribunal||v.tribunal===this.state.oralTribunal) && v.texto.length>=200);
     if(!vs.length){ this._toast('Nenhum verbete com esses filtros'); return; }
     const v=vs[Math.floor(Math.random()*vs.length)];
-    this.setState({oralAlvo:v, oralVariante:0, oralPergunta:T.perguntaOral(v,0), oralResposta:'', oralCorrecao:null});
+    this.setState({oralAlvo:v, oralVariante:0, oralPergunta:T.perguntaOral(v,0), oralResposta:'', oralCorrecao:null, oralPontosSobrescritas:{}});
   };
   outraPerguntaOral = ()=>{
     const T=window.CT_TREINO, v=this.state.oralAlvo; if(!T||!v) return;
     const k=this.state.oralVariante+1;
-    this.setState({oralVariante:k, oralPergunta:T.perguntaOral(v,k), oralCorrecao:null});
+    this.setState({oralVariante:k, oralPergunta:T.perguntaOral(v,k), oralCorrecao:null, oralPontosSobrescritas:{}});
   };
-  onOralResposta = (e)=> this.setState({oralResposta:e.currentTarget.value});
+  onOralResposta = (e)=> this.setState({oralResposta:e.currentTarget.value,oralCorrecao:null,oralPontosSobrescritas:{}});
   corrigirOral = ()=>{
     const T=window.CT_TREINO, v=this.state.oralAlvo; if(!T||!v) return;
-    const c=T.corrigirOral(v.texto, this.state.oralResposta);
-    const hist=[{quando:Date.now(), titulo:v.titulo, nota:c.nota}].concat(this.state.oralHist||[]).slice(0,40);
-    this.setState({oralCorrecao:c, oralHist:hist});
+    const c=Array.isArray(v.points)&&v.points.length?T.corrigirOralPorPontos(v.points,this.state.oralResposta,{}):T.corrigirOral(v.texto,this.state.oralResposta);
+    const hist=[{quando:Date.now(), titulo:v.titulo, nota:c.nota, pontos:c.porPontos?c.covered+'/'+c.total:null}].concat(this.state.oralHist||[]).slice(0,40);
+    this.setState({oralCorrecao:c, oralHist:hist, oralPontosSobrescritas:{}});
     // a arguição conta como estudo: alimenta o desempenho, que é o motivo de ela morar aqui
     try{ this._registrarAtividadeAuto({categoria:'Jurisprudência', topico:'Prova oral — '+(v.ramo||v.tribunal), min:3, disc:v.ramo||'Geral'}); }catch(_){}
+  };
+  onOralPontosMaterial = (e)=>this.setState({oralPontosMaterial:e.currentTarget.value,oralPontosPrevia:null});
+  previaMaterialOral = ()=>{
+    if(!window.CT_TREINO) return this._treino().then(()=>this.previaMaterialOral());
+    if(this.state.oralPontosMaterial.length>100000) return this._toast('Divida o material em blocos de até 100 mil caracteres.');
+    this.setState({oralPontosPrevia:window.CT_TREINO.prepararMaterialOral(this.state.oralPontosMaterial)});
+  };
+  derivarPontosOral = ()=>{
+    const q=this.state.oralQAtual,T=window.CT_TREINO;
+    if(!q||!T||this.state.argOn) return;
+    const previa=T.prepararPontosDoPadrao(q);
+    if(!previa) return this._toast('Este padrão precisa ter pergunta, texto e fonte identificados.');
+    this.setState({oralPontosPrevia:previa},()=>{const el=document.querySelector('[data-oral="previa"]');if(el)el.scrollIntoView({block:'center',behavior:this._rolagem()});});
+  };
+  _oralPreviaValida = (items)=>items.length>0&&items.every(it=>it.ref&&it.points.some(p=>!p.excluir)&&it.points.filter(p=>!p.excluir).every(p=>p.terms.length));
+  incluirPontoOral = (e)=>{
+    const pre=this.state.oralPontosPrevia;if(!pre)return;
+    const qi=Number(e.currentTarget.dataset.qi),pi=Number(e.currentTarget.dataset.pi),excluir=!e.currentTarget.checked;
+    const items=pre.items.map((it,i)=>i!==qi?it:{...it,points:it.points.map((p,j)=>j!==pi?p:{...p,excluir})});
+    this.setState({oralPontosPrevia:{...pre,items,prontoParaConferir:this._oralPreviaValida(items)}});
+  };
+  editarTermosOral = (e)=>{
+    const pre=this.state.oralPontosPrevia;if(!pre)return;
+    const qi=Number(e.currentTarget.dataset.qi),pi=Number(e.currentTarget.dataset.pi);
+    const items=pre.items.map((it,i)=>i!==qi?it:{...it,points:it.points.map((p,j)=>j!==pi?p:{...p,termosEditados:e.currentTarget.value,terms:e.currentTarget.value.split(',').map(t=>t.trim()).filter(Boolean)})});
+    this.setState({oralPontosPrevia:{...pre,items,prontoParaConferir:this._oralPreviaValida(items)}});
+  };
+  confirmarPontosOral = ()=>{
+    const p=this.state.oralPontosPrevia,q=this.state.oralQAtual;
+    if(!p||!p.prontoParaConferir||!this._oralPreviaValida(p.items))return this._toast('Informe uma fonte por pergunta e termos para todos os pontos.');
+    if(p.origemId&&(!q||q.id!==p.origemId||q.url!==p.origemUrl||q.padrao!==p.padraoOriginal))return this._toast('O padrão mudou. Gere e confira uma nova prévia.');
+    const resposta=p.origemId?this.state.oralQResposta:'';
+    this.setState({oralPontosItens:p.items.map(it=>({...it,points:it.points.filter(p=>!p.excluir)})),oralPontosTentativas:{0:{resposta}},oralPontosIdx:0,oralPontosResposta:resposta,oralPontosPrevia:null,oralCorrecao:null,oralPontosSobrescritas:{}});
+  };
+  escolherPontoPerguntaOral = (e)=>{const i=Number(e.currentTarget.dataset.i);if(!this.state.oralPontosItens[i])return;const t=this.state.oralPontosTentativas[i]||{};this.setState({oralPontosIdx:i,oralPontosResposta:t.resposta||'',oralCorrecao:t.correcao||null,oralPontosSobrescritas:t.sobrescritas||{}});};
+  onOralPontosResposta = (e)=>{const resposta=e.currentTarget.value;this.setState({oralPontosResposta:resposta,oralPontosTentativas:{...this.state.oralPontosTentativas,[this.state.oralPontosIdx]:{resposta}},oralCorrecao:null,oralPontosSobrescritas:{}});};
+  corrigirMaterialOral = ()=>{
+    const it=this.state.oralPontosItens[this.state.oralPontosIdx],T=window.CT_TREINO;if(!it||!T)return;
+    const resposta=this.state.oralPontosResposta,correcao=T.corrigirOralPorPontos(it.points,resposta,{});
+    this.setState({oralCorrecao:correcao,oralPontosSobrescritas:{},oralPontosTentativas:{...this.state.oralPontosTentativas,[this.state.oralPontosIdx]:{resposta,correcao,sobrescritas:{}}}});
+  };
+  fecharMaterialOral = ()=>this.setState({oralPontosItens:[],oralPontosTentativas:{},oralPontosPrevia:null,oralCorrecao:null,oralPontosSobrescritas:{}});
+  sobrescreverPontoOral = (e)=>{
+    const c=this.state.oralCorrecao, i=Number(e.currentTarget.dataset.i);
+    if(!c||!c.porPontos||!c.pts[i]) return;
+    const ov={...this.state.oralPontosSobrescritas}; ov[i]=!ov[i];
+    const pontos=c.pts.map(p=>({text:p.text,tag:p.tag,terms:p.terms.map(t=>t.label)}));
+    const correcao=window.CT_TREINO.corrigirOralPorPontos(pontos,c.resposta,ov);
+    const extra=this.state.oralPontosItens.length?{oralPontosTentativas:{...this.state.oralPontosTentativas,[this.state.oralPontosIdx]:{resposta:c.resposta,correcao,sobrescritas:ov}}}:{};
+    this.setState({...extra,oralPontosSobrescritas:ov,oralCorrecao:correcao});
   };
   // ---- LEI SECA: arguição sobre artigo das leis embutidas (funciona off-line no app)
   _oralCarregarLeis(){
@@ -14749,16 +14862,16 @@ class Component extends DCLogic {
     const T=window.CT_TREINO; if(!T) return;
     const a=T.sortearArtigo(this.state.oralLeiSig?[this.state.oralLeiSig]:null);
     if(!a){ this._toast('Não achei artigo com esse filtro'); return; }
-    this.setState({oralArt:a, oralArtVariante:0, oralPergunta:T.perguntaLei(a,0), oralResposta:'', oralCorrecao:null});
+    this.setState({oralArt:a, oralArtVariante:0, oralPergunta:T.perguntaLei(a,0), oralResposta:'', oralCorrecao:null, oralPontosSobrescritas:{}});
   };
   outraPerguntaLei = ()=>{
     const T=window.CT_TREINO, a=this.state.oralArt; if(!T||!a) return;
     const k=this.state.oralArtVariante+1;
-    this.setState({oralArtVariante:k, oralPergunta:T.perguntaLei(a,k), oralCorrecao:null});
+    this.setState({oralArtVariante:k, oralPergunta:T.perguntaLei(a,k), oralCorrecao:null, oralPontosSobrescritas:{}});
   };
   corrigirOralLei = ()=>{
     const T=window.CT_TREINO, a=this.state.oralArt; if(!T||!a) return;
-    this.setState({oralCorrecao:T.corrigirOral(a.txt, this.state.oralResposta)});
+    this.setState({oralPontosSobrescritas:{},oralCorrecao:Array.isArray(a.points)&&a.points.length?T.corrigirOralPorPontos(a.points,this.state.oralResposta,{}):T.corrigirOral(a.txt,this.state.oralResposta)});
     try{ this._registrarAtividadeAuto({categoria:'Lei seca', topico:'Prova oral — '+(a.sigla||a.lei||'lei seca'), min:3, disc:'Lei seca'}); }catch(_){}
   };
   // ---- BANCAS REAIS: perguntas que caíram, com o padrão de resposta oficial
@@ -14896,7 +15009,7 @@ class Component extends DCLogic {
     const L=(window.CT_ORAL_Q||[]).filter(q=>(!this.state.oralQDisc||q.disciplina===this.state.oralQDisc)
       && (!this.state.oralQCarr||q.carreira===this.state.oralQCarr) && q.padrao && q.padrao.length>200);
     if(!L.length){ this._toast('Nenhuma pergunta com esses filtros'); return; }
-    this.setState({oralQAtual:L[Math.floor(Math.random()*L.length)], oralQMostrarPadrao:false, oralQResposta:''});
+    this.setState({oralQAtual:L[Math.floor(Math.random()*L.length)], oralQMostrarPadrao:false, oralQResposta:'',oralPontosPrevia:null});
   };
   onOralQResposta = (e)=> this.setState({oralQResposta:e.currentTarget.value});
   verPadraoBanca = ()=> this.setState({oralQMostrarPadrao:true});
@@ -20995,7 +21108,10 @@ class Component extends DCLogic {
       excluirConta:this.excluirConta, contaExcluindo:!!this.state.contaExcluindo, contaEmail:(window.CatedraAuth&&window.CatedraAuth.user&&window.CatedraAuth.user.email)||'',
       setOralModo:this.setOralModo, setOralRamo:this.setOralRamo, setOralTribunal:this.setOralTribunal,
       sortearOral:this.sortearOral, outraPerguntaOral:this.outraPerguntaOral,
-      onOralResposta:this.onOralResposta, corrigirOral:this.corrigirOral,
+      onOralPontosMaterial:this.onOralPontosMaterial,previaMaterialOral:this.previaMaterialOral,derivarPontosOral:this.derivarPontosOral,
+      incluirPontoOral:this.incluirPontoOral,editarTermosOral:this.editarTermosOral,confirmarPontosOral:this.confirmarPontosOral,escolherPontoPerguntaOral:this.escolherPontoPerguntaOral,
+      onOralPontosResposta:this.onOralPontosResposta,corrigirMaterialOral:this.corrigirMaterialOral,fecharMaterialOral:this.fecharMaterialOral,
+      onOralResposta:this.onOralResposta, corrigirOral:this.corrigirOral, sobrescreverPontoOral:this.sobrescreverPontoOral,
       setOralLeiSig:this.setOralLeiSig, sortearArtigoOral:this.sortearArtigoOral,
       outraPerguntaLei:this.outraPerguntaLei, corrigirOralLei:this.corrigirOralLei,
       setOralQDisc:this.setOralQDisc, setOralQCarr:this.setOralQCarr, sortearPerguntaBanca:this.sortearPerguntaBanca,

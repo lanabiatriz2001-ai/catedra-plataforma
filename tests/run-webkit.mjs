@@ -21,6 +21,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { iniciarServidor, lancarNavegador } from './_infra.mjs';
+import { testarOralPontos } from './oral-pontos.mjs';
 import { testarOralLeiSeca } from './oral-lei-seca.mjs';
 import { testarSegurancaBackup } from './seguranca-backup.mjs';
 import { testarReservaIA } from './seguranca-cota.mjs';
@@ -104,7 +105,7 @@ for (const [base, origem, arquivo] of ORIGENS) {
   // contexto novo por origem: localStorage e IndexedDB de uma não vazam para a outra
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await ctx.newPage();
-  try { await testarOralLeiSeca(page, base, ok, { motor, origem, arquivo }); }
+  try { await testarOralLeiSeca(page, base, ok, { motor, origem, arquivo }); await testarOralPontos(page, base, ok, { motor, origem, arquivo }); }
   catch (e) {
     ok(false, 'ORAL LEI SECA [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
       + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
