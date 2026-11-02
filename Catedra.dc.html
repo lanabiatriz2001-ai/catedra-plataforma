@@ -1462,7 +1462,7 @@ window.ctPdfLib = (function(){
 
     <!-- REVISAR AGORA (sessão guiada FSRS) -->
     <sc-if value="{{ revActive }}" hint-placeholder-val="{{ false }}">
-      <div role="dialog" aria-modal="true" aria-label="Sessão de revisão" class="ct-modal-panel" tabindex="-1" style="position:fixed;inset:0;z-index:150;background:var(--sbg);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;">
+      <div role="dialog" aria-modal="true" aria-label="Sessão de revisão" class="ct-modal-panel" tabindex="-1" style="--ct-rev-texto-secundario:rgba(255,255,255,.72);position:fixed;inset:0;z-index:150;background:var(--sbg);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;">
         <div style="position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:18px clamp(18px,4vw,40px);">
           <div style="display:flex;align-items:center;gap:11px;"><span class="ct-ladrilho ct-ladrilho-claro" aria-hidden="true"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="repeat"><use href="#ct-i-repeat"></use></svg></span><span style="font-weight:600;font-size:var(--fs-md);color:rgba(255,255,255,.9);">Revisar agora</span></div>
           <button onclick="{{ closeRevSession }}" style="border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);border-radius:var(--r-md);padding:9px 15px;font-size:var(--fs-base);color:rgba(255,255,255,.75);cursor:pointer;font-family:inherit;font-weight:600;">Sair (Esc)</button>
@@ -1492,10 +1492,10 @@ window.ctPdfLib = (function(){
                   <div style="font-size:var(--fs-sm);color:rgba(255,255,255,.6);margin-top:14px;">Como foi a recordação?</div>
                   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:12px;">
                     <sc-for list="{{ revOpts }}" as="o" hint-placeholder-count="4">
-                      <button data-q="{{ o.q }}" onclick="{{ revAnswer }}" style="display:flex;flex-direction:column;align-items:center;gap:3px;background:rgba(255,255,255,.08);border:1px solid color-mix(in oklab, {{ o.color }} 34%, rgba(255,255,255,.16));border-radius:var(--radius);padding:13px 8px;cursor:pointer;font-family:inherit;color:#fff;background-image:linear-gradient(180deg,color-mix(in oklab, {{ o.color }} 19%, transparent),transparent 46%);"><span style="font-size:var(--fs-base);font-weight:700;">{{ o.label }}</span><span style="font-size:var(--fs-xs);color:rgba(255,255,255,.55);font-family:var(--mono);">+{{ o.sub }}</span></button>
+                      <button data-q="{{ o.q }}" onclick="{{ revAnswer }}" style="display:flex;flex-direction:column;align-items:center;gap:3px;background:rgba(255,255,255,.08);border:1px solid color-mix(in oklab, {{ o.color }} 34%, rgba(255,255,255,.16));border-radius:var(--radius);padding:13px 8px;cursor:pointer;font-family:inherit;color:#fff;background-image:linear-gradient(180deg,color-mix(in oklab, {{ o.color }} 19%, transparent),transparent 46%);"><span style="font-size:var(--fs-base);font-weight:700;">{{ o.label }}</span><span style="font-size:var(--fs-xs);color:var(--ct-rev-texto-secundario);font-family:var(--mono);">+{{ o.sub }}</span></button>
                     </sc-for>
                   </div>
-                  <button onclick="{{ revSkip }}" style="margin-top:14px;background:transparent;border:none;color:rgba(255,255,255,.45);font-size:var(--fs-sm);cursor:pointer;font-family:inherit;font-weight:600;">Pular este</button>
+                  <button onclick="{{ revSkip }}" style="margin-top:14px;background:transparent;border:none;color:var(--ct-rev-texto-secundario);font-size:var(--fs-sm);cursor:pointer;font-family:inherit;font-weight:600;">Pular este</button>
                 </sc-if>
               </div>
             </div>
