@@ -16,6 +16,7 @@ import { SAIDA_ESVAZIADOS } from '../scripts/verificar-pasta-sincronizada.mjs';
 import fs from 'fs';
 import path from 'path';
 import { createHash } from 'crypto';
+import { spawnSync } from 'child_process';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { iniciarServidor, lancarNavegador } from './_infra.mjs';
 import { testarOralLeiSeca } from './oral-lei-seca.mjs';
@@ -4457,6 +4458,9 @@ for (const [k, v] of Object.entries(sem)) ok(v, 'SEMANA ' + k);
 // no juris-index.js, e as fatias de dados/juris-text/ sem o texto dos julgados novos: o
 // atualizar-informativos.py gravava o acervo e ninguém rodava os dois geradores depois.
 {
+  const importacao = spawnSync('python3', [path.join(RAIZ, 'tests', 'informativos-gerados.py')], { encoding: 'utf8' });
+  ok(importacao.status === 0, 'INFORMATIVOS a citação nova atualiza o widget; falha aborta e simulação preserva ('
+    + (importacao.status === 0 ? '3 casos sem rede' : (importacao.stderr || importacao.error || '').toString().slice(-1200)) + ')');
   const w = {};
   for (const f of ['juris-index.js', 'juris-text.js', 'semana-juris.js']) {
     new Function('window', fs.readFileSync(path.join(RAIZ, f), 'utf8'))(w);

@@ -17,7 +17,7 @@
 #   1. o juris-index.js da main é guardado antes de tudo (o acervo de ANTES);
 #   2. scripts/atualizar-informativos.py anexa os julgados novos a juris-index.js e
 #      juris-text.js e, ao terminar, já regenera semana-juris.js e as fatias de
-#      dados/juris-text/ (por isso não há passo "Regerar" aqui);
+#      dados/juris-text/ e widget/dodia.json (por isso não há passo "Regerar" aqui);
 #   3. o sentinela roda UMA vez, com --detectar-desde apontando o acervo de antes: a edição
 #      que acabou de entrar é detectada (vira item, com a URL oficial) e, na mesma junção,
 #      recebe a baixa contra o juris-index.js de agora — "já no JURIS". Edição que existe e o
@@ -220,7 +220,7 @@ jobs:
           # A incorporação mudou o acervo em relação à referência? `git diff --quiet` vê os
           # rastreados; as fatias novas nascem com nome novo (hash do conteúdo) e ficam fora
           # do índice do git — daí o `ls-files --others`.
-          elif git diff --quiet "$ref" -- juris-index.js juris-text.js semana-juris.js dados/juris-text dados/indice.json \
+          elif git diff --quiet "$ref" -- juris-index.js juris-text.js semana-juris.js dados/juris-text dados/indice.json widget/dodia.json \
              && [ -z "$(git ls-files --others --exclude-standard -- dados/juris-text)" ]; then
             echo 'acervo=igual' >> "$GITHUB_OUTPUT"
           else
@@ -357,6 +357,7 @@ jobs:
             juris-index.js
             juris-text.js
             semana-juris.js
+            widget/dodia.json
             dados/juris-text/**
             dados/indice.json
             novidades.js
