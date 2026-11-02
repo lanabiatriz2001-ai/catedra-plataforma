@@ -53,6 +53,7 @@ const SEM_NOME = `(function(raiz){ return Array.from(raiz.querySelectorAll('butt
 
 export async function testarRevisaoOficial(browser, base, ok, { motor = 'chromium' } = {}) {
   const tag = `OFICIAL [${motor}]`;
+  await testarContrasteDosSelos(browser, base, ok, motor);
   const novoCtx = async (pacote, area, largura = 1280) => {
     const ctx = await browser.newContext({ viewport: { width: largura, height: 900 } });
     await ctx.route('**/novidades.js', (r) => r.fulfill({ status: 200, contentType: 'application/javascript', body: corpo(pacote) }));
@@ -394,4 +395,64 @@ export async function testarRevisaoOficial(browser, base, ok, { motor = 'chromiu
     }
     await ctx.close();
   }
+}
+
+// O token de estado também pinta fundos e gráficos. O selo precisa usar a tinta
+// derivada dele: voltar à cor pura quebra especialmente os temas claros. Medimos o
+// componente com os tokens reais do host e dos dois satélites, sem rede externa.
+async function testarContrasteDosSelos(browser, base, ok, motor) {
+  const ctx = await browser.newContext();
+  try {
+    await ctx.addInitScript(() => {
+      localStorage.setItem('catedra:auth', '1');
+      localStorage.setItem('catedra:onboarded', '1');
+      localStorage.setItem('catedra:areaEstudo', JSON.stringify('juridica'));
+    });
+    await ctx.addInitScript(CONTRASTE);
+    const pg = await ctx.newPage();
+    await pg.goto(base + '/Catedra.dc.html');
+    await pg.waitForFunction(() => !!window.__catedraApp);
+    for (const view of ['novidades', 'legis', 'juris']) {
+      await pg.evaluate(view => window.__catedraApp._irPara(view), view);
+      let alvo = pg;
+      if (view !== 'novidades') {
+        const iframe = await pg.waitForSelector('iframe[data-ct-view="' + view + '"]');
+        alvo = await iframe.contentFrame();
+        await alvo.waitForFunction(() => !!window.CT_REVISAO_OFICIAL && !!document.body);
+      }
+      for (const dir of ['sutil', 'premium', 'clean', 'moderno', 'aurora', 'solar', 'terminal', 'holo']) {
+        for (const darkMode of [false, true]) {
+          const tinta = await pg.evaluate(tema => new Promise(resolve => {
+            const app = window.__catedraApp;
+            app.setState(tema, () => {
+              app._temaBroadcast();
+              resolve(getComputedStyle(document.querySelector('[data-dir]')).getPropertyValue('--ink').trim());
+            });
+          }), { dir, darkMode, accent: null });
+          if (alvo !== pg) await alvo.waitForFunction(tinta =>
+            getComputedStyle(document.documentElement).getPropertyValue('--ink').trim() === tinta, tinta);
+          const medidas = await alvo.evaluate(() => {
+            const raiz = document.querySelector('[data-dir]') || document.body;
+            const amostra = document.createElement('div');
+            const status = Object.values(window.CT_REVISAO_OFICIAL.STATUS)
+              .concat([{ cls: 'ct-of-st-pendente', rotulo: 'Sem consulta' }]);
+            raiz.appendChild(amostra);
+            try {
+              return status.map(st => {
+                const selo = document.createElement('span');
+                selo.className = 'ct-of-st ' + st.cls;
+                selo.textContent = st.rotulo;
+                amostra.appendChild(selo);
+                return { status: st.rotulo, contraste: window.__ctContraste(selo), pinta: selo.getBoundingClientRect().height > 0 };
+              });
+            } finally { amostra.remove(); }
+          });
+          const ruins = medidas.filter(m => !m.pinta || !Number.isFinite(m.contraste) || m.contraste < 4.5);
+          ok(medidas.length >= 6 && !ruins.length,
+            `OFICIAL [${motor}] selos ${view}/${dir}/${darkMode ? 'escuro' : 'claro'} ≥ 4,5:1`
+            + (ruins.length ? ' — ' + JSON.stringify(ruins) : ''));
+        }
+      }
+    }
+  } finally { await ctx.close(); }
 }

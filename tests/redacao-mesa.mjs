@@ -247,8 +247,12 @@ async function conferencia(pageDaSuite, base, ok, R) {
     await page.evaluate(() => window.__catedraApp.setState({ redEspelhoOculto: true }));
     await page.click('[data-red="crono-btn"]'); await page.clock.runFor(600000);
     await page.click('[data-red="terminei"]'); await page.waitForSelector('[data-red="conf-item"]');
+    // O relógio instalado também acompanha o tempo real entre os comandos. Sob carga,
+    // o clique pode terminar em 10:01; o contrato é congelar esse instante, não arredondá-lo.
+    const terminado = (await page.textContent('[data-red="crono"]')).trim();
+    const tempoTerminado = await page.evaluate(() => window.__catedraApp.state.redTempoMs);
     await page.clock.runFor(30000);
-    ok((await page.textContent('[data-red="crono"]')).trim() === '10:00', R + '"Terminei" congela o tempo');
+    ok(tempoTerminado >= 600000 && (await page.textContent('[data-red="crono"]')).trim() === terminado, R + '"Terminei" congela o tempo (' + terminado + ')');
     ok(await page.locator('[data-red="conf-item"]').count() === 3, R + 'conferência abre um item por quesito');
     const ops = await page.locator('[data-red="conf-item"] >> nth=0').locator('[data-red="conf-opcao"]').allTextContents();
     ok(ops.map(s => s.trim()).join('|') === '0,00|0,10|0,20|0,30', R + 'quesito com escala só oferece os degraus da banca');
@@ -272,7 +276,7 @@ async function conferencia(pageDaSuite, base, ok, R) {
     ok(!/Critérios/.test(corpo) && !/Pontos fortes/.test(corpo) && !/A melhorar/.test(corpo), R + 'blocos que dependem de IA não aparecem');
     await page.clock.runFor(1500);
     const h = await page.evaluate(() => JSON.parse(localStorage.getItem('catedra:red') || '[]')[0]);
-    ok(!!h && h.origem === 'conferencia-propria' && h.nota === 8 && Math.abs(h.tempoMs - 600000) < 2000 && h.linhas === 28 && h.texto === '', R + 'histórico guarda nota, tempo e linhas da conferência');
+    ok(!!h && h.origem === 'conferencia-propria' && h.nota === 8 && h.tempoMs === tempoTerminado && h.linhas === 28 && h.texto === '', R + 'histórico guarda nota, tempo e linhas da conferência');
     const ev = await lerStore(page, 'redHist');
     ok(Array.isArray(ev) && ev.length === 1 && ev[0].quesitos.length === 3 && ev[0].quesitos[1].nota === 0.1, R + 'a evolução recebe a nota por quesito');
     ok((await lerStore(page, 'redTempoMs')) === 0, R + 'depois de registrar, o cronômetro zera');
