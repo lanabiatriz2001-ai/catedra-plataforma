@@ -31,8 +31,66 @@ export async function testarRevisaoFonte(pageDaSuite, base, ok, opcoes = {}) {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await ctx.newPage();
   page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
-  try { await roteiro(page, base, ok, R); }
+  try { await roteiro(page, base, ok, R); await testarContrasteDaSessao(page, base, ok, R); }
   finally { await ctx.close(); }
+}
+
+// Medir a tinta composta sobre o fundo real: transparência de texto e dos cartões
+// acumula. O subtítulo das notas fica na metade inferior, já fora do gradiente.
+async function testarContrasteDaSessao(page, base, ok, R) {
+  await page.goto(base + '/__semente');
+  await page.evaluate(() => {
+    localStorage.clear();
+    localStorage.setItem('catedra:auth', '1');
+    localStorage.setItem('catedra:onboarded', '1');
+    localStorage.setItem('catedra:areaEstudo', 'juridica');
+    localStorage.setItem('catedra:reviews', JSON.stringify([
+      { id: 'contraste-revisao', disc: 'Direito Civil', topic: 'Prescrição', due: 0, up: 1 }
+    ]));
+  });
+  await page.goto(base + '/Catedra.dc.html');
+  await page.waitForFunction(() => !!window.__catedraApp);
+  await page.evaluate(() => window.__catedraApp.startRevSession());
+  const dialogo = page.getByRole('dialog', { name: 'Sessão de revisão', exact: true });
+  await dialogo.getByRole('button', { name: 'Já recordei — avaliar' }).click();
+  for (const largura of [820, 1180]) {
+    await page.setViewportSize({ width: largura, height: largura === 820 ? 1180 : 820 });
+    for (const dir of ['sutil', 'premium', 'clean', 'moderno', 'aurora', 'solar', 'terminal', 'holo']) {
+      for (const darkMode of [false, true]) {
+        await page.evaluate(({ dir, darkMode }) => new Promise(resolve => {
+          const app = window.__catedraApp;
+          app.setState({ dir, darkMode, prefs: { ...app.state.prefs, fontScale: 'grande' } }, resolve);
+        }), { dir, darkMode });
+        const textos = await dialogo.evaluate(d => {
+          const cor = s => {
+            const n = (String(s).match(/[\d.]+/g) || []).map(Number);
+            if (s.startsWith('color(srgb')) return [n[0] * 255, n[1] * 255, n[2] * 255, n[3] ?? 1];
+            return [n[0], n[1], n[2], n[3] ?? 1];
+          };
+          const sobre = (a, b) => a.slice(0, 3).map((v, i) => v * a[3] + b[i] * (1 - a[3])).concat(1);
+          const fundo = e => {
+            const pais = []; for (let p = e; p; p = p.parentElement) pais.push(p);
+            return pais.reverse().reduce((b, p) => sobre(cor(getComputedStyle(p).backgroundColor), b), [255, 255, 255, 1]);
+          };
+          const lum = c => c.slice(0, 3).map(v => v / 255).map(v => v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4))
+            .reduce((s, v, i) => s + v * [0.2126, 0.7152, 0.0722][i], 0);
+          const pular = [...d.querySelectorAll('button')].find(b => b.textContent.trim() === 'Pular este');
+          const intervalos = [...d.querySelectorAll('button[data-q]')].map(b => b.lastElementChild);
+          return [pular, ...intervalos].map(e => {
+            if (!e) return { texto: 'ausente', contraste: 0, visivel: false };
+            const caixa = e.getBoundingClientRect(), b = fundo(e), f = sobre(cor(getComputedStyle(e).color), b);
+            const notas = e.closest('button[data-q]'), c = notas && notas.getBoundingClientRect();
+            return { texto: e.textContent, contraste: (Math.max(lum(b), lum(f)) + 0.05) / (Math.min(lum(b), lum(f)) + 0.05),
+              visivel: caixa.width > 0 && caixa.height > 0,
+              foraDoGradiente: !c || caixa.top >= c.top + c.height * 0.46 };
+          });
+        });
+        ok(textos.length === 5 && textos.every(t => t.visivel && t.foraDoGradiente && Number.isFinite(t.contraste) && t.contraste >= 4.5),
+          R + 'Pular e intervalos legíveis em ' + largura + ' px, ' + dir + '/' + (darkMode ? 'escuro' : 'claro')
+          + ' (' + textos.map(t => t.contraste.toFixed(2)).join(', ') + ':1)');
+      }
+    }
+  }
 }
 
 async function roteiro(page, base, ok, R) {
