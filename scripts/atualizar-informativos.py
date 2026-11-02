@@ -350,11 +350,12 @@ def main():
     # sanidade
     _, idx2 = load_index()
     print(f"índice: {len(idx)} -> {len(idx2)} verbetes")
-    # O acervo novo só chega à pessoa depois dos dois gerados que dependem dele: o recorte
+    # O acervo novo só chega à pessoa depois dos gerados que dependem dele: o recorte
     # "O que mudou esta semana" (semana-juris.js) e as fatias de texto que o app de fato lê
     # (dados/juris-text/). Sem isso o card do Início ficou parado em 23/06 com o STJ 900 já
-    # no acervo, e "Abrir no JURIS" dos julgados novos abria sem texto.
-    for gerador in ("build-semana-juris.mjs", "build-fatias.mjs"):
+    # no acervo, e "Abrir no JURIS" dos julgados novos abria sem texto. O widget também
+    # depende das citações do acervo: sem regerá-lo, a atualização falha na suíte (#245).
+    for gerador in ("build-semana-juris.mjs", "build-fatias.mjs", "build-widget-dodia.mjs"):
         subprocess.run(["node", os.path.join(ROOT, "scripts", gerador)], check=True)
 
 
