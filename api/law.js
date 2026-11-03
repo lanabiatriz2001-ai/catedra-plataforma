@@ -65,6 +65,7 @@ function toParagraphs(html) {
 }
 
 export default async function handler(req, res) {
+  let timer, r;
   try {
     const raw = (req.query && (req.query.u || req.query.url)) || '';
     if (!raw) { res.status(400).json({ ok: false, error: 'Falta o parâmetro ?u=<url do planalto>.' }); return; }
@@ -79,30 +80,29 @@ export default async function handler(req, res) {
     // salto — senão redirect:'follow' sairia da whitelist (SSRF via open-redirect).
     // Timeout de 12s evita pendurar a função.
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 12000);
+    timer = setTimeout(() => ctrl.abort(), 12000);
     const HEADERS = {
       'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
       'Accept': 'text/html,application/xhtml+xml',
       'Accept-Language': 'pt-BR,pt;q=0.9'
     };
-    let target = url.href, r;
-    try {
-      for (let hop = 0; hop < 5; hop++) {
-        r = await fetch(target, { headers: HEADERS, redirect: 'manual', signal: ctrl.signal });
-        if (r.status >= 300 && r.status < 400) {
-          const loc = r.headers.get('location');
-          if (!loc) break;
-          let next;
-          try { next = new URL(loc, target); } catch (_) { res.status(502).json({ ok: false, error: 'Redirecionamento inválido.' }); return; }
-          if (next.protocol !== 'https:' || !ALLOW.test(next.hostname)) {
-            res.status(403).json({ ok: false, error: 'Redirecionamento para fora do planalto.gov.br bloqueado.' });
-            return;
-          }
-          target = next.href; continue;
+    let target = url.href;
+    for (let hop = 0; hop < 5; hop++) {
+      r = await fetch(target, { headers: HEADERS, redirect: 'manual', signal: ctrl.signal });
+      if (r.status >= 300 && r.status < 400) {
+        const loc = r.headers.get('location');
+        if (!loc) break;
+        let next;
+        try { next = new URL(loc, target); } catch (_) { res.status(502).json({ ok: false, error: 'Redirecionamento inválido.' }); return; }
+        if (next.protocol !== 'https:' || !ALLOW.test(next.hostname)) {
+          res.status(403).json({ ok: false, error: 'Redirecionamento para fora do planalto.gov.br bloqueado.' });
+          return;
         }
-        break;
+        if (r.body) { try { await r.body.cancel(); } catch (_) {} }
+        target = next.href; continue;
       }
-    } finally { clearTimeout(timer); }
+      break;
+    }
     if (!r) { res.status(502).json({ ok: false, error: 'Sem resposta do Planalto.' }); return; }
     if (r.status >= 300 && r.status < 400) { res.status(502).json({ ok: false, error: 'Redirecionamentos demais.' }); return; }
     if (!r.ok) { res.status(502).json({ ok: false, error: 'Planalto respondeu ' + r.status + '.' }); return; }
@@ -111,8 +111,23 @@ export default async function handler(req, res) {
     const clen = parseInt(r.headers.get('content-length') || '0', 10);
     if (clen && clen > 8 * 1024 * 1024) { res.status(502).json({ ok: false, error: 'Página grande demais.' }); return; }
 
-    const buf = new Uint8Array(await r.arrayBuffer());
-    if (buf.byteLength > 12 * 1024 * 1024) { res.status(502).json({ ok: false, error: 'Página grande demais.' }); return; }
+    // O Content-Length pode faltar. Ler em partes permite interromper o download
+    // no teto, em vez de alocar o corpo inteiro para só então recusá-lo.
+    if (!r.body) { res.status(502).json({ ok: false, error: 'Sem conteúdo do Planalto.' }); return; }
+    const leitor = r.body.getReader(), partes = [];
+    let tamanho = 0;
+    try {
+      while (true) {
+        const parte = await leitor.read();
+        if (parte.done) break;
+        tamanho += parte.value.byteLength;
+        if (tamanho > 12 * 1024 * 1024) { res.status(502).json({ ok: false, error: 'Página grande demais.' }); return; }
+        partes.push(parte.value);
+      }
+    } finally { leitor.releaseLock(); }
+    const buf = new Uint8Array(tamanho);
+    let pos = 0;
+    for (const parte of partes) { buf.set(parte, pos); pos += parte.byteLength; }
     // charset: BOM UTF-16 > meta/header utf-8/utf-16 > windows-1252 (padrão do Planalto).
     // Algumas leis (ex.: Lei Maria da Penha) vêm em UTF-16 com BOM FF FE.
     let enc = 'windows-1252';
@@ -133,6 +148,15 @@ export default async function handler(req, res) {
     res.setHeader('Cache-Control', 's-maxage=604800, stale-while-revalidate=86400');
     res.status(200).json({ ok: true, title: extractTitle(html), url: target, paragraphs });
   } catch (e) {
+    if (e && (e.name === 'AbortError' || e.name === 'TimeoutError')) {
+      res.status(504).json({ ok: false, error: 'O Planalto demorou para enviar a lei. Tente novamente.' });
+      return;
+    }
     res.status(500).json({ ok: false, error: 'Falha ao buscar a lei: ' + (e && e.message ? e.message : String(e)) });
+  } finally {
+    // Inclui respostas recusadas por tamanho, HTTP ou redirecionamento. O prazo
+    // continua ativo durante a leitura e o cancelamento, não só nos cabeçalhos.
+    if (r && r.body && !r.body.locked) { try { await r.body.cancel(); } catch (_) {} }
+    if (timer) clearTimeout(timer);
   }
 }
