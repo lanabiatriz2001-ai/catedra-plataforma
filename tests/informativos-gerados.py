@@ -50,8 +50,14 @@ class InformativosGerados(unittest.TestCase):
 
     def importar(self, gerar):
         # Só a edição STF 2 responde; não há conexão com nenhuma fonte externa.
-        with patch.object(self.modulo, "get", side_effect=lambda url: (200, b"fixture") if "informativo2.htm" in url else (404, b"")), \
+        def obter(url):
+            if "informativo2.htm" in url or "0002" in url or "0028E" in url:
+                return 200, b"html-sintetico"
+            return 404, b""
+
+        with patch.object(self.modulo, "get", side_effect=obter), \
              patch.object(self.modulo, "parse_stf", return_value=[self.novo]), \
+             patch.object(self.modulo, "parse_stj", return_value=[]), \
              patch.object(self.modulo.subprocess, "run", side_effect=gerar):
             self.modulo.main()
 
@@ -84,6 +90,48 @@ class InformativosGerados(unittest.TestCase):
             self.importar(gerar)
             gerar.assert_not_called()
         self.assertEqual(self.widget(), self.antes)
+
+    def test_falha_de_rede_nao_vira_zero_novidades_e_preserva_acervo(self):
+        antes_idx = (self.raiz / "juris-index.js").read_bytes()
+        antes_txt = (self.raiz / "juris-text.js").read_bytes()
+        self.modulo.DRY = False
+        with patch.object(self.modulo, "get", side_effect=self.modulo.FetchError("rede bloqueada")), \
+             patch.object(self.modulo.time, "sleep"), \
+             patch.object(self.modulo.subprocess, "run") as gerar:
+            with self.assertRaises(SystemExit) as erro:
+                self.modulo.main()
+        self.assertEqual(erro.exception.code, 2)
+        self.assertEqual((self.raiz / "juris-index.js").read_bytes(), antes_idx)
+        self.assertEqual((self.raiz / "juris-text.js").read_bytes(), antes_txt)
+        gerar.assert_not_called()
+
+    def test_404_e_ausencia_legitima_e_resposta_200_ambigua_falha(self):
+        series = [("STF", 10, 3, lambda n: (str(n), n), lambda codigo, raw: None)]
+        with self.assertRaises(self.modulo.ParseError):
+            self.modulo.buscar_edicoes(series, fetch=lambda url: (200, b"proxy bloqueou"))
+        encontrados = self.modulo.buscar_edicoes(
+            series, fetch=lambda url: (404, b"")
+        )
+        self.assertEqual(encontrados, [])
+
+    def test_http_nao_404_nao_e_contado_como_edicao_ausente(self):
+        series = [("STJ", 908, 2, lambda n: (str(n), n), lambda codigo, raw: [])]
+        with self.assertRaises(self.modulo.FetchError):
+            self.modulo.buscar_edicoes(series, fetch=lambda url: (403, b"blocked"))
+
+    def test_get_expoe_bloqueio_de_rede_e_http_e_preserva_404(self):
+        with patch.object(self.modulo.urllib.request, "urlopen", side_effect=self.modulo.urllib.error.URLError("403 tunnel")), \
+             patch.object(self.modulo.time, "sleep"):
+            with self.assertRaises(self.modulo.FetchError):
+                self.modulo.get("https://fonte.test/edicao")
+        for status in (403, 429, 500):
+            erro = self.modulo.urllib.error.HTTPError("https://fonte.test", status, "erro", {}, None)
+            with patch.object(self.modulo.urllib.request, "urlopen", side_effect=erro):
+                with self.assertRaises(self.modulo.FetchError):
+                    self.modulo.get("https://fonte.test/edicao")
+        erro = self.modulo.urllib.error.HTTPError("https://fonte.test", 404, "not found", {}, None)
+        with patch.object(self.modulo.urllib.request, "urlopen", side_effect=erro):
+            self.assertEqual(self.modulo.get("https://fonte.test/edicao"), (404, b""))
 
 
 if __name__ == "__main__":
