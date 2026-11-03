@@ -4051,6 +4051,14 @@ catch (e) { ok(false, 'PROVA ENCERRAR UMA VEZ [chromium] o roteiro correu sem ex
   for (const [k, v] of Object.entries(r)) ok(v, 'IA/P18 cota ' + k);
 }
 
+/* O proxy de lei roda no servidor: as leituras lentas/grandes e redirects ficam
+   isolados em outro processo, sem alterar fetch ou relógio do navegador da suíte. */
+{
+  const lei = spawnSync(process.execPath, ['--test', path.join(RAIZ, 'tests', 'law-seguranca.test.mjs')], { encoding: 'utf8', timeout: 15000 });
+  if (lei.status !== 0) console.error((lei.stdout || '') + (lei.stderr || '') + (lei.error || ''));
+  ok(lei.status === 0, 'LEI proxy limita prazo e leitura, preservando texto e bloqueio de redirecionamento externo (sem rede)');
+}
+
 /* ============= SENTINELA DAS FONTES OFICIAIS =============
    Planalto, STF e STJ: o que vira novidade, o que é só aparência, e a regra de que
    falha nunca se disfarça de "sem novidade". Roteiro em tests/sentinela.mjs (sem rede). */
