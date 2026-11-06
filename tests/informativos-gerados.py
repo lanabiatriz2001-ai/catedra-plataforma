@@ -51,7 +51,7 @@ class InformativosGerados(unittest.TestCase):
     def importar(self, gerar):
         # Só a edição STF 2 responde; não há conexão com nenhuma fonte externa.
         def obter(url):
-            if "informativo2.htm" in url or "0002" in url or "0028E" in url:
+            if "informativo2.htm" in url:
                 return 200, b"html-sintetico"
             return 404, b""
 
@@ -132,6 +132,62 @@ class InformativosGerados(unittest.TestCase):
         erro = self.modulo.urllib.error.HTTPError("https://fonte.test", 404, "not found", {}, None)
         with patch.object(self.modulo.urllib.request, "urlopen", side_effect=erro):
             self.assertEqual(self.modulo.get("https://fonte.test/edicao"), (404, b""))
+
+    def test_parser_real_sem_resultado_e_erro(self):
+        for parser, code, raw in (
+            (self.modulo.parse_stf, 2, b"<html>" + b"x" * 5000 + b"</html>"),
+            (self.modulo.parse_stj, "0002", b"clsIdentificaProcesso pagina incompleta"),
+        ):
+            serie = [("fonte", 2, 2, lambda n: (str(n), code), parser)]
+            with self.assertRaises(self.modulo.ParseError):
+                self.modulo.buscar_edicoes(serie, fetch=lambda url: (200, raw))
+
+    def test_falha_serie_posterior_descarta_resultados_e_nao_mostra_zero(self):
+        import io
+        from contextlib import redirect_stdout
+        antes = [(self.raiz / nome).read_bytes() for nome in ("juris-index.js", "juris-text.js")]
+        def obter(url):
+            if "informativo2.htm" in url:
+                return 200, b"fixture"
+            if "stf.jus" in url:
+                return 404, b""
+            raise self.modulo.FetchError("STJ indisponível")
+        saida = io.StringIO()
+        with patch.object(self.modulo, "get", side_effect=obter), \
+             patch.object(self.modulo, "parse_stf", return_value=[self.novo]), \
+             patch.object(self.modulo.subprocess, "run") as gerar, redirect_stdout(saida):
+            with self.assertRaises(SystemExit) as erro:
+                self.modulo.main()
+        self.assertEqual(erro.exception.code, 2)
+        self.assertNotIn("NOVOS:", saida.getvalue())
+        self.assertEqual(antes, [(self.raiz / nome).read_bytes() for nome in ("juris-index.js", "juris-text.js")])
+        gerar.assert_not_called()
+
+    def test_falha_segunda_substituicao_restaura_acervo(self):
+        antes = [(self.raiz / nome).read_bytes() for nome in ("juris-index.js", "juris-text.js")]
+        replace = self.modulo.os.replace
+        def falhar_segunda(origem, destino):
+            if destino == self.modulo.TXT:
+                raise OSError("erro simulado de gravação")
+            return replace(origem, destino)
+        with patch.object(self.modulo.os, "replace", side_effect=falhar_segunda):
+            with self.assertRaises(OSError):
+                self.importar(lambda *args, **kwargs: None)
+        self.assertEqual(antes, [(self.raiz / nome).read_bytes() for nome in ("juris-index.js", "juris-text.js")])
+
+    def test_falha_gerador_restaura_acervo_e_produtos(self):
+        antes = [(self.raiz / nome).read_bytes() for nome in ("juris-index.js", "juris-text.js", "widget/dodia.json")]
+        (self.raiz / "dados").mkdir()
+        (self.raiz / "dados/original").write_text("original")
+        def gerar(args, **opcoes):
+            (self.raiz / "dados/original").write_text("modificado")
+            (self.raiz / "semana-juris.js").write_text("novo")
+            raise subprocess.CalledProcessError(1, args)
+        with self.assertRaises(subprocess.CalledProcessError):
+            self.importar(gerar)
+        self.assertEqual(antes, [(self.raiz / nome).read_bytes() for nome in ("juris-index.js", "juris-text.js", "widget/dodia.json")])
+        self.assertEqual((self.raiz / "dados/original").read_text(), "original")
+        self.assertFalse((self.raiz / "semana-juris.js").exists())
 
 
 if __name__ == "__main__":

@@ -20,6 +20,8 @@ import json
 import os
 import re
 import subprocess
+import shutil
+import tempfile
 import sys
 import time
 import urllib.request
@@ -284,8 +286,10 @@ def ultimos(idx):
     return stf, stj, eem
 
 
-def buscar_edicoes(series, fetch=get):
+def buscar_edicoes(series, fetch=None):
     """Busca edições em séries independentes e falha alto em resposta ambígua."""
+    if fetch is None:
+        fetch = get
     novos = []
     for nome, numero_inicial, limite, url_fn, parser in series:
         misses, n = 0, numero_inicial
@@ -302,15 +306,11 @@ def buscar_edicoes(series, fetch=get):
                     recs = parser(parser_codigo, raw)
                 except Exception as e:
                     raise ParseError(f"{nome} {n}: falha ao interpretar resposta 200: {e}") from e
-                if recs is None:
-                    raise ParseError(f"{nome} {n}: resposta 200 não reconhecida pelo parser")
-                if recs:
-                    misses = 0
-                    novos.extend(recs)
-                    print(f"{nome} {n}: {len(recs)} julgados")
-                else:
-                    misses += 1
-                    print(f"{nome} {n}: edição sem julgados reconhecíveis (200)")
+                if not recs:
+                    raise ParseError(f"{nome} {n}: resposta 200 sem julgados reconhecidos; ausência não comprovada")
+                misses = 0
+                novos.extend(recs)
+                print(f"{nome} {n}: {len(recs)} julgados")
             n += 1
     return novos
 
@@ -361,19 +361,46 @@ def main():
     s_t2 = e2[:-1] + "," + json.dumps(txt, ensure_ascii=False, separators=(",", ":"))[1:-1] + "}" + s_t[len(e2):]
     json.loads(s_new[s_new.index("=") + 1:].rstrip().rstrip(";"))
     json.loads(s_t2[s_t2.index("=") + 1:].rstrip().rstrip(";"))
-    tmp_idx, tmp_txt = IDX + ".tmp", TXT + ".tmp"
-    try:
-        with open(tmp_idx, "w", encoding="utf-8") as f: f.write(s_new)
-        with open(tmp_txt, "w", encoding="utf-8") as f: f.write(s_t2)
-        os.replace(tmp_idx, IDX)
-        os.replace(tmp_txt, TXT)
-    finally:
-        for tmp in (tmp_idx, tmp_txt):
-            if os.path.exists(tmp): os.unlink(tmp)
-    _, idx2 = load_index()
+    # Recupera tanto o acervo quanto os produtos dos geradores em caso de erro.
+    # Esta proteção cobre exceções durante a execução; interrupções abruptas não são atômicas.
+    alvos = [IDX, TXT, os.path.join(ROOT, "semana-juris.js"),
+             os.path.join(ROOT, "dados"), os.path.join(ROOT, "widget", "dodia.json")]
+    with tempfile.TemporaryDirectory(prefix="informativos-backup-") as backup:
+        existentes = {}
+        for i, alvo in enumerate(alvos):
+            copia = os.path.join(backup, str(i))
+            existentes[alvo] = os.path.exists(alvo)
+            if os.path.isdir(alvo):
+                shutil.copytree(alvo, copia)
+            elif existentes[alvo]:
+                shutil.copy2(alvo, copia)
+        tmp_idx, tmp_txt = IDX + ".tmp", TXT + ".tmp"
+        try:
+            with open(tmp_idx, "w", encoding="utf-8") as f: f.write(s_new)
+            with open(tmp_txt, "w", encoding="utf-8") as f: f.write(s_t2)
+            os.replace(tmp_idx, IDX)
+            os.replace(tmp_txt, TXT)
+            _, idx2 = load_index()
+            for gerador in ("build-semana-juris.mjs", "build-fatias.mjs", "build-widget-dodia.mjs"):
+                subprocess.run(["node", os.path.join(ROOT, "scripts", gerador)], check=True)
+        except Exception:
+            for i, alvo in enumerate(alvos):
+                copia = os.path.join(backup, str(i))
+                if os.path.isdir(alvo):
+                    shutil.rmtree(alvo)
+                elif os.path.exists(alvo):
+                    os.unlink(alvo)
+                if existentes[alvo]:
+                    if os.path.isdir(copia):
+                        shutil.copytree(copia, alvo)
+                    else:
+                        os.makedirs(os.path.dirname(alvo), exist_ok=True)
+                        shutil.copy2(copia, alvo)
+            raise
+        finally:
+            for tmp in (tmp_idx, tmp_txt):
+                if os.path.exists(tmp): os.unlink(tmp)
     print(f"índice: {len(idx)} -> {len(idx2)} verbetes")
-    for gerador in ("build-semana-juris.mjs", "build-fatias.mjs", "build-widget-dodia.mjs"):
-        subprocess.run(["node", os.path.join(ROOT, "scripts", gerador)], check=True)
 
 
 if __name__ == "__main__":
