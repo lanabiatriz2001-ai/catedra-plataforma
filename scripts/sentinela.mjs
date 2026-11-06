@@ -981,7 +981,11 @@ async function buscar(url, { timeoutMs = 40000, prazo = 0, codificacao = 'latin1
   };
 }
 
-// Uma edição existe quando a página responde 200 E o <title> traz o NÚMERO PEDIDO. Medido
+// O formato de outubro identifica a edição no <title>. Em 06/11/2026 o STJ passou
+// a usar título genérico também nas edições reais: o número está em
+// span.clsInformativoTitulo. Menu, busca e remissões NÃO identificam a edição.
+// Uma resposta vazia só é conclusiva com a mensagem explícita de nenhum documento.
+// Formato anterior medido
 // nas páginas oficiais em 01/10/2026 (os títulos e status estão em
 // tests/fixtures/informativos/manifesto.json):
 //
@@ -1020,8 +1024,20 @@ export function edicaoNaPagina(fonte, r, n, extra = false) {
   }
   if (status !== 200) return { estado: 'falha', motivo: `HTTP ${status}` };
   if (!titulo || !new RegExp(RE_TIT_STJ, 'i').test(titulo)) return { estado: 'falha', motivo: 'a página não traz o título do Informativo do STJ' };
-  const re = new RegExp(`${extra ? RE_TIT_EXTRA : RE_TIT_STJ}\\s+n(?:\\.|º|°)?\\s*${reNumero(n)}`, 'i');
-  return re.test(titulo) ? { estado: 'existe', titulo } : { estado: 'nao-existe' };
+  const texto = String(r.texto || '');
+  const cabecalhos = [...texto.matchAll(/<span\b[^>]*class=["'][^"']*\bclsInformativoTitulo\b[^"']*["'][^>]*>([\s\S]*?)<\/span>/gi)]
+    .map((m) => m[1].replace(/<[^>]*>/g, ' ').replace(/&nbsp;|&#160;/g, ' ').replace(/&ordm;|&#186;/g, 'º').replace(/\s+/g, ' ').trim());
+  const re = new RegExp(`^${extra ? RE_TIT_EXTRA : 'Informativo'}\\s+n(?:\\.|º|°|Âº|Â°)?\\s*${reNumero(n)}`, 'i');
+  if (cabecalhos.length) {
+    if (cabecalhos.every((c) => re.test(c)) && /\bclsIdentificaProcesso\b/.test(texto)) return { estado: 'existe', titulo: cabecalhos[0] };
+    return { estado: 'falha', motivo: 'o cabeçalho não confirma a edição e a série pedidas, ou faltam os julgados' };
+  }
+  const antigo = new RegExp(`${extra ? RE_TIT_EXTRA : RE_TIT_STJ}\\s+n(?:\\.|º|°)?\\s*${reNumero(n)}`, 'i');
+  if (antigo.test(titulo)) return { estado: 'existe', titulo };
+  // Outra edição no título, ou corpo truncado, não prova ausência da edição pedida.
+  const vazio = /<div\b[^>]*class=["'][^"']*\bclsCaixaMensagem\b[^"']*["'][^>]*>\s*Nenhum documento encontrado!\s*<\/div>/i.test(texto);
+  if (vazio && !/\bclsIdentificaProcesso\b/.test(texto) && !/\bn(?:\.|º|°)?\s*\d+/i.test(titulo)) return { estado: 'nao-existe' };
+  return { estado: 'falha', motivo: 'resposta sem identificação da edição nem confirmação explícita de busca vazia' };
 }
 
 const urlEdicao = (fonte, n, extra) => (fonte === 'stf'
@@ -1743,5 +1759,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   }
   // Falha de fonte não derruba o processo: o relatório já diz o que falhou, e derrubar
   // faria a rotina diária não gravar o que as outras fontes conseguiram ler.
-  process.exit(0);
+  // Deixe stdout terminar: process.exit truncava o JSON quando os registros do PR
+  // excediam o buffer do pipe, tornando o resultado de falha ilegível para quem o chamou.
+  process.exitCode = 0;
 }
