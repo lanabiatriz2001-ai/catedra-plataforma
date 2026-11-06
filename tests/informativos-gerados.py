@@ -50,8 +50,14 @@ class InformativosGerados(unittest.TestCase):
 
     def importar(self, gerar):
         # Só a edição STF 2 responde; não há conexão com nenhuma fonte externa.
-        with patch.object(self.modulo, "get", side_effect=lambda url: (200, b"fixture") if "informativo2.htm" in url else (404, b"")), \
+        def obter(url):
+            if "informativo2.htm" in url:
+                return 200, b"html-sintetico"
+            return 404, b""
+
+        with patch.object(self.modulo, "get", side_effect=obter), \
              patch.object(self.modulo, "parse_stf", return_value=[self.novo]), \
+             patch.object(self.modulo, "parse_stj", return_value=[]), \
              patch.object(self.modulo.subprocess, "run", side_effect=gerar):
             self.modulo.main()
 
@@ -84,6 +90,104 @@ class InformativosGerados(unittest.TestCase):
             self.importar(gerar)
             gerar.assert_not_called()
         self.assertEqual(self.widget(), self.antes)
+
+    def test_falha_de_rede_nao_vira_zero_novidades_e_preserva_acervo(self):
+        antes_idx = (self.raiz / "juris-index.js").read_bytes()
+        antes_txt = (self.raiz / "juris-text.js").read_bytes()
+        self.modulo.DRY = False
+        with patch.object(self.modulo, "get", side_effect=self.modulo.FetchError("rede bloqueada")), \
+             patch.object(self.modulo.time, "sleep"), \
+             patch.object(self.modulo.subprocess, "run") as gerar:
+            with self.assertRaises(SystemExit) as erro:
+                self.modulo.main()
+        self.assertEqual(erro.exception.code, 2)
+        self.assertEqual((self.raiz / "juris-index.js").read_bytes(), antes_idx)
+        self.assertEqual((self.raiz / "juris-text.js").read_bytes(), antes_txt)
+        gerar.assert_not_called()
+
+    def test_404_e_ausencia_legitima_e_resposta_200_ambigua_falha(self):
+        series = [("STF", 10, 3, lambda n: (str(n), n), lambda codigo, raw: None)]
+        with self.assertRaises(self.modulo.ParseError):
+            self.modulo.buscar_edicoes(series, fetch=lambda url: (200, b"proxy bloqueou"))
+        encontrados = self.modulo.buscar_edicoes(
+            series, fetch=lambda url: (404, b"")
+        )
+        self.assertEqual(encontrados, [])
+
+    def test_http_nao_404_nao_e_contado_como_edicao_ausente(self):
+        series = [("STJ", 908, 2, lambda n: (str(n), n), lambda codigo, raw: [])]
+        with self.assertRaises(self.modulo.FetchError):
+            self.modulo.buscar_edicoes(series, fetch=lambda url: (403, b"blocked"))
+
+    def test_get_expoe_bloqueio_de_rede_e_http_e_preserva_404(self):
+        with patch.object(self.modulo.urllib.request, "urlopen", side_effect=self.modulo.urllib.error.URLError("403 tunnel")), \
+             patch.object(self.modulo.time, "sleep"):
+            with self.assertRaises(self.modulo.FetchError):
+                self.modulo.get("https://fonte.test/edicao")
+        for status in (403, 429, 500):
+            erro = self.modulo.urllib.error.HTTPError("https://fonte.test", status, "erro", {}, None)
+            with patch.object(self.modulo.urllib.request, "urlopen", side_effect=erro):
+                with self.assertRaises(self.modulo.FetchError):
+                    self.modulo.get("https://fonte.test/edicao")
+        erro = self.modulo.urllib.error.HTTPError("https://fonte.test", 404, "not found", {}, None)
+        with patch.object(self.modulo.urllib.request, "urlopen", side_effect=erro):
+            self.assertEqual(self.modulo.get("https://fonte.test/edicao"), (404, b""))
+
+    def test_parser_real_sem_resultado_e_erro(self):
+        for parser, code, raw in (
+            (self.modulo.parse_stf, 2, b"<html>" + b"x" * 5000 + b"</html>"),
+            (self.modulo.parse_stj, "0002", b"clsIdentificaProcesso pagina incompleta"),
+        ):
+            serie = [("fonte", 2, 2, lambda n: (str(n), code), parser)]
+            with self.assertRaises(self.modulo.ParseError):
+                self.modulo.buscar_edicoes(serie, fetch=lambda url: (200, raw))
+
+    def test_falha_serie_posterior_descarta_resultados_e_nao_mostra_zero(self):
+        import io
+        from contextlib import redirect_stdout
+        antes = [(self.raiz / nome).read_bytes() for nome in ("juris-index.js", "juris-text.js")]
+        def obter(url):
+            if "informativo2.htm" in url:
+                return 200, b"fixture"
+            if "stf.jus" in url:
+                return 404, b""
+            raise self.modulo.FetchError("STJ indisponível")
+        saida = io.StringIO()
+        with patch.object(self.modulo, "get", side_effect=obter), \
+             patch.object(self.modulo, "parse_stf", return_value=[self.novo]), \
+             patch.object(self.modulo.subprocess, "run") as gerar, redirect_stdout(saida):
+            with self.assertRaises(SystemExit) as erro:
+                self.modulo.main()
+        self.assertEqual(erro.exception.code, 2)
+        self.assertNotIn("NOVOS:", saida.getvalue())
+        self.assertEqual(antes, [(self.raiz / nome).read_bytes() for nome in ("juris-index.js", "juris-text.js")])
+        gerar.assert_not_called()
+
+    def test_falha_segunda_substituicao_restaura_acervo(self):
+        antes = [(self.raiz / nome).read_bytes() for nome in ("juris-index.js", "juris-text.js")]
+        replace = self.modulo.os.replace
+        def falhar_segunda(origem, destino):
+            if destino == self.modulo.TXT:
+                raise OSError("erro simulado de gravação")
+            return replace(origem, destino)
+        with patch.object(self.modulo.os, "replace", side_effect=falhar_segunda):
+            with self.assertRaises(OSError):
+                self.importar(lambda *args, **kwargs: None)
+        self.assertEqual(antes, [(self.raiz / nome).read_bytes() for nome in ("juris-index.js", "juris-text.js")])
+
+    def test_falha_gerador_restaura_acervo_e_produtos(self):
+        antes = [(self.raiz / nome).read_bytes() for nome in ("juris-index.js", "juris-text.js", "widget/dodia.json")]
+        (self.raiz / "dados").mkdir()
+        (self.raiz / "dados/original").write_text("original")
+        def gerar(args, **opcoes):
+            (self.raiz / "dados/original").write_text("modificado")
+            (self.raiz / "semana-juris.js").write_text("novo")
+            raise subprocess.CalledProcessError(1, args)
+        with self.assertRaises(subprocess.CalledProcessError):
+            self.importar(gerar)
+        self.assertEqual(antes, [(self.raiz / nome).read_bytes() for nome in ("juris-index.js", "juris-text.js", "widget/dodia.json")])
+        self.assertEqual((self.raiz / "dados/original").read_text(), "original")
+        self.assertFalse((self.raiz / "semana-juris.js").exists())
 
 
 if __name__ == "__main__":
