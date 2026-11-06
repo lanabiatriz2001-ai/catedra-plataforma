@@ -9,7 +9,7 @@ Fontes (públicas):
        (edições extraordinárias: código {NNNN}E)
 
 Descobre o último número já presente em juris-index.js, baixa as edições
-seguintes até esgotar (2 falhas seguidas), parseia e ANEXA em juris-index.js e
+seguintes até duas ausências confirmadas, parseia e ANEXA em juris-index.js e
 juris-text.js (dedupe por id). Não faz commit — quem grava é a Lana (ou o PR).
 
 Uso:  python3 scripts/atualizar-informativos.py [--dry-run] [--max-edicoes N] [--corpus]
@@ -20,10 +20,14 @@ import json
 import os
 import re
 import subprocess
+import shutil
+import tempfile
+from contextlib import contextmanager
 import sys
 import time
 import urllib.request
 import urllib.error
+from pathlib import Path
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 IDX = os.path.join(ROOT, "juris-index.js")
@@ -35,6 +39,7 @@ MAXED = 40
 TIMEOUT = 40
 RETRY_MAX = 3
 RETRY_BACKOFF = 2.0
+INTERVALO = 3
 if "--max-edicoes" in sys.argv:
     MAXED = int(sys.argv[sys.argv.index("--max-edicoes") + 1])
 
@@ -46,6 +51,9 @@ def get(url, retry=0):
         with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
             return r.status, r.read()
     except urllib.error.HTTPError as e:
+        if e.code >= 500 and retry < RETRY_MAX:
+            time.sleep(RETRY_BACKOFF ** retry)
+            return get(url, retry + 1)
         return e.code, b""
     except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
         if retry < RETRY_MAX:
@@ -55,10 +63,10 @@ def get(url, retry=0):
             return get(url, retry + 1)
         else:
             print(f"  ✗ erro de rede após {RETRY_MAX} tentativas: {type(e).__name__}", file=sys.stderr)
-            return 0, b""
+            raise RuntimeError(f"falha de rede em {url}: {e}") from e
     except Exception as e:
         print(f"  ✗ erro inesperado: {type(e).__name__}: {e}", file=sys.stderr)
-        return 0, b""
+        raise RuntimeError(f"falha ao consultar {url}: {e}") from e
 
 
 # ------------------------------------------------------------------ helpers
@@ -84,6 +92,44 @@ def norm_ramo_one(s):
     if not s.startswith("Direito"):
         s = "Direito " + s
     return s
+
+
+def edicao_na_pagina(fonte, status, raw, numero, extra=False):
+    """Mesma régua do Sentinela, exercitada com as mesmas fixtures oficiais.
+
+    Número em menu, parâmetro de pesquisa ou remissão não identifica o conteúdo.
+    Um título genérico sozinho tampouco comprova que a edição não foi publicada.
+    """
+    if fonte == "stf" and status == 404:
+        return "nao-existe"
+    if status != 200:
+        raise RuntimeError(f"HTTP {status}")
+    h = raw.decode("latin1")
+    match = re.search(r"<title[^>]*>(.*?)</title>", h, re.S | re.I)
+    titulo = oneline(match.group(1)) if match else ""
+    n = rf"0*{numero}(?!\d)"
+    if fonte == "stf":
+        if re.search(rf"\bN(?:º|°|o|\.º|\.°|Âº|Â°)?\s*{n}", titulo):
+            return "existe"
+        raise RuntimeError("resposta sem o número pedido no título do STF")
+    tit_stj = r"Informativo de Jurisprud\S{1,2}ncia"
+    tit_extra = r"Edi\S{2,4}o\s+Extraordin\S{1,2}ria"
+    if not re.search(tit_stj, titulo, re.I):
+        raise RuntimeError("resposta sem o título do Informativo do STJ")
+    cabecalhos = [oneline(t) for t in re.findall(
+        r'''<span\b[^>]*class=["'][^"']*\bclsInformativoTitulo\b[^"']*["'][^>]*>(.*?)</span>''', h, re.S | re.I)]
+    tipo = tit_extra if extra else "Informativo"
+    if cabecalhos:
+        if all(re.search(rf"^{tipo}\s+n(?:\.|º|°|Âº|Â°)?\s*{n}", c, re.I) for c in cabecalhos) and "clsIdentificaProcesso" in h:
+            return "existe"
+        raise RuntimeError("cabeçalho de outra edição/série ou julgados ausentes")
+    tipo = tit_extra if extra else tit_stj
+    if re.search(rf"{tipo}\s+n(?:\.|º|°)?\s*{n}", titulo, re.I):
+        return "existe"
+    vazio = re.search(r'''<div\b[^>]*class=["'][^"']*\bclsCaixaMensagem\b[^"']*["'][^>]*>\s*Nenhum documento encontrado!\s*</div>''', h, re.I)
+    if vazio and "clsIdentificaProcesso" not in h and not re.search(r"\bn(?:\.|º|°)?\s*\d+", titulo, re.I):
+        return "nao-existe"
+    raise RuntimeError("resposta sem identificação da edição nem confirmação explícita de busca vazia")
 
 
 # ------------------------------------------------------------------ STF
@@ -184,7 +230,7 @@ def parse_stf(num, raw):
         res = fix(" ".join(resumo).strip())
         en = tese_s.strip("“”\" ") if tese_s else (fix(resumo[0]) if resumo else None)
         if not en or len(en) < 40:
-            continue
+            raise RuntimeError(f"STF {num}: bloco de julgamento sem tese/resumo reconhecível")
         seq += 1
         d = None
         for pr in procs:
@@ -202,7 +248,7 @@ def parse_stf(num, raw):
             "id": f"INF2026-STF-{num}-{seq:02d}", "tribunal": "STF", "fonte": "informativo_stf", "numero": num,
             "titulo": f"Info {num} · STF", "enunciado": en, "ramoDireito": ramo, "tema": tema or None,
             "orgaoJulgador": "STF. " + org_out, "data": d, "fontePublicacao": fonte,
-            "observacao": ((ttl + ". " if ttl else "") + res)[:1500] or None,
+            "observacao": ((ttl + ". " if ttl else "") + res) or None,
             "url": f"https://www.stf.jus.br/arquivo/informativo/documento/informativo{num}.htm",
         })
     return recs
@@ -235,11 +281,11 @@ def parse_stj(code, raw):
 
         proc, ramo, tema = field(r"Processo"), field("Ramo do Direito"), field(r"<span>Tema")
         dest, info = field("Destaque"), field("Informações do Inteiro Teor")
-        if dest is None or len(oneline(dest)) < 40:
-            continue
+        if not all((proc, ramo, tema, dest, info)) or len(oneline(dest)) < 40:
+            raise RuntimeError(f"STJ {code}: bloco {seq + 1} com campos ausentes ou destaque incompleto")
         seq += 1
         procs = re.sub(r"\s+([,.;)])", r"\1", oneline(proc)) if proc else None
-        d = re.search(r"julgad[oa]s? em (\d{1,2}/\d{1,2}/\d{4})", procs or "")
+        d = re.search(r"julgad[oa]s? em (\d{1,2})[º°]?/(\d{1,2})/(\d{4})", procs or "")
         m = re.search(r"(Corte Especial|Primeira Seção|Segunda Seção|Terceira Seção|Primeira Turma|Segunda Turma|Terceira Turma|Quarta Turma|Quinta Turma|Sexta Turma|Plenário)", procs or "")
         og = ("STJ. " + m.group(1)) if m else (("STJ. " + cur_org.title()) if cur_org else None)
         ramo1 = None
@@ -251,15 +297,17 @@ def parse_stj(code, raw):
             "id": f"INF2026-STJ-{'EE' + str(num) if extra else num}-{seq:02d}", "tribunal": "STJ", "fonte": "informativo_stj",
             "numero": num, "titulo": titulo, "enunciado": oneline(dest), "ramoDireito": ramo1,
             "tema": oneline(tema) if tema else None, "orgaoJulgador": og,
-            "data": ("/".join(x.zfill(2) for x in d.group(1).split("/"))) if d else None,
-            "fontePublicacao": procs, "observacao": (clean_multi(info)[:1500] if info else None), "url": url,
+            "data": ("/".join(x.zfill(2) for x in d.groups())) if d else None,
+            "fontePublicacao": procs, "observacao": clean_multi(info), "url": url,
         })
+    if len(recs) != h.count("clsIdentificaProcesso"):
+        raise RuntimeError(f"STJ {code}: nem todos os blocos de julgamento foram reconhecidos")
     return recs
 
 
 # ------------------------------------------------------------------ main
 def load_index():
-    s = open(IDX, encoding="utf-8").read()
+    s = Path(IDX).read_text(encoding="utf-8")
     arr = json.loads(s[s.index("=") + 1:].rstrip().rstrip(";"))
     return s, arr
 
@@ -271,8 +319,93 @@ def ultimos(idx):
     ee = lambda r: re.match(r"INF\d{4}-STJ-EE(\d+)-", r[0])
     stf = max(r[3] for r in idx if r[2] == "informativo_stf" and isinstance(r[3], int))
     stj = max(r[3] for r in idx if r[2] == "informativo_stj" and isinstance(r[3], int) and not ee(r))
-    eem = max([int(m.group(1)) for r in idx for m in [ee(r)] if m] or [27])
+    eem = max([int(m.group(1)) for r in idx for m in [ee(r)] if m] or [0])
+    if not eem:
+        raise RuntimeError("última edição extraordinária desconhecida no acervo")
     return stf, stj, eem
+
+
+def url_edicao(fonte, numero, extra=False):
+    if fonte == "stf":
+        return f"https://www.stf.jus.br/arquivo/informativo/documento/informativo{numero}.htm"
+    code = f"{numero:04d}{'E' if extra else ''}"
+    return f"https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=%27{code}%27.cod."
+
+
+def ler_edicao(fonte, numero, extra=False):
+    url = url_edicao(fonte, numero, extra)
+    status, raw = get(url)
+    estado = edicao_na_pagina(fonte, status, raw, numero, extra)
+    if estado == "nao-existe":
+        return None
+    recs = parse_stf(numero, raw) if fonte == "stf" else parse_stj(f"{numero:04d}{'E' if extra else ''}", raw)
+    if not recs:
+        raise RuntimeError(f"{url}: edição reconhecida, mas nenhum julgado foi extraído")
+    return recs
+
+
+def coletar_serie(fonte, ultimo, extra=False):
+    rotulo = fonte.upper() + (" Ed. Extr." if extra else "")
+    if not ler_edicao(fonte, ultimo, extra):
+        raise RuntimeError(f"âncora {ultimo}, já no acervo, não foi reconhecida")
+    print(f"{rotulo} {ultimo}: âncora conferida", flush=True)
+    novos, ausencias = [], 0
+    limite = 10 if extra else MAXED
+    for n in range(ultimo + 1, ultimo + limite + 1):
+        time.sleep(INTERVALO)
+        try:
+            recs = ler_edicao(fonte, n, extra)
+        except (RuntimeError, ValueError) as e:
+            raise RuntimeError(f"edição {n}: {e}") from e
+        if recs is None:
+            ausencias += 1
+            print(f"{rotulo} {n}: ausência confirmada na fonte", flush=True)
+        else:
+            ausencias = 0
+            novos.extend(recs)
+            print(f"{rotulo} {n}: {len(recs)} julgados", flush=True)
+        # Conferir pelo menos as três extraordinárias seguintes, como o Sentinela;
+        # havendo várias novas, continuar até o fim confirmado (teto anterior: dez).
+        if ausencias >= 2 and (not extra or n >= ultimo + 3):
+            return novos
+    if ausencias < 2:
+        raise RuntimeError(f"limite de {limite} edições atingido sem confirmar o fim da série")
+    return novos
+
+
+@contextmanager
+def preservar_gerados():
+    """Falha em gerador restaura o lote: a próxima rodada ainda encontra as edições.
+
+    Sem isso, índice novo com fatias antigas faria a tentativa seguinte concluir
+    NOVOS: 0, sem jamais reparar os textos que o app lê.
+    """
+    alvos = [Path(IDX), Path(TXT)] + [Path(ROOT) / p for p in (
+        "semana-juris.js", "dados/indice.json", "dados/juris-text",
+        "dados/contas-text", "dados/leis-seca", "widget/dodia.json")]
+    with tempfile.TemporaryDirectory(prefix="catedra-informativos-lote-") as d:
+        copias = []
+        for i, alvo in enumerate(alvos):
+            copia = Path(d) / str(i)
+            if alvo.is_dir():
+                shutil.copytree(alvo, copia)
+            elif alvo.exists():
+                shutil.copy2(alvo, copia)
+            copias.append((alvo, copia))
+        try:
+            yield
+        except BaseException:
+            for alvo, copia in copias:
+                if alvo.is_dir():
+                    shutil.rmtree(alvo)
+                elif alvo.exists():
+                    alvo.unlink()
+                if copia.is_dir():
+                    shutil.copytree(copia, alvo)
+                elif copia.exists():
+                    alvo.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(copia, alvo)
+            raise
 
 
 def main():
@@ -284,46 +417,17 @@ def main():
         return
     print(f"corpus: STF até {stf_max}, STJ até {stj_max}, Ed. Extr. até {ee_max}")
 
-    novos = []
-    # STF
-    misses, n = 0, stf_max + 1
-    while misses < 2 and n < stf_max + 1 + MAXED:
-        st, raw = get(f"https://www.stf.jus.br/arquivo/informativo/documento/informativo{n}.htm")
-        recs = parse_stf(n, raw) if st == 200 else None
-        if not recs:
-            misses += 1
-            print(f"STF {n}: nada ({st})")
-        else:
-            misses = 0
-            novos += recs
-            print(f"STF {n}: {len(recs)} julgados")
-        n += 1
-    # STJ ordinárias
-    misses, n = 0, stj_max + 1
-    while misses < 2 and n < stj_max + 1 + MAXED:
-        st, raw = get(f"https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=%27{n:04d}%27.cod.")
-        recs = parse_stj(f"{n:04d}", raw) if st == 200 else None
-        if not recs:
-            misses += 1
-            print(f"STJ {n}: nada ({st})")
-        else:
-            misses = 0
-            novos += recs
-            print(f"STJ {n}: {len(recs)} julgados")
-        n += 1
-    # STJ extraordinárias
-    misses, n = 0, ee_max + 1
-    while misses < 2 and n < ee_max + 1 + 10:
-        st, raw = get(f"https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=%27{n:04d}E%27.cod.")
-        recs = parse_stj(f"{n:04d}E", raw) if st == 200 else None
-        if not recs:
-            misses += 1
-            print(f"STJ Ed. Extr. {n}: nada ({st})")
-        else:
-            misses = 0
-            novos += recs
-            print(f"STJ Ed. Extr. {n}: {len(recs)} julgados")
-        n += 1
+    novos, falhas = [], []
+    for fonte, ultimo, extra in (("stf", stf_max, False), ("stj", stj_max, False), ("stj", ee_max, True)):
+        try:
+            novos.extend(coletar_serie(fonte, ultimo, extra))
+        except (RuntimeError, ValueError) as e:
+            falhas.append(f"{fonte.upper()}{' extraordinárias' if extra else ''}: {e}")
+    if falhas:
+        raise RuntimeError("consulta incompleta; acervo preservado. " + "; ".join(falhas))
+    ids_novos = [r["id"] for r in novos]
+    if len(ids_novos) != len(set(ids_novos)):
+        raise RuntimeError("IDs repetidos na coleta; acervo preservado")
 
     novos = [r for r in novos if r["id"] not in have]
     print(f"NOVOS: {len(novos)}")
@@ -341,23 +445,31 @@ def main():
     e = s_idx.rstrip().rstrip(";").rstrip()
     assert e.endswith("]")
     s_new = e[:-1] + "," + ",".join(json.dumps(x, ensure_ascii=False, separators=(",", ":")) for x in rows) + "]" + s_idx[len(e):]
-    open(IDX, "w", encoding="utf-8").write(s_new)
-    s_t = open(TXT, encoding="utf-8").read()
+    s_t = Path(TXT).read_text(encoding="utf-8")
     e2 = s_t.rstrip().rstrip(";").rstrip()
     assert e2.endswith("}")
     s_t2 = e2[:-1] + "," + json.dumps(txt, ensure_ascii=False, separators=(",", ":"))[1:-1] + "}" + s_t[len(e2):]
-    open(TXT, "w", encoding="utf-8").write(s_t2)
-    # sanidade
-    _, idx2 = load_index()
-    print(f"índice: {len(idx)} -> {len(idx2)} verbetes")
-    # O acervo novo só chega à pessoa depois dos gerados que dependem dele: o recorte
-    # "O que mudou esta semana" (semana-juris.js) e as fatias de texto que o app de fato lê
-    # (dados/juris-text/). Sem isso o card do Início ficou parado em 23/06 com o STJ 900 já
-    # no acervo, e "Abrir no JURIS" dos julgados novos abria sem texto. O widget também
-    # depende das citações do acervo: sem regerá-lo, a atualização falha na suíte (#245).
-    for gerador in ("build-semana-juris.mjs", "build-fatias.mjs", "build-widget-dodia.mjs"):
-        subprocess.run(["node", os.path.join(ROOT, "scripts", gerador)], check=True)
+    # Validar ambos antes da primeira gravação.
+    json.loads(s_new[s_new.index("=") + 1:].strip().rstrip(";"))
+    json.loads(s_t2[s_t2.index("=") + 1:].strip().rstrip(";"))
+    with preservar_gerados():
+        Path(IDX).write_text(s_new, encoding="utf-8")
+        Path(TXT).write_text(s_t2, encoding="utf-8")
+        # sanidade
+        _, idx2 = load_index()
+        print(f"índice: {len(idx)} -> {len(idx2)} verbetes")
+        # O acervo novo só chega à pessoa depois dos gerados que dependem dele: o recorte
+        # "O que mudou esta semana" (semana-juris.js) e as fatias de texto que o app de fato lê
+        # (dados/juris-text/). Sem isso o card do Início ficou parado em 23/06 com o STJ 900 já
+        # no acervo, e "Abrir no JURIS" dos julgados novos abria sem texto. O widget também
+        # depende das citações do acervo: sem regerá-lo, a atualização falha na suíte (#245).
+        for gerador in ("build-semana-juris.mjs", "build-fatias.mjs", "build-widget-dodia.mjs"):
+            subprocess.run(["node", os.path.join(ROOT, "scripts", gerador)], check=True)
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except (RuntimeError, ValueError, subprocess.CalledProcessError) as e:
+        print(f"FALHA: {e}", file=sys.stderr)
+        sys.exit(1)

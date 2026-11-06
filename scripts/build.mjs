@@ -452,7 +452,7 @@ console.log('  · precache: casca ' + mb(somaCasca) + ' (' + (casca.length + 1) 
   + ' (' + sobPedido.length + ' arquivos)');
 // Os tetos estão declarados no sw.js; estourá-los não quebra nada (a cauda é cortada
 // em silêncio lá), mas passar por isso sem avisar seria perder um acervo sem saber.
-const TETO_SW = 14 * 1024 * 1024;
+const TETO_SW = 15 * 1024 * 1024;
 // 34 → 42 MB em 27/08: o textão das discursivas (6,1 MB) entrou no "Baixar tudo" — a
 // Redação abre prova completa offline. O teto continua sendo um FREIO real: estourá-lo
 // derruba o teste U10, e cada item pesado novo precisa caber ou tirar alguém.

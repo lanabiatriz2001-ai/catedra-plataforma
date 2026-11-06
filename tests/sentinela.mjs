@@ -249,16 +249,18 @@ export async function testarSentinela(ok) {
   // procurava marcadores no corpo e perdia as edições reais 901 e 903.
   const MAN = JSON.parse(readFileSync(path.join(RAIZ, 'tests/fixtures/informativos/manifesto.json'), 'utf8'));
   const PAG = Object.fromEntries(MAN.paginas.map((p) => [p.pagina, p]));
-  const pagina = (p) => ({ status: p.status, tam: p.bytes, texto: p.titulo == null ? '' : `<html><head><title>${p.titulo}</title></head><body>…</body></html>` });
+  // O manifesto histórico guarda só títulos. A mensagem abaixo é uma simulação
+  // explícita da busca vazia; as fixtures de novembro preservam o corpo real.
+  const pagina = (p) => ({ status: p.status, tam: p.bytes, texto: p.titulo == null ? '' : `<html><head><title>${p.titulo}</title></head><body>${/STJ/.test(p.titulo) && !/\d/.test(p.titulo) ? '<div class="clsCaixaMensagem">Nenhum documento encontrado!</div>' : '…'}</body></html>` });
   const ve = (fonte, nome, n, extra) => edicaoNaPagina(fonte, pagina(PAG[nome]), n, extra).estado;
   {
     ok(ve('stj', 'stj-0901', 901) === 'existe' && ve('stj', 'stj-0903', 903) === 'existe' && ve('stj', 'stj-0902', 902) === 'existe',
       'S7 as edições REAIS 901, 902 e 903 do STJ são reconhecidas pelo número no título');
     ok(ve('stj', 'stj-0904', 904) === 'nao-existe' && ve('stj', 'stj-7777', 7777) === 'nao-existe' && ve('stj', 'stj-EE34', 34, true) === 'nao-existe',
-      'S7b a página genérica do STJ (HTTP 200, título sem número) é edição inexistente — 904, 7777 e a extraordinária 34');
+      'S7b a página genérica com mensagem explícita de busca vazia é edição inexistente — 904, 7777 e a extraordinária 34');
     ok(ve('stj', 'stj-EE29', 29, true) === 'existe' && ve('stj', 'stj-EE33', 33, true) === 'existe',
       'S7c extraordinária real é reconhecida por "Edição Extraordinária n. N" no título');
-    ok(ve('stj', 'stj-0901', 902) === 'nao-existe' && ve('stj', 'stj-EE29', 29, false) === 'nao-existe' && ve('stj', 'stj-0901', 901, true) === 'nao-existe',
+    ok(ve('stj', 'stj-0901', 902) === 'falha' && ve('stj', 'stj-EE29', 29, false) === 'falha' && ve('stj', 'stj-0901', 901, true) === 'falha',
       'S7d o número tem de ser o PEDIDO, e na série certa: a 901 não vale pela 902, nem ordinária por extraordinária');
     ok(edicaoNaPagina('stj', { status: 503, texto: '' }, 901).estado === 'falha'
       && edicaoNaPagina('stj', { status: 200, texto: '<title>Request Rejected</title>' }, 901).estado === 'falha',
@@ -275,6 +277,28 @@ export async function testarSentinela(ok) {
       && edicaoNaPagina('stf', { status: 403, texto: '<title>Access Denied</title>' }, 1225).estado === 'falha'
       && edicaoNaPagina('stf', { status: 500, texto: '' }, 1225).estado === 'falha',
       'S8c no STF, 200 sem o número pedido, 403 do escudo e 500 são falha — só o 404 é "não existe"');
+  }
+
+  // Formato oficial de 06/11/2026: o título genérico também acompanha julgados reais.
+  {
+    const pasta = path.join(RAIZ, 'tests/fixtures/informativos/2026-11-06');
+    const man = JSON.parse(readFileSync(path.join(pasta, 'manifesto.json'), 'utf8'));
+    for (const p of man.paginas) {
+      const texto = readFileSync(path.join(pasta, p.arquivo), 'latin1');
+      ok(edicaoNaPagina(p.fonte, { status: p.status, texto }, p.numero, p.extra).estado === p.estado,
+        `S7 NOVEMBRO ${p.arquivo}: ${p.estado}, conforme resposta oficial`);
+      if (p.julgados && p.fonte === 'stj') {
+        ok(edicaoNaPagina('stj', { status: 200, texto }, p.numero + 1, p.extra).estado === 'falha'
+          && edicaoNaPagina('stj', { status: 200, texto }, p.numero, !p.extra).estado === 'falha',
+          `S7 NOVEMBRO ${p.arquivo}: outra edição ou série é falha`);
+      }
+    }
+    const generico = '<title>STJ - Informativo de Jurisprudência</title>';
+    for (const texto of [generico, generico + '<option>Informativo nº 908</option>',
+      generico + '<span class="clsInformativoTitulo">Informativo nº 908</span>']) {
+      ok(edicaoNaPagina('stj', { status: 200, texto }, 908).estado === 'falha',
+        'S7 NOVEMBRO resposta incompleta, menu ou cabeçalho sem julgados não viram ausência');
+    }
   }
 
   // ── S9 — falha NUNCA se disfarça de "sem novidade" ─────────────────────────

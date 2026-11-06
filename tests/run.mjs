@@ -4467,6 +4467,9 @@ for (const [k, v] of Object.entries(sem)) ok(v, 'SEMANA ' + k);
 // no juris-index.js, e as fatias de dados/juris-text/ sem o texto dos julgados novos: o
 // atualizar-informativos.py gravava o acervo e ninguém rodava os dois geradores depois.
 {
+  const leitura = spawnSync('python3', [path.join(RAIZ, 'tests', 'informativos-leitura.py')], { encoding: 'utf8' });
+  ok(leitura.status === 0, 'INFORMATIVOS respostas oficiais, falhas, série extraordinária e preservação do acervo ('
+    + (leitura.status === 0 ? '7 casos sem rede' : (leitura.stderr || leitura.error || '').toString().slice(-1200)) + ')');
   const importacao = spawnSync('python3', [path.join(RAIZ, 'tests', 'informativos-gerados.py')], { encoding: 'utf8' });
   ok(importacao.status === 0, 'INFORMATIVOS a citação nova atualiza o widget; falha aborta e simulação preserva ('
     + (importacao.status === 0 ? '3 casos sem rede' : (importacao.stderr || importacao.error || '').toString().slice(-1200)) + ')');

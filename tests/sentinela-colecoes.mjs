@@ -710,7 +710,7 @@ async function testarApi(ok) {
     const r2 = await chamar();
     const e2 = r2.body && r2.body.fontes.stf;
     res = [!!RG && r1.code === 200 && c1.resultado === 'sem-novidade' && c1.colecoes.rg.resultado === 'sem-novidade' && c1.colecoes.sumulas.resultado === 'sem-novidade'
-      && /1476 temas lidos na lista oficial/.test(c1.colecoes.rg.detalhe || '') && typeof T1 === 'string',
+      && (c1.colecoes.rg.detalhe || '').includes(`${Object.keys(RG.temas).length} temas lidos na lista oficial`) && typeof T1 === 'string',
     r2.code === 200 && r2.body.ok === false && e2.resultado === 'falha' && /tempo esgotado/.test(e2.erro || '') && e2.colecoes.rg.resultado === 'falha'
       && e2.colecoes.rg.ultimoSucesso === T1 && e2.colecoes.informativo.ultimoSucesso === c1.colecoes.informativo.ultimoSucesso && e2.ultimoSucesso === c1.ultimoSucesso];
   } catch (e) { erro = e; } finally {
@@ -723,7 +723,7 @@ async function testarApi(ok) {
     await new Promise((r) => setTimeout(r, 50));
     console.log = log;
   }
-  ok(!erro && res[0], 'S27h a api, ao vivo: a lista de RG montada da linha de base versionada (1.476 temas) contra ela mesma não dá item; o STF fica "sem novidade" e entra no cache' + (erro ? ` (${erro.message})` : ''));
+  ok(!erro && res[0], 'S27h a api, ao vivo: a lista de RG montada da linha de base versionada contra ela mesma não dá item; o STF fica "sem novidade" e entra no cache' + (erro ? ` (${erro.message})` : ''));
   ok(!erro && res[1], 'S27h2 a api no tempo esgotado: falha em cada coleção, com o último sucesso de cada uma (o do cache da instância) preservado — nunca 504 mudo');
 }
 
