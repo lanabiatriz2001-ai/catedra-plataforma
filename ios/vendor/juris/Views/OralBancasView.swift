@@ -90,11 +90,11 @@ struct OralBancasView: View {
     @Environment(LibraryStore.self) private var store
     // FILTROS persistem (AppStorage): trocar de aba e voltar não zera carreira/banca/ouro.
     // "" = sem filtro (AppStorage não guarda Optional<String>).
-    @AppStorage("juris.oral.carreira") private var carreiraRaw = ""
-    @AppStorage("juris.oral.banca") private var bancaRaw = ""
-    @AppStorage("juris.oral.soOuro") private var soOuro = true
-    @AppStorage("juris.oral.minutos") private var minutos = 15
-    @AppStorage("juris.oral.selecionado") private var selID = ""
+    @AppStorage("juris.oral.carreira", store: PerfilLeitor.atual.preferencias) private var carreiraRaw = ""
+    @AppStorage("juris.oral.banca", store: PerfilLeitor.atual.preferencias) private var bancaRaw = ""
+    @AppStorage("juris.oral.soOuro", store: PerfilLeitor.atual.preferencias) private var soOuro = true
+    @AppStorage("juris.oral.minutos", store: PerfilLeitor.atual.preferencias) private var minutos = 15
+    @AppStorage("juris.oral.selecionado", store: PerfilLeitor.atual.preferencias) private var selID = ""
     /* O acervo mora num enum ESTÁTICO (OralBancas), que o SwiftUI não observa: mudar
        OralBancas.estado não invalida esta View. Na prática, quem redesenhava a tela era o
        cronômetro de 1 s da arguição — e o botão "Tentar de novo" não fazia nada visível
@@ -163,7 +163,7 @@ struct OralBancasView: View {
         .onAppear {
             OralBancas.carregar()
             acervoVersao += 1
-            if !selID.isEmpty { anotacoes = JurisRascunhoCache.get("oral-banca", selID) ?? "" }
+            if !selID.isEmpty { anotacoes = store.rascunhos.get("oral-banca", selID) ?? "" }
         }
         .onReceive(relogio) { agora = $0 }
     }
@@ -217,7 +217,7 @@ struct OralBancasView: View {
                 ForEach(lista) { c in
                     Button {
                         selID = c.id; emSessao = false; inicio = nil
-                        anotacoes = JurisRascunhoCache.get("oral-banca", c.id) ?? ""
+                        anotacoes = store.rascunhos.get("oral-banca", c.id) ?? ""
                     } label: {
                         VStack(alignment: .leading, spacing: 6) {
                             Flow {
@@ -326,7 +326,7 @@ struct OralBancasView: View {
                 .padding(8)
                 .background(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).fill(Palette.cardBackground))
                 .overlay(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).strokeBorder(Palette.hairline))
-                .onChange(of: anotacoes) { _, novo in JurisRascunhoCache.set("oral-banca", c.id, novo) }
+                .onChange(of: anotacoes) { _, novo in store.rascunhos.set("oral-banca", c.id, novo) }
             if !anotacoes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 let fund = TextoVerbete.fundamentos(anotacoes)
                 Text(fund.isEmpty

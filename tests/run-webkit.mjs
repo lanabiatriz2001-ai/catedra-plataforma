@@ -37,6 +37,7 @@ import { testarAuthFechamento } from './auth-fechamento.mjs';
 import { testarWidgetResumo } from './widget-resumo.mjs';
 import { testarCarregamentoInicial, testarAberturaEmbutida, testarAberturaPendente } from './carregamento-inicial.mjs';
 import { testarTemplateFileUrl } from './template-file-url.mjs';
+import { testarSegurancaPerfilRelease } from './seguranca-perfil-release.mjs';
 import { testarAuthModoLocal } from './auth-modo-local.mjs';
 import { testarSyncMemoriaVelha } from './sync-memoria-velha.mjs';
 import { testarBackupDriveErros } from './backup-drive-erros.mjs';
@@ -148,6 +149,7 @@ for (const [base, origem, arquivo] of ORIGENS) {
   // Login e sincronização no iPad (portão, teclado, sessão expirada, boot sem rede): a
   // fixture tests/auth-ipad-fixture.html carrega o auth.js com um Supabase de mentira —
   // existe na raiz do repositório, não no bundle, por isso a origem [bundle] fica de fora.
+  if (origem === 'http') await testarSegurancaPerfilRelease(page, base, ok);
   if (origem !== 'bundle') {
     await testarAuthAbertura(page, base, ok);
     try { await testarAuthIpad(page, base, ok, { motor, origem }); }

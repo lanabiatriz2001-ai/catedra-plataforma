@@ -37,6 +37,8 @@ import { testarVariosEditais } from './varios-editais.mjs';
 import { testarImportadorEdital } from './importador-edital.mjs';
 import { testarEditalPorConcurso } from './edital-por-concurso.mjs';
 import { testarTemplateFileUrl } from './template-file-url.mjs';
+import { testarPerfisLeitores } from './perfis-leitores.mjs';
+import { testarSegurancaPerfilRelease } from './seguranca-perfil-release.mjs';
 import { testarAuthModoLocal } from './auth-modo-local.mjs';
 import { testarSyncMemoriaVelha } from './sync-memoria-velha.mjs';
 import { testarBackupDriveErros } from './backup-drive-erros.mjs';
@@ -3378,12 +3380,13 @@ catch (e) { ok(false, 'PROVA ENCERRAR UMA VEZ [chromium] o roteiro correu sem ex
 // ENAM". Com tentativas: última prova, sparkline, 8 áreas com ok/cota e a próxima ação certa (revisar → estudar →
 // próximo simulado). Concurso a menos de 30 dias: a Reta final manda. Nada em --danger, nada de "atrasado".
 {
+  const contextoTrilha = await browser.newContext();
+  const page = await contextoTrilha.newPage();
+  await page.clock.setFixedTime(new Date('2026-10-01T12:00:00-04:00'));
   const host = URL0 + '/Catedra.dc.html';
-  await page.goto(host);
-  const guardado = await page.evaluate(() => {
-    const g = { edital: localStorage.getItem('catedra:edital'), eventos: localStorage.getItem('catedra:eventos') };
-    ['catedra:enam', 'catedra:enamSim', 'catedra:errors', 'catedra:prova', 'ct_enam_prova', 'ct_prova'].forEach(k => localStorage.removeItem(k));
-    return g;
+  await page.goto(URL0 + '/__semente');
+  await page.evaluate(() => {
+    localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
   });
   await page.goto(host); await page.waitForTimeout(1600);
   const t = await page.evaluate(async () => {
@@ -3473,8 +3476,7 @@ catch (e) { ok(false, 'PROVA ENCERRAR UMA VEZ [chromium] o roteiro correu sem ex
     return r;
   });
   for (const [k, v] of Object.entries(t)) ok(v, 'ENAM/E5 ' + k);
-  // devolve o edital e a agenda que a suíte tinha antes deste bloco
-  await page.evaluate((g) => { ['catedra:enam', 'catedra:enamSim', 'catedra:errors', 'catedra:prova'].forEach(k => localStorage.removeItem(k)); if (g.edital != null) localStorage.setItem('catedra:edital', g.edital); else localStorage.removeItem('catedra:edital'); if (g.eventos != null) localStorage.setItem('catedra:eventos', g.eventos); else localStorage.removeItem('catedra:eventos'); }, guardado);
+  await contextoTrilha.close();
 }
 
 /* ============= JURIS — datas oficiais de publicação das Súmulas 722 a 736 do STF ============= */
@@ -3941,7 +3943,7 @@ catch (e) { ok(false, 'PROVA ENCERRAR UMA VEZ [chromium] o roteiro correu sem ex
   const auth = fs.readFileSync(path.join(RAIZ, 'auth.js'), 'utf8'), src = fs.readFileSync(path.join(RAIZ, 'Catedra.dc.html'), 'utf8');
   r.chavesForaDaSincronizacao = /'catedra:_errFila': 1, 'catedra:_usoTelas': 1/.test(auth);
   r.migracaoVersionada = fs.existsSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-telemetria.sql')) && /DADOS NOVOS TRATADOS/.test(fs.readFileSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-telemetria.sql'), 'utf8'));
-  r.consoleCarregaETemPainel = /sb\.rpc\('admin_erros_cliente', \{p_horas:24\}\)/.test(src) && /sb\.rpc\('admin_uso_telas', \{p_dias:7\}\)/.test(src) && /data-adm="telemetria"/.test(src) && /data-adm="telas"/.test(src) && /data-adm="telemetria-sw"/.test(src) && /p_chave:'telemetria'/.test(src);
+  r.consoleCarregaETemPainel = /consultar\('admin_erros_cliente',\{p_horas:24\}/.test(src) && /consultar\('admin_uso_telas',\{p_dias:7\}/.test(src) && /data-adm="telemetria"/.test(src) && /data-adm="telas"/.test(src) && /data-adm="telemetria-sw"/.test(src) && /p_chave:'telemetria'/.test(src);
   for (const [k, v] of Object.entries(r)) ok(v, 'TELEMETRIA/P17 estático ' + k);
   const host = URL0 + '/Catedra.dc.html';
   await page.goto(host);
@@ -4033,7 +4035,7 @@ catch (e) { ok(false, 'PROVA ENCERRAR UMA VEZ [chromium] o roteiro correu sem ex
   ch = cenario({ plano: 'beta', limite: 5, usadas: 1 }); res = fakeRes();
   await complete(req({ prompt: 'x'.repeat(70000) }), res);
   r.tetoPorChamadaMantido = res.codigo === 413;
-  globalThis.fetch = async (url) => { const u = String(url); if (/\/auth\/v1\/user$/.test(u)) return { ok: false }; return { ok: false }; }; res = fakeRes();
+  globalThis.fetch = async (url) => { const u = String(url); if (/\/auth\/v1\/user$/.test(u)) return { ok: false, status: 401 }; return { ok: false }; }; res = fakeRes();
   await complete(req({ prompt: 'olá' }), res);
   r.semSessaoContinua401 = res.codigo === 401;
   ch = cenario({ plano: 'beta', limite: 3, usadas: 3 }); res = fakeRes();
@@ -4049,6 +4051,13 @@ catch (e) { ok(false, 'PROVA ENCERRAR UMA VEZ [chromium] o roteiro correu sem ex
   r.hostMostraEmToast = /chamadas de IA de hoje\/\.test\(m\)\) this\._toast\(m\)/.test(src) && /data-adm="cota"/.test(src) && /admin_ia_cota_set/.test(src);
   r.migracaoVersionada = fs.existsSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-ia-cota.sql'));
   for (const [k, v] of Object.entries(r)) ok(v, 'IA/P18 cota ' + k);
+}
+
+/* Isola variáveis de ambiente e substituições de fetch dos cenários de autorização. */
+{
+  const api = spawnSync(process.execPath, ['--test', path.join(RAIZ, 'tests', 'autorizacao-api.test.mjs')], { encoding: 'utf8', timeout: 30000 });
+  if (api.status !== 0) console.error((api.stdout || '') + (api.stderr || '') + (api.error || ''));
+  ok(api.status === 0, 'SEGURANÇA autorização das três APIs e seleção de modelos antes da reserva');
 }
 
 /* O proxy de lei roda no servidor: as leituras lentas/grandes e redirects ficam
@@ -9884,6 +9893,8 @@ try { await testarOnboardingImportar(page, URL0, ok); } catch (e) { ok(false, 'O
 try { await testarCotaIA(page, URL0, ok); } catch (e) { ok(false, 'COTA/IA exceção: ' + e.message); }
 { const ctxR = await browser.newContext(); const pageR = await ctxR.newPage(); try { await testarReguaUnica(pageR, URL0, ok); } catch (e) { ok(false, 'RÉGUA/única exceção: ' + e.message); } finally { await ctxR.close(); } }
 try { await testarTemplateFileUrl(browser, URL0, ok, { motor }); } catch (e) { ok(false, 'TEMPLATE/file exceção: ' + e.message); }
+testarPerfisLeitores(ok);
+await testarSegurancaPerfilRelease(page, URL0, ok);
 { const ctxML = await browser.newContext(); const pML = await ctxML.newPage(); try { await testarAuthModoLocal(pML, URL0, ok); } catch (e) { ok(false, 'MODO LOCAL exceção: ' + e.message); } finally { await ctxML.close(); } }
 // backup na nuvem pessoal: erro do Drive em português e nenhum clique acende a faixa vermelha global
 try { await testarBackupDriveErros(browser, URL0, ok); } catch (e) { ok(false, 'BACKUP/Drive exceção: ' + e.message); }

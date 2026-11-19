@@ -69,7 +69,7 @@ struct ArticleStudyView: View {
     @AppStorage("showIndexRail") private var showIndexRail = false  // trilho lateral do índice
     @State private var railQuery = ""                        // busca dentro do trilho
     // Última norma estudada — alimenta o "Continuar estudando" do Início.
-    @AppStorage("lastStudiedLawID") private var lastStudiedLawID = ""
+    @AppStorage("lastStudiedLawID", store: PerfilLeitor.atual.preferencias) private var lastStudiedLawID = ""
 
     private var record: StudyRecord { store.record(for: lawID) }
 
@@ -616,11 +616,11 @@ private struct UnitFocusView: View {
         .background(AppTheme.pageBackdrop(accent))
         .onAppear {
             // Registra o artigo em foco — o "onde parou" do registro de sessão no Cátedra.
-            UserDefaults.standard.set(unit.label, forKey: "lastStudiedUnitLabel")
+            PerfilLeitor.atual.preferencias.set(unit.label, forKey: "lastStudiedUnitLabel")
             initSectionsIfNeeded()
         }
         .onChange(of: unit.key) { _, _ in
-            UserDefaults.standard.set(unit.label, forKey: "lastStudiedUnitLabel")
+            PerfilLeitor.atual.preferencias.set(unit.label, forKey: "lastStudiedUnitLabel")
         }
         .sheet(isPresented: $showAddPrecedent) {
             PrecedentEditView(lawID: lawID, accent: accent, existing: nil, prefillArticle: unit.label)
@@ -1516,10 +1516,6 @@ private struct UnitFocusView: View {
     }
 
     private func laGerarIA() async {
-        let key = UserDefaults.standard.string(forKey: "anthropicKey") ?? ""
-        guard !key.trimmingCharacters(in: .whitespaces).isEmpty else {
-            laIAErro = "Configure sua chave da API da Anthropic em Ajustes ▸ Inteligência Artificial."; return
-        }
         laIABusy = true; laIAErro = nil
         let system = "Você é um professor de concursos de magistratura no Brasil. A partir do TEXTO OFICIAL do artigo fornecido, gere material de estudo ativo, fiel ao texto. NUNCA invente números, prazos ou incisos que não estejam no texto."
         let prompt = """
@@ -1534,7 +1530,7 @@ private struct UnitFocusView: View {
         - grade: EXATAMENTE 7 respostas curtas (1 a 2 frases) sobre ESTE artigo, nesta ordem: Quem? (sujeitos/destinatários), O quê? (comando central), Como? (procedimento/forma), Quando? (prazo/momento), Onde? (âmbito/lugar), Por quê? (fundamento/finalidade), Quanto? (números/quantidades/valores). Quando um elemento não se aplicar ao artigo, responda "— não se aplica".
         """
         do {
-            let txt = try await AIService.gerar(system: system, prompt: prompt, apiKey: key, maxTokens: 2200)
+            let txt = try await AIService.gerar(system: system, prompt: prompt, perfil: store.perfil, maxTokens: 2200)
             let clean = txt.replacingOccurrences(of: "```json", with: "")
                            .replacingOccurrences(of: "```", with: "")
                            .trimmingCharacters(in: .whitespacesAndNewlines)

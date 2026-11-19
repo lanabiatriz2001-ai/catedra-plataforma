@@ -82,23 +82,21 @@ struct SimuladoProva: Codable, Hashable, Identifiable {
 // MARK: - Cache (Application Support)
 
 @MainActor
-enum SimuladoCache {
-    private static var mem: [SimuladoProva] = []
-    private static var carregado = false
-    private static var url: URL {
-        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("VadeMecumJuris", isDirectory: true)
-        try? FileManager.default.createDirectory(at: base, withIntermediateDirectories: true)
-        return base.appendingPathComponent("simulados.json")
+final class SimuladoCache {
+    private var mem: [SimuladoProva] = []
+    private var carregado = false
+    private let url: URL
+    init(em pasta: URL) {
+        url = pasta.appendingPathComponent("simulados.json")
     }
-    private static func carregar() {
+    private func carregar() {
         guard !carregado else { return }
         carregado = true
         if let d = try? Data(contentsOf: url),
            let m = try? JSONDecoder().decode([SimuladoProva].self, from: d) { mem = m }
     }
-    static func todos() -> [SimuladoProva] { carregar(); return mem.sorted { $0.criadoEm > $1.criadoEm } }
-    static func salvar(_ p: SimuladoProva) {
+    func todos() -> [SimuladoProva] { carregar(); return mem.sorted { $0.criadoEm > $1.criadoEm } }
+    func salvar(_ p: SimuladoProva) {
         carregar()
         if let i = mem.firstIndex(where: { $0.id == p.id }) { mem[i] = p } else { mem.append(p) }
         if mem.count > 60 {   // teto: 60 provas mais recentes
@@ -107,7 +105,7 @@ enum SimuladoCache {
         }
         if let d = try? JSONEncoder().encode(mem) { try? d.write(to: url, options: .atomic) }
     }
-    static func apagar(_ id: String) {
+    func apagar(_ id: String) {
         carregar(); mem.removeAll { $0.id == id }
         if let d = try? JSONEncoder().encode(mem) { try? d.write(to: url, options: .atomic) }
     }
@@ -288,12 +286,12 @@ struct SimuladoView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .onAppear { historico = SimuladoCache.todos() }
+        .onAppear { historico = store.simulados.todos() }
         .onDisappear { salvarProva() }
         .onReceive(relogio) { _ in
             guard var q = prova, !q.encerrado else { return }
             q.segundos += 1; prova = q
-            if q.segundos % 15 == 0 { SimuladoCache.salvar(q) }
+            if q.segundos % 15 == 0 { store.simulados.salvar(q) }
         }
     }
 
@@ -315,7 +313,7 @@ struct SimuladoView: View {
             Button {
                 let p = SimuladoLocal.gerar(entries: store.entries, n: qtdObjetivas, m: qtdDiscursivas, disciplina: disciplina)
                 prova = p; visao = .enunciados
-                SimuladoCache.salvar(p)
+                store.simulados.salvar(p)
             } label: {
                 Label("Gerar simulado", systemImage: "play.fill").font(Typo.ui(14, .bold))
                     .padding(.horizontal, 16).padding(.vertical, 9)
@@ -360,7 +358,7 @@ struct SimuladoView: View {
                             .foregroundStyle(h.percentual >= 70 ? Palette.ok : (h.percentual >= 50 ? Palette.warn : Palette.secondaryInk))
                         Button("Abrir") { prova = h; visao = h.encerrado ? .relatorio : .enunciados }
                             .buttonStyle(.bordered).tint(Palette.accent)
-                        Button { SimuladoCache.apagar(h.id); historico = SimuladoCache.todos() } label: { Image(systemName: "trash") }
+                        Button { store.simulados.apagar(h.id); historico = store.simulados.todos() } label: { Image(systemName: "trash") }
                             .buttonStyle(.plain).foregroundStyle(Palette.secondaryInk)
                     }
                     .padding(.horizontal, 14).padding(.vertical, 9)
@@ -406,7 +404,7 @@ struct SimuladoView: View {
                 }
                 Button { exportar(p) } label: { Label("Exportar / imprimir", systemImage: "square.and.arrow.up") }
                     .buttonStyle(.bordered).tint(Palette.accent)
-                Button("Voltar") { salvarProva(); prova = nil; historico = SimuladoCache.todos() }
+                Button("Voltar") { salvarProva(); prova = nil; historico = store.simulados.todos() }
                     .buttonStyle(.bordered)
             }
             if avisoExport {
@@ -493,7 +491,7 @@ struct SimuladoView: View {
         return Button {
             guard var q = prova, !q.encerrado else { return }
             q.respostas[it.id] = valor
-            prova = q; SimuladoCache.salvar(q)
+            prova = q; store.simulados.salvar(q)
         } label: {
             Text(t).font(Typo.ui(12.5, .bold))
                 .padding(.horizontal, 14).padding(.vertical, 6)
@@ -567,6 +565,6 @@ struct SimuladoView: View {
         avisoExport = true
     }
     private func salvarProva() {
-        if let p = prova { SimuladoCache.salvar(p) }
+        if let p = prova { store.simulados.salvar(p) }
     }
 }

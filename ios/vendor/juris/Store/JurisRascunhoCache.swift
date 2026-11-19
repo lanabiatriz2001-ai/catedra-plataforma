@@ -7,31 +7,36 @@ import Foundation
 ///
 /// Chave = "\(namespace)/\(id)". Teto de 400 rascunhos; os mais antigos caem primeiro.
 @MainActor
-enum JurisRascunhoCache {
+final class JurisRascunhoCache {
     private struct Item: Codable { var texto: String; var em: Date }
-    private static var mem: [String: Item] = [:]
-    private static var carregado = false
-    private static var gravacao: Task<Void, Never>?
+    private var mem: [String: Item] = [:]
+    private var carregado = false
+    private var gravacao: Task<Void, Never>?
 
-    private static var url: URL {
-        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("VadeMecumJuris", isDirectory: true)
-        try? FileManager.default.createDirectory(at: base, withIntermediateDirectories: true)
-        return base.appendingPathComponent("rascunhos.json")
+    private let url: URL
+    init(em pasta: URL) {
+        url = pasta.appendingPathComponent("rascunhos.json")
     }
-    private static func carregar() {
+    func encerrarPerfil() {
+        gravacao?.cancel()
+        gravacao = nil
+        if carregado { gravarAgora() }
+        carregado = false
+        mem = [:]
+    }
+    private func carregar() {
         guard !carregado else { return }
         carregado = true
         if let d = try? Data(contentsOf: url),
            let m = try? JSONDecoder().decode([String: Item].self, from: d) { mem = m }
     }
-    static func get(_ namespace: String, _ id: String) -> String? {
+    func get(_ namespace: String, _ id: String) -> String? {
         carregar()
         return mem["\(namespace)/\(id)"]?.texto
     }
     /// nil ou texto vazio apaga o rascunho. A gravação em disco é adiada ~400 ms
     /// (digitação) e sempre termina gravada: o último `set` vence.
-    static func set(_ namespace: String, _ id: String, _ texto: String?) {
+    func set(_ namespace: String, _ id: String, _ texto: String?) {
         carregar()
         let k = "\(namespace)/\(id)"
         if let t = texto, !t.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -47,10 +52,10 @@ enum JurisRascunhoCache {
         gravacao = Task { @MainActor in
             try? await Task.sleep(nanoseconds: 400_000_000)
             guard !Task.isCancelled else { return }
-            gravarAgora()
+            self.gravarAgora()
         }
     }
-    static func gravarAgora() {
+    func gravarAgora() {
         if let d = try? JSONEncoder().encode(mem) { try? d.write(to: url, options: .atomic) }
     }
 }

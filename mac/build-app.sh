@@ -114,7 +114,7 @@ else echo "     aviso: plugins de macro não encontrados em $PLUGIN_DIR — se o
 # Se a fatia Intel falhar (SDK sem suporte na máquina), seguimos só com arm64 avisando,
 # em vez de derrubar o build inteiro.
 compilar_fatia() {
-  swiftc -O -target "$1" "${SDK_FLAGS[@]}" "${PLUGIN_FLAGS[@]}" $LEGIS_SOURCES $JURIS_SOURCES $DESIGN_SOURCES $WIDGET_COMUM "$HERE/Sources/main.swift" -o "$2" \
+  swiftc -O -target "$1" "${SDK_FLAGS[@]}" "${PLUGIN_FLAGS[@]}" $LEGIS_SOURCES $JURIS_SOURCES $DESIGN_SOURCES $WIDGET_COMUM "$ROOT/ios/vendor/comum/PerfilLeitor.swift" "$ROOT/ios/vendor/comum/CampoChavePessoal.swift" "$HERE/Sources/main.swift" -o "$2" \
     -framework Cocoa -framework WebKit -framework UserNotifications -framework SwiftUI \
     -framework Network -framework PDFKit -framework WidgetKit
 }

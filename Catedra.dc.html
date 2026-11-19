@@ -6620,14 +6620,18 @@ window.ctPdfLib = (function(){
               </div>
 
               <div class="adm-panel">
-                <header><h3>Quem pode entrar</h3><p>lista vazia = beta aberto a qualquer conta autenticada</p></header>
+                <header><h3>Quem pode entrar</h3><p>controle de acesso ao beta</p></header>
                 <div class="in" style="display:flex;flex-direction:column;gap:10px;">
                   <div style="display:flex;gap:8px;flex-wrap:wrap;">
                     <input class="adm-in" style="flex:1;min-width:200px;width:auto;" type="email" value="{{ adminAllowInput }}" oninput="{{ onAdminAllowInput }}" placeholder="email@do.testador">
                     <button class="adm-btn ok" onclick="{{ adminAllowAdd }}">Liberar</button>
                   </div>
+                  <div class="adm-sw">
+                    <div><b>{{ admBetaModo }}</b><span>Os convites valem enquanto o beta está fechado.</span></div>
+                    <button class="adm-btn" onclick="{{ admToggleBeta }}">{{ admBetaAcao }}</button>
+                  </div>
                   <sc-if value="{{ admAllowVazia }}" hint-placeholder-val="{{ true }}">
-                    <div style="font-size:var(--fs-xs);color:var(--k-dim2);">Lista vazia — qualquer conta autenticada usa a IA. Ao incluir o primeiro e-mail, só os da lista passam.</div>
+                    <div style="font-size:var(--fs-xs);color:var(--k-dim2);">Nenhum convite cadastrado.</div>
                   </sc-if>
                   <sc-for list="{{ admAllow }}" as="a" hint-placeholder-count="2">
                     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--k-panel2);border:1px solid var(--k-line);border-radius:var(--r-sm);padding:8px 11px;">
@@ -7102,6 +7106,13 @@ window.ctPdfLib = (function(){
           </sc-if>
           <!-- D11: backup automático semanal — o backup que ela nunca esquece de fazer -->
           <div style="margin:0 0 16px;padding:14px 16px;border:1px solid var(--border);border-radius:var(--r-md);">
+            <sc-if value="{{ temReservaLocal }}" hint-placeholder-val="{{ false }}">
+              <p>Há estudos antigos preservados neste aparelho. Você pode incorporá-los à conta em uso.</p>
+              <button type="button" class="ct-btn-2" onclick="{{ recuperarEstudosAntigos }}">Reivindicar estudos antigos</button>
+            </sc-if>
+            <sc-if value="{{ temOriginalLocal }}" hint-placeholder-val="{{ false }}">
+              <button type="button" class="ct-btn-2" onclick="{{ exportarOriginalLegado }}">Salvar cópia original dos estudos reivindicados</button>
+            </sc-if>
             <label style="display:flex;align-items:center;gap:11px;cursor:pointer;">
               <input type="checkbox" data-k="backupAuto" checked="{{ prefs.backupAuto }}" onchange="{{ togglePref }}" style="width:17px;height:17px;accent-color:var(--accent);cursor:pointer;flex:none;">
               <span style="font-size:var(--fs-base);color:var(--ink);font-weight:600;">Backup automático semanal</span>
@@ -8113,9 +8124,17 @@ class Component extends DCLogic {
     // com o carregamento) e reconfere de hora em hora, para quem deixa o app aberto.
     try{ setTimeout(()=>this._backupAutoSemanal(), 8000);
       this._bkpAutoT=setInterval(()=>this._backupAutoSemanal(), 3600000); }catch(_){}
-    try{ this._restoreTimer(); }catch(_){}   // cronômetro não zera ao fechar o app
-    try{ this._restoreProva(); }catch(_){}   // simulado cronometrado idem — reabre pausado
-    try{ this._restoreEnamProva(); }catch(_){}   // E3: a prova ENAM volta inteira (mesmas questões, mesmas respostas) por até 36 h
+    const retomarEstudo=()=>{
+      if(!this._titularLocal()) return;
+      window.removeEventListener('catedra:authuser',retomarEstudo);
+      window.removeEventListener('catedra:perfilpronto',retomarEstudo);
+      this._restoreTimer(); this._restoreProva(); this._restoreEnamProva();
+    };
+    if(this._titularLocal()) retomarEstudo();
+    else {
+      window.addEventListener('catedra:authuser',retomarEstudo);
+      window.addEventListener('catedra:perfilpronto',retomarEstudo);
+    }
     // C3: reabrir o app com uma prova em andamento traz de volta o selo "sugerido" junto
     // com o gabarito — o texto já se declara, mas o selo é o que a pessoa vê primeiro.
     try{ const _id=this.state.redProvaId; if(_id && !this.state.espSugAtual){
@@ -9367,7 +9386,7 @@ class Component extends DCLogic {
     return ['conta','escopo','atvKey','etapa'].every(k=>origem[k]===atual[k]);
   }
   _saveTimer(){
-    try{ const s=this.state;
+    try{ const s=this.state, titular=this._titularLocal(); if(!titular) return;
       if(!s.timerRunning && !s.timerSeconds && !s.studiedSeconds){ localStorage.removeItem('ct_timer'); return; }
       const sd=s.sessionDraft;
       // A proveniência nasce ao vincular a atividade, nunca no tick/pagehide. Assim
@@ -9376,7 +9395,7 @@ class Component extends DCLogic {
         ...sd._cmRascunhoOrigem,
         ...(typeof sd.cmPonto==='string'?{ponto:sd.cmPonto.slice(0,300)}:{}),
         ...(typeof sd.cmProximo==='string'?{proximo:sd.cmProximo.slice(0,500)}:{})}:undefined;
-      localStorage.setItem('ct_timer', JSON.stringify({ sec:s.timerSeconds, studied:s.studiedSeconds,
+      localStorage.setItem('ct_timer', JSON.stringify({ titular, sec:s.timerSeconds, studied:s.studiedSeconds,
         mode:s.timerMode, phase:s.pomoPhase, cycles:s.pomoCycles, running:s.timerRunning, ts:Date.now(),
         d:this._hoje(), pf:s.pomoFocus, pb:s.pomoBreak, ps:+s.pausaSeg||0, pd:+s.pausaDesde||0,
         atv:sd.atvKey?{atvKey:sd.atvKey,disc:sd.disc,topico:sd.topico,cmPlanoMin:sd.cmPlanoMin,cmPlanoObjetivo:sd.cmPlanoObjetivo,cmEtapa:sd.cmEtapa,categoria:sd.categoria,categorias:sd.categorias,cmRascunho}:null }));
@@ -9407,7 +9426,7 @@ class Component extends DCLogic {
   }
   _restoreTimer(){
     try{ const raw=localStorage.getItem('ct_timer'); if(!raw){ this._aplicaPadraoCronometro(); return; } const t=JSON.parse(raw); if(!t){ this._aplicaPadraoCronometro(); return; }
-      if(t.d && t.d!==this._hoje()){ localStorage.removeItem('ct_timer'); this._aplicaPadraoCronometro(); return; }   // cronômetro de OUTRO dia não vira "tempo hoje"
+      if((t.titular||'local')!==this._titularLocal() || (t.d && t.d!==this._hoje())){ localStorage.removeItem('ct_timer'); this._aplicaPadraoCronometro(); return; }   // cronômetro de OUTRO dia não vira "tempo hoje"
       const patch={ timerSeconds:+t.sec||0, studiedSeconds:+t.studied||0, timerRunning:false };
       if(t.atv&&typeof t.atv.atvKey==='string'){
         const b=(this.state.blocks||[]).find(b=>this._atvChave(b)===t.atv.atvKey);
@@ -10537,8 +10556,9 @@ class Component extends DCLogic {
     const cur=this._subObj(ed[d].topics[t].subs[i]); ed[d].topics[t].subs[i]={...cur, done:!cur.done}; this.setState({edital:ed}); this.flashSync(); };
   // Salva-vidas: antes da PRIMEIRA mutação de propagação da sessão, guarda um snapshot
   // recuperável dos dados que serão reescritos (nada se perde se algo der errado).
-  _backupOnce(){ try{ if(this._bkpDone) return; this._bkpDone=true;
-    const snap={ts:Date.now(), sessions:this.state.sessions, reviews:this.state.reviews, errors:this.state.errors, edital:this.state.edital, blocks:this.state.blocks, flashcards:this.state.flashcards, manualFixed:this.state.manualFixed, manualRot:this.state.manualRot};
+  _titularLocal(){ return window.CatedraAuth ? window.CatedraAuth.contaLocal : (window.CATEDRA_SUPABASE ? '' : 'local'); }
+  _backupOnce(){ try{ const titular=this._titularLocal(); if(!titular || this._bkpDone) return; this._bkpDone=true;
+    const snap={titular, ts:Date.now(), sessions:this.state.sessions, reviews:this.state.reviews, errors:this.state.errors, edital:this.state.edital, blocks:this.state.blocks, flashcards:this.state.flashcards, manualFixed:this.state.manualFixed, manualRot:this.state.manualRot};
     localStorage.setItem('ct_bkpFase2', JSON.stringify(snap)); }catch(_){} }
   // Renomear disciplina = identidade canônica: o `edital` é a fonte, e o novo nome
   // PROPAGA para todos os registros que a referenciam por nome (sessões, revisões,
@@ -12912,6 +12932,58 @@ class Component extends DCLogic {
     }catch(_){ this._toast('Não consegui copiar; tire um print desta tela'); }
   }
 
+  // O backup semanal do Mac mantém o formato catedra:chave e aceita só dados do estudo.
+  _backupLocalMac(conta){
+    if(!conta || this._titularLocal()!==conta) return null;
+    const permitidas=new Set([
+      'areaEstudo','oabPlano','oabHist','casos','edital','editais','editalAtivo','editaisGerenciados',
+      'reviews','leituras','enam','enamSim','blocks','blocksDate','cicloVolta','manualVoltaN','manualFixed',
+      'manualRot','rotPointer','manualFixedRoteiroAtual','agendaFeitas','planoLegis','metas','eventos','errors',
+      'sim','prefs','profile','accent','discItems','ankiHist','redText','redTextTs','redTempoMs','redGabarito',
+      'redEnunciado','redMarcas','redDisciplina','lastPonto','lastPontoDispensado','redHist','planHoras',
+      'simAnalysis','relPeriod','multiFmt','multiSrc','mfGen','ankiImported','provaDurationMin','escudos',
+      'streakFreezeUsados','streakCheckDate','escudoUltimoGanho','bancaDicas','bancaAreaSel','bancaSel',
+      'bancaAreaConc','bancaAssunto','semanaLidos','novidLidas','plataformaQuestoes','espelhosSugeridos',
+      'apPreset','redProvaId','ajPerfis','cmag','cmagRevs','sessions','fc','sessionsLixeira','hl','cycleMode',
+      'dark','dir','orient','habitos','prova','red','lib','legisEstudo','jurisEstudo','areaModulo:v1',
+      'leituraLeis:v1','leiturasResumo','leitorLA','leitorDark','leitorLeitura','onboarded']);
+    const dados={};
+    Object.keys(localStorage).forEach(k=>{
+      if(!k.startsWith('catedra:')) return;
+      const nome=k.slice(8);
+      if(!permitidas.has(nome.split(/[@#]/)[0]) && !/^(grifos|grifosJuris|notaJuris|leituras):.+/.test(nome)) return;
+      let valor=localStorage.getItem(k);
+      if(nome==='lib'){
+        try{ const livros=JSON.parse(valor);
+          valor=JSON.stringify(livros.map(livro=>{
+            if(!livro || !(livro.pdfB64 || livro.pages || livro._bytes)) return livro;
+            const copia={...livro,_pdfLocal:true}; delete copia.pdfB64; delete copia.pages; delete copia._bytes; return copia;
+          }));
+        }catch(_){ return; }
+      }
+      dados[k]=valor;
+    });
+    return Object.keys(dados).length ? JSON.stringify(dados) : null;
+  }
+  exportarOriginalLegado = async ()=>{
+    try{
+      const acervos=await window.CatedraAuth.originalDoLegado();
+      if(!acervos.length) return;
+      const nome='catedra-estudos-originais.json', json=JSON.stringify({acervos},null,2);
+      if(this._nativoBackup()){
+        const r=await window.webkit.messageHandlers.catedraBackup.postMessage({acao:'salvar',nome,json});
+        if(r && r.erro) throw new Error(r.erro);
+        return;
+      }
+      const url=URL.createObjectURL(new Blob([json],{type:'application/json'}));
+      const link=document.createElement('a'); link.href=url; link.download=nome; link.click();
+      setTimeout(()=>URL.revokeObjectURL(url),1000);
+    }catch(_){ this._toast('Não foi possível salvar a cópia original dos estudos.'); }
+  };
+  recuperarEstudosAntigos = async ()=>{
+    try{ const auth=window.CatedraAuth; if(auth) await auth.recuperarLegado(); }
+    catch(_){ this._toast('A recuperação não terminou. Reabra os Ajustes e tente de novo.'); }
+  };
   _backupObjeto(){ return {
       version:3, exportedAt:new Date().toISOString(),
       flashcards:this.state.flashcards,
@@ -14155,15 +14227,19 @@ class Component extends DCLogic {
   // ct_enam_prova: só ids, respostas e posição — nunca enunciado. Guarda também o decorrido
   // (sec) e a duração que valia antes (durAntes) para devolvê-la ao sair.
   _saveEnamProva(){ try{ const s=this.state; if(s.sjModo!=='enam' || !s.provaMode || !(s.sjItens||[]).length) return;
-    localStorage.setItem('ct_enam_prova', JSON.stringify({v:1, itensIds:s.sjItens.map(x=>x.id), resp:s.sjResp||{}, rev:s.sjRev||{}, atual:s.sjAtual||0, ini:s.sjIni||Date.now(),
+    const titular=this._titularLocal(); if(!titular) return;
+    localStorage.setItem('ct_enam_prova', JSON.stringify({v:2, titular, itensIds:s.sjItens.map(x=>x.id), resp:s.sjResp||{}, rev:s.sjRev||{}, atual:s.sjAtual||0, ini:s.sjIni||Date.now(),
       sec:s.provaSeconds||0, nome:s.provaName||'', comPausa:!!s.sjComPausa, durAntes:this._provaDurAntes||null, porArea:s.enamMont||null})); }catch(_){} }
   _restoreEnamProva(){
     let t=null; try{ t=JSON.parse(localStorage.getItem('ct_enam_prova')||'null'); }catch(_){}
     if(!t || !Array.isArray(t.itensIds) || !t.itensIds.length) return;
     const E=window.CT_ENAM; const descarta=(msg)=>{ try{ localStorage.removeItem('ct_enam_prova'); localStorage.removeItem('ct_prova'); }catch(_){} if(msg) this._toast(msg); };
+    const titular=this._titularLocal(); if(!titular) return;
+    if((t.titular||'local')!==titular){ descarta(''); return; }
     if(!E||!E.rehidratar){ descarta(''); return; }
     if(Date.now()-(+t.ini||0) > E.RETOMAR_H*3600e3){ descarta('O simulado ENAM começado há mais de 36 horas foi descartado'); return; }
     this._enamAcervos().then(()=>{
+      if(this._titularLocal()!==titular) return;
       const itens=E.rehidratar(t.itensIds, window.CT_QUESTOES_ENAM||[], window.CT_QUESTOES_PROVA||[]);
       if(!itens){ descarta('Não achei as questões do simulado ENAM guardado — o banco mudou; a prova foi descartada'); return; }
       const cap=E.DURACAO_MIN*60, sec=Math.max(0, Math.min(cap-1, +t.sec||0)), resp=t.resp&&typeof t.resp==='object'?t.resp:{};
@@ -14174,7 +14250,7 @@ class Component extends DCLogic {
         sjComPausa:true, enamMont:Array.isArray(t.porArea)?t.porArea:null, enamErro:'',
         provaMode:true, provaRunning:false, provaDurationMin:E.DURACAO_MIN, provaSeconds:sec, provaName:t.nome||this._enamNome()}, ()=>{ this._saveEnamProva(); try{ this._irPara('simulados'); }catch(_){} });
       this._toast('Simulado ENAM retomado onde parou — '+n+' respondida'+(n===1?'':'s')+'; aperte Retomar para seguir');
-    }).catch(()=>descarta('Não consegui recarregar o banco do ENAM — a prova guardada foi descartada'));
+    }).catch(()=>{ if(this._titularLocal()===titular) descarta('Não consegui recarregar o banco do ENAM — a prova guardada foi descartada'); });
   }
   // avisos discretos: um toast aos 60 e outro aos 15 minutos finais — sem som, sem piscar
   _enamAvisoTick(){ const s=this.state, left=s.provaDurationMin*60-s.provaSeconds; this._enamAvisos=this._enamAvisos||{};
@@ -16460,10 +16536,10 @@ class Component extends DCLogic {
         if(this.state.provaSeconds>=this.state.provaDurationMin*60){ if(this._provaT){clearInterval(this._provaT);this._provaT=null;} if(enam){ this.encerrarEnam(true); return; } this._beep&&this._beep(); this.setState({provaRunning:false}); this.finishProva(true); } }); },1000); }
   // Modo prova sobrevive a fechar o app: guarda o decorrido LOCAL (como o ct_timer) e,
   // no boot do MESMO dia, reabre PAUSADO onde parou — abre, não grava sozinho.
-  _saveProva(){ try{ const s=this.state; if(!s.provaMode){ localStorage.removeItem('ct_prova'); return; } localStorage.setItem('ct_prova', JSON.stringify({sec:s.provaSeconds, min:s.provaDurationMin, d:this._hoje(), running:!!s.provaRunning, ts:Date.now()})); }catch(_){} }
+  _saveProva(){ try{ const s=this.state, titular=this._titularLocal(); if(!titular) return; if(!s.provaMode){ localStorage.removeItem('ct_prova'); return; } localStorage.setItem('ct_prova', JSON.stringify({titular, sec:s.provaSeconds, min:s.provaDurationMin, d:this._hoje(), running:!!s.provaRunning, ts:Date.now()})); }catch(_){} }
   _restoreProva(){ try{ if(localStorage.getItem('ct_enam_prova')) return;   // E3: a prova ENAM guardada é de _restoreEnamProva, que sabe reconstruir as questões
       const raw=localStorage.getItem('ct_prova'); if(!raw) return; const t=JSON.parse(raw); localStorage.removeItem('ct_prova');
-      if(!t || t.d!==this._hoje()) return; const min=Math.max(1,Math.min(600,parseInt(t.min,10)||240));
+      if(!t || (t.titular||'local')!==this._titularLocal() || t.d!==this._hoje()) return; const min=Math.max(1,Math.min(600,parseInt(t.min,10)||240));
       // Estava RODANDO quando o processo morreu: o tempo com a tela apagada conta, pela mesma
       // política/teto do tique (_gapSeg). Continua reabrindo PAUSADO — abre, não grava sozinho.
       const gap=(t.running && +t.ts>0) ? this._gapSeg(+t.ts) : 0;
@@ -16732,20 +16808,25 @@ class Component extends DCLogic {
     const arr=(r)=> (r && !r.error && Array.isArray(r.data)) ? r.data : [];
     const obj=(r)=> (r && !r.error && r.data && typeof r.data==='object') ? r.data : null;
     try{
-      const [vg, fb, gr, al, ia, sis, cfg, lg] = await Promise.all([
-        sb.rpc('admin_visao_geral'), sb.rpc('admin_feedback'),
-        sb.rpc('admin_grupos'), sb.rpc('admin_allow_list'),
-        sb.rpc('admin_uso_ia'), sb.rpc('admin_sistema'),
-        sb.rpc('admin_config'), sb.rpc('admin_logs', {p_limit:200})
+      const falhas=[];
+      const consultar=async(nome,args,rotulo)=>{
+        try{ const r=await sb.rpc(nome,args); if(!r || r.error) throw (r && r.error); return r; }
+        catch(e){ falhas.push({rotulo,erro:e}); return null; }
+      };
+      const [vg,fb,gr,al,ia,sis,cfg,lg,erros,telas,cotas]=await Promise.all([
+        consultar('admin_visao_geral',undefined,'visão geral'), consultar('admin_feedback',undefined,'feedback'),
+        consultar('admin_grupos',undefined,'grupos'), consultar('admin_allow_list',undefined,'convites'),
+        consultar('admin_uso_ia',undefined,'uso de IA'), consultar('admin_sistema',undefined,'sistema'),
+        consultar('admin_config',undefined,'configuração'), consultar('admin_logs',{p_limit:200},'auditoria'),
+        consultar('admin_erros_cliente',{p_horas:24},'erros'), consultar('admin_uso_telas',{p_dias:7},'uso das telas'),
+        consultar('admin_ia_cota',undefined,'cotas')
       ]);
-      if(vg.error) throw vg.error;
-      // P17: erros das últimas 24 h e telas mais usadas (7 dias) — falha aqui não derruba o console
-      let teErr=[], teTelas=null;
-      try{ const [a,b]=await Promise.all([sb.rpc('admin_erros_cliente', {p_horas:24}), sb.rpc('admin_uso_telas', {p_dias:7})]); teErr=arr(a); teTelas=obj(b); }catch(_){}
-      let teCota=[]; try{ const c=await sb.rpc('admin_ia_cota'); teCota=arr(c); }catch(_){}   // P18
+      const acessoNegado=falhas.length===11 && falhas.some(f=>/acesso_negado/.test(String(f.erro&&f.erro.message)));
+      const adminErro=acessoNegado?'Esta conta não é administradora.':falhas.length?'Não foi possível carregar: '+falhas.map(f=>f.rotulo).join(', ')+'.':'';
+      const teErr=arr(erros), teTelas=obj(telas), teCota=arr(cotas);
       const conf=obj(cfg)||{};
       const av=(conf.aviso&&typeof conf.aviso==='object')?conf.aviso:{};
-      this.setState({ adminData:vg.data||null, adminErros:teErr, adminTelas:teTelas, adminCota:teCota,
+      this.setState({ adminErro, adminData:obj(vg), adminErros:teErr, adminTelas:teTelas, adminCota:teCota,
         adminFeedback:arr(fb), adminGrupos:arr(gr), adminAllow:arr(al),
         adminIa:obj(ia), adminSistema:obj(sis), adminConfig:conf, adminLogs:arr(lg),
         // o texto do aviso só é resincronizado quando não está sendo editado, para o
@@ -16811,7 +16892,7 @@ class Component extends DCLogic {
     const uid=e.currentTarget.dataset.uid; if(!uid) return;
     if(!window.confirm('Derrubar as sessões desta conta em todos os aparelhos? Ela vai ter de entrar de novo.')) return;
     const r=await this._admRpc('admin_desconectar', {p_uid:uid});
-    if(r!==false){ this._toast((r&&r.sessoes?r.sessoes:0)+' sessão(ões) derrubada(s)'); this._loadAdmin(); }
+    if(r!==false){ this._toast((r&&r.sessoes?r.sessoes:0)+' sessão(ões) derrubada(s) e '+((r&&r.passesRevogados)||0)+' passe(s) de widget revogado(s)'); this._loadAdmin(); }
   };
   _admSetAdmin = async (e)=>{
     const uid=e.currentTarget.dataset.uid; const v=e.currentTarget.dataset.v==='1'; if(!uid) return;
@@ -16922,6 +17003,12 @@ class Component extends DCLogic {
   _admToggleManut = async ()=>{
     const on=!this._admCfgBool('manutencao');
     if(await this._admRpc('admin_config_set', {p_chave:'manutencao', p_valor:on}, on?'Modo manutenção ligado':'Modo manutenção desligado')!==false) this._loadAdmin();
+  };
+  _admToggleBeta = async ()=>{
+    const atual=(this.state.adminConfig||{}).beta_aberto;
+    if(typeof atual!=='boolean'){ this._toast('Atualize a configuração do beta antes de alterar o acesso.'); return; }
+    if(!atual && !window.confirm('Abrir o beta a todas as contas autenticadas?')) return;
+    if(await this._admRpc('admin_config_set',{p_chave:'beta_aberto',p_valor:!atual},atual?'Beta fechado':'Beta aberto')!==false) this._loadAdmin();
   };
   _admCfgBool = (k)=> (this.state.adminConfig||{})[k]===true;
   onAdmAviso = (e)=> this.setState({admAvisoTxt:e.currentTarget.value, admAvisoDirty:true});
@@ -21059,6 +21146,8 @@ class Component extends DCLogic {
       // ── auditoria ──
       admLogs, admLogsVazio, admExportarLog:this.admExportarLog,
       // ── comuns ──
+      admBetaModo:_cfg.beta_aberto===true?'Beta aberto':_cfg.beta_aberto===false?'Beta fechado':'Modo de acesso indisponível',
+      admBetaAcao:_cfg.beta_aberto===true?'Fechar o beta':'Abrir o beta', admToggleBeta:this._admToggleBeta,
       admGrupos, admSemGrupos, admAllow, admAllowVazia, admTemDetalhe, admDetalhe,
       adminDetalheBusy:this.state.adminDetalheBusy,
       adminBloquear:this._adminBloquear, adminLerFeedback:this._adminLerFeedback, exportarTestadoresCSV:this.exportarTestadoresCSV,
@@ -21099,6 +21188,10 @@ class Component extends DCLogic {
       docAberto:!!this.state.docAberto, docAbertoSrc:this.state.docAberto?('./'+this.state.docAberto+'.html'):'', docAbertoTitulo:this.state.docAberto==='privacidade'?'Política de privacidade':'Termos de uso', abrirDoc:this.abrirDoc, fecharDoc:this.fecharDoc,
       juridicoVersao:(window.CT_JURIDICO&&window.CT_JURIDICO.versao)||'', juridicoData:(()=>{ try{ const d=window.CT_JURIDICO.termos.data; return d?new Date(d+'T12:00:00').toLocaleDateString('pt-BR'):''; }catch(_){ return ''; } })(),
       aceiteTxt:(()=>{ const J=window.CT_JURIDICO, a=this.state.aceite; if(!J) return 'Documentos não publicados neste build.'; if(J.aceiteVigente(a)){ try{ return 'Você aceitou a versão '+a.versao+' em '+new Date(+a.ts).toLocaleDateString('pt-BR')+'.'; }catch(_){ return 'Aceitos.'; } } return 'A versão vigente ('+J.versao+') ainda não foi aceita nesta conta — o app pede no próximo login.'; })(),
+      temOriginalLocal:!!(window.CatedraAuth && window.CatedraAuth.user && localStorage.getItem('ct_original_'+window.CatedraAuth.user.id)),
+      exportarOriginalLegado:this.exportarOriginalLegado,
+      temReservaLocal:!!(window.CatedraAuth && window.CatedraAuth.user && localStorage.getItem('ct_recuperacao_disponivel')),
+      recuperarEstudosAntigos:this.recuperarEstudosAntigos,
       widgetLinhaOn:!!(window.CatedraAuth&&window.CatedraAuth.user),
       widgetLinhaTxt:(this.state.widgetAtivos==null ? 'Mostram o seu estudo na tela de início e na mesa. Ligam sozinhos quando o Cátedra abre no aparelho.'
         : (this.state.widgetAtivos===0 ? 'Nenhum aparelho com widget ligado.'

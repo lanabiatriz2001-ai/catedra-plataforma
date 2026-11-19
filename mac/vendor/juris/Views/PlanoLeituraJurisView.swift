@@ -1,14 +1,14 @@
 import SwiftUI
 
 /// Persistência dos dias lidos do Plano de leitura de súmulas.
-enum JurisPlanoStore {
+@MainActor enum JurisPlanoStore {
     static let key = "juris.plano.done.v1"
     static func lidos() -> Set<Int> {
-        Set((UserDefaults.standard.array(forKey: key) as? [Int]) ?? [])
+        Set((PerfilLeitor.atual.preferencias.array(forKey: key) as? [Int]) ?? [])
     }
     static func setLido(_ dia: Int, _ on: Bool) {
         var s = lidos(); if on { s.insert(dia) } else { s.remove(dia) }
-        UserDefaults.standard.set(Array(s), forKey: key)
+        PerfilLeitor.atual.preferencias.set(Array(s), forKey: key)
     }
 }
 

@@ -10,74 +10,12 @@
 // A chave fica só no servidor (GEMINI_API_KEY). Exige sessão do Supabase, igual ao
 // /api/complete: TTS custa por caractere e não pode ficar aberto para a internet.
 
-const SB_URL = (process.env.SUPABASE_URL || 'https://frcnfqxniwzdyykvgqqu.supabase.co').replace(/\/+$/, '');
-const SB_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_nCm4a-RzzY8e8jVC9O6Gfg_4V6EOrI2';
+import { autorizarRecurso, cotaDoDia, mensagemCota, reservarUsoIA } from '../scripts/lib/acesso-api.mjs';
+export { cotaDoDia, mensagemCota };
 
 // Teto de caracteres: a narração do Multiformato tem ~120-160 palavras (bem menos que
 // isto). O limite existe para uma chamada só não virar uma conta cara.
 const MAX_CHARS = 5000;
-
-async function usuarioDoToken(req) {
-  const h = req.headers['authorization'] || req.headers['Authorization'] || '';
-  const m = /^Bearer\s+(.+)$/i.exec(String(h));
-  if (!m) return null;
-  try {
-    const r = await fetch(SB_URL + '/auth/v1/user', {
-      headers: { apikey: SB_KEY, authorization: 'Bearer ' + m[1] },
-    });
-    if (!r.ok) return null;
-    const u = await r.json();
-    if (u && u.id) { u.__token = m[1]; return u; }
-    return null;
-  } catch (_) {
-    return null;
-  }
-}
-
-function liberado(user) {
-  const lista = (process.env.BETA_EMAILS || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
-  if (!lista.length) return true;
-  return lista.includes(String(user.email || '').toLowerCase());
-}
-
-// Conta bloqueada pela dona no painel de admin (fail-open em erro de rede).
-async function contaBloqueada(user) {
-  try {
-    const r = await fetch(SB_URL + '/rest/v1/rpc/meu_acesso_bloqueado', {
-      method: 'POST',
-      headers: { apikey: SB_KEY, authorization: 'Bearer ' + user.__token, 'content-type': 'application/json' },
-      body: '{}',
-    });
-    if (!r.ok) return false;
-    return (await r.json()) === true;
-  } catch (_) {
-    return false;
-  }
-}
-
-// Allowlist do painel (beta_allow). Vazia = aberto. Fail-open em erro de rede.
-async function emailLiberadoDB(user) {
-  try {
-    const r = await fetch(SB_URL + '/rest/v1/rpc/meu_email_liberado', {
-      method: 'POST',
-      headers: { apikey: SB_KEY, authorization: 'Bearer ' + user.__token, 'content-type': 'application/json' },
-      body: '{}',
-    });
-    if (!r.ok) return true;
-    return (await r.json()) !== false;
-  } catch (_) { return true; }
-}
-
-async function reservarUsoIA(user, endpoint, chars) {
-  const r = await fetch(SB_URL + '/rest/v1/rpc/reservar_uso_ia', {
-    method: 'POST', headers: { apikey: SB_KEY, authorization: 'Bearer ' + user.__token, 'content-type': 'application/json' },
-    body: JSON.stringify({ p_endpoint: endpoint, p_chars: chars }),
-  });
-  if (!r.ok) throw new Error('reserva_indisponivel');
-  const c = await r.json();
-  if (!c || typeof c.reservada !== 'boolean' || !Number.isFinite(c.limite) || !Number.isFinite(c.usadas)) throw new Error('reserva_invalida');
-  return c;
-}
 
 /** Embrulha PCM 16-bit mono num WAV — 44 bytes de cabeçalho, sem dependência nenhuma. */
 function pcmParaWav(pcm, taxa, canais, bits) {
@@ -109,29 +47,6 @@ function formatoDoMime(mime) {
   return { taxa, bits, canais };
 }
 
-
-// Cota diária por conta (P18): o limite vem da tabela ia_cota pelo plano da conta (ia_plano;
-// padrão 'beta', configurável no console de administração) e a contagem é a de ai_uso, do dia
-// de Brasília. Em falha de rede/consulta, NÃO barra (fail-open) — como os outros portões.
-export async function cotaDoDia(user) {
-  try {
-    const r = await fetch(SB_URL + '/rest/v1/rpc/minha_cota_ia', {
-      method: 'POST',
-      headers: { apikey: SB_KEY, authorization: 'Bearer ' + user.__token, 'content-type': 'application/json' },
-      body: '{}',
-    });
-    if (!r.ok) { console.warn('[cota IA] consulta falhou (HTTP ' + r.status + '): liberando sem teto'); return null; }
-    const j = await r.json();
-    return (j && typeof j.limite === 'number' && typeof j.usadas === 'number') ? j : null;
-  } catch (e) {
-    console.warn('[cota IA] consulta falhou (' + (e && e.message) + '): liberando sem teto');
-    return null;
-  }
-}
-export function mensagemCota(c) {
-  return 'Você usou as ' + c.limite + ' chamadas de IA de hoje. A cota volta amanhã, à meia-noite de Brasília.';
-}
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Método não permitido — use POST.' });
@@ -144,11 +59,11 @@ export default async function handler(req, res) {
     return;
   }
 
-  const user = await usuarioDoToken(req);
-  if (!user) { res.status(401).json({ error: 'Entre na sua conta do Cátedra para gerar a narração.' }); return; }
-  if (!liberado(user) || !(await emailLiberadoDB(user))) { res.status(403).json({ error: 'Esta conta ainda não está liberada para o beta.' }); return; }
-  if (await contaBloqueada(user)) { res.status(403).json({ error: 'O acesso à IA desta conta foi pausado. Fale com quem te convidou.' }); return; }
-  const cota = await cotaDoDia(user);
+  const acesso = await autorizarRecurso(req,
+    'Entre na sua conta do Cátedra para gerar a narração.',
+    'O acesso à IA desta conta foi pausado. Fale com quem te convidou.');
+  if (acesso.erro) { res.status(acesso.codigo).json({ error: acesso.erro }); return; }
+  const cota = await cotaDoDia(acesso.usuario);
   if (cota && cota.usadas >= cota.limite) { res.status(429).json({ error: mensagemCota(cota), cota }); return; }
 
   try {
@@ -159,10 +74,8 @@ export default async function handler(req, res) {
       res.status(413).json({ error: 'Texto longo demais para narrar (máx. ' + MAX_CHARS + ' caracteres).' });
       return;
     }
-    let reserva;
-    try { reserva = await reservarUsoIA(user, 'tts', texto.length); }
-    catch (_) { res.status(503).json({ error: 'Não foi possível conferir a cota de IA. Tente novamente em instantes.' }); return; }
-    if (!reserva.reservada) { res.status(429).json({ error: mensagemCota(reserva), cota: reserva }); return; }
+    const recusa = await reservarUsoIA(acesso.usuario, 'tts', texto.length);
+    if (recusa) { res.status(recusa.codigo).json(recusa.corpo); return; }
 
     const model = process.env.GEMINI_TTS_MODEL || 'gemini-2.5-flash-preview-tts';
     const voz = /^[A-Za-z]{3,20}$/.test(String(body.voz || '')) ? body.voz : (process.env.GEMINI_TTS_VOICE || 'Kore');

@@ -5,7 +5,25 @@ import Network
 
 @MainActor
 final class AppStore: ObservableObject {
-    static let shared = AppStore()
+    private static var instancia: AppStore?
+    static var shared: AppStore {
+        if let instancia { return instancia }
+        let nova = AppStore()
+        instancia = nova
+        return nova
+    }
+    let perfil: PerfilLeitor
+    private var verificador: Task<Void, Never>?
+    private var encerrado = false
+
+    static func encerrarPerfil() {
+        guard let anterior = instancia else { return }
+        anterior.saveNow()
+        anterior.encerrado = true
+        anterior.verificador?.cancel()
+        anterior.pathMonitor.cancel()
+        instancia = nil
+    }
 
     @Published var laws: [LawEntry] = []
     @Published var updates: [UpdateEvent] = []
@@ -166,17 +184,8 @@ final class AppStore: ObservableObject {
 
     private let baseDir: URL
     private let textsDir: URL
-    /// Backups em Documentos/Backups do LEGIS. No Mac ficavam em Application Support, que
-    /// no iPad é invisível: o app Arquivos só mostra a pasta Documentos do app (No meu iPad
-    /// ▸ Cátedra, por UIFileSharingEnabled) — é de lá que um backup sai para o iCloud, o
-    /// AirDrop ou o e-mail. A pasta antiga é migrada na primeira leitura (ver abaixo).
-    private var backupsDir: URL {
-        let documentos = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first ?? baseDir
-        return documentos.appendingPathComponent("Backups do LEGIS", isDirectory: true)
-    }
-    /// Onde as versões anteriores do app do iPad gravavam os backups.
-    private var backupsDirAntigo: URL { baseDir.appendingPathComponent("backups", isDirectory: true) }
-    private var backupsMigrados = false
+    /// Exportações explícitas usam a folha de compartilhamento. Cópias automáticas pertencem à conta.
+    private var backupsDir: URL { baseDir.appendingPathComponent("backups", isDirectory: true) }
     private var sigenDir: URL { baseDir.appendingPathComponent("sigen", isDirectory: true) }
     private var douFile: URL { baseDir.appendingPathComponent("dou.json") }
     private var libraryFile: URL { baseDir.appendingPathComponent("library.json") }
@@ -185,8 +194,8 @@ final class AppStore: ObservableObject {
     private let pathQueue = DispatchQueue(label: "com.vademecum.network")
 
     init() {
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        baseDir = appSupport.appendingPathComponent("VadeMecum", isDirectory: true)
+        perfil = PerfilLeitor.atual
+        baseDir = perfil.raiz.appendingPathComponent("VadeMecum", isDirectory: true)
         textsDir = baseDir.appendingPathComponent("textos", isDirectory: true)
         try? FileManager.default.createDirectory(at: textsDir, withIntermediateDirectories: true)
         load()
@@ -210,10 +219,10 @@ final class AppStore: ObservableObject {
         // pendentes (sincronização posterior). O callback chega em outra thread; não
         // capturamos `self` (não-Sendable) — saltamos para a MainActor e usamos o
         // singleton, que é o mesmo objeto.
-        pathMonitor.pathUpdateHandler = { path in
+        pathMonitor.pathUpdateHandler = { [weak self] path in
             let online = path.status == .satisfied
             Task { @MainActor in
-                let store = AppStore.shared
+                guard let store = self, !store.encerrado else { return }
                 let wasOffline = !store.isOnline
                 store.isOnline = online
                 if online && wasOffline { await store.resumeAfterReconnect() }
@@ -222,7 +231,7 @@ final class AppStore: ObservableObject {
         pathMonitor.start(queue: pathQueue)
         // O laço de verificação vive junto do app (não da janela): continua ativo
         // mesmo com a janela fechada, enquanto o app estiver aberto.
-        Task { await self.autoCheckLoop() }
+        verificador = Task { await self.autoCheckLoop() }
         // Limpa cartões de revisão órfãos (artigo sumido em atualização anterior) em
         // segundo plano — não bloqueia a abertura e só parseia normas com cartões.
         Task { await self.reconcileAllSRS() }
@@ -293,6 +302,7 @@ final class AppStore: ObservableObject {
 
     /// Grava imediatamente. Para digitação contínua, use `scheduleSave()`.
     func saveNow() {
+        guard !encerrado else { return }
         saveTask?.cancel()
         saveTask = nil
         let persisted = LibraryFile(laws: laws, updates: updates,
@@ -343,38 +353,19 @@ final class AppStore: ObservableObject {
     }()
 
     func autoBackupIfNeeded() {
+        guard !encerrado else { return }
         let today = Self.dayFormatter.string(from: Date())
-        if UserDefaults.standard.string(forKey: "lastBackupDay") == today { return }
+        if perfil.preferencias.string(forKey: "lastBackupDay") == today { return }
         if backupNow() != nil {
-            UserDefaults.standard.set(today, forKey: "lastBackupDay")
-        }
-    }
-
-    /// Traz os backups da pasta antiga (Application Support, invisível no Arquivos) para a
-    /// nova, uma vez por sessão. Move um a um; se o mesmo nome já existe no destino, o
-    /// antigo é descartado — nome carimba data e hora, então é a mesma cópia.
-    private func migrarBackupsAntigos() {
-        guard !backupsMigrados else { return }
-        backupsMigrados = true
-        let fm = FileManager.default
-        guard fm.fileExists(atPath: backupsDirAntigo.path) else { return }
-        try? fm.createDirectory(at: backupsDir, withIntermediateDirectories: true)
-        let antigos = (try? fm.contentsOfDirectory(at: backupsDirAntigo, includingPropertiesForKeys: nil)) ?? []
-        for url in antigos where url.lastPathComponent.hasPrefix("library-") && url.pathExtension == "json" {
-            let destino = backupsDir.appendingPathComponent(url.lastPathComponent)
-            if fm.fileExists(atPath: destino.path) {
-                try? fm.removeItem(at: url)
-            } else {
-                try? fm.moveItem(at: url, to: destino)
-            }
+            perfil.preferencias.set(today, forKey: "lastBackupDay")
         }
     }
 
     /// Copia o library.json atual para Backups do LEGIS/ e mantém só os 10 mais recentes.
     @discardableResult
     func backupNow() -> URL? {
+        guard !encerrado else { return nil }
         saveNow() // garante que o arquivo reflete o estado atual antes de copiar
-        migrarBackupsAntigos()
         guard FileManager.default.fileExists(atPath: libraryFile.path),
               let data = try? Data(contentsOf: libraryFile) else { return nil }
         try? FileManager.default.createDirectory(at: backupsDir, withIntermediateDirectories: true)
@@ -386,7 +377,6 @@ final class AppStore: ObservableObject {
 
     /// Backups existentes, do mais novo para o mais antigo (nome carimba a data).
     func backupFiles() -> [URL] {
-        migrarBackupsAntigos()
         let files = (try? FileManager.default.contentsOfDirectory(at: backupsDir, includingPropertiesForKeys: [.contentModificationDateKey])) ?? []
         return files.filter { $0.lastPathComponent.hasPrefix("library-") && $0.pathExtension == "json" }
             .sorted { $0.lastPathComponent > $1.lastPathComponent }
@@ -402,16 +392,11 @@ final class AppStore: ObservableObject {
         for url in backupFiles().dropFirst(keep) { try? FileManager.default.removeItem(at: url) }
     }
 
-    /// Caminho legível da pasta de backups, para a tela dizer onde ela está.
-    var backupsCaminhoLegivel: String { "Arquivos ▸ No meu iPad ▸ Cátedra ▸ Backups do LEGIS" }
-
-    /// No Mac isto revelava a pasta no Finder. No iPad abre a mesma pasta no app Arquivos
-    /// (shareddocuments://). `conclusao(false)` quando o sistema não abriu — a tela então
-    /// mostra o caminho por extenso. A pasta é criada antes, para o Arquivos ter o que abrir.
-    func abrirBackupsNoArquivos(conclusao: @escaping (Bool) -> Void) {
-        migrarBackupsAntigos()
-        try? FileManager.default.createDirectory(at: backupsDir, withIntermediateDirectories: true)
-        LegisCompartilhar.abrirNoArquivos(backupsDir, conclusao: conclusao)
+    /// O seletor de Documentos exporta uma cópia. Os backups automáticos ficam na pasta privativa da conta.
+    func exportarPastaBackups() -> Bool {
+        guard let topo = LegisCompartilhar.topo(), !backupFiles().isEmpty else { return false }
+        topo.present(UIDocumentPickerViewController(forExporting: [backupsDir], asCopy: true), animated: true)
+        return true
     }
 
     /// Folha de compartilhamento com o backup mais recente (AirDrop, iCloud Drive, Mail…).

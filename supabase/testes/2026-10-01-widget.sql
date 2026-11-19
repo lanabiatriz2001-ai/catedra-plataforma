@@ -2,15 +2,17 @@
 -- de aplicar a migração. Tudo acontece dentro de um bloco que TERMINA EM ERRO de propósito: o Postgres desfaz
 -- tudo, e o resultado vem na mensagem ("RESULTADO: W1 ok; …"). Nada fica gravado. Precisa de duas contas em auth.users.
 do $$
-declare u1 uuid; u2 uuid; p1 text; p2 text; ok boolean; j jsonb; n int; res text := ''; i int;
+declare u1 uuid; u2 uuid; s1 uuid := gen_random_uuid(); s2 uuid := gen_random_uuid(); p1 text; p2 text; ok boolean; j jsonb; n int; res text := ''; i int;
 begin
   select id into u1 from auth.users order by created_at limit 1;
   select id into u2 from auth.users where id <> u1 order by created_at limit 1;
   if u2 is null then raise exception 'precisa de duas contas em auth.users'; end if;
+  -- Sessões sintéticas exclusivas desta transação, inclusive para quem está deslogado.
+  insert into auth.sessions(id, user_id) values (s1, u1), (s2, u2);
   -- As duas contas podem já ter resumo: limpa para os casos partirem do zero (desfeito pelo desfazer final, por erro).
   delete from public.widget_resumo where user_id in (u1, u2);
 
-  perform set_config('request.jwt.claims', json_build_object('sub', u1)::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', u1, 'session_id', s1)::text, true);
   ok := public.widget_publicar('{"v":1,"x":1}'::jsonb, 1000);
   res := res || case when ok then 'W1 ok; ' else 'W1 FALHOU; ' end;
   ok := public.widget_publicar('{"v":1,"x":2}'::jsonb, 999);
@@ -37,14 +39,14 @@ begin
   res := res || case when (j->'resumo'->>'x') = '3' and (j->>'carimbo')::bigint = 1000 then 'W5 ok; ' else 'W5 FALHOU (' || coalesce(j::text, 'null') || '); ' end;
   res := res || case when public.widget_ler('passe-que-nao-existe-0000000000') is null then 'W6 ok; ' else 'W6 FALHOU; ' end;
 
-  perform set_config('request.jwt.claims', json_build_object('sub', u2)::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', u2, 'session_id', s2)::text, true);
   p2 := public.widget_passe_emitir('iPad de teste');
   j := public.widget_ler(p2);
   res := res || case when j->'resumo' = 'null'::jsonb then 'W7 ok; ' else 'W7 FALHOU (passe de outra conta leu: ' || j::text || '); ' end;
   ok := public.widget_passe_revogar(p1);
   res := res || case when not ok and public.widget_ler(p1) is not null then 'W8 ok; ' else 'W8 FALHOU (revogou passe alheio); ' end;
 
-  perform set_config('request.jwt.claims', json_build_object('sub', u1)::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', u1, 'session_id', s1)::text, true);
   ok := public.widget_passe_revogar(p1);
   res := res || case when ok and public.widget_ler(p1) is null then 'W9 ok; ' else 'W9 FALHOU; ' end;
   for i in 1..11 loop perform public.widget_passe_emitir('aparelho ' || i); end loop;

@@ -4,8 +4,7 @@
    (tests/auth-modo-local-fixture.html):
    · erro de REDE no login dá a mensagem clara e NÃO oferece mais "Usar sem conta";
    · aparelho que sobrou com a marca perde a marca na abertura e não abre sem conta;
-   · o login seguinte JUNTA o que o aparelho tem com a nuvem (nada é descartado) e deixa
-     pendente para subir;
+   · a conta recebe apenas seu acervo, até a reivindicação explícita dos estudos antigos;
    · catedra:_modoLocal segue no EXCLUDE (legado: nunca sobe se sobrar). */
 export async function testarAuthModoLocal(page, base, ok) {
   const fix = base + '/tests/auth-modo-local-fixture.html';
@@ -44,17 +43,34 @@ export async function testarAuthModoLocal(page, base, ok) {
   ok((await gate()) !== 'none', 'SEM MODO LOCAL aparelho com a marca não abre mais sem conta (pede o login)');
   ok(!!aberto.s && aberto.s.includes('s-so-no-ipad'), 'SEM MODO LOCAL a abertura não mexe no estudo do aparelho');
 
-  // 3. o login seguinte junta o aparelho com a nuvem: as duas sessões ficam, e o que só o
-  //    aparelho tinha fica pendente para subir
+  // A cópia sem titular só entra após confirmação explícita da conta de destino.
   await entrar(); await page.waitForTimeout(1500);
   const depois = await page.evaluate(() => {
     let ids = []; try { ids = JSON.parse(localStorage.getItem('catedra:sessions') || '[]').map(x => x.id); } catch (_) {}
     return { ids, dirty: localStorage.getItem('catedra:_dirty'), dono: localStorage.getItem('catedra:_owner'), m: localStorage.getItem('catedra:_modoLocal') };
   });
-  ok(depois.ids.includes('s-so-no-ipad') && depois.ids.includes('s-da-nuvem'),
-    'SEM MODO LOCAL o login junta o aparelho com a nuvem, sem descartar (' + depois.ids.join(', ') + ')');
-  ok(depois.dirty === '1', 'SEM MODO LOCAL o que só o aparelho tinha fica pendente para subir (dirty=' + depois.dirty + ')');
+  ok(!depois.ids.includes('s-so-no-ipad') && depois.ids.includes('s-da-nuvem'),
+    'LEGADO-10 a primeira conta não incorpora o estudo antigo automaticamente');
+  ok(await page.evaluate(()=>localStorage.getItem('ct_recuperacao_disponivel')==='1'),
+    'LEGADO-10 o acervo sem titular permanece recuperável no aparelho');
   ok(depois.dono === 'u-real' && depois.m === null, 'SEM MODO LOCAL o aparelho passa a ser da conta e a marca não volta (dono=' + depois.dono + ')');
+
+  await page.evaluate(()=>{ window.confirm=()=>false; return window.CatedraAuth.recuperarLegado(); });
+  ok(!(await page.evaluate(()=>localStorage.getItem('catedra:sessions'))).includes('s-so-no-ipad'),
+    'LEGADO-10 cancelar não altera o estudo da conta');
+  await Promise.all([
+    page.waitForNavigation({waitUntil:'load'}),
+    page.evaluate(()=>{ window.confirm=()=>true; void window.CatedraAuth.recuperarLegado(); })
+  ]);
+  await page.waitForFunction(()=>!localStorage.getItem('ct_recuperacao_disponivel') && (localStorage.getItem('catedra:sessions')||'').includes('s-so-no-ipad'));
+  const recuperado=await page.evaluate(()=>JSON.parse(localStorage.getItem('catedra:sessions')).map(s=>s.id));
+  ok(recuperado.includes('s-so-no-ipad') && recuperado.includes('s-da-nuvem'),
+    'LEGADO-10 a reivindicação confirmada preserva o estudo antigo e o da conta');
+
+  await page.waitForFunction(()=>window.CatedraAuth?.contaLocal==='u-real');
+  const originais=await page.evaluate(()=>window.CatedraAuth.originalDoLegado());
+  ok(originais.some(acervo=>acervo['catedra:sessions']?.includes('s-so-no-ipad')),
+    'LEGADO-10 o titular pode exportar os dados originais após a incorporação');
 
   const fonte = await page.evaluate(async () => (await (await fetch('/auth.js')).text()));
   ok(/'catedra:_modoLocal': 1/.test(fonte.slice(0, 3500)), 'SEM MODO LOCAL catedra:_modoLocal segue no EXCLUDE do sync');

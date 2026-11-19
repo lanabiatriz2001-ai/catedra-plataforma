@@ -9,7 +9,7 @@ struct DashboardView: View {
     var openUpdate: (UUID) -> Void = { _ in }   // abre o comparativo de UMA alteração
     let newCategory: () -> Void
 
-    @AppStorage("lastStudiedLawID") private var lastStudiedLawID = ""
+    @AppStorage("lastStudiedLawID", store: PerfilLeitor.atual.preferencias) private var lastStudiedLawID = ""
     @AppStorage("srsEnabled") private var srsEnabled = false
     @AppStorage("appearance") private var appearance = "light"  // "system" | "light" | "dark" (default casa com o fallback claro)
     // Compacto (iPhone): os quatro números-chave do hero em 2 × 2 em vez de uma fileira.
@@ -218,7 +218,7 @@ struct DashboardView: View {
                 // chips e painel de vidro, números sobrepostos ao pé do hero e o estudo semanal.
                 if let law = lastStudied {
                     FaixaProximaAcao(titulo: "Continuar: \(law.title)",
-                                     motivo: UserDefaults.standard.string(forKey: "lastStudiedUnitLabel").map { "Você parou em \($0)." } ?? "Volte exatamente ao ponto em que parou.",
+                                     motivo: PerfilLeitor.atual.preferencias.string(forKey: "lastStudiedUnitLabel").map { "Você parou em \($0)." } ?? "Volte exatamente ao ponto em que parou.",
                                      meta: law.category.rawValue, botao: "Abrir a lei", acao: { openLaw(law.id) })
                 } else {
                     FaixaProximaAcao(titulo: "Comece pelo Acervo", motivo: "Escolha uma norma para ler — o Cátedra guarda onde você parou.",

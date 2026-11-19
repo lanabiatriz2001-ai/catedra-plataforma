@@ -201,6 +201,7 @@ struct ProvaOralDoVerbete: View {
 // paga à API da Anthropic — dependente de rede e de custo por uso; agora não depende
 // de nada além do acervo que já está no bundle.
 struct ProvaOralView: View {
+    @Environment(LibraryStore.self) private var store
     let entry: JurisEntry
     @State private var pergunta: String = ""
     @State private var resposta = ""
@@ -220,7 +221,7 @@ struct ProvaOralView: View {
                 .padding(8)
                 .background(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).fill(Palette.cardBackground))
                 .overlay(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).strokeBorder(Palette.hairline))
-                .onChange(of: resposta) { _, novo in JurisRascunhoCache.set("oral", entry.id, novo) }
+                .onChange(of: resposta) { _, novo in store.rascunhos.set("oral", entry.id, novo) }
             HStack(spacing: 9) {
                 Button("Corrigir") { correcao = ProvaOralLocal.corrigir(entry, resposta: resposta) }
                     .buttonStyle(.borderedProminent).tint(Palette.accent)
@@ -233,7 +234,7 @@ struct ProvaOralView: View {
         .background(RoundedRectangle(cornerRadius: Palette.rInner, style: .continuous).fill(Palette.accent.opacity(0.06)))
         .onAppear {
             if pergunta.isEmpty { perguntar(limparResposta: false) }
-            resposta = JurisRascunhoCache.get("oral", entry.id) ?? ""
+            resposta = store.rascunhos.get("oral", entry.id) ?? ""
         }
     }
 
@@ -241,7 +242,7 @@ struct ProvaOralView: View {
         pergunta = ProvaOralLocal.pergunta(entry, variante: variante)
         variante += 1
         correcao = nil
-        if limparResposta { resposta = ""; JurisRascunhoCache.set("oral", entry.id, nil) }
+        if limparResposta { resposta = ""; store.rascunhos.set("oral", entry.id, nil) }
     }
 
     @ViewBuilder private func resultado(_ c: Correcao) -> some View {
