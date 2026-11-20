@@ -68,12 +68,13 @@ export async function testarSegurancaPerfilRelease(page, base, ok) {
       localStorage.setItem('catedra:_owner', 'titular-A');
       localStorage.setItem('ct_bkpFase2', '{"titular":"titular-A"}');
       localStorage.setItem('ct_enam_prova', '{"titular":"titular-A"}');
+      localStorage.setItem('ct_timer', '{"titular":"titular-A","sec":600}');
       localStorage.setItem('__ct:sessao', JSON.stringify({id:'titular-B',email:'b@example.test'}));
     });
     await p.goto(base + '/tests/auth-ipad-fixture.html');
     await p.waitForFunction(() => window.CatedraAuth?.contaLocal === 'titular-B' && sessionStorage.getItem('catedra:hydrated') === '1');
     await p.waitForTimeout(1400);
-    ok(await p.evaluate(() => !localStorage.getItem('ct_bkpFase2') && !localStorage.getItem('ct_enam_prova')),
-      'PERFIL-01 a troca de titular remove as cópias antigas e o reload não as recria');
+    ok(await p.evaluate(() => ['ct_bkpFase2','ct_enam_prova','ct_timer'].every(k => localStorage.getItem(k) === null)),
+      'PERFIL-01 a troca de titular remove as cópias antigas e o cronômetro, e o reload não os recria');
   } finally { await ctx.close(); }
 }
