@@ -18,6 +18,19 @@ export async function testarEnamModo(page, base, ok, opcoes = {}) {
   const arquivo = opcoes.arquivo || 'Catedra.dc.html';
   const emArquivo = origem === 'file' || origem === 'bundle';
   const R = 'ENAM MODO [' + motor + '] [' + origem + '] ';
+  // O bundle contém o login real. O fluxo offline deve ter um titular conhecido no aparelho.
+  const contextoEmbutido = origem === 'bundle' ? await page.context().browser().newContext() : null;
+  if (contextoEmbutido) {
+    await contextoEmbutido.addInitScript(() => {
+      Object.defineProperty(navigator, 'onLine', {configurable:true, get:()=>false});
+      if (!localStorage.getItem('catedra:_owner')) {
+        localStorage.setItem('catedra:_owner','00000000-0000-4000-8000-000000000001');
+        localStorage.setItem('catedra:sessions','[{"id":"sessao-de-teste"}]');
+        localStorage.setItem('catedra:auth','1');
+      }
+    });
+    page = await contextoEmbutido.newPage();
+  }
   const errosPagina = [];
   const aoErro = e => {
     const m = String(e && e.message || e);
@@ -84,5 +97,6 @@ export async function testarEnamModo(page, base, ok, opcoes = {}) {
     ok(errosPagina.length === 0, R + 'sem erro de JS na página' + (errosPagina.length ? ' (' + errosPagina[0].slice(0, 120) + ')' : ''));
   } finally {
     page.off('pageerror', aoErro);
+    if (contextoEmbutido) await contextoEmbutido.close();
   }
 }

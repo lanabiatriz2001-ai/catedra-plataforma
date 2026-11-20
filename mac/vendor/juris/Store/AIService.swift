@@ -19,10 +19,9 @@ enum AIService {
     }
 
     /// Envia system+prompt e devolve o texto da resposta.
-    static func gerar(system: String, prompt: String, apiKey: String,
+    @MainActor static func gerar(system: String, prompt: String, perfil: PerfilLeitor,
                       model: String = defaultModel, maxTokens: Int = 1200) async throws -> String {
-        let chave = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !chave.isEmpty else { throw AIError.semChave }
+        guard let chave = perfil.chaveAtual(), !chave.isEmpty else { throw AIError.semChave }
         guard let url = URL(string: "https://api.anthropic.com/v1/messages") else { throw AIError.rede("URL inválida") }
 
         var req = URLRequest(url: url)
@@ -44,6 +43,7 @@ enum AIService {
         do { (data, resp) = try await URLSession.shared.data(for: req) }
         catch { throw AIError.rede(error.localizedDescription) }
 
+        guard perfil.dominio == PerfilLeitor.atual.dominio else { throw AIError.semChave }
         guard let http = resp as? HTTPURLResponse else { throw AIError.resposta }
         guard (200..<300).contains(http.statusCode) else {
             let msg = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])

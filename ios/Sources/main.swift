@@ -73,6 +73,12 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
     var pipCronometro: PiPCronometro?                  // janela flutuante do cronômetro (PiP do sistema)
 
     override func viewDidLoad() {
+        NotificationCenter.default.addObserver(forName: PerfilLeitor.mudouAcervo, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let conta = PerfilLeitor.atual.conta else { return }
+                try? self?.atualizarPerfil(["conta": conta])
+            }
+        }
         // Gaveta do leitor do LEGIS: texto OFICIAL do verbete lido do acervo do JURIS.
         JurisPorArtigo.textoOficial = { [weak self] id in
             self?.jurisStore?.entries.first { $0.id == id }?.enunciado
@@ -100,7 +106,7 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         // Ponte de IA + notificações, no mundo .page (o app roda no mundo principal).
         for nome in ["catedraAI", "notifyPermission", "notifyShow", "catedraLembretes",
                      "catedraNav", "catedraPlano", "catedraPrint", "catedraAcervo", "catedraBackup",
-                     "catedraArea", "catedraWidget", "catedraPiP"] {
+                     "catedraArea", "catedraPerfil", "catedraWidget", "catedraPiP"] {
             ucc.addScriptMessageHandler(self, contentWorld: .page, name: nome)
         }
         ucc.addUserScript(WKUserScript(source: Self.pontesJS,
@@ -307,6 +313,7 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
     }
 
     private func montarAba(remontar: Bool) {
+        if PerfilLeitor.atual.conta == nil { segmento.selectedSegmentIndex = 0 }
         let aba = segmento.selectedSegmentIndex
         // Ao SAIR do CátedraLEGIS/CátedraJURIS, fecha a rajada e coleta no Cátedra (como no Mac).
         if abaAtual == 1 && aba != 1 { flushLegisStudy() }
@@ -352,11 +359,14 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
     /// (35 MB de JSON): abrirVerbete devolve em silêncio se o id não está indexado. Na primeira
     /// vez o "abrir este verbete" do LEGIS caía no vazio — aqui ele espera o acervo chegar.
     func abrirVerbeteQuandoCarregado(_ id: String, tentativa: Int = 0) {
+        let perfil = PerfilLeitor.atual
+        guard perfil.conta != nil else { return }
         if jurisStore == nil { jurisStore = LibraryStore() }
         guard let store = jurisStore else { return }
         if !store.entries.isEmpty { store.abrirVerbete(id); return }
         guard tentativa < 60 else { return }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            guard perfil.raiz == PerfilLeitor.diretorio else { return }
             self?.abrirVerbeteQuandoCarregado(id, tentativa: tentativa + 1)
         }
     }
@@ -924,6 +934,11 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         case "notifyPermission": permissaoNotificacao(message, replyHandler)
         case "notifyShow":       mostrarNotificacao(message); replyHandler(nil, nil)
         case "catedraLembretes": agendarLembretes(message, replyHandler)
+        case "catedraPerfil":
+            guard message.frameInfo.request.url?.lastPathComponent == "index.html",
+                  let dados = message.body as? [String: String] else { replyHandler(nil, "Perfil inválido"); return }
+            do { try atualizarPerfil(dados); replyHandler(true, nil) }
+            catch { replyHandler(nil, "Não foi possível atualizar os dados locais desta conta.") }
         case "catedraArea":
             // {area, rotulo, juris, legis} — a web avisa o que a área ativa oferece
             if let d = message.body as? [String: Any] {
@@ -1306,6 +1321,7 @@ extension RootViewController {
     @objc func abrirAjustesDoModulo() { abrirAjustes(aba: segmento.selectedSegmentIndex) }
 
     func abrirAjustes(aba: Int) {
+        guard PerfilLeitor.atual.conta != nil else { return }
         guard presentedViewController == nil else { return }
         let acento = ThemeState.t.accent
         let host: UIViewController
@@ -1371,14 +1387,71 @@ extension RootViewController {
         RunLoop.main.add(tm, forMode: .common); nativeRevTimer = tm
         DispatchQueue.main.asyncAfter(deadline: .now() + 6) { [weak self] in
             guard let self else { return }
-            // Instancia o store do JURIS cedo (é o mesmo objeto reaproveitado pela aba),
-            // senão a contagem só existiria após a primeira visita à aba de jurisprudência.
-            if self.jurisStore == nil { self.jurisStore = LibraryStore() }
             self.pushNativeReviews()
         }
     }
 
+    private func atualizarPerfil(_ dados: [String: String]) throws {
+        let anterior = PerfilLeitor.atual
+        let exclusao = dados["excluir"]
+        guard dados["conta"] != nil || exclusao != nil else { throw CocoaError(.fileReadCorruptFile) }
+        if let exclusao {
+            if anterior.autenticado && exclusao.lowercased() == anterior.conta {
+                anterior.agendarExclusao()
+            } else {
+                let pendente = PerfilLeitor(conta: exclusao)
+                guard pendente.exclusaoPendente else { throw CocoaError(.fileWriteNoPermission) }
+                try pendente.concluirExclusao()
+                return
+            }
+        } else {
+            PerfilLeitor.retomarExclusoes()
+        }
+        let novo = PerfilLeitor(conta: exclusao == nil ? dados["conta"] : nil)
+        guard !novo.exclusaoPendente else { throw CocoaError(.fileWriteNoPermission) }
+        anterior.protegerChaveAntiga(.standard)
+        guard novo.conta != anterior.conta || novo.raiz != anterior.raiz else { return }
+        StudyClock.shared.pause()
+        StudyClock.shared.setReader(nil)
+        _ = StudyClock.shared.takeAndResetBurst()
+        JurisClock.shared.pause()
+        _ = JurisClock.shared.takeAndResetBreakdown()
+        legisReadsBaseline = nil
+        legisReviewsBaseline = nil
+        jurisLidosBaseline = nil
+        dismiss(animated: false)
+        for controlador in [legisVC, jurisVC].compactMap({ $0 }) {
+            controlador.willMove(toParent: nil)
+            controlador.view.removeFromSuperview()
+            controlador.removeFromParent()
+        }
+        legisVC = nil
+        jurisVC = nil
+        abaAtual = 0
+        segmento.selectedSegmentIndex = 0
+        webView.isHidden = false
+        botaoAjustes?.isHidden = true
+        jurisStore?.encerrarPerfil()
+        jurisStore = nil
+        jurisUpdater = nil
+        AppStore.encerrarPerfil()
+        SimuladoLegisSessao.encerrarPerfil()
+        AcervoEntrada.shared.limpar()
+        JurisPorArtigo.pedidoLegis = nil
+        JurisPorArtigo.pedidoEm = nil
+        JurisPorArtigo.modoUmaVez = nil
+        catalogoJSONCache = nil
+        PerfilLeitor.ativar(novo)
+        if exclusao != nil { try anterior.concluirExclusao() }
+        if novo.conta != nil {
+            pushNativeReviews()
+            entregarEstudosPendentesSePossivel()
+        }
+    }
+
     func pushNativeReviews() {
+        guard PerfilLeitor.atual.conta != nil else { return }
+        if jurisStore == nil { jurisStore = LibraryStore() }
         guard let wv = webView else { return }
         let payload = "{\"legis\":{\"due\":\(AppStore.shared.srsDueCount()),\"deck\":\(AppStore.shared.srsDeckCount)}," +
                       "\"juris\":{\"due\":\(jurisStore?.srsDueCount ?? 0),\"deck\":\(jurisStore?.srsDeckCount ?? 0)}}"
@@ -1396,8 +1469,9 @@ extension RootViewController {
     // Checkbox do ciclo semanal (web) → marca/desmarca a leitura no plano do LEGIS.
     // Linhas de súmulas espelham no plano do JURIS (é a MESMA leitura nos dois).
     func togglePlanoLeitura(_ key: String) {
+        guard PerfilLeitor.atual.conta != nil else { return }
         guard !key.isEmpty else { return }
-        let d = UserDefaults.standard
+        let d = PerfilLeitor.atual.preferencias
         var done = Set((d.array(forKey: "catedra.plano.done.v1") as? [String]) ?? [])
         let marcando = !done.contains(key)
         if marcando { done.insert(key) } else { done.remove(key) }
@@ -1585,8 +1659,8 @@ extension RootViewController {
 
         let reads = max(0, AppStore.shared.readsToday - (legisReadsBaseline ?? AppStore.shared.readsToday))
         let reviews = max(0, AppStore.shared.reviewedToday - (legisReviewsBaseline ?? AppStore.shared.reviewedToday))
-        let artigo = UserDefaults.standard.string(forKey: "lastStudiedUnitLabel") ?? ""
-        let lastLawID = UserDefaults.standard.string(forKey: "lastStudiedLawID").flatMap(UUID.init)
+        let artigo = PerfilLeitor.atual.preferencias.string(forKey: "lastStudiedUnitLabel") ?? ""
+        let lastLawID = PerfilLeitor.atual.preferencias.string(forKey: "lastStudiedLawID").flatMap(UUID.init)
 
         var itens: [[String: Any]] = []
         for item in lista {
@@ -1657,9 +1731,9 @@ extension RootViewController {
     // o registro sobrevive e é entregue na próxima chance. Só sai do disco o que a web
     // confirmar que recebeu ('ok'/'queued').
     func deliverStudyRegistration(_ json: String) {
-        var pend = UserDefaults.standard.stringArray(forKey: "catedraPendingStudyRegs") ?? []
+        var pend = PerfilLeitor.atual.preferencias.stringArray(forKey: "catedraPendingStudyRegs") ?? []
         pend.append(json)
-        UserDefaults.standard.set(pend, forKey: "catedraPendingStudyRegs")
+        PerfilLeitor.atual.preferencias.set(pend, forKey: "catedraPendingStudyRegs")
         entregarEstudosPendentesSePossivel()
     }
 
@@ -1667,7 +1741,9 @@ extension RootViewController {
     /// sem rede com sessão). Antes da hidratação o auth.js ainda dá location.reload(), e a
     /// injeção cairia numa página que está morrendo.
     func entregarEstudosPendentesSePossivel() {
-        let pend = UserDefaults.standard.stringArray(forKey: "catedraPendingStudyRegs") ?? []
+        let perfil = PerfilLeitor.atual
+        guard perfil.conta != nil else { return }
+        let pend = perfil.preferencias.stringArray(forKey: "catedraPendingStudyRegs") ?? []
         guard !pend.isEmpty, let wv = webView else { return }
         let js = """
         (function(){ try {
@@ -1680,24 +1756,25 @@ extension RootViewController {
         """
         wv.evaluateJavaScript(js) { [weak self] r, _ in
             guard let self, (r as? String) == "1" else { return }
-            MainActor.assumeIsolated { self.entregarEstudosPendentes(pend) }
+            MainActor.assumeIsolated { self.entregarEstudosPendentes(pend, perfil: perfil) }
         }
     }
 
     /// Injeta os registros pendentes e remove do disco SÓ os confirmados.
-    private func entregarEstudosPendentes(_ pend: [String]) {
+    private func entregarEstudosPendentes(_ pend: [String], perfil: PerfilLeitor) {
+        guard let conta = perfil.conta else { return }
         for (i, json) in pend.enumerated() {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0 + Double(i) * 0.6) { [weak self] in
-                guard let self else { return }
+                guard let self, perfil.raiz == PerfilLeitor.diretorio else { return }
                 self.webView.evaluateJavaScript(
-                    "window.catedraOpenStudyRegistration ? window.catedraOpenStudyRegistration(\(json)) : 'sem-ponte'"
+                    "window.CatedraAuth && window.CatedraAuth.contaLocal === '\(conta)' && window.catedraOpenStudyRegistration ? window.catedraOpenStudyRegistration(\(json)) : 'sem-ponte'"
                 ) { r, _ in
                     let s = r as? String
                     guard s == "ok" || s == "queued" else { return }
                     MainActor.assumeIsolated {
-                        var restante = UserDefaults.standard.stringArray(forKey: "catedraPendingStudyRegs") ?? []
+                        var restante = perfil.preferencias.stringArray(forKey: "catedraPendingStudyRegs") ?? []
                         if let idx = restante.firstIndex(of: json) { restante.remove(at: idx) }
-                        UserDefaults.standard.set(restante, forKey: "catedraPendingStudyRegs")
+                        perfil.preferencias.set(restante, forKey: "catedraPendingStudyRegs")
                     }
                 }
             }
@@ -1718,14 +1795,14 @@ extension RootViewController {
 
     // Disciplina do Cátedra + tópico (norma + artigo onde parou) da última norma estudada.
     private func legisDiscAndTopic() -> (String, String) {
-        guard let idStr = UserDefaults.standard.string(forKey: "lastStudiedLawID"),
+        guard let idStr = PerfilLeitor.atual.preferencias.string(forKey: "lastStudiedLawID"),
               let uuid = UUID(uuidString: idStr),
               let law = AppStore.shared.laws.first(where: { $0.id == uuid }) else {
             return ("Legislação", "Leitura de leis · CátedraLEGIS")
         }
         let disc = law.customCategory ?? Self.catedraDisc(for: law.category)
         var topico = law.title
-        if let artigo = UserDefaults.standard.string(forKey: "lastStudiedUnitLabel"), !artigo.isEmpty {
+        if let artigo = PerfilLeitor.atual.preferencias.string(forKey: "lastStudiedUnitLabel"), !artigo.isEmpty {
             topico += " — \(artigo)"
         }
         return (disc, topico)
@@ -1848,6 +1925,10 @@ extension RootViewController {
     }
 
     // ===== Navegação da WebView =====
+    func webView(_ wv: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+        if wv === webView { try? atualizarPerfil(["conta": ""]) }
+    }
+
     func webView(_ wv: WKWebView, didFinish navigation: WKNavigation!) {
         guard wv === webView else { return }
         // A casca segue o tema assim que a página pinta (o auth.js ainda recarrega uma vez).

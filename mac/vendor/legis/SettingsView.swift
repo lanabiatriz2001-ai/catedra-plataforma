@@ -12,6 +12,7 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
+            AcervoAnteriorDoLeitor(perfil: store.perfil)
             Section("Revisão espaçada") {
                 Toggle("Ativar revisão espaçada (estilo Anki)", isOn: $srsEnabled)
                 LabeledContent("Artigos no baralho", value: "\(store.srsDeckCount)")

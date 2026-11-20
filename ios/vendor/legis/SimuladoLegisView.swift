@@ -148,7 +148,7 @@ enum SimuladoLegisLocal {
     // Histórico local (Application Support) — igual ao padrão dos outros caches do módulo.
     struct Registro: Codable, Identifiable { var id: String; var data: Date; var normas: [String]; var n: Int; var acertos: Int; var segundos: Int }
     private static var url: URL {
-        let b = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("CatedraLegis", isDirectory: true)
+        let b = PerfilLeitor.diretorio.appendingPathComponent("CatedraLegis", isDirectory: true)
         try? FileManager.default.createDirectory(at: b, withIntermediateDirectories: true)
         return b.appendingPathComponent("simulados-lei-seca.json")
     }
@@ -161,7 +161,8 @@ enum SimuladoLegisLocal {
 /// Aqui a prova sobrevive à navegação e o Início mostra "prova em curso".
 @MainActor
 final class SimuladoLegisSessao: ObservableObject {
-    static let shared = SimuladoLegisSessao()
+    private(set) static var shared = SimuladoLegisSessao()
+    static func encerrarPerfil() { shared = SimuladoLegisSessao() }
     @Published var itens: [SimuladoLegisItem] = []
     @Published var discursivas: [DiscursivaBanco] = []
     @Published var respostas: [String: Bool] = [:]

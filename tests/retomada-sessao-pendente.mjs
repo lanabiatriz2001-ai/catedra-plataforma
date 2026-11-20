@@ -202,6 +202,10 @@ async function origemViva() {
     const { ctx, page, erros } = await preparar(timerBase,
       tipo === 'conta' ? { _owner: 'conta-sintetica-origem' } : {});
     try {
+      if (tipo === 'conta') await page.evaluate(() => {
+        const id = localStorage.getItem('catedra:_owner');
+        window.CatedraAuth = { user: { id }, contaLocal: id };
+      });
       await preencher(page, NOVO);
       const preenchido = await ler(page);
       snapshotGravado(preenchido, NOVO);
@@ -211,13 +215,17 @@ async function origemViva() {
         const a = window.__catedraApp;
         if (tipo === 'conta') {
           const user = { id: 'conta-sintetica-destino', email: 'destino@example.invalid' };
-          // O auth anuncia o usuário antes de atualizar _owner; pagehide pode ocorrer
-          // nessa janela. A identidade autenticada deve prevalecer sobre o dono velho.
-          window.CatedraAuth = { ...(window.CatedraAuth || {}), user };
+          // A página anterior perde a permissão de gravar quando o auth limpa o perfil.
+          window.CatedraAuth.contaLocal = '';
+          localStorage.removeItem('ct_timer');
+          a._saveTimer();
+          window.__timerDuranteTroca = localStorage.getItem('ct_timer');
+          // Mesmo que o componente antigo receba o evento, não pode reatribuir suas notas.
+          localStorage.setItem('catedra:_owner', user.id);
+          window.CatedraAuth = { user, contaLocal: user.id };
           window.dispatchEvent(new CustomEvent('catedra:authuser', { detail: user }));
           a._saveTimer();
           window.__snapshotDepoisDaTroca = JSON.parse(localStorage.getItem('ct_timer'));
-          localStorage.setItem('catedra:_owner', user.id);
           a.setState({ registroModo: 'estudo' }, resolve);
         } else {
           a.setState(tipo === 'area' ? { areaEstudo: 'saude' } : { editalAtivo: 'concurso-sintetico-destino' }, () => {
@@ -238,6 +246,11 @@ async function origemViva() {
           final: JSON.parse(localStorage.getItem('ct_timer')), sessions: a.state.sessions,
           timerSeconds: a.state.timerSeconds, studiedSeconds: a.state.studiedSeconds };
       });
+      if (tipo === 'conta') {
+        assert.equal(await page.evaluate(() => window.__timerDuranteTroca), null, 'A página anterior não recria o timer');
+        assert.equal(resultado.primeiro.titular, 'conta-sintetica-destino', 'A primeira gravação pertence à conta atual');
+        assert.equal(resultado.final.titular, 'conta-sintetica-destino', 'As gravações seguintes preservam o titular');
+      }
       assert.equal(resultado.primeiro.atv?.cmRascunho, undefined, tipo + ': primeira gravação não reatribui notas');
       assert.equal(resultado.final.atv?.cmRascunho, undefined, tipo + ': gravações seguintes não reatribuem notas');
       assert.equal(resultado.timerSeconds, 600); assert.equal(resultado.studiedSeconds, 600);

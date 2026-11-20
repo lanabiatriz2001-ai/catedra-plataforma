@@ -2,13 +2,13 @@ import SwiftUI
 
 // MARK: - Persistência do plano (dias concluídos) — UserDefaults, self-contido
 
-enum PlanoStore {
+@MainActor enum PlanoStore {
     static let doneKey = "catedra.plano.done.v1"
     static func loadDone() -> Set<String> {
-        Set((UserDefaults.standard.array(forKey: doneKey) as? [String]) ?? [])
+        Set((PerfilLeitor.atual.preferencias.array(forKey: doneKey) as? [String]) ?? [])
     }
     static func saveDone(_ s: Set<String>) {
-        UserDefaults.standard.set(Array(s), forKey: doneKey)
+        PerfilLeitor.atual.preferencias.set(Array(s), forKey: doneKey)
     }
 }
 
@@ -20,8 +20,8 @@ struct PlanoLeituraView: View {
     let open: (UUID) -> Void
 
     @AppStorage("readerMode") private var readerMode = "estudo"
-    @AppStorage("catedra.plano.startTS") private var startTS: Double = 0   // 0 = sem cronograma
-    @AppStorage("catedra.plano.pace") private var pace: Int = 5            // leituras por semana
+    @AppStorage("catedra.plano.startTS", store: PerfilLeitor.atual.preferencias) private var startTS: Double = 0   // 0 = sem cronograma
+    @AppStorage("catedra.plano.pace", store: PerfilLeitor.atual.preferencias) private var pace: Int = 5            // leituras por semana
 
     @State private var query = ""
     @State private var filter = "todas"                 // todas | pend | conc

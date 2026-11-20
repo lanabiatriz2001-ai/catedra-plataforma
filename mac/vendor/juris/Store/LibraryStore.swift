@@ -147,11 +147,16 @@ final class LibraryStore {
         return c
     }()
 
-    private var appSupportDir: URL {
-        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("VadeMecumJuris", isDirectory: true)
-        try? FileManager.default.createDirectory(at: base, withIntermediateDirectories: true)
-        return base
+    let rascunhos: JurisRascunhoCache
+    let simulados: SimuladoCache
+    let perfil: PerfilLeitor
+    private let appSupportDir: URL
+    private var encerrado = false
+
+    func encerrarPerfil() {
+        flushPersist()
+        rascunhos.encerrarPerfil()
+        encerrado = true
     }
     private var stateURL: URL { appSupportDir.appendingPathComponent("state.json") }
     /// Verbetes baixados pela atualização online (mesclados ao corpus no load).
@@ -161,8 +166,8 @@ final class LibraryStore {
     // Novidades (atualização online)
     private(set) var novidades: [NovidadeEvent] = []
     var lastSeenNovidade: Double {
-        get { UserDefaults.standard.double(forKey: "lastSeenNovidade") }
-        set { UserDefaults.standard.set(newValue, forKey: "lastSeenNovidade") }
+        get { perfil.preferencias.double(forKey: "lastSeenNovidade") }
+        set { perfil.preferencias.set(newValue, forKey: "lastSeenNovidade") }
     }
     var novidadesNaoVistas: Int { novidades.filter { $0.timestamp > lastSeenNovidade }.count }
     func novidadeNaoVista(_ n: NovidadeEvent) -> Bool { n.timestamp > lastSeenNovidade }
@@ -171,6 +176,11 @@ final class LibraryStore {
     }
 
     init() {
+        perfil = PerfilLeitor.atual
+        appSupportDir = perfil.raiz.appendingPathComponent("VadeMecumJuris", isDirectory: true)
+        rascunhos = JurisRascunhoCache(em: appSupportDir)
+        simulados = SimuladoCache(em: appSupportDir)
+        try? FileManager.default.createDirectory(at: appSupportDir, withIntermediateDirectories: true)
         loadState()
         registrarFlushNoCicloDeVida()
     }
@@ -180,7 +190,7 @@ final class LibraryStore {
     func load() async {
         let onlineURL = onlineCorpusURL
         // O roteiro de estudo saiu do app (03/10/2026): o que ele tinha guardado em disco sai junto.
-        Self.apagarRoteirosGuardados()
+        Self.apagarRoteirosGuardados(em: appSupportDir)
         // TUDO o que pesa roda fora da main: ler e decodificar ~35 MB de JSON (corpus +
         // Central de Contas), montar os índices (o blob de busca dobra o texto inteiro
         // sem acento — era isso, feito na main depois do decode, que congelava a aba por
@@ -241,9 +251,7 @@ final class LibraryStore {
 
     /// Os dois arquivos em que o roteiro de estudo ficava guardado (o escrito por IA e o
     /// montado no aparelho). Chamado fora da main, no `load`; arquivo ausente não é erro.
-    nonisolated private static func apagarRoteirosGuardados() {
-        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("VadeMecumJuris", isDirectory: true)
+    nonisolated private static func apagarRoteirosGuardados(em base: URL) {
         for nome in ["roteiros-estudo.json", "roteiros-estudo-local.json"] {
             try? FileManager.default.removeItem(at: base.appendingPathComponent(nome))
         }
@@ -1190,6 +1198,7 @@ final class LibraryStore {
     }
 
     private func persistAgora() {
+        guard !encerrado else { return }
         persistPendente = false
         let s = retratoPersistido()
         guard let data = try? JSONEncoder().encode(s) else { return }
@@ -1204,7 +1213,8 @@ final class LibraryStore {
         // KVS tem limite de 1 MB por chave; anotações RTF podem estourar → grava sem elas.
         var leve = s; leve.richNotes = nil
         if let dLeve = try? JSONEncoder().encode(leve), dLeve.count < 900_000 {
-            NSUbiquitousKeyValueStore.default.set(dLeve, forKey: "state")
+            guard let chave = perfil.chaveDeNuvem else { return }
+            NSUbiquitousKeyValueStore.default.set(dLeve, forKey: chave)
             NSUbiquitousKeyValueStore.default.synchronize()
         }
         _ = data

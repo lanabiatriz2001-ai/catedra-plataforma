@@ -149,7 +149,133 @@
   }
   function leanForUpload(obj) { if (!obj) return obj; var o = {}; Object.keys(obj).forEach(function (k) { o[k] = (k === 'catedra:lib') ? stripLib(obj[k]) : obj[k]; }); return o; }
   function applyData(d) { if (!d) return; Object.keys(d).forEach(function (k) { if (isData(k)) { try { _si(k, d[k]); } catch (_) {} } }); }
-  function clearLocal() { var r = []; for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf('catedra:') === 0) r.push(k); } r.forEach(function (k) { _ri(k); }); }
+  var auxiliaresDeEstudo = ['ct_enam_prova', 'ct_bkpFase2', 'ct_prova', 'ct_timer'];
+  function chaveDaConta(k) {
+    return k && (k.indexOf('catedra:') === 0 || auxiliaresDeEstudo.indexOf(k) >= 0);
+  }
+  function clearLocal() {
+    Object.keys(localStorage).filter(chaveDaConta).forEach(_ri);
+  }
+  // A página que ainda contém a memória do titular anterior nunca grava no novo perfil.
+  var donoDaPagina = localStorage.getItem('catedra:_owner');
+  var trocandoPerfil = false;
+  // Antes de o host semear preferências, distingue um aparelho novo de um com estudos antigos.
+  var haviaLegado = Object.keys(localStorage).some(function (k) {
+    return (isData(k) && ['catedra:dir','catedra:dark','catedra:accent','catedra:_kts'].indexOf(k) < 0)
+      || auxiliaresDeEstudo.indexOf(k) >= 0;
+  });
+  function paginaAtual() {
+    return !saindo && !trocandoPerfil && donoDaPagina === localStorage.getItem('catedra:_owner');
+  }
+  function perfilNativo(msg) {
+    try {
+      var ponte = window.webkit && window.webkit.messageHandlers.catedraPerfil;
+      if (ponte) return Promise.resolve(ponte.postMessage(msg)).then(function (r) { return r === true; }, function () { return false; });
+    } catch (_) { return Promise.resolve(false); }
+    return Promise.resolve(true);
+  }
+  // Se a gravação falhar (inclusive por falta de espaço), o original permanece intacto.
+  // A reserva de recuperação nunca é consultada pela hidratação, pelo backup ou por outra conta.
+  function abrirReserva() {
+    return new Promise(function (resolve, reject) {
+      var abrir = indexedDB.open('catedra-recuperacao-local', 1);
+      abrir.onupgradeneeded = function () {
+        abrir.result.createObjectStore('acervos', { autoIncrement: true });
+      };
+      abrir.onerror = function () { reject(abrir.error); };
+      abrir.onsuccess = function () { resolve(abrir.result); };
+    });
+  }
+  function alterarReserva(operacao) {
+    return abrirReserva().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var tx = db.transaction('acervos', 'readwrite');
+        tx.oncomplete = function () { db.close(); resolve(); };
+        tx.onabort = function () { db.close(); reject(tx.error); };
+        operacao(tx.objectStore('acervos'));
+      });
+    });
+  }
+  function preservarLegado(dados) {
+    return alterarReserva(function (acervos) {
+      acervos.add({ data: new Date().toISOString(), dados: dados });
+    }).then(function () { _si('ct_recuperacao_disponivel', '1'); });
+  }
+  function percorrerReservas(acervos, visitar) {
+    acervos.openCursor().onsuccess = function (e) {
+      var cursor = e.target.result;
+      if (cursor) { visitar(cursor); cursor.continue(); }
+    };
+  }
+  async function originalDoLegado() {
+    var conta = user, acervos = [];
+    if (!conta || !paginaAtual()) return [];
+    await alterarReserva(function (store) {
+      percorrerReservas(store, function (c) {
+        if (c.value.titular === conta.id && c.value.incorporado) acervos.push(c.value.dados);
+      });
+    });
+    return user === conta && paginaAtual() ? acervos : [];
+  }
+  async function removerOriginais(titular) {
+    if (!localStorage.getItem('ct_original_' + titular) && !localStorage.getItem('ct_recuperacao_disponivel')) return;
+    await alterarReserva(function (store) {
+      percorrerReservas(store, function (c) { if (c.value.titular === titular) c.delete(); });
+    });
+    _ri('ct_original_' + titular);
+  }
+  async function recuperarLegado() {
+    var conta = user;
+    if (!conta || !paginaAtual() || hidratacaoEmCurso || hydrating) return false;
+    if (!confirm('Reivindicar os estudos antigos deste aparelho para ' + (conta.email || conta.id)
+      + '? Eles serão incorporados ao seu acervo e poderão ser sincronizados com essa conta.')) return false;
+    var registros = [];
+    // A reserva de titularidade se confirma antes de copiar dados: duas abas não conseguem
+    // atribuir o mesmo acervo a pessoas diferentes. Uma gravação interrompida pode ser retomada.
+    await alterarReserva(function (acervos) {
+      acervos.openCursor().onsuccess = function (e) {
+        var cursor = e.target.result;
+        if (!cursor || user !== conta || !paginaAtual()) return;
+        var registro = cursor.value;
+        if (!registro.incorporado && (!registro.titular || registro.titular === conta.id)) {
+          registro.titular = conta.id; cursor.update(registro);
+          registros.push({ chave: cursor.key, dados: registro.dados });
+        }
+        cursor.continue();
+      };
+    });
+    if (!registros.length || user !== conta || !paginaAtual()) return false;
+    registros.forEach(function (registro) {
+      var estudos = Object.assign({}, registro.dados);
+      // Aceites pessoais pertencem à sessão atual. A recuperação nunca concede consentimento.
+      delete estudos['catedra:aceite']; delete estudos['catedra:iaConsentimento'];
+      var mesclado = mergeAll(estudos, collect(), false);
+      Object.keys(mesclado).forEach(function (k) { _si(k, mesclado[k]); });
+      auxiliaresDeEstudo.forEach(function (k) {
+        if (!estudos[k] || localStorage.getItem(k)) return;
+        var item = parseJ(estudos[k]); if (!item || typeof item !== 'object') return;
+        item.titular = conta.id; _si(k, JSON.stringify(item));
+      });
+    });
+    setDirty(true);
+    await alterarReserva(function (acervos) {
+      var pendentes = false;
+      var chaves = registros.map(function (r) { return r.chave; });
+      var pedido = acervos.openCursor();
+      pedido.onsuccess = function (e) {
+        var c = e.target.result;
+        if (!c) { if (!pendentes) _ri('ct_recuperacao_disponivel'); return; }
+        var r = c.value;
+        if (r.titular === conta.id && chaves.indexOf(c.key) >= 0) {
+          r.incorporado = true; c.update(r);
+        } else if (!r.incorporado) pendentes = true;
+        c.continue();
+      };
+    });
+    _si('ct_original_' + conta.id, '1');
+    location.reload();
+    return true;
+  }
 
   var user = null, hydrating = true, pushT = null, authToken = null, pushing = false;
   // `hidratacaoEmCurso`: TRAVA ÚNICA da hidratação do onLogin, do começo (antes da leitura da
@@ -187,8 +313,11 @@
   sb.auth.onAuthStateChange(function (_e, session) {
     authToken = session && session.access_token;
     // Revogação explícita prevalece sobre o prazo offline da consulta inicial.
+    if (session && session.user && user && session.user.id !== user.id && !trocandoPerfil && !saindo) {
+      trocandoPerfil = true; perfilNativo({ conta: '' }); showLoading('Trocando de conta…'); location.reload(); return;
+    }
     if (_e === 'SIGNED_OUT' && cancelarConsultaInicial) cancelarConsultaInicial();
-    if (_e === 'PASSWORD_RECOVERY') { ehRecuperacao = true; if (cancelarConsultaInicial) cancelarConsultaInicial(true); showNovaSenha(); }
+    if (_e === 'PASSWORD_RECOVERY') { perfilNativo({ conta: '' }); ehRecuperacao = true; if (cancelarConsultaInicial) cancelarConsultaInicial(true); showNovaSenha(); }
     // O supabase-js emite SIGNED_OUT quando o refresh do token é recusado (sessão revogada,
     // senha trocada noutro aparelho). Sem isto o app seguia "logado" com o sync falhando para
     // sempre — e o Sair apagava os estudos sem aviso, porque o confirm exigia authToken.
@@ -234,7 +363,7 @@
     clearTimeout(widgetT);
     widgetT = setTimeout(function () {
       var dono = user, c = widgetCarimbo;
-      if (!dono || saindo || typeof window.catedraWidgetResumo !== 'function') return;
+      if (!dono || !paginaAtual() || typeof window.catedraWidgetResumo !== 'function') return;
       var r = null; try { r = window.catedraWidgetResumo(); } catch (_) { r = null; }
       if (!r || typeof r !== 'object') return;
       r.carimbo = c; r.conta = dono.id;
@@ -248,12 +377,13 @@
     if (!user) return Promise.resolve(null);
     var dono = user;
     return Promise.resolve(sb.rpc('widget_passe_emitir', { p_aparelho: String(aparelho || '').slice(0, 60) })).then(function (res) {
-      if (!res || res.error || typeof res.data !== 'string' || !res.data) return null;
+      if (!paginaAtual() || user !== dono || !res || res.error || typeof res.data !== 'string' || !res.data) return null;
       try { _si('catedra:_widgetPasse', res.data); } catch (_) {}
       return JSON.stringify({ passe: res.data, conta: dono.id });
     }, function () { return null; });
   };
   function avisarWidgetSaida() {
+    perfilNativo({ conta: '' });
     try { var mh = window.webkit && window.webkit.messageHandlers; if (mh && mh.catedraWidget) mh.catedraWidget.postMessage({ saiu: true }); } catch (_) {}
   }
   function revogarPasseWidget() {
@@ -545,7 +675,7 @@
   var pushP = null;
   function pushNow() {
     if (pushing && pushP) return pushP;
-    if (!user || hydrating || pushing || hidratacaoEmCurso || saindo) return Promise.resolve();
+    if (!paginaAtual() || !user || hydrating || pushing || hidratacaoEmCurso || saindo) return Promise.resolve();
     pushing = true; setStatus('enviando');
     var dono = user;
     // Escrita que chega com este envio em voo: o CatedraSync.push agenda outro pushNow, que morre
@@ -563,7 +693,7 @@
         var e1 = erroDe(res); if (e1) throw e1;
         // A leitura voltou com uma hidratação em curso (ou outra conta): este envio não sobe
         // nada. O sujo fica; quem sobe é o pushNow depois do reload daquela hidratação.
-        if (hidratacaoEmCurso || user !== dono || saindo) return;
+        if (!paginaAtual() || hidratacaoEmCurso || user !== dono) return;
         var row = res && res.data;
         ger = geracao;   // antes do retrato: escrita depois daqui pode não estar nele
         var antes = collect();
@@ -584,8 +714,8 @@
         var subiu = leanForUpload(merged);
         return sb.from('user_data').upsert({ user_id: user.id, data: subiu, updated_at: now })
           .then(function (r2) {
+            if (!paginaAtual() || user !== dono) return;
             var e2 = erroDe(r2); if (e2) throw e2;
-            if (saindo) return;
             setLastSrv(now); gravarCheio(subiu); marcarSincronizado(); publicarWidget(tsMs(now));
             if (geracao === ger) { setDirty(false); setStatus('salvo'); }
             else denovo = true;   // chegou escrita durante o envio: o sujo fica e sobe já em seguida
@@ -609,7 +739,10 @@
   window.addEventListener('storage', function (e) {
     try {
       if (!e || !e.key || e.storageArea !== localStorage) return;
-      if (!isData(e.key)) return;
+      if (e.key === 'catedra:_owner' && !paginaAtual()) {
+        trocandoPerfil = true; perfilNativo({ conta: '' }); location.reload(); return;
+      }
+      if (!paginaAtual() || !isData(e.key)) return;
       // só carimbo + sujo: tombOnSet compara com o valor ANTIGO do storage, e no evento
       // 'storage' a escrita já aconteceu — chamá-lo aqui seria um não-op enganoso
       ktsStamp(e.key);
@@ -618,6 +751,7 @@
   });
 
   window.CatedraSync = { push: function () {
+    if (!paginaAtual()) return;
     setDirty(true);   // avança a geração (ver setDirty)
     clearTimeout(pushT);
     pushT = setTimeout(pushNow, 700);
@@ -644,7 +778,7 @@
   // pull + merge ao voltar para a aba / reconectar — o outro aparelho pode ter estudado
   var pulling = false, pullT = null;
   function pullAndMerge() {
-    if (!user || hydrating || pushing || pulling || hidratacaoEmCurso || saindo) return;
+    if (!paginaAtual() || !user || hydrating || pushing || pulling || hidratacaoEmCurso || saindo) return;
     pulling = true; clearTimeout(pullT);
     // Antes a falha era muda: o listener 'online' marcava "enviando" antes de chamar aqui e
     // uma leitura que falhava saía sem setStatus — o selo prendia em "sincronizando…"; ao
@@ -655,7 +789,7 @@
     };
     sb.from('user_data').select('data,updated_at').eq('user_id', user.id).maybeSingle()
       .then(function (res) {
-        if (saindo) { pulling = false; return; }   // o Sair já decidiu apagar o aparelho: não regrava nada
+        if (!paginaAtual()) { pulling = false; return; }   // o Sair já decidiu apagar o aparelho: não regrava nada
         // FALHA DE LEITURA NÃO É LINHA VAZIA: o supabase-js resolve com {data:null, error}.
         if (erroDe(res)) { falhou(); return; }
         var row = res && res.data;
@@ -697,7 +831,7 @@
      se o pedido saiu (o Sair usa como última tentativa). */
   var TETO_KEEPALIVE = 60000;
   function enviarCondicional() {
-    if (!user || hydrating || hidratacaoEmCurso || !authToken || !isDirty()) return false;
+    if (!paginaAtual() || !user || hydrating || hidratacaoEmCurso || !authToken || !isDirty()) return false;
     var visto = lastSrv(); if (!visto) return false;
     if (esvaziouCheio()) return false;
     var corpo, tam;
@@ -715,7 +849,7 @@
     return true;
   }
   function flushSync() {
-    if (!user || hydrating || hidratacaoEmCurso) return;
+    if (!paginaAtual() || !user || hydrating || hidratacaoEmCurso) return;
     clearTimeout(pushT);
     enviarCondicional();
   }
@@ -747,8 +881,8 @@
   // lápide → o item voltava. O push segue gateado para não subir no meio da hidratação.
   // Com sessão pendente (aberto offline) a escrita também marca sujo: o push em si espera
   // `user`, mas o que foi estudado sem rede precisa subir assim que a sessão for reconfirmada.
-  var setImpl = function (k, v) { if (isData(k)) { tombOnSet(k, v); if (k !== 'catedra:_kts') ktsStamp(k); } _si(k, v); if ((user || pendente) && !hydrating && isData(k)) window.CatedraSync.push(); };
-  var remImpl = function (k) { if (isData(k)) tombOnRemove(k); _ri(k); if (k === 'catedra:auth' && (user || pendente)) { logout(); return; } if ((user || pendente) && !hydrating && isData(k)) window.CatedraSync.push(); };
+  var setImpl = function (k, v) { if (chaveDaConta(k) && !paginaAtual()) return; if (isData(k)) { tombOnSet(k, v); if (k !== 'catedra:_kts') ktsStamp(k); } _si(k, v); if ((user || pendente) && !hydrating && isData(k)) window.CatedraSync.push(); };
+  var remImpl = function (k) { if (chaveDaConta(k) && !paginaAtual()) return; if (isData(k)) tombOnRemove(k); _ri(k); if (k === 'catedra:auth' && (user || pendente)) { logout(); return; } if ((user || pendente) && !hydrating && isData(k)) window.CatedraSync.push(); };
   try {
     Object.defineProperty(localStorage, 'setItem', { configurable: true, writable: true, enumerable: false, value: setImpl });
     Object.defineProperty(localStorage, 'removeItem', { configurable: true, writable: true, enumerable: false, value: remImpl });
@@ -1199,25 +1333,49 @@
   // Deliberadamente NÃO limpamos ao cair na tela de login: sessão que expira por estar
   // offline é comum, e apagar ali destruiria dado local ainda não sincronizado. A limpeza
   // acontece no login, e só quando o dono realmente muda.
-  function trocouDeDono(u) {
-    var dono = null;
-    try { dono = localStorage.getItem('catedra:_owner'); } catch (_) {}
-    if (dono === u.id) return false;
-    if (!dono) {
-      // Sem carimbo: só é suspeito se JÁ existe dado local (versão anterior do app, ou
-      // acervo de outra conta). Aparelho zerado entra direto.
-      var temDado = false;
-      try { for (var i = 0; i < localStorage.length; i++) { if (isData(localStorage.key(i))) { temDado = true; break; } } } catch (_) {}
-      if (!temDado) return false;
-      // Primeira vez com carimbo e há dado local: assume que é desta conta (upgrade do app),
-      // senão todo mundo perderia o próprio acervo ao atualizar.
-      return false;
-    }
-    return true;
-  }
-
   function onLogin(u) {
+    if (saindo || trocandoPerfil) return;
+    var anterior = localStorage.getItem('catedra:_owner');
+    var legado = {};
+    if (!anterior && haviaLegado) {
+      Object.keys(localStorage).forEach(function (k) {
+        if (isData(k) || auxiliaresDeEstudo.indexOf(k) >= 0) legado[k] = localStorage.getItem(k);
+      });
+    }
+    if (anterior === u.id) {
+      auxiliaresDeEstudo.forEach(function (k) {
+        var valor = localStorage.getItem(k), item = parseJ(valor);
+        if (valor && !(item && item.titular)) legado[k] = valor;
+      });
+    }
+    if ((anterior && anterior !== u.id) || Object.keys(legado).length) {
+      trocandoPerfil = true;
+      avisarWidgetSaida();
+      showLoading('Preparando os dados da sua conta…');
+      var preservar = Object.keys(legado).length ? preservarLegado(legado) : Promise.resolve();
+      preservar.then(function () {
+        // Outra aba pode ter terminado a troca enquanto o IndexedDB gravava.
+        if (localStorage.getItem('catedra:_owner') === anterior) {
+          if (!anterior && Object.keys(localStorage).some(function (k) { return (isData(k) || auxiliaresDeEstudo.indexOf(k) >= 0) && localStorage.getItem(k) !== legado[k]; })) {
+            location.reload(); return;
+          }
+          if (anterior === u.id) {
+            Object.keys(legado).forEach(function (k) { if (localStorage.getItem(k) === legado[k]) _ri(k); });
+          } else { clearLocal(); }
+          _si('catedra:_owner', u.id);
+        }
+        sessionStorage.removeItem('catedra:hydrated');
+        location.reload();
+      }).catch(function () {
+        trocandoPerfil = false;
+        showLoading('Os estudos antigos continuam neste aparelho. Não foi possível reservar espaço para preservá-los. Libere espaço e reabra o Cátedra.');
+      });
+      return;
+    }
+    donoDaPagina = u.id;
+    _si('catedra:_owner', u.id);
     user = u; pendente = null; avisoSessao = ''; ultimoEmail = u.email || '';
+    perfilNativo({ conta: u.id });
     try { sessionStorage.removeItem('catedra:_pend'); } catch (_) {}
     // O app precisa saber QUAL conta está logada. Há duas contas distintas em uso (a
     // administradora e a pessoal) e o Ajustes só mostrava um apelido salvo no
@@ -1228,8 +1386,6 @@
       if (window.CatedraAuth) window.CatedraAuth.user = ident;
       window.dispatchEvent(new CustomEvent('catedra:authuser', { detail: ident }));
     } catch (_) {}
-    if (trocouDeDono(u)) { clearLocal(); try { sessionStorage.removeItem('catedra:hydrated'); } catch (_) {} }
-    try { _si('catedra:_owner', u.id); } catch (_) {}
     if (sessionStorage.getItem('catedra:hydrated') === '1') { viaPendente = false; _si('catedra:auth', '1'); hydrating = false; hide(); setStatus(isDirty() ? 'enviando' : 'salvo'); if (isDirty()) pushNow(); else pullAndMerge(); return; }
     // Daqui até o reload nada sobe nem desce fora desta hidratação (ver hidratacaoEmCurso).
     hidratacaoEmCurso = true;
@@ -1247,7 +1403,7 @@
       // É o sintoma histórico "meu edital sumiu ao entrar em outro aparelho".
       // Casos reais: abrir sem internet com token ainda válido, wi-fi de hotel/portal
       // cativo devolvendo HTML, JWT recusado.
-      if (user !== u || leitura !== leituraHidratacao) return;   // a sessão caiu no meio da hidratação (o login já está na tela), ou a leitura foi abandonada
+      if (!paginaAtual() || user !== u || leitura !== leituraHidratacao) return;   // a sessão caiu no meio da hidratação (o login já está na tela), ou a leitura foi abandonada
       leituraRespondida = leitura;
       if (res && res.error) {
         if (sessaoCaiu(res)) { sessaoExpirou(); return; }   // JWT recusado: é login, não "erro" (showLoginState solta a trava)
@@ -1316,7 +1472,7 @@
       // O aceite novo leva carimbo (_kts): escrita da pessoa, como qualquer outra — sem ele o
       // empate na mescla da hidratação devolvia o aceite antigo da nuvem (ver aceiteVencedor).
       else showAceite(function () { try { _si('catedra:aceite', JSON.stringify({ versao: window.CT_JURIDICO.versao, ts: Date.now() })); ktsStamp('catedra:aceite'); } catch (_) {} prosseguir(); });
-    }).catch(function () { if (user !== u || leitura !== leituraHidratacao) return; leituraRespondida = leitura; abrirSemHidratar(); });
+    }).catch(function () { if (!paginaAtual() || user !== u || leitura !== leituraHidratacao) return; leituraRespondida = leitura; abrirSemHidratar(); });
   }
   /* A leitura da hidratação falhou (rede, portal cativo, erro do servidor): o app abre com o que
      está no aparelho, sem hydrated e sem carimbar _lastSrv — a próxima hidratação repara.
@@ -1358,6 +1514,7 @@
     return true;
   }
   function showLoginState() {
+    perfilNativo({ conta: '' });
     user = null; pendente = null;
     try {
       if (window.CatedraAuth) window.CatedraAuth.user = null;
@@ -1398,6 +1555,8 @@
   // recusava) e trancava todo o estudo local. Nada sobe (user fica nulo), nada é apagado.
   function entrarPendente(dono) {
     pendente = dono; hydrating = false;
+    perfilNativo({ conta: dono });
+    try { window.dispatchEvent(new CustomEvent('catedra:perfilpronto')); } catch (_) {}
     var tinha = false; try { tinha = localStorage.getItem('catedra:auth') === '1'; } catch (_) {}
     _si('catedra:auth', '1');
     // O app lê catedra:auth no construtor. Se ele já montou sem a chave (o refresh que falhou
@@ -1540,17 +1699,25 @@
     ok.onclick = function () { if (!chk.checked) return; ok.disabled = true; ok.textContent = 'Carregando seus dados…'; cb(); };
     // "Não aceito": nada sobe (a trava da hidratação segue ligada até aqui). No fim, sem conta
     // (user nulo) e sem o dado local, a trava é solta: um login seguinte nesta aba liga a dele.
-    el.querySelector('#ctacsair').onclick = function (e) { e.preventDefault(); saindo = true; sessionStorage.removeItem('catedra:hydrated'); var fin = function () { clearTimeout(pushT); user = null; clearLocal(); soltarTravaHidratacao(); location.reload(); }; avisarWidgetSaida(); revogarPasseWidget().then(function () { sb.auth.signOut().then(fin, fin); }); };
+    el.querySelector('#ctacsair').onclick = function (e) { e.preventDefault(); saindo = true; sessionStorage.removeItem('catedra:hydrated'); var fin = function () { clearTimeout(pushT); user = null; if (donoDaPagina === localStorage.getItem('catedra:_owner')) clearLocal(); soltarTravaHidratacao(); location.reload(); }; avisarWidgetSaida(); revogarPasseWidget().then(function () { sb.auth.signOut().then(fin, fin); }); };
   }
   /** Exclusão da conta pela própria pessoa: a função excluir_minha_conta (security definer) apaga o blob,
       a participação e a atividade em grupos, feedback, uso de IA, acesso beta e a linha em auth.users. */
   function excluirConta() {
+    var titular = user;
+    if (!titular || !paginaAtual()) return Promise.reject(new Error('A sessão mudou.'));
     clearTimeout(pushT);
-    return sb.rpc('excluir_minha_conta').then(function (r) {
-      if (r && r.error) throw r.error;
+    return sb.rpc('excluir_minha_conta').then(async function (r) {
+      if (!r || r.error) throw (r && r.error) || new Error('Resposta de exclusão ausente.');
+      if (user !== titular || !paginaAtual()) return;
       sessionStorage.removeItem('catedra:hydrated');
-      clearLocal(); saindo = true;
+      saindo = true;
+      var limpezaNativa = await perfilNativo({ excluir: titular.id });
+      if (donoDaPagina === localStorage.getItem('catedra:_owner')) clearLocal();
       avisarWidgetSaida();
+      var limpezaWeb = true;
+      try { await removerOriginais(titular.id); } catch (_) { limpezaWeb = false; }
+      if (!limpezaNativa || !limpezaWeb) alert('Sua conta foi excluída do servidor. A limpeza de arquivos deste aparelho está pendente.');
       var fin = function () { location.reload(); };
       return sb.auth.signOut().then(fin, fin);
     });
@@ -1612,11 +1779,11 @@
     clearTimeout(pushT); clearTimeout(pullT);
     sessionStorage.removeItem('catedra:hydrated');
     clearTimeout(widgetT);
-    var fin = function () { clearTimeout(pushT); clearTimeout(pullT); clearLocal(); location.reload(); };
+    var fin = function () { clearTimeout(pushT); clearTimeout(pullT); if (donoDaPagina === localStorage.getItem('catedra:_owner')) clearLocal(); location.reload(); };
     avisarWidgetSaida();   // o app nativo apaga passe e resumo do grupo: o widget não mostra a conta que saiu
     revogarPasseWidget().then(function () { sb.auth.signOut().then(fin, fin); });
   }
-  window.CatedraAuth = { logout: logout, client: sb, excluirConta: excluirConta, abrirDoc: abrirDoc };
+  window.CatedraAuth = { originalDoLegado: originalDoLegado, recuperarLegado: recuperarLegado, get contaLocal() { return paginaAtual() && ((user && user.id) || pendente) || ''; }, logout: logout, client: sb, excluirConta: excluirConta, abrirDoc: abrirDoc };
 
   showLoading('…');
   // Sem sessão: por FALTA DE REDE (o refresh não chegou ao servidor, ou o aparelho está

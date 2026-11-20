@@ -280,8 +280,7 @@ async function sessao(browser, base, ok, R) {
   const gateOculto = page => page.evaluate(() => getComputedStyle(document.getElementById('catedra-auth-gate')).display === 'none');
   const chamadas = (page, nome) => page.evaluate(n => window.__ctChamadas().filter(c => c.nome === n), nome);
   try {
-    await page.goto(base + FIX);
-    await esperaGate(page);
+    await page.goto(base + FIX + '?semente');
     // aparelho já logado e hidratado nesta sessão: dono u1, uma sessão local por subir, nuvem com outra
     await page.evaluate(({ U1, S1, linha }) => {
       localStorage.clear(); sessionStorage.clear();
@@ -293,7 +292,7 @@ async function sessao(browser, base, ok, R) {
       localStorage.setItem('catedra:sessions', JSON.stringify([S1]));
       sessionStorage.setItem('catedra:hydrated', '1');
     }, { U1, S1, linha });
-    await page.reload();
+    await page.goto(base + FIX);
     await esperaGate(page);
     await w(600);
     ok(await gateOculto(page), R + '(d) com sessão válida o app abre (portão oculto)');

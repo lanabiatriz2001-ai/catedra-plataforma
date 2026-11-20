@@ -1,9 +1,8 @@
 -- ============================================================================
 -- Cátedra · Painel de administrador (só a dona acessa)
 -- ----------------------------------------------------------------------------
--- ESPELHO do que está aplicado em produção (frcnfqxniwzdyykvgqqu), regenerado a
--- partir das definições reais do banco (pg_get_functiondef). Rode no SQL Editor
--- como postgres.
+-- Definições de referência para instalação. Em bancos existentes, aplique as novas
+-- migrações em ordem; a presença deste arquivo não atesta a versão em produção.
 --
 -- MODELO DE SEGURANÇA: "só a dona" vale no SERVIDOR. Cada RPC de admin começa
 -- checando is_admin() e FALHA COM EXCEÇÃO se não for admin — nunca devolve vazio
@@ -71,7 +70,7 @@ revoke all on table public.ai_uso from anon, authenticated;
 create index if not exists ai_uso_criado_idx on public.ai_uso (criado_em);
 create index if not exists ai_uso_user_idx   on public.ai_uso (user_id);
 
--- Allowlist do beta (gerida pelo painel). Vazia = qualquer conta autenticada entra.
+-- Convites do beta. O modo aberto depende de app_config.beta_aberto.
 create table if not exists public.beta_allow (
   email     text primary key,
   criado_em timestamptz not null default now()
@@ -96,16 +95,17 @@ as $$ select coalesce((select bloqueado from public.beta_acesso where user_id = 
 revoke all on function public.meu_acesso_bloqueado() from public, anon;
 grant  execute on function public.meu_acesso_bloqueado() to authenticated;
 
--- Lista vazia => libera todo mundo (mantém o beta aberto).
+-- Nenhuma lista, vazia ou preenchida, muda o modo de acesso escolhido pela administração.
 create or replace function public.meu_email_liberado()
 returns boolean language plpgsql stable security definer set search_path to 'public'
 as $$
-declare em text; tem int;
 begin
-  select count(*) into tem from public.beta_allow;
-  if tem = 0 then return true; end if;
-  select email into em from auth.users where id = auth.uid();
-  return exists(select 1 from public.beta_allow where lower(email) = lower(em));
+  return exists (
+    select 1 from auth.users u where u.id = auth.uid() and (
+      exists (select 1 from public.app_config where chave = 'beta_aberto' and valor = 'true'::jsonb)
+      or exists (select 1 from public.beta_allow b where lower(b.email) = lower(u.email))
+    )
+  );
 end $$;
 revoke all on function public.meu_email_liberado() from public, anon;
 grant  execute on function public.meu_email_liberado() to authenticated;
@@ -114,9 +114,8 @@ create or replace function public.registrar_uso_ia(p_endpoint text, p_chars int)
 returns void language plpgsql security definer set search_path to 'public'
 as $$
 begin
-  if auth.uid() is null then return; end if;  -- silencioso: log não pode quebrar a IA
-  insert into public.ai_uso(user_id, endpoint, chars)
-  values (auth.uid(), left(coalesce(p_endpoint,'?'),20), greatest(0, coalesce(p_chars,0)));
+  -- Clientes antigos passam pela mesma reserva atômica e pela mesma política da API.
+  perform public.reservar_uso_ia(p_endpoint, p_chars);
 end $$;
 revoke all on function public.registrar_uso_ia(text, int) from public, anon;
 grant  execute on function public.registrar_uso_ia(text, int) to authenticated;
@@ -141,7 +140,10 @@ grant  execute on function public.enviar_feedback(text, jsonb) to authenticated;
 -- helper: parseia o valor jsonb-string e conta o array (0 se não for array). SÓ contagem.
 create or replace function public._cta(d jsonb, k text)
 returns int language sql immutable set search_path to 'public'
-as $$ select case when (d->>k) ~ '^\[' then jsonb_array_length((d->>k)::jsonb) else 0 end $$;
+as $$
+  select case when jsonb_typeof(v) = 'array' then jsonb_array_length(v) else 0 end
+    from (select public._json_estudo(d->k) v) colecao;
+$$;
 
 -- Visão geral: saúde + uso de recursos + crescimento + retenção + IA + testadores.
 create or replace function public.admin_visao_geral()
@@ -298,6 +300,7 @@ as $$
 begin
   if not public.is_admin() then raise exception 'acesso_negado'; end if;
   delete from public.grupos where id = p_id;   -- a FK do ranking cai em cascata
+  if found then perform public._admin_log('apagar_grupo', p_id::text, null); end if;
 end $$;
 revoke all on function public.admin_apagar_grupo(uuid) from public, anon;
 grant  execute on function public.admin_apagar_grupo(uuid) to authenticated;
@@ -347,7 +350,11 @@ begin
   insert into public.beta_acesso(user_id, bloqueado, motivo, atualizado_em)
   values (p_user_id, coalesce(p_bloq, false), p_motivo, now())
   on conflict (user_id) do update
-    set bloqueado = excluded.bloqueado, motivo = excluded.motivo, atualizado_em = now();
+    set bloqueado = excluded.bloqueado, motivo = excluded.motivo, atualizado_em = now()
+    where (beta_acesso.bloqueado, beta_acesso.motivo) is distinct from (excluded.bloqueado, excluded.motivo);
+  if found then
+    perform public._admin_log('acesso_ia', p_user_id::text, jsonb_build_object('bloqueado', coalesce(p_bloq,false)));
+  end if;
 end $$;
 revoke all on function public.admin_bloquear(uuid, boolean, text) from public, anon;
 grant  execute on function public.admin_bloquear(uuid, boolean, text) to authenticated;
@@ -377,6 +384,9 @@ begin
   else
     delete from public.beta_allow where email = lower(trim(p_email));
   end if;
+  if found then
+    perform public._admin_log(case when p_incluir then 'incluir_convite' else 'retirar_convite' end, lower(trim(p_email)), null);
+  end if;
 end $$;
 revoke all on function public.admin_allow_set(text, boolean) from public, anon;
 grant  execute on function public.admin_allow_set(text, boolean) to authenticated;
@@ -403,6 +413,9 @@ create table if not exists public.app_config (
 );
 alter table public.app_config enable row level security;
 revoke all on table public.app_config from anon, authenticated;
+insert into public.app_config (chave, valor) values ('beta_aberto', 'false'::jsonb)
+on conflict (chave) do nothing;
+
 
 -- Trilha de auditoria: toda ação destrutiva do painel deixa rastro com quem fez.
 create table if not exists public.admin_log (
@@ -574,15 +587,20 @@ grant  execute on function public.admin_confirmar_email(uuid) to authenticated;
 create or replace function public.admin_desconectar(p_uid uuid)
 returns jsonb language plpgsql security definer set search_path to 'public'
 as $$
-declare em text; n int;
+declare em text; n int; passes int := 0; resumo jsonb;
 begin
   if not public.is_admin() then raise exception 'acesso_negado'; end if;
   select email into em from auth.users where id = p_uid;
   if em is null then raise exception 'nao_encontrado'; end if;
   delete from auth.sessions where user_id = p_uid;
   get diagnostics n = row_count;
-  perform public._admin_log('desconectar', em, jsonb_build_object('sessoes', n));
-  return jsonb_build_object('sessoes', n);
+  if to_regclass('public.widget_passe') is not null then
+    update public.widget_passe set revogado_em = now() where user_id = p_uid and revogado_em is null;
+    get diagnostics passes = row_count;
+  end if;
+  resumo := jsonb_build_object('sessoes', n, 'passesRevogados', passes);
+  perform public._admin_log('desconectar', em, resumo);
+  return resumo;
 end $$;
 revoke all on function public.admin_desconectar(uuid) from public, anon;
 grant  execute on function public.admin_desconectar(uuid) to authenticated;
@@ -621,7 +639,10 @@ begin
   if not public.is_admin() then raise exception 'acesso_negado'; end if;
   if coalesce(trim(p_chave),'') = '' then raise exception 'chave_vazia'; end if;
   -- lista fechada: o painel não vira um editor de banco genérico
-  if p_chave not in ('ia_pausada','manutencao','aviso') then raise exception 'chave_desconhecida'; end if;
+  if p_chave not in ('ia_pausada','manutencao','aviso','telemetria','beta_aberto') then raise exception 'chave_desconhecida'; end if;
+  if p_chave = 'beta_aberto' and jsonb_typeof(p_valor) is distinct from 'boolean' then
+    raise exception 'valor_invalido';
+  end if;
   insert into public.app_config(chave, valor, atualizado_em)
   values (p_chave, coalesce(p_valor,'null'::jsonb), now())
   on conflict (chave) do update set valor = excluded.valor, atualizado_em = now();

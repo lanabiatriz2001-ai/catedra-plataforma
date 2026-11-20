@@ -7,7 +7,6 @@ struct JurisSettingsView: View {
     @AppStorage("autoAtualizar") private var autoAtualizar = true
     @AppStorage("jurisAppearance") private var appearanceRaw = Appearance.claro.rawValue
     @AppStorage("readingFontFamily") private var readingFontFamily = ""
-    @AppStorage("anthropicKey") private var anthropicKey = ""
     @AppStorage("aiModel") private var aiModel = AIService.defaultModel
     @State private var avisoBackup: String?
 
@@ -17,6 +16,7 @@ struct JurisSettingsView: View {
 
     var body: some View {
         Form {
+            AcervoAnteriorDoLeitor(perfil: store.perfil)
             // Entrega 5/6: a meta saiu do Hoje (painel de números) e passou a ser ajustada aqui.
             Section {
                 Stepper(value: Binding(get: { store.metaDiaria }, set: { store.metaDiaria = $0 }),
@@ -28,8 +28,7 @@ struct JurisSettingsView: View {
             }
 
             Section {
-                SecureField("sk-ant-…", text: $anthropicKey)
-                    .textFieldStyle(.roundedBorder)
+                CampoChavePessoal(perfil: store.perfil)
                 Picker("Modelo", selection: $aiModel) {
                     Text("Claude Sonnet 5 (equilíbrio)").tag("claude-sonnet-5")
                     Text("Claude Opus 4.8 (máxima precisão)").tag("claude-opus-4-8")

@@ -28,14 +28,16 @@
     createClient: function () {
       return {
         auth: {
-          getSession: function () { return Promise.resolve({ data: { session: null }, error: null }); },
+          getSession: function () { return Promise.resolve({ data: { session: JSON.parse(sessionStorage.getItem('__fixSessao')) }, error: null }); },
           onAuthStateChange: function (cb) { window.__ctAuthCb = cb; return { data: { subscription: { unsubscribe: function () {} } } }; },
           signInWithPassword: function (a) {
             window.__ctAuthEventos.push(['signInWithPassword', a]);
             var modo = sessionStorage.getItem('__fixLogin') || 'rede';
             // 'rede': o servidor de contas fora do ar (projeto pausado) — o WebKit diz "Load failed"
             if (modo === 'rede') return Promise.resolve({ data: {}, error: { name: 'AuthRetryableFetchError', message: 'Load failed' } });
-            return Promise.resolve({ data: { session: { user: { id: 'u-real', email: 'eu@exemplo.com' } } }, error: null });
+            var sessao = { user: { id: 'u-real', email: 'eu@exemplo.com' } };
+            sessionStorage.setItem('__fixSessao', JSON.stringify(sessao));
+            return Promise.resolve({ data: { session: sessao }, error: null });
           },
           signUp: function (a) { window.__ctAuthEventos.push(['signUp', a]); return Promise.resolve({ data: {}, error: { message: 'fixture' } }); },
           signInWithOtp: function (a) { window.__ctAuthEventos.push(['signInWithOtp', a]); return Promise.resolve({ data: {}, error: null }); },

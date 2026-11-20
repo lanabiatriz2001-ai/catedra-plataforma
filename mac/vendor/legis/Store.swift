@@ -5,7 +5,25 @@ import Network
 
 @MainActor
 final class AppStore: ObservableObject {
-    static let shared = AppStore()
+    private static var instancia: AppStore?
+    static var shared: AppStore {
+        if let instancia { return instancia }
+        let nova = AppStore()
+        instancia = nova
+        return nova
+    }
+    let perfil: PerfilLeitor
+    private var verificador: Task<Void, Never>?
+    private var encerrado = false
+
+    static func encerrarPerfil() {
+        guard let anterior = instancia else { return }
+        anterior.saveNow()
+        anterior.encerrado = true
+        anterior.verificador?.cancel()
+        anterior.pathMonitor.cancel()
+        instancia = nil
+    }
 
     @Published var laws: [LawEntry] = []
     @Published var updates: [UpdateEvent] = []
@@ -175,8 +193,8 @@ final class AppStore: ObservableObject {
     private let pathQueue = DispatchQueue(label: "com.vademecum.network")
 
     init() {
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        baseDir = appSupport.appendingPathComponent("VadeMecum", isDirectory: true)
+        perfil = PerfilLeitor.atual
+        baseDir = perfil.raiz.appendingPathComponent("VadeMecum", isDirectory: true)
         textsDir = baseDir.appendingPathComponent("textos", isDirectory: true)
         try? FileManager.default.createDirectory(at: textsDir, withIntermediateDirectories: true)
         load()
@@ -193,10 +211,10 @@ final class AppStore: ObservableObject {
         // pendentes (sincronização posterior). O callback chega em outra thread; não
         // capturamos `self` (não-Sendable) — saltamos para a MainActor e usamos o
         // singleton, que é o mesmo objeto.
-        pathMonitor.pathUpdateHandler = { path in
+        pathMonitor.pathUpdateHandler = { [weak self] path in
             let online = path.status == .satisfied
             Task { @MainActor in
-                let store = AppStore.shared
+                guard let store = self, !store.encerrado else { return }
                 let wasOffline = !store.isOnline
                 store.isOnline = online
                 if online && wasOffline { await store.resumeAfterReconnect() }
@@ -205,7 +223,7 @@ final class AppStore: ObservableObject {
         pathMonitor.start(queue: pathQueue)
         // O laço de verificação vive junto do app (não da janela): continua ativo
         // mesmo com a janela fechada, enquanto o app estiver aberto.
-        Task { await self.autoCheckLoop() }
+        verificador = Task { await self.autoCheckLoop() }
         // Limpa cartões de revisão órfãos (artigo sumido em atualização anterior) em
         // segundo plano — não bloqueia a abertura e só parseia normas com cartões.
         Task { await self.reconcileAllSRS() }
@@ -276,6 +294,7 @@ final class AppStore: ObservableObject {
 
     /// Grava imediatamente. Para digitação contínua, use `scheduleSave()`.
     func saveNow() {
+        guard !encerrado else { return }
         saveTask?.cancel()
         saveTask = nil
         let persisted = LibraryFile(laws: laws, updates: updates,
@@ -326,16 +345,18 @@ final class AppStore: ObservableObject {
     }()
 
     func autoBackupIfNeeded() {
+        guard !encerrado else { return }
         let today = Self.dayFormatter.string(from: Date())
-        if UserDefaults.standard.string(forKey: "lastBackupDay") == today { return }
+        if perfil.preferencias.string(forKey: "lastBackupDay") == today { return }
         if backupNow() != nil {
-            UserDefaults.standard.set(today, forKey: "lastBackupDay")
+            perfil.preferencias.set(today, forKey: "lastBackupDay")
         }
     }
 
     /// Copia o library.json atual para backups/ e mantém só os 10 mais recentes.
     @discardableResult
     func backupNow() -> URL? {
+        guard !encerrado else { return nil }
         saveNow() // garante que o arquivo reflete o estado atual antes de copiar
         guard FileManager.default.fileExists(atPath: libraryFile.path),
               let data = try? Data(contentsOf: libraryFile) else { return nil }

@@ -4,8 +4,7 @@
 //   1. Anthropic (Claude) direto — ANTHROPIC_API_KEY (chave sk-ant-…). A melhor
 //      qualidade para o raciocínio jurídico em português (raio-X de redação, dicas
 //      de banca). Modelo padrão claude-sonnet-5; troque com ANTHROPIC_MODEL
-//      (ex.: claude-opus-5 para o raio-X mais exigente). O corpo pode pedir um
-//      modelo "claude…" específico.
+//      nas variáveis do servidor.
 //   2. Vercel AI Gateway  — AI_GATEWAY_API_KEY (chave vck_…). Um endpoint só,
 //      compatível com OpenAI, roteando para qualquer modelo (Gemini, Claude, GPT…).
 //      Modelo padrão: google/gemini-2.5-flash; troque com AI_MODEL.
@@ -21,107 +20,8 @@
 //
 // Sem dependências: usa o fetch nativo do runtime Node da Vercel.
 
-// URL e chave PUBLISHABLE do Supabase (públicas por design — as mesmas do cliente).
-const SB_URL = (process.env.SUPABASE_URL || 'https://frcnfqxniwzdyykvgqqu.supabase.co').replace(/\/+$/, '');
-const SB_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_nCm4a-RzzY8e8jVC9O6Gfg_4V6EOrI2';
-
-// Só quem tem sessão no Cátedra usa a IA. Antes esta função era um chatbot grátis e
-// ilimitado faturado na conta da dona do app: sem login, sem origem, sem teto — e o
-// endpoint está em texto puro no HTML, então bastava um scanner de /api/* achar o domínio.
-// Validamos o access_token contra o próprio Supabase (não confiamos em assinatura local).
-async function usuarioDoToken(req) {
-  const h = req.headers['authorization'] || req.headers['Authorization'] || '';
-  const token = /^Bearer\s+(.+)$/i.exec(String(h));
-  if (!token) return null;
-  try {
-    const r = await fetch(SB_URL + '/auth/v1/user', {
-      headers: { apikey: SB_KEY, authorization: 'Bearer ' + token[1] },
-    });
-    if (!r.ok) return null;
-    const u = await r.json();
-    if (u && u.id) { u.__token = token[1]; return u; }
-    return null;
-  } catch (_) {
-    return null;
-  }
-}
-
-// Beta fechado: opcionalmente, só e-mails desta lista (variável de ambiente
-// BETA_EMAILS, separados por vírgula). Vazia = qualquer conta autenticada entra.
-function liberado(user) {
-  const lista = (process.env.BETA_EMAILS || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
-  if (!lista.length) return true;
-  return lista.includes(String(user.email || '').toLowerCase());
-}
-
-// Bloqueio individual, controlado pela dona no painel de admin. Pergunta ao banco,
-// com o token do próprio usuário, se esta conta foi bloqueada. Em qualquer falha de
-// rede/consulta, NÃO bloqueia (fail-open) — não quero derrubar a IA de todos se o
-// Supabase piscar; o portão que importa (exigir sessão) já passou.
-async function contaBloqueada(user) {
-  try {
-    const r = await fetch(SB_URL + '/rest/v1/rpc/meu_acesso_bloqueado', {
-      method: 'POST',
-      headers: { apikey: SB_KEY, authorization: 'Bearer ' + user.__token, 'content-type': 'application/json' },
-      body: '{}',
-    });
-    if (!r.ok) return false;
-    return (await r.json()) === true;
-  } catch (_) {
-    return false;
-  }
-}
-
-// Allowlist gerida pelo painel de admin (tabela beta_allow). Lista vazia = beta aberto.
-// Em erro de rede, NÃO barra (fail-open) — o portão de sessão já passou.
-async function emailLiberadoDB(user) {
-  try {
-    const r = await fetch(SB_URL + '/rest/v1/rpc/meu_email_liberado', {
-      method: 'POST',
-      headers: { apikey: SB_KEY, authorization: 'Bearer ' + user.__token, 'content-type': 'application/json' },
-      body: '{}',
-    });
-    if (!r.ok) return true;
-    return (await r.json()) !== false;
-  } catch (_) {
-    return true;
-  }
-}
-
-// Reserva atômica compartilhada com a narração. Sem reserva, não chama o provedor.
-async function reservarUsoIA(user, endpoint, chars) {
-  const r = await fetch(SB_URL + '/rest/v1/rpc/reservar_uso_ia', {
-    method: 'POST', headers: { apikey: SB_KEY, authorization: 'Bearer ' + user.__token, 'content-type': 'application/json' },
-    body: JSON.stringify({ p_endpoint: endpoint, p_chars: chars }),
-  });
-  if (!r.ok) throw new Error('reserva_indisponivel');
-  const c = await r.json();
-  if (!c || typeof c.reservada !== 'boolean' || !Number.isFinite(c.limite) || !Number.isFinite(c.usadas)) throw new Error('reserva_invalida');
-  return c;
-}
-
-
-// Cota diária por conta (P18): o limite vem da tabela ia_cota pelo plano da conta (ia_plano;
-// padrão 'beta', configurável no console de administração) e a contagem é a de ai_uso, do dia
-// de Brasília. Em falha de rede/consulta, NÃO barra (fail-open) — como os outros portões.
-export async function cotaDoDia(user) {
-  try {
-    const r = await fetch(SB_URL + '/rest/v1/rpc/minha_cota_ia', {
-      method: 'POST',
-      headers: { apikey: SB_KEY, authorization: 'Bearer ' + user.__token, 'content-type': 'application/json' },
-      body: '{}',
-    });
-    if (!r.ok) { console.warn('[cota IA] consulta falhou (HTTP ' + r.status + '): liberando sem teto'); return null; }
-    const j = await r.json();
-    return (j && typeof j.limite === 'number' && typeof j.usadas === 'number') ? j : null;
-  } catch (e) {
-    console.warn('[cota IA] consulta falhou (' + (e && e.message) + '): liberando sem teto');
-    return null;
-  }
-}
-export function mensagemCota(c) {
-  return 'Você usou as ' + c.limite + ' chamadas de IA de hoje. A cota volta amanhã, à meia-noite de Brasília.';
-}
+import { autorizarRecurso, cotaDoDia, mensagemCota, reservarUsoIA } from '../scripts/lib/acesso-api.mjs';
+export { cotaDoDia, mensagemCota };
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -129,20 +29,11 @@ export default async function handler(req, res) {
     return;
   }
 
-  const user = await usuarioDoToken(req);
-  if (!user) {
-    res.status(401).json({ error: 'Entre na sua conta do Cátedra para usar a IA.' });
-    return;
-  }
-  if (!liberado(user) || !(await emailLiberadoDB(user))) {
-    res.status(403).json({ error: 'Esta conta ainda não está liberada para o beta.' });
-    return;
-  }
-  if (await contaBloqueada(user)) {
-    res.status(403).json({ error: 'O acesso à IA desta conta foi pausado. Fale com quem te convidou.' });
-    return;
-  }
-  const cota = await cotaDoDia(user);
+  const acesso = await autorizarRecurso(req,
+    'Entre na sua conta do Cátedra para usar a IA.',
+    'O acesso à IA desta conta foi pausado. Fale com quem te convidou.');
+  if (acesso.erro) { res.status(acesso.codigo).json({ error: acesso.erro }); return; }
+  const cota = await cotaDoDia(acesso.usuario);
   if (cota && cota.usadas >= cota.limite) {
     res.status(429).json({ error: mensagemCota(cota), cota });
     return;
@@ -170,11 +61,18 @@ export default async function handler(req, res) {
       res.status(413).json({ error: 'Texto grande demais para a IA (máx. 60 mil caracteres).' });
       return;
     }
-    // Reserva a chamada no banco antes do provedor; falha nunca libera gasto sem cota.
-    let reserva;
-    try { reserva = await reservarUsoIA(user, 'complete', prompt.length); }
-    catch (_) { res.status(503).json({ error: 'Não foi possível conferir a cota de IA. Tente novamente em instantes.' }); return; }
-    if (!reserva.reservada) { res.status(429).json({ error: mensagemCota(reserva), cota: reserva }); return; }
+    // Só o servidor escolhe os modelos cobrados da plataforma, inclusive na cascata.
+    const modeloClaude = antKey && (process.env.ANTHROPIC_MODEL || 'claude-sonnet-5');
+    const modeloGateway = gwKey && (process.env.AI_MODEL || 'google/gemini-2.5-flash');
+    const modeloGemini = gemKey && (process.env.GEMINI_MODEL || 'gemini-2.5-flash');
+    if (Object.hasOwn(body, 'model') && (typeof body.model !== 'string' || !body.model ||
+        ![modeloClaude, modeloGateway, modeloGemini].includes(body.model))) {
+      res.status(400).json({ error: 'Modelo de IA não disponível nesta plataforma.' });
+      return;
+    }
+
+    const recusa = await reservarUsoIA(acesso.usuario, 'complete', prompt.length);
+    if (recusa) { res.status(recusa.codigo).json(recusa.corpo); return; }
 
     const maxTokens = Math.min(body.max_tokens || 4096, 8192);
     const temperature = typeof body.temperature === 'number' ? body.temperature : 0.7;
@@ -185,9 +83,6 @@ export default async function handler(req, res) {
     // vez de derrubar o aluno.
     if (antKey) {
       try {
-      const model = (typeof body.model === 'string' && /^claude[\w.\-]*$/.test(body.model))
-        ? body.model
-        : (process.env.ANTHROPIC_MODEL || 'claude-sonnet-5');
       const r = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -200,7 +95,7 @@ export default async function handler(req, res) {
         // de truncar (mesma intenção do thinkingBudget:0 do Gemini). Para um raio-X com
         // raciocínio mais profundo, é só religar o thinking e subir o max_tokens.
         body: JSON.stringify({
-          model,
+          model: modeloClaude,
           max_tokens: maxTokens,
           thinking: { type: 'disabled' },
           messages: [{ role: 'user', content: prompt }],
@@ -246,9 +141,6 @@ export default async function handler(req, res) {
     // Gemini, seguimos para o próximo provedor em vez de devolver erro ao aluno.
     if (gwKey) {
       try {
-      const model = (typeof body.model === 'string' && /^[\w.\-]+\/[\w.\-]+$/.test(body.model))
-        ? body.model
-        : (process.env.AI_MODEL || 'google/gemini-2.5-flash');
       const r = await fetch('https://ai-gateway.vercel.sh/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -256,7 +148,7 @@ export default async function handler(req, res) {
           'authorization': 'Bearer ' + gwKey,
         },
         body: JSON.stringify({
-          model,
+          model: modeloGateway,
           messages: [{ role: 'user', content: prompt }],
           max_tokens: maxTokens,
           temperature,
@@ -292,21 +184,16 @@ export default async function handler(req, res) {
     }
 
     // ---------- 3) Gemini direto (fallback) ----------
-    // modelo: aceita override do corpo (se for um nome de modelo Gemini) ou da env.
-    const model = (typeof body.model === 'string' && /^gemini[\w.\-]*$/.test(body.model))
-      ? body.model
-      : (process.env.GEMINI_MODEL || 'gemini-2.5-flash');
-
     const genConfig = {
       maxOutputTokens: maxTokens,
       temperature,
     };
     // modelos 2.5 têm "thinking" que consome tokens de saída; desligamos para
     // garantir que o orçamento vá para a resposta (e menos latência).
-    if (/2\.5/.test(model)) genConfig.thinkingConfig = { thinkingBudget: 0 };
+    if (/2\.5/.test(modeloGemini)) genConfig.thinkingConfig = { thinkingBudget: 0 };
 
     const r = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modeloGemini + ':generateContent',
       {
         method: 'POST',
         headers: {

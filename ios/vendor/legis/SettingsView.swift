@@ -12,6 +12,7 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
+            AcervoAnteriorDoLeitor(perfil: store.perfil)
             Section("Revisão espaçada") {
                 Toggle("Ativar revisão espaçada (estilo Anki)", isOn: $srsEnabled)
                 LabeledContent("Artigos no baralho", value: "\(store.srsDeckCount)")
@@ -71,14 +72,11 @@ struct SettingsView: View {
                     Label("Fazer backup agora", systemImage: "externaldrive.badge.plus")
                 }
                 Button {
-                    store.abrirBackupsNoArquivos { abriu in
-                        backupFeedback = abriu
-                            ? "Pasta aberta no app Arquivos."
-                            : "Não foi possível abrir o app Arquivos. A pasta está em \(store.backupsCaminhoLegivel)."
-                    }
+                    if !store.exportarPastaBackups() { backupFeedback = "Não foi possível exportar os backups." }
                 } label: {
-                    Label("Abrir no Arquivos", systemImage: "folder")
+                    Label("Exportar backups para Arquivos", systemImage: "folder")
                 }
+                .disabled(store.backupFiles().isEmpty)
                 Button {
                     if !store.compartilharUltimoBackup() {
                         backupFeedback = "Nenhum backup para compartilhar ainda."
@@ -96,7 +94,7 @@ struct SettingsView: View {
                 if let backupFeedback {
                     Text(backupFeedback).font(.caption).foregroundStyle(.secondary)
                 }
-                Text("Uma cópia de segurança da sua biblioteca (favoritos, anotações, progresso, jurisprudência e revisão espaçada) é criada automaticamente a cada dia de uso, em \(store.backupsCaminhoLegivel). Os textos das leis não entram no backup porque podem ser rebaixados do Planalto.")
+                Text("Uma cópia de segurança da sua biblioteca (favoritos, anotações, progresso, jurisprudência e revisão espaçada) é criada automaticamente a cada dia de uso, na pasta privativa desta conta. Os textos das leis não entram no backup porque podem ser rebaixados do Planalto.")
                     .font(.caption).foregroundStyle(.secondary)
             }
 
@@ -126,7 +124,7 @@ struct SettingsView: View {
             }
             Button("Cancelar", role: .cancel) {}
         } message: {
-            Text("A biblioteca atual será substituída pela do último backup. O estado atual é salvo automaticamente em Backups do LEGIS antes, por segurança.")
+            Text("A biblioteca atual será substituída pela do último backup. O estado atual é salvo automaticamente na pasta privativa desta conta antes, por segurança.")
         }
     }
 }
