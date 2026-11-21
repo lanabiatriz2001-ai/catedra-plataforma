@@ -20,6 +20,8 @@ import json
 import os
 import re
 import subprocess
+import shutil
+import tempfile
 import sys
 import time
 import urllib.request
@@ -39,26 +41,34 @@ if "--max-edicoes" in sys.argv:
     MAXED = int(sys.argv[sys.argv.index("--max-edicoes") + 1])
 
 
+class FetchError(RuntimeError):
+    """Falha de transporte ou status HTTP que não pode significar edição ausente."""
+
+
+class ParseError(RuntimeError):
+    """Resposta 200 que não corresponde com segurança a uma edição válida ou ausente."""
+
+
 def get(url, retry=0):
-    """Fetch URL com retry exponencial e tratamento de rede"""
+    """Busca URL; preserva a distinção entre 404 legítimo e falha operacional."""
     req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "text/html"})
     try:
         with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
-            return r.status, r.read()
+            status, body = r.status, r.read()
     except urllib.error.HTTPError as e:
-        return e.code, b""
-    except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
+        status, body = e.code, e.read() or b""
+    except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as e:
         if retry < RETRY_MAX:
             wait = RETRY_BACKOFF ** retry
             print(f"  ⚠️ erro de rede ({type(e).__name__}), retry em {wait:.0f}s... (tentativa {retry + 1}/{RETRY_MAX})", file=sys.stderr)
             time.sleep(wait)
             return get(url, retry + 1)
-        else:
-            print(f"  ✗ erro de rede após {RETRY_MAX} tentativas: {type(e).__name__}", file=sys.stderr)
-            return 0, b""
+        raise FetchError(f"falha de conexão após {RETRY_MAX + 1} tentativas: {url}: {e}") from e
     except Exception as e:
-        print(f"  ✗ erro inesperado: {type(e).__name__}: {e}", file=sys.stderr)
-        return 0, b""
+        raise FetchError(f"erro inesperado ao consultar {url}: {type(e).__name__}: {e}") from e
+    if status not in (200, 404):
+        raise FetchError(f"resposta HTTP {status} ao consultar {url}")
+    return status, body
 
 
 # ------------------------------------------------------------------ helpers
@@ -259,7 +269,8 @@ def parse_stj(code, raw):
 
 # ------------------------------------------------------------------ main
 def load_index():
-    s = open(IDX, encoding="utf-8").read()
+    with open(IDX, encoding="utf-8") as f:
+        s = f.read()
     arr = json.loads(s[s.index("=") + 1:].rstrip().rstrip(";"))
     return s, arr
 
@@ -275,6 +286,35 @@ def ultimos(idx):
     return stf, stj, eem
 
 
+def buscar_edicoes(series, fetch=None):
+    """Busca edições em séries independentes e falha alto em resposta ambígua."""
+    if fetch is None:
+        fetch = get
+    novos = []
+    for nome, numero_inicial, limite, url_fn, parser in series:
+        misses, n = 0, numero_inicial
+        while misses < 2 and n < numero_inicial + limite:
+            url, parser_codigo = url_fn(n)
+            status, raw = fetch(url)
+            if status == 404:
+                misses += 1
+                print(f"{nome} {n}: edição ausente (404)")
+            elif status != 200:
+                raise FetchError(f"{nome} {n}: status HTTP inesperado {status}")
+            else:
+                try:
+                    recs = parser(parser_codigo, raw)
+                except Exception as e:
+                    raise ParseError(f"{nome} {n}: falha ao interpretar resposta 200: {e}") from e
+                if not recs:
+                    raise ParseError(f"{nome} {n}: resposta 200 sem julgados reconhecidos; ausência não comprovada")
+                misses = 0
+                novos.extend(recs)
+                print(f"{nome} {n}: {len(recs)} julgados")
+            n += 1
+    return novos
+
+
 def main():
     s_idx, idx = load_index()
     have = {r[0] for r in idx}
@@ -283,48 +323,21 @@ def main():
         print(json.dumps({"stf": stf_max, "stj": stj_max, "ee": ee_max}))
         return
     print(f"corpus: STF até {stf_max}, STJ até {stj_max}, Ed. Extr. até {ee_max}")
-
-    novos = []
-    # STF
-    misses, n = 0, stf_max + 1
-    while misses < 2 and n < stf_max + 1 + MAXED:
-        st, raw = get(f"https://www.stf.jus.br/arquivo/informativo/documento/informativo{n}.htm")
-        recs = parse_stf(n, raw) if st == 200 else None
-        if not recs:
-            misses += 1
-            print(f"STF {n}: nada ({st})")
-        else:
-            misses = 0
-            novos += recs
-            print(f"STF {n}: {len(recs)} julgados")
-        n += 1
-    # STJ ordinárias
-    misses, n = 0, stj_max + 1
-    while misses < 2 and n < stj_max + 1 + MAXED:
-        st, raw = get(f"https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=%27{n:04d}%27.cod.")
-        recs = parse_stj(f"{n:04d}", raw) if st == 200 else None
-        if not recs:
-            misses += 1
-            print(f"STJ {n}: nada ({st})")
-        else:
-            misses = 0
-            novos += recs
-            print(f"STJ {n}: {len(recs)} julgados")
-        n += 1
-    # STJ extraordinárias
-    misses, n = 0, ee_max + 1
-    while misses < 2 and n < ee_max + 1 + 10:
-        st, raw = get(f"https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=%27{n:04d}E%27.cod.")
-        recs = parse_stj(f"{n:04d}E", raw) if st == 200 else None
-        if not recs:
-            misses += 1
-            print(f"STJ Ed. Extr. {n}: nada ({st})")
-        else:
-            misses = 0
-            novos += recs
-            print(f"STJ Ed. Extr. {n}: {len(recs)} julgados")
-        n += 1
-
+    try:
+        # Busca tudo antes de gravar: falha de rede/HTTP/parsing preserva o acervo.
+        novos = buscar_edicoes([
+            ("STF", stf_max + 1, MAXED,
+             lambda n: (f"https://www.stf.jus.br/arquivo/informativo/documento/informativo{n}.htm", n), parse_stf),
+            ("STJ", stj_max + 1, MAXED,
+             lambda n: (f"https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=%27{n:04d}%27.cod.", n),
+             lambda code, raw: parse_stj(f"{code:04d}", raw)),
+            ("STJ Ed. Extr.", ee_max + 1, 10,
+             lambda n: (f"https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=%27{n:04d}E%27.cod.", n),
+             lambda code, raw: parse_stj(f"{code:04d}E", raw)),
+        ])
+    except (FetchError, ParseError) as e:
+        print(f"✗ atualização incompleta; acervo preservado: {e}", file=sys.stderr)
+        raise SystemExit(2)
     novos = [r for r in novos if r["id"] not in have]
     print(f"NOVOS: {len(novos)}")
     if not novos or DRY:
@@ -341,22 +354,53 @@ def main():
     e = s_idx.rstrip().rstrip(";").rstrip()
     assert e.endswith("]")
     s_new = e[:-1] + "," + ",".join(json.dumps(x, ensure_ascii=False, separators=(",", ":")) for x in rows) + "]" + s_idx[len(e):]
-    open(IDX, "w", encoding="utf-8").write(s_new)
-    s_t = open(TXT, encoding="utf-8").read()
+    with open(TXT, encoding="utf-8") as f:
+        s_t = f.read()
     e2 = s_t.rstrip().rstrip(";").rstrip()
     assert e2.endswith("}")
     s_t2 = e2[:-1] + "," + json.dumps(txt, ensure_ascii=False, separators=(",", ":"))[1:-1] + "}" + s_t[len(e2):]
-    open(TXT, "w", encoding="utf-8").write(s_t2)
-    # sanidade
-    _, idx2 = load_index()
+    json.loads(s_new[s_new.index("=") + 1:].rstrip().rstrip(";"))
+    json.loads(s_t2[s_t2.index("=") + 1:].rstrip().rstrip(";"))
+    # Recupera tanto o acervo quanto os produtos dos geradores em caso de erro.
+    # Esta proteção cobre exceções durante a execução; interrupções abruptas não são atômicas.
+    alvos = [IDX, TXT, os.path.join(ROOT, "semana-juris.js"),
+             os.path.join(ROOT, "dados"), os.path.join(ROOT, "widget", "dodia.json")]
+    with tempfile.TemporaryDirectory(prefix="informativos-backup-") as backup:
+        existentes = {}
+        for i, alvo in enumerate(alvos):
+            copia = os.path.join(backup, str(i))
+            existentes[alvo] = os.path.exists(alvo)
+            if os.path.isdir(alvo):
+                shutil.copytree(alvo, copia)
+            elif existentes[alvo]:
+                shutil.copy2(alvo, copia)
+        tmp_idx, tmp_txt = IDX + ".tmp", TXT + ".tmp"
+        try:
+            with open(tmp_idx, "w", encoding="utf-8") as f: f.write(s_new)
+            with open(tmp_txt, "w", encoding="utf-8") as f: f.write(s_t2)
+            os.replace(tmp_idx, IDX)
+            os.replace(tmp_txt, TXT)
+            _, idx2 = load_index()
+            for gerador in ("build-semana-juris.mjs", "build-fatias.mjs", "build-widget-dodia.mjs"):
+                subprocess.run(["node", os.path.join(ROOT, "scripts", gerador)], check=True)
+        except Exception:
+            for i, alvo in enumerate(alvos):
+                copia = os.path.join(backup, str(i))
+                if os.path.isdir(alvo):
+                    shutil.rmtree(alvo)
+                elif os.path.exists(alvo):
+                    os.unlink(alvo)
+                if existentes[alvo]:
+                    if os.path.isdir(copia):
+                        shutil.copytree(copia, alvo)
+                    else:
+                        os.makedirs(os.path.dirname(alvo), exist_ok=True)
+                        shutil.copy2(copia, alvo)
+            raise
+        finally:
+            for tmp in (tmp_idx, tmp_txt):
+                if os.path.exists(tmp): os.unlink(tmp)
     print(f"índice: {len(idx)} -> {len(idx2)} verbetes")
-    # O acervo novo só chega à pessoa depois dos gerados que dependem dele: o recorte
-    # "O que mudou esta semana" (semana-juris.js) e as fatias de texto que o app de fato lê
-    # (dados/juris-text/). Sem isso o card do Início ficou parado em 23/06 com o STJ 900 já
-    # no acervo, e "Abrir no JURIS" dos julgados novos abria sem texto. O widget também
-    # depende das citações do acervo: sem regerá-lo, a atualização falha na suíte (#245).
-    for gerador in ("build-semana-juris.mjs", "build-fatias.mjs", "build-widget-dodia.mjs"):
-        subprocess.run(["node", os.path.join(ROOT, "scripts", gerador)], check=True)
 
 
 if __name__ == "__main__":
