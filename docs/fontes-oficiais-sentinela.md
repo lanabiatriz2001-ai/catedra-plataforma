@@ -224,28 +224,49 @@ Datas por fonte:
 
 ### Nos informativos
 
-- A edição é reconhecida pelo número pedido no título da página (`<title>`, lido em latin1):
-  "Informativo de Jurisprudência n. N" no STJ, "Edição Extraordinária n. N" na extraordinária e
-  "Nº N" no STF. Marcadores do corpo da página e tamanho não contam.
-- Âncora: antes das edições novas, o motor consulta a última edição do acervo (no STJ, também a
-  última extraordinária). Se a régua não a reconhecer, a fonte é `falha`: "a régua não reconheceu
-  a edição N, que já está no acervo: a página mudou de formato". Âncora com resposta diferente de
-  200 também é `falha`.
-- STJ: a página genérica (200, título sem número) é edição que não saiu. Resposta diferente de
-  200, ou página sem o título do Informativo, é falha daquela edição.
-- STF: só o 404 é edição que não saiu. 200 sem o número no título, 403 e 500 são falha daquela
-  edição.
-- Ordinárias e extraordinárias correm em séries separadas. Duas ordinárias seguidas que não
-  saíram encerram as ordinárias, que vão no máximo a 12 edições além da última do acervo
-  (`--max-edicoes`). As três extraordinárias seguintes são sempre consultadas. Três falhas
-  seguidas interrompem a série, e a fonte fica `parcial`.
-- Se nenhuma edição nova teve resposta conclusiva, a fonte é `falha`, não "sem novidade".
-- Títulos reais baixados em 01/10/2026: STJ 900 a 904 e 7777, extraordinárias 29, 33 e 34;
-  STF 1224, 1225, 1230 e o 404 da 1231. As demais edições são simuladas no mesmo formato. Com
-  isso, a régua dá STJ 901, 902 e 903 novas, nenhuma extraordinária nova (a 34 não saiu), e
-  STF 1225 a 1230.
-- Edição nova nasce pendente de revisão. Decisão mais recente não significa superação da
-  anterior.
+Atualização conferida em 06/11/2026:
+
+- STF: HTTP 200 com o número pedido no `<title>` identifica a edição; só HTTP 404 confirma ausência.
+- STJ: o título agora é genérico também nas edições publicadas. A identificação vem do
+  `span.clsInformativoTitulo`, com número e série corretos, junto dos blocos de julgados
+  `clsIdentificaProcesso`. O formato antigo com número no título continua aceito.
+- STJ sem edição: exige HTTP 200, título do Informativo, mensagem específica
+  `clsCaixaMensagem` com “Nenhum documento encontrado!” e nenhum bloco de julgamento.
+  Título genérico sozinho, menu, campo da última edição e parâmetro de pesquisa não comprovam ausência.
+- Outra edição/série, resposta sem os elementos esperados, HTTP 403/429/5xx e falha de
+  rede são falhas. A âncora de cada série precisa ser reconhecida antes das edições novas.
+- O Sentinela consulta até 12 ordinárias (`--max-edicoes`) e três extraordinárias;
+  duas ausências ordinárias consecutivas encerram a série. Mantém falhas nomeadas no diário.
+- O importador `scripts/atualizar-informativos.py` confere também o parsing das âncoras,
+  exige todos os campos dos julgados do STJ e interrompe a incorporação inteira antes de
+  gravar se alguma série falhar. O limite de busca sem confirmação do fim também é erro.
+  Falha não imprime `NOVOS: 0`. Se um gerador falhar depois da coleta, o lote de índice,
+  textos e derivados é restaurado, permitindo uma nova tentativa completa.
+  HTTP 5xx e falhas de transporte têm tentativas limitadas;
+  HTTP 403 não é repetido nem contornado.
+- Os textos explicativos novos são guardados sem o antigo corte de 1.500 caracteres.
+  Os registros anteriores permanecem intactos. Data como `1º/9/2026` é normalizada.
+- As fixtures de `tests/fixtures/informativos/2026-11-06/` guardam recortes oficiais,
+  URLs, status, contagens e hashes; `tests/informativos-leitura.py` e
+  `tests/sentinela.mjs` cobrem resposta real, busca vazia, outra série e respostas incompletas.
+- Resultado da rodada: **STF 1235 (4 notas/julgados) e STJ 908 (10)**. STF 1236/1237
+  responderam 404; STJ 909/910 e extraordinárias 34/35/36 responderam busca vazia.
+  A extraordinária 33 foi relida como âncora (21 julgados), sem duplicação.
+- A planilha oficial do STF foi consultada com sucesso (11.642 linhas); permanece o
+  aviso histórico do **STF 1225: quatro notas na planilha e três no acervo**. Essa
+  revisão histórica não é resolvida pela incorporação das edições novas.
+
+O PR #200 estava aberto em rascunho, na branch `sentinela/atualizacoes`, ponta
+`038c3d2`, quando este trabalho começou. Suas contribuições foram integradas à branch
+da correção sobre `origin/main` (`d499913`). A entrega usa PR separado porque o workflow
+atual refaz a branch automática a partir da main e só recupera os registros do Sentinela:
+uma rodada poderia retirar código e acervo ainda em revisão. O #200 permanece intacto.
+
+O agendamento local `scripts/sentinela-mac.sh` continua responsável pela **detecção**;
+a incorporação desta rodada foi executada explicitamente no Mac. Não houve alteração
+de agendamento, ativação de incorporação no Actions, merge, publicação ou instalação.
+Repetitivos, RG, súmulas e Planalto não foram consultados nesta rodada; seus erros e
+carimbos anteriores foram mantidos. Não se declara atualização geral dessas coleções.
 
 ### Baixa: o que já entrou no acervo
 
