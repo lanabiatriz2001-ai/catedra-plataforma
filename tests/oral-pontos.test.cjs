@@ -115,5 +115,19 @@ ok(T.corrigirPorEspelho(prova,'texto alheio').quesitos[0].sugestao==='nao','espe
 ok(T.notaPorEspelho(c,{0:'parcial'}).ganho===0.5&&c.quesitos[0].valor===1,'veredito humano prevalece e pontuação oficial é preservada');
 ok(T.corrigirPorEspelho({quesitos:[{exig:'prazo 5',disp:[]}]},'prazo 8').quesitos[0].sugestao==='parcial','números diferentes não cobrem o termo numérico do espelho');
 ok(T.corrigirPorEspelho({quesitos:[{exig:'mora',disp:[]}]},'mora').quesitos[0].sugestao==='atendeu','exigência curta também é comparada como palavra inteira');
+// Equivalência Unicode em ambos os lados, sem alterar os endereços do texto original.
+const termo = 'público', nfd = termo.normalize('NFD');
+for (const criterio of [termo, nfd]) for (const resposta of [termo, nfd]) {
+  const texto = '⚖️ ' + resposta + ', eficiente';
+  const pontos = [{text:'Ponto', terms:[criterio,'eficiência','ausente','outro','mais']}];
+  const oral = T.corrigirOralPorPontos(pontos, texto, {});
+  ok(oral.pts[0].status==='parcial' && oral.pts[0].found===2, 'oral: Unicode e radical mantêm cobertura parcial');
+  ok(oral.segmentos.map(s=>s.t).join('')===texto && oral.segmentos.some(s=>s.marca && s.t===resposta), 'destaque preserva texto e acento original');
+  const revisado = T.corrigirOralPorPontos(pontos, texto, {0:true});
+  ok(revisado.pts[0].status==='coberto' && revisado.pts[0].manual, 'revisão manual prevalece para Unicode');
+  const esp = T.corrigirPorEspelho({quesitos:[{exig:criterio,terms:[criterio,'eficiência','ausente','outro','mais'],disp:[],valor:2}]}, texto);
+  ok(esp.quesitos[0].cobertura===40 && esp.quesitos[0].sugestao==='parcial' && T.notaPorEspelho(esp,{}).ganho===1, 'espelho: classificação e pontuação Unicode equivalentes');
+  ok(T.notaPorEspelho(esp,{0:'atendeu'}).ganho===2 && esp.quesitos[0].valor===2, 'espelho: revisão manual e peso preservados');
+}
 console.log(fail ? ('\n' + fail + ' falha(s)') : '\ntudo certo');
 if(fail) throw new Error(fail + ' falha(s) no Anexo B');
