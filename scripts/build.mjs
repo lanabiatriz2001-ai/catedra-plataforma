@@ -404,7 +404,8 @@ for (const nome of pastasDeDados()) {
    quem não couber no orçamento do sw.js é cortado do fim para o começo. */
 const acervoOffline = [
   // 1. as telas satélite — sem elas, abrir LEGIS/JURIS/roteiros offline dá tela branca
-  './tema-satelite.js', './catedra-ui.css', './satellite-base.css', './ritos-web.html', './pecas-web.html', './area-web.html',
+  // catedra-ui.css já é obrigatória na instalação da casca e só ocupa essa cota uma vez.
+  './tema-satelite.js', './satellite-base.css', './ritos-web.html', './pecas-web.html', './area-web.html',
   './legis-web.html', './juris-web.html', './segunda-fase-web.html', './prioridade-web.html',
   // 2. os scripts que cada satélite carrega
   './ritos.js', './pecas.js', './fluxos.js', './peca-roteiro.js',

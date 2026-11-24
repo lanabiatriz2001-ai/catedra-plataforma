@@ -343,3 +343,69 @@ button.ct-sat-card:hover, #app button.mode:hover, #app button.rcard:hover, #app 
 /* P16: a baixa estimulação do host vale o mesmo aqui — o cartão não salta no hover */
 [data-baixa="1"] button.ct-sat-card, [data-baixa="1"] #app button.mode, [data-baixa="1"] #app button.rcard, [data-baixa="1"] #app button.vcard { transition: none; }
 [data-baixa="1"] button.ct-sat-card:hover, [data-baixa="1"] #app button.mode:hover, [data-baixa="1"] #app button.rcard:hover, [data-baixa="1"] #app button.vcard:hover { transform: none; }
+
+/* A mesma hierarquia de entrada nos sete módulos. Os quatro painéis de trabalho
+   mantêm a barra de filtros compacta; os catálogos têm espaço para o título. */
+.wrap > .head {
+  padding-block: var(--ct-e2, 8px) var(--ct-e4, 16px);
+  border-bottom: 1px solid var(--border, #e3ddce);
+}
+.wrap > .head h1,
+header.top .brand h1 {
+  margin: 0;
+  font: 700 clamp(var(--fs-2xl, 19px), 2.5vw, calc(var(--fs-2xl, 19px) * 1.6)) / 1.12 var(--display, 'Spectral', Georgia, serif);
+  letter-spacing: -.025em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+header.top .brand h1 {
+  font-size: clamp(var(--fs-2xl, 19px), 2vw, calc(var(--fs-2xl, 19px) * 1.25));
+}
+header.top .brand { max-width: 100%; }
+header.top .brand > div,
+.wrap > .head > div { min-width: 0; }
+header.top .brand .ic,
+.wrap > .head .ic {
+  border-radius: var(--r-md, 11px);
+  box-shadow: none;
+}
+.wrap > .head p {
+  margin-top: var(--ct-e1, 4px);
+  font-size: var(--fs-sm, 12.5px);
+  line-height: 1.45;
+}
+@media print {
+  .wrap > .head { border: 0; }
+}
+
+/* O modo de imersão do leitor é uma escolha independente.
+   Quando coincide com o tema do app, usa o mesmo papel e a mesma tinta. */
+[data-ct-modo="claro"] .rdr:not(.dark),
+[data-ct-modo="escuro"] .rdr.dark {
+  --papel-barra-leitor: var(--surface);
+  --rink: var(--ink);
+  --rctext: var(--ink);
+  --rdim: var(--text2);
+  --rdim2: var(--text2);
+  --rline: var(--border);
+  --rcard: var(--surface);
+  --rcanA: var(--bg);
+  --rcanB: var(--bg);
+  --rpar: var(--ink);
+  --rinc: var(--text2);
+}
+body .rdr .top {
+  background: var(--papel-barra-leitor, var(--rcanB));
+  backdrop-filter: none;
+}
+body .rdr .top .back,
+body .rdr .top .nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+body .rdr.leitura::before { content: none; }
+body .rdr.leitura { background: var(--rcanA); }
+.rdr.leitura .docwrap,
+.rdr .map { overflow-wrap: anywhere; }

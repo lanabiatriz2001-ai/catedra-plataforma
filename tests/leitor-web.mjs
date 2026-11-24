@@ -22,6 +22,52 @@ const PARAS = [
   'Art. 2º São Poderes da União, independentes e harmônicos entre si, o Legislativo, o Executivo e o Judiciário.',
 ];
 
+// O papel da aplicação acompanha o tema, e a imersão continua uma escolha do leitor.
+async function medirPapelDoLeitor(page, seletor, botao, selo, ok) {
+  const chave = 'catedra:leitorDark';
+  const preferencia = await page.evaluate(k => localStorage.getItem(k), chave);
+  for (const [modo, fundo, papel, tinta] of [
+    ['claro', '#f4f1ea', '#fffdf8', '#1f1c17'],
+    ['escuro', '#16140f', '#201d17', '#ece7db'],
+  ]) {
+    await page.evaluate(({ modo, fundo, papel, tinta }) => {
+      window.postMessage({ type: 'ctTheme', tokens: {
+        __dark: modo === 'escuro', '--bg': fundo, '--surface': papel, '--ink': tinta,
+      } }, '*');
+    }, { modo, fundo, papel, tinta });
+    await page.waitForFunction(m => document.documentElement.getAttribute('data-ct-modo') === m, modo);
+    const medidas = await page.evaluate(({ seletor, botao, selo, modo, papel }) => {
+      const leitor = document.querySelector(seletor);
+      const alternar = leitor.querySelector(botao);
+      if (leitor.classList.contains('dark') !== (modo === 'escuro')) alternar.click();
+      const corBarra = () => getComputedStyle(leitor.querySelector('.top')).backgroundColor;
+      const ctx = document.createElement('canvas').getContext('2d');
+      const rgb = cor => {
+        ctx.fillStyle = cor;
+        ctx.fillRect(0, 0, 1, 1);
+        return Array.from(ctx.getImageData(0, 0, 1, 1).data).slice(0, 3);
+      };
+      const luminancia = cor => rgb(cor).reduce((total, n, i) => {
+        const v = n / 255;
+        return total + [0.2126, 0.7152, 0.0722][i] * (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+      }, 0);
+      const estilo = getComputedStyle(leitor.querySelector(selo));
+      const cores = [luminancia(estilo.color), luminancia(estilo.backgroundColor)].sort((a, b) => b - a);
+      const noTema = rgb(corBarra()).join() === rgb(papel).join();
+      alternar.click();
+      const independente = rgb(corBarra()).join() !== rgb(papel).join();
+      alternar.click();
+      return { noTema, independente, contraste: (cores[0] + 0.05) / (cores[1] + 0.05) };
+    }, { seletor, botao, selo, modo, papel });
+    ok(medidas.noTema && medidas.independente && medidas.contraste >= 4.5,
+      'LEITOR WEB ' + seletor + ' no modo ' + modo + ': papel do tema, imersão independente e contraste do selo de ' + medidas.contraste.toFixed(2) + ':1');
+  }
+  await page.evaluate(({ chave, preferencia }) => {
+    if (preferencia === null) localStorage.removeItem(chave);
+    else localStorage.setItem(chave, preferencia);
+  }, { chave, preferencia });
+}
+
 export async function testarLeitorWeb(page, base, ok) {
   const R = 'LEITOR WEB ';
   // ── JURIS ──
@@ -51,6 +97,22 @@ export async function testarLeitorWeb(page, base, ok) {
   }, ID, { timeout: 15000 }).then(() => true, () => false);
   ok(abriu, R + 'JURIS: um id exato recebido do LEGIS abre direto aquele verbete');
 
+  if (abriu) {
+    await page.waitForSelector('#jrdr .vhero .tb', { state: 'visible' });
+    await medirPapelDoLeitor(page, '#jrdr', '#jrDark', '.vhero .tb', ok);
+    const item = page.locator('#jrdr .mnode[aria-current="true"]');
+    const proximo = item.locator('xpath=following-sibling::button[1]');
+    const assuntoAtual = await item.locator('b').textContent();
+    const assuntoSeguinte = await proximo.locator('b').textContent();
+    await proximo.focus();
+    await page.keyboard.press('Enter');
+    const ativo = page.locator('#jrdr button.mnode[aria-current="true"]');
+    ok(/acordo de não persecução penal/i.test(assuntoAtual) && assuntoAtual !== assuntoSeguinte
+      && await ativo.locator('b').textContent() === assuntoSeguinte
+      && await ativo.evaluate(el => document.activeElement === el && el.getBoundingClientRect().height >= 44),
+      R + 'JURIS: assuntos distintos na mesma edição, seleção por teclado e alvo de 44 px no mapa');
+  }
+
   // ── LEGIS ──
   await page.goto(base + '/legis-web.html?area=juridica');
   await page.waitForFunction(() => !!window.openReader && typeof CAT !== 'undefined', null, { timeout: 15000 });
@@ -61,6 +123,7 @@ export async function testarLeitorWeb(page, base, ok) {
     window.openReader(CAT.laws.find(l => l.t === 'Constituição Federal'));
   }, PARAS);
   await page.waitForFunction(() => document.querySelectorAll('#rdrDoc .art').length >= 2, null, { timeout: 10000 });
+  await medirPapelDoLeitor(page, '#rdr', '#rdrDark', '.art .badge', ok);
   let temNumero = true;
   try {
     await page.waitForFunction(() => document.querySelectorAll('#rdrDoc .art .jcount').length >= 2, null, { timeout: 8000 });

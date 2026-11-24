@@ -172,30 +172,30 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 .rdr .kicker{font:800 10px var(--rbody);letter-spacing:.18em;text-transform:uppercase;color:var(--rc);display:flex;align-items:center;gap:8px}
 .rdr .kicker::before{content:"";width:15px;height:2px;border-radius:2px;background:var(--rc)}
 .rdr .top h1{font-family:var(--rdisplay);font-weight:800;font-size:17px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;color:var(--rink)}
-.rdr .chip{font:800 11px var(--rbody);color:#fff;background:var(--rc);border-radius:99px;padding:6px 11px;flex:none;white-space:nowrap}
+.rdr .chip{font:700 var(--fs-xs,11.5px) var(--rbody);color:var(--rink);background:color-mix(in srgb,var(--rc) 12%,var(--rcanA));border:1px solid color-mix(in srgb,var(--rc) 38%,var(--rline));border-radius:99px;padding:6px 11px;flex:none;white-space:nowrap}
 .rdr .tools{display:flex;gap:6px;flex:none}
 .rdr .tool{width:34px;height:34px;border-radius:10px;border:1px solid var(--rline);background:var(--rcard);color:var(--rdim);font:800 12px var(--rbody);cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none}
 .rdr .tool:hover{color:var(--rc);border-color:color-mix(in srgb,var(--rc) 45%,transparent)}
 .rdr .stage{position:relative;z-index:2;flex:1;display:flex;overflow:hidden}
 .rdr .map{width:270px;flex:none;overflow-y:auto;padding:18px 10px 60px 18px;border-right:1px solid var(--rline)}
 .rdr .maptitle{margin:0 0 12px 4px}
-.rdr .mnode{position:relative;padding:9px 11px;border-radius:10px;cursor:pointer;color:var(--rdim);margin-bottom:3px;border:1px solid transparent}
-.rdr .mnode b{display:block;font-size:12.5px;font-weight:700;color:var(--rink);line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rdr .mnode small{font-size:10px;font-weight:700;color:var(--rdim2);letter-spacing:.03em}
+.rdr .mnode{display:block;width:100%;min-height:44px;padding:var(--ct-e2) var(--ct-e3);border-radius:var(--r-md,11px);cursor:pointer;color:var(--rdim);margin-bottom:var(--ct-e1);border:1px solid transparent;background:transparent;text-align:start;font-family:var(--rbody)}
+.rdr .mnode b{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-size:var(--fs-sm,12.5px);font-weight:700;color:var(--rink);line-height:1.35}
+.rdr .mnode small{display:block;margin-bottom:var(--ct-e1);font:600 var(--fs-xs,11.5px)/1.2 var(--mono,'JetBrains Mono',monospace);color:var(--rdim)}
 .rdr .mnode:hover{background:color-mix(in srgb,var(--rc) 7%,transparent)}
 .rdr .mnode.on{background:color-mix(in srgb,var(--rc) 13%,transparent);border-color:color-mix(in srgb,var(--rc) 30%,transparent)}
-.rdr .mnode.on small{color:var(--rc)}
+.rdr .mnode.on small{color:var(--rink)}
 .rdr .doc{flex:1;overflow-y:auto;padding:26px 32px 120px;scroll-behavior:smooth}
 .rdr .docwrap{max-width:760px;margin:0 auto;font-size:var(--rfs,15px)}
 .rdr .vhero{position:relative;overflow:hidden;padding:20px 22px;border-radius:18px;margin-bottom:16px;background:linear-gradient(120deg,color-mix(in srgb,var(--rc) 24%,var(--rcard)),color-mix(in srgb,var(--rc2) 11%,var(--rcard)));border:1px solid color-mix(in srgb,var(--rc) 32%,transparent);box-shadow:0 18px 44px -24px color-mix(in srgb,var(--rc) 45%,rgba(20,15,10,.4))}
 .rdr .vhero::after{content:"";position:absolute;right:-40px;top:-40px;width:170px;height:170px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--rc) 32%,transparent),transparent 70%)}
 .rdr .vhero .htop{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:9px}
-.rdr .vhero .tb{font:800 11px var(--rbody);letter-spacing:.04em;color:#fff;background:var(--rc);border-radius:7px;padding:4px 10px}
+.rdr .vhero .tb{font:700 var(--fs-xs,11.5px) var(--rbody);letter-spacing:.04em;color:var(--rink);background:color-mix(in srgb,var(--rc) 12%,var(--rcanA));border:1px solid color-mix(in srgb,var(--rc) 38%,var(--rline));border-radius:7px;padding:4px 10px}
 .rdr .vhero .meta{font:700 11px var(--rbody);color:var(--rdim)}
 .rdr .vhero .star{color:#e0a400}
 .rdr .vhero h2{font-family:var(--rdisplay);font-weight:800;font-size:23px;line-height:1.16;letter-spacing:-.01em;color:var(--rink)}
 .rdr .vhero .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
-.rdr .vhero .rtag{font:700 11px var(--rbody);color:var(--rc);background:color-mix(in srgb,var(--rc) 14%,transparent);border:1px solid color-mix(in srgb,var(--rc) 28%,transparent);border-radius:99px;padding:3px 11px}
+.rdr .vhero .rtag{font:700 var(--fs-xs,11.5px) var(--rbody);color:var(--rink);background:color-mix(in srgb,var(--rc) 14%,transparent);border:1px solid color-mix(in srgb,var(--rc) 28%,transparent);border-radius:99px;padding:3px 11px}
 .rdr .vhero .tema{font:italic 500 12.5px var(--rbody);color:var(--rdim)}
 .rdr .venun{background:var(--rcard);border:1px solid var(--rline);border-radius:16px;padding:20px 22px;box-shadow:0 8px 26px -20px color-mix(in srgb,var(--rc) 60%,transparent)}
 .rdr .venun .lbl{margin-bottom:9px;display:flex;align-items:center;gap:8px}
@@ -208,12 +208,12 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 /* Minhas anotações: o único campo do verbete em que quem escreve é a pessoa. Mesma caixa dos
    blocos do leitor, com os tokens dele (claro e imersão saem dos mesmos --r*). */
 .rdr .vnota{margin-top:13px;background:var(--rcard);border:1px solid var(--rline);border-radius:14px;padding:15px 18px}
-.rdr .vnota label.lbl{display:block;margin-bottom:8px;font-weight:700;font-size:9.5px;letter-spacing:.02em;text-transform:uppercase;font-family:var(--rbody);color:var(--rdim)}
+.rdr .vnota label.lbl{display:block;margin-bottom:var(--ct-e2);font-weight:700;font-size:var(--fs-xs,11.5px);letter-spacing:.02em;text-transform:uppercase;font-family:var(--rbody);color:var(--rdim)}
 .rdr .vnota textarea{display:block;width:100%;min-height:96px;border:1px solid var(--rline);background:color-mix(in srgb,var(--rc) 4%,var(--rcard));border-radius:10px;padding:11px 13px;font-family:var(--rbody);font-size:14px;line-height:1.6;color:var(--rctext);resize:vertical}
 .rdr .vnota textarea::placeholder{color:var(--rdim);opacity:1}
 .rdr .vnota textarea:focus-visible{outline:2px solid color-mix(in srgb,var(--rc) 72%,var(--rink));outline-offset:2px}
 .rdr .vnota .notaSt{min-height:16px;margin-top:6px;font-family:var(--rbody);font-size:11px;color:var(--rdim)}
-.rdr .vblk .bd{font-family:var(--rbody);font-size:13.5px;line-height:1.6;color:var(--rpar);white-space:pre-wrap}
+.rdr .vblk .bd{font-family:var(--rbody);font-size:var(--rfs,15px);line-height:1.65;color:var(--rpar);white-space:pre-wrap}
 .rdr .vfoot{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:16px}
 .rdr .vfoot .fp{font:600 11.5px var(--rbody);color:var(--rdim2)}
 .rdr .vfoot a{font:700 12px var(--rbody);color:var(--rc);text-decoration:none;border:1px solid color-mix(in srgb,var(--rc) 32%,transparent);border-radius:9px;padding:7px 12px}
@@ -394,7 +394,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   <div id="tcList"></div>
 </div>
 </div>
-<div class="rdr" id="jrdr"><div class="top"><button class="back" id="jrClose" title="Voltar" aria-label="Fechar o leitor">←</button><button class="nav" id="jrPrev" title="Anterior" aria-label="Verbete anterior">‹</button><button class="nav" id="jrNext" title="Próximo" aria-label="Próximo verbete">›</button><div class="idwrap"><div class="kicker" id="jrMat"></div><h1 id="jrTitle"></h1></div><span class="chip" id="jrTrib"></span><div class="tools"><button class="tool mais" id="jrMais" title="Mais opções" aria-label="Mais opções de leitura" aria-expanded="false">⋯</button><div class="toolset" id="jrTools"><button class="tool" id="jrMinus" title="Diminuir" aria-label="Diminuir o texto">A−</button><button class="tool" id="jrPlus" title="Aumentar" aria-label="Aumentar o texto">A+</button><button class="tool" id="jrDark" title="Modo imersão" aria-label="Modo imersão" aria-pressed="false">◐</button><button class="tool" id="jrLeitura" title="Modo leitura" aria-label="Modo leitura" aria-pressed="false">¶</button></div></div></div><div class="stage"><aside class="map"><div class="maptitle mlW">Verbetes do filtro</div><div id="jrTree"></div></aside><main class="doc" id="jrScroll"><div class="docwrap" id="jrDoc"></div></main></div></div>
+<div class="rdr" id="jrdr"><div class="top"><button class="back" id="jrClose" title="Voltar" aria-label="Fechar o leitor"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7M5 12h14"/></svg></button><button class="nav" id="jrPrev" title="Anterior" aria-label="Verbete anterior"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button><button class="nav" id="jrNext" title="Próximo" aria-label="Próximo verbete"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button><div class="idwrap"><div class="kicker" id="jrMat"></div><h1 id="jrTitle"></h1></div><span class="chip" id="jrTrib"></span><div class="tools"><button class="tool mais" id="jrMais" title="Mais opções" aria-label="Mais opções de leitura" aria-expanded="false"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button><div class="toolset" id="jrTools"><button class="tool" id="jrMinus" title="Diminuir" aria-label="Diminuir o texto">A−</button><button class="tool" id="jrPlus" title="Aumentar" aria-label="Aumentar o texto">A+</button><button class="tool" id="jrDark" title="Modo imersão" aria-label="Modo imersão" aria-pressed="false"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.9 13.3A9 9 0 0 1 10.7 3.1a9 9 0 1 0 10.2 10.2Z"/></svg></button><button class="tool" id="jrLeitura" title="Modo leitura" aria-label="Modo leitura" aria-pressed="false"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 4v16m4-16v16M19 4H9.5a4.5 4.5 0 0 0 0 9H13"/></svg></button></div></div></div><div class="stage"><aside class="map"><div class="maptitle mlW">Verbetes do filtro</div><div id="jrTree"></div></aside><main class="doc" id="jrScroll"><div class="docwrap" id="jrDoc"></div></main></div></div>
 <button class="grifbtn" id="jrGrif"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg> Grifar</button>
 <script>
 (function(){
@@ -1634,12 +1634,23 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   function jGr(text){ var gi=jdisp.length; jdisp.push(text); return '<span class="gr" data-gi="'+gi+'">'+esc(text)+'</span>'; }
 
   function buildMap(idx){
+    var tinhaFoco=_jtree.contains(document.activeElement);
     var a=Math.max(0,idx-6), b=Math.min(filtered.length,idx+80), h='';
-    for(var i=a;i<b;i++){ var r=filtered[i];
-      h+='<div class="mnode'+(i===idx?' on':'')+'" data-idx="'+i+'"><small>'+esc(r[I.tr]||'')+(r[I.nu]?' · '+esc(r[I.nu]):'')+'</small><b>'+esc(r[I.ti]||'(sem título)')+'</b></div>'; }
+    for(var i=a;i<b;i++){
+      var r=filtered[i];
+      var informativo=r[I.te] && /^informativo_/.test(r[I.fo]||'');
+      var titulo=(informativo ? r[I.te] : r[I.ti]) || 'Verbete';
+      var referencia=informativo ? r[I.ti] : [r[I.tr],r[I.nu]].filter(Boolean).join(' · ');
+      h+='<button type="button" class="mnode'+(i===idx?' on':'')+'" data-idx="'+i+'"'
+        +(i===idx?' aria-current="true"':'')+'><small>'+esc(referencia)+'</small><b>'+esc(titulo)+'</b></button>';
+    }
     _jtree.innerHTML=h;
     _jtree.querySelectorAll('.mnode').forEach(function(n){ n.onclick=function(){ openVerbete(+n.dataset.idx); }; });
-    var on=_jtree.querySelector('.mnode.on'); if(on)on.scrollIntoView({block:'nearest'});
+    var on=_jtree.querySelector('.mnode.on');
+    if(on){
+      if(tinhaFoco)on.focus({preventScroll:true});
+      on.scrollIntoView({block:'nearest'});
+    }
   }
   // O roteiro de estudo escrito pela IA saiu do leitor (decisão da dona, 03/10/2026): o verbete
   // mostra o texto oficial e o que a pessoa marca. O que ficou guardado no aparelho sai junto.

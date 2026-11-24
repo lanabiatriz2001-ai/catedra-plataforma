@@ -129,7 +129,7 @@ export async function testarCicloMagistratura(page, base, ok, opcoes = {}) {
   await page.reload();await page.waitForFunction(()=>window.__catedraApp&&window.CT_CMAG);
   const restaurado=await page.evaluate(()=>{const a=window.__catedraApp;a.cmEstudar({currentTarget:{dataset:{id:'const'}}});return {tempo:a.state.timerSeconds,key:a.state.sessionDraft.atvKey,tipo:a.state.sessionDraft.topico,modal:a.state.sessionModalOpen,etapa:a.state.cmag.juris.etapa};});
   ok(restaurado.tempo===600&&restaurado.key==='vt|cm-juris-1'&&restaurado.tipo==='Súmulas STJ'&&restaurado.modal&&restaurado.etapa===1,R+'reabrir preserva vínculo do cronômetro; trocar de matéria pede registrar a sessão anterior');
-  await page.evaluate(()=>{const a=window.__catedraApp;a.setState({sessionModalOpen:false,timerSeconds:0,studiedSeconds:0,timerRunning:false,focusMode:false,view:'ciclo',cyclePanel:'executar'});a._saveTimer();a.cmSelecionar({currentTarget:{dataset:{id:'const'}}});});await w(300);
+  await page.evaluate(()=>{const a=window.__catedraApp;a.setState({sessionModalOpen:false,timerSeconds:0,studiedSeconds:0,timerRunning:false,pausaDesde:0,pausaSeg:0,focusMode:false,view:'ciclo',cyclePanel:'executar'});a._saveTimer();a.cmSelecionar({currentTarget:{dataset:{id:'const'}}});});await w(300);
   const voltaReal=await page.evaluate(()=>{const a=window.__catedraApp,M=CT_CMAG;let c=M.definirAtivas(M.vazio(true),4);const ids=[];for(let i=0;i<5;i++){ids.push(M.gerarVolta(c).blocos[0].cmagId);c=M.avancarAtividade(c);}return {ids,voltas:c.voltas,primeira:M.gerarVolta(c).blocos[0].cmagId,etapa:c.juris.etapa,nav:document.querySelectorAll('.cm-etapa').length};});
   ok(voltaReal.ids.join(',')==='const,civ,pc,pen,juris'&&voltaReal.voltas===1&&voltaReal.primeira==='const'&&voltaReal.etapa===0&&voltaReal.nav===5,R+'cinco atividades fecham uma volta e retornam ao início sem trocar jurisprudência pendente');
 
@@ -272,7 +272,8 @@ export async function testarCicloMagistratura(page, base, ok, opcoes = {}) {
     await page.screenshot({ path: opcoes.capturas + '/ciclo-magistratura-' + motor + '.png', fullPage: false });
   }
   // O cabeçalho novo pinta legível no toque, sem rolagem lateral, em duas direções e temas.
-  const contexto=await page.context().browser().newContext({viewport:{width:1024,height:1024},hasTouch:true});
+  // Compara as cores definitivas de cada tema, inclusive sob carga no WebKit.
+  const contexto=await page.context().browser().newContext({viewport:{width:1024,height:1024},hasTouch:true,reducedMotion:'reduce'});
   const visual=await contexto.newPage();
   try {
     await visual.goto(base+'/__semente');
@@ -307,6 +308,53 @@ export async function testarCicloMagistratura(page, base, ok, opcoes = {}) {
       }
       if(opcoes.capturas){await visual.locator('.cm-hero').scrollIntoViewIfNeeded();await visual.screenshot({path:opcoes.capturas+'/magistratura-topo-'+largura+'-'+motor+'.png'});}
     }
+    // O mesmo relógio acompanha a passagem entre o painel e a sala, inclusive em pausa.
+    await visual.evaluate(()=>{
+      const a=window.__catedraApp;
+      a._cmSet(CT_CMAG.definirAtivas(CT_CMAG.vazio(true),2));
+      a.setState({view:'inicio',timerMode:'livre'});
+    });
+    const painel=visual.getByRole('complementary',{name:'Tempo e registro'});
+    const sala=visual.getByRole('dialog',{name:'Sala de foco'});
+    const inicio=visual.getByRole('region',{name:'Retomar ciclo Magistratura'});
+    const registro=visual.getByRole('dialog',{name:'Registrar sessão',exact:true});
+    await painel.getByRole('button',{name:'Iniciar só o cronômetro'}).click();
+    await visual.waitForFunction(()=>window.__catedraApp.state.timerRunning);
+    ok(!await sala.isVisible() && /Direito Constitucional · Doutrina/.test(await painel.innerText()),
+      R+'o cronômetro inicia no painel com a matéria e a etapa que o Início mostra');
+    await visual.evaluate(()=>{
+      const a=window.__catedraApp;
+      a._tickLast=Date.now()-12*60000;
+      a.tick();
+    });
+    await painel.getByRole('button',{name:'Abrir sala de foco'}).click();
+    await sala.waitFor();
+    ok(/^12:0\d$/.test(await sala.locator('.ct-sala-tempo').innerText()) && await sala.getByRole('button',{name:'Pausar'}).isVisible(),
+      R+'a sala abre aos 12 minutos com o relógio ainda rodando');
+    await sala.getByRole('button',{name:'Pausar'}).click();
+    const parado=await sala.locator('.ct-sala-tempo').innerText();
+    await sala.getByRole('button',{name:'Sair da sala de foco'}).click();
+    await inicio.getByRole('button',{name:'Abrir sala de foco'}).click();
+    ok(await sala.getByRole('button',{name:'Retomar'}).isVisible() && await sala.locator('.ct-sala-tempo').innerText()===parado,
+      R+'sair e entrar pelo Início preserva a pausa e o tempo da mesma sessão');
+    await sala.getByRole('button',{name:'Encerrar e registrar'}).click();
+    ok(await registro.getByLabel('Minutos de estudo').inputValue()==='12',R+'o registro traz o tempo líquido medido');
+    await registro.getByRole('combobox',{name:'Disciplina',exact:true}).selectOption('Direito Civil');
+    await registro.getByRole('combobox',{name:'Etapa do ciclo'}).selectOption('a1');
+    await registro.getByLabel('Minutos de estudo').fill('7');
+    await registro.getByRole('button',{name:'Registrar sessão',exact:true}).click();
+    await registro.waitFor({state:'hidden'});
+    const gravada=await visual.evaluate(()=>{
+      const a=window.__catedraApp,r=a.state.sessions[0],c=a._cm();
+      return {materia:r.disc,etapa:r.cmEtapa,tempo:r.min,atividade:r.cmagId,feita:r.concluiu,
+        origem:c.st.const.d.a2,destino:c.st.civ.d.a1,vez:c.ordem[c.vez]};
+    });
+    ok(gravada.materia==='Direito Civil' && gravada.etapa==='a1' && gravada.tempo===7 && gravada.atividade==='civ' &&
+      !gravada.feita && !gravada.origem && !gravada.destino && gravada.vez==='const',
+      R+'ajustar matéria, etapa e minutos registra só o destino e preserva o percurso');
+    await inicio.getByRole('button',{name:'Estudar Doutrina'}).click();
+    ok(await sala.getByRole('button',{name:'Pausar'}).isVisible() && await sala.locator('.ct-sala-materia').innerText()==='Direito Constitucional · Doutrina',
+      R+'Estudar Doutrina começa uma nova sessão diretamente na sala de foco');
   } finally {await contexto.close();}
 
 }

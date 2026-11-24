@@ -16,35 +16,69 @@ struct BarraLeitor<Aa: View, Mais: View>: View {
     @ViewBuilder var mais: () -> Mais
 
     var body: some View {
-        HStack(spacing: DSEspaco.e3) {
-            if let aoVoltar {
-                Button(action: aoVoltar) { Image(systemName: "chevron.left").font(DS.interface(15, .semibold)) }
-                    .buttonStyle(.plain).frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
-                    .accessibilityLabel("Voltar")
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: DSEspaco.e3) {
+                voltar
+                identificacao.frame(minWidth: 160, idealWidth: 200, maxWidth: .infinity, alignment: .leading)
+                ferramentas
             }
-            VStack(alignment: .leading, spacing: 1) {
-                if !ramo.isEmpty {
-                    Text(ramo.uppercased()).font(DS.interface(11, .semibold)).tracking(0.8)
-                        .foregroundStyle(corRamo.map { DS.corTexto($0) } ?? ThemeState.t.text3)
-                        .lineLimit(1)
-                }
-                Text(titulo).font(DS.display(19, .bold)).foregroundStyle(ThemeState.t.ink).lineLimit(1)
+            VStack(alignment: .leading, spacing: DSEspaco.e1) {
+                HStack(spacing: DSEspaco.e2) { voltar; identificacao }
+                HStack(spacing: DSEspaco.e2) { ferramentas }
             }
-            Spacer(minLength: DSEspaco.e2)
-            if let modo {
-                Picker("Modo", selection: modo) {
-                    Text("Ler").tag(ModoLeitor.ler)
-                    Text("Estudar").tag(ModoLeitor.estudar)
-                }
-                .pickerStyle(.segmented).labelsHidden().frame(width: 170)
-            }
-            aa()
-            mais()
         }
         .padding(.horizontal, DSEspaco.e4)
-        .frame(minHeight: 56)
+        .padding(.vertical, DSEspaco.e2)
+        .frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
         .background(ThemeState.t.surface)
         .overlay(Rectangle().fill(ThemeState.t.border).frame(height: 1), alignment: .bottom)
+    }
+
+    @ViewBuilder private var voltar: some View {
+        if let aoVoltar {
+            Button(action: aoVoltar) {
+                Image(systemName: "chevron.left").font(DS.tipo(.corpo, .semibold))
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Voltar")
+        }
+    }
+
+    private var identificacao: some View {
+        VStack(alignment: .leading, spacing: DSEspaco.e1) {
+            if !ramo.isEmpty {
+                HStack(spacing: DSEspaco.e2) {
+                    if let corRamo {
+                        Circle().fill(DS.cor(corRamo)).frame(width: DSEspaco.e2, height: DSEspaco.e2)
+                            .accessibilityHidden(true)
+                    }
+                    Text(ramo).font(DS.tipo(.micro, .semibold))
+                        .foregroundStyle(corRamo.map { DS.corTexto($0) } ?? ThemeState.t.text2)
+                        .lineLimit(1)
+                }
+            }
+            Text(titulo).font(DS.tipo(.titulo, .bold))
+                .foregroundStyle(ThemeState.t.ink)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isHeader)
+    }
+
+    @ViewBuilder private var ferramentas: some View {
+        if let modo {
+            Picker("Modo", selection: modo) {
+                Text("Ler").tag(ModoLeitor.ler)
+                Text("Estudar").tag(ModoLeitor.estudar)
+            }
+            .pickerStyle(.segmented).labelsHidden().frame(idealWidth: 150, maxWidth: 170)
+                .fixedSize(horizontal: true, vertical: false)
+        }
+        aa()
+        mais()
     }
 }
 
@@ -58,6 +92,7 @@ struct GavetaContexto<Conteudo: View>: View {
     @Binding var aba: Int
     let compacto: Bool
     @ViewBuilder var conteudo: () -> Conteudo
+    @Environment(\.accessibilityReduceMotion) private var reduzirMovimento
     @GestureState private var arrasto: CGFloat = 0
 
     var body: some View {
@@ -66,11 +101,20 @@ struct GavetaContexto<Conteudo: View>: View {
             VStack(spacing: 0) {
                 Capsule().fill(ThemeState.t.border).frame(width: 44, height: 5)
                     .padding(.top, DSEspaco.e2).padding(.bottom, DSEspaco.e3)
-                    .frame(maxWidth: .infinity).frame(minHeight: 28).contentShape(Rectangle())
+                    .frame(maxWidth: .infinity).frame(minHeight: 44).contentShape(Rectangle())
                     .gesture(DragGesture()
                         .updating($arrasto) { v, s, _ in s = v.translation.height }
                         .onEnded { v in altura = altura.apos(arrasto: v.translation.height) })
-                    .accessibilityLabel("Puxador da gaveta")
+                    .accessibilityElement()
+                    .accessibilityLabel("Altura da gaveta")
+                    .accessibilityValue(altura == .cheia || compacto ? "Tela inteira" : "Meia tela")
+                    .accessibilityAdjustableAction { direcao in
+                        switch direcao {
+                        case .increment: altura = .cheia
+                        case .decrement: altura = compacto || altura == .meia ? .fechada : .meia
+                        @unknown default: break
+                        }
+                    }
                 HStack(alignment: .firstTextBaseline) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(subtitulo.uppercased()).font(DS.interface(11, .semibold)).tracking(0.8)
@@ -78,8 +122,13 @@ struct GavetaContexto<Conteudo: View>: View {
                         Text(titulo).font(DS.display(19, .bold)).foregroundStyle(ThemeState.t.ink)
                     }
                     Spacer()
-                    Button { altura = .fechada } label: { Image(systemName: "xmark").font(DS.interface(13, .semibold)) }
-                        .buttonStyle(.plain).frame(minWidth: 44, minHeight: 44)
+                    Button { altura = .fechada } label: {
+                        Image(systemName: "xmark").font(DS.tipo(.corpo, .semibold))
+                            .frame(minWidth: 44, minHeight: 44)
+                            .background(Circle().fill(ThemeState.t.surface2))
+                            .contentShape(Rectangle())
+                    }
+                        .buttonStyle(.plain)
                         .keyboardShortcut(.escape, modifiers: [])
                         .accessibilityLabel("Fechar")
                 }
@@ -101,7 +150,7 @@ struct GavetaContexto<Conteudo: View>: View {
                     .shadow(color: ThemeState.t.ink.opacity(0.18), radius: 20, y: -6)
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-            .animation(ThemeState.t.baixaEstimulacao ? nil : .spring(duration: 0.28), value: altura)
+            .animation((reduzirMovimento || ThemeState.t.baixaEstimulacao) ? nil : .spring(duration: 0.28), value: altura)
         }
         .allowsHitTesting(altura != .fechada)
     }
