@@ -2725,16 +2725,20 @@ for (const [k, v] of Object.entries(la6p)) ok(v, 'LEITURA/ONDE-MAIS prioridade '
 // (b) o host: oral · Lei seca mostra o trilho só-leitura e "Ler ativamente no LEGIS"; o gabarito do
 //     simulado errado em lei seca mostra "Conferir de novo"; o rot casa normalizado; registrar sessão
 {
+  const contexto = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await contexto.newPage();
+  try {
   const host = URL0 + '/Catedra.dc.html';
-  await page.goto(host);
+  // O LEGIS escolhe a disciplina no edital carregado. Semear na página neutra
+  // impede que o autosave do app aberto reponha o edital vazio da suíte.
+  await page.goto(URL0 + '/__semente');
   await page.evaluate(() => {
     localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
     localStorage.setItem('catedra:areaEstudo', JSON.stringify('juridica'));
-    ['leituras', 'fc', 'reviews', 'errors'].forEach(k => localStorage.removeItem('catedra:' + k));
     localStorage.setItem('catedra:edital', JSON.stringify([{ disc: 'Direito Civil', peso: 1 }]));
   });
   await page.goto(host);
-  await page.waitForTimeout(1600);
+  await page.waitForFunction(() => window.__catedraApp?.state.edital?.some(d => d.disc === 'Direito Civil'));
   await prepararPonteReal(page, 'legis');
   const la6h = await page.evaluate(async () => {
     const postar = dados => document.querySelector('iframe[data-ct-view="legis"]').contentWindow.__ctTestePostar(dados);
@@ -2840,11 +2844,11 @@ for (const [k, v] of Object.entries(la6p)) ok(v, 'LEITURA/ONDE-MAIS prioridade '
     r.lerAtivamenteNosDoisErrados = ler.length === 2 && ler.every(b => b.dataset.lei === CC) && ler.some(b => b.dataset.rot === 'Art. 1.241');
     r.acertadoNaoMostraNada = !document.querySelector('#dc-root button[data-rot="Art. 1.240"]');
     app.setState({ sjItens: [], sjResp: {}, sjFim: false, sjAberto: false });
-    ['leituras', 'fc', 'reviews', 'errors', 'edital', 'sim'].forEach(k => localStorage.removeItem('catedra:' + k));
     return r;
   });
   if (la6s.erro) ok(false, 'LEITURA/ONDE-MAIS simulado: ' + la6s.erro);
   else for (const [k, v] of Object.entries(la6s)) ok(v, 'LEITURA/ONDE-MAIS simulado ' + k);
+  } finally { await contexto.close(); }
 }
 
 // (c) o LEGIS: abre a lei no dispositivo pedido (mensagem e URL), rola até ele e, se pedido, abre a
@@ -3120,15 +3124,37 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
   r.constanteDe36h = E.RETOMAR_H === 36 && E.DURACAO_MIN === 300;
   for (const [k, v] of Object.entries(r)) ok(v, 'ENAM/E3 montar ' + k);
 }
+// Cada cenário recebe seu próprio caderno. O autosave e a reidratação do edital
+// podem repor os dois erros da E3 se a E4 apagar somente as chaves do app aberto.
+async function comCadernoEnam(roteiro) {
+  const contexto = await browser.newContext({ viewport: { width: 1280, height: 900 }, timezoneId: 'America/Porto_Velho' });
+  try {
+    const pagina = await contexto.newPage();
+    // A prova ENAM é em 29/11. Em 07/11 é possível exercer as duas ordens entre
+    // o ENAM e uma prova estadual a menos de trinta dias, com cadência ainda disponível.
+    await pagina.clock.install({ time: new Date('2026-11-07T12:00:00-04:00') });
+    await pagina.goto(URL0 + '/__semente');
+    await pagina.evaluate(() => {
+      localStorage.setItem('catedra:auth', '1');
+      localStorage.setItem('catedra:onboarded', '1');
+      localStorage.setItem('catedra:provaDurationMin', '240');
+    });
+    await pagina.goto(URL0 + '/Catedra.dc.html');
+    await pagina.waitForFunction(() => window.__catedraApp && window.__catedraGoView && window.CT_ENAM);
+    await roteiro(pagina);
+  } finally {
+    await contexto.close();
+  }
+}
+
 // (b) o host: o preset monta 80 do banco oficial, o teclado responde, a prova sobrevive a recarregar
 //     por ct_enam_prova, encerrar corrige e registra, sair limpa. O roteiro do WebKit corre aqui também.
 {
   const { testarEnamModo } = await import('./enam-modo.mjs');
   await testarEnamModo(page, URL0, ok, { motor: 'chromium', origem: 'http' });
+}
+await comCadernoEnam(async (page) => {
   const host = URL0 + '/Catedra.dc.html';
-  await page.goto(host);
-  await page.evaluate(() => { ['ct_enam_prova', 'ct_prova', 'catedra:enamSim', 'catedra:errors', 'catedra:fc'].forEach(k => localStorage.removeItem(k)); localStorage.setItem('catedra:provaDurationMin', '240'); });
-  await page.goto(host); await page.waitForTimeout(1600);
   const a = await page.evaluate(async () => {
     const w = ms => new Promise(res => setTimeout(res, ms));
     const r = {}, app = window.__catedraApp;
@@ -3228,7 +3254,7 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
   // uma exceção aqui dentro vira UMA falha nomeada, não o fim da suíte inteira
   if (b.__excecao) ok(false, 'ENAM/E3 host o roteiro correu sem exceção (' + b.__excecao + ')');
   else for (const [k, v] of Object.entries(b)) ok(v, 'ENAM/E3 host ' + k);
-}
+});
 
 /* ============= ENAM — E4: a correção "habilitaria?" ============= */
 // (a) CT_ENAM.corrigir, pura: os aceites da especificação (51/80 com meta 56 → não, −5; com meta 40 → sim, +11),
@@ -3259,11 +3285,7 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
 // (b) o host: a tela responde "habilitaria?" em --ok ou "faltaram N" em --warn (nunca --danger), barras por área com
 //     o alvo, as três áreas onde faltou com "Estudar esta área", erros pelo canal do item 2 (teto 20, aviso, desfazer),
 //     tentativa em catedra:enamSim sem enunciado, e as referências do gabarito com o caminho para LEGIS/JURIS
-{
-  const host = URL0 + '/Catedra.dc.html';
-  await page.goto(host);
-  await page.evaluate(() => { ['ct_enam_prova', 'ct_prova', 'catedra:enamSim', 'catedra:errors', 'catedra:fc', 'catedra:enam'].forEach(k => localStorage.removeItem(k)); });
-  await page.goto(host); await page.waitForTimeout(1600);
+await comCadernoEnam(async (page) => {
   const h = await page.evaluate(async () => {
     const w = ms => new Promise(res => setTimeout(res, ms));
     const r = {}, app = window.__catedraApp, E = window.CT_ENAM;
@@ -3359,14 +3381,14 @@ for (const [k, v] of Object.entries(e1)) ok(v, 'ENAM/E1 ' + k);
     r.meta40Habilitaria = !!selo2 && selo2.textContent.trim() === 'habilitaria' && selo2.getAttribute('data-ok') === '1' && corDe(selo2) === corToken('--ok') && /meta de 40 acertos · margem \+11/.test(main().textContent) && /16 de 16 · alvo 8/.test(main().querySelector('.ct-enam-barra').textContent);
     const es2 = JSON.parse(localStorage.getItem('catedra:enamSim') || '[]');
     r.duasTentativasSincronizaveis = es2.length === 2 && es2[1].meta === 40 && es2[1].habilitaria === true;
-    app.closeSession(); ['catedra:enamSim', 'catedra:enam', 'catedra:errors', 'catedra:fc'].forEach(k => localStorage.removeItem(k)); app.setState({ enamSim: [], enam: null });
+    app.closeSession();
     return r;
   }).catch(e => ({ __excecao: String(e && e.message || e).split('\n')[0].slice(0, 200) }));
   // uma exceção aqui dentro vira UMA falha nomeada, não o fim da suíte inteira
   if (h.__excecao) ok(false, 'ENAM/E4 host o roteiro correu sem exceção (' + h.__excecao + ')');
   // chave com `_` na frente é DIAGNÓSTICO e vai para o log: virar ok() daria "✓" de graça
   else for (const [k, v] of Object.entries(h)) { if (k[0] === '_') console.log('  ' + v); else ok(v, 'ENAM/E4 host ' + k); }
-}
+});
 
 /* ============= PROVA — encerrar uma vez só ============= */
 // um tique do relógio da prova na fila no instante do "Encerrar" corrigia o ENAM de novo, e o clique passava
@@ -3379,16 +3401,7 @@ catch (e) { ok(false, 'PROVA ENCERRAR UMA VEZ [chromium] o roteiro correu sem ex
 // cadência de simulados com "Colocar na agenda" (fim de semana mais próximo, sem duplicar) e "Importar o edital
 // ENAM". Com tentativas: última prova, sparkline, 8 áreas com ok/cota e a próxima ação certa (revisar → estudar →
 // próximo simulado). Concurso a menos de 30 dias: a Reta final manda. Nada em --danger, nada de "atrasado".
-{
-  const contextoTrilha = await browser.newContext();
-  const page = await contextoTrilha.newPage();
-  await page.clock.setFixedTime(new Date('2026-10-01T12:00:00-04:00'));
-  const host = URL0 + '/Catedra.dc.html';
-  await page.goto(URL0 + '/__semente');
-  await page.evaluate(() => {
-    localStorage.setItem('catedra:auth', '1'); localStorage.setItem('catedra:onboarded', '1');
-  });
-  await page.goto(host); await page.waitForTimeout(1600);
+await comCadernoEnam(async (page) => {
   const t = await page.evaluate(async () => {
     const w = ms => new Promise(res => setTimeout(res, ms));
     const r = {}, app = window.__catedraApp, E = window.CT_ENAM;
@@ -3417,9 +3430,7 @@ catch (e) { ok(false, 'PROVA ENCERRAR UMA VEZ [chromium] o roteiro correu sem ex
     r.chipsMarcadosEBotaoSome = [...bloco().querySelectorAll('.ct-trilha-data')].every(c => c.getAttribute('data-agendada') === '1') && ![...bloco().querySelectorAll('button')].some(b => /Colocar na agenda/.test(b.textContent)) && /na agenda/.test(txt());
     app.enamAgendar(); await w(400);
     r.agendarDeNovoNaoDuplica = (app.state.eventos || []).filter(e => /^enam:sim:/.test(String(e.id))).length === cad.length;
-    // Relógio não fixo: a guarda de _enamFimDeSemana ("alvo < hoje" → próximo sábado) fazia datas
-    // fixas quebrarem sozinhas com a virada do calendário. Ancora numa segunda futura, onde só a
-    // regra pura age, e cobre a guarda à parte com uma data claramente no passado.
+    // Uma segunda-feira futura exercita a regra de todos os dias da semana. A data de 2020 cobre o passado.
     const seg = (() => { const d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() + 28); d.setDate(d.getDate() + ((1 - d.getDay() + 7) % 7)); return d; })();
     const mais = n => { const d = new Date(seg); d.setDate(seg.getDate() + n); return app._ymd(d); };
     r.fimDeSemanaPuro = app._enamFimDeSemana(mais(0)) === mais(-1) && app._enamFimDeSemana(mais(1)) === mais(-1) && app._enamFimDeSemana(mais(2)) === mais(5) && app._enamFimDeSemana(mais(3)) === mais(5) && app._enamFimDeSemana(mais(4)) === mais(5) && app._enamFimDeSemana(mais(5)) === mais(5) && app._enamFimDeSemana(mais(6)) === mais(6);
@@ -3460,9 +3471,12 @@ catch (e) { ok(false, 'PROVA ENCERRAR UMA VEZ [chromium] o roteiro correu sem ex
     r.habilitariaNaUltima = bloco().querySelector('.ct-enam-selo').textContent.trim() === 'habilitaria' && bloco().querySelector('.ct-enam-selo').getAttribute('data-ok') === '1';
     r.acaoProximoSimulado = cad.length ? (new RegExp('Próximo simulado em ' + new Date(cad[0] + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })).test(bloco().querySelector('.ct-trilha-acao').textContent) && bloco().querySelector('.ct-trilha-acao button').dataset.acao === 'simulado') : /último simulado/.test(txt());
     // concurso estadual a menos de 30 dias: a Reta final manda
-    const d20 = new Date(Date.now() + 20 * 864e5); const iso20 = d20.getFullYear() + '-' + String(d20.getMonth() + 1).padStart(2, '0') + '-' + String(d20.getDate()).padStart(2, '0');
-    app.setState({ provaData: iso20 }); await w(600);
+    app.setState({ provaData: '2026-11-27' }); await w(600);
     r.retaFinalManda = bloco().getAttribute('data-trilha-enam') === 'reta' && /Sem simulado ENAM nesta semana/.test(txt()) && /Reta final do concurso manda/.test(txt()) && bloco().querySelector('.ct-trilha-acao button').dataset.acao === 'reta';
+    // Ainda a menos de 30 dias, mas depois do ENAM: o painel continua propondo o simulado.
+    app.setState({ provaData: '2026-12-02' }); await w(600);
+    r.enamMaisProximoTemPrioridade = bloco().getAttribute('data-trilha-enam') === 'ativa'
+      && bloco().querySelector('.ct-trilha-acao button').dataset.acao === 'simulado';
     app.setState({ provaData: null }); await w(400);
     // o botão do estado vazio leva ao Simulado já no Modo ENAM
     app.setState({ enamSim: [] }); await w(500);
@@ -3476,8 +3490,7 @@ catch (e) { ok(false, 'PROVA ENCERRAR UMA VEZ [chromium] o roteiro correu sem ex
     return r;
   });
   for (const [k, v] of Object.entries(t)) ok(v, 'ENAM/E5 ' + k);
-  await contextoTrilha.close();
-}
+});
 
 /* ============= JURIS — datas oficiais de publicação das Súmulas 722 a 736 do STF ============= */
 {
@@ -7026,7 +7039,12 @@ const d14barra = await page.evaluate(() => {
     const entrada = v === 'segundafase' ? 'redacao' : v;
     const b = document.querySelector('aside button[data-view="' + entrada + '"]');
     r[v + 'TemBotao'] = !!b;
-    r[v + 'TemEstilo'] = !!b && (b.getAttribute('style') || '').length > 20;
+    // O leiaute vem da folha compartilhada do menu. Meça o botão que o navegador pintou.
+    const estilo = b && getComputedStyle(b);
+    const caixa = b && b.getBoundingClientRect();
+    r[v + 'TemEstilo'] = !!b && estilo.display === 'flex' && estilo.alignItems === 'center'
+      && parseFloat(estilo.paddingInlineStart) > 0 && parseFloat(estilo.columnGap) > 0
+      && caixa.width > 0 && caixa.height >= parseFloat(estilo.fontSize) + 2 * parseFloat(estilo.paddingTop);
   }
   return r;
 });

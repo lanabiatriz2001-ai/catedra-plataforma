@@ -168,6 +168,16 @@ export async function testarMenuLateral(pageDaSuite, base, ok, ctx = {}) {
       ok(r.aberto === 1 && r.abertoNoMais, RA + '(d) aberto o grupo, Ajustes aparece uma vez, dentro de "Mais opções" (' + r.aberto + ' visível)');
       ok(r.view === 'ajustes' && r.naTela === 1 && r.naTelaNoMais && r.naTelaAtual && r.naTelaFlex,
         RA + '(d) na tela de Ajustes o grupo abre sozinho e o item é o atual, com o estilo do menu (' + r.naTela + ' visível)');
+      await page.evaluate(() => new Promise(resolve => {
+        window.__catedraApp.setState({ isAdmin: true, view: 'admin' }, resolve);
+      }));
+      const barra = page.locator('aside').first();
+      const consoleAtual = barra.getByRole('button', { name: 'Console de administração', exact: true });
+      const sair = barra.getByRole('button', { name: 'Sair', exact: true });
+      ok(await consoleAtual.isVisible() && await consoleAtual.getAttribute('aria-current') === 'page' && await sair.isVisible(),
+        RA + 'a conta administrativa encontra o console atual e Sair na barra lateral');
+      ok(await barra.locator('button[data-view]:visible').count() === 1,
+        RA + 'a navegação de estudo permanece exclusiva da conta estudantil');
       ok(!erros.length, RA + '(d) sem erro de página (' + erros.slice(0, 2).join(' | ').slice(0, 160) + ')');
     } finally { await c.close(); }
   }

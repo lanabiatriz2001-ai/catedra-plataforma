@@ -310,6 +310,39 @@ async function etapa() {
   } finally { await ctx.close(); }
 }
 
+async function lembreteTrocaDeConta() {
+  const titular = 'conta-sintetica-do-lembrete';
+  const { ctx, page, erros } = await preparar(timerBase, { _owner: titular });
+  try {
+    const aviso = page.getByRole('status').filter({ hasText: 'Registrar 10 min em Direito Constitucional?' });
+    const antes = await ler(page);
+    for (const acao of ['Editar', 'Registrar']) {
+      await page.evaluate(id => {
+        window.CatedraAuth = { user: { id }, contaLocal: id };
+        window.__catedraApp._ofertarRegistro(10, false);
+      }, titular);
+      await aviso.getByRole('button', { name: acao, exact: true }).waitFor();
+      // Ao trocar de perfil, contaLocal perde a validade antes de user e _owner mudarem.
+      await page.evaluate(() => { window.CatedraAuth.contaLocal = ''; });
+      await aviso.getByRole('button', { name: acao, exact: true }).click();
+      assert.equal(await page.getByRole('dialog', { name: 'Registrar sessão', exact: true }).count(), 0,
+        acao + ': o lembrete expirado não abre o registro');
+      preservouEstudo(antes, await ler(page));
+    }
+    await page.evaluate(id => {
+      window.CatedraAuth.contaLocal = id;
+      window.__catedraApp._ofertarRegistro(10, false);
+    }, titular);
+    await aviso.getByRole('button', { name: 'Registrar', exact: true }).click();
+    await page.waitForFunction(() => window.__catedraApp.state.sessions.length === 2);
+    const depois = await ler(page);
+    assert.equal(depois.sessions[0].min, 10);
+    assert.equal(depois.sessions[0].atvKey, antes.atvKey);
+    assert.equal(depois.sessions[0].concluiu, false);
+    assert.deepEqual(erros, []);
+  } finally { await ctx.close(); }
+}
+
 async function salvar() {
   const { ctx, page, erros } = await preparar();
   try {
@@ -358,7 +391,7 @@ async function salvar() {
 }
 
 try {
-  const casos = { principal, apagar, legado, limites, guardas, origemViva, desvincular, etapa, salvar };
+  const casos = { principal, apagar, legado, limites, guardas, origemViva, desvincular, etapa, salvar, lembreteTrocaDeConta };
   const nomes = process.env.CT_CASE ? process.env.CT_CASE.split(',') : Object.keys(casos);
   for (const nome of nomes) {
     assert.ok(casos[nome], 'CT_CASE conhecido: ' + nome);

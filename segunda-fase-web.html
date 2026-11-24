@@ -43,7 +43,6 @@ button,input,select,textarea{font-family:inherit}
 .brand{display:flex;align-items:center;gap:11px;flex:none}
 .brand .ic{width:36px;height:36px;border-radius:11px;background:var(--accentSolid,var(--accent));color:var(--onAccent);
   display:flex;align-items:center;justify-content:center;font:800 15px var(--mono);flex:none}
-.brand b{font:800 18px/1 var(--display);letter-spacing:-.02em;display:block}
 .brand small{display:block;font-size:var(--t-micro);color:var(--text2);margin-top:4px}
 .sp{flex:1}
 .sel,.inp{border:1px solid var(--border);background:var(--bg);color:var(--ink);border-radius:11px;
@@ -146,7 +145,7 @@ details.instr ul{margin:10px 0 0;padding-left:20px;font-size:var(--t-micro);colo
   /* o rótulo da prova é longo ("Correção · TJ-RJ 2026 · Discursiva") e, preso em
      flex:none, empurrava o cabeçalho para fora da tela em 320px */
   .brand{flex:1 1 100%;min-width:0}
-  .brand b{font-size:var(--t-titulo);overflow-wrap:anywhere}
+  .brand h1{overflow-wrap:anywhere}
   /* D8 — alvo de toque de 44px em tudo que se aperta com o dedo */
   .bt,.sel,.inp{min-height:44px}
   .bt{display:inline-flex;align-items:center;justify-content:center}
@@ -246,7 +245,7 @@ document.addEventListener('keydown',ev=>{ if(ev.key==='Escape') fechaMais(); });
 function telaEscolha(){
   clearInterval(tick); tick=null;
   $('cab').innerHTML=
-     '<div class="brand"><span class="ic">2ª</span><div><b>Simulado de 2ª fase</b>'
+     '<div class="brand"><span class="ic">2ª</span><div><h1>Simulado de 2ª fase</h1>'
     +'<small>prova real, cronômetro e espelho oficial</small></div></div><span class="sp"></span>'
     +'<select class="sel" id="ftipo" aria-label="Filtrar por tipo de prova"><option value="sentenca">Sentenças e peças</option>'
       +'<option value="discursiva">Discursivas</option><option value="">Tudo</option></select>'
@@ -314,7 +313,7 @@ function decorrido(){ const s=S.sessao; if(!s) return 0; return s.acc + (s.rodan
 function telaProva(){
   const p=provaAtual(); if(!p) return telaEscolha();
   const s=S.sessao;
-  $('cab').innerHTML='<div class="brand"><span class="ic">2ª</span><div><b>'+esc(rotulo(p))+'</b>'
+  $('cab').innerHTML='<div class="brand"><span class="ic">2ª</span><div><h1>'+esc(rotulo(p))+'</h1>'
     +'<small>'+p.quesitos.length+' quesitos'+(p.total>0?' · '+p.total.toFixed(2).replace('.',',')+' pontos':'')+'</small></div></div>'
     +'<span class="sp"></span>'+menuMais('<button class="bt" id="bSair">Sair sem entregar</button>');
   ligaMais();
@@ -384,7 +383,7 @@ function telaCorrecao(){
   c.quesitos.forEach(q=>{ if(s.veredictos[q.i]==null) s.veredictos[q.i]=q.sugestao; });
   grava(S);
 
-  $('cab').innerHTML='<div class="brand"><span class="ic">2ª</span><div><b>Correção · '+esc(rotulo(p))+'</b>'
+  $('cab').innerHTML='<div class="brand"><span class="ic">2ª</span><div><h1>Correção · '+esc(rotulo(p))+'</h1>'
     +'<small>pelo espelho oficial da banca</small></div></div><span class="sp"></span>'
     +menuMais('<button class="bt" id="bVoltarFolha">Ver a folha</button>'
       +'<button class="bt" id="bImprimir">Imprimir</button>')

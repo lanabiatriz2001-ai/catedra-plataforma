@@ -52,7 +52,10 @@
     // O modo escuro do host precisa chegar ao esquema de cores nativo (barras de rolagem,
     // seleção, controles de formulário) — só trocar as vars deixaria isso claro no escuro.
     if (t.__dark != null) {
-      try { r.style.colorScheme = t.__dark ? 'dark' : 'light'; } catch (e) {}
+      try {
+        r.style.colorScheme = t.__dark ? 'dark' : 'light';
+        r.setAttribute('data-ct-modo', t.__dark ? 'escuro' : 'claro');
+      } catch (e) {}
     }
     try { document.documentElement.setAttribute('data-ct-tema', '1'); } catch (e) {}
   }

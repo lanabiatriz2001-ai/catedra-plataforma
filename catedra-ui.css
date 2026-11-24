@@ -761,9 +761,9 @@ button.ct-card:hover, a.ct-card:hover {
    acervo — por isso ela carrega a identidade do produto. */
 .ct-esp-cab {
   font-family: var(--display, Georgia, serif);
-  font-size: var(--fs-2xl, 19px); font-weight: 700;
-  letter-spacing: -.015em; line-height: 1.15;
-  color: var(--ink, #1f1c17); margin: 0 0 3px;
+  font-size: calc(var(--fs-2xl, 19px) * 1.25); font-weight: 700;
+  letter-spacing: -.02em; line-height: 1.2;
+  color: var(--ink, #1f1c17); margin: 0 0 var(--ct-e2);
 }
 .ct-esp-ex {
   font-family: var(--mono, ui-monospace, monospace);
@@ -772,8 +772,8 @@ button.ct-card:hover, a.ct-card:hover {
 }
 .ct-q {
   --st: var(--border, #e6e1d4);
-  display: grid; grid-template-columns: 1fr auto; gap: var(--ct-e4);
-  align-items: start; padding: 13px 15px; margin-bottom: var(--ct-e2);
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--ct-e4);
+  align-items: baseline; padding: var(--ct-e4); margin-bottom: var(--ct-e2);
   border: 1px solid color-mix(in oklab, var(--st) 32%, var(--border, #e6e1d4));
   border-radius: var(--ct-r-md);
   background-image: linear-gradient(90deg,
@@ -781,7 +781,8 @@ button.ct-card:hover, a.ct-card:hover {
 }
 .ct-q-exig {
   font-family: var(--serif, var(--display, Georgia, serif));
-  font-size: var(--fs-lg, 15.5px); line-height: 1.45; color: var(--ink, #1f1c17);
+  font-size: var(--fs-lg, 15.5px); line-height: 1.6; color: var(--ink, #1f1c17);
+  max-inline-size: var(--ct-leitura); overflow-wrap: anywhere;
 }
 .ct-q-exig b { font-weight: 600; }
 .ct-q-meta {
@@ -793,7 +794,7 @@ button.ct-card:hover, a.ct-card:hover {
 .ct-q-tag {
   font-family: var(--mono, ui-monospace, monospace);
   font-size: var(--fs-3xs, 10px); letter-spacing: .09em; text-transform: uppercase;
-  font-weight: 600; color: color-mix(in srgb, var(--st) 70%, var(--ink, #1f1c17));
+  font-weight: 600; color: color-mix(in srgb, var(--st) 25%, var(--ink, #1f1c17));
 }
 .ct-q-peso {
   font-family: var(--mono, ui-monospace, monospace);
@@ -817,7 +818,7 @@ button.ct-card:hover, a.ct-card:hover {
   background: var(--surface2, #f0ece1);
 }
 .ct-esp-fecho .ct-esp-n {
-  font-family: var(--display, Georgia, serif); font-size: 30px; font-weight: 700;
+  font-family: var(--display, Georgia, serif); font-size: calc(var(--fs-2xl, 19px) * 1.6); font-weight: 700;
   letter-spacing: -.03em; line-height: 1; color: var(--ink, #1f1c17);
 }
 .ct-esp-fecho .ct-esp-n span { font-size: var(--fs-xl, 17px); color: var(--text3, #7a7368); }
@@ -2308,7 +2309,7 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 .ct-design-numeros{display:flex;gap:var(--ct-e6);flex-wrap:wrap;flex:none;max-width:45%}
 .ct-design-numeros div{display:grid;gap:var(--ct-e2);min-width:0}
 .ct-design-numeros b{font:650 var(--fs-2xl)/1.2 var(--body);overflow-wrap:anywhere}
-.ct-design-numeros span{font-size:var(--fs-xs)}
+.ct-design-numeros > div > span{font-size:var(--fs-sm)}
 .ct-scroll[data-design-view="edital"] .ct-concurso-hero{display:block;margin-bottom:0}
 .ct-scroll:is([data-design-view="revisoes"],[data-design-view="flashcards"],[data-design-view="edital"],[data-design-view="calendario"],[data-design-view="analise"]) :is(h2,h3,.ct-titulo,.ct-hero-tit){font-family:var(--body)}
 .ct-scroll:is([data-design-view="revisoes"],[data-design-view="flashcards"]) .ct-bc{gap:var(--ct-e5);margin-bottom:var(--ct-e4)}
@@ -2352,3 +2353,231 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 
 .ct-oral-incluir { display:flex; align-items:center; gap:var(--ct-e2); min-height:var(--ct-e7); color:var(--ink); font-size:var(--fs-base); cursor:pointer; }
 .ct-oral-incluir input { flex:none; width:var(--ct-e4); height:var(--ct-e4); }
+
+/* A navegação acompanha a rota pelo mesmo aria-current que o leitor de tela anuncia. */
+aside nav button[data-view] {
+  align-items: center;
+  gap: var(--ct-e3);
+  width: 100%;
+  min-height: var(--ct-alvo, 0);
+  padding: var(--ct-e2) var(--ct-e3);
+  text-align: left;
+  border: thin solid transparent;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--stext);
+  font: 500 var(--fs-md)/1.4 var(--body);
+  cursor: pointer;
+}
+aside nav button[data-view] > svg {
+  flex: none;
+  width: var(--ct-e4);
+  height: var(--ct-e4);
+}
+aside nav button[data-view][aria-current="page"] {
+  color: var(--onAccent);
+  background: linear-gradient(105deg, var(--accentSolid), var(--accentSolidD));
+  font-weight: 700;
+}
+aside nav button[data-view]:focus-visible {
+  outline: medium solid var(--sacttext);
+  outline-offset: calc(var(--ct-e1) / 2);
+}
+@media (hover: hover) {
+  aside nav button[data-view]:not([aria-current="page"]):hover {
+    color: var(--sacttext);
+    background-color: var(--sactbg);
+  }
+}
+.ct-bnav button[data-view][aria-current="page"] {
+  background: var(--accentSoft) !important;
+  color: var(--ink) !important;
+  border-radius: var(--r-md);
+}
+#ct-view-titulo {
+  margin: 0;
+  font: 700 clamp(var(--fs-2xl), 2.6vw, calc(var(--fs-2xl) * 1.55))/1.12 var(--display);
+  letter-spacing: -.025em;
+  color: var(--ink);
+}
+
+/* O resumo editorial abre a tela. A bancada abaixo dele concentra a cor e a ação. */
+.ct-scroll .ct-design-hero:not(.ct-concurso-hero) {
+  align-items: center;
+  padding: var(--ct-e2) 0 var(--ct-e5);
+  border-radius: 0;
+  border-bottom: thin solid var(--border);
+  color: var(--ink);
+  background: transparent;
+  overflow: visible;
+}
+.ct-design-hero:not(.ct-concurso-hero)::after { content: none; }
+.ct-scroll .ct-design-hero .ct-design-intro h2 {
+  font: 650 clamp(calc(var(--fs-2xl) * 1.5), 3.4vw, calc(var(--fs-2xl) * 2.3))/1.12 var(--display);
+  margin: 0;
+  letter-spacing: -.03em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.ct-design-intro h2 + p {
+  margin-top: var(--ct-e2);
+  max-width: 62ch;
+  color: var(--text2);
+}
+.ct-design-hero .ct-design-numeros {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, auto));
+  align-items: start;
+  gap: var(--ct-e5);
+  padding: var(--ct-e4) var(--ct-e5);
+  border: thin solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.ct-design-numeros > div { gap: var(--ct-e1); }
+.ct-design-numeros > div > b {
+  color: var(--ink);
+  font: 600 clamp(var(--fs-xl), 2vw, calc(var(--fs-2xl) * 1.5))/1.25 var(--mono);
+  letter-spacing: -.035em;
+}
+.ct-design-numeros > div > span { color: var(--text2); line-height: 1.4; }
+@media (max-width: 56.25rem) {
+  .ct-scroll .ct-design-hero:not(.ct-concurso-hero) { align-items: stretch; gap: var(--ct-e4); }
+  .ct-design-hero .ct-design-numeros { width: fit-content; max-width: 100%; box-sizing: border-box; }
+}
+.cth-inicio .cth-estudo-titulo h2, .cm-hero .cm-h {
+  font-family: var(--display);
+  font-size: clamp(calc(var(--fs-2xl) * 1.4), 3.2vw, calc(var(--fs-2xl) * 2.1));
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+.cth-inicio .cth-estudo-titulo h2 { margin-block: 0; }
+.cth-inicio .cth-clock { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.ct-scroll .ct-bc-apoio { background-color: var(--surface); }
+.ct-bc-apoio-t {
+  font: 650 var(--fs-sm)/1.45 var(--body);
+  letter-spacing: .025em;
+  color: var(--text2);
+}
+.ct-bc-it > b .sc-interp { font: inherit; color: inherit; }
+.ct-bc-foco h3 { overflow-wrap: anywhere; }
+
+/* Ajustes e console compartilham o alvo de toque, conservando a paleta do console. */
+.aj-abas button[data-s], .adm .adm-tab { min-height: var(--ct-alvo-toque); }
+.adm .adm-tab { font-size: var(--fs-sm); letter-spacing: .02em; text-transform: none; }
+.adm .adm-panel > header h3 { font-size: var(--fs-md); letter-spacing: normal; text-transform: none; }
+.adm .adm-panel > header p { font-size: var(--fs-sm); line-height: 1.5; color: var(--k-dim); }
+.adm .adm-kpi b { font: 650 calc(var(--fs-2xl) * 1.5)/1.12 var(--mono); }
+[data-toque="1"] .adm :is(.adm-tab, .adm-btn) { min-height: var(--ct-alvo-toque); }
+.aj-abas:focus-within input[aria-label="Buscar nos ajustes"]:focus-visible {
+  outline: medium solid var(--accent);
+  outline-offset: var(--ct-e1);
+}
+
+/* A sala usa fundo próprio escuro, com tempo tabular e indicação textual de fase. */
+.ct-sala {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: var(--ct-e5);
+  color: var(--ct-hero-ink);
+  overflow-y: auto;
+}
+.ct-sala-saida {
+  position: absolute;
+  inset-block-start: max(var(--ct-e4), env(safe-area-inset-top));
+  inset-inline-end: max(var(--ct-e4), env(safe-area-inset-right));
+  z-index: 1;
+  width: var(--ct-alvo-toque);
+  height: var(--ct-alvo-toque);
+  display: grid;
+  place-items: center;
+  border: thin solid var(--ct-hero-line);
+  border-radius: var(--ct-pill);
+  background: var(--ct-hero-glass);
+  color: inherit;
+  cursor: pointer;
+}
+.ct-sala-frase {
+  position: absolute;
+  top: max(var(--ct-e4), 6vh);
+  width: min(60%, var(--ct-leitura));
+  font: 500 var(--fs-xl)/1.4 var(--display);
+  text-align: center;
+  color: var(--ct-hero-ink);
+}
+.ct-sala-anel {
+  position: relative;
+  flex: none;
+  width: min(82vw, 50vh, calc(var(--ct-e7) * 8));
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+}
+.ct-sala-anel > div { width: 76%; }
+.ct-sala-etapa {
+  color: color-mix(in srgb, var(--ct-sala-fase) 36%, var(--ct-hero-ink));
+  font-size: var(--fs-xs);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.ct-sala-tempo {
+  color: var(--ct-hero-ink);
+  font: 600 clamp(var(--fs-2xl), min(8.5vw, 5.8vh), calc(var(--fs-2xl) * 3.2))/1.15 var(--mono);
+  margin-top: var(--ct-e2);
+  letter-spacing: -.055em;
+  font-variant-numeric: tabular-nums;
+}
+.ct-sala-materia {
+  margin-top: var(--ct-e2);
+  font-size: var(--fs-md);
+  font-weight: 550;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.ct-sala-acoes {
+  display: flex;
+  gap: var(--ct-e2);
+  margin-top: var(--ct-e5);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.ct-sala-acoes button { min-height: var(--ct-alvo-toque); }
+.ct-sala-atalhos {
+  position: absolute;
+  inset-block-end: max(var(--ct-e5), env(safe-area-inset-bottom));
+  text-align: center;
+  font-size: var(--fs-sm);
+  color: var(--ct-hero-ink);
+}
+@media (max-height: 40rem) {
+  .ct-sala { justify-content: flex-start; padding-block: var(--ct-e4); gap: var(--ct-e2); }
+  .ct-sala-frase, .ct-sala-atalhos { position: static; }
+  .ct-sala-acoes { margin-top: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  aside nav button[data-view], .ct-sala-anel circle { transition: none !important; }
+}
+
+.ct-menu-estudo, .ct-menu-estudo nav, .ct-menu-admin {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-e1);
+}
+.ct-menu-grupo {
+  margin-block-start: var(--ct-e2);
+  padding: var(--ct-e4) var(--ct-e2) var(--ct-e1);
+  border-block-start: thin solid color-mix(in srgb, var(--stext) 22%, var(--sbg));
+  color: var(--stext);
+  font: 650 var(--fs-xs)/1.4 var(--body);
+  letter-spacing: .075em;
+  text-transform: uppercase;
+}
