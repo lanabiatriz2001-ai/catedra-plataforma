@@ -9278,7 +9278,9 @@ class Component extends DCLogic {
         if(!this._modalActive){
           this._modalActive=true; this._lastFocus=document.activeElement;
           const f=panel.querySelector('input:not([type=hidden]),textarea,select,button,a[href],[tabindex]:not([tabindex="-1"])');
-          setTimeout(()=>{ try{ (f||panel).focus(); }catch(e){} }, 30);
+          setTimeout(()=>{
+            if(panel.isConnected && !panel.contains(document.activeElement)) (f||panel).focus();
+          }, 30);
         }
       } else if(this._modalActive){
         this._modalActive=false; const el=this._lastFocus; this._lastFocus=null;
