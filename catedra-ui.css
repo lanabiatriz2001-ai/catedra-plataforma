@@ -2310,6 +2310,36 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 .ct-design-numeros div{display:grid;gap:var(--ct-e2);min-width:0}
 .ct-design-numeros b{font:650 var(--fs-2xl)/1.2 var(--body);overflow-wrap:anywhere}
 .ct-design-numeros > div > span{font-size:var(--fs-sm)}
+/* Importação do edital: a pessoa abre uma disciplina para ler sua hierarquia antes de adicioná-la. */
+.ct-ed-importar > h2, .ct-ed-previa > h3 { margin:0 0 var(--ct-e3); }
+.ct-ed-importar > label { color:var(--text2); }
+.ct-ed-importar textarea { display:block; font-family:var(--mono); }
+.ct-ed-acoes { display:flex; flex-wrap:wrap; gap:var(--ct-e2); margin-top:var(--ct-e3); }
+.ct-ed-acoes button { min-height:var(--ct-alvo-toque); }
+.ct-ed-aviso { font-size:var(--fs-sm); color:var(--text2); }
+.ct-ed-aviso:not(:empty) { margin-top:var(--ct-e2); }
+.ct-ed-previa { margin-top:var(--ct-e5); padding-top:var(--ct-e4); border-top:1px solid var(--border); }
+.ct-ed-previa-lista { display:grid; gap:var(--ct-e2); max-height:50vh; overflow:auto; padding:var(--ct-e1); }
+.ct-item.ct-ed-previa-item { display:block; min-width:0; padding:0; }
+.ct-ed-previa-disc {
+  width:100%; min-height:var(--ct-alvo-toque); display:grid; grid-template-columns:minmax(0,1fr) auto;
+  align-items:center; gap:var(--ct-e1) var(--ct-e3); padding:var(--ct-e3) var(--ct-e4);
+  background:transparent; border:0; border-radius:var(--ct-r-lg); color:var(--ink); text-align:left; font:inherit; cursor:pointer;
+}
+.ct-ed-previa-disc .ct-ed-nome { font-weight:650; font-size:var(--fs-md); overflow-wrap:anywhere; }
+.ct-ed-previa-disc .ct-dado { grid-column:1; color:var(--text2); }
+.ct-ed-previa-disc svg { grid-column:2; grid-row:1 / span 2; }
+.ct-ed-previa-disc[aria-expanded="true"] svg { transform:rotate(180deg); }
+.ct-ed-previa-disc:focus-visible { outline:2px solid var(--ink); outline-offset:0; }
+.ct-ed-meta { margin:0 var(--ct-e4) var(--ct-e2); font-size:var(--fs-sm); color:var(--text2); }
+.ct-ed-previa-topicos {
+  margin:0; padding:0 var(--ct-e4); list-style:none; border-top:1px solid var(--border);
+  background:var(--surface); border-radius:0 0 var(--ct-r-lg) var(--ct-r-lg); color:var(--ink); overflow-wrap:anywhere;
+}
+.ct-ed-previa-topicos > li { padding:var(--ct-e3) 0; font-weight:600; }
+.ct-ed-previa-topicos > li + li { border-top:1px solid var(--border); }
+.ct-ed-previa-topicos ul { margin:var(--ct-e1) 0 0; padding-inline-start:var(--ct-e5); list-style:disc; font-weight:400; color:var(--text2); }
+.ct-ed-previa-topicos li { line-height:1.6; }
 .ct-scroll[data-design-view="edital"] .ct-concurso-hero{display:block;margin-bottom:0}
 .ct-scroll:is([data-design-view="revisoes"],[data-design-view="flashcards"],[data-design-view="edital"],[data-design-view="calendario"],[data-design-view="analise"]) :is(h2,h3,.ct-titulo,.ct-hero-tit){font-family:var(--body)}
 .ct-scroll:is([data-design-view="revisoes"],[data-design-view="flashcards"]) .ct-bc{gap:var(--ct-e5);margin-bottom:var(--ct-e4)}
