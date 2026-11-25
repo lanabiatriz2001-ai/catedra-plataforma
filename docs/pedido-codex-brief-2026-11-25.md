@@ -68,6 +68,24 @@ Itens, nesta ordem:
 8. Proteção contra senha vazada do Supabase Auth: ligar em Authentication › Policies. Se não
    tiver acesso ao painel, me devolver o passo exato para eu fazer.
 
+### Adendo da dona (25/11/2026, texto literal)
+
+9. Trecho citado na conferência própria. Na correção sem IA, cada quesito marcado como atendido
+   deve apontar a frase da resposta e a frase do espelho que sustentam o veredicto; sem trecho,
+   o quesito não pontua. A regra já existe na correção por IA (redacao-motor.js): reaproveitar,
+   não duplicar.
+10. Uma única contagem de espelhos. Três números circulam (landing 566 e 35; espelhos.js 586 e
+    36; Mesa de prova 648). Toda tela e a landing passam a ler o mesmo número de espelhos.js em
+    tempo de build.
+11. Na landing e no app, não prometer leitura de resposta manuscrita por foto até o item 10 do
+    Prompt 2 ter resultado.
+
+Notas do Claude Code sobre o adendo: os itens 9 a 11 seguem as mesmas regras e a mesma ordem
+(depois do 8). O item 10 se sobrepõe à primeira parte do item 2 (números da landing): faça a
+leitura única de `espelhos.js` uma vez só e não em dois PRs que se pisam. Não conferi de onde
+vem o 648 da Mesa de prova. Não sei o que é o "Prompt 2" citado no item 11 nem o seu item 10:
+não está neste pedido; pergunte à dona se não achar no repositório.
+
 ---
 
 ## Notas do Claude Code (25/11/2026)
