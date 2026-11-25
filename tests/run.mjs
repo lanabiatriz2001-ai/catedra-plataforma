@@ -58,6 +58,7 @@ import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
 import { testarRedacaoMesa } from './redacao-mesa.mjs';
 import { testarRedacaoMotorEstatico, testarRedacaoMotor } from './redacao-motor.mjs';
 import { testarRedacaoResultadoEstatico, testarRedacaoResultado } from './redacao-resultado.mjs';
+import { testarRedacaoSegundaEstatico, testarRedacaoSegunda } from './redacao-segunda.mjs';
 import { testarOnboardingImportar } from './onboarding-importar.mjs';
 import { testarCotaIA } from './cota-ia.mjs';
 import { testarIphoneSatelites390 } from './iphone-satelites-390.mjs';
@@ -120,6 +121,13 @@ page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
 if (process.env.CT_SO === 'redacao-resultado') {
   testarRedacaoResultadoEstatico(ok);
   await testarRedacaoResultado(page, URL0, ok, { motor });
+  await browser.close(); srv.close();
+  console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
+  process.exit(falhas.length ? 1 : 0);
+}
+if (process.env.CT_SO === 'redacao-segunda') {
+  testarRedacaoSegundaEstatico(ok);
+  await testarRedacaoSegunda(page, URL0, ok, { motor });
   await browser.close(); srv.close();
   console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
   process.exit(falhas.length ? 1 : 0);
@@ -9856,6 +9864,7 @@ try { await testarPrioridadeDiscursiva(page, URL0, ok); } catch(e) { ok(false, '
 try { await testarRedacaoMesa(page, URL0, ok, { motor }); } catch(e) { ok(false, 'MESA exceção: '+e.message); }
 try { testarRedacaoMotorEstatico(ok); await testarRedacaoMotor(page, URL0, ok, { motor }); } catch(e) { ok(false, 'MOTOR exceção: '+e.message); }
 try { testarRedacaoResultadoEstatico(ok); await testarRedacaoResultado(page, URL0, ok, { motor }); } catch(e) { ok(false, 'RESULTADO exceção: '+e.message); }
+try { testarRedacaoSegundaEstatico(ok); await testarRedacaoSegunda(page, URL0, ok, { motor }); } catch(e) { ok(false, 'SEGUNDA exceção: '+e.message); }
 try { await testarRevisaoFonte(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'REVISÃO/FONTE [' + motor + '] o roteiro correu sem exceção ('

@@ -18,7 +18,7 @@
         motivo da falha é classificado para a faixa dizer a verdade.
 
    Publica window.CT_REDACAO_MOTOR = { montarPrompt, interpretar, temTrecho,
-   naEscala, motivoDaFalha, MOTIVOS, LIMITES }.
+   naEscala, motivoDaFalha, localizar, anotar, compararLeituras, MOTIVOS, LIMITES }.
    ========================================================================== */
 (function () {
   var LIMITES = { resposta: 15000, enunciado: 8000, quesito: 500, gabarito: 12000 };
@@ -28,6 +28,8 @@
     'cota':    'As chamadas de IA de hoje acabaram.',
     'rede':    'Sem conexão com a IA no momento.',
     'tempo':   'A IA demorou mais de 90 segundos para responder.',
+    'pausada': 'O acesso à IA desta conta está pausado.',
+    'sessao':  'Entre na sua conta para usar a IA.',
     'invalida': 'A IA respondeu fora do formato da correção.',
     'erro':    'A IA não conseguiu corrigir desta vez.'
   };
@@ -48,7 +50,7 @@
       var esc = q.escala.slice().sort(function (a, b) { return a - b; });
       return esc.reduce(function (a, b) { return (Math.abs(b - v) < Math.abs(a - v) - 1e-9) ? b : a; });
     }
-    return Math.round(Math.min(v, maxDe(q)) * 100) / 100;
+    return Math.min(Math.round(Math.min(v, maxDe(q)) * 100) / 100, maxDe(q));
   }
   /** Nota muito acima do máximo do quesito é sinal de que a IA usou outra régua (0 a 10): não é nota cheia. */
   function foraDaRegua(valor, q) { var max = maxDe(q); return lerNota(valor) > max * 1.5 + 0.05; }
@@ -109,10 +111,11 @@
     return { texto: base, segs: segs };
   }
 
+  function milhar(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
   function cortar(texto, limite, nome, cortes) {
     var t = String(texto || '').trim();
     if (t.length <= limite) return t;
-    cortes.push(nome + ' passa de ' + limite + ' caracteres: só o começo foi para a IA');
+    cortes.push(nome + ' passa de ' + milhar(limite) + ' caracteres: só o começo foi para a IA');
     return t.slice(0, limite);
   }
 
@@ -121,6 +124,7 @@
     var cortes = [];
     var qs = d.quesitos || [];
     var resposta = cortar(d.resposta, LIMITES.resposta, 'a resposta', cortes);
+    var respostaCortada = cortes.length > 0;
     var enun = cortar(d.enunciado, LIMITES.enunciado, 'o enunciado', cortes);
     var p = 'Você é corretor de provas discursivas de concursos públicos no Brasil. Corrija a RESPOSTA DO CANDIDATO '
       + 'contra o espelho, com o rigor de uma banca: fundamento exigido e não citado não pontua; não elogie; '
@@ -135,7 +139,7 @@
           : 'nota de 0,00 até ' + num2(maxDe(q));
         return 'Q' + (i + 1) + ' — ' + txt + ' [' + regua + ']';
       });
-      if (quesitoCortado) cortes.push('há quesito com mais de ' + LIMITES.quesito + ' caracteres: só o começo foi para a IA');
+      if (quesitoCortado) cortes.push('o espelho tem quesito com mais de ' + LIMITES.quesito + ' caracteres: só o começo dele foi para a IA');
       p += 'QUESITOS DO ESPELHO, na ordem da banca:\n' + linhas.join('\n') + '\n'
         + 'Para CADA quesito devolva: "i" (o número depois de Q), "nota" (só um valor permitido), "trecho" (citação '
         + 'LITERAL e curta da resposta que justifica a nota; "" se não há) e "faltou" (o que faltou para o valor cheio, '
@@ -155,7 +159,9 @@
       + ',"forma":{"portugues":{"nota":0,"comentario":""},"estrutura":{"nota":0,"comentario":""},"extensao":{"nota":0,"comentario":""}},'
       + '"prioridades":["","",""],"geral":""}\n'
       + (enun ? 'ENUNCIADO:\n"""\n' + enun + '\n"""\n' : '')
-      + 'RESPOSTA DO CANDIDATO:\n"""\n' + resposta + '\n"""';
+      + (respostaCortada ? 'A RESPOSTA foi cortada no limite de envio: avalie só o trecho enviado e, no "faltou" de quesito que '
+        + 'não aparece nele, diga que ele pode estar depois do corte.\n' : '')
+      + 'RESPOSTA DO CANDIDATO:\n"""\n' + resposta + (respostaCortada ? '\n[… a resposta continua, mas foi cortada aqui]' : '') + '\n"""';
     return { prompt: p, cortes: cortes };
   }
 
@@ -229,10 +235,59 @@
     var m = String((err && err.message) || err || '');
     if (/chamadas de IA de hoje|\b429\b|\bcota\b/i.test(m)) return 'cota';
     if (/recus|consent|não autoriz/i.test(m)) return 'recusou';
+    if (/foi pausado|está pausad|ia_pausada/i.test(m)) return 'pausada';
+    if (/entre na sua conta|sess[ãa]o expirad/i.test(m)) return 'sessao';
     if (/failed to fetch|load failed|network|offline|sem conex|\brede\b/i.test(m)) return 'rede';
     return 'erro';
   }
 
+  /* SEGUNDA LEITURA (25/11/2026): a pessoa conferiu no papel e depois digitou o que escreveu para a IA
+     ler. Aqui só se compara: quesito a quesito, a nota que ela se deu contra a nota da IA.
+     - Mesmo parser dos dois lados (_redQuesitos sobre o mesmo espelho); ainda assim, lista de tamanho ou
+       máximo diferente não é comparada linha a linha (desalinhado) — sobra o total.
+     - Quesito cuja régua da conferência tem um degrau só (opcoes com menos de 2 valores) não se compara:
+       as duas leituras saem iguais à força ("sem-regua").
+     - Quesito que a IA não avaliou ("sem-nota") não conta como divergência.
+     - Com quesito sem nota ou sem régua, o total da IA não existe (notaIA e difNota null): somar zero
+       rebaixaria, e somar a estimativa do corretor local poria na boca da IA uma nota que ela não deu.
+     - A comparação usa a precisão da tela (2 casas), e o total da IA sai pela MESMA conta da
+       conferência (soma sobre o total arredondado): notas iguais nos quesitos dão total igual. */
+  function compararLeituras(sua, ia) {
+    var a = Array.isArray(sua && sua.quesitos) ? sua.quesitos : [];
+    var b = Array.isArray(ia && ia.quesitos) ? ia.quesitos : [];
+    var num = function (v) { var n = +v; return isFinite(n) ? n : 0; };
+    var c2 = function (v) { return Math.round(num(v) * 100) / 100; };
+    var notaIA = (ia && ia.nota != null && ia.nota !== '' && isFinite(+ia.nota)) ? Math.round(+ia.nota * 10) / 10 : null;
+    var out = { notaSua: Math.round(num(sua && sua.nota) * 10) / 10, notaIA: notaIA,
+      linhas: [], divergentes: 0, semNota: 0, semRegua: 0, avaliados: 0, desalinhado: false };
+    out.difNota = notaIA == null ? null : Math.round((notaIA - out.notaSua) * 10) / 10;
+    if (!a.length || !b.length) return out;
+    var difMax = function (qa, i) { var qb = b[i] || {}; return qa.pontos != null && qb.pontos != null && Math.abs(num(qa.pontos) - num(qb.pontos)) > 0.005; };
+    if (a.length !== b.length || a.some(difMax)) { out.desalinhado = true; return out; }
+    var somaIA = 0, total = 0;
+    out.linhas = a.map(function (qa, i) {
+      var qb = b[i] || {}, s = c2(qa.obtido), n = c2(qb.obtido);
+      var m = /(\d+)/.exec(String(qa.quesito || qb.quesito || ''));
+      var umDegrau = Array.isArray(qa.opcoes) && qa.opcoes.length < 2, sem = !umDegrau && !!qb.estimado;
+      var fora = umDegrau || sem;
+      var d = umDegrau ? 'sem-regua' : sem ? 'sem-nota' : (n < s ? 'ia-menos' : (n > s ? 'ia-mais' : 'igual'));
+      var dif = fora ? null : Math.round((n - s) * 100) / 100;
+      if (umDegrau) out.semRegua++; else if (sem) out.semNota++; else if (dif !== 0) out.divergentes++;
+      somaIA += n; total += num(qa.pontos != null ? qa.pontos : qb.pontos);
+      return { i: i + 1, n: m ? +m[1] : i + 1, sua: s, ia: fora ? null : n, max: num(qa.pontos != null ? qa.pontos : qb.pontos),
+        dif: dif, d: d, trecho: fora ? '' : String(qb.trecho || ''), faltou: fora ? '' : String(qb.faltou || '') };
+    });
+    out.avaliados = out.linhas.length - out.semNota - out.semRegua;
+    if (out.semNota || out.semRegua) { out.notaIA = null; out.difNota = null; }
+    else {
+      var t = Math.round(total * 100) / 100;
+      out.notaIA = t ? Math.round(somaIA / t * 100) / 10 : 0;
+      out.difNota = Math.round((out.notaIA - out.notaSua) * 10) / 10;
+    }
+    return out;
+  }
+
   window.CT_REDACAO_MOTOR = { montarPrompt: montarPrompt, interpretar: interpretar, temTrecho: temTrecho,
-    naEscala: naEscala, motivoDaFalha: motivoDaFalha, localizar: localizar, anotar: anotar, MOTIVOS: MOTIVOS, LIMITES: LIMITES };
+    naEscala: naEscala, motivoDaFalha: motivoDaFalha, localizar: localizar, anotar: anotar, compararLeituras: compararLeituras,
+    MOTIVOS: MOTIVOS, LIMITES: LIMITES };
 })();
