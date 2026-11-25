@@ -44,9 +44,13 @@ func aiEndpoint() -> String {
 final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDelegate, WKScriptMessageHandlerWithReply, WKDownloadDelegate, UIDocumentPickerDelegate, UNUserNotificationCenterDelegate, UINavigationBarDelegate {
 
     var webView: WKWebView!
+    private var paginaDosLeitoresPronta = false
+    private lazy var sessaoLeitores = SessaoDosLeitores { [weak self] perfil in self?.trocarPerfil(perfil) }
     private var segmento: SeletorProduto!
     private var areaConteudo: UIView!
     private var legisVC: UIViewController?   // criados sob demanda, na 1ª vez que a aba abre
+    private weak var ajustesDoLeitor: UIViewController?
+    private var coberturaDosLeitores: UIView?
     private var jurisVC: UIViewController?
     // @Observable, sem .shared: a instância é guardada aqui, como o host do Mac faz.
     private var jurisStore: LibraryStore?
@@ -75,8 +79,8 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
     override func viewDidLoad() {
         NotificationCenter.default.addObserver(forName: PerfilLeitor.mudouAcervo, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated {
-                guard let conta = PerfilLeitor.atual.conta else { return }
-                try? self?.atualizarPerfil(["conta": conta])
+                guard let self, let conta = self.sessaoLeitores.contaAutorizada else { return }
+                self.trocarPerfil(PerfilLeitor(conta: conta))
             }
         }
         // Gaveta do leitor do LEGIS: texto OFICIAL do verbete lido do acervo do JURIS.
@@ -258,6 +262,12 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
     /// e não faz sentido pagar isso em quem nunca abrir a aba) e depois fica vivo — sair e
     /// voltar não perde o que estava na tela nem recarrega a norma.
     @objc private func trocarAba() {
+        let pedida = segmento.selectedSegmentIndex
+        if pedida == 0 { sessaoLeitores.pedirAba(0) }
+        if pedida > 0 && sessaoLeitores.contaAutorizada == nil {
+            segmento.selectedSegmentIndex = 0
+            if pedida != 2 || jurisDisponivel { pedirLoginDoLeitor(para: pedida) }
+        }
         // Antes de montar (ou remontar) uma aba nativa, espelha o tema do Cátedra. Sem
         // isto os módulos ficavam presos no tema de fallback — no iPad, Fibra claro com
         // acento #4263EB — e não acompanhavam nem a direção visual nem o modo escuro
@@ -313,7 +323,10 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
     }
 
     private func montarAba(remontar: Bool) {
-        if PerfilLeitor.atual.conta == nil { segmento.selectedSegmentIndex = 0 }
+        if segmento.selectedSegmentIndex > 0 && sessaoLeitores.contaAutorizada == nil {
+            segmento.selectedSegmentIndex = 0
+            pedirLoginDoLeitor()
+        }
         let aba = segmento.selectedSegmentIndex
         // Ao SAIR do CátedraLEGIS/CátedraJURIS, fecha a rajada e coleta no Cátedra (como no Mac).
         if abaAtual == 1 && aba != 1 { flushLegisStudy() }
@@ -321,6 +334,7 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         StudyClock.shared.setTabActive(aba == 1)   // relógio do LEGIS: só na aba 1
         JurisClock.shared.setTabActive(aba == 2)   // relógio do JURIS: só na aba 2
         abaAtual = aba
+        if aba > 0 && view.window?.windowScene?.activationState != .foregroundActive { protegerPreviaDosLeitores() }
         // Voltou ao Cátedra pela aba: a volta ao ponto do processo deixou de fazer sentido.
         if aba == 0 { AcervoEntrada.shared.limpar() }
         atualizarBotaoVoltarAcervo()
@@ -360,13 +374,13 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
     /// vez o "abrir este verbete" do LEGIS caía no vazio — aqui ele espera o acervo chegar.
     func abrirVerbeteQuandoCarregado(_ id: String, tentativa: Int = 0) {
         let perfil = PerfilLeitor.atual
-        guard perfil.conta != nil else { return }
+        guard let titular = sessaoLeitores.contaAutorizada, perfil.conta == titular else { return }
         if jurisStore == nil { jurisStore = LibraryStore() }
         guard let store = jurisStore else { return }
         if !store.entries.isEmpty { store.abrirVerbete(id); return }
         guard tentativa < 60 else { return }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-            guard perfil.raiz == PerfilLeitor.diretorio else { return }
+            guard self?.sessaoLeitores.contaAutorizada == titular, perfil.raiz == PerfilLeitor.diretorio else { return }
             self?.abrirVerbeteQuandoCarregado(id, tentativa: tentativa + 1)
         }
     }
@@ -431,7 +445,9 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         switch d {
         case .tela(let v): selecionarAba(0); irParaTelaWeb(v)
         case .entrar: selecionarAba(0)
-        case .legis(let diploma, let artigo): JurisPorArtigo.abrirNoLegis(ArtigoCitado(diploma: diploma, artigo: artigo))
+        case .legis(let diploma, let artigo):
+            guard sessaoLeitores.contaAutorizada != nil else { pedirLoginDoLeitor(para: 1); return }
+            JurisPorArtigo.abrirNoLegis(ArtigoCitado(diploma: diploma, artigo: artigo))
         case .juris(let id):
             guard jurisDisponivel else { selecionarAba(0); return }
             JurisPorArtigo.abrirNoJuris(id)   // o observador do viewDidLoad troca a aba e espera o acervo carregar
@@ -935,9 +951,14 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
         case "notifyShow":       mostrarNotificacao(message); replyHandler(nil, nil)
         case "catedraLembretes": agendarLembretes(message, replyHandler)
         case "catedraPerfil":
-            guard message.frameInfo.request.url?.lastPathComponent == "index.html",
+            guard paginaDosLeitoresPronta, message.webView === webView,
+                  SessaoDosLeitores.paginaPrincipal(message.frameInfo.request.url, em: Bundle.main.resourceURL?.appendingPathComponent("web")),
                   let dados = message.body as? [String: String] else { replyHandler(nil, "Perfil inválido"); return }
-            do { try atualizarPerfil(dados); replyHandler(true, nil) }
+            do {
+                try sessaoLeitores.receber(dados)
+                if let aba = sessaoLeitores.consumirAbaPedida(jurisDisponivel: jurisDisponivel) { selecionarAba(aba) }
+                replyHandler(true, nil)
+            }
             catch { replyHandler(nil, "Não foi possível atualizar os dados locais desta conta.") }
         case "catedraArea":
             // {area, rotulo, juris, legis} — a web avisa o que a área ativa oferece
@@ -1240,6 +1261,27 @@ final class RootViewController: UIViewController, WKUIDelegate, WKNavigationDele
 extension RootViewController {
 
     // ===== Ciclo de vida do app =====
+    // O seletor de apps pode manter a última imagem de uma janela mesmo depois de
+    // a sessão vencer. Uma cobertura opaca protege também a folha de ajustes do leitor.
+    func protegerPreviaDosLeitores() {
+        guard abaAtual != 0 || ajustesDoLeitor != nil, let janela = viewIfLoaded?.window else { return }
+        if let coberturaDosLeitores { janela.bringSubviewToFront(coberturaDosLeitores); return }
+        let cobertura = UIView(frame: janela.bounds)
+        cobertura.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        cobertura.backgroundColor = .systemBackground
+        cobertura.isOpaque = true
+        cobertura.isAccessibilityElement = false
+        janela.addSubview(cobertura)
+        coberturaDosLeitores = cobertura
+    }
+
+    func retomarLeitoresEmPrimeiroPlano() {
+        sessaoLeitores.conferirValidade()
+        guard viewIfLoaded?.window?.windowScene?.activationState == .foregroundActive else { return }
+        coberturaDosLeitores?.removeFromSuperview()
+        coberturaDosLeitores = nil
+    }
+
     // Os relógios de estudo pausam quando o app perde o foco. Em segundo plano o iPadOS pode
     // encerrar o app sem avisar: a rajada é fechada AGORA e guardada em disco; o registro
     // chega ao Cátedra na volta (ou na próxima abertura).
@@ -1250,13 +1292,15 @@ extension RootViewController {
                 StudyClock.shared.setAppActive(true)
                 JurisClock.shared.setAppActive(true)
                 guard let self else { return }
+                self.retomarLeitoresEmPrimeiroPlano()
                 self.entregarEstudosPendentesSePossivel()
                 self.pushNativeReviews()
                 self.gravarResumoWidget()
             }
         }
-        nc.addObserver(forName: UIApplication.willResignActiveNotification, object: nil, queue: .main) { _ in
+        nc.addObserver(forName: UIApplication.willResignActiveNotification, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated {
+                self?.protegerPreviaDosLeitores()
                 StudyClock.shared.setAppActive(false)
                 JurisClock.shared.setAppActive(false)
             }
@@ -1321,7 +1365,8 @@ extension RootViewController {
     @objc func abrirAjustesDoModulo() { abrirAjustes(aba: segmento.selectedSegmentIndex) }
 
     func abrirAjustes(aba: Int) {
-        guard PerfilLeitor.atual.conta != nil else { return }
+        guard aba == 1 || (aba == 2 && jurisDisponivel) else { return }
+        guard sessaoLeitores.contaAutorizada != nil else { pedirLoginDoLeitor(para: aba); return }
         guard presentedViewController == nil else { return }
         let acento = ThemeState.t.accent
         let host: UIViewController
@@ -1340,7 +1385,9 @@ extension RootViewController {
         } else { return }
         host.overrideUserInterfaceStyle = ThemeState.t.isDark ? .dark : .light
         host.modalPresentationStyle = .formSheet
+        ajustesDoLeitor = host
         present(host, animated: !ThemeState.t.baixaEstimulacao)
+        if view.window?.windowScene?.activationState != .foregroundActive { protegerPreviaDosLeitores() }
     }
 
     // ===== Navegação pedida pela web =====
@@ -1364,12 +1411,13 @@ extension RootViewController {
     func irParaAcervo(alvo: String, termo: String, origem: AcervoEntrada.Origem?) {
         guard alvo == "legis" || alvo == "juris" else { return }
         if alvo == "juris" && !jurisDisponivel { return }   // a área não oferece jurisprudência
+        guard let conta = sessaoLeitores.contaAutorizada else { pedirLoginDoLeitor(para: alvo == "juris" ? 2 : 1); return }
         AcervoEntrada.shared.chegou(termo: termo, origem: origem)
         selecionarAba(alvo == "juris" ? 2 : 1)
         atualizarBotaoVoltarAcervo()
         if alvo == "juris", !termo.isEmpty {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
-                guard let store = self?.jurisStore else { return }
+                guard let self, self.sessaoLeitores.contaAutorizada == conta, let store = self.jurisStore else { return }
                 store.ir(.todos)          // ir() zera a busca: o termo entra DEPOIS
                 store.searchText = termo
             }
@@ -1391,24 +1439,14 @@ extension RootViewController {
         }
     }
 
-    private func atualizarPerfil(_ dados: [String: String]) throws {
+    private func pedirLoginDoLeitor(para aba: Int? = nil) {
+        sessaoLeitores.conferirValidade()
+        if let aba { sessaoLeitores.pedirAba(aba) }
+        webView?.evaluateJavaScript("window.CatedraAuth && window.CatedraAuth.solicitarLoginLeitor && window.CatedraAuth.solicitarLoginLeitor()", completionHandler: nil)
+    }
+
+    private func trocarPerfil(_ novo: PerfilLeitor) {
         let anterior = PerfilLeitor.atual
-        let exclusao = dados["excluir"]
-        guard dados["conta"] != nil || exclusao != nil else { throw CocoaError(.fileReadCorruptFile) }
-        if let exclusao {
-            if anterior.autenticado && exclusao.lowercased() == anterior.conta {
-                anterior.agendarExclusao()
-            } else {
-                let pendente = PerfilLeitor(conta: exclusao)
-                guard pendente.exclusaoPendente else { throw CocoaError(.fileWriteNoPermission) }
-                try pendente.concluirExclusao()
-                return
-            }
-        } else {
-            PerfilLeitor.retomarExclusoes()
-        }
-        let novo = PerfilLeitor(conta: exclusao == nil ? dados["conta"] : nil)
-        guard !novo.exclusaoPendente else { throw CocoaError(.fileWriteNoPermission) }
         anterior.protegerChaveAntiga(.standard)
         guard novo.conta != anterior.conta || novo.raiz != anterior.raiz else { return }
         StudyClock.shared.pause()
@@ -1442,7 +1480,6 @@ extension RootViewController {
         JurisPorArtigo.modoUmaVez = nil
         catalogoJSONCache = nil
         PerfilLeitor.ativar(novo)
-        if exclusao != nil { try anterior.concluirExclusao() }
         if novo.conta != nil {
             pushNativeReviews()
             entregarEstudosPendentesSePossivel()
@@ -1450,7 +1487,7 @@ extension RootViewController {
     }
 
     func pushNativeReviews() {
-        guard PerfilLeitor.atual.conta != nil else { return }
+        guard sessaoLeitores.contaAutorizada != nil else { return }
         if jurisStore == nil { jurisStore = LibraryStore() }
         guard let wv = webView else { return }
         let payload = "{\"legis\":{\"due\":\(AppStore.shared.srsDueCount()),\"deck\":\(AppStore.shared.srsDeckCount)}," +
@@ -1469,7 +1506,7 @@ extension RootViewController {
     // Checkbox do ciclo semanal (web) → marca/desmarca a leitura no plano do LEGIS.
     // Linhas de súmulas espelham no plano do JURIS (é a MESMA leitura nos dois).
     func togglePlanoLeitura(_ key: String) {
-        guard PerfilLeitor.atual.conta != nil else { return }
+        guard sessaoLeitores.contaAutorizada != nil else { return }
         guard !key.isEmpty else { return }
         let d = PerfilLeitor.atual.preferencias
         var done = Set((d.array(forKey: "catedra.plano.done.v1") as? [String]) ?? [])
@@ -1742,7 +1779,7 @@ extension RootViewController {
     /// injeção cairia numa página que está morrendo.
     func entregarEstudosPendentesSePossivel() {
         let perfil = PerfilLeitor.atual
-        guard perfil.conta != nil else { return }
+        guard let titular = sessaoLeitores.contaAutorizada, perfil.conta == titular else { return }
         let pend = perfil.preferencias.stringArray(forKey: "catedraPendingStudyRegs") ?? []
         guard !pend.isEmpty, let wv = webView else { return }
         let js = """
@@ -1765,7 +1802,7 @@ extension RootViewController {
         guard let conta = perfil.conta else { return }
         for (i, json) in pend.enumerated() {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0 + Double(i) * 0.6) { [weak self] in
-                guard let self, perfil.raiz == PerfilLeitor.diretorio else { return }
+                guard let self, self.sessaoLeitores.contaAutorizada == conta, perfil.raiz == PerfilLeitor.diretorio else { return }
                 self.webView.evaluateJavaScript(
                     "window.CatedraAuth && window.CatedraAuth.contaLocal === '\(conta)' && window.catedraOpenStudyRegistration ? window.catedraOpenStudyRegistration(\(json)) : 'sem-ponte'"
                 ) { r, _ in
@@ -1926,11 +1963,19 @@ extension RootViewController {
 
     // ===== Navegação da WebView =====
     func webView(_ wv: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
-        if wv === webView { try? atualizarPerfil(["conta": ""]) }
+        guard wv === webView else { return }
+        paginaDosLeitoresPronta = false
+        sessaoLeitores.encerrarDocumento()
+    }
+
+    func webView(_ wv: WKWebView, didCommit navigation: WKNavigation!) {
+        guard wv === webView else { return }
+        paginaDosLeitoresPronta = SessaoDosLeitores.paginaPrincipal(wv.url, em: Bundle.main.resourceURL?.appendingPathComponent("web"))
     }
 
     func webView(_ wv: WKWebView, didFinish navigation: WKNavigation!) {
         guard wv === webView else { return }
+        if sessaoLeitores.abaPedida != nil && sessaoLeitores.contaAutorizada == nil { pedirLoginDoLeitor() }
         // A casca segue o tema assim que a página pinta (o auth.js ainda recarrega uma vez).
         // Se um módulo nativo já está na tela (aberto por argumento de launch ou antes de a
         // página pintar), ele nasceu com o tema de fallback: remonta agora com o tema certo.
@@ -1946,6 +1991,8 @@ extension RootViewController {
     /// Sem isto a pessoa voltava para uma tela BRANCA e tinha de fechar o app à mão.
     func webViewWebContentProcessDidTerminate(_ wv: WKWebView) {
         guard wv === webView else { return }
+        paginaDosLeitoresPronta = false
+        sessaoLeitores.encerrarDocumento()
         carregarApp()
     }
 }
@@ -2198,6 +2245,14 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             DispatchQueue.main.async { (w.rootViewController as? RootViewController)?.abrirLinkWidget(url) }
         }
     }
+    func sceneWillResignActive(_ scene: UIScene) {
+        (window?.rootViewController as? RootViewController)?.protegerPreviaDosLeitores()
+    }
+
+    func sceneDidBecomeActive(_ scene: UIScene) {
+        (window?.rootViewController as? RootViewController)?.retomarLeitoresEmPrimeiroPlano()
+    }
+
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
         guard let url = URLContexts.first?.url else { return }
         (window?.rootViewController as? RootViewController)?.abrirLinkWidget(url)

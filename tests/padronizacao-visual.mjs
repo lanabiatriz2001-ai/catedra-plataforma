@@ -1,3 +1,4 @@
+import { abrirComponenteDoLeitor } from './_sessao-leitores.mjs';
 export async function testarPadronizacaoVisual(page, base, ok, { motor = 'browser', origem = 'http' } = {}) {
   await page.goto(base + '/Catedra.dc.html');
   await page.waitForFunction(() => !!window.__catedraApp, null, { timeout: 30000 });
@@ -56,7 +57,7 @@ export async function testarPadronizacaoVisual(page, base, ok, { motor = 'browse
   ok(semMovimento, `VISUAL [${motor}] [${origem}] ocupado respeita movimento reduzido`);
   await page.emulateMedia({ reducedMotion: 'no-preference' });
 
-  await page.goto(base + '/legis-web.html');
+  await abrirComponenteDoLeitor(page, base + '/legis-web.html');
   const satelite = await page.evaluate(() => {
     const estado = document.createElement('div');
     estado.className = 'ct-estado ct-estado-carregando';

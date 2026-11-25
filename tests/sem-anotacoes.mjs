@@ -23,6 +23,7 @@
          "Informações da fonte" PINTADOS (caixa, cor e contraste medidos), com o conteúdo do
          acervo; não há botão de roteiro, quadro nem quiz; a prova oral está lá; e o roteiro
          de IA que estava guardado no aparelho é apagado na abertura. */
+import { abrirComponenteDoLeitor } from './_sessao-leitores.mjs';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -157,6 +158,7 @@ export function testarSemAnotacoesEstatico(ok, opcoes = {}) {
 
 export async function testarSemAnotacoesNavegador(page, base, ok, opcoes = {}) {
   const R = 'SEM ANOTAÇÕES [' + (opcoes.motor || '?') + '] [' + (opcoes.origem || '?') + '] ';
+  const urlLeitor = base + '/juris-web.html';
   const TXT = carrega('juris-text.js', '__JURIS_TXT__');
   const id = Object.keys(TXT).find(k => /^INF/.test(k) && TXT[k].co && TXT[k].ob);
   if (!id) { ok(false, R + '(d) há verbete com texto e informações da fonte para abrir'); return; }
@@ -165,10 +167,10 @@ export async function testarSemAnotacoesNavegador(page, base, ok, opcoes = {}) {
   page.on('pageerror', pegaErro);
   try {
     // o cache do roteiro é lido (e agora apagado) no boot do satélite: semeia e recarrega
-    await page.goto(base + '/juris-web.html');
+    await abrirComponenteDoLeitor(page, urlLeitor);
     await page.waitForFunction(() => typeof window.openVerbete === 'function', null, { timeout: 20000 });
     await page.evaluate(() => localStorage.setItem('catedraJurisRoteiros', JSON.stringify({ x: { ts: 1, frase: 'roteiro antigo' } })));
-    await page.reload();
+    await abrirComponenteDoLeitor(page, urlLeitor);
     await page.waitForFunction(() => typeof window.jurisAbrirPorId === 'function' && window.jurisTemId('x') !== null, null, { timeout: 20000 });
     ok(await page.evaluate(() => localStorage.getItem('catedraJurisRoteiros')) === null,
       R + '(d) o roteiro de IA guardado no aparelho é apagado quando o JURIS abre');
@@ -230,7 +232,7 @@ export async function testarSemAnotacoesNavegador(page, base, ok, opcoes = {}) {
     await page.waitForTimeout(1300);
     const gravou = await page.evaluate((k) => ({ v: localStorage.getItem(k), st: document.getElementById('jrNotaSt').textContent }), chave);
     ok(gravou.v === TEXTO && /salva/.test(gravou.st), R + '(e) a anotação é gravada sozinha em ' + chave + ' e a tela avisa ("' + gravou.st + '")');
-    await page.reload();
+    await abrirComponenteDoLeitor(page, urlLeitor);
     await page.waitForFunction(() => typeof window.jurisAbrirPorId === 'function' && window.jurisTemId('x') !== null, null, { timeout: 20000 });
     await page.evaluate((i) => window.jurisAbrirPorId(i), id);
     await page.waitForFunction(() => !!document.getElementById('jrNota'), null, { timeout: 20000 });

@@ -180,6 +180,8 @@ let pipShimJS = """
 final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandlerWithReply, UNUserNotificationCenterDelegate, NSWindowDelegate, NSToolbarDelegate, WKDownloadDelegate, NSMenuDelegate {
     var window: NSWindow!
     var webView: WKWebView!
+    private var paginaDosLeitoresPronta = false
+    private lazy var sessaoLeitores = SessaoDosLeitores { [weak self] perfil in self?.trocarPerfil(perfil) }
     private var titleObs: NSKeyValueObservation?
     private var pipPanel: NSPanel?      // painel flutuante do cronômetro (PiP nativo)
     private var pipWebView: WKWebView?
@@ -259,8 +261,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         startWidgetSync()
         NotificationCenter.default.addObserver(forName: PerfilLeitor.mudouAcervo, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated {
-                guard let conta = PerfilLeitor.atual.conta else { return }
-                try? self?.atualizarPerfil(["conta": conta])
+                guard let self, let conta = self.sessaoLeitores.contaAutorizada else { return }
+                self.trocarPerfil(PerfilLeitor(conta: conta))
             }
         }
         startNativeReviewsSync()   // agenda de revisão única (lei seca + juris no Cátedra)
@@ -389,17 +391,32 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     // Ao terminar de carregar o app web, se ficou um registro de estudo pendente do
     // encerramento anterior (deliverStudyRegistration com terminating=true), injeta agora.
     func webView(_ wv: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
-        if wv === webView { try? atualizarPerfil(["conta": ""]) }
+        guard wv === webView else { return }
+        paginaDosLeitoresPronta = false
+        sessaoLeitores.encerrarDocumento()
+    }
+
+    func webView(_ wv: WKWebView, didCommit navigation: WKNavigation!) {
+        guard wv === webView else { return }
+        paginaDosLeitoresPronta = SessaoDosLeitores.paginaPrincipal(wv.url, em: Bundle.main.resourceURL?.appendingPathComponent("web"))
+    }
+
+    func webViewWebContentProcessDidTerminate(_ wv: WKWebView) {
+        guard wv === webView else { return }
+        paginaDosLeitoresPronta = false
+        sessaoLeitores.encerrarDocumento()
+        loadApp()
     }
 
     func webView(_ wv: WKWebView, didFinish navigation: WKNavigation!) {
         guard wv === webView else { return }
+        if sessaoLeitores.abaPedida != nil && sessaoLeitores.contaAutorizada == nil { pedirLoginDoLeitor() }
         conferirEstudosPendentes(wv)
     }
 
     private func conferirEstudosPendentes(_ wv: WKWebView) {
         let perfil = PerfilLeitor.atual
-        guard perfil.conta != nil else { return }
+        guard let titular = sessaoLeitores.contaAutorizada, perfil.conta == titular else { return }
         let pend = perfil.preferencias.stringArray(forKey: "catedraPendingStudyRegs") ?? []
         guard !pend.isEmpty else { return }
         // NÃO apagar antes de entregar — era exatamente esse o bug: a chave era removida
@@ -420,7 +437,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         guard let conta = perfil.conta else { return }
         for (i, json) in pend.enumerated() {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0 + Double(i) * 0.6) { [weak self] in
-                guard let self, perfil.raiz == PerfilLeitor.diretorio else { return }
+                guard let self, self.sessaoLeitores.contaAutorizada == conta, perfil.raiz == PerfilLeitor.diretorio else { return }
                 self.webView.evaluateJavaScript(
                     "window.CatedraAuth && window.CatedraAuth.contaLocal === '\(conta)' && window.catedraOpenStudyRegistration ? window.catedraOpenStudyRegistration(\(json)) : 'sem-ponte'"
                 ) { r, _ in
@@ -443,6 +460,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     // Cronômetros de estudo (LEGIS: dentro de uma norma; JURIS: aba ativa): pausam
     // quando o app perde o foco e fecham a rajada (coletando no Cátedra) ao encerrar.
     func applicationDidBecomeActive(_ n: Notification) {
+        sessaoLeitores.conferirValidade()
         StudyClock.shared.setAppActive(true)
         JurisClock.shared.setAppActive(true)
     }
@@ -744,7 +762,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         switch d {
         case .tela(let v): switchTo(0); irParaTelaWeb(v)
         case .entrar: switchTo(0)
-        case .legis(let diploma, let artigo): JurisPorArtigo.abrirNoLegis(ArtigoCitado(diploma: diploma, artigo: artigo))
+        case .legis(let diploma, let artigo):
+            guard sessaoLeitores.contaAutorizada != nil else { pedirLoginDoLeitor(para: 1); return }
+            JurisPorArtigo.abrirNoLegis(ArtigoCitado(diploma: diploma, artigo: artigo))
         case .juris(let id):
             guard jurisDisponivel else { switchTo(0); return }
             switchTo(2); abrirVerbeteQuandoCarregado(id)
@@ -764,11 +784,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     }
     func abrirVerbeteQuandoCarregado(_ id: String, tentativa: Int = 0) {
         let perfil = PerfilLeitor.atual
-        guard perfil.conta != nil else { return }
+        guard let titular = sessaoLeitores.contaAutorizada, perfil.conta == titular else { return }
         if let store = jurisStore, !store.entries.isEmpty { store.abrirVerbete(id); return }
         guard tentativa < 60 else { return }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-            guard perfil.raiz == PerfilLeitor.diretorio else { return }
+            guard self?.sessaoLeitores.contaAutorizada == titular, perfil.raiz == PerfilLeitor.diretorio else { return }
             self?.abrirVerbeteQuandoCarregado(id, tentativa: tentativa + 1)
         }
     }
@@ -795,24 +815,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
             self.pushNativeReviews()
         }
     }
-    private func atualizarPerfil(_ dados: [String: String]) throws {
+    private func pedirLoginDoLeitor(para aba: Int? = nil) {
+        sessaoLeitores.conferirValidade()
+        if let aba { sessaoLeitores.pedirAba(aba) }
+        webView?.evaluateJavaScript("window.CatedraAuth && window.CatedraAuth.solicitarLoginLeitor && window.CatedraAuth.solicitarLoginLeitor()", completionHandler: nil)
+    }
+
+    private func trocarPerfil(_ novo: PerfilLeitor) {
         let anterior = PerfilLeitor.atual
-        let exclusao = dados["excluir"]
-        guard dados["conta"] != nil || exclusao != nil else { throw CocoaError(.fileReadCorruptFile) }
-        if let exclusao {
-            if anterior.autenticado && exclusao.lowercased() == anterior.conta {
-                anterior.agendarExclusao()
-            } else {
-                let pendente = PerfilLeitor(conta: exclusao)
-                guard pendente.exclusaoPendente else { throw CocoaError(.fileWriteNoPermission) }
-                try pendente.concluirExclusao()
-                return
-            }
-        } else {
-            PerfilLeitor.retomarExclusoes()
-        }
-        let novo = PerfilLeitor(conta: exclusao == nil ? dados["conta"] : nil)
-        guard !novo.exclusaoPendente else { throw CocoaError(.fileWriteNoPermission) }
         anterior.protegerChaveAntiga(.standard)
         guard novo.conta != anterior.conta || novo.raiz != anterior.raiz else { return }
         StudyClock.shared.pause()
@@ -846,7 +856,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         JurisPorArtigo.modoUmaVez = nil
         catalogoJSONCache = nil
         PerfilLeitor.ativar(novo)
-        if exclusao != nil { try anterior.concluirExclusao() }
         if novo.conta != nil {
             pushNativeReviews()
             conferirEstudosPendentes(webView)
@@ -854,7 +863,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     }
 
     func pushNativeReviews() {
-        guard PerfilLeitor.atual.conta != nil else { return }
+        guard sessaoLeitores.contaAutorizada != nil else { return }
         if jurisStore == nil { jurisStore = LibraryStore() }
         guard let wv = webView else { return }
         let payload = "{\"legis\":{\"due\":\(AppStore.shared.srsDueCount()),\"deck\":\(AppStore.shared.srsDeckCount)}," +
@@ -873,7 +882,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     // Checkbox do ciclo semanal (web) → marca/desmarca a leitura no plano do LEGIS.
     // Linhas de súmulas espelham no plano do JURIS (é a MESMA leitura nos dois).
     func togglePlanoLeitura(_ key: String) {
-        guard PerfilLeitor.atual.conta != nil else { return }
+        guard sessaoLeitores.contaAutorizada != nil else { return }
         guard !key.isEmpty else { return }
         let d = PerfilLeitor.atual.preferencias
         var done = Set((d.array(forKey: "catedra.plano.done.v1") as? [String]) ?? [])
@@ -1071,14 +1080,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         RunLoop.main.add(tm, forMode: .common); autoBackupTimer = tm
     }
     func performBackup(force: Bool) {
-        guard let conta = PerfilLeitor.atual.conta, let wv = webView else { return }
+        guard let conta = sessaoLeitores.contaAutorizada, let wv = webView else { return }
         let carimbo = "catedraLastBackupAt." + conta
         let last = UserDefaults.standard.double(forKey: carimbo)
         if !force && Date().timeIntervalSince1970 - last < 7 * 24 * 3600 { return }
         wv.callAsyncJavaScript("return window.__catedraApp?._backupLocalMac(conta)",
                                arguments: ["conta": conta], in: nil, in: .page) { [weak self] resultado in
             guard case .success(let valor) = resultado, let json = valor as? String,
-                  PerfilLeitor.atual.conta == conta else { return }
+                  self?.sessaoLeitores.contaAutorizada == conta else { return }
             self?.writeBackupFiles(webJSON: json, conta: conta, force: force)
         }
     }
@@ -1197,9 +1206,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
     }
 
     private func switchTo(_ tab: Int) {
-        if tab != 0 && PerfilLeitor.atual.conta == nil { tabControl?.selectedSegment = 0; return }
-        // aba que a área não oferece não abre por atalho, por menu nem por clique
+        // Aba que a área não oferece não abre por atalho, por menu nem por clique.
         if tab == 2 && !jurisDisponivel { tabControl?.selectedSegment = currentTab; return }
+        if tab != 0 && sessaoLeitores.contaAutorizada == nil {
+            tabControl?.selectedSegment = 0
+            pedirLoginDoLeitor(para: tab)
+            return
+        }
+        if tab == 0 { sessaoLeitores.pedirAba(0) }
         // Ao SAIR do CátedraLEGIS/CátedraJURIS, fecha a rajada e coleta no Cátedra.
         if currentTab == 1 && tab != 1 { flushLegisStudy() }
         if currentTab == 2 && tab != 2 { flushJurisStudy() }
@@ -1499,7 +1513,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         })()
         """
         webView.evaluateJavaScript(js) { [weak self] result, _ in
-            guard let self, perfil.conta != nil, perfil.conta == PerfilLeitor.atual.conta else { return }
+            guard let self, perfil.conta != nil, perfil.conta == self.sessaoLeitores.contaAutorizada else { return }
             let changed = self.applyCatedraTheme(from: result as? String)
             if self.vmHost == nil {
                 self.buildVMHost()
@@ -1628,7 +1642,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         })()
         """
         webView.evaluateJavaScript(js) { [weak self] result, _ in
-            guard let self, perfil.conta != nil, perfil.conta == PerfilLeitor.atual.conta else { return }
+            guard let self, perfil.conta != nil, perfil.conta == self.sessaoLeitores.contaAutorizada else { return }
             let changed = self.applyCatedraTheme(from: result as? String)
             if self.jurisHost == nil {
                 self.buildJurisHost()
@@ -1736,7 +1750,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
 
     // Ajustes do CátedraLEGIS numa janela própria (o host AppKit não tem cena Settings/⌘,).
     @objc func openLegisSettings(_ sender: Any?) {
-        guard PerfilLeitor.atual.conta != nil else { return }
+        guard sessaoLeitores.contaAutorizada != nil else { pedirLoginDoLeitor(para: 1); return }
         if legisSettingsWindow == nil {
             let root = SettingsView().environmentObject(AppStore.shared).frame(width: 580, height: 560)
             let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 580, height: 560),
@@ -1752,7 +1766,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
 
     // Ajustes do CátedraJURIS numa janela própria (⌘⌥, — o ⌘, é do LEGIS).
     @objc func openJurisSettings(_ sender: Any?) {
-        guard PerfilLeitor.atual.conta != nil else { return }
+        guard jurisDisponivel else { return }
+        guard sessaoLeitores.contaAutorizada != nil else { pedirLoginDoLeitor(para: 2); return }
         // Garante store/updater mesmo se a aba nunca foi aberta nesta sessão.
         let store = jurisStore ?? LibraryStore()
         let updater = jurisUpdater ?? UpdateService()
@@ -1865,9 +1880,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
         case "notifyPermission": handleNotifPermission(message, reply)
         case "notifyShow":       handleNotifShow(message.body); reply(nil, nil)
         case "catedraPerfil":
-            guard message.frameInfo.request.url?.lastPathComponent == "index.html",
+            guard paginaDosLeitoresPronta, message.webView === webView,
+                  SessaoDosLeitores.paginaPrincipal(message.frameInfo.request.url, em: Bundle.main.resourceURL?.appendingPathComponent("web")),
                   let dados = message.body as? [String: String] else { reply(nil, "Perfil inválido"); return }
-            do { try atualizarPerfil(dados); reply(true, nil) }
+            do {
+                try sessaoLeitores.receber(dados)
+                if let aba = sessaoLeitores.consumirAbaPedida(jurisDisponivel: jurisDisponivel) { switchTo(aba) }
+                reply(true, nil)
+            }
             catch { reply(nil, "Não foi possível atualizar os dados locais desta conta.") }
         case "catedraArea":
             // {area, rotulo, juris, legis} — a web avisa o que a área ativa oferece
@@ -1895,13 +1915,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, 
             // o termo ia para a busca do LEGIS e o botão de volta aparecia numa ida à mão.
             if dest == "juris" && !jurisDisponivel { dest = "" }
             if dest == "legis" || dest == "juris" {
+                guard let conta = sessaoLeitores.contaAutorizada else { pedirLoginDoLeitor(para: dest == "juris" ? 2 : 1); reply(nil, nil); return }
                 AcervoEntrada.shared.chegou(termo: termo, origem: origem)
                 if dest == "legis" { switchTo(1) } else { switchTo(2) }
                 atualizarBotaoVoltarAcervo()   // switchTo já rodou: agora o botão sabe da origem
                 // O JURIS é um store do host: dá para aplicar a busca direto.
                 if dest == "juris", !termo.isEmpty {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
-                        guard let store = self?.jurisStore else { return }
+                        guard let self, self.sessaoLeitores.contaAutorizada == conta, let store = self.jurisStore else { return }
                         store.ir(.todos)          // ir() zera a busca: o termo entra DEPOIS
                         store.searchText = termo
                     }

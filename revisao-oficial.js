@@ -22,6 +22,7 @@
  */
 (function (root) {
   'use strict';
+  var armazenamentoLeitor = root.ctArmazenamentoLeitor;
   var CHAVE = 'catedra:novidLidas';
   var espelho = {};   // marcas pedidas por ESTE satélite e ainda não gravadas pelo host
 
@@ -60,7 +61,7 @@
   }
   function lerMarcas() {
     var m = {};
-    try { m = marcasDe(JSON.parse(root.localStorage.getItem(CHAVE) || '[]')); } catch (e) {}
+    try { m = marcasDe(JSON.parse((armazenamentoLeitor || root.localStorage).getItem(CHAVE) || '[]')); } catch (e) {}
     Object.keys(espelho).forEach(function (id) { if (!m[id] || (m[id].up || 0) < espelho[id].up) m[id] = espelho[id]; });
     return m;
   }

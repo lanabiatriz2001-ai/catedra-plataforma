@@ -51,6 +51,7 @@ const SEM_NOME = `(function(raiz){ return Array.from(raiz.querySelectorAll('butt
   const r=b.getBoundingClientRect(); if(!r.width&&!r.height) return false;
   const n=(b.getAttribute('aria-label')||b.textContent||'').trim(); return !n; }).length; })`;
 
+import { definirContaLeitora, abrirComponenteDoLeitor } from './_sessao-leitores.mjs';
 export async function testarRevisaoOficial(browser, base, ok, { motor = 'chromium' } = {}) {
   const tag = `OFICIAL [${motor}]`;
   await testarContrasteDosSelos(browser, base, ok, motor);
@@ -68,6 +69,7 @@ export async function testarRevisaoOficial(browser, base, ok, { motor = 'chromiu
   const abrirApp = async (pg) => {
     await pg.goto(base + '/Catedra.dc.html');
     await pg.waitForFunction(() => !!window.__catedraApp && !!window.CT_REVISAO_OFICIAL, null, { timeout: 30000 });
+    await definirContaLeitora(pg);
     await pg.evaluate(() => window.__catedraGoView('inicio')); await pg.waitForTimeout(900);
   };
 
@@ -179,7 +181,7 @@ export async function testarRevisaoOficial(browser, base, ok, { motor = 'chromiu
     await pg.evaluate(() => window.__catedraApp.oficialPainelAbrir()); await pg.waitForTimeout(400);
     const v = await pg.evaluate(() => (document.getElementById('ct-of-vazio') || {}).textContent || '');
     ok(/não se completou: STJ \(falhou\)/.test(v) && !/^Nenhuma mudança/.test(v), `${tag} 6 vazio com fonte em falha diz que a varredura não se completou (${v.slice(0, 60)})`);
-    await pg.goto(base + '/juris-web.html'); await pg.waitForTimeout(500);
+    await abrirComponenteDoLeitor(pg, base + '/juris-web.html'); await pg.waitForTimeout(500);
     await pg.click('#tabs .tab[data-pane="oficial"]'); await pg.waitForTimeout(200);
     const jv = await pg.evaluate(() => (document.getElementById('oficialVazio') || {}).textContent || '');
     ok(/não se completou: STJ \(falhou\)/.test(jv) && /STF: nenhuma edição nova/.test(jv), `${tag} 6b JURIS vazio separa a fonte que falhou da que respondeu`);
@@ -190,7 +192,7 @@ export async function testarRevisaoOficial(browser, base, ok, { motor = 'chromiu
   {
     const PAR = { geradoEm: FIX.geradoEm, fontes: { ...FIX.fontes, planalto: { ...FIX.fontes.planalto, resultado: 'parcial' } }, itens: [] };
     const ctx = await novoCtx(PAR, 'juridica'); const pg = await ctx.newPage();
-    await pg.goto(base + '/legis-web.html?area=juridica'); await pg.waitForTimeout(500);
+    await abrirComponenteDoLeitor(pg, base + '/legis-web.html?area=juridica'); await pg.waitForTimeout(500);
     await pg.click('#tabsTopo button[data-t="oficial"]'); await pg.waitForTimeout(200);
     const lv = await pg.evaluate(() => (document.getElementById('oficialVazio') || {}).textContent || '');
     ok(/não se completou \(parcial/.test(lv) && !/^Nenhuma mudança/.test(lv), `${tag} 6c LEGIS com Planalto parcial não diz "nenhuma mudança"`);
@@ -200,7 +202,7 @@ export async function testarRevisaoOficial(browser, base, ok, { motor = 'chromiu
   // ── 6d. regras do módulo (sem tela): autoria, revogação futura, recorte, parcial × acervo ──
   {
     const ctx = await novoCtx(VAZIO, 'juridica'); const pg = await ctx.newPage();
-    await pg.goto(base + '/legis-web.html?area=juridica'); await pg.waitForTimeout(300);
+    await abrirComponenteDoLeitor(pg, base + '/legis-web.html?area=juridica'); await pg.waitForTimeout(300);
     const u = await pg.evaluate(() => {
       const R = window.CT_REVISAO_OFICIAL, um = (it) => R.itens({ geradoEm: null, fontes: {}, itens: [Object.assign({ id: 'x', fonte: 'planalto' }, it)] }, {})[0];
       const inc = um({ tipo: 'inclusao', modificadora: 'Lei nº 14.994, de 2024', modificadoras: [{ acao: 'incluído', norma: 'Lei nº 14.994, de 2024' }], vigencia: 'em-vigor' });
@@ -269,17 +271,17 @@ export async function testarRevisaoOficial(browser, base, ok, { motor = 'chromiu
         urlOficial: 'https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm', detectadoEm: FIX.geradoEm },
       FIX.itens[0], FIX.itens[3]] };
     const ctx = await novoCtx(INC, 'juridica'); const pg = await ctx.newPage();
-    await pg.goto(base + '/legis-web.html?area=juridica'); await pg.waitForTimeout(300);
+    await abrirComponenteDoLeitor(pg, base + '/legis-web.html?area=juridica'); await pg.waitForTimeout(300);
     await pg.evaluate(() => localStorage.setItem('catedra:novidLidas', JSON.stringify([
       { id: 'PLN-L14133-art77-ccc', st: 'conferido', up: 1 }, { id: 'INF-STF-1189', st: 'conferido', up: 1 }])));
-    await pg.goto(base + '/legis-web.html?area=juridica&oficial=PLN-L14133-art77-ccc');
+    await abrirComponenteDoLeitor(pg, base + '/legis-web.html?area=juridica&oficial=PLN-L14133-art77-ccc');
     await pg.waitForFunction(() => document.querySelector('#oficialLegis article'), null, { timeout: 10000 }).catch(() => {});
     const L = await pg.evaluate(() => { const a = document.querySelector('#oficialLegis article[data-id="PLN-L14133-art77-ccc"]');
       return a ? { st: a.querySelector('.ct-of-st').textContent.trim(), marcar: !!a.querySelector('[data-of-marcar]'),
         res: a.querySelector('.ct-of-resumo').textContent, outro: !!document.querySelector('#oficialLegis [data-of-marcar="PLN-CF-art5-aaa"]') } : null; });
     ok(!!L && L.st === 'No acervo' && !L.marcar && L.outro, `${tag} 6h LEGIS: item no acervo (mesmo conferido antes) fica "No acervo" e sem botão de marcar`);
     ok(!!L && /^Alterado pela Lei nº 15\.266/.test(L.res), `${tag} 6h2 LEGIS: parágrafo incluído numa alteração sai "Alterado pela…" (${L && L.res})`);
-    await pg.goto(base + '/juris-web.html?oficial=INF-STF-1189');
+    await abrirComponenteDoLeitor(pg, base + '/juris-web.html?oficial=INF-STF-1189');
     await pg.waitForFunction(() => document.querySelector('#oficialJuris article'), null, { timeout: 10000 }).catch(() => {});
     const J = await pg.evaluate(() => { const a = document.querySelector('#oficialJuris article[data-id="INF-STF-1189"]');
       return a ? { st: a.querySelector('.ct-of-st').textContent.trim(), marcar: !!a.querySelector('[data-of-marcar]') } : null; });
@@ -295,11 +297,11 @@ export async function testarRevisaoOficial(browser, base, ok, { motor = 'chromiu
     const v = await pg.evaluate(() => (document.getElementById('ct-of-vazio') || {}).innerText || '');
     ok(/Ainda não há varredura/.test(v) && /nunca publicadas sozinhas/.test(v) && !/tudo atualizado|integralmente atualizad[oa]\b(?!.*não)/i.test(v),
       `${tag} 7 painel vazio diz que não há varredura e não promete atualização integral`);
-    await pg.goto(base + '/legis-web.html?area=juridica'); await pg.waitForTimeout(500);
+    await abrirComponenteDoLeitor(pg, base + '/legis-web.html?area=juridica'); await pg.waitForTimeout(500);
     await pg.click('#tabsTopo button[data-t="oficial"]'); await pg.waitForTimeout(200);
     const lv = await pg.evaluate(() => (document.getElementById('oficialVazio') || {}).innerText || '');
     ok(/não significa que todas as normas estejam atualizadas/.test(lv), `${tag} 7b LEGIS vazio declara o limite do catálogo`);
-    await pg.goto(base + '/juris-web.html'); await pg.waitForTimeout(500);
+    await abrirComponenteDoLeitor(pg, base + '/juris-web.html'); await pg.waitForTimeout(500);
     await pg.click('#tabs .tab[data-pane="oficial"]'); await pg.waitForTimeout(200);
     const jv = await pg.evaluate(() => (document.getElementById('oficialVazio') || {}).innerText || '');
     ok(/não garante/.test(jv) && /súmulas/.test(jv), `${tag} 7c JURIS vazio não garante acervo atualizado e cita o que fica fora`);
@@ -309,7 +311,7 @@ export async function testarRevisaoOficial(browser, base, ok, { motor = 'chromiu
   // ── 8. LEGIS e JURIS com itens, em desktop e no celular/iPad ────────────────────────
   for (const larg of [1280, 820, 390]) {
     const ctx = await novoCtx(FIX, 'juridica', larg); const pg = await ctx.newPage();
-    await pg.goto(base + '/legis-web.html?area=juridica&oficial=PLN-CF-art5-aaa');
+    await abrirComponenteDoLeitor(pg, base + '/legis-web.html?area=juridica&oficial=PLN-CF-art5-aaa');
     await pg.waitForFunction(() => document.querySelector('#oficialLegis article'), null, { timeout: 10000 }).catch(() => {});
     const L = await pg.evaluate((SEM) => {
       const box = document.getElementById('oficialLegis'), a = box.querySelector('article[data-id="PLN-CF-art5-aaa"]');
@@ -339,7 +341,7 @@ export async function testarRevisaoOficial(browser, base, ok, { motor = 'chromiu
     ok(await pg.evaluate(() => /Conferido/.test(document.querySelector('#oficialLegis article[data-id="PLN-CF-art5-aaa"] .ct-of-st').textContent)),
       `${t} 8h "Marcar como conferido" no LEGIS vira "Conferido"`);
 
-    await pg.goto(base + '/juris-web.html?oficial=INF-STF-1190');
+    await abrirComponenteDoLeitor(pg, base + '/juris-web.html?oficial=INF-STF-1190');
     await pg.waitForFunction(() => document.querySelector('#oficialJuris article'), null, { timeout: 10000 }).catch(() => {});
     const J = await pg.evaluate((SEM) => {
       const box = document.getElementById('oficialJuris'), a = box && box.querySelector('article[data-id="INF-STF-1190"]');
@@ -370,7 +372,7 @@ export async function testarRevisaoOficial(browser, base, ok, { motor = 'chromiu
       await ctxT.route('**/novidades.js', (r) => r.fulfill({ status: 200, contentType: 'application/javascript', body: corpo(FIX) }));
       const pt = await ctxT.newPage();
       for (const [u, sel] of [['/legis-web.html?area=juridica&oficial=PLN-CF-art5-aaa', '#oficialLegis'], ['/juris-web.html?oficial=INF-STF-1190', '#oficialJuris']]) {
-        await pt.goto(base + u);
+        await abrirComponenteDoLeitor(pt, base + u);
         await pt.waitForFunction((s) => document.querySelector(s + ' article'), sel, { timeout: 10000 }).catch(() => {});
         const a = await pt.evaluate((s) => { const bs = Array.from(document.querySelectorAll(s + ' .ct-of-btn')).filter(b => b.getBoundingClientRect().width);
           return { n: bs.length, baixos: bs.filter(b => b.getBoundingClientRect().height < 44).length, grosso: matchMedia('(pointer: coarse)').matches }; }, sel);
@@ -412,6 +414,7 @@ async function testarContrasteDosSelos(browser, base, ok, motor) {
     const pg = await ctx.newPage();
     await pg.goto(base + '/Catedra.dc.html');
     await pg.waitForFunction(() => !!window.__catedraApp);
+    await definirContaLeitora(pg);
     for (const view of ['novidades', 'legis', 'juris']) {
       await pg.evaluate(view => window.__catedraApp._irPara(view), view);
       let alvo = pg;

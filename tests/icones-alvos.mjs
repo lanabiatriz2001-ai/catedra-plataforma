@@ -42,6 +42,7 @@
 const EMOJI = /\p{Emoji_Presentation}|\p{Extended_Pictographic}️/u;
 const ALVO = 44;
 
+import { abrirComponenteDoLeitor } from './_sessao-leitores.mjs';
 export async function testarIconesAlvos(pageDaSuite, base, ok, opcoes = {}) {
   const motor = opcoes.motor || 'chromium';
   const R = 'ÍCONES/ALVOS [' + motor + '] ';
@@ -215,7 +216,7 @@ export async function testarIconesAlvos(pageDaSuite, base, ok, opcoes = {}) {
     page.on('pageerror', e => erros.push(String(e && e.message || e)));
     try {
       for (const s of SATELITES) {
-        await page.goto(base + '/' + s.url);
+        await abrirComponenteDoLeitor(page, base + '/' + s.url);
         await page.waitForFunction(s.pronto || (() => document.readyState === 'complete'), null, { timeout: 30000 }).catch(() => {});
         await w(s.espera || 900);
         if (s.acao) { const a = await page.evaluate(s.acao).catch(e => ({ erro: String(e && e.message || e) })); if (a && a.erro) { ok(false, R + '(e) ' + s.nome + ': ' + a.erro); continue; } await w(500); }

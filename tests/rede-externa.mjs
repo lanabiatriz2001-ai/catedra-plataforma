@@ -36,6 +36,7 @@
       para fora é ABORTADO e contado. A suíte inteira roda sem rede. CT_REDE=livre desliga o
       bloqueio (só para depurar; o React continua vindo de vendor/). */
 
+import { definirContaLeitora, verificarEntradaEmArquivoOpaco } from './_sessao-leitores.mjs';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -325,6 +326,7 @@ async function execucaoPorOrigem(browser, ok, { base, origem, arquivo, motor }) 
     ok(abriu, R + 'o app abre com toda origem externa bloqueada (__catedraApp de pé' + (erros.length ? '; ' + erros.slice(0, 2).join(' / ') : '') + ')');
     if (!abriu) return;
 
+    await definirContaLeitora(page);
     // LEGIS e JURIS: o iframe de cada acervo monta e carrega (dataset.ctLoad), e o acervo chega.
     const acervo = async (view, pronto) => {
       await page.evaluate((v) => window.__catedraGoView(v), view);
@@ -335,13 +337,18 @@ async function execucaoPorOrigem(browser, ok, { base, origem, arquivo, motor }) 
       if (!montou) return { montou, n: 0 };
       const el = await page.$('iframe[data-ct-view="' + view + '"][data-ct-frame]');
       const fr = el && await el.contentFrame();
+      if (fr) {
+        const portao = await verificarEntradaEmArquivoOpaco(fr, view);
+        if (portao !== null) return { montou, portao };
+      }
       const n = fr ? await fr.waitForFunction(pronto, null, { timeout: 30000 }).then((h) => h.jsonValue(), () => 0) : 0;
       return { montou, n };
     };
     // eslint-disable-next-line no-undef
     const legis = await acervo('legis', () => (typeof CAT !== 'undefined' && CAT.laws && CAT.laws.length && typeof window.openReader === 'function') ? CAT.laws.length : false);
-    ok(legis.montou && legis.n > 50, R + 'o LEGIS monta com o catálogo de leis sem rede (' + JSON.stringify(legis) + ')');
-    if (legis.montou) {
+    if ('portao' in legis) ok(legis.portao, R + 'em file:// opaco o LEGIS mostra o login sem carregar o catálogo');
+    else ok(legis.montou && legis.n > 50, R + 'o LEGIS monta com o catálogo de leis sem rede (' + JSON.stringify(legis) + ')');
+    if (legis.n > 50) {
       // Abre o leitor do Código Civil: na web o /api/law é da própria origem; no bundle é o
       // API_BASE absoluto (exceção, bloqueado aqui) e o texto cai no espelho local.
       const el = await page.$('iframe[data-ct-view="legis"][data-ct-frame]');
@@ -351,7 +358,8 @@ async function execucaoPorOrigem(browser, ok, { base, origem, arquivo, motor }) 
       await page.waitForTimeout(2500);
     }
     const juris = await acervo('juris', () => (window.__JURIS_IDX__ || []).length || false);
-    ok(juris.montou && juris.n > 1000, R + 'o JURIS monta com o índice de verbetes sem rede (' + JSON.stringify(juris) + ')');
+    if ('portao' in juris) ok(juris.portao, R + 'em file:// opaco o JURIS mostra o login sem carregar os verbetes');
+    else ok(juris.montou && juris.n > 1000, R + 'o JURIS monta com o índice de verbetes sem rede (' + JSON.stringify(juris) + ')');
 
     // Central de novidades: abrir a tela NÃO consulta nada — a busca ao vivo (/api/sentinela,
     // pelo servidor) é só por clique. Conta também pedido da mesma origem, que a rota acima não vê.

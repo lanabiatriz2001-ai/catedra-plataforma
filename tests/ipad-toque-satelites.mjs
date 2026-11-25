@@ -56,6 +56,7 @@
 
    Rótulos "IPAD/satélites toque …". */
 
+import { abrirComponenteDoLeitor } from './_sessao-leitores.mjs';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -98,7 +99,7 @@ export async function testarIpadToqueSatelites(pageDaSuite, base, ok, opcoes = {
     page.on('pageerror', e => erros.push(String(e && e.message || e)));
     await page.goto(base + '/__semente');
     await page.evaluate(() => { try { localStorage.clear(); } catch (_) {} });
-    await page.goto(base + '/' + arquivo);
+    await abrirComponenteDoLeitor(page, base + '/' + arquivo);
     await page.waitForTimeout(2200);
     return { page, erros };
   }

@@ -24,7 +24,7 @@ struct PerfilLeitor {
 
     init(conta: String?, suporte: URL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0],
          aplicativo: String = Bundle.main.bundleIdentifier ?? "Catedra") {
-        self.conta = conta == "local" ? conta : conta.flatMap(UUID.init(uuidString:))?.uuidString.lowercased()
+        self.conta = conta.flatMap(UUID.init(uuidString:))?.uuidString.lowercased()
         let pasta = self.conta ?? "sem-sessao"
         self.suporte = suporte
         raizConta = suporte.appendingPathComponent("Catedra/Leitores/\(pasta)", isDirectory: true)
@@ -170,5 +170,92 @@ struct PerfilLeitor {
         nuvem.removeObject(forKey: "leitor.\(conta).state")
         nuvem.removeObject(forKey: "leitor.\(conta).anterior.state")
         guard chaveRemovida else { throw CocoaError(.fileWriteNoPermission) }
+    }
+}
+
+/// A autorização dura somente até o vencimento comunicado pelo login da página
+/// principal. O dono dos arquivos no disco, sozinho, nunca abre um leitor.
+@MainActor
+final class SessaoDosLeitores {
+    private let aplicar: (PerfilLeitor) -> Void
+    private var vencimento: Date?
+    private var alarme: Timer?
+    // Só a aba pedida pela pessoa sobrevive à recarga do login. Artigos, busca e
+    // contexto do perfil anterior nunca fazem parte do pedido.
+    private(set) var abaPedida: Int?
+
+    func pedirAba(_ aba: Int) {
+        abaPedida = (aba == 1 || aba == 2) ? aba : nil
+    }
+
+    func consumirAbaPedida(jurisDisponivel: Bool) -> Int? {
+        guard contaAutorizada != nil, let aba = abaPedida else { return nil }
+        abaPedida = nil
+        return aba == 2 && !jurisDisponivel ? nil : aba
+    }
+    // Só para concluir uma exclusão já confirmada pelo servidor que volte após vencer
+    // a sessão. Mudar de conta ou de documento encerra também esta associação.
+    private var ultimaContaConfirmada: String?
+
+    init(aplicar: @escaping (PerfilLeitor) -> Void) { self.aplicar = aplicar }
+
+    var contaAutorizada: String? {
+        guard let vencimento, Date() < vencimento else { return nil }
+        return ultimaContaConfirmada
+    }
+
+    static func paginaPrincipal(_ origem: URL?, em pastaWeb: URL?) -> Bool {
+        guard let origem, origem.isFileURL, let pastaWeb else { return false }
+        return origem.standardizedFileURL.resolvingSymlinksInPath().path ==
+               pastaWeb.appendingPathComponent("index.html").standardizedFileURL.resolvingSymlinksInPath().path
+    }
+
+    private func bloquear() {
+        alarme?.invalidate()
+        alarme = nil
+        vencimento = nil
+        aplicar(PerfilLeitor(conta: nil))
+    }
+
+    func encerrarDocumento() {
+        ultimaContaConfirmada = nil
+        bloquear()
+        PerfilLeitor.retomarExclusoes()
+    }
+
+    // Também é chamada na volta do segundo plano: o sistema pode ter suspendido o timer.
+    func conferirValidade(agora: Date = Date()) {
+        if let vencimento, agora >= vencimento { bloquear() }
+    }
+
+    func receber(_ dados: [String: String]) throws {
+        if let exclusao = dados["excluir"] {
+            let alvo = PerfilLeitor(conta: exclusao)
+            guard let conta = alvo.conta else { throw CocoaError(.fileWriteNoPermission) }
+            if ultimaContaConfirmada == conta {
+                alvo.agendarExclusao()
+                ultimaContaConfirmada = nil
+                bloquear()
+            }
+            guard alvo.exclusaoPendente else { throw CocoaError(.fileWriteNoPermission) }
+            try alvo.concluirExclusao()
+            return
+        }
+        guard let conta = dados["conta"] else { throw CocoaError(.fileReadCorruptFile) }
+        let perfil = PerfilLeitor(conta: conta)
+        PerfilLeitor.retomarExclusoes()
+        guard let titular = perfil.conta, let segundos = Int64(dados["expiraEm"] ?? ""),
+              Date().timeIntervalSince1970 < Double(segundos) else { bloquear(); return }
+        guard !perfil.exclusaoPendente else { bloquear(); throw CocoaError(.fileWriteNoPermission) }
+        let limite = Date(timeIntervalSince1970: Double(segundos))
+        alarme?.invalidate()
+        ultimaContaConfirmada = titular
+        vencimento = limite
+        let timer = Timer(fire: limite, interval: 0, repeats: false) { [weak self] _ in
+            MainActor.assumeIsolated { self?.conferirValidade() }
+        }
+        alarme = timer
+        RunLoop.main.add(timer, forMode: .common)
+        aplicar(perfil)
     }
 }

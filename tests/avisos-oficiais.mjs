@@ -13,6 +13,7 @@
    · (d) navegador: o verbete superado abre com a Situação PINTADA no cabeçalho (caixa e contraste
          medidos); o erro da fonte aparece com [sic] no enunciado; o trecho literal da ficha aparece
          em "Informações da fonte". */
+import { abrirComponenteDoLeitor } from './_sessao-leitores.mjs';
 import fs from 'fs';
 import path from 'path';
 import { execFileSync } from 'child_process';
@@ -97,7 +98,7 @@ export async function testarAvisosOficiaisNavegador(page, base, ok, opcoes = {})
     await page.evaluate((i) => window.jurisAbrirPorId(i), id);
     await page.waitForFunction((i) => window.jurisVerbeteAberto() === i && !!document.querySelector('#jrDoc .venun .bd .gr'), id, { timeout: 20000 });
   };
-  await page.goto(base + '/juris-web.html');
+  await abrirComponenteDoLeitor(page, base + '/juris-web.html');
   await page.waitForFunction(() => typeof window.jurisAbrirPorId === 'function' && window.jurisTemId('x') !== null, null, { timeout: 20000 });
 
   await abrir('CTRLCONST-0105');

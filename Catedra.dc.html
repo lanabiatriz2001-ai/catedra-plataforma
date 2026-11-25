@@ -8221,6 +8221,24 @@ class Component extends DCLogic {
     // O host do desktop chama isto ao clicar numa notificação (leva à tela certa).
     // O escape global (notificação, app nativo, console) passa pelo MESMO guarda de área.
     try{ window.__catedraGoView = (v)=>{ try{ this._irPara(v); }catch(_){} }; }catch(_){}
+    // A URL avulsa volta ao mesmo leitor depois que o login e a hidratação terminam.
+    const entradaLeitor=new URL(location.href), alvoLeitor=entradaLeitor.searchParams.get('leitor');
+    if(alvoLeitor==='legis'||alvoLeitor==='juris'){
+      this._pedidoLeitor={view:alvoLeitor, extra:{acervoBusca:(entradaLeitor.searchParams.get('q')||'').slice(0,250)}};
+    }
+    this._retomarLeitor=()=>{
+      const pedido=this._pedidoLeitor;
+      if(!pedido||!window.CatedraAuth||!window.CatedraAuth.contaLeitor) return;
+      this._pedidoLeitor=null;
+      const url=new URL(location.href);
+      if(url.searchParams.has('leitor')){
+        url.searchParams.delete('leitor'); url.searchParams.delete('q');
+        try{ history.replaceState(history.state,'',url.href); }catch(_){}
+      }
+      this._irPara(pedido.view,pedido.extra);
+    };
+    window.addEventListener('catedra:sessaoleitor',this._retomarLeitor);
+    this._retomarLeitor();
     // gancho dos testes de tela (LA6): estado forçado no oral e no simulado sem clicar por dez telas
     try{ window.__catedraApp = this; }catch(_){}
     try{ this._instalarPortaoIA(); }catch(_){}   // P14: nenhuma chamada de IA sem o consentimento específico
@@ -8896,7 +8914,7 @@ class Component extends DCLogic {
       try{ localStorage.setItem('catedra:schemaVersion', String(V)); }catch(_){}
     }catch(_){ }
   }
-  componentWillUnmount(){ clearTimeout(this._argRascunhoT);if(this._argSaida)window.removeEventListener("pagehide",this._argSaida); if(this._redFocoEsc){ try{ document.removeEventListener('keydown', this._redFocoEsc); document.documentElement.removeAttribute('data-red-foco'); }catch(_){} this._redFocoEsc=null; } if(this._redCronoT) clearInterval(this._redCronoT); if(this._redCorrT) clearInterval(this._redCorrT); try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onSelChange){ document.removeEventListener('selectionchange', this._onSelChange); clearTimeout(this._selChangeT); } ['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev, this._acDespertar)); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._areaMsg) window.removeEventListener('message', this._areaMsg); if(this._acervoMsg) window.removeEventListener('message', this._acervoMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._pausaT) clearInterval(this._pausaT); if(this._revT) clearInterval(this._revT);
+  componentWillUnmount(){ window.removeEventListener('catedra:sessaoleitor',this._retomarLeitor); clearTimeout(this._argRascunhoT);if(this._argSaida)window.removeEventListener("pagehide",this._argSaida); if(this._redFocoEsc){ try{ document.removeEventListener('keydown', this._redFocoEsc); document.documentElement.removeAttribute('data-red-foco'); }catch(_){} this._redFocoEsc=null; } if(this._redCronoT) clearInterval(this._redCronoT); if(this._redCorrT) clearInterval(this._redCorrT); try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onSelChange){ document.removeEventListener('selectionchange', this._onSelChange); clearTimeout(this._selChangeT); } ['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev, this._acDespertar)); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._areaMsg) window.removeEventListener('message', this._areaMsg); if(this._acervoMsg) window.removeEventListener('message', this._acervoMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._pausaT) clearInterval(this._pausaT); if(this._revT) clearInterval(this._revT);
     try{ if(this._mqDark && this._onMqDark){ if(this._mqDark.removeEventListener) this._mqDark.removeEventListener('change', this._onMqDark); else if(this._mqDark.removeListener) this._mqDark.removeListener(this._onMqDark); } }catch(_){}
     if(this._pipMsgT) clearTimeout(this._pipMsgT); if(this._bkpAutoT) clearInterval(this._bkpAutoT); if(this._salaT) clearTimeout(this._salaT); this._pipStop(); this._closeDocPiP();  }
   componentDidUpdate(){
@@ -10939,6 +10957,17 @@ class Component extends DCLogic {
     if(!this._podeAbrir(v)){
       // não redireciona em silêncio: a tela diz por que não abre e oferece a saída
       this.setState({view:'indisponivel', viewBloqueada:v, menuOpen:false});
+      return 'indisponivel';
+    }
+    const auth=window.CatedraAuth;
+    if((v==='legis'||v==='juris')&&auth&&!auth.contaLeitor){
+      // A hidratação pode recarregar o app. Só a aba solicitada acompanha o login.
+      this._pedidoLeitor={view:v,extra:{}};
+      const entrada=new URL(location.href);
+      entrada.searchParams.set('leitor',v);
+      entrada.searchParams.delete('q');
+      try{ history.replaceState(history.state,'',entrada.href); }catch(_){}
+      if(auth.solicitarLoginLeitor) auth.solicitarLoginLeitor();
       return 'indisponivel';
     }
     const x={...(extra||{})};

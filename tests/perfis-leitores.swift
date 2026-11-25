@@ -2,7 +2,59 @@ import Foundation
 
 @main
 struct TestesPerfisLeitores {
+    @MainActor static func testarLoginDosLeitores() throws {
+        var perfilAberto: String?
+        let sessao = SessaoDosLeitores { perfilAberto = $0.conta }
+        let a = UUID().uuidString.lowercased(), b = UUID().uuidString.lowercased()
+        let agora = Int(Date().timeIntervalSince1970), vence = agora + 300
+        precondition(sessao.contaAutorizada == nil && perfilAberto == nil)
+        for aviso in [["conta": a], ["conta": "local", "expiraEm": String(vence)],
+                      ["conta": a, "expiraEm": "indefinido"], ["conta": a, "expiraEm": String(agora)]] {
+            try sessao.receber(aviso)
+            precondition(sessao.contaAutorizada == nil && perfilAberto == nil)
+        }
+        sessao.pedirAba(2)
+        sessao.encerrarDocumento() // a hidratação recarrega o documento antes de liberar a conta
+        precondition(sessao.consumirAbaPedida(jurisDisponivel: true) == nil)
+        try sessao.receber(["conta": a, "expiraEm": String(vence)])
+        precondition(sessao.consumirAbaPedida(jurisDisponivel: true) == 2)
+        precondition(sessao.consumirAbaPedida(jurisDisponivel: true) == nil)
+        sessao.pedirAba(2)
+        precondition(sessao.consumirAbaPedida(jurisDisponivel: false) == nil)
+        sessao.pedirAba(1)
+        sessao.pedirAba(0) // voltar ao Cátedra cancela a abertura pendente
+        precondition(sessao.consumirAbaPedida(jurisDisponivel: true) == nil)
+
+        precondition(sessao.contaAutorizada == a && perfilAberto == a)
+        try sessao.receber(["conta": a, "expiraEm": String(vence + 300)])
+        sessao.conferirValidade(agora: Date(timeIntervalSince1970: Double(vence)))
+        precondition(sessao.contaAutorizada == a && perfilAberto == a)
+        sessao.conferirValidade(agora: Date(timeIntervalSince1970: Double(vence + 300)))
+        precondition(sessao.contaAutorizada == nil && perfilAberto == nil)
+        try sessao.receber(["conta": b, "expiraEm": String(vence)])
+        precondition(sessao.contaAutorizada == b && perfilAberto == b)
+        try sessao.receber(["conta": ""])
+        precondition(sessao.contaAutorizada == nil && perfilAberto == nil)
+        try sessao.receber(["conta": b, "expiraEm": String(vence)])
+        sessao.encerrarDocumento()
+        precondition(sessao.contaAutorizada == nil && perfilAberto == nil)
+
+        let fim = Date(timeIntervalSince1970: Double(Int(Date().timeIntervalSince1970) + 2))
+        try sessao.receber(["conta": a, "expiraEm": String(Int(fim.timeIntervalSince1970))])
+        precondition(sessao.contaAutorizada == a && perfilAberto == a)
+        RunLoop.main.run(until: fim.addingTimeInterval(0.25))
+        precondition(sessao.contaAutorizada == nil && perfilAberto == nil)
+        try sessao.receber(["conta": b, "expiraEm": String(vence)])
+        precondition(sessao.consumirAbaPedida(jurisDisponivel: true) == nil) // expiração não pede para reabrir
+        let web = FileManager.default.temporaryDirectory.appendingPathComponent("web")
+        precondition(SessaoDosLeitores.paginaPrincipal(web.appendingPathComponent("index.html"), em: web))
+        precondition(!SessaoDosLeitores.paginaPrincipal(web.appendingPathComponent("outra/index.html"), em: web))
+        precondition(!SessaoDosLeitores.paginaPrincipal(URL(string: "https://example.invalid/index.html"), em: web))
+        print("LOGIN-LEITORES · Abrir, renovar, sair, recarregar e vencer a sessão dos leitores respeitam a conta e a página principal.")
+    }
+
     @MainActor static func main() async throws {
+        try testarLoginDosLeitores()
         let fm = FileManager.default
         let pasta = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         let aplicativo = "teste.catedra.perfis." + UUID().uuidString

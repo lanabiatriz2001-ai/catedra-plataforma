@@ -5,6 +5,7 @@
    window exata de um iframe que ele próprio montou. Em file://, onde a origem é opaca, essa
    identidade da janela é a autorização inteira. */
 
+import { definirContaLeitora } from './_sessao-leitores.mjs';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -49,6 +50,7 @@ export async function testarPostMessageSeguranca(page, base, ok, opcoes = {}) {
   });
   await page.goto(host);
   await page.waitForFunction(() => !!window.__catedraApp && typeof window.__catedraGoView === 'function');
+  await definirContaLeitora(page);
 
   await page.evaluate((src) => new Promise((resolve, reject) => {
     const velho = document.getElementById('ct-frame-hostil');

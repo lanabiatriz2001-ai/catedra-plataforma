@@ -36,6 +36,7 @@
    Capturas (opcional): opcoes.capturas = { dir, prefixo } grava o cartão do JURIS claro e
    escuro, a Central de Contas e o painel do mapa. Só em http. */
 
+import { abrirComponenteDoLeitor } from './_sessao-leitores.mjs';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -88,7 +89,7 @@ export async function testarFaixaMapaAlvos(pageDaSuite, base, ok, opcoes = {}) {
     try {
       await page.goto(base + '/__semente');
       await page.evaluate(() => { try { localStorage.clear(); } catch (_) {} });
-      await page.goto(base + '/juris-web.html');
+      await abrirComponenteDoLeitor(page, base + '/juris-web.html');
       const pronto = await page.waitForFunction(() => document.querySelectorAll('#list .vcard').length >= 3, null, { timeout: 25000 }).then(() => true, () => false);
       ok(pronto, R + '(a) o JURIS desenhou os cartões do acervo');
       if (pronto) {

@@ -34,6 +34,7 @@ const FILEIRAS = [
   { arquivo: 'juris-web.html', sel: '#trib', escondia: 733 },
 ];
 
+import { abrirComponenteDoLeitor } from './_sessao-leitores.mjs';
 export async function testarIphoneSatelites390(pageDaSuite, base, ok, opcoes = {}) {
   const motor = opcoes.motor || 'chromium';
   const origem = opcoes.origem || (String(base).startsWith('file:') ? 'file' : 'http');
@@ -51,7 +52,7 @@ export async function testarIphoneSatelites390(pageDaSuite, base, ok, opcoes = {
     page.on('pageerror', e => erros.push(String(e && e.message || e)));
     await page.goto(base + '/__semente');
     await page.evaluate(() => { try { localStorage.clear(); } catch (_) {} });
-    await page.goto(base + '/' + arquivo);
+    await abrirComponenteDoLeitor(page, base + '/' + arquivo);
     await page.waitForTimeout(2200);
     return { page, erros };
   }

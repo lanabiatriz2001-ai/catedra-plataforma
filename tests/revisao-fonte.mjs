@@ -21,6 +21,7 @@
      mensagem, a view e a chave no armazenamento.
    O que mede altura (44 px) e identidade de fila segue igual: isso não é tempo, é contrato. */
 
+import { definirContaLeitora } from './_sessao-leitores.mjs';
 import path from 'path';
 import { pathToFileURL } from 'url';
 
@@ -49,6 +50,7 @@ async function testarContrasteDaSessao(page, base, ok, R) {
     ]));
   });
   await page.goto(base + '/Catedra.dc.html');
+  await definirContaLeitora(page);
   await page.waitForFunction(() => !!window.__catedraApp);
   await page.evaluate(() => window.__catedraApp.startRevSession());
   const dialogo = page.getByRole('dialog', { name: 'Sessão de revisão', exact: true });
@@ -107,6 +109,7 @@ async function roteiro(page, base, ok, R) {
     ]);
   });
   await page.goto(base + '/Catedra.dc.html');
+  await definirContaLeitora(page);
   await page.waitForFunction(() => !!window.__catedraApp);
   await page.waitForTimeout(1200);
 

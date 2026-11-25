@@ -37,7 +37,10 @@ import { testarAuthFechamento } from './auth-fechamento.mjs';
 import { testarWidgetResumo } from './widget-resumo.mjs';
 import { testarCarregamentoInicial, testarAberturaEmbutida, testarAberturaPendente } from './carregamento-inicial.mjs';
 import { testarTemplateFileUrl } from './template-file-url.mjs';
+import { testarLoginLeitoresWeb } from './login-leitores-web.mjs';
+import { testarLoginLeitoresPublicados } from './login-leitores-publicados.mjs';
 import { testarSegurancaPerfilRelease } from './seguranca-perfil-release.mjs';
+import { testarLoginLeitoresAuth } from './login-leitores-auth.mjs';
 import { testarAuthModoLocal } from './auth-modo-local.mjs';
 import { testarSyncMemoriaVelha } from './sync-memoria-velha.mjs';
 import { testarBackupDriveErros } from './backup-drive-erros.mjs';
@@ -149,7 +152,11 @@ for (const [base, origem, arquivo] of ORIGENS) {
   // Login e sincronização no iPad (portão, teclado, sessão expirada, boot sem rede): a
   // fixture tests/auth-ipad-fixture.html carrega o auth.js com um Supabase de mentira —
   // existe na raiz do repositório, não no bundle, por isso a origem [bundle] fica de fora.
-  if (origem === 'http') await testarSegurancaPerfilRelease(page, base, ok);
+  if (origem === 'http') {
+    await testarLoginLeitoresWeb(browser, base, ok);
+    await testarSegurancaPerfilRelease(page, base, ok);
+  }
+  if (origem === 'http') await testarLoginLeitoresAuth(browser, base, ok);
   if (origem !== 'bundle') {
     await testarAuthAbertura(page, base, ok);
     try { await testarAuthIpad(page, base, ok, { motor, origem }); }
@@ -316,8 +323,10 @@ catch (e) { ok(false, 'REDE DA SUÍTE [' + motor + '] exceção: ' + String(e &&
 {
   const exec = [];
   const PUB = path.join(RAIZ, 'public');
-  if (fs.existsSync(path.join(PUB, 'index.html')) && !listarEsvaziados([PUB]).length) exec.push([URL0, 'publicado', 'public/index.html']);
-  else console.log('[' + motor + '] sem public/index.html utilizável — o app publicado fica de fora da trava de rede (gere com: node scripts/build.mjs)');
+  if (fs.existsSync(path.join(PUB, 'index.html')) && !listarEsvaziados([PUB]).length) {
+    await testarLoginLeitoresPublicados(browser, URL0, ok);
+    exec.push([URL0, 'publicado', 'public/index.html']);
+  } else console.log('[' + motor + '] sem public/index.html utilizável — login e rede do site publicado aguardam o build (node scripts/build.mjs)');
   const b = ORIGENS.find(([, o]) => o === 'bundle');
   if (b) exec.push(b);
   await testarRedeExternaExecucao(browser, ok, { motor, origens: exec });
