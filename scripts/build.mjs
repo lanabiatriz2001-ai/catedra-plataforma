@@ -23,7 +23,7 @@ import { verificarPII } from './verificar-pii.mjs';
 import './verificar-cores-ramo.mjs';   // trava: paleta de ramos igual nas 3 fontes
 import './verificar-cores-leitura.mjs';   // trava: grade de leitura ativa legível (≥ 4,5:1 texto, ≥ 3:1 identidade)
 import './verificar-cores-texto.mjs';   // trava: cor de ramo como texto ≥ 4,5:1 (P16)
-import './build-juridico.mjs';   // Termos e Política: docs/juridico/*.md → termos.html, privacidade.html, juridico.js
+import { preencherPagina, lerControlador } from './build-juridico.mjs';   // Termos e Política: docs/juridico/*.md → termos.html, privacidade.html, juridico.js
 import { prepararAbertura } from './build-abertura.mjs';   // primeira pintura usa as paletas reais do host
 import { compactarLogica } from './compactar-logica.mjs';   // só a lógica inerte perde whitespace na saída
 import { lerVendor, PDFJS } from './vendor-libs.mjs';   // React, ReactDOM, supabase-js e PDF.js congelados em vendor/ (sha256)
@@ -331,6 +331,10 @@ for (const f of COPIAR) {
     // Comentários ficam no fonte; o CSS publicado mantém as regras sem ocupar o precache.
     const css = readFileSync(join(ROOT, f), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
     writeFileSync(join(pub, f), css);
+  } else if (f === 'banco-espelhos-venda.html') {
+    // canal do encarregado e fornecedor (Decreto 7.962/2013, art. 2º) saem de docs/juridico/controlador.json;
+    // campo vazio mantém o marcador entre colchetes, como nos Termos e na Política
+    writeFileSync(join(pub, f), preencherPagina(read(f), lerControlador()).html);
   } else copyFileSync(join(ROOT, f), join(pub, f));
 }
 /* Arquivos APOSENTADOS: saíram do repositório, mas um public/ de build antigo ainda os

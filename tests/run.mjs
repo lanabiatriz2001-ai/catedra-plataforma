@@ -90,7 +90,7 @@ import { testarXcodeCloud } from './xcode-cloud.mjs';
 import { testarSentinela } from './sentinela.mjs';
 import { testarSupportCorrecoesLocais } from './support-correcoes-locais.mjs';
 import { testarDesignNativo } from './design-nativo.mjs';
-import { testarExclusaoContaCobertura } from './exclusao-conta-cobertura.mjs';
+import { testarExclusaoContaCobertura, lerArquivos, definicaoMaisNova } from './exclusao-conta-cobertura.mjs';
 import { testarWidgetDodia } from './widget-dodia.mjs';
 import { testarWidgetSwift } from './widget-swift.mjs';
 import { testarSegurancaBackup } from './seguranca-backup.mjs';
@@ -3550,6 +3550,8 @@ await comCadernoEnam(async (page) => {
   r.ligacaoEntreAsDuas = /href="\.\/privacidade\.html"/.test(termos) && /href="\.\/termos\.html"/.test(priv) && /Voltar ao app/.test(termos) && /ctFecharDoc/.test(priv);
   r.textoIntacto = termos.includes('Estes Termos de uso regulam o acesso e o uso da plataforma de estudos <strong>Cátedra</strong>') && priv.includes('<th>Finalidade</th>') && (termos.match(/<h2 /g) || []).length === 13 && (priv.match(/<h2 /g) || []).length === 13;
   r.tokensSemHexFixoNoTexto = /var\(--ink,/.test(termos) && /var\(--bg,/.test(termos) && /min-height: 44px/.test(termos);
+  // citação não quebra no fim da linha: entre "§"/"art."/"arts." e o número vai espaço inseparável (U+00A0)
+  r.citacaoNaoQuebra = /art\. 8º, § 4º/.test(priv) && ![termos, priv].some(x => /(§|\barts?\.) \d/.test(x)) && BJ.inline('art. 5º, § 1º e arts. 6º') === 'art. 5º, § 1º e arts. 6º';
   await import('../juridico.js');
   const J = globalThis.CT_JURIDICO;
   r.versaoVigente = J.versao === '1.0/1.3' && J.termos.arquivo === 'termos.html' && J.privacidade.data === '2026-11-25';
@@ -3568,7 +3570,9 @@ await comCadernoEnam(async (page) => {
     const s2 = sec('2. Quais dados tratamos', '3. Finalidades'), s3 = sec('3. Finalidades', '4. Dados sensíveis'), s54 = sec('5.4. Administração', '6. Com quem');
     const s92 = sec('9.2. Exclusão pela própria pessoa', '9.3. '), s93 = sec('9.3. Exclusão pela administração', '9.4. '), s94 = sec('9.4. O que permanece', '9.5. '), s95 = sec('9.5. Lista de espera', '10. Segurança');
     const host = fs.readFileSync(path.join(RAIZ, 'Catedra.dc.html'), 'utf8'), sobre = fs.readFileSync(path.join(RAIZ, 'sobre.html'), 'utf8');
-    const adm = fs.readFileSync(path.join(RAIZ, 'supabase-admin.sql'), 'utf8'), excl = fs.readFileSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-excluir-minha-conta.sql'), 'utf8');
+    // a excluir_minha_conta EM VIGOR: a da migração mais nova que a define (hoje 2026-10-01-widget.sql), sem comentários —
+    // ler a versão 1 (2026-09-08) deixava passar uma exclusão nova que apagasse a lista de espera
+    const adm = fs.readFileSync(path.join(RAIZ, 'supabase-admin.sql'), 'utf8'), excl = definicaoMaisNova(lerArquivos(RAIZ)).corpo;
     const iAdm = adm.indexOf('function public.admin_apagar_usuario('), admApagar = iAdm < 0 ? '' : adm.slice(iAdm, adm.indexOf('end $$;', iAdm));
     // o app manda a mensagem e o contexto técnico; o servidor junta o e-mail da conta
     const appMandaFeedback = /sb\.rpc\('enviar_feedback', \{p_mensagem:String\(msg\), p_contexto:contexto\}\)/.test(host)
@@ -3581,7 +3585,7 @@ await comCadernoEnam(async (page) => {
     const sobreGrava = /fetch\(CFG\.url \+ '\/rest\/v1\/rpc\/entrar_lista_espera'/.test(sobre) && /body: JSON\.stringify\(\{ p_email: email, p_area: [^}]* \}\)/.test(sobre) && /Guardamos só o e-mail, a área e a data/.test(sobre);
     r.politicaListaDeEspera = sobreGrava && /Lista de espera \(página pública, sem conta\)/.test(s2) && /Esse cadastro não tem vínculo com a conta/.test(s2)
       && /lista de espera da página pública/.test(s3) && /Consentimento \(inciso I\), dado ao enviar o formulário/.test(s3) && /não é apagada com a exclusão da conta/.test(s3)
-      && !/lista_espera/.test(excl) && !/lista_espera/.test(admApagar) && /não são apagados quando a conta é excluída, nem por você nem pela administração/.test(s95) && /canal do encarregado/.test(s95);
+      && excl.length > 0 && !/lista_espera/.test(excl) && !/lista_espera/.test(admApagar) && /a exclusão da conta, feita por você \(seção 9\.2\) ou pela administração \(seção 9\.3\), não apaga nenhum dos dois/.test(s95) && /canal do encarregado/.test(s95);
     // a página de venda do Banco de Espelhos grava o pedido de aviso (área "banco-espelhos") e diz para que serve; a
     // Política traz o dado (§2), a finalidade única, a base e o prazo (§3), a exceção à frase "não usamos para
     // publicidade", quem lê (§5.4) e quando o cadastro é apagado (§9.5). Mudou a página, o caso cai.
@@ -3592,6 +3596,14 @@ await comCadernoEnam(async (page) => {
       && /Avisar por e-mail, uma única vez, quando abrir a venda do Banco de Espelhos/.test(s3) && /Consentimento \(inciso I; art\. 8º, § 4º\)/.test(s3)
       && /Até o aviso ser enviado ou a venda ser cancelada/.test(s3) && /A única mensagem comercial é o aviso de abertura da venda do Banco de Espelhos/.test(txt)
       && /os dados da conta e da lista de espera do beta não são usados para ele/.test(txt) && /O pedido de aviso de venda é apagado depois que o aviso é enviado/.test(s95);
+    // a revisão de 25/11/2026: a negativa de publicidade já anuncia a exceção (não se contradiz), o aviso vai aos endereços
+    // informados (o formulário não confirma quem pediu), o pedido é separado da lista do beta, a exclusão da conta diz
+    // que não o alcança, a trilha registra as AÇÕES (ler não deixa rastro) e a nota do topo diz o que mudou
+    r.politicaRevisadaEm2511 = /Não vendemos seus dados e não os usamos para perfilamento comercial nem para treinamento de modelos de IA\. Para publicidade, há uma única exceção, e ela depende de pedido\./.test(txt)
+      && !/Não usamos seus dados para publicidade/.test(txt) && /só aos endereços informados para isso no formulário da página do Banco de Espelhos/.test(txt)
+      && /é separado da lista de espera do beta: pedir o aviso não inscreve você no beta/.test(s2) && /A exclusão da conta não alcança a lista de espera do beta nem o pedido de aviso de venda/.test(s92)
+      && /essas ações ficam na trilha de auditoria/.test(s54) && !/cada ação fica na trilha/.test(txt) && /com as ações administrativas registradas em trilha de auditoria/.test(txt) && !/restrito e auditado/.test(txt)
+      && txt.indexOf('O que mudou nesta versão') > 0 && txt.indexOf('O que mudou nesta versão') < txt.indexOf('1. Controlador e encarregado');
     // exclusão pela pessoa: a RPC apaga relatos e contagem de IA; a Política diz isso na 9.2
     r.politicaExclusaoPelaPessoaApagaRelatos = /delete from public\.feedback where user_id = uid/.test(excl) && /delete from public\.ai_uso where user_id = uid/.test(excl)
       && /inclusive os relatos que você enviou pelo app, a contagem das suas chamadas de IA/.test(s92);
@@ -3670,7 +3682,7 @@ await comCadernoEnam(async (page) => {
     window.__catedraGoView('ajustes'); await w(600);
     const abaDados = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => b.dataset.s === 'dados'); if (abaDados) { abaDados.click(); await w(600); }
     const card = document.querySelector('main [data-card="juridico"]');
-    r.cardEmAjustes = !!card && /Termos de uso/.test(card.textContent) && /Política de privacidade/.test(card.textContent) && /versão 1\.0\/1\.3 · 02\/09\/2026/.test(card.textContent);
+    r.cardEmAjustes = !!card && /Termos de uso/.test(card.textContent) && /Política de privacidade/.test(card.textContent) && /versão 1\.0\/1\.3 · 25\/11\/2026/.test(card.textContent);   // a data é a do documento mais novo (a Política 1.3), não a dos Termos
     r.aceiteAindaNao = /ainda não foi aceita nesta conta/.test(card.querySelector('[data-aceite-txt]').textContent);
     app.setState({ aceite: { versao: '1.0/1.3', ts: Date.now() } }); await w(300);
     r.aceiteMostrado = /Você aceitou a versão 1\.0\/1\.3 em/.test(document.querySelector('main [data-aceite-txt]').textContent);
@@ -3691,13 +3703,17 @@ await comCadernoEnam(async (page) => {
     r.voltarAoAppFecha = !document.querySelector('[data-doc-aberto]');
     // exclusão de conta: exporta antes, confirma, chama a RPC do auth.js
     let exportou = 0, excluiu = 0; const expOrig = app.exportJSON; app.exportJSON = () => { exportou++; };
-    const confOrig = window.confirm; window.confirm = () => false;
+    let msgExc = '';
+    const confOrig = window.confirm; window.confirm = (m) => { msgExc = String(m || ''); return false; };
     window.CatedraAuth = { excluirConta: async () => { excluiu++; }, user: { email: 'teste@exemplo.invalid' }, client: null };
     app.setState({}); await w(300);
     const btExc = () => [...document.querySelectorAll('main [data-card="juridico"] button')].find(b => /Excluir minha conta/.test(b.textContent));
     r.mostraAConta = /teste@exemplo\.invalid/.test(document.querySelector('main [data-card="juridico"]').textContent);
     btExc().click(); await w(200);
     r.semConfirmarNaoExclui = exportou === 1 && excluiu === 0;
+    // o que a exclusão NÃO apaga (Política 9.5) está no card e na confirmação: nada de "apaga TUDO"
+    r.exclusaoDizOQueFica = /Não apaga os pedidos feitos nas páginas públicas/.test(msgExc) && /Política de privacidade, 9\.5/.test(msgExc) && !/apaga TUDO/.test(msgExc)
+      && /Não apaga os pedidos feitos nas páginas públicas/.test(document.querySelector('main [data-card="juridico"]').textContent);
     window.confirm = () => true; btExc().click(); await w(300);
     r.confirmadoExportaEExclui = exportou === 2 && excluiu === 1;
     delete window.CatedraAuth; app.setState({ contaExcluindo: false }); await w(200);

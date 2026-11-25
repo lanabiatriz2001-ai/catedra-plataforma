@@ -435,16 +435,62 @@ para fevereiro/2027); ciclo 2027.1 com edital previsto para março e prova para 
 - [ ] **Marca**: busca de colidência de "Cátedra" no INPI (classes 41 e 42; Lei
       9.279/1996, arts. 122 e 124, XIX) e um nome reserva. Antes de divulgar a página do Banco
       de Espelhos, que é o primeiro preço sob o nome.
-- [ ] **Banco de Espelhos — antes de divulgar o link** (`banco-espelhos-venda.html`, rota
-      `/banco-de-espelhos`; achados da revisão de 25/11/2026):
-      - **Política de privacidade**: a página colhe e-mail para avisar a abertura da venda; a
-        Política 1.2 só prevê a lista do beta e diz "Não usamos seus dados para publicidade".
-        Aprovar o texto da 1.3 (gera novo aceite de todas as contas) ou tirar o formulário.
-      - **Fornecedor**: nome, CPF/CNPJ, endereço e e-mail na página de oferta (Decreto
-        7.962/2013, art. 2º, I e II) — vêm de `docs/juridico/controlador.json`, que também dá o
-        canal de "pedir a remoção" que a página promete.
+- [ ] **Banco de Espelhos — antes do merge do PR #259** (o deploy publica `/banco-de-espelhos` e a
+      Política 1.3, que pede novo aceite a todas as contas; revisão adversarial de 25/11/2026):
+      - **Aprovar o texto da 1.3**: a nota "O que mudou nesta versão" abre o documento; a revisão
+        por advogado(a) continua pendente.
+      - **PR do portão primeiro**: o PR que conserta o portão de aceite (recusar não apaga estudo
+        pendente; baixar os dados e excluir a conta sem aceitar, como promete a cláusula 12.2 dos
+        Termos; aceite de versão mais nova vale; a aba da web já aberta também pede) entra antes do
+        #259, porque a 1.3 manda todas as contas ao portão.
       - **Migração da lista**: aplicar `supabase/migrations/2026-11-25-lista-espera-interesse-venda.sql`
-        no catedraplataforma. Sem ela, quem já está na lista do beta vê "anotamos" e nada é gravado.
+        no catedraplataforma ANTES do merge. Sem ela, quem já está na lista do beta vê "anotamos" e
+        nada é gravado, e quem pediu o aviso não entra mais na lista do beta. Conferir só com
+        leitura: em `pg_indexes`, existem `lista_espera_beta_email_uidx` e
+        `lista_espera_venda_email_uidx`, e não existe `lista_espera_email_uidx`; a função viva grava
+        `origem` 'banco-de-espelhos'; `select count(*) from public.lista_espera where area =
+        'banco-espelhos'` dá 0. Depois, trocar "NÃO APLICADA" no cabeçalho da migração pela data.
+      - **Uma rodada de aceite só**: preencher `docs/juridico/controlador.json` com quem vai vender e
+        mandar o aviso ANTES do merge (preencher depois muda o texto já aceito sem mudar a versão).
+        No mesmo commit, pôr na "Data" da Política o dia do merge e, se a venda for abrir, os Termos
+        1.1: a 2.2 diz que a Cátedra é gratuita, a 12.2 pede 15 dias de aviso e novo aceite para
+        plano pago e a 9.1 promete 7 dias de arrependimento com devolução integral (CDC, art. 49),
+        que valem para o mês de R$ 197. Controlador pessoa natural: o CPF fica público na página e
+        `scripts/verificar-pii.mjs` para os builds — resolver antes.
+      - **Por onde o aviso sai**: escolher a caixa de e-mail (envio à mão, em cópia oculta) ou um
+        serviço de envio e escrever o nome por extenso, sem colchetes, entre os operadores da §6 (e
+        na §7, se guardar dados fora do Brasil; LGPD, art. 33). Escolher depois do merge vira uma
+        Política 1.4, com 15 dias de aviso e novo aceite.
+      - **Os 15 dias da §13 e da 12.2**: (a) vigência imediata, porque a 1.3 não amplia o uso dos
+        dados de quem já está na Cátedra (é o que a nota do topo diz); ou (b) anunciar agora e ligar
+        o portão 15 dias depois, o que exige mudar `scripts/build-juridico.mjs` e `auth.js`.
+      - **Prazo máximo do pedido de aviso**: hoje ele dura até o aviso ou o cancelamento da venda,
+        sem data-limite. Propostas da revisão: apagar até 30 dias depois do envio e nunca guardar
+        mais de 12 meses contados do pedido (ou uma data fixa, como 31/05/2027). O número muda a §3,
+        a §9.5 e a linha de consentimento da página.
+      - **Ordem da instalação**: mesclar; a sessão instaladora builda e instala Mac e iPad no mesmo
+        dia; só depois aceitar a 1.3. Com o build antigo, depois de aceitar no site, o portão volta a
+        cada abertura: aceitar de novo, nunca tocar em "Não aceito" (no build antigo, ele apaga o que
+        ainda não subiu).
+- [ ] **Banco de Espelhos — antes de divulgar o link** (`banco-espelhos-venda.html`, rota
+      `/banco-de-espelhos`):
+      - **Fornecedor e canal**: a página já traz os marcadores no rodapé (fornecedor, Decreto
+        7.962/2013, art. 2º, I e II) e na linha de consentimento (canal para sair); os dois builds os
+        preenchem com `docs/juridico/controlador.json`.
+      - **Apagar com trilha**: `supabase/migrations/2026-11-25-lista-espera-ler-e-apagar-venda.sql`
+        (NÃO APLICADA) traz ler, apagar depois do envio (pelos ids lidos), apagar sem envio (venda
+        cancelada ou prazo-limite) e remover a pedido de uma lista só — só pela administração e com
+        registro em `admin_log`. Aplicar depois da migração da lista. Sem ela, cumprir "apagamos o
+        cadastro depois do aviso" é um DELETE à mão, sem trilha.
+      - **Envio do aviso**: uma mensagem por pessoa (nunca a lista em Para ou Cc), com rodapé que diz
+        por que a pessoa recebe, que é o único envio e que o endereço foi apagado, e que quem não
+        pediu pode ignorar. O formulário não confirma o endereço: se a lista crescer, decidir sobre a
+        confirmação dupla.
+      - **Rótulo do botão de envio**: "Quero meu mês no banco" descreve uma compra, e o botão só
+        registra o pedido de aviso. Trocar por "Quero o aviso da abertura" muda a medição do teste.
+      - **Pedido de quem tem conta**: a exclusão da conta não apaga o pedido de aviso (Política 9.5;
+        o app agora diz isso em Ajustes e na confirmação). Para apagar junto os pedidos com o mesmo
+        e-mail, a §9.5 muda.
       - **O que os R$ 197 compram**: o acervo inteiro já sai público em `/espelhos.js` e o
         Simulado de 2ª fase o entrega a qualquer conta; decidir o que fica grátis no beta e como
         o acesso de um mês termina.

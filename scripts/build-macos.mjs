@@ -28,7 +28,7 @@ import './verificar-cores-ramo.mjs';   // trava: paleta de ramos igual na web e 
 import './verificar-cores-leitura.mjs';   // trava: grade de leitura ativa legível (≥ 4,5:1 texto, ≥ 3:1 identidade)
 import './verificar-cores-texto.mjs';   // trava: cor de ramo como texto ≥ 4,5:1 (P16)
 import { verificar as verificarDesignNativo } from './verificar-design-nativo.mjs';   // trava: dívida visual do nativo só desce
-import './build-juridico.mjs';   // Termos e Política: docs/juridico/*.md → termos.html, privacidade.html, juridico.js
+import { preencherPagina, lerControlador } from './build-juridico.mjs';   // Termos e Política: docs/juridico/*.md → termos.html, privacidade.html, juridico.js
 import { prepararAbertura } from './build-abertura.mjs';
 import { lerVendor, PDFJS } from './vendor-libs.mjs';   // React, ReactDOM, supabase-js e PDF.js congelados em vendor/ (sha256)
 { const r = verificarDesignNativo(); if (r.falhas.length) throw new Error('\n✗ BUILD ABORTADO — contagem da dívida visual do LEGIS/JURIS nativos não bate com a base:\n  ' + r.falhas.join('\n  ')); }
@@ -134,6 +134,9 @@ for (const f of ['support.js', 'auth.js', 'icon.svg', 'icon-180.png', 'legis-web
     const html = read(f).replace('href="./Catedra.dc.html?leitor=', 'href="./index.html?leitor=');
     if (!html.includes('<head>')) throw new Error(f + ': sem <head> — o carimbo do API_BASE não teria onde entrar');
     writeFileSync(join(OUT, f), html.replace('<head>', '<head>' + CARIMBO));
+  } else if (f === 'banco-espelhos-venda.html') {
+    // canal do encarregado e fornecedor saem de docs/juridico/controlador.json (campo vazio mantém o marcador)
+    writeFileSync(join(OUT, f), preencherPagina(read(f), lerControlador()).html);
   } else copyFileSync(join(ROOT, f), join(OUT, f));
 }
 

@@ -12,10 +12,13 @@
      menos 20% de desconto). Mesmo padrão do sobre.html: direção "vitrine", fontes locais, sem CDN.
      Todo número sobre o acervo vem de espelhos.js e o teste (tests/venda-espelhos.mjs) confere um contra o outro,
      inclusive os 84 quesitos sem valor, as 6 provas sem valor nenhum, a prova sem caderno e as bancas por tribunal.
-     Não há checkout: o botão registra o interesse na lista de espera (RPC entrar_lista_espera, área
-     "banco-espelhos"). Sem nome de concorrente, sem "correção por IA", sem promessa de aprovação, sem depoimento.
-     Pendências da dona antes de divulgar o link: Política de privacidade, identificação do fornecedor e a migração
-     supabase/migrations/2026-11-25-lista-espera-interesse-venda.sql (lista em docs/pedidos-claude-code.md). -->
+     Não há checkout: o botão registra o pedido de aviso de abertura da venda (RPC entrar_lista_espera, área
+     "banco-espelhos"), que não é a lista de espera do beta e só serve para esse aviso (Política de privacidade 1.3, §3).
+     Sem nome de concorrente, sem "correção por IA", sem promessa de aprovação, sem depoimento.
+     Os marcadores entre colchetes (canal do encarregado e fornecedor, Decreto 7.962/2013, art. 2º) são preenchidos
+     pelos dois builds a partir de docs/juridico/controlador.json (preencherPagina, em scripts/build-juridico.mjs);
+     campo vazio mantém o marcador. O que a dona decide antes do merge e antes de divulgar o link está em
+     docs/pedidos-claude-code.md, "Banco de Espelhos — antes de divulgar o link". -->
 <style>
 @font-face{font-family:'Spectral';font-style:normal;font-weight:700;font-display:swap;src:url('./fonts/spectral-700-normal.woff2') format('woff2');}
 @font-face{font-family:'Spectral';font-style:normal;font-weight:500;font-display:swap;src:url('./fonts/spectral-500-normal.woff2') format('woff2');}
@@ -232,9 +235,10 @@ input { width:100%; min-height:48px; border:1.5px solid color-mix(in srgb,var(--
       <!-- sem atributo name: se o script não rodar, o envio nativo não leva o e-mail para a URL -->
       <label for="email">E-mail<input id="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="voce@email.com" required maxlength="254"></label>
       <div class="erro" id="erro" role="alert" aria-live="polite"></div>
-      <button class="botao" id="enviar" type="submit">Quero meu mês no banco</button>
+      <!-- o que o envio autoriza vem antes do botão, na ordem de leitura e de foco -->
+      <p id="consentimento" style="font-size:13px;color:var(--text2);margin:0;line-height:1.5;">Ao enviar, você autoriza um único e-mail avisando a abertura da venda, nos termos da <a href="./privacidade.html">Política de privacidade</a>. Guardamos só o e-mail, a data e a indicação de que o pedido é do Banco de Espelhos, e apagamos o cadastro depois do aviso ou se a venda for cancelada. Para sair antes, escreva para [E-MAIL DO ENCARREGADO]. Nada é cobrado agora.</p>
+      <button class="botao" id="enviar" type="submit" aria-describedby="consentimento">Quero meu mês no banco</button>
       <div class="ok" id="ok" role="status" aria-live="polite"></div>
-      <p style="font-size:13px;color:var(--text2);margin:0;line-height:1.5;">Ao enviar, você autoriza um único e-mail avisando a abertura da venda, nos termos da <a href="./privacidade.html">Política de privacidade</a>. Guardamos só o e-mail, o interesse no banco de espelhos e a data, e apagamos o cadastro depois do aviso. Nada é cobrado agora.</p>
     </form>
   </section>
 
@@ -250,14 +254,15 @@ input { width:100%; min-height:48px; border:1.5px solid color-mix(in srgb,var(--
 
   <footer class="rodape">
     <span>Cátedra · Banco de Espelhos da Magistratura</span>
+    <span>Fornecedor: [RAZÃO SOCIAL / NOME DO CONTROLADOR], [CNPJ/CPF], [ENDEREÇO], [E-MAIL DE CONTATO]</span>
     <a href="./sobre.html">Conhecer a Cátedra</a>
     <a href="./termos.html">Termos de uso</a>
     <a href="./privacidade.html">Política de privacidade</a>
   </footer>
 </main>
 <script>
-// Interesse na compra: a mesma RPC pública da lista de espera, com a área "banco-espelhos".
-// O cliente nunca lê e-mails; nada é cobrado aqui.
+// Pedido de aviso de abertura da venda: a RPC pública entrar_lista_espera com a área "banco-espelhos", que a
+// migração de 25/11/2026 separa da lista do beta. O cliente nunca lê e-mails; nada é cobrado aqui.
 (function () {
   var CFG = (window.CATEDRA_SUPABASE) || { url: 'https://frcnfqxniwzdyykvgqqu.supabase.co', key: 'sb_publishable_nCm4a-RzzY8e8jVC9O6Gfg_4V6EOrI2' };
   var RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -283,7 +288,7 @@ input { width:100%; min-height:48px; border:1.5px solid color-mix(in srgb,var(--
       body: JSON.stringify({ p_email: email, p_area: 'banco-espelhos' })
     }).then(function (r) {
       btn.disabled = false; btn.textContent = ROTULO;
-      if (r.status === 201 || r.status === 204 || r.ok) { form.reset(); ok.textContent = 'Pronto — anotamos o seu interesse. Avisamos por e-mail no dia em que a venda abrir.'; ok.setAttribute('data-mostra', '1'); return; }
+      if (r.status === 201 || r.status === 204 || r.ok) { form.reset(); ok.textContent = 'Pronto — anotamos o seu pedido de aviso. Mandamos um único e-mail no dia em que a venda abrir.'; ok.setAttribute('data-mostra', '1'); return; }
       return r.json().then(function (j) {
         erro.textContent = /indisponivel/.test(String(j && j.message)) ? FECHADA : FALHOU;
       }, function () { erro.textContent = FALHOU; });

@@ -32,12 +32,14 @@ const DOCS = [
 
 export function escapar(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 
-/** Negrito, itálico e links dentro de uma linha (o texto já vem escapado). */
+/** Negrito, itálico e links dentro de uma linha (o texto já vem escapado). O espaço entre "§"/"art."/"arts." e o
+ *  número vira inseparável (U+00A0), para a citação não quebrar no fim da linha ("§" de um lado, "4º" do outro). */
 export function inline(s) {
   return s
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/(^|[^*])\*([^*\n]+?)\*(?!\*)/g, '$1<em>$2</em>')
-    .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" rel="noopener">$1</a>');
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" rel="noopener">$1</a>')
+    .replace(/(§|\barts?\.) (?=\d)/g, '$1 ');
 }
 
 /** Cabeçalho do documento: "**Versão 1.0 — …**" e "**Data: 02/09/2026**". */
@@ -81,6 +83,17 @@ export function preencher(md, dados) {
   }
   if (!faltam.length) s = s.replace(/^¹ Os campos entre colchetes[^\n]*\n?/m, '').replace(/¹(?=[\s.,;)]|$)/gm, '');
   return { md: s, faltam };
+}
+
+/**
+ * Página pública que repete os marcadores do controlador (banco-espelhos-venda.html: canal do encarregado e
+ * identificação do fornecedor, Decreto 7.962/2013, art. 2º). Os dois builds passam a cópia por aqui: os dados
+ * entram escapados para HTML e campo vazio mantém o marcador, como nos documentos. Pura.
+ */
+export function preencherPagina(html, dados) {
+  const esc = JSON.parse(JSON.stringify(dados || {}), (k, v) => (typeof v === 'string' ? escapar(v) : v));
+  const { md, faltam } = preencher(html, esc);
+  return { html: md, faltam };
 }
 
 /** Markdown → HTML: só as construções que os documentos jurídicos usam. */

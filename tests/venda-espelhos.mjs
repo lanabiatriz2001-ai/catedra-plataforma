@@ -7,8 +7,11 @@
      prometer o que o acervo não tem (84 quesitos sem valor, 6 provas sem valor nenhum, 1 sem caderno);
    · nada de concorrente pelo nome, "correção por IA", "único" ou promessa de aprovação; a comparação
      de mercado fica no que o brief de setembro sustenta;
-   · não há checkout: o botão registra interesse pela RPC da lista de espera, área "banco-espelhos",
-     a mesma que a migração 2026-11-25 separa da lista do beta;
+   · não há checkout: o botão registra o pedido de aviso de abertura da venda pela RPC
+     entrar_lista_espera, área "banco-espelhos", que a migração 2026-11-25 separa da lista do beta;
+     o que o envio autoriza vem antes do botão, com o canal para sair, e o rodapé identifica o
+     fornecedor (Decreto 7.962/2013, art. 2º); os dois builds preenchem esses marcadores a partir de
+     docs/juridico/controlador.json, escapados para HTML;
    · a aparência é MEDIDA nos dois esquemas: contraste de cada texto contra o fundo que pinta atrás
      dele (degradê dos cartões incluído), borda do campo a 3:1, alvos de 44 px, serifa carregada,
      preço em destaque, ícones de 16 px, uma coluna em 390 px sem rolagem lateral.
@@ -79,6 +82,35 @@ export async function testarVendaEspelhos(page, URL0, ok) {
   // a área que a página manda é a que a migração separa da lista do beta
   const mig = path.join(RAIZ, 'supabase/migrations/2026-11-25-lista-espera-interesse-venda.sql');
   r.migracaoDoInteresse = fs.existsSync(mig) && /p_area: 'banco-espelhos'/.test(html) && /lista_espera_venda_email_uidx/.test(fs.readFileSync(mig, 'utf8')) && fs.readFileSync(mig, 'utf8').includes("'banco-espelhos'");
+  // o que o envio autoriza (com o canal para sair e as mesmas regras de apagar da Política, §3 e §9.5) vem ANTES do
+  // botão, na ordem de leitura e de foco, e o botão aponta para ele
+  const form = (html.match(/<form id="formCompra"[\s\S]*?<\/form>/) || [''])[0], consent = (form.match(/<p id="consentimento"[^>]*>([\s\S]*?)<\/p>/) || [])[1] || '';
+  r.consentimentoAntesDoBotao = form.indexOf('id="consentimento"') > 0 && form.indexOf('id="consentimento"') < form.indexOf('id="enviar"') && /<button[^>]*id="enviar"[^>]*aria-describedby="consentimento"/.test(form)
+    && /apagamos o cadastro depois do aviso ou se a venda for cancelada/.test(consent) && /Para sair antes, escreva para \[E-MAIL DO ENCARREGADO\]/.test(consent) && /href="\.\/privacidade\.html"/.test(consent);
+  // identificação do fornecedor na página de oferta (Decreto 7.962/2013, art. 2º, I e II), com os marcadores do controlador
+  const rodape = (html.match(/<footer class="rodape">([\s\S]*?)<\/footer>/) || [])[1] || '';
+  r.fornecedorNoRodape = rodape.includes('Fornecedor: [RAZÃO SOCIAL / NOME DO CONTROLADOR], [CNPJ/CPF], [ENDEREÇO], [E-MAIL DE CONTATO]');
+  // os dois builds passam a cópia por preencherPagina: dados escapados para HTML, campo vazio mantém o marcador
+  const BJ = await import('../scripts/build-juridico.mjs');
+  const MARCADOR = /\[[A-ZÇÃÉ][^\]]*\]/;
+  const cheio = { controlador: 'Fulana & Cia <b>', cnpjCpf: '00.000.000/0001-00', endereco: 'Rua X, 1', emailContato: 'contato@ex.com', emailEncarregado: 'dpo@ex.com' };
+  const pagCheia = BJ.preencherPagina(html, cheio).html, pagVazia = BJ.preencherPagina(html, {}).html;
+  const chamaPreencher = (src, destino) => new RegExp("f === 'banco-espelhos-venda\\.html'\\) \\{[\\s\\S]{0,300}?" + destino.replace(/[()]/g, '\\$&') + "read\\(f\\), lerControlador\\(\\)\\)\\.html\\);").test(src)
+    && /import \{ preencherPagina, lerControlador \} from '\.\/build-juridico\.mjs'/.test(src);
+  r.buildsPreenchemOControlador = !MARCADOR.test(pagCheia) && pagCheia.includes('Fornecedor: Fulana &amp; Cia &lt;b&gt;, 00.000.000/0001-00, Rua X, 1, contato@ex.com')
+    && pagCheia.includes('Para sair antes, escreva para dpo@ex.com.') && pagVazia === html
+    && chamaPreencher(build, 'writeFileSync(join(pub, f), preencherPagina(') && chamaPreencher(buildMac, 'writeFileSync(join(OUT, f), preencherPagina(');
+  // apagar o pedido de aviso (Política 1.3, §3 e §9.5) tem caminho pronto e com trilha: só a administração, só a área
+  // "banco-espelhos", pelos ids lidos; a leitura da lista do beta deixa de trazer esses pedidos. Migração NÃO aplicada.
+  const migApagar = path.join(RAIZ, 'supabase/migrations/2026-11-25-lista-espera-ler-e-apagar-venda.sql');
+  const sqlA = fs.existsSync(migApagar) ? fs.readFileSync(migApagar, 'utf8').replace(/--[^\n]*/g, '') : '';
+  const FUNCS = ['admin_aviso_venda', 'admin_aviso_venda_apagar', 'admin_aviso_venda_expirar', 'admin_lista_espera_remover'];
+  const corpoSql = (fn) => (sqlA.match(new RegExp('create or replace function public\\.' + fn + '\\([\\s\\S]*?end \\$\\$;')) || [''])[0];
+  r.mecanismoDeApagarComTrilha = /NÃO APLICADA/.test(fs.existsSync(migApagar) ? fs.readFileSync(migApagar, 'utf8') : '') && path.basename(migApagar) > '2026-11-25-lista-espera-interesse-venda.sql'
+    && FUNCS.every(fn => /if not public\.is_admin\(\) then raise exception 'acesso_negado'; end if;/.test(corpoSql(fn)) && /perform public\._admin_log\(/.test(corpoSql(fn))
+      && new RegExp('revoke all on function public\\.' + fn + '\\([^)]*\\) from public, anon;').test(sqlA) && new RegExp('grant execute on function public\\.' + fn + '\\([^)]*\\) to authenticated;').test(sqlA))
+    && /delete from public\.lista_espera where area = 'banco-espelhos' and id = any\(/.test(corpoSql('admin_aviso_venda_apagar'))
+    && /where public\.is_admin\(\) and area is distinct from 'banco-espelhos'/.test(sqlA) && !/delete from public\.lista_espera where lower\(email\) = lower\(trim\(p_email\)\);/.test(sqlA);
   for (const [k, v] of Object.entries(r)) ok(v, 'PÚBLICO/venda estático ' + k);
 
   const navegador = page.context().browser();
@@ -157,7 +189,7 @@ export async function testarVendaEspelhos(page, URL0, ok) {
       inE.value = '  Pessoa@Exemplo.com '; form.requestSubmit(); await w(200);
       const c = chamadas[0], corpo = c ? JSON.parse(c.o.body) : {};
       r.validoRegistraInteresse = chamadas.length === 1 && /\/rest\/v1\/rpc\/entrar_lista_espera$/.test(c.u) && c.o.method === 'POST' && !!c.o.headers.apikey && corpo.p_email === 'pessoa@exemplo.com' && corpo.p_area === 'banco-espelhos';
-      r.confirmaSemRedirecionarNemCobrar = ok.getAttribute('data-mostra') === '1' && /anotamos o seu interesse/.test(ok.textContent) && /banco-espelhos-venda\.html$/.test(location.pathname) && !location.search && inE.value === '' && getComputedStyle(ok).display !== 'none';
+      r.confirmaSemRedirecionarNemCobrar = ok.getAttribute('data-mostra') === '1' && /anotamos o seu pedido de aviso/.test(ok.textContent) && /banco-espelhos-venda\.html$/.test(location.pathname) && !location.search && inE.value === '' && getComputedStyle(ok).display !== 'none';
       window.fetch = async () => ({ ok: false, status: 400, json: async () => ({ code: 'P0001', message: 'lista_temporariamente_indisponivel' }) });
       inE.value = 'y@exemplo.com'; form.requestSubmit(); await w(200);
       r.listaFechadaNaoPedeInstantes = /não está aceitando e-mails agora/.test(erro.textContent) && !/em instantes/.test(erro.textContent) && document.getElementById('enviar').disabled === false;

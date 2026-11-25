@@ -46,7 +46,7 @@ const FUNCAO = 'excluir_minha_conta';
 export const RETIDAS = {
   admins: 'a trava admin_nao_pode impede conta de administração de se excluir por aqui',
   admin_log: 'trilha de auditoria (Política §2 e §3, 12 meses); a própria exclusão grava nela',
-  lista_espera: 'cadastro da página pública (sobre.html), anterior à conta e sem vínculo com ela — decisão da dona',
+  lista_espera: 'cadastros das páginas públicas (lista de espera do beta, em sobre.html, e pedido de aviso de venda, em banco-espelhos-venda.html), sem vínculo com a conta — decisão da dona (Política, 9.5)',
 };
 
 // As três tabelas que nasceram sem FK e precisam de cascata para auth.users.
@@ -180,6 +180,8 @@ export function analisar(arqs, { retidas = RETIDAS } = {}) {
   }
   for (const r of Object.keys(retidas)) {
     if (!porConta.some((t) => t.nome === r)) f.EXC2.push(`RETIDA ${r} não existe mais no SQL — tire da lista`);
+    // retida que a função passou a apagar: a lista (e a Política, que promete mantê-la) ficou velha
+    if (new RegExp(`delete from (?:public\\.)?${esc(r)}\\b`).test(corpo)) f.EXC2.push(`RETIDA ${r} passou a ser apagada pela função — tire da lista e reescreva a Política (§9.5)`);
   }
 
   // EXC3 — guarda to_regclass nas tabelas que só existem em migração.
