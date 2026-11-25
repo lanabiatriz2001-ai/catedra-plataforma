@@ -316,7 +316,8 @@ async function prepararTela(id) {
     await set({ redEnunciado: 'Discorra sobre a prescrição.', redText: 'Texto do rascunho salvo.', redTextTs: Date.now() - 36e5, redResult: null, redRascunhoOculto: false }); return {}; }
   if (id === 'calendario') { ir('calendario'); await set({ reviews: [], manualFixed: [], provaData: '', eventos: [] }); return {}; }
   if (id === 'bemestar') { ir('bemestar'); return {}; }
-  if (id === 'comunidade') { ir('comunidade');
+  // o ranking de turma está atrás da flag (item 14): o cenário liga a flag para medir as medalhas
+  if (id === 'comunidade') { try { localStorage.setItem('ct_flag:rankingTurma', '1'); } catch (_) {} ir('comunidade');
     await set({ comMyUid: 'eu', comErro: 'Não consegui carregar os grupos agora.', meusGrupos: [{ id: 'g1', nome: 'Turma TJSP', codigo: 'ABC123', membros: [] }], comGrupoAtivo: 'g1',
       comRankRows: [{ user_id: 'a', nome: 'Ana', minutos: 900, ao_vivo: true, streak: 4, revisoes: 12 }, { user_id: 'eu', nome: 'Você', minutos: 600, streak: 0, revisoes: 3 },
         { user_id: 'b', nome: 'Bruno', minutos: 300, streak: 0, revisoes: 2 }, { user_id: 'c', nome: 'Caio', minutos: 120, streak: 0, revisoes: 1 }] }); return {}; }
