@@ -57,6 +57,7 @@ import { testarFaixaMapaAlvos } from './faixa-mapa-alvos.mjs';
 import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
 import { testarRedacaoMesa } from './redacao-mesa.mjs';
 import { testarRedacaoMotorEstatico, testarRedacaoMotor } from './redacao-motor.mjs';
+import { testarEspelhoSugeridoEstatico, testarEspelhoSugerido } from './espelho-sugerido.mjs';
 import { testarRedacaoResultadoEstatico, testarRedacaoResultado } from './redacao-resultado.mjs';
 import { testarOnboardingImportar } from './onboarding-importar.mjs';
 import { testarCotaIA } from './cota-ia.mjs';
@@ -120,6 +121,13 @@ page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
 if (process.env.CT_SO === 'redacao-resultado') {
   testarRedacaoResultadoEstatico(ok);
   await testarRedacaoResultado(page, URL0, ok, { motor });
+  await browser.close(); srv.close();
+  console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
+  process.exit(falhas.length ? 1 : 0);
+}
+if (process.env.CT_SO === 'espelho-sugerido') {
+  testarEspelhoSugeridoEstatico(ok);
+  await testarEspelhoSugerido(page, URL0, ok, { motor });
   await browser.close(); srv.close();
   console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
   process.exit(falhas.length ? 1 : 0);
@@ -9855,6 +9863,7 @@ catch (e) {
 try { await testarPrioridadeDiscursiva(page, URL0, ok); } catch(e) { ok(false, 'DISCURSIVA exceção: '+e.message); }
 try { await testarRedacaoMesa(page, URL0, ok, { motor }); } catch(e) { ok(false, 'MESA exceção: '+e.message); }
 try { testarRedacaoMotorEstatico(ok); await testarRedacaoMotor(page, URL0, ok, { motor }); } catch(e) { ok(false, 'MOTOR exceção: '+e.message); }
+try { testarEspelhoSugeridoEstatico(ok); await testarEspelhoSugerido(page, URL0, ok, { motor }); } catch(e) { ok(false, 'ESPSUG exceção: '+e.message); }
 try { testarRedacaoResultadoEstatico(ok); await testarRedacaoResultado(page, URL0, ok, { motor }); } catch(e) { ok(false, 'RESULTADO exceção: '+e.message); }
 try { await testarRevisaoFonte(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
