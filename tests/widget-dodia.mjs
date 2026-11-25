@@ -45,6 +45,24 @@ export async function testarWidgetDodia(ok) {
   const cf37 = art.find(a => a.diploma === 'Constituição Federal' && a.artigo === '37');
   ok(!!cf37 && /legalidade, impessoalidade, moralidade, publicidade e eficiência/.test(cf37.texto),
     R + 'o CF art. 37 traz a redação vigente do caput, com "eficiência" — não a riscada, de antes da EC 19/1998');
+  // Todo artigo da CF no widget vem do CORPO da Constituição, nunca do ADCT, que repete os números
+  // (o 71 do ADCT, Fundo Social de Emergência, chegou a ocupar o lugar do CF art. 71, TCU).
+  {
+    const L = {};
+    new Function('window', fs.readFileSync(path.join(RAIZ, 'leis-seca.js'), 'utf8'))(L);
+    const CF = (L.CT_LEIS || []).find(l => l.sigla === 'CF');
+    const num = (rot) => parseInt(String(rot).replace(/^Art\.?\s*/i, '').replace(/\./g, ''), 10);
+    const arts = CF ? CF.artigos : [];
+    const inicioADCT = arts.findIndex((a, i) => i > 0 && num(a.rot) <= 2 && num(arts[i - 1].rot) >= 200);
+    const n = (t) => String(t).replace(/\s+/g, ' ').trim();
+    const corpo = arts.slice(0, inicioADCT).map(a => n(a.txt)), adct = arts.slice(inicioADCT).map(a => n(a.txt));
+    const doCF = art.filter(a => a.diploma === 'Constituição Federal');
+    const doADCT = doCF.filter(a => { const c = n(a.texto).replace(/…$/, '').slice(0, 80); return !corpo.some(t => t.includes(c)) && adct.some(t => t.includes(c)); });
+    const cf71 = doCF.find(a => a.artigo === '71'), cf109 = doCF.find(a => a.artigo === '109');
+    ok(inicioADCT > 200 && doCF.length > 20 && !doADCT.length
+      && (!cf71 || /Tribunal de Contas da União/.test(cf71.texto)) && (!cf109 || /^Aos juízes federais compete/.test(cf109.texto)),
+      R + 'todo artigo da CF vem do corpo da Constituição, não do ADCT (' + (doADCT.map(a => a.artigo).join(', ') || 'nenhum do ADCT') + ')');
+  }
   const s7 = sum.find(s => s.id === 'STJ-SUM-7');
   ok(!!s7 && s7.titulo === 'Súmula 7 do STJ' && /reexame de prova/i.test(s7.texto), R + 'a Súmula 7 do STJ traz o enunciado certo');
   globalThis.window = globalThis.window || {};
