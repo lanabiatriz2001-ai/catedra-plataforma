@@ -1346,16 +1346,22 @@ export async function testarSentinela(ok) {
         + '<p>Art. . 154 - A observ&acirc;ncia, em todos os locais de trabalho, do disposto neste Cap&iacute;tulo.</p>'
         + '<p>Art\r\n. 97. Os Ministros de Estado s&atilde;o respons&aacute;veis perante o Presidente da Rep&uacute;blica.</p>'
         + '<p>Art.\r\n528 -Ocorrendo diss&iacute;dio ou circunst&acirc;ncias que perturbem o funcionamento de entidade sindical.</p>'
+        + '<p>Art. .\r\n182 - O Minist&eacute;rio do Trabalho estabelecer&aacute; normas sobre o transporte de materiais.</p>'
+        + '<p>Art<b>. </b>\r\n416. O artigo cujo r&oacute;tulo veio com espa&ccedil;o antes do ponto no Planalto.</p>'
+        + '<p><strike>Art. 246. A cita&ccedil;&atilde;o ser&aacute; feita:</strike></p>'
+        + '<p>Art. 246. A cita&ccedil;&atilde;o ser&aacute; feita preferencialmente por meio eletr&ocirc;nico, no prazo de at&eacute; 2 dias.</p>'
+        + '<p>Art. 494.<b>\r\n</b>(VETADO).&nbsp; <a href="#art544-6">Produ&ccedil;&atilde;o de \r\nefeitos</a></p>'
         + '<p>Art. 1.001. Dos despachos n&atilde;o cabe recurso.</p>'
         + '<p>Art. 28-A (Revogado pela Lei n&ordm; 13.813, de 2019)</p>'
         + '<p>Art. 5&ordm;</p>'
         + '<p>Art. 1.002. Artigo final com texto bastante para passar no piso de tamanho do leitor.</p>';
       const arts = artigos(limparHTML(Buffer.from(html, 'latin1')));
       const r = arts.map((a) => a.rot).join(', ');
-      ok(r === 'Art. 106, Art. 107, Art. 405, Art. 217, Art. 154, Art. 97, Art. 528, Art. 1.001, Art. 1.002'
+      ok(r === 'Art. 106, Art. 107, Art. 405, Art. 217, Art. 154, Art. 97, Art. 528, Art. 182, Art. 416, Art. 246, Art. 1.001, Art. 1.002'
+        && /preferencialmente por meio eletrônico/.test(arts[9].txt)
         && /Do ocorrido em audiência será lavrado termo em livro próprio/.test(arts[2].txt) && /disposições desta Lei não excluem/.test(arts[3].txt)
         && !arts.some((a) => /Revogado pela Lei nº 13\.813/.test(a.txt)),
-        `S29i rótulo com etiqueta no meio ("<strong>A</strong>rt. 107", "Art. 21</font><font>7"), entidade com nome (&ccedil;), ponto dobrado, ponto ou traço fora do lugar e artigo curto de verdade abrem artigo; o toco "(Revogado…)" e o "Art. 5º" sozinho não (${r})`);
+        `S29i rótulo com etiqueta no meio ("<strong>A</strong>rt. 107", "Art. 21</font><font>7"), entidade com nome (&ccedil;), ponto dobrado, ponto ou traço fora do lugar ("Art. ." / "Art ." e o número na linha seguinte) e artigo curto de verdade abrem artigo; o toco "(Revogado…)", o "(VETADO). Produção de efeitos", a cabeça riscada antes da redação vigente de mesmo número e o "Art. 5º" sozinho não (${r})`);
       ok(quedaSuspeita(60, 60) === null && quedaSuspeita(92, 60) !== null && quedaSuspeita(undefined, 3) === null && quedaSuspeita(977, 782) === null && /abaixo de 80%/.test(quedaSuspeita(977, 781) || ''),
         'S29j a trava de leitura parcial do build da lei seca: abaixo de 80% dos artigos do arquivo atual é suspeito; lei nova (sem anterior) passa');
     }

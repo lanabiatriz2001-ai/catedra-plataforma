@@ -74,18 +74,19 @@ export function limparHTML(buf) {
 // acervo (o CTN tinha 130 dos seus 218). Junta-se a linha que é só "Art."/"Artigo" com a seguinte
 // quando esta começa como número de artigo (algarismos, ordinal, letra do acréscimo e o início do
 // caput em maiúscula, ou nada).
-// Também quando o ponto do rótulo cai na linha do número ("Art" / ". 97. Os Ministros…", DL 200) e
-// quando o traço vem colado ao caput ("Art." / "528 -Ocorrendo dissídio…", CLT).
-const RE_ROTULO_SO = /^Art(?:igo)?\.?$/;
+// Também quando o ponto do rótulo cai na linha do número ("Art" / ". 97. Os Ministros…", DL 200),
+// quando vem separado ou dobrado ("Art ." / "2º …", IBS/CBS; "Art. ." / "182 - …", CLT) e quando o
+// traço vem colado ao caput ("Art." / "528 -Ocorrendo dissídio…", CLT). O rótulo sai sempre como
+// "Art."/"Artigo".
+const RE_ROTULO_SO = /^Art(?:igo)?\s*\.?(?:\s*\.)?$/;
 const RE_NUMERO_DE_ARTIGO = /^\d+(?:\.\d{3})*[ºª°o]?(?:-[A-Z])?(?:\s*[.\-–—]\s*(?:[A-ZÀ-Ú§"“(]|$)|\s+[A-ZÀ-Ú§"“]|\s*$)/;
 export function juntarRotuloPartido(linhas) {
   const out = [];
   for (let i = 0; i < linhas.length; i++) {
     if (RE_ROTULO_SO.test(linhas[i]) && i + 1 < linhas.length) {
-      const semPonto = !linhas[i].endsWith('.');
-      const prox = semPonto ? linhas[i + 1].replace(/^\.\s*(?=\d)/, '') : linhas[i + 1];
+      const prox = linhas[i + 1].replace(/^\.\s*(?=\d)/, '');
       if (RE_NUMERO_DE_ARTIGO.test(prox)) {
-        out.push((semPonto && prox !== linhas[i + 1] ? linhas[i] + '.' : linhas[i]) + ' ' + prox);
+        out.push((/^Artigo/.test(linhas[i]) ? 'Artigo' : 'Art.') + ' ' + prox);
         i++;
         continue;
       }
@@ -95,9 +96,14 @@ export function juntarRotuloPartido(linhas) {
   return out;
 }
 
-// O corpo do artigo sem o rótulo nem as anotações entre parênteses: "(Revogado pela Lei …)",
-// "(VETADO)", "(Redação dada …)". Serve para separar artigo curto de verdade de índice e de toco.
-const corpoProprio = (a) => a.txt.slice(a.rot.length).replace(/\([^)]*\)/g, ' ').replace(/^[\s.\-–—ºª°o]+/, '').trim();
+// O corpo do artigo sem o rótulo nem as anotações: as entre parênteses ("(Revogado pela Lei …)",
+// "(VETADO)", "(Redação dada …)") e as que o Planalto põe como link solto ("Produção de efeitos",
+// "Vigência", "Regulamento", "Mensagem de veto", "Vide …"). Serve para separar artigo curto de
+// verdade de índice e de toco.
+const RE_ANOTACAO_SOLTA = /\b(?:Produ[çc][ãa]o\s+de\s+efeitos?|Vig[êe]ncia|Regulamento|Mensagem\s+de\s+veto|Vide\b[^.;\n]*)/gi;
+const corpoProprio = (a) => a.txt.slice(a.rot.length).replace(/\([^)]*\)/g, ' ').replace(RE_ANOTACAO_SOLTA, ' ')
+  .replace(/^[\s.\-–—ºª°o]+/, '').replace(/[\s.;,]+$/, '').trim();
+const chaveDoRotulo = (rot) => String(rot).replace(/\s+/g, '').replace(/\.$/, '').replace(/[ºª°o]$/, '').toLowerCase();
 
 /** Quebra o texto corrido em artigos, preservando incisos e parágrafos de cada um.
  *  Só "Art."/"Artigo" com inicial MAIÚSCULA abre artigo. "art. 927 da Lei nº 13.105…" no começo
@@ -123,8 +129,13 @@ export function artigos(texto, teto = 4000) {
   // Descarta índice/sumário (artigo cujo corpo é só o rótulo) e toco de revogado. O piso antigo
   // (rótulo + 40 caracteres) levava junto artigo curto de verdade: CPC 724 ("Da sentença caberá
   // apelação.") e 1.001 ("Dos despachos não cabe recurso."), CPP 202 ("Toda pessoa poderá ser
-  // testemunha.") e 262. Fica também o que tem pelo menos 12 caracteres de texto próprio.
-  return out.filter((a) => a.txt.length > a.rot.length + 40 || corpoProprio(a).length >= 12);
+  // testemunha.") e 262. Fica também o que tem pelo menos 12 caracteres de texto próprio — salvo
+  // quando a entrada seguinte tem o MESMO número: aí ela é só a cabeça da redação riscada que o
+  // Planalto mantém antes da vigente (CPC 246 "A citação será feita:", ANVISA 15, Lavagem 6º), e
+  // quem procura o artigo pelo número acharia o texto revogado antes do vigente.
+  const pisoAntigo = (a) => a.txt.length > a.rot.length + 40;
+  return out.filter((a, i) => pisoAntigo(a)
+    || (corpoProprio(a).length >= 12 && !(out[i + 1] && chaveDoRotulo(out[i + 1].rot) === chaveDoRotulo(a.rot))));
 }
 
 /** Leitura parcial: a lei voltou com menos de 80% dos artigos que o arquivo atual tem (a mesma

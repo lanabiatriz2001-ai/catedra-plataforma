@@ -864,8 +864,9 @@ Rodada manual, no Mac (de onde o STF, o STJ e o Planalto respondem).
   escondiam artigos e mudanças da lei. Conferido por agentes independentes contra o HTML oficial,
   lei a lei, e pelos casos S29h e S29i:
   - o código-fonte do Planalto às vezes quebra a linha entre "Art." e o número ("Art.\n146. A
-    modificação…"), põe o ponto na linha do número ("Art" / ". 97.") ou cola o traço no caput
-    ("528 -Ocorrendo"). A linha "Art." não abria artigo e o artigo ia parar dentro do anterior — e,
+    modificação…"), põe o ponto na linha do número ("Art" / ". 97."), separa ou dobra o ponto ("Art ."
+    / "2º", IBS/CBS; "Art. ." / "182", CLT) ou cola o traço no caput ("528 -Ocorrendo"). A linha "Art."
+    não abria artigo e o artigo ia parar dentro do anterior — e,
     depois do teto de 4.000 caracteres, sumia. Eram cerca de 500 artigos em 25 das 49 leis (o CTN
     tinha 130 dos seus 218; a mudança da LC 236 no art. 146 nunca chegaria ao acervo);
   - etiqueta de formatação dentro do rótulo: "<strong>A</strong>rt. 107" (CP, extinção da
@@ -877,14 +878,17 @@ Rodada manual, no Mac (de onde o STF, o STJ e o Planalto respondem).
     devolvia esses pedaços ao artigo anterior (`porArtigo`), então a comparação não muda de sentido;
   - o piso de tamanho (rótulo + 40 caracteres) cortava artigo curto de verdade: CPC 724 ("Da
     sentença caberá apelação.") e 1.001 ("Dos despachos não cabe recurso."), CPP 202 e 262. Agora
-    fica também o que tem 12 ou mais caracteres de texto próprio, fora as anotações entre parênteses;
+    fica também o que tem 12 ou mais caracteres de texto próprio, fora as anotações (entre parênteses
+    ou em link solto, como "Produção de efeitos") — e desde que a entrada seguinte não tenha o mesmo
+    número: nesse caso ela é a cabeça da redação riscada que o Planalto mantém antes da vigente (CPC
+    246, ANVISA 15, Lavagem 6º), e quem procura o artigo pelo número acharia o texto revogado;
   - entidade com nome (&ccedil;, &atilde;, &Eacute;…) virava espaço: o DL 200, a única página que as
     usa, saía com 6.407 letras a menos ("A delega o de compet ncia") e perdia o art. 12. Vale agora a
     tabela Latin-1 inteira.
 - **Lei seca regravada** com `scripts/build-leis-seca.mjs` e o leitor corrigido: as 14 normas do
-  núcleo (7.156 → 7.248 artigos; o único rótulo que some é o toco "(Revogado…)" do CLT art. 26, que
+  núcleo (7.156 → 7.250 artigos; o único rótulo que some é o toco "(Revogado…)" do CLT art. 26, que
   só passava no piso porque o art. 27 vinha grudado nele) e as 35 das outras áreas, com a mesma
-  lista, ordem e etiquetas (3.776 → 3.576: saem as remissões; some só o LOAS art. 28-A, que é só
+  lista, ordem e etiquetas (3.776 → 3.578: saem as remissões; some só o LOAS art. 28-A, que é só
   "(Revogado pela Lei nº 13.813, de 2019)" e antes carregava dentro dele o texto do art. 29).
   Conferido por rótulo e ocorrência contra a versão da `main`. Texto novo da lei: CTN (LC 236/2026),
   CPC (Lei 15.484/2026), CF (arts. 7º e 198 e art. 67 do ADCT), CP (arts. 129 e 157), CDC (art. 57,
