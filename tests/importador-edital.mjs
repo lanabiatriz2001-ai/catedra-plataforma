@@ -203,6 +203,7 @@ export async function testarImportadorEdital(pageDaSuite, base, ok, opcoes = {})
     await page.goto(base + '/' + arquivo); await page.waitForTimeout(1900);
     await formatos(page, ok, R);
     await caminhoDaPessoa(page, base, ok, R, arquivo);
+    await conferenciaDaImportacao(page, ok, R);
     await modeloEmConcursoNovo(page, base, ok, R, arquivo);
     await integridadeDosModelos(page, ok, R);
   } catch (e) { ok(false, R + 'roteiro quebrou: ' + (e && e.message)); }
@@ -382,6 +383,146 @@ async function caminhoDaPessoa(page, base, ok, R, arquivo) {
     return { parsed: app.state.edParsed, n: app.state.edital.length };
   });
   ok(d.n === 2, R + 'texto que não é edital não mexe no edital');
+}
+
+async function conferenciaDaImportacao(page, ok, R) {
+  // A página já está no edital após o roteiro de persistência. Só a resposta da IA é simulada.
+  const cartao = page.locator('.ct-ed-importar');
+  const campo = cartao.getByLabel('Conteúdo programático');
+  const reconhecer = cartao.getByRole('button', { name: 'Reconhecer sem IA', exact: true });
+  const estruturar = cartao.getByRole('button', { name: /Estruturar com IA/ });
+  const adicionar = cartao.getByRole('button', { name: 'Adicionar ao edital', exact: true });
+  const aviso = cartao.getByRole('status');
+  const origem = 'DIREITO CIVIL\n1 Pessoas\n2 Negócio jurídico\n3 Bens\n4 Prescrição\n4.1 Impedimento e suspensão';
+  const novaOrigem = 'DIREITO PENAL\n1 Teoria do crime';
+  await campo.fill(origem);
+  await reconhecer.click();
+  await adicionar.waitFor();
+
+  const disciplina = page.locator('.ct-ed-previa-disc').filter({ hasText: 'Direito Civil' });
+  if (await disciplina.count()) {
+    await disciplina.click();
+    const id = await disciplina.getAttribute('aria-controls');
+    const lista = page.locator('[id="' + id + '"]');
+    const quarto = lista.locator('li').filter({ hasText: 'Prescrição' }).first();
+    ok((await disciplina.getAttribute('aria-expanded')) === 'true' && await quarto.isVisible()
+      && await quarto.getByText('Impedimento e suspensão', { exact: true }).isVisible(),
+      R + 'a disciplina abre pelo nome e mostra o quarto tópico junto com o seu subtópico');
+  } else {
+    ok(false, R + 'a prévia permite abrir a disciplina para conferir todos os tópicos');
+  }
+
+  await campo.fill(novaOrigem);
+  ok(!await adicionar.isVisible() && (await campo.inputValue()) === novaOrigem,
+    R + 'editar o texto retira a confirmação da prévia anterior e preserva o novo texto');
+
+  await page.evaluate(() => {
+    window.__edTesteIA = { chamadas: 0 };
+    window.claude = { complete: () => {
+      window.__edTesteIA.chamadas++;
+      return new Promise(resolve => { window.__edTesteIA.responder = resolve; });
+    } };
+  });
+  for (const trocar of [false, true]) {
+    await campo.fill(origem);
+    await estruturar.click();
+    await page.waitForFunction(() => typeof window.__edTesteIA.responder === 'function');
+    if (trocar) await campo.fill(novaOrigem);
+    await reconhecer.click();
+    await adicionar.waitFor();
+    const esperada = trocar ? 'Direito Penal' : 'Direito Civil';
+    await page.evaluate(async () => {
+      const ia = window.__edTesteIA;
+      ia.responder('{"disciplinas":[{"disc":"Direito Tributário","topicos":["Crédito tributário"]}]}');
+      delete ia.responder;
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    });
+    const atual = await page.evaluate(() => window.__catedraApp.state.edParsed.map(d => d.disc));
+    ok(atual.length === 1 && atual[0] === esperada && await adicionar.isVisible(),
+      R + 'a resposta tardia da IA preserva o reconhecimento local ' + (trocar ? 'do texto novo' : 'do mesmo texto'));
+  }
+
+  await page.evaluate(() => {
+    window.claude.complete = async () => { window.__edTesteIA.chamadas++; return '{"disciplinas":[null]}'; };
+  });
+  await estruturar.click();
+  await adicionar.waitFor();
+  const local = await page.evaluate(() => window.__catedraApp.state.edParsed.map(d => d.disc));
+  ok(local.join(' | ') === 'Direito Penal', R + 'resposta inválida da IA dá lugar à prévia do reconhecimento local');
+
+  await campo.fill(origem + '\n' + novaOrigem);
+  const civil = { disc: 'Direito Civil', topicos: ['Pessoas'] };
+  const penal = { disc: 'Direito Penal', topicos: ['Teoria do crime'] };
+  for (const [erro, invalida] of [
+    ['disciplina sem nome', { topicos: ['Teoria do crime'] }],
+    ['tópico sem nome', { ...penal, topicos: [{}] }],
+    ['subtópico em formato inesperado', { ...penal, topicos: [{ nome: 'Teoria do crime', subtopicos: [{ nome: 'Tipicidade' }] }] }],
+    ['quantidade de questões inválida', { ...penal, questoes: false }],
+  ]) {
+    await page.evaluate(disciplinas => {
+      window.claude.complete = async () => JSON.stringify({ disciplinas });
+    }, [civil, invalida]);
+    await estruturar.click();
+    await adicionar.waitFor();
+    const resultado = await page.evaluate(() => window.__catedraApp.state.edParsed);
+    ok(resultado.length === 2 && resultado[0].topics.some(t => t.subs.includes('Impedimento e suspensão'))
+      && resultado[1].disc === 'Direito Penal' && /local/.test(await aviso.innerText()),
+      R + erro + ' em parte da resposta aciona o reconhecimento local do texto completo');
+  }
+
+  await campo.fill('DIREITO PENAL (2 questões, peso 1,5)\n1 Teoria do crime\n2 Tipicidade\n2.1 Conduta\n3 Culpabilidade\n3.1 Exigibilidade');
+  await page.evaluate(() => {
+    window.claude.complete = async () => {
+      window.__edTesteIA.chamadas++;
+      return JSON.stringify({ disciplinas: [{ disc: 'Direito Penal', questoes: '2', peso: 1.5, topics: [
+        'Teoria do crime', { nome: 'Tipicidade', subtopicos: ['Conduta'] }, { name: 'Culpabilidade', subs: ['Exigibilidade'] },
+      ] }] });
+    };
+  });
+  await estruturar.click();
+  await adicionar.waitFor();
+  const valida = await page.evaluate(() => window.__catedraApp.state.edParsed[0]);
+  ok(valida.questoes === 2 && valida.peso === 1.5 && valida.topics[0].name === 'Teoria do crime'
+    && valida.topics[1].subs[0] === 'Conduta' && valida.topics[2].subs[0] === 'Exigibilidade',
+    R + 'a IA aceita tópicos por texto e os dois formatos de nomes de campos');
+
+  // O arquivo oficial tem 22 disciplinas. A última começa depois do antigo corte de 14 mil caracteres.
+  const longo = fs.readFileSync(path.join(RAIZ, 'scripts', 'fontes', 'editais', 'tjpe-juiz.txt'), 'utf8');
+  const antes = await page.evaluate(() => window.__edTesteIA.chamadas);
+  await campo.fill(longo);
+  await estruturar.click();
+  await adicionar.waitFor();
+  const previa = await page.evaluate(() => {
+    const disciplinas = window.__catedraApp.state.edParsed;
+    const fim = disciplinas.find(d => d.disc === 'Direitos Humanos');
+    return { disciplinas: disciplinas.length, encerra: !!fim && fim.topics.some(t => /jurisprudência do Supremo Tribunal Federal em matéria de direitos humanos/i.test(t.name)),
+      chamadas: window.__edTesteIA.chamadas };
+  });
+  ok(previa.chamadas === antes && previa.disciplinas === 22 && previa.encerra
+    && /local.*(inteiro|integral)/i.test((await aviso.allTextContents()).join(' ')),
+    R + 'o texto integral do TJPE chega à última disciplina e ao último tópico, sem gastar chamada de IA');
+
+  const anterior=await page.evaluate(()=>window.__catedraApp._edAlvo());
+  await page.evaluate(()=>window.__catedraApp._trocarArea('oab'));
+  await page.waitForFunction(()=>window.__catedraApp.state.view==='oab' && !window.__catedraApp.state.edParsed);
+  await page.evaluate(()=>window.__catedraGoView('edital'));
+  ok(anterior===await page.evaluate(()=>window.__catedraApp._edAlvo()) && await campo.inputValue()===longo && !await adicionar.isVisible(),
+    R + 'áreas com o mesmo concurso principal exigem nova conferência no caderno de destino');
+  await page.evaluate(()=>window.__catedraApp._trocarArea('juridica'));
+  await page.waitForFunction(()=>window.__catedraApp.state.areaEstudo==='juridica');
+  await reconhecer.click();
+  await adicionar.waitFor();
+  page.once('dialog', dialog => dialog.accept('Concurso de destino'));
+  await page.getByRole('button', { name: 'Novo concurso', exact: true }).click();
+  await adicionar.waitFor({ state: 'hidden' });
+  ok(await campo.inputValue() === longo && /concurso ativo mudou/i.test(await aviso.innerText()),
+    R + 'trocar de concurso invalida a prévia e mantém o texto disponível para nova conferência');
+
+  // A mudança de conta é simulada no perfil de teste, ainda com o rascunho sem prévia.
+  await page.evaluate(()=>window.__catedraApp.setState({authEmail:'outra-conta@example.test'}));
+  await page.waitForFunction(()=>!window.__catedraApp.state.edRaw);
+  ok(await campo.inputValue()==='' && !await adicionar.isVisible(),
+    R + 'a outra conta recebe o campo de importação vazio mesmo se a prévia já havia sido fechada');
 }
 
 async function modeloEmConcursoNovo(page, base, ok, R, arquivo) {

@@ -3261,38 +3261,50 @@ window.ctPdfLib = (function(){
           <div style="flex:1;height:1px;background:var(--border);"></div>
         </div>
 
-        <div class="ct-card">
-          <div style="margin-bottom:14px;">
-            <span style="font-family:var(--display);font-weight:600;color:var(--ink);font-size:var(--fs-lg);letter-spacing:-.01em;">Importar edital</span>
-            <div class="ct-nota ct-nota-solta">cole o conteúdo programático — reconhecemos disciplinas, tópicos, subtópicos e o nº de questões automaticamente</div>
+        <div class="ct-card ct-ed-importar">
+          <h2 class="ct-titulo">Importar edital</h2>
+          <label for="ed-importar-texto" class="ct-rotulo">Conteúdo programático</label>
+          <textarea id="ed-importar-texto" class="ct-campo" value="{{ edRaw }}" oninput="{{ edSetRaw }}" rows="7" placeholder="Cole aqui o conteúdo programático. Ex.:&#10;DIREITO ADMINISTRATIVO&#10;1 Atos administrativos&#10;2 Licitações e contratos&#10;DIREITO CONSTITUCIONAL&#10;1 Direitos fundamentais"></textarea>
+          <div class="ct-ed-acoes">
+            <button type="button" class="ct-btn" onclick="{{ edRecognize }}">Reconhecer sem IA</button>
+            <button type="button" class="ct-btn-2" onclick="{{ edStructureAI }}" disabled="{{ edAiBusy }}" aria-busy="{{ edAiBusy }}">{{ edAiLabel }}</button>
           </div>
-          <textarea value="{{ edRaw }}" oninput="{{ edSetRaw }}" rows="7" placeholder="Cole aqui o conteúdo programático. Ex.:&#10;DIREITO ADMINISTRATIVO&#10;1 Atos administrativos&#10;2 Licitações e contratos&#10;DIREITO CONSTITUCIONAL&#10;1 Direitos fundamentais" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface2);border-radius:var(--r-md);padding:13px;font-size:var(--fs-base);color:var(--ink);font-family:var(--mono);line-height:1.6;resize:vertical;"></textarea>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
-            <button class="ct-btn" onclick="{{ edStructureAI }}" disabled="{{ edAiBusy }}" aria-busy="{{ edAiBusy }}">{{ edAiLabel }}</button>
-            <button onclick="{{ edRecognize }}" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 18px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Reconhecer sem IA</button>
-          </div>
-          <sc-if value="{{ cotaIATem }}" hint-placeholder-val="{{ false }}"><div data-ia-cota-edital="1" style="font-size:var(--fs-sm);color:var(--text2);margin-top:8px;line-height:1.5;">{{ cotaIAEditalTxt }}</div></sc-if>
+          <sc-if value="{{ cotaIATem }}" hint-placeholder-val="{{ false }}"><div class="ct-ed-aviso" data-ia-cota-edital="1">{{ cotaIAEditalTxt }}</div></sc-if>
+          <div class="ct-ed-aviso" role="status">{{ edAviso }}</div>
 
           <sc-if value="{{ hasParsed }}" hint-placeholder-val="{{ false }}">
-            <div style="margin-top:18px;border-top:1px solid var(--border);padding-top:16px;">
-              <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px;">
-                <span style="width:22px;height:22px;border-radius:99px;background:var(--accentSolid);color:var(--onAccent);display:flex;align-items:center;justify-content:center;flex:none;font-size:var(--fs-base);">✓</span>
-                <span class="ct-titulo" style="font-size:var(--fs-md);">Reconhecemos {{ edParsedDisc }} disciplinas, {{ edParsedTopics }} tópicos<sc-if value="{{ edParsedSubs }}" hint-placeholder-val="{{ false }}"> e {{ edParsedSubs }} subtópicos</sc-if></span>
-              </div>
-              <div class="ct-scroll" style="display:flex;flex-direction:column;gap:8px;max-height:280px;overflow:auto;">
+            <section class="ct-ed-previa" aria-labelledby="ed-previa-titulo">
+              <h3 id="ed-previa-titulo" class="ct-titulo">{{ edPreviaResumo }}</h3>
+              <div class="ct-ed-previa-lista">
                 <sc-for list="{{ edParsedView }}" as="d" hint-placeholder-count="3">
-                  <div style="background:var(--surface2);border-radius:var(--r-md);padding:12px 14px;border:1px solid color-mix(in oklab, {{ d.color }} 38%, var(--border));background-image:linear-gradient(90deg,color-mix(in oklab, {{ d.color }} 19%, transparent),transparent 46%);">
-                    <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;"><span style="font-weight:600;font-size:var(--fs-base);color:var(--ink);">{{ d.disc }}</span><span class="ct-dado">{{ d.topicCount }} tópicos<sc-if value="{{ d.subCount }}" hint-placeholder-val="{{ false }}"> · {{ d.subCount }} sub</sc-if></span></div>
-                    <sc-if value="{{ d.metaStr }}" hint-placeholder-val="{{ false }}"><span style="display:inline-block;margin-top:6px;font-size:var(--fs-xs);font-weight:600;color:var(--accentD);background:var(--accentSoft);border-radius:99px;padding:2px 10px;">{{ d.metaStr }}</span></sc-if>
-                    <div style="font-size:var(--fs-sm);color:var(--text2);margin-top:6px;line-height:1.5;">{{ d.topicsStr }}</div>
+                  <div class="ct-item ct-ed-previa-item" style="--ct-item-cor:{{ d.color }};">
+                    <button type="button" class="ct-ed-previa-disc" data-i="{{ d.i }}" onclick="{{ edAlternarPrevia }}" aria-expanded="{{ d.abertaAttr }}" aria-controls="{{ d.painelId }}">
+                      <span class="ct-ed-nome">{{ d.disc }}</span>
+                      <span class="ct-dado">{{ d.contagem }}</span>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                    </button>
+                    <sc-if value="{{ d.metaStr }}" hint-placeholder-val="{{ false }}"><div class="ct-ed-meta">{{ d.metaStr }}</div></sc-if>
+                    <div id="{{ d.painelId }}">
+                      <sc-if value="{{ d.aberta }}" hint-placeholder-val="{{ false }}">
+                        <ul class="ct-ed-previa-topicos">
+                          <sc-for list="{{ d.topics }}" as="topico" hint-placeholder-count="2">
+                            <li><span>{{ topico.name }}</span>
+                              <sc-if value="{{ topico.subs.length }}" hint-placeholder-val="{{ false }}"><ul>
+                                <sc-for list="{{ topico.subs }}" as="subtopico" hint-placeholder-count="1"><li>{{ subtopico }}</li></sc-for>
+                              </ul></sc-if>
+                            </li>
+                          </sc-for>
+                        </ul>
+                      </sc-if>
+                    </div>
                   </div>
                 </sc-for>
               </div>
-              <div style="display:flex;gap:10px;margin-top:14px;">
-                <button onclick="{{ edConfirm }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 18px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Adicionar ao edital</button>
-                <button onclick="{{ edDiscard }}" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 16px;font-weight:500;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Descartar</button>
+              <div class="ct-ed-acoes">
+                <button type="button" class="ct-btn" onclick="{{ edConfirm }}">Adicionar ao edital</button>
+                <button type="button" class="ct-btn-2" onclick="{{ edDiscard }}">Descartar</button>
               </div>
-            </div>
+            </section>
           </sc-if>
         </div>
 
@@ -7647,7 +7659,8 @@ class Component extends DCLogic {
       sessionsLixeira: (()=>{ try{ const raw=localStorage.getItem(this._chave('sessionsLixeira')); if(raw){ const arr=JSON.parse(raw); if(Array.isArray(arr)) return arr; } }catch(_){} return []; })(),
       histLixeiraOpen:false,
       sessionDraft:{ disc:_areaIni.discs[0], topico:'', categorias:['Teoria'], categoria:'Teoria', minutos:'', acertos:'', erradas:'', brancos:'', foco:4, nota:'', agendarRevisao:false, contarMeta:true },
-      edRaw:'', edParsed:null, edAiBusy:false,
+      edRaw:'', edParsed:null, edAiBusy:false, edAviso:'',
+      edPreviaIndice:null,
       modeloOpen:false, modeloSel:[], modeloOutras:false, edOutros:{},
       modeloId:((CT_MODELOS.filter(m=>(_areaIni.modelos||[]).indexOf(m.id)>=0)[0])||CT_MODELOS[0]||{}).id||'',   // modelos de edital pré-cadastrados
       cad:{mode:'nova', discSel:_areaIni.discs[0], discNova:'', cor:'#2563eb', topico:'', sub:'', peso:'', questoes:''},
@@ -8918,6 +8931,8 @@ class Component extends DCLogic {
     try{ if(this._mqDark && this._onMqDark){ if(this._mqDark.removeEventListener) this._mqDark.removeEventListener('change', this._onMqDark); else if(this._mqDark.removeListener) this._mqDark.removeListener(this._onMqDark); } }catch(_){}
     if(this._pipMsgT) clearTimeout(this._pipMsgT); if(this._bkpAutoT) clearInterval(this._bkpAutoT); if(this._salaT) clearTimeout(this._salaT); this._pipStop(); this._closeDocPiP();  }
   componentDidUpdate(){
+    // O concurso também pode mudar pela sincronização enquanto a conferência está aberta.
+    if(this.state.edRaw && this._edOrigem) this._edConferirDestino();
     // Conta/área/concurso podem mudar sem desmontar o app. Nunca reatribuir as notas
     // pendentes ao novo contexto; o cronômetro e seus contadores seguem a regra antiga.
     const sd=this.state.sessionDraft;
@@ -10147,40 +10162,95 @@ class Component extends DCLogic {
       usados[chave(nome)]=true; out.push({...t, name:nome}); });
     return out;
   }
-  edSetRaw = (e)=> this.setState({edRaw:e.currentTarget.value});
-  edRecognize = ()=>{ if(!String(this.state.edRaw||'').trim()){ this._toast('Cole o texto do edital antes de reconhecer'); return; } const p=this.parseEdital(this.state.edRaw); this.setState({edParsed:(p&&p.length)?p:null}); if(!p||!p.length) this._toast('Não reconhecemos disciplinas nesse texto — tente a estruturação com IA'); };
+  edSetRaw = (e)=>{
+    const texto=e.currentTarget.value;
+    if(texto===this.state.edRaw) return;
+    this._edOrigem=texto ? {conta:this._contaConcurso()} : null;
+    this._edPedidoIA=null;
+    this.setState(s=>({edRaw:texto, edParsed:null, edPreviaIndice:null, edAiBusy:false,
+      edAviso:texto.trim() && (s.edParsed || s.edAiBusy || s.edAviso) ? 'Texto alterado. Reconheça o conteúdo novamente para conferir a prévia.' : ''}));
+  };
+  _edOrigemAtual(){
+    return {conta:this._contaConcurso(), caderno:this._chave('edital'), concurso:this._edAlvo()};
+  }
+  _edConferirDestino(){
+    const origem=this._edOrigem;
+    if(!origem) return false;
+    const mesmaConta=origem.conta===this._contaConcurso();
+    if(mesmaConta && (!this.state.edParsed && !this.state.edAiBusy ||
+      origem.caderno===this._chave('edital') && origem.concurso===this._edAlvo())) return true;
+    this._edPedidoIA=null;
+    if(!mesmaConta) this._edOrigem=null;
+    this.setState({edParsed:null, edPreviaIndice:null, edAiBusy:false,
+      edRaw:mesmaConta ? this.state.edRaw : '',
+      edAviso:mesmaConta ? 'O concurso ativo mudou. Reconheça o texto para conferir o que será adicionado a este concurso.' : ''});
+    return false;
+  }
+  _edReconhecerLocal(texto, aviso){
+    this._edOrigem=this._edOrigemAtual();
+    this._edPedidoIA=null;
+    const disciplinas=this.parseEdital(texto);
+    this.setState({edParsed:disciplinas.length ? disciplinas : null, edPreviaIndice:null, edAiBusy:false,
+      edAviso:disciplinas.length ? aviso : 'Nenhuma disciplina reconhecida. Confira os títulos e a numeração no texto colado.'});
+  }
+  edRecognize = ()=>{
+    const texto=this.state.edRaw.trim();
+    if(!texto){ this._toast('Cole o texto do edital antes de reconhecer'); return; }
+    this._edReconhecerLocal(texto, '');
+  };
   _editalColor(disc, idx){
     const palette=['#2563eb','#a855f7','#06b6d4','#6366f1','#dc2626','#84cc16','#0d9488','#d6457f','#b08433','#4f46e5','#e8553e','#7c5cd6'];
     const known={'direito constitucional':'#2563eb','direito administrativo':'#a855f7','direito tributário':'#06b6d4','direito financeiro':'#b91c1c','direito civil':'#6366f1','direito penal':'#dc2626','processo civil':'#84cc16','direito processual civil':'#84cc16','direito do trabalho':'#0d9488','direito ambiental':'#10b981','língua portuguesa':'#e8553e'};
     return known[(disc||'').toLowerCase()]||palette[(idx||0)%palette.length];
   }
+  ED_LIMITE_IA = 14000;
   edStructureAI = async ()=>{
     const raw=(this.state.edRaw||'').trim();
     if(!raw){ this._toast('Cole o texto do edital primeiro'); return; }
     if(this.state.edAiBusy) return;
-    this.setState({edAiBusy:true, edParsed:null});
-    const prompt='Você estrutura editais de concursos públicos brasileiros. O CONTEÚDO PROGRAMÁTICO abaixo foi colado de um edital e quase sempre está BAGUNÇADO por quebras de linha de PDF — vários tópicos ficam CORTADOS no meio e continuam na(s) linha(s) seguinte(s). IMPORTANTE: JUNTE os pedaços que formam um mesmo tópico numa frase COMPLETA e coerente; NUNCA deixe um tópico cortado no meio (ex.: uma linha terminando em "Direitos da" seguida de "Personalidade. Pessoas naturais" é UM tópico só: "Direitos da Personalidade. Pessoas naturais"). Use SOMENTE o texto fornecido, sem inventar nem remover conteúdo. Extraia as DISCIPLINAS e, para CADA uma, retorne: "disc" (nome como no edital, em Title Case, sem prefixos tipo "A)"/"IV –"); "questoes" (número de questões dessa disciplina NA PROVA — só se o edital informar, senão omita); "peso" (peso — só se informado, senão omita); e "topicos" (lista) em que cada item tem "nome" (o tópico COMPLETO e reagrupado, sem numeração) e "subtopicos" (lista de frases curtas quando o tópico se subdivide; senão []). Responda SOMENTE com JSON válido, sem nada fora dele, exatamente assim: {"disciplinas":[{"disc":"Nome","questoes":15,"peso":2,"topicos":[{"nome":"Tópico","subtopicos":["sub 1","sub 2"]}]}]}\nCONTEÚDO:\n"""\n'+raw.slice(0,14000)+'\n"""';
+    // O limite desta operação vale para o texto inteiro. Um recorte omitiria o fim do edital.
+    if(raw.length>this.ED_LIMITE_IA){
+      this._edReconhecerLocal(raw, 'O texto ultrapassa o limite da IA. O reconhecimento local usou o conteúdo inteiro.');
+      return;
+    }
+    const pedido={};
+    this._edPedidoIA=pedido;
+    this._edOrigem=this._edOrigemAtual();
+    this.setState({edAiBusy:true, edParsed:null, edPreviaIndice:null, edAviso:''});
+    const prompt='Você estrutura editais de concursos públicos brasileiros. O CONTEÚDO PROGRAMÁTICO abaixo foi colado de um edital e quase sempre está BAGUNÇADO por quebras de linha de PDF — vários tópicos ficam CORTADOS no meio e continuam na(s) linha(s) seguinte(s). IMPORTANTE: JUNTE os pedaços que formam um mesmo tópico numa frase COMPLETA e coerente; NUNCA deixe um tópico cortado no meio (ex.: uma linha terminando em "Direitos da" seguida de "Personalidade. Pessoas naturais" é UM tópico só: "Direitos da Personalidade. Pessoas naturais"). Use SOMENTE o texto fornecido, sem inventar nem remover conteúdo. Extraia as DISCIPLINAS e, para CADA uma, retorne: "disc" (nome como no edital, em Title Case, sem prefixos tipo "A)"/"IV –"); "questoes" (número de questões dessa disciplina NA PROVA — só se o edital informar, senão omita); "peso" (peso — só se informado, senão omita); e "topicos" (lista) em que cada item tem "nome" (o tópico COMPLETO e reagrupado, sem numeração) e "subtopicos" (lista de frases curtas quando o tópico se subdivide; senão []). Responda SOMENTE com JSON válido, sem nada fora dele, exatamente assim: {"disciplinas":[{"disc":"Nome","questoes":15,"peso":2,"topicos":[{"nome":"Tópico","subtopicos":["sub 1","sub 2"]}]}]}\nCONTEÚDO:\n"""\n'+raw+'\n"""';
     let j=null;
     try{ if(window.claude && window.claude.complete){ const r=await window.claude.complete(prompt); j=this._parseJSON(r); } }catch(_){}
+    // Editar, reconhecer localmente ou iniciar outra chamada invalida esta resposta.
+    if(this._edPedidoIA!==pedido || !this._edConferirDestino()) return;
+    this._edPedidoIA=null;
     if(j && Array.isArray(j.disciplinas) && j.disciplinas.length){
-      const num=v=>(v!=null && v!=='' && isFinite(+v)) ? +v : '';
-      const parsed=j.disciplinas.map((d,i)=>{
-        const disc=this.titleCase(String(d.disc||'').trim());
-        const tops=Array.isArray(d.topicos)?d.topicos:(Array.isArray(d.topics)?d.topics:[]);
-        const topics=tops.map(t=>{
-          if(typeof t==='string') return {name:t.trim(), subs:[]};
-          const name=String((t&&(t.nome||t.name))||'').trim();
-          const subs=((t&&(Array.isArray(t.subtopicos)?t.subtopicos:(Array.isArray(t.subs)?t.subs:[])))||[]).map(s=>String(s).trim()).filter(s=>s.length>1);
-          return {name, subs};
-        }).filter(t=>t.name.length>1);
-        const q=num(d.questoes), pe=num(d.peso);
-        return { disc, color:this._editalColor(disc, i), questoes:(q!==''?Math.max(0,Math.round(q)):''), peso:(pe!==''?Math.max(0,pe):''), topics };
-      }).filter(d=>d.disc && d.topics.length);
-      if(parsed.length){ this.setState({edParsed:parsed, edAiBusy:false}); this._toast('Edital estruturado pela IA ✦'); return; }
+      const temTexto=v=>typeof v==='string' && v.trim().length>0;
+      const numeroOpcional=v=>{
+        if(v==null || v==='') return '';
+        return typeof v==='number' || temTexto(v) ? Number(v) : NaN;
+      };
+      const disciplinas=j.disciplinas.map((d,i)=>{
+        if(!d || !temTexto(d.disc)) return null;
+        const topicos=d.topicos ?? d.topics;
+        if(!Array.isArray(topicos) || !topicos.length) return null;
+        const topics=[];
+        for(const t of topicos){
+          const nome=typeof t==='string' ? t : t && (t.nome ?? t.name);
+          if(!temTexto(nome)) return null;
+          const subs=t.subtopicos ?? t.subs ?? [];
+          if(!Array.isArray(subs) || !subs.every(temTexto)) return null;
+          topics.push({name:nome.trim(), subs:subs.map(s=>s.trim())});
+        }
+        const questoes=numeroOpcional(d.questoes), peso=numeroOpcional(d.peso);
+        if(questoes!=='' && (!Number.isSafeInteger(questoes) || questoes<0)) return null;
+        if(peso!=='' && (!Number.isFinite(peso) || peso<0)) return null;
+        const disc=this.titleCase(d.disc.trim());
+        return {disc, color:this._editalColor(disc,i), questoes, peso, topics};
+      });
+      // Só oferece a confirmação se todas as disciplinas e seus itens puderem ser lidos.
+      if(disciplinas.every(Boolean)){ this.setState({edParsed:disciplinas, edAiBusy:false}); this._toast('Edital estruturado pela IA ✦'); return; }
     }
-    const p=this.parseEdital(raw);
-    this.setState({edParsed:p, edAiBusy:false});
-    this._toast(p.length? 'IA indisponível — usei o reconhecimento local' : 'Não consegui estruturar; revise o texto colado');
+    this._edReconhecerLocal(raw, 'A IA não retornou uma estrutura válida. O reconhecimento local usou o conteúdo inteiro.');
   };
   async _extractEditalPdf(f){
     const lib = await this._pdfLib();
@@ -10195,7 +10265,8 @@ class Component extends DCLogic {
     }
     if(pdf.destroy) pdf.destroy();
     return pages.join('\n');
-  }  edConfirm = ()=>{ if(!this.state.edParsed) return;
+  }
+  edConfirm = ()=>{ if(!this.state.edParsed || !this._edConferirDestino()) return;
     const norm=s=>String(s||'').trim().toLowerCase();
     const has=(v)=>v!==''&&v!=null;
     const ed=this.state.edital.map(d=>({...d, topics:(d.topics||[]).map(t=>({...t, subs:Array.isArray(t.subs)?t.subs.map(s=>this._subObj(s)):[]}))}));
@@ -10221,9 +10292,14 @@ class Component extends DCLogic {
           (pt.subs||[]).forEach(s=>{ const k=norm(s); if(k && !seen.has(k)){ t.subs.push({name:s, done:false, ..._novo}); seen.add(k); } }); }
       });
     });
-    this.setState({edital:ed, edParsed:null, edRaw:''}); if(this.flashSync) this.flashSync();
+    this.setState({edital:ed, edParsed:null, edPreviaIndice:null, edRaw:'', edAviso:''}); if(this.flashSync) this.flashSync();
   };
-  edDiscard = ()=> this.setState({edParsed:null});
+  edDiscard = ()=> this.setState({edParsed:null, edPreviaIndice:null, edAviso:''});
+
+  edAlternarPrevia = (e)=>{
+    const indice=Number(e.currentTarget.dataset.i);
+    this.setState(s=>({edPreviaIndice:s.edPreviaIndice===indice ? null : indice}));
+  };
 
   // ===== cadastro manual: disciplina (cor) / tópico / subtópico =====
   onCad = (e)=>{ const k=e.currentTarget.dataset.k; const v=e.currentTarget.value; this.setState(s=>({cad:{...s.cad,[k]:v}})); };
@@ -19677,13 +19753,19 @@ class Component extends DCLogic {
     const conqMaxed = achievements.filter(a=>a.done).length;
 
     // ===== importador de edital — view =====
-    const edParsedView = this.state.edParsed ? this.state.edParsed.map((d,i)=>({...d, i, topicCount:d.topics.length,
-      subCount:d.topics.reduce((a,t)=>a+((t.subs&&t.subs.length)||0),0),
-      metaStr:[((d.questoes!==''&&d.questoes!=null)? d.questoes+' questões':''),((d.peso!==''&&d.peso!=null)? 'peso '+d.peso:'')].filter(Boolean).join(' · '),
-      topicsStr:d.topics.slice(0,3).map(t=>t.name).join(' · ')+(d.topics.length>3?` · +${d.topics.length-3}`:'')})) : null;
-    const edParsedDisc = this.state.edParsed ? this.state.edParsed.length : 0;
-    const edParsedTopics = this.state.edParsed ? this.state.edParsed.reduce((a,d)=>a+d.topics.length,0) : 0;
-    const edParsedSubs = this.state.edParsed ? this.state.edParsed.reduce((a,d)=>a+d.topics.reduce((b,t)=>b+((t.subs&&t.subs.length)||0),0),0) : 0;
+    const contarEd = (n, unidade)=>n+' '+unidade+(n===1?'':'s');
+    const edParsedView = (this.state.edParsed||[]).map((d,i)=>{
+      const subCount=d.topics.reduce((n,t)=>n+(t.subs||[]).length,0);
+      const aberta=this.state.edPreviaIndice===i;
+      return {...d, i, subCount, aberta, abertaAttr:String(aberta), painelId:'ed-previa-'+i,
+        contagem:contarEd(d.topics.length,'tópico')+(subCount?' · '+contarEd(subCount,'subtópico'):''),
+        metaStr:[d.questoes!=='' && d.questoes!=null ? d.questoes+(d.questoes===1?' questão':' questões') : '',
+          d.peso!=='' && d.peso!=null ? 'peso '+d.peso : ''].filter(Boolean).join(' · ')};
+    });
+    const edParsedTopics=edParsedView.reduce((n,d)=>n+d.topics.length,0);
+    const edParsedSubs=edParsedView.reduce((n,d)=>n+d.subCount,0);
+    const edPreviaResumo='Reconhecemos '+contarEd(edParsedView.length,'disciplina')+', '+contarEd(edParsedTopics,'tópico')+
+      (edParsedSubs?' e '+contarEd(edParsedSubs,'subtópico'):'');
     const segBtn=(on)=>`flex:1;padding:9px;border:none;cursor:pointer;font-family:inherit;font-size:var(--fs-base);font-weight:600;border-radius:var(--r-md);transition:all .15s;background:${on?'var(--accentSolid)':'transparent'};color:${on?'var(--onAccent)':'var(--text2)'};`;
 
     // (plano inteligente removido do Início)
@@ -22144,11 +22226,12 @@ class Component extends DCLogic {
       isDisc, isObjetiva:!isDisc, discItems, discObtidaTxt, discMaxima, discPct, brutoPct,
       onDiscItem:this.onDiscItem, addDiscItem:this.addDiscItem, removeDiscItem:this.removeDiscItem,
       // importador edital
-      edRaw:this.state.edRaw,
-      edParsedView, edParsedDisc, edParsedTopics, edParsedSubs, hasParsed:!!this.state.edParsed,      edSetRaw:this.edSetRaw, edRecognize:this.edRecognize, edConfirm:this.edConfirm, edDiscard:this.edDiscard,
+      edRaw:this.state.edRaw, edAviso:this.state.edAviso,
+      edParsedView, edPreviaResumo, edAlternarPrevia:this.edAlternarPrevia, hasParsed:!!this.state.edParsed,
+      edSetRaw:this.edSetRaw, edRecognize:this.edRecognize, edConfirm:this.edConfirm, edDiscard:this.edDiscard,
       edStructureAI:this.edStructureAI, edAiBusy:this.state.edAiBusy,
       cotaIATem:!!this.state.cotaIA, cotaIAUsadas:(this.state.cotaIA||{}).usadas, cotaIALimite:(this.state.cotaIA||{}).limite,
-      cotaIAEditalTxt:(()=>{ const c=this.state.cotaIA; if(!c) return ''; return c.restante>0 ? ('Estruturar usa 1 das '+c.restante+' chamadas de IA que restam hoje. Sem gastar: Reconhecer sem IA.') : 'As chamadas de IA de hoje acabaram. Use Reconhecer sem IA — a cota volta amanhã.'; })(), edAiLabel:(this.state.edAiBusy?'Estruturando com IA…':'Estruturar com IA ✦'),
+      cotaIAEditalTxt:(()=>{ const c=this.state.cotaIA; if(!c) return ''; if(this.state.edRaw.trim().length>this.ED_LIMITE_IA) return 'Para este texto longo, o reconhecimento é local e não usa a cota de IA.'; return c.restante>0 ? ('Estruturar usa 1 das '+c.restante+' chamadas de IA que restam hoje. Sem gastar: Reconhecer sem IA.') : 'As chamadas de IA de hoje acabaram. Use Reconhecer sem IA — a cota volta amanhã.'; })(), edAiLabel:(this.state.edAiBusy?'Estruturando com IA…':'Estruturar com IA ✦'),
       onDragOver:(e)=>e.preventDefault(),
       // estatísticas (Início)
       statsTiles:[
