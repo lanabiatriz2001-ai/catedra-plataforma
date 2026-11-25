@@ -105,7 +105,8 @@ responde.
 - A Vercel publica o build de cada merge na `main`. Commit feito no Mac sai "unverified" e o preview do PR aparece
   bloqueado; isso não é falha sua.
 - PR aberto que toca arquivos destes itens: #253 (sobe o teto do acervo offline de 14 para 15 MiB em `sw.js` e
-  `scripts/build.mjs`, e mexe em `tests/run.mjs`). O #250 mexe em `treino.js`.
+  `scripts/build.mjs`, e mexe em `tests/run.mjs`); o #260 (acervo de 25/11) traz a mesma subida. O #250 mexe em
+  `treino.js`.
 - **PR #259** (rascunho aberto em 25/11 por outra sessão, ramo `banco-espelhos-venda`: a página de venda do banco de
   espelhos) mexe nos mesmos arquivos de vários itens:
   - `PRODUCT.md`: tira "preço" das ausências (linha 72), cria a seção "Preço" com um preço único ("R$ 197 por um mês
@@ -119,6 +120,23 @@ responde.
 
   Ele cruza com os itens 2, 2b, 3, 6, 7 e 10. Não mexa nele. Antes de cada um desses PRs, veja se ele entrou e parta
   da `main`. Se a migration dele tiver sido aplicada, os fatos da lista de espera desta seção ficaram velhos.
+- **PR #266** (aberto em 25/11 por outra sessão, ramo `melhorias/sobre-quesitos-formulario`, não é rascunho) mexe
+  em `sobre.html` e no bloco P15 de `tests/run.mjs`:
+  - o mosaico passa a "586 · quesitos de 36 provas com espelho oficial", com `data-n="quesitos"` conferido contra
+    `CT_ESPELHOS.meta`, e ganha a nota dos 502 quesitos com valor e 84 sem;
+  - no cartão da Segunda fase, "a exigência literal, a pontuação atribuída" vira "a exigência da banca, os
+    dispositivos que o espelho cita e o valor, quando o espelho o traz separado"; "Nada de opinião no lugar do
+    critério." fica;
+  - os campos do formulário perdem o `name` (sem script, o envio punha o e-mail na URL), travados pelo teste
+    `camposSemNome`; a borda dos campos muda de cor.
+
+  Ele cruza com os itens 2, 3, 6, 10 e 11 e com os PRs 2b e 2c. Se tiver entrado, parta dele:
+  - o item 10 troca os números escritos à mão pelos gerados e mantém o `data-n`; até lá, o item 6 atualiza o mosaico
+    e a nota, porque o teste do #266 cai quando o acervo cresce;
+  - o PR 2+10 tira a frase e acrescenta o espelho sugerido sem desfazer o texto novo;
+  - a isca do item 3 vai sem `name`;
+  - no PR 2b, radio sem `name` não forma grupo: dê `name` só ao grupo da pergunta e estreite o `camposSemNome` a
+    ele, dizendo no PR por quê (a resposta não é dado pessoal), ou faça as opções como botões com `aria-pressed`.
 - Worktrees de outras sessões têm trabalho sem commit nos mesmos arquivos:
   - `redacao-segunda-leitura`: linha de export de `redacao-motor.js`;
   - `espelho-sugerido-selo`: `espelho-sugerido.js`;
@@ -127,9 +145,14 @@ responde.
     arquivo novo `quesitos-perdidos.js`;
   - `fora-do-escopo-flag`: `Catedra.dc.html`, `tests/run.mjs` e `tests/run-webkit.mjs`;
   - `quantidade-real-arguicao`: `Catedra.dc.html`, `tests/run.mjs` e `tests/oral-sala.mjs`;
-  - `geometria-interface`.
+  - `geometria-interface`;
+  - `juridico-lgpd-retencao` (sem PR): `sobre.html` (o link da Política no rodapé passa a ler versão e data de
+    `juridico.js`), `scripts/build-juridico.mjs` (referência dos itens 7 e 10), Termos, Política, `juridico.js`,
+    `auth.js`, `Catedra.dc.html` e uma migration nova; cruza com o PR 2b.
 
-  O `banco-espelhos-venda` virou o PR #259 (acima). Espere conflito de mescla e não toque nesses worktrees.
+  O `banco-espelhos-venda` virou o PR #259 (acima). Parte do resto também já é PR: #265 (`redacao-segunda-leitura`),
+  #262 (quesitos perdidos), #263 (espelho sugerido), #264 (fora do escopo) e #261 (ENAM pós-prova), todos em
+  `Catedra.dc.html` e `tests/run*.mjs`. Espere conflito de mescla e não toque nesses worktrees nem nesses PRs.
 
 ## 5. Como testar nesta casa
 
@@ -488,7 +511,7 @@ Nenhum teste fixa 36 nem 586. Devolva a lista do que entrou e do que foi procura
 Nunca insira nem reordene quesito de prova antiga. As instruções vão pela chave `trib ano`, e duas
 provas do mesmo tribunal e ano as compartilham. Rode o gerador num caminho sem espaço nem acento: ele usa
 `new URL(import.meta.url).pathname`. O `espelhos.js` maior pode estourar o teto de 14 MiB do acervo offline (U10,
-`tests/run.mjs:571`) se o PR #253 não tiver entrado. A fusão para a Redação e o Simulado nativo é outro banco
+`tests/run.mjs:571`) se nem o PR #253 nem o #260, que traz a mesma subida, tiver entrado. A fusão para a Redação e o Simulado nativo é outro banco
 (decisão 6a).
 
 ### Item 7 — Versão visível
@@ -566,7 +589,7 @@ conteúdo, outra coisa. A base do menu usa `opacity:.85`: meça o contraste.
 - Os campos novos medem 44 px ou mais e contraste ≥ 4,5:1, em claro e escuro.
 
 **Cuidado.** O motor é ES5: nada de sintaxe nova. O render roda a cada segundo por causa do cronômetro: memorize a
-validação. A linha de export de `redacao-motor.js` está sendo mudada por outra sessão (worktree
+validação. A linha de export de `redacao-motor.js` está sendo mudada por outra sessão (PR #265, ramo
 `redacao-segunda-leitura`).
 
 ### Item 8 — Proteção contra senha vazada: já resolvido à parte; não faça nada
@@ -684,7 +707,7 @@ widget, "fotografia" de perícia, "scan" dentro de "buscando"). Mudança só de 
 4. **Item 3:** depois do 2+10, porque mexe em `sobre.html`.
 5. **Item 4.**
 6. **O resto do item 5.**
-7. **Item 6:** depois do PR #253, ou conferindo o U10. Se o PR 2+10 já tiver entrado, o build regrava o
+7. **Item 6:** depois do PR #253 ou do #260 (os dois sobem o teto), ou conferindo o U10. Se o PR 2+10 já tiver entrado, o build regrava o
    `sobre.html` da raiz com os números novos de `espelhos.js`, e o PR do item 6 leva esse arquivo junto. O #259 mexe
    no título de `banco-espelhos.html`.
 8. **Item 7:** depois do 1 (mesma chamada em `Catedra.dc.html:14584`) e do 2+10 (mesmos laços de cópia dos builds).
@@ -692,16 +715,16 @@ widget, "fotografia" de perícia, "scan" dentro de "buscando"). Mudança só de 
 10. **Item 11:** por último. Ele varre o `sobre.html` final e estende o mesmo teste da linha 3705.
 
 Arquivos que vários itens mudam:
-- `sobre.html`: itens 2, 3, 10 e 11.
-- `tests/run.mjs:3705`: itens 2 e 11.
+- `sobre.html`: itens 2, 3, 10 e 11, o PR #266 e o worktree `juridico-lgpd-retencao`.
+- `tests/run.mjs:3705` (bloco P15): itens 2 e 11 e o PR #266.
 - Laços de cópia de `scripts/build.mjs` e `scripts/build-macos.mjs`: itens 10 e 7.
 - `PRODUCT.md` (linha 72) e `.impeccable/surfaces/sobre-html.md`: itens 2 e 10 e o PR #259, que já reescreve a
   regra do preço.
-- `entrar_lista_espera`, a migration dela, a Política, `juridico.js` e `privacidade.html`: PR 2b, item 3 e PR #259.
+- `entrar_lista_espera`, a migration dela, a Política, `juridico.js` e `privacidade.html`: PR 2b, item 3, PR #259 e o worktree `juridico-lgpd-retencao`.
 - `banco-espelhos.html` (título e subtítulo, linhas 4 e 72): item 6 e PR #259.
 - `tests/redacao-mesa.mjs`: itens 9 e 11 e o worktree `retomar-mesa-discursiva`.
 - `scripts/build.mjs` e `scripts/build-macos.mjs`: também o PR #259 e o worktree `quesitos-perdidos`.
-- `redacao-motor.js`: item 9 e o worktree `redacao-segunda-leitura`.
+- `redacao-motor.js`: item 9 e o PR #265 (`redacao-segunda-leitura`).
 
 Cada PR parte da `origin/main` mais nova. Quando um entrar, atualize os seguintes.
 
