@@ -37,8 +37,9 @@ export function testarRedacaoSegundaEstatico(ok) {
   ok(t.divergentes === 0 && t.notaIA === 7.3 && t.difNota === 0, R + 'mesmas notas em todos os quesitos dão o mesmo total dos dois lados (7,3 e 7,3)');
   // máximo de 3 casas: a nota cheia da IA não passa do máximo e não vira divergência na precisão da tela
   const cheia = M.naEscala(0.375, { max: 0.375 });
-  const p3 = M.compararLeituras({ nota: 10, quesitos: [q(0.375, 0.375), q(0.25, 0.25)] }, { nota: 10.1, quesitos: [q(cheia, 0.375), q(0.25, 0.25)] });
-  ok(cheia === 0.375 && p3.divergentes === 0 && p3.notaIA === 10, R + 'quesito de 0,375: nota cheia fica 0,375, sem divergência falsa e sem total acima de 10');
+  // (caso da revisão do PR: cheias de 0,375 · 0,375 · 0,25 nos dois lados; somar as notas já arredondadas dava 10,1)
+  const p3 = M.compararLeituras({ nota: 10, quesitos: [q(0.375, 0.375), q(0.375, 0.375), q(0.25, 0.25)] }, { nota: 10.1, quesitos: [q(cheia, 0.375), q(0.375, 0.375), q(0.25, 0.25)] });
+  ok(cheia === 0.375 && p3.divergentes === 0 && p3.notaIA === 10 && p3.difNota === 0, R + 'quesitos de 0,375: nota cheia fica 0,375, sem divergência falsa, e o total da IA soma as notas sem arredondar (10,0, não 10,1)');
   // listas desalinhadas (máximo diferente no mesmo índice): não compara linha a linha
   const d = M.compararLeituras({ nota: 5, quesitos: [q(0.3, 0.3), q(0.2, 0.3)] }, { nota: 4, quesitos: [q(0.3, 0.3), q(0, 0.4)] });
   ok(d.desalinhado === true && d.linhas.length === 0 && d.notaIA === 4, R + 'quesitos com máximo diferente no mesmo índice não são comparados linha a linha');

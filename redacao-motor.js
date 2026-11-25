@@ -251,7 +251,7 @@
      - Com quesito sem nota ou sem régua, o total da IA não existe (notaIA e difNota null): somar zero
        rebaixaria, e somar a estimativa do corretor local poria na boca da IA uma nota que ela não deu.
      - A comparação usa a precisão da tela (2 casas), e o total da IA sai pela MESMA conta da
-       conferência (soma sobre o total arredondado): notas iguais nos quesitos dão total igual. */
+       conferência (soma das notas sem arredondar sobre o total arredondado): notas iguais dão total igual. */
   function compararLeituras(sua, ia) {
     var a = Array.isArray(sua && sua.quesitos) ? sua.quesitos : [];
     var b = Array.isArray(ia && ia.quesitos) ? ia.quesitos : [];
@@ -273,7 +273,7 @@
       var d = umDegrau ? 'sem-regua' : sem ? 'sem-nota' : (n < s ? 'ia-menos' : (n > s ? 'ia-mais' : 'igual'));
       var dif = fora ? null : Math.round((n - s) * 100) / 100;
       if (umDegrau) out.semRegua++; else if (sem) out.semNota++; else if (dif !== 0) out.divergentes++;
-      somaIA += n; total += num(qa.pontos != null ? qa.pontos : qb.pontos);
+      somaIA += num(qb.obtido); total += num(qa.pontos != null ? qa.pontos : qb.pontos);   // soma sem arredondar, como a conferência
       return { i: i + 1, n: m ? +m[1] : i + 1, sua: s, ia: fora ? null : n, max: num(qa.pontos != null ? qa.pontos : qb.pontos),
         dif: dif, d: d, trecho: fora ? '' : String(qb.trecho || ''), faltou: fora ? '' : String(qb.faltou || '') };
     });
