@@ -310,14 +310,92 @@
     ehRecuperacao = /type=recovery/.test(h) || /type=recovery/.test(q);
   } catch (_) {}
 
+  // A autorização dos leitores vem de uma credencial assinada. O titular do armazenamento
+  // também existe no modo offline pendente e, sozinho, não comprova autenticação.
+  var tokenLeitor = null, credencialLeitor = null, verificacaoLeitor = null;
+  var validadeLeitor = null, ultimoPerfilLeitor = '';
+  function contaLeitor() {
+    return credencialLeitor && user && !gateRestore && !ehRecuperacao && paginaAtual()
+      && credencialLeitor.sub === user.id && credencialLeitor.exp * 1000 > Date.now() ? user.id : '';
+  }
+  function anunciarLeitor() {
+    var conta = contaLeitor(), expira = conta ? credencialLeitor.exp : 0;
+    var perfil = conta ? conta + ':' + expira : '';
+    if (perfil === ultimoPerfilLeitor) return;
+    ultimoPerfilLeitor = perfil;
+    perfilNativo(conta ? { conta: conta, expiraEm: String(expira) } : { conta: '' });
+    window.dispatchEvent(new CustomEvent('catedra:sessaoleitor'));
+  }
+  function encerrarLeitor() {
+    tokenLeitor = null; credencialLeitor = null; verificacaoLeitor = null;
+    clearTimeout(validadeLeitor); anunciarLeitor();
+  }
+  function conferirSessaoLeitor(sessao) {
+    var token = sessao && sessao.access_token, id = sessao && sessao.user && sessao.user.id;
+    if (!token || !id || ehRecuperacao || saindo || trocandoPerfil) { encerrarLeitor(); return; }
+    if (token === tokenLeitor && (verificacaoLeitor || contaLeitor())) return;
+    if (credencialLeitor && credencialLeitor.sub !== id) encerrarLeitor();
+    tokenLeitor = token;
+    // O SDK verifica a assinatura, ou consulta o servidor para tokens simétricos. A chave
+    // pública embarcada permite conferir um token ainda válido do nosso projeto sem rede.
+    // Chaves novas continuam pelo mecanismo de rotação do próprio SDK.
+    var chaveDoProjeto = CFG.url === 'https://frcnfqxniwzdyykvgqqu.supabase.co' ? { jwks: { keys: [{
+      kty: 'EC', alg: 'ES256', crv: 'P-256', use: 'sig', kid: 'b4d303e2-c7fe-442c-ba0f-cdecd2d9c750',
+      x: 'iZn2syDwHpxi-QZMBHuvqI6ByubU_Yuyo-zRrenRxQk', y: '6FNcU3RScZXGmnIy69TZ_KVkSfhrfCBGwsPsteP1I7E'
+    }] } } : undefined;
+    var consulta = Promise.resolve().then(async function () {
+      if (chaveDoProjeto && navigator.onLine === false) return sb.auth.getClaims(token, chaveDoProjeto);
+      var res;
+      try { res = await sb.auth.getClaims(token); }
+      catch (err) { res = { error: err }; }
+      // Wi-Fi conectado também pode estar sem acesso ao provedor. Uma recusa de
+      // autenticação permanece definitiva; só um erro de transporte usa a chave local.
+      var erro = res && res.error;
+      if (chaveDoProjeto && erro && !(erro.status >= 400 && erro.status < 500) && falhaDeConexao(erro)) {
+        return sb.auth.getClaims(token, chaveDoProjeto);
+      }
+      return res;
+    });
+    verificacaoLeitor = consulta;
+    function receber(res) {
+      if (consulta !== verificacaoLeitor || tokenLeitor !== token) return;
+      verificacaoLeitor = null;
+      var c = res && !res.error && res.data && res.data.claims;
+      if (!c || c.sub !== id || c.iss !== CFG.url.replace(/\/$/, '') + '/auth/v1' || c.aud !== 'authenticated'
+          || c.role !== 'authenticated' || c.is_anonymous === true || (c.nbf != null && (!Number.isFinite(c.nbf) || c.nbf * 1000 > Date.now())) || !Number.isFinite(c.exp) || c.exp * 1000 <= Date.now()) {
+        encerrarLeitor(); return;
+      }
+      credencialLeitor = { sub: id, exp: c.exp };
+      clearTimeout(validadeLeitor);
+      validadeLeitor = setTimeout(anunciarLeitor, Math.min(2147483647, c.exp * 1000 - Date.now() + 1));
+      anunciarLeitor();
+    }
+    consulta.then(receber, function () { receber(null); });
+  }
+  function solicitarLoginLeitor() {
+    // Não sobrepor a recuperação de senha, o aceite ou o login já visível.
+    if (contaLeitor() || gateRestore || ehRecuperacao || saindo || trocandoPerfil) return;
+    if (verificacaoLeitor) {
+      var espera = verificacaoLeitor;
+      espera.then(solicitarLoginLeitor, solicitarLoginLeitor); return;
+    }
+    avisoSessao = 'Entre na sua conta para abrir o LEGIS ou o JURIS.';
+    mode = 'login'; showForm();
+  }
+
+  window.addEventListener('pageshow', anunciarLeitor);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) anunciarLeitor(); });
+
   sb.auth.onAuthStateChange(function (_e, session) {
     authToken = session && session.access_token;
+    if (_e === 'SIGNED_OUT' || _e === 'PASSWORD_RECOVERY') encerrarLeitor();
+    else conferirSessaoLeitor(session);
     // Revogação explícita prevalece sobre o prazo offline da consulta inicial.
     if (session && session.user && user && session.user.id !== user.id && !trocandoPerfil && !saindo) {
-      trocandoPerfil = true; perfilNativo({ conta: '' }); showLoading('Trocando de conta…'); location.reload(); return;
+      trocandoPerfil = true; encerrarLeitor(); showLoading('Trocando de conta…'); location.reload(); return;
     }
     if (_e === 'SIGNED_OUT' && cancelarConsultaInicial) cancelarConsultaInicial();
-    if (_e === 'PASSWORD_RECOVERY') { perfilNativo({ conta: '' }); ehRecuperacao = true; if (cancelarConsultaInicial) cancelarConsultaInicial(true); showNovaSenha(); }
+    if (_e === 'PASSWORD_RECOVERY') { ehRecuperacao = true; if (cancelarConsultaInicial) cancelarConsultaInicial(true); showNovaSenha(); }
     // O supabase-js emite SIGNED_OUT quando o refresh do token é recusado (sessão revogada,
     // senha trocada noutro aparelho). Sem isto o app seguia "logado" com o sync falhando para
     // sempre — e o Sair apagava os estudos sem aviso, porque o confirm exigia authToken.
@@ -325,7 +403,7 @@
     // Sessão pendente (aberto offline): o próprio supabase-js renova o token quando a rede
     // volta. Fora do callback (setTimeout) — chamar o cliente de dentro dele trava o lock interno.
     if (pendente && session && session.user && (_e === 'TOKEN_REFRESHED' || _e === 'SIGNED_IN')) {
-      var u = session.user; setTimeout(function () { if (pendente) retomarSessao(u); }, 0);
+      setTimeout(function () { if (pendente) retomarSessao(session); }, 0);
     }
   });
 
@@ -383,7 +461,7 @@
     }, function () { return null; });
   };
   function avisarWidgetSaida() {
-    perfilNativo({ conta: '' });
+    encerrarLeitor();
     try { var mh = window.webkit && window.webkit.messageHandlers; if (mh && mh.catedraWidget) mh.catedraWidget.postMessage({ saiu: true }); } catch (_) {}
   }
   function revogarPasseWidget() {
@@ -740,7 +818,7 @@
     try {
       if (!e || !e.key || e.storageArea !== localStorage) return;
       if (e.key === 'catedra:_owner' && !paginaAtual()) {
-        trocandoPerfil = true; perfilNativo({ conta: '' }); location.reload(); return;
+        trocandoPerfil = true; encerrarLeitor(); location.reload(); return;
       }
       if (!paginaAtual() || !isData(e.key)) return;
       // só carimbo + sujo: tombOnSet compara com o valor ANTIGO do storage, e no evento
@@ -1070,8 +1148,13 @@
     else if (!e.shiftKey && (atual === ultimo || !el.contains(atual))) { e.preventDefault(); primeiro.focus(); }
   });
 
-  function show() { setGateOpen(true); }
-  function hide() { setGateOpen(false); }
+  function show() { setGateOpen(true); anunciarLeitor(); }
+  function hide() {
+    setGateOpen(false);
+    anunciarLeitor();
+    var destino = new URLSearchParams(location.search).get('leitor');
+    if (destino === 'legis' || destino === 'juris') solicitarLoginLeitor();
+  }
   // Ponte para o teste do gate (tests/auth-gate-fixture.html): sem sessão de verdade não há
   // caminho até o fechamento, e o que precisa ser provado é justamente que ele DEVOLVE o app.
   el.__setGateOpen = setGateOpen;
@@ -1184,6 +1267,15 @@
   var NAVEG = IPAD ? 'no Safari' : 'no navegador';
   function esc(s) { return String(s || '').replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
+  // O provedor de login só precisa conhecer a rota local e o nome do leitor.
+  function retornoDoLogin() {
+    var destino = new URL(location.href);
+    destino.search = ''; destino.hash = '';
+    var leitor = new URLSearchParams(location.search).get('leitor');
+    if (leitor === 'legis' || leitor === 'juris') destino.searchParams.set('leitor', leitor);
+    return destino.href;
+  }
+
   function showForm() {
     var login = mode === 'login';
     painel(
@@ -1255,7 +1347,7 @@
       var em = (inE.value || '').trim();
       if (!em) { aviso('Escreva seu e-mail acima e clique de novo.'); inE.focus(); return; }
       aviso('Enviando…', true);
-      sb.auth.resetPasswordForEmail(em, { redirectTo: location.origin + location.pathname })
+      sb.auth.resetPasswordForEmail(em, { redirectTo: WEB ? retornoDoLogin() : 'https://catedra-plataforma-fawn.vercel.app/' })
         // no app nativo o link não volta para cá: avisa que ele abre o site, e que é só voltar depois
         .then(function () { aviso('Se existir conta com esse e-mail, o link de redefinição já está na caixa de entrada.' + (WEB ? '' : ' O link do e-mail abre o site da Cátedra ' + NAVEG + '; depois de trocar a senha, volte aqui e entre normalmente.'), true); })
         .catch(function () { aviso('Não deu para enviar agora. Tente de novo.'); });
@@ -1266,7 +1358,7 @@
       var em = (inE.value || '').trim();
       if (!em || !/^\S+@\S+\.\S+$/.test(em)) { aviso('Escreva seu e-mail acima para receber o link.'); inE.focus(); return; }
       bMagic.disabled = true; bMagic.textContent = 'Enviando…';
-      sb.auth.signInWithOtp({ email: em, options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: mode === 'signup' } })
+      sb.auth.signInWithOtp({ email: em, options: { emailRedirectTo: retornoDoLogin(), shouldCreateUser: mode === 'signup' } })
         .then(function (res) {
           bMagic.disabled = false; bMagic.innerHTML = MAGIC;
           if (res.error) { aviso(translateErr(res.error.message)); return; }
@@ -1277,7 +1369,7 @@
     el.querySelectorAll('[data-oauth]').forEach(function (b) {
       b.onclick = function () {
         b.disabled = true;
-        sb.auth.signInWithOAuth({ provider: b.getAttribute('data-oauth'), options: { redirectTo: location.origin + location.pathname } })
+        sb.auth.signInWithOAuth({ provider: b.getAttribute('data-oauth'), options: { redirectTo: retornoDoLogin() } })
           .then(function (res) { if (res && res.error) { b.disabled = false; aviso(translateErr(res.error.message)); } })
           .catch(function () { b.disabled = false; aviso('Não deu para abrir o provedor agora.'); });
       };
@@ -1295,11 +1387,11 @@
       var done = function (msg, ok) { btn.disabled = false; btn.textContent = login ? 'Entrar' : 'Criar conta'; if (msg) aviso(msg, ok); };
       var onRes = function (res) {
         if (res.error) { if (erroDeRede(res.error)) { done(MSG_SEM_SERVIDOR); return; } done(translateErr(res.error.message)); return; }
-        if (res.data && res.data.session) { btn.textContent = 'Abrindo seus estudos…'; onLogin(res.data.session.user); }
+        if (res.data && res.data.session) { btn.textContent = 'Abrindo seus estudos…'; onLogin(res.data.session.user, res.data.session); }
         else if (!login) { mode = 'login'; showForm(); var er = el.querySelector('#cterr'); if (er) { er.style.color = DARK ? '#7fd4b5' : '#0f7a57'; er.textContent = 'Conta criada! Confirme pelo e-mail que acabamos de enviar e depois entre aqui.' + (WEB ? '' : ' O link abre o site da Cátedra ' + NAVEG + '; depois de confirmar, volte aqui e entre normalmente.'); } }
         else { done('Não foi possível entrar.'); }
       };
-      var p = login ? sb.auth.signInWithPassword({ email: email, password: pass }) : sb.auth.signUp({ email: email, password: pass, options: { emailRedirectTo: WEB ? location.origin + location.pathname : undefined } });
+      var p = login ? sb.auth.signInWithPassword({ email: email, password: pass }) : sb.auth.signUp({ email: email, password: pass, options: { emailRedirectTo: WEB ? retornoDoLogin() : undefined } });
       p.then(onRes).catch(function () { done(MSG_SEM_SERVIDOR); });
     };
   }
@@ -1333,8 +1425,9 @@
   // Deliberadamente NÃO limpamos ao cair na tela de login: sessão que expira por estar
   // offline é comum, e apagar ali destruiria dado local ainda não sincronizado. A limpeza
   // acontece no login, e só quando o dono realmente muda.
-  function onLogin(u) {
+  function onLogin(u, sessao) {
     if (saindo || trocandoPerfil) return;
+    if (sessao) conferirSessaoLeitor(sessao);
     var anterior = localStorage.getItem('catedra:_owner');
     var legado = {};
     if (!anterior && haviaLegado) {
@@ -1375,7 +1468,6 @@
     donoDaPagina = u.id;
     _si('catedra:_owner', u.id);
     user = u; pendente = null; avisoSessao = ''; ultimoEmail = u.email || '';
-    perfilNativo({ conta: u.id });
     try { sessionStorage.removeItem('catedra:_pend'); } catch (_) {}
     // O app precisa saber QUAL conta está logada. Há duas contas distintas em uso (a
     // administradora e a pessoal) e o Ajustes só mostrava um apelido salvo no
@@ -1514,7 +1606,7 @@
     return true;
   }
   function showLoginState() {
-    perfilNativo({ conta: '' });
+    encerrarLeitor();
     user = null; pendente = null;
     try {
       if (window.CatedraAuth) window.CatedraAuth.user = null;
@@ -1544,8 +1636,8 @@
   // Erro de REDE (sem internet, DNS, portal cativo) ≠ erro de AUTENTICAÇÃO (refresh recusado).
   // O supabase-js marca o primeiro como AuthRetryableFetchError e PRESERVA a sessão guardada;
   // no segundo ele apaga a sessão e emite SIGNED_OUT. Só o primeiro autoriza abrir offline.
-  function erroDeRede(err) {
-    if (navigator.onLine === false) return true;
+  function erroDeRede(err) { return navigator.onLine === false || falhaDeConexao(err); }
+  function falhaDeConexao(err) {
     if (!err) return false;
     try { if (window.supabase.isAuthRetryableFetchError && window.supabase.isAuthRetryableFetchError(err)) return true; } catch (_) {}
     return err.name === 'AuthRetryableFetchError' || /failed to fetch|load failed|network/i.test(String(err.message || ''));
@@ -1555,7 +1647,7 @@
   // recusava) e trancava todo o estudo local. Nada sobe (user fica nulo), nada é apagado.
   function entrarPendente(dono) {
     pendente = dono; hydrating = false;
-    perfilNativo({ conta: dono });
+    encerrarLeitor();
     try { window.dispatchEvent(new CustomEvent('catedra:perfilpronto')); } catch (_) {}
     var tinha = false; try { tinha = localStorage.getItem('catedra:auth') === '1'; } catch (_) {}
     _si('catedra:auth', '1');
@@ -1577,13 +1669,13 @@
       reconfirmando = false;
       if (!pendente) return;
       var s = res && res.data && res.data.session;
-      if (s && s.user) { retomarSessao(s.user); return; }
+      if (s && s.user) { retomarSessao(s); return; }
       if (erroDeRede(res && res.error)) return;   // ainda sem rede: segue pendente
       sessaoExpirou();   // inválida de verdade (refresh recusado, ou sumiu): login, sem apagar nada
     }).catch(function () { reconfirmando = false; });
   }
   // Sessão reconfirmada: segue o onLogin normal — mesmo dono mescla; outro dono limpa (regra de sempre).
-  function retomarSessao(u) { pendente = null; viaPendente = true; onLogin(u); }
+  function retomarSessao(sessao) { pendente = null; viaPendente = true; onLogin(sessao.user, sessao); }
 
   // Tela de NOVA SENHA — o link do e-mail de recuperação volta para cá. Sem ela o link
   // não levaria a lugar nenhum: o supabase-js abre a sessão a partir do hash da URL e o
@@ -1606,10 +1698,10 @@
       b.disabled = true; b.textContent = 'Salvando…';
       sb.auth.updateUser({ password: nova }).then(function (res) {
         if (res.error) { b.disabled = false; b.textContent = 'Salvar nova senha'; erro.textContent = translateErr(res.error.message); return; }
-        try { history.replaceState(null, '', location.pathname); } catch (_) {}
+        try { history.replaceState(null, '', retornoDoLogin()); } catch (_) {}
         sb.auth.getSession().then(function (r) {
           var s = r && r.data && r.data.session;
-          if (s && s.user) onLogin(s.user); else showLoginState();
+          if (s && s.user) { ehRecuperacao = false; onLogin(s.user, s); } else showLoginState();
         });
       }).catch(function () { b.disabled = false; b.textContent = 'Salvar nova senha'; erro.textContent = 'Não deu para salvar agora. Tente de novo.'; });
     };
@@ -1783,7 +1875,7 @@
     avisarWidgetSaida();   // o app nativo apaga passe e resumo do grupo: o widget não mostra a conta que saiu
     revogarPasseWidget().then(function () { sb.auth.signOut().then(fin, fin); });
   }
-  window.CatedraAuth = { originalDoLegado: originalDoLegado, recuperarLegado: recuperarLegado, get contaLocal() { return paginaAtual() && ((user && user.id) || pendente) || ''; }, logout: logout, client: sb, excluirConta: excluirConta, abrirDoc: abrirDoc };
+  window.CatedraAuth = { get contaLeitor() { return contaLeitor(); }, solicitarLoginLeitor: solicitarLoginLeitor, originalDoLegado: originalDoLegado, recuperarLegado: recuperarLegado, get contaLocal() { return paginaAtual() && ((user && user.id) || pendente) || ''; }, logout: logout, client: sb, excluirConta: excluirConta, abrirDoc: abrirDoc };
 
   showLoading('…');
   // Sem sessão: por FALTA DE REDE (o refresh não chegou ao servidor, ou o aparelho está
@@ -1824,7 +1916,7 @@
     if (res && res.sessaoEncerrada) { avisoSessao = AVISO_SESSAO; showLoginState(); return; }
     var s = res && res.data && res.data.session;
     if (ehRecuperacao) { showNovaSenha(); return; }
-    if (s && s.user) onLogin(s.user); else semSessao(res && res.error);
+    if (s && s.user) onLogin(s.user, s); else semSessao(res && res.error);
   }).catch(function (err) {
     semSessao(err);
     if (!pendente && erroDeRede(err)) {

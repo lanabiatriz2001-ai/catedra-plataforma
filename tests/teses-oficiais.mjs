@@ -37,6 +37,7 @@
          destaque (★/⚡) da web é do acervo (coluna im) — o estudo pessoal é favorito/status/marca;
    · (h) navegador: estudo antigo que volta inteiro (sem est.mig) é unido na abertura seguinte; o que
          já traz est.mig não é reunido. */
+import { abrirComponenteDoLeitor } from './_sessao-leitores.mjs';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -292,7 +293,7 @@ export async function testarTesesOficiaisNavegador(page, base, ok, opcoes = {}) 
   const ref = lerReferencia();
   // o registro de título oficial mais longo: é o que mais castiga a lista e o verbete
   const [id, o] = Object.entries(ref).sort((a, b) => (b[1].tema || '').length - (a[1].tema || '').length)[0];
-  await page.goto(base + '/juris-web.html');
+  await abrirComponenteDoLeitor(page, base + '/juris-web.html');
   await page.waitForFunction(() => typeof window.jurisAbrirPorId === 'function' && !!window.__JURIS_IDX__
     && document.querySelectorAll('.vcard').length > 0, null, { timeout: 25000 });
   // lista: busca pelo título ("Tema N (…)") e mede o tema do card
@@ -375,7 +376,7 @@ export async function testarMigracaoL4Navegador(page, base, ok, opcoes = {}) {
       localStorage.setItem('catedra:grifosJuris:' + retirado, JSON.stringify([{ gi: 0, s: 0, t: 'grifo órfão' }]));
     }, { fundido, fundido2, canonico2, retirado, vivo });
     const abre = async () => {
-      await p.goto(base + '/juris-web.html');
+      await abrirComponenteDoLeitor(p, base + '/juris-web.html');
       await p.waitForFunction(() => typeof window.jurisAbrirPorId === 'function' && document.querySelectorAll('.vcard').length > 0, null, { timeout: 25000 });
       await p.waitForTimeout(300);
     };

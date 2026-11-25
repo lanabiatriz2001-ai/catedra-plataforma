@@ -409,3 +409,16 @@ body .rdr.leitura::before { content: none; }
 body .rdr.leitura { background: var(--rcanA); }
 .rdr.leitura .docwrap,
 .rdr .map { overflow-wrap: anywhere; }
+
+/* Entrada dos acervos enquanto o Cátedra confere a sessão. */
+#ct-entrada-leitor {
+  margin: var(--sp-4, 1rem);
+  color: var(--ink);
+  font-size: var(--fs-base);
+}
+#ct-entrada-leitor a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-h, 2.75rem);
+  color: var(--accentD, currentColor);
+}

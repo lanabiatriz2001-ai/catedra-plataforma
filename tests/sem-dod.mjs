@@ -22,6 +22,7 @@
          tinha ficado colado no INF2020-0854.
    "Dizer o Direito" é procurado com maiúsculas: "dizer o direito" em minúsculas é a juris
    dictio e aparece em enunciado legítimo (INF2024-0343, arguição oral). */
+import { abrirComponenteDoLeitor } from './_sessao-leitores.mjs';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -147,7 +148,7 @@ export async function testarSemDodNavegador(page, base, ok, opcoes = {}) {
   const pegaErro = (e) => erros.push(String(e && e.message || e));
   page.on('pageerror', pegaErro);
   try {
-    await page.goto(base + '/juris-web.html');
+    await abrirComponenteDoLeitor(page, base + '/juris-web.html');
     await page.waitForTimeout(1800);
     const r = await page.evaluate(async () => {
       const w = ms => new Promise(res => setTimeout(res, ms));

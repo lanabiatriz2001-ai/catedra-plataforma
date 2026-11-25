@@ -55,7 +55,7 @@ const pub = join(ROOT, 'public');
    a conferência acontece ANTES de qualquer escrita e de qualquer rede. Antes o laço de
    cópia pulava em silêncio o que faltava: um arquivo renomeado ou apagado saía do deploy
    sem ninguém ver, e o satélite que dependia dele abria quebrado só em produção. */
-const COPIAR = ['support.js', 'icon.svg', 'auth.js', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'discursivas-textos.js', 'espelhos.js', 'segunda-fase-web.html', 'prioridade-dados.js', 'prioridade-web.html', 'oral.js', 'oral-conteudo.js', 'treino.js', 'tema-satelite.js', 'satellite-base.css', 'leis-catalogo.js', 'busca-unica.js', 'prioridade-calc.js', 'fsrs.js', 'ciclo-magistratura.js', 'ct-dados.js', 'leis-seca.js', 'leis-seca-areas.js', 'questoes-prova.js', 'area-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'mapa-grafo.js', 'mapa-processual.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'area-modulos.js', 'semana-juris.js', 'novidades.js', 'revisao-oficial.js', 'plataformas-questoes.js', 'espelho-sugerido.js', 'redacao-motor.js', 'area-registry.js', 'casos.js', 'leitura-ativa.js', 'enam.js', 'questoes-enam.js', 'catedra-ui.css', 'juridico.js', 'termos.html', 'privacidade.html', 'sobre.html', 'incidencia-verbetes.js'];
+const COPIAR = ['support.js', 'icon.svg', 'auth.js', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'discursivas-textos.js', 'espelhos.js', 'segunda-fase-web.html', 'prioridade-dados.js', 'prioridade-web.html', 'oral.js', 'oral-conteudo.js', 'treino.js', 'sessao-leitor.js', 'tema-satelite.js', 'satellite-base.css', 'leis-catalogo.js', 'busca-unica.js', 'prioridade-calc.js', 'fsrs.js', 'ciclo-magistratura.js', 'ct-dados.js', 'leis-seca.js', 'leis-seca-areas.js', 'questoes-prova.js', 'area-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'mapa-grafo.js', 'mapa-processual.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'area-modulos.js', 'semana-juris.js', 'novidades.js', 'revisao-oficial.js', 'plataformas-questoes.js', 'espelho-sugerido.js', 'redacao-motor.js', 'area-registry.js', 'casos.js', 'leitura-ativa.js', 'enam.js', 'questoes-enam.js', 'catedra-ui.css', 'juridico.js', 'termos.html', 'privacidade.html', 'sobre.html', 'incidencia-verbetes.js'];
 {
   const faltam = COPIAR.filter((f) => !existsSync(join(ROOT, f)));
   if (!existsSync(join(ROOT, 'dados'))) faltam.push('dados/');
@@ -325,7 +325,9 @@ if (fontsHref) {
 writeFileSync(join(pub, 'index.html'), out);
 
 for (const f of COPIAR) {
-  if (f === 'catedra-ui.css') {
+  if (f === 'legis-web.html' || f === 'juris-web.html') {
+    writeFileSync(join(pub, f), read(f).replace('href="./Catedra.dc.html?leitor=', 'href="./index.html?leitor='));
+  } else if (f === 'catedra-ui.css') {
     // Comentários ficam no fonte; o CSS publicado mantém as regras sem ocupar o precache.
     const css = readFileSync(join(ROOT, f), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
     writeFileSync(join(pub, f), css);
@@ -405,7 +407,7 @@ for (const nome of pastasDeDados()) {
 const acervoOffline = [
   // 1. as telas satélite — sem elas, abrir LEGIS/JURIS/roteiros offline dá tela branca
   // catedra-ui.css já é obrigatória na instalação da casca e só ocupa essa cota uma vez.
-  './tema-satelite.js', './satellite-base.css', './ritos-web.html', './pecas-web.html', './area-web.html',
+  './sessao-leitor.js', './tema-satelite.js', './satellite-base.css', './ritos-web.html', './pecas-web.html', './area-web.html',
   './legis-web.html', './juris-web.html', './segunda-fase-web.html', './prioridade-web.html',
   // 2. os scripts que cada satélite carrega
   './ritos.js', './pecas.js', './fluxos.js', './peca-roteiro.js',

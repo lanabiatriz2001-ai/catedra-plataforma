@@ -24,7 +24,9 @@
   try { Object.defineProperty(Navigator.prototype, 'onLine', { configurable: true, get: function () { return localStorage.getItem('__ct:online') !== '0'; } }); } catch (_) {}
 
   function sessao(u) { return u ? { user: u, access_token: 'tok-' + u.id, refresh_token: 'r', expires_at: 4102444800 } : null; }
-  window.CATEDRA_SUPABASE = { url: 'https://exemplo.invalido', key: 'chave-de-teste' };
+  // O cliente abaixo é inteiramente local, inclusive quando simula o emissor da produção.
+  window.CATEDRA_SUPABASE = { url: cfg('emissorLeitor', 'https://exemplo.invalido'), key: 'chave-de-teste' };
+  window.CATEDRA_OAUTH = cfg('provedores', []);
   window.supabase = {
     isAuthRetryableFetchError: function (e) { return !!e && e.name === 'AuthRetryableFetchError'; },
     createClient: function () {
@@ -36,6 +38,16 @@
             var u = cfg('sessao', null), err = cfg('sessaoErro', null);
             return Promise.resolve({ data: { session: u && !err ? sessao(u) : null }, error: err });
           },
+          getClaims: function (token, opcoes) {
+            var chave = opcoes && opcoes.jwks && opcoes.jwks.keys[0];
+            chamou('getClaims', chave ? chave.kid : null);
+            var erroRemoto = cfg('erroClaimsRemoto', null);
+            if (!chave && erroRemoto) return Promise.resolve({ data: null, error: erroRemoto });
+            var claims = cfg('leitorClaims', null);
+            var res = claims && token === 'tok-' + claims.sub ? { data: { claims: claims }, error: null } : { data: null, error: { message: 'Credencial de teste recusada' } };
+            if (cfg('aguardarClaims', false)) return new Promise(function (resolve) { window.__resolverClaims = function () { resolve(res); }; });
+            return Promise.resolve(res);
+          },
           onAuthStateChange: function (cb) { window.__ctAuthCb = cb; return { data: { subscription: { unsubscribe: function () {} } } }; },
           signInWithPassword: function (a) {
             chamou('signInWithPassword', { email: a.email });
@@ -45,10 +57,10 @@
             if (window.__ctAuthCb) window.__ctAuthCb('SIGNED_IN', sessao(u));
             return Promise.resolve({ data: { session: sessao(u) }, error: null });
           },
-          signUp: function (a) { chamou('signUp', { email: a.email }); return Promise.resolve({ data: { session: null, user: { id: 'novo' } }, error: null }); },
-          signInWithOtp: function () { return Promise.resolve({ data: {}, error: null }); },
-          signInWithOAuth: function () { return Promise.resolve({ data: {}, error: null }); },
-          resetPasswordForEmail: function (em) { chamou('resetPasswordForEmail', em); return Promise.resolve({ data: {}, error: null }); },
+          signUp: function (a) { chamou('signUp', { email: a.email, retorno: a.options.emailRedirectTo }); return Promise.resolve({ data: { session: null, user: { id: 'novo' } }, error: null }); },
+          signInWithOtp: function (a) { chamou('signInWithOtp', a.options.emailRedirectTo); return Promise.resolve({ data: {}, error: null }); },
+          signInWithOAuth: function (a) { chamou('signInWithOAuth', a.options.redirectTo); return Promise.resolve({ data: {}, error: null }); },
+          resetPasswordForEmail: function (em, opcoes) { chamou('resetPasswordForEmail', { email: em, retorno: opcoes.redirectTo }); return Promise.resolve({ data: {}, error: null }); },
           updateUser: function () { return Promise.resolve({ data: {}, error: null }); },
           signOut: function () { chamou('signOut'); try { localStorage.removeItem('__ct:sessao'); } catch (_) {} return Promise.resolve({ error: null }); },
           getUser: function () { return Promise.resolve({ data: { user: null }, error: null }); }

@@ -15,6 +15,7 @@ const PARAS = ['Art. 1.239. Aquele que, não sendo proprietário de imóvel rura
  * @param ok     coletor: ok(cond, rótulo)
  * @param opcoes { motor, origem } — só para o rótulo
  */
+import { abrirComponenteDoLeitor } from './_sessao-leitores.mjs';
 export async function testarLegisGuiado(page, base, ok, opcoes = {}) {
   const motor = opcoes.motor || 'chromium';
   const origem = opcoes.origem || (String(base).startsWith('file:') ? 'file' : 'http');
@@ -23,7 +24,7 @@ export async function testarLegisGuiado(page, base, ok, opcoes = {}) {
   const aoErro = e => { const m = String(e && e.message || e); const esperado = origem !== 'http' && /access control checks|Cross origin|Access-Control|Failed to fetch/i.test(m); if (!esperado) erros.push(m); };
   page.on('pageerror', aoErro);
   try {
-    await page.goto(base + '/legis-web.html?area=juridica');
+    await abrirComponenteDoLeitor(page, base + '/legis-web.html?area=juridica');
     await page.waitForFunction(() => !!window.openReader && !!window.CT_LA && !!window.CT_LA_CANAL, null, { timeout: 15000 });
     await page.evaluate((paras) => {
       Object.keys(localStorage).filter(k => k.startsWith('catedra:leituras:') || k.startsWith('catedra:grifos:')).forEach(k => localStorage.removeItem(k));

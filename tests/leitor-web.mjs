@@ -11,6 +11,7 @@
    O texto da lei vem de um fetch de mentira (como tests/legis-guiado.mjs).
    Roda sozinho: node tests/leitor-web.mjs  (Chromium do sistema, via file://). */
 
+import { abrirComponenteDoLeitor } from './_sessao-leitores.mjs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -71,7 +72,7 @@ async function medirPapelDoLeitor(page, seletor, botao, selo, ok) {
 export async function testarLeitorWeb(page, base, ok) {
   const R = 'LEITOR WEB ';
   // ── JURIS ──
-  await page.goto(base + '/juris-web.html');
+  await abrirComponenteDoLeitor(page, base + '/juris-web.html');
   await page.waitForFunction(() => document.querySelectorAll('.vcard').length > 0, null, { timeout: 30000 });
   const j = await page.evaluate((re) => {
     const c = document.querySelector('.vcard');
@@ -90,7 +91,7 @@ export async function testarLeitorWeb(page, base, ok) {
 
   // Recebendo um id exato, o JURIS abre AQUELE verbete (não busca pelo texto).
   const ID = 'INF2026-STJ-895-12';
-  await page.goto(base + '/juris-web.html?q=' + encodeURIComponent(ID));
+  await abrirComponenteDoLeitor(page, base + '/juris-web.html?q=' + encodeURIComponent(ID));
   const abriu = await page.waitForFunction((id) => {
     const r = document.getElementById('jrdr');
     return r && r.classList.contains('on') && window.jurisVerbeteAberto && window.jurisVerbeteAberto() === id;
@@ -114,7 +115,7 @@ export async function testarLeitorWeb(page, base, ok) {
   }
 
   // ── LEGIS ──
-  await page.goto(base + '/legis-web.html?area=juridica');
+  await abrirComponenteDoLeitor(page, base + '/legis-web.html?area=juridica');
   await page.waitForFunction(() => !!window.openReader && typeof CAT !== 'undefined', null, { timeout: 15000 });
   const cabLegis = await page.evaluate(() => (document.querySelector('.head') || {}).textContent || '');
   ok(!EMOJI.test(cabLegis), R + 'LEGIS: cabeçalho sem emoji como ícone');

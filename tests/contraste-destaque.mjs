@@ -19,6 +19,7 @@
 
 const PONTOS_MIN = 4.5;
 
+import { definirContaLeitora } from './_sessao-leitores.mjs';
 export async function testarContrasteDestaque(pageDaSuite, base, ok, opcoes = {}) {
   const motor = opcoes.motor || 'chromium';
   const R = 'CONTRASTE/DESTAQUE [' + motor + '] ';
@@ -30,6 +31,7 @@ export async function testarContrasteDestaque(pageDaSuite, base, ok, opcoes = {}
     await page.goto(base + '/__semente');
     await page.evaluate(semear);
     await page.goto(base + '/Catedra.dc.html');
+    await definirContaLeitora(page);
     await page.waitForFunction(() => !!window.__catedraApp && typeof window.__catedraGoView === 'function', null, { timeout: 30000 });
     await page.waitForTimeout(1200);
     await page.evaluate(instalar);

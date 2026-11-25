@@ -58,6 +58,7 @@
    com o app aberto é corrida com o autosave. Em file:// (o caminho dos apps nativos) não há
    rota inexistente: a semente vai com o app aberto e o autosave desligado na instância. */
 
+import { definirContaLeitora, verificarEntradaEmArquivoOpaco } from './_sessao-leitores.mjs';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
@@ -155,6 +156,7 @@ async function abrirApp(page, base, arquivo, comSegundaFase) {
   await page.goto(base + '/' + arquivo);
   await page.waitForFunction(() => !!window.__catedraApp && typeof window.__catedraGoView === 'function', null, { timeout: 30000 });
   await page.waitForTimeout(1200);
+  await definirContaLeitora(page);
   await page.evaluate(instalarAjudantes);
 }
 
@@ -1480,6 +1482,13 @@ async function roteiroWebArquivo(page, ok, R) {
   const a1 = await V(async () => { const vo = window.__vo; await vo.naView('legis'); return { view: vo.app().state.view, de: vo.de() }; });
   ok(a1.view === 'legis' && !!a1.de && a1.de.view === 'areamod' && a1.de.rito === a0.rito && a1.de.rotulo === 'Voltar ao rito',
     R + 'RITO a ida pelo chip do fluxograma grava {view:areamod, rito, "Voltar ao rito"} (' + JSON.stringify(a1.de) + ')');
+  const leitor = await quadro(page, 'legis', () => !!document.getElementById('ct-entrada-leitor'));
+  if (!leitor) { ok(false, R + 'RITO o quadro do LEGIS abriu'); return; }
+  const portao = await verificarEntradaEmArquivoOpaco(leitor, 'legis');
+  if (portao !== null) {
+    ok(portao, R + 'RITO o LEGIS pede login sem abrir as notas quando file:// isola o host');
+    return;
+  }
   conferirPilula(ok, R, 'RITO', 'legis', await pilulaQ(page, 'legis'), 'Voltar ao rito');
   await fr.evaluate(o => window.ctAbrirPonto(o), a0.outro);
   await espiarQ(fr);
@@ -1580,9 +1589,12 @@ async function roteiroNativo(page, ok, R, completo) {
       return { de: vo.de(), exposto: typeof window.__catedraOrigemAcervo === 'function' ? window.__catedraOrigemAcervo() : 'sem C1' }; });
     ok(!!h0.de && h0.de.view === 'ciclo' && JSON.stringify(h0.exposto) === JSON.stringify(h0.de),
       R + 'C1 window.__catedraOrigemAcervo() devolve a origem guardada, igual ao estado (' + JSON.stringify(h0.exposto) + ')');
-    const fLegis = await quadro(page, 'legis', () => typeof window.ctEnviarAoHost === 'function');
+    const fLegis = await quadro(page, 'legis', () => !!document.getElementById('ct-entrada-leitor'));
+    const portao = fLegis && await verificarEntradaEmArquivoOpaco(fLegis, 'legis');
     if (!fLegis) ok(false, R + 'o legis-web carregou para o salto');
+    else if (portao !== null) ok(portao, R + 'o leitor com pai opaco pede login antes de montar a ponte');
     else {
+      await fLegis.waitForFunction(() => typeof window.ctEnviarAoHost === 'function');
       const n = await nNativo();
       // o frame tenta impor uma origem sua (de e origem): o shim tem de ignorar as duas
       await fLegis.evaluate(() => window.ctEnviarAoHost({ type: 'ctAbrirAcervo', alvo: 'juris', termo: 'art. 5',

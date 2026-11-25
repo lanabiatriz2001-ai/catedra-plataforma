@@ -19,6 +19,7 @@ import { createHash } from 'crypto';
 import { spawnSync } from 'child_process';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { iniciarServidor, lancarNavegador } from './_infra.mjs';
+import { definirContaLeitora, abrirComponenteDoLeitor } from './_sessao-leitores.mjs';
 import { testarOralPontos } from './oral-pontos.mjs';
 import { testarOralLeiSeca } from './oral-lei-seca.mjs';
 import { testarPastaSincronizada } from './pasta-sincronizada.mjs';
@@ -38,7 +39,10 @@ import { testarImportadorEdital } from './importador-edital.mjs';
 import { testarEditalPorConcurso } from './edital-por-concurso.mjs';
 import { testarTemplateFileUrl } from './template-file-url.mjs';
 import { testarPerfisLeitores } from './perfis-leitores.mjs';
+import { testarLoginLeitoresWeb } from './login-leitores-web.mjs';
+import { testarLoginLeitoresPublicados } from './login-leitores-publicados.mjs';
 import { testarSegurancaPerfilRelease } from './seguranca-perfil-release.mjs';
+import { testarLoginLeitoresAuth } from './login-leitores-auth.mjs';
 import { testarAuthModoLocal } from './auth-modo-local.mjs';
 import { testarSyncMemoriaVelha } from './sync-memoria-velha.mjs';
 import { testarBackupDriveErros } from './backup-drive-erros.mjs';
@@ -140,6 +144,7 @@ catch (e) { ok(false, 'PRIORIDADE erro resolvido exceção: ' + e.message); }
    Os casos antigos usavam window.postMessage no próprio host, o que não representa a
    ponte real e obrigava a produção a aceitar a janela principal como se fosse iframe. */
 async function prepararPonteReal(page, view) {
+  await definirContaLeitora(page);
   await page.evaluate((v) => window.__catedraGoView(v), view);
   await page.waitForFunction((v) => {
     const f = document.querySelector('iframe[data-ct-view="' + v + '"][data-ct-frame]');
@@ -1236,7 +1241,7 @@ ok(a3.de && a3.de.peca && a3.de.bloco != null, 'ACERVO chip do painel manda de.p
 // no host real e com a pílula medida, está em tests/volta-origem.mjs.
 for (const [pg, texto] of [['legis-web.html?volta=1&vr=' + encodeURIComponent('Voltar à peça · bloco 3'), 'Voltar à peça · bloco 3'],
                            ['juris-web.html?volta=1', 'Voltar']]) {
-  await page.goto(URL0 + '/' + pg);
+  await abrirComponenteDoLeitor(page, URL0 + '/' + pg);
   await page.waitForTimeout(400);
   const a4 = await page.evaluate(async (texto) => {
     const b = document.getElementById('ct-volta');
@@ -1260,7 +1265,7 @@ for (const [pg, texto] of [['legis-web.html?volta=1&vr=' + encodeURIComponent('V
   }, texto);
   ok(a4.pill && a4.msg && a4.msg.type === 'ctVoltarAcervo', 'ACERVO pílula "' + texto + '" funciona em ' + pg.split('?')[0]);
 }
-await page.goto(URL0 + '/legis-web.html');
+await abrirComponenteDoLeitor(page, URL0 + '/legis-web.html');
 await page.waitForTimeout(300);
 const a4b = await page.evaluate(() => { const b = document.getElementById('ct-volta'); return !b || getComputedStyle(b).display === 'none'; });
 ok(a4b, 'ACERVO sem volta=1 não há pílula');
@@ -1735,7 +1740,7 @@ await page.evaluate(() => {
     'INF2022-0470': { ts: 9, q: 'orçamento preservado' }
   }));
 });
-await page.goto(URL0 + '/juris-web.html');
+await abrirComponenteDoLeitor(page, URL0 + '/juris-web.html');
 await page.waitForFunction(() => typeof window.openVerbete === 'function');
 const migrado = await page.evaluate(() => ({
   estudo: JSON.parse(localStorage.getItem('catedra:jurisEstudo') || '{}'),
@@ -2014,7 +2019,7 @@ for (const [k, v] of Object.entries(la)) ok(v, 'LEITURA ' + k);
 
 // (d) o espelho do LEGIS: a resposta do host sobrescreve 'catedra:leituras:<leiId>' e avisa a página
 {
-  await page.goto(URL0 + '/legis-web.html?area=juridica');
+  await abrirComponenteDoLeitor(page, URL0 + '/legis-web.html?area=juridica');
   await page.waitForFunction(() => !!(window.CT_LA_CANAL && window.CT_LA));
   const esp = await page.evaluate(async () => {
     const r = {}, C = window.CT_LA_CANAL, LEI = 'https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm';
@@ -2057,7 +2062,7 @@ for (const [k, v] of Object.entries(la)) ok(v, 'LEITURA ' + k);
   const TXT = 'Aquele que, não sendo proprietário de imóvel rural ou urbano, possua como sua, por cinco anos ininterruptos, sem oposição, área de terra em zona rural não superior a cinqüenta hectares, tornando-a produtiva por seu trabalho ou de sua família, tendo nela sua moradia, adquirir-lhe-á a propriedade.';
   const PARAS = ['TÍTULO III', 'Da Propriedade', 'Art. 1.239. ' + TXT, 'Parágrafo único. O texto do parágrafo único.', 'Art. 1.240. Outro artigo, com um inciso:', 'I - primeiro inciso do artigo.'];
   const abrir = async () => {
-    await page.goto(URL0 + '/legis-web.html?area=juridica');
+    await abrirComponenteDoLeitor(page, URL0 + '/legis-web.html?area=juridica');
     await page.waitForFunction(() => !!window.openReader && !!window.CT_LA && !!window.CT_LA_CANAL);
     await page.evaluate((paras) => {
       // o leitor busca o texto em /api/law: aqui a lei vem de um fetch de mentira
@@ -2066,7 +2071,7 @@ for (const [k, v] of Object.entries(la)) ok(v, 'LEITURA ' + k);
     }, PARAS);
     await page.waitForFunction(() => document.querySelectorAll('#rdrDoc .gr').length >= 3);
   };
-  await page.goto(URL0 + '/legis-web.html?area=juridica');
+  await abrirComponenteDoLeitor(page, URL0 + '/legis-web.html?area=juridica');
   await page.evaluate(() => { localStorage.removeItem('catedra:leitorLA'); Object.keys(localStorage).filter(k => k.startsWith('catedra:leituras:') || k.startsWith('catedra:grifos:')).forEach(k => localStorage.removeItem(k)); });
   await abrir();
   const la2 = await page.evaluate(async (TXT) => {
@@ -2346,7 +2351,7 @@ for (const [k, v] of Object.entries(la4m)) ok(v, 'LEITURA/CONFERIR ' + k);
 //     avaliar, e a rodada inteira sai numa mensagem só
 {
   const PARAS = ['Art. 1.239. Aquele que, não sendo proprietário de imóvel rural ou urbano, possua como sua, por cinco anos ininterruptos, sem oposição, área de terra em zona rural, tornando-a produtiva por seu trabalho, tendo nela sua moradia, adquirir-lhe-á a propriedade.'];
-  await page.goto(URL0 + '/legis-web.html?area=juridica');
+  await abrirComponenteDoLeitor(page, URL0 + '/legis-web.html?area=juridica');
   await page.waitForFunction(() => !!window.openReader && !!window.CT_LA && !!window.CT_LA_CANAL);
   await page.evaluate((paras) => {
     Object.keys(localStorage).filter(k => k.startsWith('catedra:leituras:') || k.startsWith('catedra:grifos:')).forEach(k => localStorage.removeItem(k));
@@ -2602,7 +2607,7 @@ for (const [k, v] of Object.entries(la5m)) ok(v, 'LEITURA/CLOZE ' + k);
 // (c) o leitor: inciso junta o tronco do caput; dispositivo revogado avisa no trilho e marca o cartão
 {
   const PARAS = ['Art. 1.240. Outro artigo, com um inciso:', 'I - primeiro inciso do artigo com prazo de 10 dias.', 'Art. 1.241. Artigo que caiu. (Revogado pela Lei nº 14.000, de 2020)'];
-  await page.goto(URL0 + '/legis-web.html?area=juridica');
+  await abrirComponenteDoLeitor(page, URL0 + '/legis-web.html?area=juridica');
   await page.waitForFunction(() => !!window.openReader && !!window.CT_LA && !!window.CT_LA_CANAL);
   await page.evaluate((paras) => {
     Object.keys(localStorage).filter(k => k.startsWith('catedra:leituras:') || k.startsWith('catedra:grifos:')).forEach(k => localStorage.removeItem(k));
@@ -2655,7 +2660,7 @@ for (const [k, v] of Object.entries(la5m)) ok(v, 'LEITURA/CLOZE ' + k);
   try { await testarLeitorWeb(pg, URL0, ok); } catch (e) { ok(false, 'LEITOR WEB: exceção — ' + (e && e.message)); }
   await ctx.close();
   // filtros "só incidência alta" e "só o que ainda não li"
-  await page.goto(URL0 + '/legis-web.html?area=juridica');
+  await abrirComponenteDoLeitor(page, URL0 + '/legis-web.html?area=juridica');
   await page.waitForFunction(() => !!window.openReader && !!window.CT_LA && !!window.CT_LA_CANAL);
   const gd = await page.evaluate(async () => {
     const w = ms => new Promise(res => setTimeout(res, ms));
@@ -2856,7 +2861,7 @@ for (const [k, v] of Object.entries(la6p)) ok(v, 'LEITURA/ONDE-MAIS prioridade '
 {
   const PARAS = ['Art. 1.239. Aquele que possua como sua por cinco anos.', 'Art. 1.240. Outro artigo.', 'Art. 1.241. Terceiro artigo.'];
   const CC = 'https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm';
-  await page.goto(URL0 + '/legis-web.html?area=juridica&la=' + encodeURIComponent(CC) + '&rot=' + encodeURIComponent('art. 1.241'));
+  await abrirComponenteDoLeitor(page, URL0 + '/legis-web.html?area=juridica&la=' + encodeURIComponent(CC) + '&rot=' + encodeURIComponent('art. 1.241'));
   await page.waitForFunction(() => !!window.openReader && !!window.CT_LA && !!window.ctLeituraAbrir);
   // a página abriu com ?la=…: o pedido ficou pendente porque o texto ainda não veio (fetch de mentira entra agora)
   const la6l = await page.evaluate(async (paras) => {
@@ -3750,6 +3755,7 @@ await comCadernoEnam(async (page) => {
   await page.goto(host);
   await page.evaluate(() => { try { const p = JSON.parse(localStorage.getItem('catedra:prefs') || '{}'); delete p.baixaEstimulacao; localStorage.setItem('catedra:prefs', JSON.stringify(p)); } catch (_) {} });
   await page.goto(host); await page.waitForTimeout(1600);
+  await definirContaLeitora(page);
   const h = await page.evaluate(async () => {
     const w = ms => new Promise(res => setTimeout(res, ms));
     const r = {}, app = window.__catedraApp, raiz = document.querySelector('[data-dark][data-dir]');
@@ -3881,7 +3887,7 @@ await comCadernoEnam(async (page) => {
   // movimento. '1' liga, '' desliga, e a chave AUSENTE (host de bundle antigo) não mexe no que está.
   const sctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const sp = await sctx.newPage();
-  await sp.goto(URL0 + '/legis-web.html?area=juridica'); await sp.waitForTimeout(900);
+  await abrirComponenteDoLeitor(sp, URL0 + '/legis-web.html?area=juridica'); await sp.waitForTimeout(900);
   const s = await sp.evaluate(async () => {
     const w = ms => new Promise(res => setTimeout(res, ms)); const r = {};
     const durs = (v) => String(v || '0s').split(',').map(x => { x = x.trim(); return /ms$/.test(x) ? parseFloat(x) / 1000 : (parseFloat(x) || 0); });
@@ -4184,19 +4190,27 @@ catch (e) {
     await w(700);
     const pontos = [...document.querySelectorAll('main .ct-graf-ponto')];
     const alvo = pontos.find(b => /75/.test(b.getAttribute('aria-label') || '')) || pontos[0];
-    const opacidadeAntes = getComputedStyle(alvo, '::after').opacity;
-    alvo.focus(); await w(180);
-    const opacidadeFoco = getComputedStyle(alvo, '::after').opacity;
     return {
       quatroGraficos: document.querySelectorAll('main .ct-graf-interativo').length >= 4,
       todosSaoBotoes: pontos.length >= 20 && pontos.every(b => b.tagName === 'BUTTON' && b.type === 'button'),
       nomesComContexto: pontos.every(b => /(:|Semana de)/.test(b.getAttribute('aria-label') || '')),
       comparaPeriodo: pontos.some(b => /período anterior/.test(b.dataset.tip || '')),
       questoesExplicam: pontos.some(b => /acertos.*erros.*% de acerto/s.test(b.dataset.tip || '')),
-      tecladoMostra: parseFloat(opacidadeAntes) === 0 && parseFloat(opacidadeFoco) === 1,
       alvoToque: alvo.getBoundingClientRect().height >= 44
     };
   });
+  // Usa Tab de verdade e mede o fim da transição mesmo quando a primeira pintura atrasa.
+  await page.mouse.move(0, 0);
+  const botoes = page.locator('main .ct-graf-interativo:visible').first().locator('button.ct-graf-ponto:visible');
+  await botoes.first().focus();
+  const alvo = await botoes.nth(1).elementHandle();
+  const opacidadeAntes = await alvo.evaluate(b => getComputedStyle(b, '::after').opacity);
+  await page.keyboard.press('Tab');
+  const dicaVisivel = await page.waitForFunction(b =>
+    document.activeElement === b && getComputedStyle(b, '::after').opacity === '1',
+    alvo, { timeout: 5000 }
+  ).then(() => true, () => false);
+  r.tecladoMostra = opacidadeAntes === '0' && dicaVisivel;
   for (const [k, v] of Object.entries(r)) ok(v, 'GRÁFICOS interativos ' + k);
 }
 
@@ -5133,6 +5147,7 @@ await page.evaluate(() => ['catedra:lastPonto', 'catedra:lastPontoDispensado', '
 await page.goto(URL0 + '/Catedra.dc.html');
 await page.waitForTimeout(1700);
 
+await definirContaLeitora(page);
 const u1 = await page.evaluate(async () => {
   const w = ms => new Promise(r => setTimeout(r, ms));
   const fr = v => document.querySelector('iframe[data-ct-view="' + v + '"]');
@@ -5219,7 +5234,7 @@ ok(Object.values(d2.semParametro).every(Boolean), 'D2 os 7 satélites carregam a
 
 // a página avulsa mantém o cabeçalho inteiro; com ?embed=1 ele encolhe
 for (const pag of ['legis-web.html', 'ritos-web.html']) {
-  await page.goto(URL0 + '/' + pag);
+  await abrirComponenteDoLeitor(page, URL0 + '/' + pag);
   await page.waitForTimeout(700);
   const cheio = await page.evaluate(() => {
     const h = document.querySelector('.head') || document.querySelector('.brand');
@@ -5228,7 +5243,7 @@ for (const pag of ['legis-web.html', 'ritos-web.html']) {
              iconeVisivel: !!(ic && getComputedStyle(ic).display !== 'none'),
              alturaCab: h ? Math.round(h.getBoundingClientRect().height) : 0 };
   });
-  await page.goto(URL0 + '/' + pag + '?embed=1');
+  await abrirComponenteDoLeitor(page, URL0 + '/' + pag + '?embed=1');
   await page.waitForTimeout(700);
   const magro = await page.evaluate(() => {
     const h = document.querySelector('.head') || document.querySelector('.brand');
@@ -5245,6 +5260,7 @@ for (const pag of ['legis-web.html', 'ritos-web.html']) {
 // dentro do app: todos os iframes pedem embed=1, e as SEIS telas abrem de verdade
 await page.goto(URL0 + '/Catedra.dc.html');
 await page.waitForTimeout(1700);
+await definirContaLeitora(page);
 const d2b = await page.evaluate(async () => {
   const w = ms => new Promise(r => setTimeout(r, ms));
   const r = { telas: {} };
@@ -5322,10 +5338,10 @@ await page.route('**/api/law*', r => r.fulfill({
     'I - inciso de teste', 'a) alínea de teste', 'Art. 2º Segundo artigo de teste.'] }),
 }));
 await page.setViewportSize({ width: 1280, height: 800 });
-await page.goto(URL0 + '/legis-web.html');
+await abrirComponenteDoLeitor(page, URL0 + '/legis-web.html');
 await page.evaluate(() => ['catedra:legisEstudo', 'catedra:leitorLeitura', 'catedra:leitorDark']
   .forEach(k => localStorage.removeItem(k)));
-await page.goto(URL0 + '/legis-web.html');
+await abrirComponenteDoLeitor(page, URL0 + '/legis-web.html');
 await page.waitForTimeout(600);
 
 const lg = await page.evaluate(() => {
@@ -5439,7 +5455,7 @@ ok(lgFav.viraNumero, 'D4 com 1 favorita o slot volta a ser número');
 
 // D10 — foco visível na pílula: numa página recém-carregada a primeira parada do Tab é a
 // fileira de abas (um clique anterior movimenta o ponto de partida do Tab, mesmo com blur)
-await page.goto(URL0 + '/legis-web.html');
+await abrirComponenteDoLeitor(page, URL0 + '/legis-web.html');
 await page.waitForTimeout(400);
 await page.keyboard.press('Tab');
 const foco = await page.evaluate(() => { const el = document.activeElement, c = getComputedStyle(el);
@@ -5476,7 +5492,7 @@ ok(u7b.aria === 'true', 'U7 o botão do modo leitura diz o estado (aria-pressed)
 ok(u7b.guardado === '1' && u7b.soLocal, 'U7 a escolha fica no localStorage do aparelho (sem sync)');
 
 // e continua valendo na próxima abertura
-await page.goto(URL0 + '/legis-web.html');
+await abrirComponenteDoLeitor(page, URL0 + '/legis-web.html');
 await page.waitForTimeout(600);
 await page.evaluate(() => document.querySelector('.lawrow .lt').click());
 await page.waitForTimeout(400);
@@ -5485,7 +5501,7 @@ ok(await page.evaluate(() => document.getElementById('rdr').classList.contains('
 
 /* ---- D8: o mesmo exercício no celular ---- */
 await page.setViewportSize({ width: 375, height: 780 });
-await page.goto(URL0 + '/legis-web.html');
+await abrirComponenteDoLeitor(page, URL0 + '/legis-web.html');
 await page.waitForTimeout(600);
 const gordos = [];
 for (const t of ['catalog', 'plano', 'indice', 'incid']) {
@@ -5568,7 +5584,7 @@ await page.setViewportSize({ width: 1280, height: 720 });
   const pedidos = [];
   jp.on('pageerror', e => errosJuris.push(e.message));
   jp.on('request', r => pedidos.push(r.url()));
-  await jp.goto(URL0 + '/juris-web.html');
+  await abrirComponenteDoLeitor(jp, URL0 + '/juris-web.html');
   await jp.waitForTimeout(2400);
 
   // ---- D3(a): nenhum identificador técnico na interface
@@ -5712,7 +5728,7 @@ await page.setViewportSize({ width: 1280, height: 720 });
   ok(u7.foraDoSync, 'U7 a escolha fica no aparelho — chave fora do prefixo que sincroniza');
 
   // lembrado entre aberturas
-  await jp.goto(URL0 + '/juris-web.html');
+  await abrirComponenteDoLeitor(jp, URL0 + '/juris-web.html');
   await jp.waitForTimeout(2200);
   const u7b = await jp.evaluate(async () => {
     const w = ms => new Promise(r => setTimeout(r, ms));
@@ -5725,7 +5741,7 @@ await page.setViewportSize({ width: 1280, height: 720 });
   const mctx = await browser.newContext({ viewport: { width: 375, height: 780 }, isMobile: true, hasTouch: true });
   const mp = await mctx.newPage();
   mp.on('pageerror', e => errosJuris.push('mobile: ' + e.message));
-  await mp.goto(URL0 + '/juris-web.html');
+  await abrirComponenteDoLeitor(mp, URL0 + '/juris-web.html');
   await mp.waitForTimeout(2400);
   const d8 = await mp.evaluate(async () => {
     const w = ms => new Promise(r => setTimeout(r, ms));
@@ -6174,6 +6190,7 @@ await page.route('**/legis-web.html*', async (rota) => {
 });
 await page.goto(URL0 + '/Catedra.dc.html');
 await page.waitForTimeout(1700);
+await definirContaLeitora(page);
 const u2 = await page.evaluate(async () => {
   const w = ms => new Promise(r => setTimeout(r, ms));
   const skel = () => !!document.querySelector('.ct-skelbox');
@@ -9912,7 +9929,10 @@ try { await testarCotaIA(page, URL0, ok); } catch (e) { ok(false, 'COTA/IA exce�
 { const ctxR = await browser.newContext(); const pageR = await ctxR.newPage(); try { await testarReguaUnica(pageR, URL0, ok); } catch (e) { ok(false, 'RÉGUA/única exceção: ' + e.message); } finally { await ctxR.close(); } }
 try { await testarTemplateFileUrl(browser, URL0, ok, { motor }); } catch (e) { ok(false, 'TEMPLATE/file exceção: ' + e.message); }
 testarPerfisLeitores(ok);
+await testarLoginLeitoresWeb(browser, URL0, ok);
+await testarLoginLeitoresPublicados(browser, URL0, ok);
 await testarSegurancaPerfilRelease(page, URL0, ok);
+await testarLoginLeitoresAuth(browser, URL0, ok);
 { const ctxML = await browser.newContext(); const pML = await ctxML.newPage(); try { await testarAuthModoLocal(pML, URL0, ok); } catch (e) { ok(false, 'MODO LOCAL exceção: ' + e.message); } finally { await ctxML.close(); } }
 // backup na nuvem pessoal: erro do Drive em português e nenhum clique acende a faixa vermelha global
 try { await testarBackupDriveErros(browser, URL0, ok); } catch (e) { ok(false, 'BACKUP/Drive exceção: ' + e.message); }

@@ -328,14 +328,17 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   .fav{min-width:44px;min-height:44px;font-size:20px;display:flex;align-items:center;justify-content:center}
   .rdr .back,.rdr .nav,.rdr .tool{min-width:44px;min-height:44px}
 }
-</style>
+</style><script src="./sessao-leitor.js"></script></head>
+<body>
+<main id="ct-entrada-leitor"><p>Entre na sua conta para abrir o leitor.</p>
+<a href="./Catedra.dc.html?leitor=juris" target="_top">Entrar no Cátedra</a></main>
+<template id="ct-conteudo-leitor">
 <script src="./tema-satelite.js"></script>
 <script src="ct-dados.js"></script>
 <script src="juris-index.js"></script>
 <script src="./novidades.js"></script>
 <script src="./revisao-oficial.js"></script>
-</head>
-<body><div class="wrap">
+<div class="wrap">
 <div class="head"><div class="ic" id="hIc"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="scale"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path></svg></div><div><h1 id="hTit">CátedraJURIS</h1><p id="hSub">Vade mecum de jurisprudência · STF, STJ, TSE, TJRO e os tribunais de contas</p></div></div>
 <div class="tabs ct-chips ct-rolo" id="tabs">
   <button class="tab on" data-pane="acervo" aria-pressed="true">Acervo</button>
@@ -397,6 +400,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 <div class="rdr" id="jrdr"><div class="top"><button class="back" id="jrClose" title="Voltar" aria-label="Fechar o leitor"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7M5 12h14"/></svg></button><button class="nav" id="jrPrev" title="Anterior" aria-label="Verbete anterior"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button><button class="nav" id="jrNext" title="Próximo" aria-label="Próximo verbete"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button><div class="idwrap"><div class="kicker" id="jrMat"></div><h1 id="jrTitle"></h1></div><span class="chip" id="jrTrib"></span><div class="tools"><button class="tool mais" id="jrMais" title="Mais opções" aria-label="Mais opções de leitura" aria-expanded="false"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button><div class="toolset" id="jrTools"><button class="tool" id="jrMinus" title="Diminuir" aria-label="Diminuir o texto">A−</button><button class="tool" id="jrPlus" title="Aumentar" aria-label="Aumentar o texto">A+</button><button class="tool" id="jrDark" title="Modo imersão" aria-label="Modo imersão" aria-pressed="false"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.9 13.3A9 9 0 0 1 10.7 3.1a9 9 0 1 0 10.2 10.2Z"/></svg></button><button class="tool" id="jrLeitura" title="Modo leitura" aria-label="Modo leitura" aria-pressed="false"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 4v16m4-16v16M19 4H9.5a4.5 4.5 0 0 0 0 9H13"/></svg></button></div></div></div><div class="stage"><aside class="map"><div class="maptitle mlW">Verbetes do filtro</div><div id="jrTree"></div></aside><main class="doc" id="jrScroll"><div class="docwrap" id="jrDoc"></div></main></div></div>
 <button class="grifbtn" id="jrGrif"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg> Grifar</button>
 <script>
+const armazenamentoDoLeitor = window.ctArmazenamentoLeitor;
 (function(){
   var I={id:0,tr:1,fo:2,nu:3,ti:4,ra:5,te:6,da:7,si:8,im:9,src:10};
 
@@ -458,7 +462,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 
   // ---- estudo (localStorage)
   var LK='catedra:jurisEstudo';
-  var est={fav:{},stat:{}}; try{est=Object.assign({fav:{},stat:{}},JSON.parse(localStorage.getItem(LK))||{})}catch(e){}
+  var est={fav:{},stat:{}}; try{est=Object.assign({fav:{},stat:{}},JSON.parse(armazenamentoDoLeitor.getItem(LK))||{})}catch(e){}
   /* Registros editoriais foram retirados ou receberam identificador canônico na
      auditoria sem retirar o conteúdo jurídico correspondente. Leva o estado pessoal
      ao verbete sobrevivente, mas conserva a chave antiga como cópia de segurança:
@@ -657,25 +661,25 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
       var sa=est.stat[antigo]||'', sn=est.stat[novo]||'';
       if(sa){ teve=true; if((peso[sa]||0)>(peso[sn]||0))est.stat[novo]=sa; }
       try{
-        var na=localStorage.getItem('catedra:notaJuris:'+antigo);
-        if(na){ teve=true; var nn=localStorage.getItem('catedra:notaJuris:'+novo)||'';
-          if(nn.indexOf(na)<0)localStorage.setItem('catedra:notaJuris:'+novo, nn?nn+'\n\n'+na:na); }
+        var na=armazenamentoDoLeitor.getItem('catedra:notaJuris:'+antigo);
+        if(na){ teve=true; var nn=armazenamentoDoLeitor.getItem('catedra:notaJuris:'+novo)||'';
+          if(nn.indexOf(na)<0)armazenamentoDoLeitor.setItem('catedra:notaJuris:'+novo, nn?nn+'\n\n'+na:na); }
         var ka='catedra:grifosJuris:'+antigo, kn='catedra:grifosJuris:'+novo;
-        var aa=JSON.parse(localStorage.getItem(ka)||'[]');
+        var aa=JSON.parse(armazenamentoDoLeitor.getItem(ka)||'[]');
         if(Array.isArray(aa)&&aa.length){
           teve=true;
-          var an=JSON.parse(localStorage.getItem(kn)||'[]'); if(!Array.isArray(an))an=[];
+          var an=JSON.parse(armazenamentoDoLeitor.getItem(kn)||'[]'); if(!Array.isArray(an))an=[];
           var vistos={}; an.forEach(function(v){vistos[JSON.stringify(v)]=1;});
           aa.forEach(function(v){var k=JSON.stringify(v);if(!vistos[k]){an.push(v);vistos[k]=1;}});
-          localStorage.setItem(kn,JSON.stringify(an));
+          armazenamentoDoLeitor.setItem(kn,JSON.stringify(an));
         }
       }catch(e){}
       if(teve){ mig[antigo]=1; mudou=true; }   // sem estado nenhum não marca: se chegar depois (outro aparelho), une
     });
-    if(mudou){ est.mig=mig; try{localStorage.setItem(LK,JSON.stringify(est))}catch(e){} }
+    if(mudou){ est.mig=mig; try{armazenamentoDoLeitor.setItem(LK,JSON.stringify(est))}catch(e){} }
   }
   migraEstadoJuris();
-  function saveEst(){try{localStorage.setItem(LK,JSON.stringify(est))}catch(e){}}
+  function saveEst(){try{armazenamentoDoLeitor.setItem(LK,JSON.stringify(est))}catch(e){}}
   var STAT=['','rev','dom'], STICON={'':'','rev':'◐','dom':'✓'};
   // D10 — o botão de status é só um glifo (e às vezes glifo nenhum): sem isto quem usa
   // leitor de tela ouve "botão" e não sabe nem o que ele faz nem em que ponto está.
@@ -1613,7 +1617,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   function jlum(col){ try{ col=col.trim(); if(col[0]==='#'){ var c=col.slice(1); if(c.length===3)c=c.split('').map(function(x){return x+x}).join('');
       return (0.299*parseInt(c.slice(0,2),16)+0.587*parseInt(c.slice(2,4),16)+0.114*parseInt(c.slice(4,6),16))/255; }
       var m=col.match(/(\d+)\D+(\d+)\D+(\d+)/); if(m)return (0.299*+m[1]+0.587*+m[2]+0.114*+m[3])/255; }catch(e){} return 1; }
-  function jApplyTheme(){ var pref=null; try{pref=localStorage.getItem('catedra:leitorDark');}catch(e){}
+  function jApplyTheme(){ var pref=null; try{pref=armazenamentoDoLeitor.getItem('catedra:leitorDark');}catch(e){}
     var dark = pref==='1'?true:(pref==='0'?false:(jlum(getComputedStyle(document.documentElement).getPropertyValue('--bg')||'#fff')<0.42));
     _jr.classList.toggle('dark',dark);
     var bd=document.getElementById('jrDark'); if(bd)bd.setAttribute('aria-pressed',dark?'true':'false'); }
@@ -1626,7 +1630,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
      sobe para a nuvem, e conforto de leitura é do APARELHO (a tela do iPad na cama não
      pede o mesmo que o Mac na mesa), não da conta. */
   var LEITK='catedraJurisLeitura';
-  function jLeitura(){ try{ return localStorage.getItem(LEITK)==='1'; }catch(e){ return false; } }
+  function jLeitura(){ try{ return armazenamentoDoLeitor.getItem(LEITK)==='1'; }catch(e){ return false; } }
   function jApplyLeitura(){
     var on=jLeitura(); _jr.classList.toggle('leitura',on);
     var b=document.getElementById('jrLeitura'); if(b)b.setAttribute('aria-pressed',on?'true':'false');
@@ -1654,7 +1658,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   }
   // O roteiro de estudo escrito pela IA saiu do leitor (decisão da dona, 03/10/2026): o verbete
   // mostra o texto oficial e o que a pessoa marca. O que ficou guardado no aparelho sai junto.
-  try{ localStorage.removeItem('catedraJurisRoteiros'); }catch(e){}
+  try{ armazenamentoDoLeitor.removeItem('catedraJurisRoteiros'); }catch(e){}
 
   // Ponte de IA: o frame não tem window.claude (a ponte nativa é só do frame principal),
   // então o pedido vai para o app por postMessage e a resposta volta pelo mesmo canal.
@@ -1755,23 +1759,23 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
     clearTimeout(notaT); notaT=null;
     var el=document.getElementById('jrNota'); if(!el||!notaId)return;
     var v=el.value.replace(/\s+$/,''), k=notaKey(notaId), antes=null;
-    try{ antes=localStorage.getItem(k); }catch(e){}
+    try{ antes=armazenamentoDoLeitor.getItem(k); }catch(e){}
     if(v===(antes||''))return;
     var st=document.getElementById('jrNotaSt');
-    try{ if(v)localStorage.setItem(k,v); else localStorage.removeItem(k); if(st)st.textContent=v?'Anotação salva.':'Anotação apagada.'; }
+    try{ if(v)armazenamentoDoLeitor.setItem(k,v); else armazenamentoDoLeitor.removeItem(k); if(st)st.textContent=v?'Anotação salva.':'Anotação apagada.'; }
     catch(e){ if(st)st.textContent='Não consegui salvar a anotação neste aparelho.'; }
   }
   function notaLiga(id){
     notaId=id;
     var el=document.getElementById('jrNota'); if(!el)return;
-    try{ el.value=localStorage.getItem(notaKey(id))||''; }catch(e){ el.value=''; }
+    try{ el.value=armazenamentoDoLeitor.getItem(notaKey(id))||''; }catch(e){ el.value=''; }
     el.oninput=function(){ clearTimeout(notaT); notaT=setTimeout(notaGuarda,600); var st=document.getElementById('jrNotaSt'); if(st)st.textContent=''; };
     el.onblur=notaGuarda;
   }
   window.addEventListener('pagehide',notaGuarda);
   function jKey(){ return 'catedra:grifosJuris:'+curId; }
-  function jLoad(){ try{return JSON.parse(localStorage.getItem(jKey()))||[];}catch(e){return[];} }
-  function jSave(){ try{localStorage.setItem(jKey(),JSON.stringify(jgrifos));}catch(e){} }
+  function jLoad(){ try{return JSON.parse(armazenamentoDoLeitor.getItem(jKey()))||[];}catch(e){return[];} }
+  function jSave(){ try{armazenamentoDoLeitor.setItem(jKey(),JSON.stringify(jgrifos));}catch(e){} }
   function jRenderGr(gi){ var el=_jdoc.querySelector('.gr[data-gi="'+gi+'"]'); if(!el)return;
     var txt=jdisp[gi]||'', gs=jgrifos.filter(function(g){return g.gi===gi;});
     if(!gs.length){ el.textContent=txt; return; }
@@ -1799,9 +1803,9 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
   document.getElementById('jrDark').onclick=function(){ _jr.classList.toggle('dark');
     var dk=_jr.classList.contains('dark');
     document.getElementById('jrDark').setAttribute('aria-pressed',dk?'true':'false');
-    try{localStorage.setItem('catedra:leitorDark',dk?'1':'0');}catch(e){} };
+    try{armazenamentoDoLeitor.setItem('catedra:leitorDark',dk?'1':'0');}catch(e){} };
   document.getElementById('jrLeitura').onclick=function(){
-    try{ localStorage.setItem(LEITK, jLeitura()?'0':'1'); }catch(e){}
+    try{ armazenamentoDoLeitor.setItem(LEITK, jLeitura()?'0':'1'); }catch(e){}
     jApplyLeitura();
   };
   // D8 — no celular a barra do leitor não cabia com título, tribunal e quatro botões:
@@ -1822,4 +1826,6 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
 
 })();
 </script>
+</template>
+<script>window.ctAutorizarLeitor('juris', window.ctMontarLeitor);</script>
 </body></html>
