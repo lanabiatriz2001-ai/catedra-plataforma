@@ -9,10 +9,14 @@ PDF** (faltava o poppler na máquina). Se o PDF divergir do texto abaixo, pare e
 
 ## Trava de data
 
-O brief manda **não começar antes de 30/11/2026** (ENAM em 29/11). A dona pediu o envio ao
-Codex em 25/11 sem dizer que a trava caiu. Leitura adotada: a trava continua valendo. Antes de
-30/11, só leitura; nenhum branch de item, nenhum PR de item, nenhuma mudança no Supabase.
-Só a dona levanta a trava.
+O brief manda não começar antes de 30/11/2026 (ENAM em 29/11). **A dona levantou a trava em
+25/11/2026**: perguntada se ela continuava valendo para o Codex, respondeu "Pode começar já".
+O trabalho pode começar agora. A frase "não começar antes de 30/11" no texto literal abaixo
+fica como registro e não vale mais.
+
+O que a resposta dela não mudou: as demais regras do brief, um item por branch e por PR, e o
+sim dela antes de qualquer mudança no Supabase vivo. Ela faz o ENAM em 29/11; junte as
+perguntas e evite interrompê-la sem necessidade até lá.
 
 ---
 
@@ -110,7 +114,6 @@ Itens, nesta ordem:
 
 ### Decisões que são da dona
 
-- Levantar a trava de data antes de 30/11.
 - Item 2: o texto final da linha de preço e as opções da pergunta de disposição a pagar.
 - Item 4: o que acontece com quem inicia o cronômetro sem edital cadastrado.
 - Item 8: se o Codex não tiver acesso ao painel, ela faz o passo.
