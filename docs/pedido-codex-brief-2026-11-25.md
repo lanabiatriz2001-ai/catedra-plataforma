@@ -109,8 +109,9 @@ responde.
   `treino.js`.
 - **PR #259** (rascunho aberto em 25/11 por outra sessão, ramo `banco-espelhos-venda`: a página de venda do banco de
   espelhos) mexe nos mesmos arquivos de vários itens:
-  - `PRODUCT.md`: tira "preço" das ausências (linha 72), cria a seção "Preço" com um preço único ("R$ 197 por um mês
-    de acesso, pagamento único") e reescreve a linha 64 com "586 quesitos de 36 provas", que um teste dele exige;
+  - `PRODUCT.md`: tira "preço" das ausências (linha 72), cria o parágrafo `**Preço:**` com os dois preços (desde
+    `b384d2f`: o do banco de espelhos, "R$ 197 por um mês de acesso, pagamento único", e o previsto do beta em
+    `sobre.html`) e reescreve a linha 64 com "586 quesitos de 36 provas", que um teste dele exige;
   - `.impeccable/surfaces/sobre-html.md`, a Política (sobe para 1.3, com `privacidade.html` e `juridico.js`) e o
     título e o subtítulo de `banco-espelhos.html` ("2021 a 2026");
   - `scripts/build.mjs`, `scripts/build-macos.mjs`, `tests/run.mjs` e `tests/run-webkit.mjs`;
@@ -266,20 +267,22 @@ remova-a no teste. O alvo do iPad é `iPadOS`, não `iPad` (`ios/build-ipad.sh:9
 landing mostra o preço do beta. Ponha "Quando abrir, R$ 197 por ano (valor previsto, pode mudar)." na caixa
 `.honesto` (`sobre.html:135`). A linha fala do futuro: os Termos (2.2 e 9.1) dizem que hoje a Cátedra é gratuita,
 e nada nela pode sugerir cobrança agora. Ajuste junto:
-- `PRODUCT.md`. Se o #259 não tiver entrado: tire "preço" das ausências (linha 72) e crie logo abaixo um parágrafo
-  `**Preço:**`, de uma linha só, com o preço do beta, onde ele aparece e "Nenhum outro preço da Cátedra pode
-  aparecer em tela". Se tiver entrado: no parágrafo `**Preço:**` dele, "existe um só" vira "são dois", o do beta
-  entra e a oferta do banco de espelhos fica como está, na mesma linha (`tests/venda-espelhos.mjs:80`, do #259,
-  procura `**Preço:**` e "R$ 197 por um mês" numa linha só);
+- `PRODUCT.md`. Se o #259 tiver entrado, nada a mudar: desde `b384d2f` o parágrafo `**Preço:**` dele já registra os
+  dois preços, com a frase do beta entre aspas; só confira que ela é igual à da página. Se não tiver entrado: tire
+  "preço" das ausências (linha 72) e crie logo abaixo um parágrafo `**Preço:**`, de uma linha só, com o preço do
+  beta, onde ele aparece e "Nenhum outro preço da Cátedra pode aparecer em tela". Quando os dois se cruzarem, fica o
+  texto do #259, que traz as duas ofertas na mesma linha (`tests/venda-espelhos.mjs:80` procura `**Preço:**` e
+  "R$ 197 por um mês" numa linha só);
 - `.impeccable/surfaces/sobre-html.md:16`, com a exceção só para essa linha;
 - o comentário de `sobre.html:9`;
 - o teste da linha 3705, que passa a aceitar **só** essa linha e continua recusando qualquer outro `R$`, "por mês" e
   "assinatura por".
 
-Não mexa nos Termos nem em `docs/pedidos-claude-code.md` (as linhas 309 e 455 são registro da dona): cite a decisão
-de 25/11 na descrição do PR. Se o #259 ainda estiver aberto, avise na descrição que os dois mudam o mesmo parágrafo
-de `PRODUCT.md` e que quem entrar por último junta as duas ofertas. Esse PR não bloqueia o PR 2+10 e não espera
-mais resposta.
+Não mexa nos Termos nem em `docs/pedidos-claude-code.md` (as linhas 309 e 455 são registro da dona). Na descrição
+do PR, cite a decisão de 25/11 e o item "Marca" das "Decisões minhas": a busca de colidência no INPI, que o #259
+põe antes do primeiro preço sob o nome, e esta linha pode ser esse preço. Se o #259 ainda estiver aberto, avise na
+descrição que os dois mudam o mesmo parágrafo de `PRODUCT.md` e que, no conflito, fica o texto dele. Esse PR não
+bloqueia o PR 2+10 e não espera mais resposta para ser feito; o merge, como todos, espera o sim da dona.
 
 **Faça (PR 2b, separado, só depois do sim da dona).** A pergunta de disposição a pagar (decisão 2b):
 1. Parta da definição mais nova de `entrar_lista_espera`: a do banco vivo (seção 4) ou a do PR #259, se a
