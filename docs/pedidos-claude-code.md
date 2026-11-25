@@ -433,8 +433,9 @@ para fevereiro/2027); ciclo 2027.1 com edital previsto para março e prova para 
 - [ ] **Meta do ENAM** (56 ou 40) e **datas dos simulados** (a cadência propõe 13/09,
       27/09, 11/10, 25/10, 08/11 e 22/11).
 - [ ] **Marca**: busca de colidência de "Cátedra" no INPI (classes 41 e 42; Lei
-      9.279/1996, arts. 122 e 124, XIX) e um nome reserva. Antes de divulgar a página do Banco
-      de Espelhos, que é o primeiro preço sob o nome.
+      9.279/1996, arts. 122 e 124, XIX) e um nome reserva. Antes de divulgar o primeiro preço
+      sob o nome: a página do Banco de Espelhos ou o preço previsto do beta no `sobre.html`, o
+      que sair antes.
 - [ ] **Banco de Espelhos — antes do merge do PR #259** (o deploy publica `/banco-de-espelhos` e a
       Política 1.3, que pede novo aceite a todas as contas; revisão adversarial de 25/11/2026):
       - **Aprovar o texto da 1.3**: a nota "O que mudou nesta versão" abre o documento; a revisão
