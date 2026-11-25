@@ -726,8 +726,9 @@ O que continua valendo:
   "Conferir", também a da lacuna; a fonte que não respondeu ao sentinela sai `falha`, com aviso;
   e a trava do recuo protege o PR aberto. Fora do workflow, o script sozinho não avisa. Este PR
   não muda o script.
-- **Lei seca do CTN e do CPC**: as mudanças da LC 236/2026 e da Lei 15.484/2026 não estão em
-  `leis-seca.js`.
+- ~~**Lei seca do CTN e do CPC**: as mudanças da LC 236/2026 e da Lei 15.484/2026 não estão em
+  `leis-seca.js`.~~ Resolvido em 25/11/2026: `leis-seca.js` e `leis-seca-areas.js` foram
+  regravados (ver "Atualização de 25/11/2026").
 - Nenhuma automação atualiza a lei seca do LEGIS. Regravar `leis-seca.js` pode deslocar as
   marcações da leitura ativa, cujo id usa a posição do dispositivo na lei.
 - Certificado do STF: desde 01/10/2026 o STF serve a cadeia completa da Sectigo (folha até
@@ -841,3 +842,85 @@ Para o Mac acordar sozinho antes do horário (opcional, pede senha): `sudo pmset
   em 12). Varredura completa: toda quarta-feira e sempre que o CSV falhar, vier com menos de
   1.400 temas ou estiver há mais de 3 dias sem regravação. A varredura filtrada não move o
   carimbo "última leitura completa".
+
+## Atualização de 25/11/2026
+
+Rodada manual, no Mac (de onde o STF, o STJ e o Planalto respondem).
+
+- **Informativos.** Entraram 47 julgados: STF 1236 a 1238 e STJ 909 a 911. A extraordinária 33
+  segue a última; 34 a 36 confirmadas ausentes. Acervo: 15.229 → 15.276 registros.
+- **Duas mudanças de formato das fontes**, que travavam a incorporação desde 10/11/2026:
+  - o STF publicou a 1236 com o `<title>` cortado em "Nº", sem o número. Só nesse caso (título
+    sem número nenhum) a edição é reconhecida pelo cabeçalho do início do conteúdo
+    ("INFORMATIVO STF Nº 1236/2026 Data de divulgação"). Título com o número de outra edição e
+    número só em citação continuam sendo falha. A régua é a mesma no importador e no sentinela;
+  - desde a 910 o STJ fecha o Informativo com a seção "PROPOSTA DE RELEVÂNCIA DA QUESTÃO
+    FEDERAL": processo afetado, sem tese, com só Processo, Ramo e Tema. Esses blocos ficam fora
+    do acervo e são contados (a soma julgados + propostas tem de bater com os blocos da página).
+    Fora dessa seção, bloco sem Destaque continua sendo falha. Na 910 um julgado (Tema
+    Repetitivo 1469) veio sem o campo "Ramo do Direito": entra sem ramo, que não se inventa.
+  - Fixtures em `tests/fixtures/informativos/2026-11-25/`, com o hash da resposta integral.
+- **Leitor do Planalto corrigido** (`scripts/lib/planalto.mjs`), em defeitos que vinham de antes e
+  escondiam artigos e mudanças da lei. Conferido por agentes independentes contra o HTML oficial,
+  lei a lei, e pelos casos S29h e S29i:
+  - o código-fonte do Planalto às vezes quebra a linha entre "Art." e o número ("Art.\n146. A
+    modificação…"), põe o ponto na linha do número ("Art" / ". 97.") ou cola o traço no caput
+    ("528 -Ocorrendo"). A linha "Art." não abria artigo e o artigo ia parar dentro do anterior — e,
+    depois do teto de 4.000 caracteres, sumia. Eram cerca de 500 artigos em 25 das 49 leis (o CTN
+    tinha 130 dos seus 218; a mudança da LC 236 no art. 146 nunca chegaria ao acervo);
+  - etiqueta de formatação dentro do rótulo: "<strong>A</strong>rt. 107" (CP, extinção da
+    punibilidade), "A<span>rt. 405" (CPP), "Art. 21</font><font>7" (CTN art. 217), e o ponto dobrado
+    "Art. . 154" (14 artigos da CLT);
+  - só "Art."/"Artigo" com inicial maiúscula abre artigo. A remissão "art. 927 da Lei…" no começo
+    de linha virava um "artigo" à parte (687 no acervo, nenhum de verdade), levando junto o texto do
+    artigo de onde saiu; o treino e a oral mostravam esse texto com o número errado. O sentinela já
+    devolvia esses pedaços ao artigo anterior (`porArtigo`), então a comparação não muda de sentido;
+  - o piso de tamanho (rótulo + 40 caracteres) cortava artigo curto de verdade: CPC 724 ("Da
+    sentença caberá apelação.") e 1.001 ("Dos despachos não cabe recurso."), CPP 202 e 262. Agora
+    fica também o que tem 12 ou mais caracteres de texto próprio, fora as anotações entre parênteses;
+  - entidade com nome (&ccedil;, &atilde;, &Eacute;…) virava espaço: o DL 200, a única página que as
+    usa, saía com 6.407 letras a menos ("A delega o de compet ncia") e perdia o art. 12. Vale agora a
+    tabela Latin-1 inteira.
+- **Lei seca regravada** com `scripts/build-leis-seca.mjs` e o leitor corrigido: as 14 normas do
+  núcleo (7.156 → 7.248 artigos; o único rótulo que some é o toco "(Revogado…)" do CLT art. 26, que
+  só passava no piso porque o art. 27 vinha grudado nele) e as 35 das outras áreas, com a mesma
+  lista, ordem e etiquetas (3.776 → 3.576: saem as remissões; some só o LOAS art. 28-A, que é só
+  "(Revogado pela Lei nº 13.813, de 2019)" e antes carregava dentro dele o texto do art. 29).
+  Conferido por rótulo e ocorrência contra a versão da `main`. Texto novo da lei: CTN (LC 236/2026),
+  CPC (Lei 15.484/2026), CF (arts. 7º e 198 e art. 67 do ADCT), CP (arts. 129 e 157), CDC (art. 57,
+  MP 1.393/2026), CLT (arts. 790 e 790-B), ECA (art. 4º), Lei 14.133 (art. 77), CTB, LRF (LC
+  239/2026), ANVISA (Lei 15.524/2026) e IBS/CBS (LC 235/2026). O sentinela do Planalto, rodado em
+  seguida, leu as 14 normas sem diferença entre a página e o acervo.
+- **O build da lei seca não grava mais arquivo incompleto.** Ele seguia sem a lei que falhava e
+  gravava o resto: numa queda de rede desta rodada, o `leis-seca-areas.js` saiu com 34 das 35 leis
+  (sem o DL 200). Agora cada lei tem três tentativas, de até 60 s cada; se alguma ainda falhar, nada
+  é gravado e o build sai com erro. E lei que volta com menos de 80% dos artigos do arquivo atual (a
+  régua do `parseSuspeito` do sentinela) é tratada como leitura parcial: o build para, salvo
+  `--aceitar-queda=SIGLA` (caso S29j).
+- **Importador do STJ:** o rótulo "Ramo do Direito" é reconhecido sem depender de maiúsculas (o
+  Portal de Precedentes do STJ escreve "Ramo do direito"), e mais de um julgado sem ramo na mesma
+  edição é falha — sinal de rótulo que mudou de forma —, não uma edição inteira "sem ramo".
+- **Repetitivos do STJ voltam a ser lidos.** Em nov/2026 a aba da pesquisa do portal passou de
+  "Temas (N)" a "Repetitivos (N)" (e ganhou a aba "Relevância (N)"). A régua procurava "Temas (N)":
+  as 31 faixas da varredura saíam "página sem o contador" e a última leitura completa era de
+  14/10/2026. O contador aceita os dois rótulos; o da aba de Relevância nunca conta (caso S24c2,
+  com o cabeçalho real de 25/11/2026).
+- **Leitura ativa não é afetada:** o leitor do LEGIS na web lê a lei pelo `/api/law`, não por
+  `leis-seca.js` (conferido em `legis-web.html` em 25/11/2026). `leis-seca.js` alimenta o treino,
+  a prova oral e o simulado de lei seca, que sorteiam pelo texto; os ids das questões de lei seca
+  valem só dentro do simulado, nada da pessoa fica gravado por eles.
+- **Pendente:**
+  - os artigos `parcial` da Central (CF arts. 7º e 198, CP arts. 129 e 157, CTN art. 142) continuam
+    pedindo conferência na fonte, por desenho: o item nasceu com o artigo acima do teto do acervo;
+  - na Lei 14.133, os arts. 337-E a 337-P do Código Penal, que o art. 178 reproduz em `<blockquote>`,
+    entram como artigos da Lei 14.133 (antes ela era lida pelo parser corrido, que perdia 70 artigos
+    dela). O mesmo acontece, desde antes, com artigos de outras leis citados nas disposições finais de
+    outros códigos; o sentinela os trata como "número repetido na página";
+  - com as remissões devolvidas ao artigo certo, alguns artigos longos passam do teto de 4.000
+    caracteres do acervo e perdem a cauda (LIA art. 10: os incisos XVIII a XXII). Subir o teto muda o
+    tamanho do acervo offline e a régua `TETO` do sentinela: fica para decisão.
+- **Temas de repercussão geral e repetitivos no acervo do JURIS:** com a leitura de hoje, o sentinela
+  aponta, nos temas que o acervo já tem, 36 situações e 39 teses do STF e 71 situações e 25 teses do
+  STJ diferentes da fonte oficial; e há 24 teses de RG ("Há repercussão") e 87 teses de repetitivos
+  fora do acervo. Nada disso entra sozinho (atualização assistida): fica para um PR próprio, conferido
+  item a item na fonte.

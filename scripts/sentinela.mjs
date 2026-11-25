@@ -1011,6 +1011,16 @@ const RE_TIT_STJ = 'Informativo de Jurisprud\\S{1,2}ncia';
 const RE_TIT_EXTRA = 'Edi\\S{2,4}o\\s+Extraordin\\S{1,2}ria';
 const reNumero = (n) => `0*${Number(n)}(?!\\d)`;
 
+// Primeiros caracteres visíveis do <body>, sem marcação: onde o STF escreve o cabeçalho da edição.
+const inicioDoCorpo = (texto) => {
+  const t = String(texto || '');
+  const i = t.toLowerCase().indexOf('<body');
+  if (i < 0) return '';
+  return t.slice(i).replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<!--[\s\S]*?-->/gi, ' ')
+    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;|&#160;/g, ' ').replace(/&ordm;|&#186;/g, 'º')
+    .replace(/\s+/g, ' ').trim().slice(0, 120);
+};
+
 export function edicaoNaPagina(fonte, r, n, extra = false) {
   const status = r && r.status;
   const titulo = tituloDe(r && r.texto);
@@ -1018,9 +1028,16 @@ export function edicaoNaPagina(fonte, r, n, extra = false) {
     if (status === 404) return { estado: 'nao-existe' };
     if (status !== 200) return { estado: 'falha', motivo: `HTTP ${status}` };
     const re = new RegExp(`\\bN(?:º|°|o|\\.º|\\.°|Âº|Â°)?\\s*${reNumero(n)}`);
-    return titulo && re.test(titulo)
-      ? { estado: 'existe', titulo }
-      : { estado: 'falha', motivo: 'a página respondeu 200 sem o número da edição no título' };
+    if (titulo && re.test(titulo)) return { estado: 'existe', titulo };
+    // Em 10/11/2026 o STF publicou a 1236 com o título cortado em "Nº". Só com o título sem
+    // número algum vale o cabeçalho do próprio conteúdo ("INFORMATIVO STF Nº 1236/2026 Data de
+    // divulgação"); título com o número de outra edição continua sendo falha. Mesma régua de
+    // scripts/atualizar-informativos.py.
+    const cab = new RegExp(`^INFORMATIVO STF N\\S{0,3}\\s*${reNumero(n)}/\\d{4}\\s+Data de divulga`);
+    if (titulo && /\bN(?:º|°|o|\.º|\.°|Âº|Â°)?\s*$/.test(titulo) && cab.test(inicioDoCorpo(r && r.texto))) {
+      return { estado: 'existe', titulo: `${titulo} ${Number(n)}` };
+    }
+    return { estado: 'falha', motivo: 'a página respondeu 200 sem o número da edição no título' };
   }
   if (status !== 200) return { estado: 'falha', motivo: `HTTP ${status}` };
   if (!titulo || !new RegExp(RE_TIT_STJ, 'i').test(titulo)) return { estado: 'falha', motivo: 'a página não traz o título do Informativo do STJ' };

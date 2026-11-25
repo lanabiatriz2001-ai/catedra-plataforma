@@ -225,9 +225,15 @@ export async function testarSentinela(ok) {
     // REAL do CF art. 101 no leis-seca.js: "Art. 101. … sessenta e cinco anos … Art. 101. …
     // setenta anos … (Redação dada pela Emenda Constitucional nº 122, de 2022)". Cortar no
     // segundo "Art. 101" fazia uma troca na redação EM VIGOR sair como recorte, sem autoria.
+    // Desde 25/11/2026 o leitor junta o rótulo partido ("Art.\n101.") e a redação riscada e a vigente
+    // saem em entradas SEGUIDAS com o mesmo cabeçalho; antes vinham numa entrada só. Juntas, elas são
+    // o texto que a página mostra — o caso vale para os dois formatos do acervo.
     const cf = (globaisDe('leis-seca.js').CT_LEIS || []).find((l) => l.sigla === 'CF');
-    const a101 = cf && cf.artigos.find((x) => x.rot.replace(/\s+/g, ' ') === 'Art. 101');
-    const t101 = a101 ? String(a101.txt).replace(/\s+/g, ' ').trim() : '';
+    const eh101 = (x) => x.rot.replace(/\s+/g, ' ') === 'Art. 101';
+    const p101 = cf ? cf.artigos.findIndex(eh101) : -1;
+    const bloco101 = [];
+    for (let k = p101; cf && k >= 0 && k < cf.artigos.length && eh101(cf.artigos[k]); k++) bloco101.push(cf.artigos[k].txt);
+    const t101 = bloco101.join(' ').replace(/\s+/g, ' ').trim();
     const n101 = t101.replace('setenta anos', 'setenta e cinco anos') + ' (Redação dada pela Emenda Constitucional nº 140, de 2026)';
     const i101 = itemPlanalto({ sigla: 'CF', nome: 'Constituição Federal', url: 'https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm' },
       { tipo: 'alteracao', rot: 'Art. 101', antes: t101, depois: n101 }, 'x', new Date(2026, 9, 1));
@@ -292,6 +298,21 @@ export async function testarSentinela(ok) {
           && edicaoNaPagina('stj', { status: 200, texto }, p.numero, !p.extra).estado === 'falha',
           `S7 NOVEMBRO ${p.arquivo}: outra edição ou série é falha`);
       }
+    }
+    // 25/11/2026: o STF 1236 saiu com o título cortado em "Nº"; vale o cabeçalho do corpo,
+    // e só para a edição que ele declara.
+    {
+      const nov25 = path.join(RAIZ, 'tests/fixtures/informativos/2026-11-25');
+      const stf = readFileSync(path.join(nov25, 'stf-1236.html'), 'latin1');
+      ok(!/1236/.test(stf.split('<title>')[1].split('</title>')[0]) && edicaoNaPagina('stf', { status: 200, texto: stf }, 1236).estado === 'existe',
+        'S7 NOVEMBRO STF 1236 com o título sem número é reconhecido pelo cabeçalho do conteúdo');
+      ok(edicaoNaPagina('stf', { status: 200, texto: stf }, 1237).estado === 'falha'
+        && edicaoNaPagina('stf', { status: 200, texto: stf.replace('</title>', ' 1230</title>') }, 1236).estado === 'falha'
+        && edicaoNaPagina('stf', { status: 200, texto: stf.replace('1236/2026', '9999/2026') }, 1236).estado === 'falha',
+        'S7 NOVEMBRO STF: outra edição, título de outra edição e número só em citação continuam falha');
+      ok(edicaoNaPagina('stj', { status: 200, texto: readFileSync(path.join(nov25, 'stj-0910.html'), 'latin1') }, 910).estado === 'existe'
+        && edicaoNaPagina('stj', { status: 200, texto: readFileSync(path.join(nov25, 'stj-0912.html'), 'latin1') }, 912).estado === 'nao-existe',
+        'S7 NOVEMBRO STJ 910 (com propostas de relevância) existe e 912 é ausência confirmada');
     }
     const generico = '<title>STJ - Informativo de Jurisprudência</title>';
     for (const texto of [generico, generico + '<option>Informativo nº 908</option>',
@@ -906,14 +927,15 @@ export async function testarSentinela(ok) {
     ok(!!CF && idx.size === arts.length && idx.has('art101') && idx.has('art1~2'),
       `S22 o índice guarda TODAS as entradas da CF real, inclusive as de número repetido (${idx.size}/${arts.length})`);
     ok(CF && compararArtigos(CF.artigos, CF.artigos).length === 0, 'S22b a CF real comparada com ela mesma não acusa nada');
-    // Troca real de redação no caput do art. 101 do CORPO (que tem número repetido no ADCT).
-    let feito = false;
-    const mudada = CF ? CF.artigos.map((a) => {
-      if (!feito && String(a.rot).replace(/\s+/g, ' ').trim().replace(/\.$/, '') === 'Art. 101') {
-        feito = true; return { ...a, txt: a.txt.replace(/setenta/, 'setenta e cinco') + ' (Redação dada pela Emenda Constitucional nº 199, de 2026)' };
-      }
-      return a;
-    }) : [];
+    // Troca real de redação no caput do art. 101 do CORPO (que tem número repetido no ADCT), na
+    // redação EM VIGOR: a última entrada do bloco do corpo (a única, no acervo de antes de 25/11/2026).
+    const rot101 = (a) => String(a.rot).replace(/\s+/g, ' ').trim().replace(/\.$/, '') === 'Art. 101';
+    const ini101 = CF ? CF.artigos.findIndex(rot101) : -1;
+    let fim101 = ini101;
+    while (CF && ini101 >= 0 && fim101 + 1 < CF.artigos.length && rot101(CF.artigos[fim101 + 1])) fim101++;
+    const feito = ini101 >= 0 && /setenta/.test(CF.artigos[fim101].txt);
+    const mudada = CF ? CF.artigos.map((a, k) => (feito && k === fim101
+      ? { ...a, txt: a.txt.replace(/setenta/, 'setenta e cinco') + ' (Redação dada pela Emenda Constitucional nº 199, de 2026)' } : a)) : [];
     const d = compararArtigos(CF ? CF.artigos : [], mudada);
     ok(feito && d.length === 1 && d[0].tipo === 'alteracao' && d[0].chave === 'art101' && d[0].bloco === 1,
       `S22c mudança no art. 101 do corpo da CF (número repetido no ADCT) é detectada (${d.map((x) => x.tipo + ':' + x.chave).join(',') || 'nada'})`);
@@ -1248,13 +1270,15 @@ export async function testarSentinela(ok) {
 
   // ── S29 — CTN e a LC 236/2026: comparação por artigo (verificação contra a página oficial) ──
   // Fixture: trechos REAIS do texto compilado do CTN de 01/10/2026 (tests/fixtures/planalto),
-  // contra o acervo vivo (leis-seca.js, que esta fase não muda). Antes, a comparação por trecho
+  // contra o acervo de 20/08/2026, anterior à LC 236, congelado em tests/fixtures/planalto/
+  // ctn-acervo-2026-08-20.json. Até 25/11/2026 o caso lia o leis-seca.js vivo; regravado, ele já traz
+  // a LC 236 e o trecho de 01/10 não tem mais diferença a mostrar. Antes, a comparação por trecho
   // dava 6 "alterações" com a LC 236 e revisar=false em artigos que não mudaram (a anotação era do
   // artigo embutido depois de um título), perdia a alteração real do 146 (depois do teto do trecho
   // do 142) e cortava o 211-A na remissão "art. 142 desta Lei".
   {
     const { artigos } = await import('../scripts/lib/planalto.mjs');
-    const CTN = (globaisDe('leis-seca.js').CT_LEIS || []).find((l) => l.sigla === 'CTN');
+    const CTN = JSON.parse(readFileSync(path.join(RAIZ, 'tests/fixtures/planalto/ctn-acervo-2026-08-20.json'), 'utf8'));
     const trechos = readFileSync(path.join(RAIZ, 'tests/fixtures/planalto/ctn-trechos-2026-10-01.txt'), 'utf8').split('\n@@@@\n');
     const LC = 'Lei Complementar nº 236, de 2026';
     const faixa = (de, ate) => {
@@ -1293,6 +1317,48 @@ export async function testarSentinela(ok) {
     const semN = compararArtigos(acervoCortado, pagSemNorma), comN = compararArtigos(acervoCortado, pagComNorma);
     ok(semN.length === 0 && comN.length === 1 && comN[0].rot === 'Art. 2' && comN[0].antes === null && comN[0].parcial === true,
       'S29g artigo que o acervo não guardou (depois do teto do trecho) não é "inclusão": só vira item, parcial e sem "antes", quando traz norma que o acervo não cita');
+    // O leitor (scripts/lib/planalto.mjs, 25/11/2026): o Planalto quebra a linha do código-fonte entre
+    // "Art." e o número ("Art.\n146. A modificação…") e o artigo ia parar dentro do anterior; e o
+    // "art. 927 da Lei…" minúsculo no começo de linha virava artigo à parte. Os trechos reais do CTN
+    // de 01/10/2026 trazem os dois casos.
+    const rots = (t) => artigos(t).map((a) => a.rot).join(', ');
+    const sint = 'Art. 1º Texto do primeiro artigo, com remissão que cai no começo da linha ao\n'
+      + 'art. 927 da Lei nº 13.105, de 16 de março de 2015, e segue o texto do primeiro.\n'
+      + 'Art.\n2º Texto do segundo artigo, que no código-fonte teve o número partido da etiqueta.\n'
+      + 'Art.\n5º da Constituição, citado no começo de uma linha: remissão, não artigo novo, e fica no segundo.\n'
+      + 'ART. 13 DA LEI Nº 9.527, DE 10 DE DEZEMBRO DE 1997, em maiúsculas: também é remissão.';
+    const a2 = artigos(sint);
+    ok(rots(trechos[1]) === 'Art. 142, Art. 143, Art. 144, Art. 145, Art. 146, Art. 147, Art. 148'
+      && rots(trechos[3]) === 'Art. 211, Art. 211-A, Art. 211-B, Art. 212'
+      && a2.map((a) => a.rot).join(', ') === 'Art. 1º, Art. 2º' && /\nart\. 927 da Lei/.test(a2[0].txt)
+      && /\nArt\.\n5º da Constituição/.test(a2[1].txt) && /ART\. 13 DA LEI/.test(a2[1].txt),
+      'S29h o leitor junta "Art." e o número partidos em duas linhas (CTN 143 a 148 saem do 142) e só "Art." maiúsculo seguido de número de artigo abre artigo: "art. 927 da Lei…", "Art. / 5º da Constituição" e "ART. 13 DA LEI" ficam no artigo de onde saíram');
+    // Os rótulos que o Planalto formata ou parte de outros jeitos (trechos reais de 25/11/2026): etiqueta
+    // dentro da palavra (CP art. 107, CPP art. 405), número partido por etiqueta (CTN art. 217), entidade
+    // com nome (DL 200), ponto dobrado (CLT art. 154), ponto na linha do número (DL 200 art. 97), traço
+    // colado ao caput (CLT art. 528) e o artigo curto de verdade (CPC art. 1.001), que o piso antigo cortava.
+    {
+      const { limparHTML, quedaSuspeita } = await import('../scripts/lib/planalto.mjs');
+      const html = '<p>Art. 106. Artigo anterior com texto bastante para passar no piso de tamanho do leitor.</p>'
+        + '<p><strong>A</strong>rt. 107 - Extingue-se a punibilidade: I - pela morte do agente;</p>'
+        + '<p>A<span style="color: black">rt. 405.&nbsp; Do ocorrido em audi&ecirc;ncia ser&aacute; lavrado termo em livro pr&oacute;prio.</p>'
+        + '<p><font size="2">Art. 21</font><font face="Arial">7</font><font size="2">. As disposi&ccedil;&otilde;es desta Lei n&atilde;o excluem a incid&ecirc;ncia.</font></p>'
+        + '<p>Art. . 154 - A observ&acirc;ncia, em todos os locais de trabalho, do disposto neste Cap&iacute;tulo.</p>'
+        + '<p>Art\r\n. 97. Os Ministros de Estado s&atilde;o respons&aacute;veis perante o Presidente da Rep&uacute;blica.</p>'
+        + '<p>Art.\r\n528 -Ocorrendo diss&iacute;dio ou circunst&acirc;ncias que perturbem o funcionamento de entidade sindical.</p>'
+        + '<p>Art. 1.001. Dos despachos n&atilde;o cabe recurso.</p>'
+        + '<p>Art. 28-A (Revogado pela Lei n&ordm; 13.813, de 2019)</p>'
+        + '<p>Art. 5&ordm;</p>'
+        + '<p>Art. 1.002. Artigo final com texto bastante para passar no piso de tamanho do leitor.</p>';
+      const arts = artigos(limparHTML(Buffer.from(html, 'latin1')));
+      const r = arts.map((a) => a.rot).join(', ');
+      ok(r === 'Art. 106, Art. 107, Art. 405, Art. 217, Art. 154, Art. 97, Art. 528, Art. 1.001, Art. 1.002'
+        && /Do ocorrido em audiência será lavrado termo em livro próprio/.test(arts[2].txt) && /disposições desta Lei não excluem/.test(arts[3].txt)
+        && !arts.some((a) => /Revogado pela Lei nº 13\.813/.test(a.txt)),
+        `S29i rótulo com etiqueta no meio ("<strong>A</strong>rt. 107", "Art. 21</font><font>7"), entidade com nome (&ccedil;), ponto dobrado, ponto ou traço fora do lugar e artigo curto de verdade abrem artigo; o toco "(Revogado…)" e o "Art. 5º" sozinho não (${r})`);
+      ok(quedaSuspeita(60, 60) === null && quedaSuspeita(92, 60) !== null && quedaSuspeita(undefined, 3) === null && quedaSuspeita(977, 782) === null && /abaixo de 80%/.test(quedaSuspeita(977, 781) || ''),
+        'S29j a trava de leitura parcial do build da lei seca: abaixo de 80% dos artigos do arquivo atual é suspeito; lei nova (sem anterior) passa');
+    }
   }
 
   // ── S30 — os achados BAIXOS da verificação de 01/10/2026 ───────────────────
