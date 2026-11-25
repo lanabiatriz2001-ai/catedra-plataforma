@@ -239,17 +239,24 @@ remova-a no teste. O alvo do iPad é `iPadOS`, não `iPad` (`ios/build-ipad.sh:9
    exigência literal, a pontuação atribuída" de hoje: na Redação, "com espelho" também conta padrão de resposta em
    texto e PDF, sem pontuação por quesito (item 10).
 
-**Faça (PR 2c, separado: a linha de preço).** O PR #259 (seção 4) declara em `PRODUCT.md` um preço único, "R$ 197
-por um mês de acesso, pagamento único", para o banco de espelhos. O brief pede "R$ 197 por ano" para o beta. São
-duas ofertas com termos diferentes, e a escolha é da dona (decisão 2a). Prepare o PR com o padrão provisório e
-ajuste junto:
-- a regra de preço de `PRODUCT.md` (a linha 72, ou a seção "Preço" do #259, se ele tiver entrado);
-- `.impeccable/surfaces/sobre-html.md:16`;
+**Faça (PR 2c, separado: a linha de preço).** A dona decidiu em 25/11, já sabendo do PR #259 (decisão 2a): a
+landing mostra o preço do beta. Ponha "Quando abrir, R$ 197 por ano (valor previsto, pode mudar)." na caixa
+`.honesto` (`sobre.html:135`). A linha fala do futuro: os Termos (2.2 e 9.1) dizem que hoje a Cátedra é gratuita,
+e nada nela pode sugerir cobrança agora. Ajuste junto:
+- `PRODUCT.md`. Se o #259 não tiver entrado: tire "preço" das ausências (linha 72) e crie logo abaixo um parágrafo
+  `**Preço:**`, de uma linha só, com o preço do beta, onde ele aparece e "Nenhum outro preço da Cátedra pode
+  aparecer em tela". Se tiver entrado: no parágrafo `**Preço:**` dele, "existe um só" vira "são dois", o do beta
+  entra e a oferta do banco de espelhos fica como está, na mesma linha (`tests/venda-espelhos.mjs:80`, do #259,
+  procura `**Preço:**` e "R$ 197 por um mês" numa linha só);
+- `.impeccable/surfaces/sobre-html.md:16`, com a exceção só para essa linha;
 - o comentário de `sobre.html:9`;
 - o teste da linha 3705, que passa a aceitar **só** essa linha e continua recusando qualquer outro `R$`, "por mês" e
   "assinatura por".
 
-Esse PR não bloqueia o PR 2+10.
+Não mexa nos Termos nem em `docs/pedidos-claude-code.md` (as linhas 309 e 455 são registro da dona): cite a decisão
+de 25/11 na descrição do PR. Se o #259 ainda estiver aberto, avise na descrição que os dois mudam o mesmo parágrafo
+de `PRODUCT.md` e que quem entrar por último junta as duas ofertas. Esse PR não bloqueia o PR 2+10 e não espera
+mais resposta.
 
 **Faça (PR 2b, separado, só depois do sim da dona).** A pergunta de disposição a pagar (decisão 2b):
 1. Parta da definição mais nova de `entrar_lista_espera`: a do banco vivo (seção 4) ou a do PR #259, se a
@@ -671,9 +678,9 @@ widget, "fotografia" de perícia, "scan" dentro de "buscando"). Mudança só de 
    sincronização de `tests/login-leitores-web.mjs`). O check exigido cai sem relação com a mudança e bloquearia
    todos os outros PRs.
 2. **Item 1.**
-3. **Itens 2 e 10 num PR só:** a contagem no build e o texto da Segunda fase. A linha de preço (**PR 2c**) e a
-   pergunta com a migration e a Política (**PR 2b**) ficam à parte, cada uma esperando a resposta da dona (decisões
-   2a e 2b), por causa do PR #259.
+3. **Itens 2 e 10 num PR só:** a contagem no build e o texto da Segunda fase. A linha de preço (**PR 2c**, já
+   decidida: a landing mostra o preço) e a pergunta com a migration e a Política (**PR 2b**, que espera a decisão
+   2b) ficam à parte, por causa do PR #259.
 4. **Item 3:** depois do 2+10, porque mexe em `sobre.html`.
 5. **Item 4.**
 6. **O resto do item 5.**
@@ -709,7 +716,7 @@ Para o que exige o sim (banco vivo, telemetria, instalação, merge), prepare e 
 | 1b | Quando o servidor devolve `false`, o item sai da fila? | Não: fica na fila e o envio para. |
 | 1c | Contador exato (RPC nova, migration) ou derivado da lista? | Derivado da lista, com "200+" no teto. Sem migration. |
 | 1d | Capturar erro dos satélites e os que o `support.js` engole? | Fora deste PR (amplia a coleta). Registrar como pendente. |
-| 2a | A landing ganha a linha "R$ 197 por ano" do brief, se o PR #259 declara em `PRODUCT.md` um preço único ("R$ 197 por um mês de acesso, pagamento único") para o banco de espelhos? São duas ofertas com termos diferentes. | PR 2c separado, com "Quando abrir, R$ 197 por ano (valor previsto, pode mudar)." na caixa `.honesto` (`sobre.html:135`) e a exceção escrita só para essa linha e o seu aviso de hipótese. Não bloqueia o PR 2+10. |
+| 2a | A landing ganha a linha "R$ 197 por ano" do brief, se o PR #259 declara em `PRODUCT.md` um preço único ("R$ 197 por um mês de acesso, pagamento único") para o banco de espelhos? São duas ofertas com termos diferentes. | **Decidida pela dona em 25/11: sim, a landing mostra o preço.** PR 2c separado, com "Quando abrir, R$ 197 por ano (valor previsto, pode mudar)." na caixa `.honesto` (`sobre.html:135`) e a exceção escrita só para essa linha e o seu aviso de hipótese (item 2). Não bloqueia o PR 2+10. |
 | 2b | Pergunta e opções de disposição a pagar; subir a versão da Política (pede novo aceite a todas as contas)? O PR #259 já a leva a 1.3. | "Você pagaria R$ 197 por ano?" com Sim, Talvez e Não, opcional e sem pré-seleção. PR separado, que espera o sim. A versão da Política é a seguinte à que estiver na `main`. |
 | 2c | E-mail que já está na lista: grava a resposta nova? | Não (como hoje, para não permitir troca por quem souber o e-mail). |
 | 3a | Honeypot só no cliente ou também no servidor (migration)? | Só no cliente. Isca preenchida mostra o sucesso de sempre e não chama a rede. |
