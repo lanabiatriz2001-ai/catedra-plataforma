@@ -8,6 +8,7 @@ from unittest.mock import patch
 
 RAIZ = Path(__file__).resolve().parent.parent
 FIXTURES = RAIZ / 'tests/fixtures/informativos/2026-11-06'
+NOV25 = RAIZ / 'tests/fixtures/informativos/2026-11-25'
 spec = importlib.util.spec_from_file_location('importador', RAIZ / 'scripts/atualizar-informativos.py')
 m = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(m)
@@ -35,6 +36,55 @@ class LeituraOficial(unittest.TestCase):
                         m.edicao_na_pagina('stj', 200, raw, p['numero'] + 1, p['extra'])
                     with self.assertRaises(RuntimeError):
                         m.edicao_na_pagina('stj', 200, raw, p['numero'], not p['extra'])
+
+    def test_formato_de_25_11_titulo_cortado_propostas_e_julgado_sem_ramo(self):
+        """STF 1236 com o título cortado em "Nº"; STJ 910 com a seção de propostas de
+        relevância (sem Destaque) e um julgado sem o campo Ramo do Direito."""
+        man = {p['arquivo']: p for p in json.loads((NOV25 / 'manifesto.json').read_text())['paginas']}
+        stf = (NOV25 / 'stf-1236.html').read_bytes()
+        self.assertNotRegex(stf.decode('latin1').split('<title>')[1].split('</title>')[0], r'\d{4}\s*$')
+        self.assertEqual(m.edicao_na_pagina('stf', 200, stf, 1236), 'existe')
+        self.assertEqual(len(m.parse_stf(1236, stf)), man['stf-1236.html']['julgados'])
+        # O cabeçalho do corpo só vale para a edição que ele mesmo declara.
+        with self.assertRaisesRegex(RuntimeError, 'sem o número pedido'):
+            m.edicao_na_pagina('stf', 200, stf, 1237)
+        # Título com o número de outra edição não é salvo pelo corpo.
+        outro = stf.replace(b'</title>', b' 1230</title>', 1)
+        with self.assertRaisesRegex(RuntimeError, 'sem o número pedido'):
+            m.edicao_na_pagina('stf', 200, outro, 1236)
+        # Número só em remissão ou citação, sem o cabeçalho no início do corpo, não identifica.
+        sem_cab = stf.replace(b'1236/2026', b'9999/2026', 1)
+        self.assertIn(b'1236/2026', sem_cab)
+        with self.assertRaisesRegex(RuntimeError, 'sem o número pedido'):
+            m.edicao_na_pagina('stf', 200, sem_cab, 1236)
+
+        stj = (NOV25 / 'stj-0910.html').read_bytes()
+        p = man['stj-0910.html']
+        self.assertEqual(m.edicao_na_pagina('stj', 200, stj, 910), 'existe')
+        recs = m.parse_stj('0910', stj)
+        self.assertEqual((len(recs), p['propostas']), (12, 5))
+        self.assertEqual(len(recs) + p['propostas'], stj.count(b'clsIdentificaProcesso'))
+        self.assertEqual([r['id'] for r in recs], [f'INF2026-STJ-910-{i:02d}' for i in range(1, 13)])
+        self.assertEqual([r['id'] for r in recs if not r['ramoDireito']], ['INF2026-STJ-910-07'])
+        sem_ramo = recs[6]
+        self.assertIn('Tema Repetitivo 1469', sem_ramo['fontePublicacao'])
+        self.assertTrue(len(sem_ramo['enunciado']) > 40 and sem_ramo['observacao'] and sem_ramo['data'] == '11/11/2026')
+        self.assertFalse(any('acolheu a proposta' in r['enunciado'] for r in recs))
+        # Fora da seção de propostas, bloco sem Destaque continua sendo falha.
+        with self.assertRaisesRegex(RuntimeError, 'bloco 1 com campos ausentes'):
+            m.parse_stj('0910', stj.replace(b'>Destaque</div>', b'>Campo alterado</div>', 1))
+        # Rótulo de ramo presente e ilegível é falha, não "sem ramo".
+        with self.assertRaisesRegex(RuntimeError, 'bloco 1 com campos ausentes'):
+            i = stj.index(b'Ramo do Direito')
+            m.parse_stj('0910', stj[:i] + stj[i:].replace(b'divCell clsInformativoTexto', b'divCell clsOutraClasse', 1))
+        self.assertEqual(m.edicao_na_pagina('stj', 200, (NOV25 / 'stj-0912.html').read_bytes(), 912), 'nao-existe')
+        # O rótulo do ramo não depende de maiúsculas ("Ramo do direito", como no Portal de Precedentes);
+        # rótulo que deixa de ser reconhecido em mais de um julgado é falha, não edição "sem ramo".
+        rotulo = b'clsInformativoLabel">Ramo do Direito</div>'
+        minuscula = m.parse_stj('0910', stj.replace(rotulo, b'clsInformativoLabel">Ramo do direito</div>'))
+        self.assertEqual([r['id'] for r in minuscula if not r['ramoDireito']], ['INF2026-STJ-910-07'])
+        with self.assertRaisesRegex(RuntimeError, 'julgados sem "Ramo do Direito"'):
+            m.parse_stj('0910', stj.replace(rotulo, b'clsInformativoLabel">Ramificacao</div>'))
 
     def test_falhas_http_e_respostas_incompletas_nao_sao_ausencia(self):
         for status in (0, 403, 429, 500, 503):

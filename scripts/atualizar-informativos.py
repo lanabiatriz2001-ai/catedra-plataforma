@@ -94,6 +94,16 @@ def norm_ramo_one(s):
     return s
 
 
+def inicio_do_corpo(h):
+    """Primeiros caracteres visíveis do <body>, sem marcação: é onde o STF escreve o
+    cabeçalho da edição. Menu, citação e remissões ficam de fora do recorte."""
+    i = h.lower().find("<body")
+    if i < 0:
+        return ""
+    corpo = re.sub(r"<script.*?</script>|<style.*?</style>|<!--.*?-->", " ", h[i:], flags=re.S | re.I)
+    return oneline(corpo)[:120]
+
+
 def edicao_na_pagina(fonte, status, raw, numero, extra=False):
     """Mesma régua do Sentinela, exercitada com as mesmas fixtures oficiais.
 
@@ -110,6 +120,13 @@ def edicao_na_pagina(fonte, status, raw, numero, extra=False):
     n = rf"0*{numero}(?!\d)"
     if fonte == "stf":
         if re.search(rf"\bN(?:º|°|o|\.º|\.°|Âº|Â°)?\s*{n}", titulo):
+            return "existe"
+        # Em 10/11/2026 o STF publicou a edição 1236 com o título cortado em "Nº", sem o
+        # número. Só nesse caso (título sem número algum depois do "Nº") vale o cabeçalho
+        # do próprio conteúdo: "INFORMATIVO STF Nº 1236/2026 Data de divulgação". Título
+        # com o número de OUTRA edição continua sendo falha.
+        if re.search(r"\bN(?:º|°|o|\.º|\.°|Âº|Â°)?\s*$", titulo) and re.search(
+                rf"^INFORMATIVO STF N\S{{0,3}}\s*{n}/\d{{4}}\s+Data de divulga", inicio_do_corpo(h)):
             return "existe"
         raise RuntimeError("resposta sem o número pedido no título do STF")
     tit_stj = r"Informativo de Jurisprud\S{1,2}ncia"
@@ -255,6 +272,12 @@ def parse_stf(num, raw):
 
 
 # ------------------------------------------------------------------ STJ
+# O rótulo do ramo, sem depender de maiúsculas nem do plural: o Portal de Precedentes do mesmo STJ
+# escreve "Ramo do direito" (scripts/lib/stj-repetitivos.mjs). Com o texto exato, uma troca de grafia
+# fazia a edição inteira passar "sem ramo".
+RE_ROTULO_RAMO = r"(?i:ramos?\s+d[oe]\s+direito)"
+
+
 def parse_stj(code, raw):
     h = raw.decode("latin-1")
     if "clsIdentificaProcesso" not in h:
@@ -268,6 +291,7 @@ def parse_stj(code, raw):
     recs = []
     seq = 0
     pos = 0
+    propostas = 0
     for b in blocks[1:]:
         pos = h.find('<div class="divTabela clsIdentificaProcesso">', pos) + 10
         cur_org = None
@@ -279,10 +303,23 @@ def parse_stj(code, raw):
             mm = re.search(lbl + r'\s*(?:</span>\s*)?(?:<div class="listaODS">.*?</div>\s*)?</div>\s*(?:</div>\s*<div class="divLinha[^"]*">\s*)?<div class="divCell clsInformativoTexto(?:Formatado)?">(.*?)</div>\s*</div>', b, re.S)
             return mm.group(1) if mm else None
 
-        proc, ramo, tema = field(r"Processo"), field("Ramo do Direito"), field(r"<span>Tema")
+        proc, ramo, tema = field(r"Processo"), field(RE_ROTULO_RAMO), field(r"<span>Tema")
         dest, info = field("Destaque"), field("Informações do Inteiro Teor")
-        if not all((proc, ramo, tema, dest, info)) or len(oneline(dest)) < 40:
-            raise RuntimeError(f"STJ {code}: bloco {seq + 1} com campos ausentes ou destaque incompleto")
+        rotulos = [oneline(x) for x in re.findall(r'clsInformativoLabel">(.*?)</div>', b, re.S)]
+        # Desde a edição 910 (17/11/2026) o STJ fecha o Informativo com a seção "PROPOSTA DE
+        # RELEVÂNCIA DA QUESTÃO FEDERAL": o processo foi afetado, ainda não há tese. O bloco
+        # traz só Processo, Ramo e Tema. Não é julgado e fica fora do acervo, mas é contado,
+        # para que nenhum bloco suma sem explicação. Fora dessa seção, bloco sem Destaque
+        # continua sendo falha.
+        if (cur_org or "").upper().startswith("PROPOSTA") and proc and tema \
+                and not any(r.startswith(("Destaque", "Informações do Inteiro Teor")) for r in rotulos):
+            propostas += 1
+            continue
+        # O campo "Ramo do Direito" pode faltar na fonte (910, Tema Repetitivo 1469): o
+        # julgado entra sem ramo, que não se inventa. Rótulo presente e ilegível é falha.
+        sem_ramo = not any(re.match(RE_ROTULO_RAMO, r) for r in rotulos)
+        if not all((proc, tema, dest, info)) or not (ramo or sem_ramo) or len(oneline(dest)) < 40:
+            raise RuntimeError(f"STJ {code}: bloco {seq + propostas + 1} com campos ausentes ou destaque incompleto")
         seq += 1
         procs = re.sub(r"\s+([,.;)])", r"\1", oneline(proc)) if proc else None
         d = re.search(r"julgad[oa]s? em (\d{1,2})[º°]?/(\d{1,2})/(\d{4})", procs or "")
@@ -300,8 +337,16 @@ def parse_stj(code, raw):
             "data": ("/".join(x.zfill(2) for x in d.groups())) if d else None,
             "fontePublicacao": procs, "observacao": clean_multi(info), "url": url,
         })
-    if len(recs) != h.count("clsIdentificaProcesso"):
+    # Um julgado sem o campo é o que a fonte publicou (910, Tema Repetitivo 1469). Mais de um na
+    # mesma edição é sinal de que o rótulo mudou de forma: falha alta, em vez de uma edição inteira
+    # sem ramo.
+    sem = [r["id"] for r in recs if not r["ramoDireito"]]
+    if len(sem) > 1:
+        raise RuntimeError(f"STJ {code}: {len(sem)} julgados sem \"Ramo do Direito\" ({', '.join(sem)}) — o rótulo pode ter mudado de forma")
+    if len(recs) + propostas != h.count("clsIdentificaProcesso"):
         raise RuntimeError(f"STJ {code}: nem todos os blocos de julgamento foram reconhecidos")
+    if propostas:
+        print(f"STJ {code}: {propostas} proposta(s) de afetação sem tese, fora do acervo", flush=True)
     return recs
 
 
