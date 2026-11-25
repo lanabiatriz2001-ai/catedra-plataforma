@@ -249,8 +249,8 @@ tamanho. O cliente também normaliza e valida (`sobre.html:173` e `:179`). Falta
    `admin_lista_espera`: e-mail, área e data (`criado_em`, em snake_case; a lista de convites usa `criadoEm`), total
    e aviso de lista vazia. Estado só de tela: fora de `_autosaveKeys` e do `localStorage`, porque são e-mails de
    terceiros.
-3. Teste estático do arquivo de 07/10 (hoje nenhum teste o lê): `lower(trim`, trava, limites, `revoke insert` e
-   `grant execute`.
+3. Teste estático do conteúdo do arquivo de 07/10. Hoje ele só é lido pela cobertura da exclusão de conta, e
+   nenhum teste confere a RPC: `lower(trim`, trava, limites, `revoke insert` e `grant execute`.
 
 **Pronto quando.** No Chromium: isca preenchida = zero `fetch`; isca vazia = 1 chamada com o corpo de sempre. A
 isca fica fora da vista e do foco, medida (Tab vai do e-mail para a área e depois para o botão; a altura do form não
