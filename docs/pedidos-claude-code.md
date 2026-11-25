@@ -433,7 +433,30 @@ para fevereiro/2027); ciclo 2027.1 com edital previsto para março e prova para 
 - [ ] **Meta do ENAM** (56 ou 40) e **datas dos simulados** (a cadência propõe 13/09,
       27/09, 11/10, 25/10, 08/11 e 22/11).
 - [ ] **Marca**: busca de colidência de "Cátedra" no INPI (classes 41 e 42; Lei
-      9.279/1996, arts. 122 e 124, XIX) e um nome reserva.
+      9.279/1996, arts. 122 e 124, XIX) e um nome reserva. Antes de divulgar a página do Banco
+      de Espelhos, que é o primeiro preço sob o nome.
+- [ ] **Banco de Espelhos — antes de divulgar o link** (`banco-espelhos-venda.html`, rota
+      `/banco-de-espelhos`; achados da revisão de 25/11/2026):
+      - **Política de privacidade**: a página colhe e-mail para avisar a abertura da venda; a
+        Política 1.2 só prevê a lista do beta e diz "Não usamos seus dados para publicidade".
+        Aprovar o texto da 1.3 (gera novo aceite de todas as contas) ou tirar o formulário.
+      - **Fornecedor**: nome, CPF/CNPJ, endereço e e-mail na página de oferta (Decreto
+        7.962/2013, art. 2º, I e II) — vêm de `docs/juridico/controlador.json`, que também dá o
+        canal de "pedir a remoção" que a página promete.
+      - **Migração da lista**: aplicar `supabase/migrations/2026-11-25-lista-espera-interesse-venda.sql`
+        no catedraplataforma. Sem ela, quem já está na lista do beta vê "anotamos" e nada é gravado.
+      - **O que os R$ 197 compram**: o acervo inteiro já sai público em `/espelhos.js` e o
+        Simulado de 2ª fase o entrega a qualquer conta; decidir o que fica grátis no beta e como
+        o acesso de um mês termina.
+      - **Preço de teste**: garantir R$ 197 a quem deixar o e-mail ou escrever "preço previsto"
+        (CDC, art. 30: a oferta precisa obriga e integra o contrato).
+      - **Bônus**: como o espelho novo chega depois do mês e qual a rotina de rebusca; no
+        corretor, sobre qual preço vale o desconto, por quanto tempo e o que acontece se ele não
+        sair.
+      - **Direito autoral**: parecer sobre vender o texto transcrito de espelhos de banca
+        contratada (Lei 9.610/1998, art. 8º, IV, "demais atos oficiais" — não confirmado se
+        alcança a banca privada).
+      - **Medir o teste**: hoje nada conta visitas, e nenhuma tela lê `lista_espera` por origem.
 - [ ] **Grupos e ranking**: continuam opt-in por código? (os documentos assumem que sim.)
 - [ ] **Telemetria (P17)**: ligar em produção só depois de atualizar a política de
       privacidade com os dados novos.
@@ -452,6 +475,8 @@ para fevereiro/2027); ciclo 2027.1 com edital previsto para março e prova para 
   aprendizagem está em marcar; comentário é obra própria e revisada).
 - Campo de autodeclaração de cota (dado sensível, LGPD, art. 5º, II — a meta é só um número).
 - Ranking de nota de simulado entre pessoas.
-- Cobrança agora (fase 2, depois do beta com quem reprovar no ENAM VI).
+- Cobrança agora (fase 2, depois do beta com quem reprovar no ENAM VI). Revisto em 25/11/2026:
+  a dona decidiu testar o preço do Banco de Espelhos (R$ 197 por um mês) só com página de venda
+  e lista de interesse, sem checkout (PRODUCT.md, "Preço"). Cobrança de verdade segue fora.
 - Android nativo agora (iPhone via PWA já existe; Android fica para depois da tração).
 - Competir com o TEC em volume de objetivas (roadmap, "fora de escopo").

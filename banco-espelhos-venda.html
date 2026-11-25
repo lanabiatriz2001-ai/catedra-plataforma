@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Banco de Espelhos da Magistratura — Cátedra</title>
+<meta name="description" content="Os espelhos oficiais de correção de sentenças e discursivas da magistratura, quesito a quesito, com o que a banca exigiu e, quando o espelho traz, o valor de cada um. R$ 197 por um mês de acesso.">
+<!-- Enquanto o preço é hipótese de teste, a página fica fora dos buscadores, como termos.html e privacidade.html. -->
+<meta name="robots" content="noindex">
+<!-- Página de venda do Banco de Espelhos (oferta decidida pela dona em 25/11/2026: R$ 197 por um mês de acesso,
+     sem renovação automática; bônus de atualização de 12 meses; fila do corretor com entrada antecipada e pelo
+     menos 20% de desconto). Mesmo padrão do sobre.html: direção "vitrine", fontes locais, sem CDN.
+     Todo número sobre o acervo vem de espelhos.js e o teste (tests/venda-espelhos.mjs) confere um contra o outro,
+     inclusive os 84 quesitos sem valor, as 6 provas sem valor nenhum, a prova sem caderno e as bancas por tribunal.
+     Não há checkout: o botão registra o interesse na lista de espera (RPC entrar_lista_espera, área
+     "banco-espelhos"). Sem nome de concorrente, sem "correção por IA", sem promessa de aprovação, sem depoimento.
+     Pendências da dona antes de divulgar o link: Política de privacidade, identificação do fornecedor e a migração
+     supabase/migrations/2026-11-25-lista-espera-interesse-venda.sql (lista em docs/pedidos-claude-code.md). -->
+<style>
+@font-face{font-family:'Spectral';font-style:normal;font-weight:700;font-display:swap;src:url('./fonts/spectral-700-normal.woff2') format('woff2');}
+@font-face{font-family:'Spectral';font-style:normal;font-weight:500;font-display:swap;src:url('./fonts/spectral-500-normal.woff2') format('woff2');}
+@font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url('./fonts/inter-400-normal.woff2') format('woff2');}
+@font-face{font-family:'Inter';font-style:normal;font-weight:600;font-display:swap;src:url('./fonts/inter-600-normal.woff2') format('woff2');}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:500;font-display:swap;src:url('./fonts/jetbrainsmono-500-normal.woff2') format('woff2');}
+:root {
+  color-scheme: light dark;
+  --bg:#f4f1ea; --surface:#fffdf8; --surface2:#f0ece1; --border:#e3ddce; --ink:#1f1c17; --text2:#5c564a; --text3:#6f695f;
+  --accent:#0f7a57; --accentD:#0b5e43; --accentSoft:#e6f0ea; --onAccent:#ffffff; --ok:#0e7f58; --warn:#a36306;
+  --display:'Spectral',Georgia,serif; --body:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  --r-md:11px; --radius:14px; --e2:8px; --e3:12px; --e4:16px; --e5:24px; --e6:32px; --e7:48px;
+  --ramo-constitucional:#2563EB; --ramo-civil:#0D9488; --ramo-penal:#E11D48; --ramo-administrativo:#4F46E5; --ramo-empresarial:#65A30D;
+}
+@media (prefers-color-scheme: dark) { :root { --bg:#16140f; --surface:#201d17; --surface2:#2a261e; --border:#332f23; --ink:#ece7db; --text2:#c2bbab; --text3:#a39c8b; --accent:#34b88a; --accentD:#7fd4b5; --accentSoft:rgba(52,184,138,.14); --onAccent:#0e1a14; --ok:#3ddba0; --warn:#f0a24a;
+  --ramo-constitucional:#38BDF8; --ramo-civil:#2DD4BF; --ramo-penal:#FB7185; --ramo-administrativo:#818CF8; --ramo-empresarial:#A3E635; } }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--body); font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased; }
+a { color:var(--accentD); text-underline-offset:2px; }
+a:focus-visible, button:focus-visible, input:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.topo { display:flex; justify-content:space-between; align-items:center; gap:var(--e3); flex-wrap:wrap; padding:var(--e3) clamp(16px,4vw,48px); }
+.marca { display:inline-flex; align-items:center; gap:10px; font-family:var(--display); font-weight:700; font-size:20px; color:var(--ink); text-decoration:none; min-height:44px; }
+.marca i { width:32px; height:32px; border-radius:9px; background:linear-gradient(135deg,var(--accent),var(--accentD)); color:var(--onAccent); display:inline-flex; align-items:center; justify-content:center; font-style:normal; font-size:17px; }
+.topo nav { display:flex; gap:var(--e2); flex-wrap:wrap; }
+.botao, .botao-2 { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:10px 18px; border-radius:var(--r-md); font-weight:600; font-size:15px; text-decoration:none; cursor:pointer; font-family:inherit; border:1px solid transparent; }
+.botao { background:var(--accent); color:var(--onAccent); }
+.botao:hover { background:var(--accentD); }
+.botao-2 { background:var(--surface); color:var(--ink); border-color:var(--border); }
+main { max-width:1080px; margin:0 auto; padding:0 clamp(16px,4vw,48px) var(--e7); }
+.hero { padding:clamp(28px,6vw,72px) 0 clamp(24px,4vw,48px); display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr); gap:var(--e6); align-items:center; }
+.hero h1 { font-family:var(--display); font-size:clamp(36px,6vw,66px); line-height:1.03; letter-spacing:-.02em; margin:0 0 var(--e4); font-weight:700; }
+/* cor de identidade vira texto só escurecida (DESIGN.md): o acento-texto é o --accentD */
+.hero h1 em { font-style:normal; color:var(--accentD); }
+.hero .lead { font-size:clamp(17px,1.7vw,20px); color:var(--text2); margin:0 0 var(--e5); max-width:38ch; }
+.hero .acoes { display:flex; gap:var(--e3); flex-wrap:wrap; align-items:center; }
+.preco-topo { font-family:var(--display); font-weight:700; font-size:clamp(24px,3vw,32px); line-height:1.1; margin:0 0 var(--e4); max-width:none; color:var(--ink); }
+.preco-topo small { display:block; font-family:var(--body); font-weight:400; font-size:15px; line-height:1.5; color:var(--text2); margin-top:6px; }
+.mosaico { display:grid; grid-template-columns:repeat(2,1fr); gap:var(--e3); }
+.mosaico div { --c:var(--accent); border-radius:var(--radius); padding:var(--e4); background:color-mix(in srgb,var(--c) 14%,var(--surface)); border:1px solid color-mix(in srgb,var(--c) 40%,var(--border)); min-height:120px; display:flex; flex-direction:column; justify-content:flex-end; }
+.mosaico b { font-family:var(--display); font-size:clamp(28px,3.4vw,40px); line-height:1; color:color-mix(in srgb,var(--c) 72%,var(--ink)); letter-spacing:-.02em; }
+.mosaico span { font-size:13px; color:var(--text2); margin-top:6px; }
+.nota { font-size:14px; color:var(--text3); margin:var(--e3) 0 0; }
+.secao { margin-top:clamp(40px,6vw,72px); }
+.secao h2 { font-family:var(--display); font-size:clamp(26px,3.6vw,40px); line-height:1.1; letter-spacing:-.015em; margin:0 0 var(--e2); }
+.secao > p { color:var(--text2); max-width:62ch; margin:0 0 var(--e5); font-size:17px; }
+.cartoes { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:var(--e4); }
+.cartao { --c:var(--accent); background:var(--surface); border:1px solid color-mix(in srgb,var(--c) 38%,var(--border)); background-image:linear-gradient(180deg,color-mix(in srgb,var(--c) 16%,transparent),transparent 46%); border-radius:var(--radius); padding:var(--e5); }
+.cartao.fraco { background-image:none; border-color:var(--border); }
+.cartao .n { font-family:var(--mono); font-size:13px; font-weight:500; color:color-mix(in srgb,var(--c) 72%,var(--ink)); letter-spacing:.08em; text-transform:uppercase; display:flex; align-items:center; gap:8px; }
+.cartao.fraco .n { color:var(--text3); }
+.cartao .n svg { width:16px; height:16px; flex:none; }
+.cartao h3 { font-family:var(--display); font-size:24px; line-height:1.15; margin:var(--e2) 0 var(--e2); letter-spacing:-.01em; }
+.cartao p { margin:0; color:var(--text2); font-size:15.5px; }
+.cartao ul, .passos, .naoe ul { margin:var(--e3) 0 0; padding-left:20px; color:var(--text2); font-size:15.5px; }
+.cartao li, .passos li, .naoe li { margin-bottom:4px; }
+.passos { font-size:17px; color:var(--ink); max-width:60ch; }
+.passos li { margin-bottom:var(--e2); padding-left:4px; }
+.passos li::marker { font-family:var(--mono); color:color-mix(in srgb,var(--ramo-constitucional) 72%,var(--ink)); }
+.tribs { list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:var(--e3); }
+.tribs li { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); padding:var(--e3) var(--e4); display:flex; flex-direction:column; gap:2px; }
+.tribs b { font-family:var(--display); font-size:24px; line-height:1.1; letter-spacing:-.01em; color:var(--ink); }
+.tribs span { font-size:13.5px; line-height:1.4; color:var(--text2); }
+.naoe { background:var(--surface2); border-radius:var(--radius); padding:clamp(20px,4vw,40px); }
+.naoe h2 { margin-top:0; }
+.naoe ul { font-size:17px; color:var(--ink); padding-left:22px; max-width:60ch; }
+.naoe li { margin-bottom:var(--e2); }
+.honesto { border:1px dashed var(--border); border-radius:var(--radius); padding:var(--e4) var(--e5); color:var(--text2); font-size:15px; margin-top:var(--e5); max-width:70ch; }
+.honesto p { margin:0; }
+.honesto p + p { margin-top:var(--e2); }
+.preco { background:var(--surface); border:1px solid color-mix(in srgb,var(--accent) 38%,var(--border)); background-image:linear-gradient(180deg,color-mix(in srgb,var(--accent) 18%,transparent),transparent 46%); border-radius:var(--radius); padding:clamp(20px,4vw,40px); display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,420px); gap:var(--e6); align-items:start; }
+.preco h2 { margin-top:0; }
+.preco p { color:var(--text2); margin:0 0 var(--e3); max-width:52ch; }
+.preco .valor { font-family:var(--display); font-weight:700; font-size:clamp(48px,8vw,84px); line-height:1; letter-spacing:-.03em; margin:0 0 var(--e2); max-width:none; color:var(--ink); }
+/* text3 sobre o degradê do quadro de preço fica abaixo de 4,5:1 no claro: a comparação usa text2 */
+.preco .compara { font-size:14.5px; color:var(--text2); }
+form { display:grid; gap:var(--e3); }
+label { font-size:13px; font-weight:600; color:var(--text2); display:grid; gap:6px; }
+/* a borda é o que mostra o campo: 3:1 contra o fundo nos dois esquemas, degradê incluído (WCAG 1.4.11) */
+input { width:100%; min-height:48px; border:1.5px solid color-mix(in srgb,var(--ink) 60%,var(--surface)); background:var(--surface); color:var(--ink); border-radius:var(--r-md); padding:10px 14px; font:inherit; font-size:16px; }
+.erro { min-height:20px; font-size:14px; color:var(--warn); line-height:1.45; }
+.ok { display:none; background:var(--accentSoft); color:var(--accentD); border-radius:var(--r-md); padding:14px 16px; font-weight:600; }
+.ok[data-mostra="1"] { display:block; }
+.perguntas { display:grid; gap:var(--e4); max-width:70ch; }
+.perguntas h3 { font-family:var(--display); font-size:21px; line-height:1.2; margin:0 0 4px; }
+.perguntas p { margin:0; color:var(--text2); }
+.rodape { border-top:1px solid var(--border); margin-top:clamp(40px,6vw,72px); padding-top:var(--e4); display:flex; gap:var(--e4); flex-wrap:wrap; align-items:center; font-size:14px; color:var(--text3); }
+.rodape a { min-height:44px; display:inline-flex; align-items:center; }
+@media (max-width: 800px) { .hero, .preco { grid-template-columns:1fr; } }
+@media (prefers-reduced-motion: reduce) { * { transition:none !important; scroll-behavior:auto !important; } }
+</style>
+</head>
+<body>
+<header class="topo">
+  <a class="marca" href="./sobre.html"><i aria-hidden="true">C</i>Cátedra</a>
+  <nav aria-label="Principal"><a class="botao-2" href="#diferenca">Banca ou curso</a><a class="botao-2" href="#nao-e">O que não é</a><a class="botao" href="#comprar">Preço: R$&nbsp;197</a></nav>
+</header>
+<main>
+  <section class="hero" aria-labelledby="titulo">
+    <div>
+      <h1 id="titulo">Treine pelo espelho que <em>a banca usou</em>, não pelo espelho que o curso escreveu.</h1>
+      <p class="lead">O Banco de Espelhos da Magistratura reúne os espelhos oficiais de correção de sentenças e discursivas, quesito a quesito, com o que a banca exigiu e, quando o espelho traz, o valor de cada um. Cursos ensinam a escrever. Aqui você vê quanto vale cada linha.</p>
+      <p class="preco-topo">R$&nbsp;197 por um mês de acesso<small>Pagamento único. Não renova sozinho. A venda ainda não abriu.</small></p>
+      <div class="acoes"><a class="botao" href="#comprar">Quero meu mês no banco</a><a class="botao-2" href="#diferenca">Ver a diferença</a></div>
+    </div>
+    <div>
+      <div class="mosaico" role="group" aria-label="O que há dentro do banco hoje">
+        <div style="--c:var(--ramo-constitucional)"><b data-n="quesitos">586</b><span>quesitos com a exigência da banca</span></div>
+        <div style="--c:var(--ramo-civil)"><b data-n="provas">36</b><span>provas com espelho oficial</span></div>
+        <div style="--c:var(--ramo-penal)"><b data-n="tribunais">11</b><span>tribunais, estaduais e federais</span></div>
+        <div style="--c:var(--ramo-administrativo)"><b data-n="anos">6</b><span>anos de concurso, de 2021 a 2026</span></div>
+      </div>
+      <p class="nota">328 quesitos de discursiva e 258 de sentença. Em 502 o banco mostra o valor do quesito; nos outros 84, o espelho não o traz separado.</p>
+    </div>
+  </section>
+
+  <section class="secao" id="diferenca" aria-labelledby="t-dif">
+    <h2 id="t-dif">Espelho da banca e espelho do curso não são a mesma coisa</h2>
+    <p>Em setembro de 2026, olhamos oito cursos e plataformas de preparação; em dois, não foi possível ler a oferta inteira. Nenhum informava usar o espelho oficial da banca. Quem entrega espelho entrega o próprio.</p>
+    <div class="cartoes">
+      <article class="cartao" style="--c:var(--ramo-constitucional)">
+        <div class="n"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m9 15 2 2 4-4"/></svg>Espelho oficial</div>
+        <h3>O que a banca pontuou</h3>
+        <ul>
+          <li>Publicado pela banca do concurso.</li>
+          <li>Mostra o que foi pontuado de verdade.</li>
+          <li>Traz o valor do quesito quando a banca o discrimina.</li>
+          <li>Você confere na fonte: cada prova traz o link do espelho e da página do concurso, e o do caderno quando a banca o publicou.</li>
+        </ul>
+      </article>
+      <article class="cartao fraco">
+        <div class="n"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 22H18a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v9.5"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M13.378 15.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/></svg>Espelho próprio de curso</div>
+        <h3>O que o curso acha que vale</h3>
+        <ul>
+          <li>Escrito pelo próprio curso.</li>
+          <li>Mostra o que o curso espera da resposta.</li>
+          <li>Valores definidos por quem escreveu.</li>
+          <li>Costuma ser caso inédito, sem prova real por trás.</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section class="secao" aria-labelledby="t-uso">
+    <h2 id="t-uso">Como você usa</h2>
+    <ol class="passos">
+      <li>Leia o caso da prova antes de abrir o espelho.</li>
+      <li>Escreva sua resposta, no papel ou na tela.</li>
+      <li>Confira quesito por quesito, com a pontuação ao lado quando o espelho a traz.</li>
+      <li>Refaça quantas vezes quiser, sem limite de peças.</li>
+      <li>Escolha o tribunal e o tipo de prova, ou busque por ano, banca, disciplina e tema.</li>
+    </ol>
+  </section>
+
+  <section class="secao" id="tribunais" aria-labelledby="t-trib">
+    <h2 id="t-trib">Tribunais e bancas no banco</h2>
+    <p>19 das 36 provas são da FGV. Das outras 17, 16 são de banca própria do tribunal e uma, a discursiva do TJ-RJ de 2026, foi aplicada pela Vunesp.</p>
+    <ul class="tribs">
+      <li data-trib="TJ-RJ"><b>TJ-RJ</b><span>8 provas · banca própria e Vunesp</span></li>
+      <li data-trib="TRF3"><b>TRF3</b><span>5 provas · FGV e banca própria</span></li>
+      <li data-trib="TJ-PE"><b>TJ-PE</b><span>4 provas · FGV</span></li>
+      <li data-trib="TJ-GO"><b>TJ-GO</b><span>3 provas · banca própria</span></li>
+      <li data-trib="TJ-MS"><b>TJ-MS</b><span>3 provas · FGV</span></li>
+      <li data-trib="TJ-PR"><b>TJ-PR</b><span>3 provas · FGV</span></li>
+      <li data-trib="TRF2"><b>TRF2</b><span>3 provas · banca própria</span></li>
+      <li data-trib="TJ-SE"><b>TJ-SE</b><span>2 provas · FGV</span></li>
+      <li data-trib="TJ-TO"><b>TJ-TO</b><span>2 provas · FGV</span></li>
+      <li data-trib="TRF1"><b>TRF1</b><span>2 provas · FGV</span></li>
+      <li data-trib="TJ-MT"><b>TJ-MT</b><span>1 prova · FGV</span></li>
+    </ul>
+  </section>
+
+  <section class="secao naoe" id="nao-e" aria-labelledby="t-nao">
+    <h2 id="t-nao">O que o banco não é</h2>
+    <ul>
+      <li>Não é curso: não há videoaula nem professor.</li>
+      <li>Não é correção individual da sua peça.</li>
+      <li>Não é banco de questões objetivas de primeira fase.</li>
+      <li>Não é espelho inventado nem resposta modelo autoral.</li>
+      <li>Não cobre todo concurso: só os que a banca publicou.</li>
+    </ul>
+    <div class="honesto">
+      <p>Em 6 das 36 provas o espelho não dá o valor de nenhum quesito: as sentenças cível e penal do TJ-RJ de 2022 e de 2025, a discursiva do TRF1 de 2023 e a do TRF3 de 2022. Nelas você confere a exigência, não a nota.</p>
+      <p>Também procuramos espelhos de outros tribunais e bancas e não encontramos versão pública: em vários concursos recentes, a banca só libera o espelho na vista individual do candidato. O banco mostra o critério; a aprovação depende do estudo, e nenhuma plataforma pode prometê-la.</p>
+    </div>
+  </section>
+
+  <section class="secao" aria-labelledby="t-bonus">
+    <h2 id="t-bonus">Dois bônus para quem comprar o banco</h2>
+    <div class="cartoes">
+      <article class="cartao" style="--c:var(--ramo-civil)">
+        <div class="n"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>Bônus de atualização</div>
+        <h3>Doze meses de espelhos novos</h3>
+        <p>Seu mês de acesso termina, o bônus continua. Durante 12 meses a partir da compra, todo espelho novo que uma banca de magistratura publicar entra no banco, extraído e conferido contra o PDF oficial, e chega para você sem custo. Espelho público novo é raro: em 2026, vários concursos passaram a liberar o espelho só na vista individual do candidato.</p>
+      </article>
+      <article class="cartao" style="--c:var(--ramo-administrativo)">
+        <div class="n"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12h11"/><path d="M10 18h11"/><path d="M10 6h11"/><path d="M4 10h2"/><path d="M4 6h1v4"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>Fila do corretor</div>
+        <h3>Entrada antecipada e pelo menos 20% de desconto</h3>
+        <p>Estamos construindo um corretor que mede sua peça pelo espelho oficial e guarda o que você repete, quesito a quesito. Quem compra o banco entra antes do público, na ordem da compra, com pelo menos 20% de desconto.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="secao preco" id="comprar" aria-labelledby="t-preco">
+    <div>
+      <h2 id="t-preco">Preço</h2>
+      <p class="valor">R$&nbsp;197</p>
+      <p>Um mês de acesso ao banco inteiro. Pagamento único, sem renovação automática. Para continuar depois, você compra outro mês se quiser.</p>
+      <p>Em um mês você treina quantas provas quiser, sem limite de peças.</p>
+      <p class="compara">Para comparar, em setembro de 2026: pacotes de segunda fase com espelho próprio do curso, sem correção individual, custavam de R$&nbsp;555 a R$&nbsp;1.359 (o mais caro inclui aulas teóricas). Pacotes com correção individual de 2 a 4 sentenças, além de discursivas e outros materiais, custavam de R$&nbsp;799 a R$&nbsp;2.797.</p>
+    </div>
+    <form id="formCompra" novalidate>
+      <p style="margin:0;color:var(--ink);font-weight:600;">A venda ainda não abriu.</p>
+      <p style="margin:0;font-size:15px;">Deixe o seu e-mail e avisamos no dia em que abrir. Usamos o endereço só para isso, e você pode pedir a remoção a qualquer momento.</p>
+      <!-- sem atributo name: se o script não rodar, o envio nativo não leva o e-mail para a URL -->
+      <label for="email">E-mail<input id="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="voce@email.com" required maxlength="254"></label>
+      <div class="erro" id="erro" role="alert" aria-live="polite"></div>
+      <button class="botao" id="enviar" type="submit">Quero meu mês no banco</button>
+      <div class="ok" id="ok" role="status" aria-live="polite"></div>
+      <p style="font-size:13px;color:var(--text2);margin:0;line-height:1.5;">Ao enviar, você concorda com a <a href="./privacidade.html">Política de privacidade</a>. Guardamos só o e-mail, o interesse no banco de espelhos e a data. Nada é cobrado agora.</p>
+    </form>
+  </section>
+
+  <section class="secao" aria-labelledby="t-faq">
+    <h2 id="t-faq">Perguntas diretas</h2>
+    <div class="perguntas">
+      <div><h3>Vou receber outra cobrança no mês seguinte?</h3><p>Não. O pagamento é único e o acesso termina sozinho depois de um mês. Os espelhos novos do bônus continuam chegando por 12 meses.</p></div>
+      <div><h3>Serve para quem ainda está na primeira fase?</h3><p>Serve para conhecer o critério da banca, mas foi feito para quem vai escrever sentença e discursiva.</p></div>
+      <div><h3>Substitui o meu curso de sentença?</h3><p>Não. O curso ensina a técnica. O banco mostra como a banca pontuou.</p></div>
+      <div><h3>Meu tribunal não está na lista. Vale a pena?</h3><p>Só se a banca for a mesma ou se você quiser treinar com provas de outros tribunais. Das 36 provas, 19 são da FGV. Confira os tribunais e as bancas acima antes de comprar.</p></div>
+    </div>
+  </section>
+
+  <footer class="rodape">
+    <span>Cátedra · Banco de Espelhos da Magistratura</span>
+    <a href="./sobre.html">Conhecer a Cátedra</a>
+    <a href="./termos.html">Termos de uso</a>
+    <a href="./privacidade.html">Política de privacidade</a>
+  </footer>
+</main>
+<script>
+// Interesse na compra: a mesma RPC pública da lista de espera, com a área "banco-espelhos".
+// O cliente nunca lê e-mails; nada é cobrado aqui.
+(function () {
+  var CFG = (window.CATEDRA_SUPABASE) || { url: 'https://frcnfqxniwzdyykvgqqu.supabase.co', key: 'sb_publishable_nCm4a-RzzY8e8jVC9O6Gfg_4V6EOrI2' };
+  var RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  var ROTULO = 'Quero meu mês no banco';
+  var FALHOU = 'Não deu para registrar agora. Tente de novo em instantes.';
+  // A RPC recusa com "lista_temporariamente_indisponivel" quando o teto de cadastros é atingido;
+  // aí "em instantes" seria falso.
+  var FECHADA = 'A lista não está aceitando e-mails agora. Tente de novo mais tarde.';
+  function emailValido(v) { v = String(v || '').trim(); return v.length <= 254 && RE.test(v); }
+  window.ctEmailValido = emailValido;
+  var form = document.getElementById('formCompra'); if (!form) return;
+  var inE = document.getElementById('email'), erro = document.getElementById('erro'), ok = document.getElementById('ok'), btn = document.getElementById('enviar');
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var email = String(inE.value || '').trim().toLowerCase();
+    erro.textContent = ''; ok.removeAttribute('data-mostra');
+    if (!emailValido(email)) { erro.textContent = 'Escreva um e-mail válido, como nome@dominio.com.'; inE.focus(); return; }
+    if (navigator.onLine === false) { erro.textContent = 'Você está sem internet. Tente de novo quando conectar.'; return; }
+    btn.disabled = true; btn.textContent = 'Enviando…';
+    fetch(CFG.url + '/rest/v1/rpc/entrar_lista_espera', {
+      method: 'POST',
+      headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ p_email: email, p_area: 'banco-espelhos' })
+    }).then(function (r) {
+      btn.disabled = false; btn.textContent = ROTULO;
+      if (r.status === 201 || r.status === 204 || r.ok) { form.reset(); ok.textContent = 'Pronto — anotamos o seu interesse. Avisamos por e-mail no dia em que a venda abrir.'; ok.setAttribute('data-mostra', '1'); return; }
+      return r.json().then(function (j) {
+        erro.textContent = /indisponivel/.test(String(j && j.message)) ? FECHADA : FALHOU;
+      }, function () { erro.textContent = FALHOU; });
+    }).catch(function () { btn.disabled = false; btn.textContent = ROTULO; erro.textContent = FALHOU; });
+  });
+})();
+</script>
+</body>
+</html>

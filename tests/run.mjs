@@ -98,6 +98,7 @@ import { testarReservaIA } from './seguranca-cota.mjs';
 import { testarWidgetCapturas } from './widget-capturas.mjs';
 import { testarWidgetBuild } from './widget-build.mjs';
 import { testarProvaEncerrarUmaVez } from './prova-encerrar-uma-vez.mjs';
+import { testarVendaEspelhos } from './venda-espelhos.mjs';
 import { montar as montarEnam, parseProva as parseProvaEnam, parseGabarito as parseGabaritoEnam, carregarAreas as areasEnam, EDICOES as EDICOES_ENAM } from '../scripts/build-questoes-enam.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -127,6 +128,12 @@ if (process.env.CT_SO === 'redacao-resultado') {
 if (process.env.CT_SO === 'redacao-motor') {
   testarRedacaoMotorEstatico(ok);
   await testarRedacaoMotor(page, URL0, ok, { motor });
+  await browser.close(); srv.close();
+  console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
+  process.exit(falhas.length ? 1 : 0);
+}
+if (process.env.CT_SO === 'venda-espelhos') {
+  await testarVendaEspelhos(page, URL0, ok);
   await browser.close(); srv.close();
   console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
   process.exit(falhas.length ? 1 : 0);
@@ -3739,6 +3746,10 @@ await comCadernoEnam(async (page) => {
   });
   for (const [k, v] of Object.entries(f)) ok(v, 'PÚBLICO/P15 formulário ' + k);
 }
+
+/* ============= PÚBLICO — página de venda do Banco de Espelhos (tests/venda-espelhos.mjs) ============= */
+try { await testarVendaEspelhos(page, URL0, ok); }
+catch (e) { ok(false, 'PÚBLICO/venda exceção: ' + e.message); }
 
 /* ============= ACESSIBILIDADE — P16: baixa estimulação, selects com nome, alvos de 44 px, cor-texto ============= */
 {
