@@ -67,6 +67,7 @@ import { testarAuthIpad } from './auth-ipad.mjs';
 import { testarAuthAbertura } from './auth-abertura.mjs';
 import { testarAuthHidratacao } from './auth-hidratacao.mjs';
 import { testarAuthFechamento } from './auth-fechamento.mjs';
+import { testarLoginSemDados } from './login-sem-dados.mjs';
 import { testarWidgetResumo } from './widget-resumo.mjs';
 import { testarCarregamentoInicial, testarAberturaEmbutida, testarAberturaPendente } from './carregamento-inicial.mjs';
 import { testarSelectHost } from './select-host.mjs';
@@ -1078,6 +1079,15 @@ const sync = await page.evaluate(() => {
   //     abertura recarimbava a chave e a mandava para a nuvem: Mac no claro e iPad no
   //     escuro viravam o tema um do outro a cada abertura, e o aparelho no automático
   //     apagava a escolha manual feita no outro. O gravarDerivado grava sem carimbar.
+  //     A escolha manual é da pessoa NO APP: o carimbo só vale depois que o portão fecha pela
+  //     primeira vez (auth.js, setImpl — login sem dados, 25/11/2026). Esta fixture nunca
+  //     resolve a sessão, então o portão segue aberto até a ponte fechá-lo; antes disso a
+  //     mesma escrita é do app e não carimba.
+  const portao = document.getElementById('catedra-auth-gate');
+  localStorage.removeItem('catedra:_kts');
+  localStorage.setItem('catedra:dark', '1');                       // o app, antes de a pessoa chegar
+  r.escritaAntesDaPessoaNaoCarimba = !(JSON.parse(localStorage.getItem('catedra:_kts') || '{}')['catedra:dark']);
+  portao.__setGateOpen(false);                                     // a pessoa chega ao app
   localStorage.removeItem('catedra:_kts');
   localStorage.setItem('catedra:dark', '1');                       // escolha manual
   r.escolhaManualCarimba = !!(JSON.parse(localStorage.getItem('catedra:_kts') || '{}')['catedra:dark']);
@@ -1085,6 +1095,7 @@ const sync = await page.evaluate(() => {
   window.CatedraSync.gravarDerivado('catedra:dark', '0');          // leitura do sistema
   r.derivadoNaoCarimba = !(JSON.parse(localStorage.getItem('catedra:_kts') || '{}')['catedra:dark']);
   r.derivadoGravaMesmoAssim = localStorage.getItem('catedra:dark') === '0';
+  portao.__setGateOpen(true);   // reabre o portão; a marca de "a pessoa chegou" segue ligada até o próximo goto
   localStorage.removeItem('catedra:_kts'); localStorage.removeItem('catedra:dark');
   // o próprio interruptor do Auto é deste aparelho: não pode atravessar o merge
   r.autoNaoSincroniza = !M({ 'catedra:_temaAuto': '1' }, {}, false)['catedra:_temaAuto'];
@@ -9984,6 +9995,12 @@ catch (e) {
 try { await testarAuthHidratacao(page, URL0, ok, { motor }); }
 catch (e) {
   ok(false, 'AUTH HIDRATAÇÃO [' + motor + '] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+// Login sem dados não sobrescreve a nuvem (tests/login-sem-dados.mjs): só a escrita com o portão fechado carimba
+try { await testarLoginSemDados(page, URL0, ok, { motor }); }
+catch (e) {
+  ok(false, 'LOGIN SEM DADOS [' + motor + '] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 // Fechamento e Sair sem sobrescrever a nuvem (tests/auth-fechamento.mjs): PATCH condicional no pagehide, Sair espera o pushNow
