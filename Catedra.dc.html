@@ -46,6 +46,7 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;mostr
 <!-- C3: miolo do espelho sugerido (fundamento obrigatório + rotulagem), puro e testável -->
 <script src="./espelho-sugerido.js"></script>
 <script src="./redacao-motor.js"></script>
+<script src="./quesitos-perdidos.js"></script>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -3662,6 +3663,57 @@ window.ctPdfLib = (function(){
                       </div>
                     </div>
                   </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <!-- O QUE VOCÊ REPETE: quesitos perdidos de todas as peças, por disciplina e tema -->
+          <sc-if value="{{ redRepTem }}" hint-placeholder-val="{{ false }}">
+            <div class="ct-card" data-red-repete>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+                <div>
+                  <div class="ct-eb">O que você repete</div>
+                  <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;">quesitos perdidos em {{ redRepPecas }}, por disciplina e tema — o que voltou a ser perdido vem primeiro</div>
+                </div>
+                <button onclick="{{ toggleRedRep }}" class="ct-btn-2" aria-expanded="{{ redRepExp }}" aria-controls="red-repete-lista">{{ redRepLabel }}</button>
+              </div>
+              <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-top:14px;">
+                <span data-red-rep-taxa style="font-family:var(--display);font-size:var(--fs-xl);font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;">{{ redRepTaxaStr }}</span>
+                <span style="font-size:var(--fs-sm);color:var(--text2);flex:1;min-width:200px;"><strong style="color:var(--ink);font-weight:600;">Taxa de repetição.</strong> {{ redRepTaxaTxt }}.</span>
+              </div>
+              <sc-if value="{{ redRepOpen }}" hint-placeholder-val="{{ false }}">
+                <div id="red-repete-lista" style="display:flex;flex-direction:column;gap:14px;margin-top:16px;">
+                  <sc-for list="{{ redRep }}" as="d" hint-placeholder-count="2">
+                    <div data-red-rep-disc style="border:1px solid var(--border);border-radius:var(--r-md);padding:14px 16px;background:var(--surface2);">
+                      <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;">
+                        <span style="font-weight:600;color:var(--ink);flex:1;min-width:160px;">{{ d.disc }}</span>
+                        <span style="font-size:var(--fs-xs);color:var(--text3);">{{ d.resumo }}</span>
+                      </div>
+                      <div style="display:flex;flex-direction:column;gap:12px;margin-top:12px;">
+                        <sc-for list="{{ d.temas }}" as="t" hint-placeholder-count="2">
+                          <div data-red-rep-tema style="display:flex;flex-direction:column;gap:4px;">
+                            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                              <span style="font-weight:600;font-size:var(--fs-sm);color:var(--ink);">{{ t.tema }}</span>
+                              <sc-if value="{{ t.seloTem }}" hint-placeholder-val="{{ false }}"><span class="{{ t.seloClasse }}">{{ t.selo }}</span></sc-if>
+                              <sc-if value="{{ t.aproximada }}" hint-placeholder-val="{{ false }}"><span class="ct-selo ct-selo-aviso">espelho sugerido</span></sc-if>
+                              <sc-if value="{{ t.sparkShow }}" hint-placeholder-val="{{ false }}">
+                                <svg data-red-rep-spark viewBox="0 0 120 28" width="120" height="28" role="img" aria-label="{{ t.sparkAlt }}" style="flex:none;margin-left:auto;"><path d="{{ t.spark }}" fill="none" stroke="{{ t.sparkCor }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                              </sc-if>
+                            </div>
+                            <sc-if value="{{ t.exigenciaTem }}" hint-placeholder-val="{{ true }}"><div data-red-rep-exig style="font-size:var(--fs-sm);color:var(--text2);line-height:1.5;">{{ t.exigencia }}<sc-if value="{{ t.abreviada }}" hint-placeholder-val="{{ false }}"><span style="color:var(--text3);"> (título abreviado; o texto integral está no espelho da prova)</span></sc-if></div></sc-if>
+                            <sc-if value="{{ t.dispTem }}" hint-placeholder-val="{{ false }}"><div style="font-size:var(--fs-xs);color:var(--text3);">{{ t.dispositivos }}</div></sc-if>
+                            <div style="font-size:var(--fs-xs);color:var(--text3);font-variant-numeric:tabular-nums;">{{ t.conta }} · {{ t.linha }} · {{ t.onde }}</div>
+                          </div>
+                        </sc-for>
+                        <sc-if value="{{ d.maisTem }}" hint-placeholder-val="{{ false }}"><div style="font-size:var(--fs-xs);color:var(--text3);">{{ d.mais }}</div></sc-if>
+                      </div>
+                    </div>
+                  </sc-for>
+                  <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                    <button onclick="{{ redRepAnki }}" class="ct-btn-2" data-red-rep-anki>Exportar cards para o Anki</button>
+                    <button onclick="{{ redRepCaderno }}" class="ct-btn-2" data-red-rep-caderno>Levar ao caderno de erros</button>
+                  </div>
                 </div>
               </sc-if>
             </div>
@@ -15313,6 +15365,7 @@ class Component extends DCLogic {
       disc:String(reg.disc||'').trim().slice(0,140), disciplinaOrigem:String(reg.disciplinaOrigem||''), aproximada:!!reg.aproximada,
       notaMax:reg.notaMax!=null?+reg.notaMax:null,
       prova:String(reg.prova||'').slice(0,140),
+      ...(reg.provaId?{provaId:String(reg.provaId).slice(0,80)}:{}),     // liga a peça ao espelho do banco ("o que você repete")
       quesitos:reg.quesitos.slice(0,40).map((q,i)=>({ i, titulo:String(q.titulo||('Quesito '+(i+1))).slice(0,120),
         disc:String(q.disc||reg.disc||'').trim().slice(0,140),
         ...(q.peso!=null?{peso:+q.peso}:{}),
@@ -15323,7 +15376,7 @@ class Component extends DCLogic {
     const antes=this.state.redHist||[];
     const troca=!!substituirId && antes.some(x=>x&&x.id===substituirId);
     if(troca){ const velho=antes.find(x=>x&&x.id===substituirId); item.id=substituirId;
-      item.ts=velho.ts; item.quando=velho.quando; }     // a tentativa continua sendo a daquele dia; só o carimbo de sincronização é novo
+      item.ts=velho.ts; item.quando=velho.quando; if(!item.provaId && velho.provaId) item.provaId=velho.provaId; }     // a tentativa continua sendo a daquele dia; só o carimbo de sincronização é novo
     const hist=troca ? antes.map(x=>(x&&x.id===substituirId)?item:x) : [item, ...antes].slice(0,this.RED_HIST_MAX);
     this.setState({redHist:hist}, ()=>this.flashSync());
     return item;
@@ -15357,6 +15410,33 @@ class Component extends DCLogic {
     return pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
   }
   toggleRedEvo = ()=> this.setState({redEvoOpen:!this.state.redEvoOpen});
+  // ===== O QUE VOCÊ REPETE — quesitos perdidos de todas as peças, por disciplina e tema =====
+  // A conta mora em quesitos-perdidos.js (pura). Refeita só quando o histórico ou o banco
+  // mudam: a busca da prova pelo enunciado percorre o banco inteiro.
+  _redRepete(){
+    const M=(typeof window!=='undefined')&&window.CT_QUESITOS_PERDIDOS; if(!M) return null;
+    const hist=this.state.redHist||[], banco=window.CT_DISCURSIVAS||null, m=this._redRepMemo;
+    if(m && m.hist===hist && m.banco===banco) return m.r;
+    let r=null; try{ r=M.oQueRepete(hist, banco||[]); }catch(_){ r=null; }
+    this._redRepMemo={hist, banco, r};
+    return r;
+  }
+  toggleRedRep = ()=> this.setState({redRepOpen:!this.state.redRepOpen});
+  /** Um card por tema perdido, no molde aulão: frente[TAB]verso. */
+  redRepAnki = ()=>{
+    const M=window.CT_QUESITOS_PERDIDOS, r=this._redRepete(); const temas=(M&&r)?M.temasDe(r):[];
+    if(!temas.length){ this._toast('Nenhum quesito perdido para exportar'); return; }
+    if(this._downloadText(M.arquivoAnki(temas),'catedra-quesitos-perdidos.txt','text/plain'))
+      this._toast(temas.length+(temas.length>1?' cards de quesito exportados':' card de quesito exportado')+' — no Anki, importe como Básico e permita HTML ✦');
+  };
+  /** O quesito perdido entra no caderno pelo mesmo coletor das questões (erro, flashcard e revisão). */
+  redRepCaderno = ()=>{
+    const M=window.CT_QUESITOS_PERDIDOS, r=this._redRepete(); const temas=(M&&r)?M.temasDe(r):[];
+    if(!temas.length){ this._toast('Nenhum quesito perdido para levar ao caderno'); return; }
+    const feito=this._colherErros(temas.map(t=>M.paraCaderno(t)), 'Quesitos perdidos');
+    if(!feito) this._toast('Esses quesitos já estão no caderno de erros');
+    else if(temas.length>this.ERRO_AUTO_MAX) this._toast('Entraram os '+this.ERRO_AUTO_MAX+' primeiros; repita para levar os demais');
+  };
   /** "Levar para o ciclo": o quesito fraco vira evento na agenda desta semana. */
   redParaCiclo = (e)=>{
     const t=e.currentTarget.dataset.t||''; if(!t) return;
@@ -16160,6 +16240,7 @@ class Component extends DCLogic {
     if(words<40 || this.state.redBusy || !(this.state.redGabarito||'').trim()) return;
     this._redCorrAbortar();
     const _aprox=!!this.state.espSugAtual;     // lido ANTES da espera: a prova pode mudar no meio
+    const _provaId=String(this.state.redProvaId||'');
     const _anterior=this._redAnteriorId();
     const _disc={...(this.state.redDisciplina||{})};
     this._redCronoPausar(); const _tempoMs=this._redTempoAgora(); if(this.state.redFoco) this._redFocoPor(false);
@@ -16179,7 +16260,7 @@ class Component extends DCLogic {
     res.aproximada=_aprox;
     // registro por quesito para a curva de evolução (item 4) — agora com os quesitos reais da banca
     let evo=null; try{ evo=this._redRegistrar({origem:'redacao', prova:_titulo, quesitos:this._redEvoQuesitos(res), notaTotal:res.nota, notaMax:10,
-        disc:_disc.disc, disciplinaOrigem:_disc.origem, aproximada:_aprox}); }catch(_){}
+        disc:_disc.disc, disciplinaOrigem:_disc.origem, aproximada:_aprox, provaId:_provaId}); }catch(_){}
     const agora=Date.now();
     const entry={id:'rd'+agora, up:agora, tema:_titulo, words, nota:res.nota, ts:agora, disc:_disc.disc||'', disciplinaOrigem:_disc.origem||'', res, texto:text, gabarito:gab, aproximada:_aprox, origem:(_aprox?'espelho-sugerido':'espelho-oficial'), tempoMs:_tempoMs,
       motor:res.motor||'ia', ...(res.falhaIA?{falhaIA:res.falhaIA}:{}), ...(evo&&evo.id?{evoId:evo.id}:{}), ...(_anterior?{anteriorId:_anterior}:{})};
@@ -20426,6 +20507,36 @@ class Component extends DCLogic {
         barra:'width:'+Math.max(0,Math.min(100,(q.para!=null?q.para:0)))+'%;height:100%;border-radius:99px;background:'+((q.para!=null&&q.para>=70)?'var(--ok)':(q.para!=null&&q.para>=55)?'var(--warn)':'var(--danger)')+';'
       }))
     }));
+    // o que você repete: quesitos perdidos de todas as peças, por disciplina e tema
+    const _rep=(this.state.view==='redacao') ? this._redRepete() : null;
+    const _repData=(s)=>{ const p=String(s||'').split('-'); return p.length===3?(p[2]+'/'+p[1]):''; };
+    const redRep=((_rep&&_rep.disciplinas)||[]).map(d=>({
+      disc:d.disc,
+      resumo:d.temas.length+(d.temas.length>1?' temas perdidos':' tema perdido')+(d.repetidos?(' · '+d.repetidos+(d.repetidos>1?' repetidos':' repetido')):''),
+      temas:d.temas.slice(0,12).map(t=>({
+        tema:t.tema, exigencia:t.quesito.exigencia, abreviada:!!t.quesito.abreviada,
+        // sem prova do banco o tema É o título do quesito: não repete a mesma linha duas vezes
+        exigenciaTem:String(t.quesito.exigencia||'').replace(/\s+/g,' ').trim()!==String(t.tema||'').trim() || !!t.quesito.abreviada,
+        // onde e quando o quesito foi perdido pela última vez (não a data da última peça do tema)
+        onde:t.quesito.prova+(_repData(t.quesito.quando)?(' · '+_repData(t.quesito.quando)):''),
+        conta:'perdido em '+t.perdas+' de '+t.cobrado+(t.cobrado>1?' peças':' peça'),
+        linha:(t.cobrado>1?('1ª peça '+t.primeira.pct+'% → última '+t.ultima.pct+'%'):('única peça: '+t.primeira.pct+'%')),
+        selo:(t.repetiu?'repetido':t.superou?'superado':''), seloTem:!!(t.repetiu||t.superou),
+        // 13(b): a queda (ou não) do mesmo erro ao longo das peças — pontos perdidos do tema em cada uma
+        spark:this._redSpark(t.seriePerda), sparkShow:(t.seriePerda||[]).length>1,
+        sparkCor:(t.repetiu?'var(--danger)':'var(--ok)'),
+        sparkAlt:'Pontos perdidos neste tema, peça a peça: '+(t.seriePerda||[]).map(v=>v+'%').join(', '),
+        seloClasse:(t.repetiu?'ct-selo ct-selo-atraso':'ct-selo ct-selo-hoje'),
+        dispositivos:(t.quesito.dispositivos||[]).join(' · '), dispTem:(t.quesito.dispositivos||[]).length>0,
+        aproximada:!!t.quesito.aproximada
+      })),
+      mais:(d.temas.length>12?('e mais '+(d.temas.length-12)+' nesta disciplina (todos saem na exportação)'):''), maisTem:d.temas.length>12
+    }));
+    const redRepTaxa=(_rep&&_rep.taxa)||{base:0,repetidos:0,pct:null};
+    const redRepTaxaStr=(redRepTaxa.pct!=null?redRepTaxa.pct+'%':'—');
+    const redRepTaxaTxt=(redRepTaxa.pct!=null
+      ? (redRepTaxa.repetidos+' de '+redRepTaxa.base+(redRepTaxa.base>1?' temas perdidos':' tema perdido')+' na primeira peça e cobrado'+(redRepTaxa.base>1?'s':'')+' de novo: perdido'+(redRepTaxa.repetidos===1?'':'s')+' também na última')
+      : 'a taxa aparece quando um tema perdido for cobrado em uma segunda peça');
     // U3: o cartão de voltar ao último ponto de estudo. O ✕ dispensa até haver ponto NOVO
     // (compara pelo ts).
     //
@@ -22044,6 +22155,10 @@ class Component extends DCLogic {
       redHist, redHistTem:redHist.length>0, redHistEmpty:redHist.length===0, redBtnDisabled, redBtnLabel,
       redEvo, redEvoTem:redEvo.length>0, redEvoOpen:this.state.redEvoOpen, toggleRedEvo:this.toggleRedEvo,
       redEvoLabel:(this.state.redEvoOpen?'ocultar':'ver'), redParaCiclo:this.redParaCiclo,
+      redRep, redRepTem:redRep.length>0, redRepOpen:!!this.state.redRepOpen, toggleRedRep:this.toggleRedRep,
+      redRepLabel:(this.state.redRepOpen?'ocultar':'ver'), redRepExp:(this.state.redRepOpen?'true':'false'),
+      redRepTaxaStr, redRepTaxaTxt, redRepPecas:String((_rep&&_rep.pecas)||0)+(((_rep&&_rep.pecas)||0)===1?' peça corrigida':' peças corrigidas'),
+      redRepAnki:this.redRepAnki, redRepCaderno:this.redRepCaderno,
       onRedText:this.onRedText, submitRed:this.submitRed, redReset:this.redReset, redOpenHist:this.redOpenHist,
       redGabarito, redGabBusy, redGabFile, redGabWords:String(redGabWords),
       onRedGab:this.onRedGab, importRedGab:this.importRedGab,
