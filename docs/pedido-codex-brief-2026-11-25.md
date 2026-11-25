@@ -7,8 +7,9 @@ Este arquivo é o prompt inteiro. A dona cola no app do Codex só a linha abaixo
 Preparado pelo Claude Code em 25/11/2026 a pedido da dona (Lana). O texto literal do brief e do adendo está no
 Anexo A e manda sobre o resto. As seções 4 a 6 trazem o que foi levantado no código e no banco vivo em 25/11, só
 por leitura: o banco foi lido pelo Claude Code, e cada item foi mapeado por um agente que abriu os arquivos. A
-verificação adversarial desses mapas não tinha terminado quando este arquivo foi gravado. Trate cada linha citada
-como ponto de partida e confira o trecho ao abrir: se o código divergir, o código manda, e você registra a
+verificação adversarial dos mapas terminou depois, e dois revisores leram este arquivo contra o código; as
+correções deles estão no commit seguinte a `111de26`. Trate cada linha citada como ponto de partida e confira o
+trecho ao abrir: se o código divergir, o código manda, e você registra a
 divergência na devolução. As linhas de `Catedra.dc.html` são da `ff3c87f`; o PR #258 (já na `main`, `806b4a9`)
 desloca esse arquivo em +12 a +83 linhas: procure pelo trecho citado, não pelo número.
 
@@ -105,11 +106,30 @@ responde.
   bloqueado; isso não é falha sua.
 - PR aberto que toca arquivos destes itens: #253 (sobe o teto do acervo offline de 14 para 15 MiB em `sw.js` e
   `scripts/build.mjs`, e mexe em `tests/run.mjs`). O #250 mexe em `treino.js`.
-- Worktrees de outras sessões têm trabalho sem commit nos mesmos arquivos: `redacao-segunda-leitura` (linha de
-  export de `redacao-motor.js`), `espelho-sugerido-selo` (`espelho-sugerido.js`), `quesitos-perdidos`,
-  `banco-espelhos-venda` (em `~/Desktop`: `PRODUCT.md` com **outro preço**, "R$ 197 por um mês de acesso, pagamento
-  único", para uma página de venda do banco de espelhos que também usa `entrar_lista_espera`) e
-  `geometria-interface`. Espere conflito de mescla e não toque nesses worktrees.
+- **PR #259** (rascunho aberto em 25/11 por outra sessão, ramo `banco-espelhos-venda`: a página de venda do banco de
+  espelhos) mexe nos mesmos arquivos de vários itens:
+  - `PRODUCT.md`: tira "preço" das ausências (linha 72), cria a seção "Preço" com um preço único ("R$ 197 por um mês
+    de acesso, pagamento único") e reescreve a linha 64 com "586 quesitos de 36 provas", que um teste dele exige;
+  - `.impeccable/surfaces/sobre-html.md`, a Política (sobe para 1.3, com `privacidade.html` e `juridico.js`) e o
+    título e o subtítulo de `banco-espelhos.html` ("2021 a 2026");
+  - `scripts/build.mjs`, `scripts/build-macos.mjs`, `tests/run.mjs` e `tests/run-webkit.mjs`;
+  - a migration `supabase/migrations/2026-11-25-lista-espera-interesse-venda.sql`, **não aplicada**, que recria
+    `entrar_lista_espera`, apaga o índice `lista_espera_email_uidx` e cria dois índices parciais (beta e
+    `banco-espelhos`).
+
+  Ele cruza com os itens 2, 2b, 3, 6, 7 e 10. Não mexa nele. Antes de cada um desses PRs, veja se ele entrou e parta
+  da `main`. Se a migration dele tiver sido aplicada, os fatos da lista de espera desta seção ficaram velhos.
+- Worktrees de outras sessões têm trabalho sem commit nos mesmos arquivos:
+  - `redacao-segunda-leitura`: linha de export de `redacao-motor.js`;
+  - `espelho-sugerido-selo`: `espelho-sugerido.js`;
+  - `retomar-mesa-discursiva`: `Catedra.dc.html` e `tests/redacao-mesa.mjs`, que os itens 9 e 11 também mudam;
+  - `quesitos-perdidos`: `Catedra.dc.html`, `scripts/build.mjs`, `scripts/build-macos.mjs`, `tests/run*.mjs` e o
+    arquivo novo `quesitos-perdidos.js`;
+  - `fora-do-escopo-flag`: `Catedra.dc.html`, `tests/run.mjs` e `tests/run-webkit.mjs`;
+  - `quantidade-real-arguicao`: `Catedra.dc.html`, `tests/run.mjs` e `tests/oral-sala.mjs`;
+  - `geometria-interface`.
+
+  O `banco-espelhos-venda` virou o PR #259 (acima). Espere conflito de mescla e não toque nesses worktrees.
 
 ## 5. Como testar nesta casa
 
@@ -125,7 +145,11 @@ responde.
 - Teste que toca o Supabase simula o client (padrão de `tests/run.mjs:3990`). A suíte não usa rede
   (`tests/_infra.mjs:69`) e serve a **raiz do repositório**, não `public/` (`tests/_infra.mjs:26`).
 - SQL: checagem estática no molde de `tests/exclusao-conta-cobertura.mjs` e casos em `supabase/testes/` numa
-  transação que se desfaz. Tabela ou coluna nova com nome terminado em `email` ou `user_id` cai na régua EXC2.
+  transação que se desfaz. Tabela nova com coluna `user_id`, `criador` ou `admin_uid`, ou com coluna de nome
+  terminado em `email`, cai na régua EXC2 (`tests/exclusao-conta-cobertura.mjs:12` e `:109`).
+- Arquivo novo entra nas listas de cópia dos dois builds. Se for `<script>` do `<head>` do host, entra também na
+  `casca` do service worker (`scripts/build.mjs:370–380`), com `defer` (`tests/carregamento-inicial.mjs:55`): fora
+  da casca, o app instalado abre offline sem ele. Vale para qualquer item.
 - Teste que prova aparência **mede** (contraste calculado, caixas, `getComputedStyle`) e olha a captura.
 - Teste que depende de "hoje" fixa o relógio em contexto próprio (`tests/registro-sessao.mjs:37–41`). Semeie o
   `localStorage` por `base + '/__semente'` e leia o storage pelo menos 1,3 s depois de agir.
@@ -138,7 +162,8 @@ da dona, siga o padrão provisório da seção 8, marque "provisório" no PR e s
 ### Item 1 — Registro de erros do cliente
 
 **Verificado.**
-- Os tratadores globais ficam só no host, no script inline do topo (`Catedra.dc.html:13–14`). Eles não chamam a
+- Os tratadores globais que enfileiram ficam só no host, no script inline do topo (`Catedra.dc.html:13–14`).
+  `carregamento-inicial.js:98–99` também escuta, só para trocar a tela de abertura, sem enfileirar. Eles não chamam a
   RPC: gravam em `catedra:_errFila` (`{ts, m}`, teto de 20, mensagem cortada em 300) sempre, com ou sem conta e com
   ou sem rede. É a fila offline. `auth.js:436` também enfileira quando `widget_publicar` falha.
 - Quem envia é `_telemetriaEnviar` (`Catedra.dc.html:14577–14585`): lotes de 5, só com `telemetriaLigada` (vinda de
@@ -150,7 +175,7 @@ da dona, siga o padrão provisório da seção 8, marque "provisório" no PR e s
 - Outros furos do cliente:
   - a fila é regravada a partir de um instantâneo lido antes dos `await` (14582/14585), e o erro que entra durante o
     envio se perde;
-  - o evento `online` não relê `app_avisos`;
+  - no boot offline, a fila só anda quando a sessão é retomada (passo 2);
   - tela e build enviados são os do momento do envio, não os do erro;
   - os 7 satélites não capturam erro, e `support.js` engole os erros de `renderVals` e do ciclo de vida.
 - O console já busca `admin_erros_cliente(24)` (`Catedra.dc.html:16941`) e lista os erros no painel
@@ -161,7 +186,10 @@ da dona, siga o padrão provisório da seção 8, marque "provisório" no PR e s
 **Faça.**
 1. Em `_telemetriaEnviar`, só tire da fila com `r.error` nulo **e** `r.data === true`. Releia a fila do
    `localStorage` antes de gravar e remova por identidade (`ts` + `m`).
-2. No evento `online`, se `telemetriaLigada` estiver indefinido, chame `_loadAvisos()`.
+2. Boot offline: prove por teste se a fila esvazia quando a rede volta. Com a sessão pendente, `CatedraAuth.user`
+   fica nulo até `auth.js:405` retomar a sessão, o que dispara `catedra:authuser` e `_loadAvisos`
+   (`Catedra.dc.html:8266`). Reler `app_avisos` no evento `online`, sozinho, não basta. Só mexa se o teste mostrar
+   que a fila não anda.
 3. Contador das últimas 24 h no cabeçalho do painel "Erros nas últimas 24 h", derivado da lista (mostre "200+" no
    teto da RPC). Não acrescente consulta ao `Promise.all` sem rever o `=== 11` de `acessoNegado` (16944).
 4. Prova ao vivo, só depois do sim da dona (decisão 1a). Ela liga a telemetria em Ajustes › Administração ›
@@ -177,7 +205,8 @@ da dona, siga o padrão provisório da seção 8, marque "provisório" no PR e s
   - um erro disparado durante o envio continua na fila depois;
   - a volta da rede, num boot offline, esvazia a fila sem recarregar;
   - o contador mostra 0, 3 e "200+", medido.
-- Se a lógica da fila sair para um módulo puro, ele tem teste `node:test`.
+- Se a lógica da fila sair para um módulo puro, ele tem teste `node:test` e segue a regra de arquivo novo da
+  seção 5 (listas de cópia, casca e `defer`).
 - Casos SQL em `supabase/testes/` (telemetria desligada devolve `false` e não grava; ligada grava com os cortes;
   51ª no dia devolve `false`), preparados e não rodados sem o sim.
 
@@ -206,13 +235,25 @@ remova-a no teste. O alvo do iPad é `iPadOS`, não `iPad` (`ios/build-ipad.sh:9
 1. Reescreva o parágrafo da Segunda fase. Onde a banca publicou espelho, a correção segue esse espelho; nas demais
    provas, o app pode sugerir, a pedido, um espelho por IA, com o selo "Sugerido — não oficial", fundamento em cada
    quesito e nota aproximada. Retire "Nada de opinião no lugar do critério.". Não prometa IA offline (o hero promete
-   "sem depender de internet") nem cite foto (item 11).
-2. A linha de preço, conforme a decisão 2a. Ajuste `PRODUCT.md:72`, `.impeccable/surfaces/sobre-html.md:16`, o
-   comentário de `sobre.html:9` e o teste da linha 3705, que passa a aceitar **só** essa linha e continua recusando
-   qualquer outro `R$`, "por mês" e "assinatura por".
+   "sem depender de internet") nem cite foto (item 11). Não estenda a todas as provas o "cada quesito com a
+   exigência literal, a pontuação atribuída" de hoje: na Redação, "com espelho" também conta padrão de resposta em
+   texto e PDF, sem pontuação por quesito (item 10).
+
+**Faça (PR 2c, separado: a linha de preço).** O PR #259 (seção 4) declara em `PRODUCT.md` um preço único, "R$ 197
+por um mês de acesso, pagamento único", para o banco de espelhos. O brief pede "R$ 197 por ano" para o beta. São
+duas ofertas com termos diferentes, e a escolha é da dona (decisão 2a). Prepare o PR com o padrão provisório e
+ajuste junto:
+- a regra de preço de `PRODUCT.md` (a linha 72, ou a seção "Preço" do #259, se ele tiver entrado);
+- `.impeccable/surfaces/sobre-html.md:16`;
+- o comentário de `sobre.html:9`;
+- o teste da linha 3705, que passa a aceitar **só** essa linha e continua recusando qualquer outro `R$`, "por mês" e
+  "assinatura por".
+
+Esse PR não bloqueia o PR 2+10.
 
 **Faça (PR 2b, separado, só depois do sim da dona).** A pergunta de disposição a pagar (decisão 2b):
-1. Migration com coluna nova de nome neutro e `check` do conjunto fechado. `drop function
+1. Parta da definição mais nova de `entrar_lista_espera`: a do banco vivo (seção 4) ou a do PR #259, se a
+   migration dele tiver sido aplicada. Migration com coluna nova de nome neutro e `check` do conjunto fechado. `drop function
    public.entrar_lista_espera(text,text)` e recriação com o parâmetro novo `default null` (sem o drop, o PostgREST
    fica com duas funções e a chamada nomeada falha), com `revoke`/`grant` refeitos.
 2. Política (seções 2 e 3) e a linha "Guardamos só…" atualizadas juntas, regenerando `privacidade.html` e
@@ -221,7 +262,7 @@ remova-a no teste. O alvo do iPad é `iPadOS`, não `iPad` (`ios/build-ipad.sh:9
    lista inteira cai em "Não deu para registrar agora".
 
 **Pronto quando.** Teste `node:test` sobre `sobre.html` sem comentários: a frase velha sumiu; o cartão cita espelho
-oficial e espelho sugerido por IA; há exatamente uma linha de preço. No Chromium, a linha de preço pinta com
+oficial e espelho sugerido por IA; e, no PR 2c, há exatamente uma linha de preço, que no Chromium pinta com
 contraste ≥ 4,5:1 medido. No PR 2b: nenhuma opção vem marcada, o envio sem resposta manda `null`, os rótulos das
 opções têm 44 px ou mais (a regra `input, select` de `sobre.html:69` deforma radios) e os casos SQL estão
 preparados.
@@ -250,7 +291,9 @@ tamanho. O cliente também normaliza e valida (`sobre.html:173` e `:179`). Falta
    e aviso de lista vazia. Estado só de tela: fora de `_autosaveKeys` e do `localStorage`, porque são e-mails de
    terceiros.
 3. Teste estático do conteúdo do arquivo de 07/10. Hoje ele só é lido pela cobertura da exclusão de conta, e
-   nenhum teste confere a RPC: `lower(trim`, trava, limites, `revoke insert` e `grant execute`.
+   nenhum teste confere a RPC: `lower(trim`, trava, limites, `revoke insert` e `grant execute`. Se o PR #259 tiver
+   entrado, confira a migration mais nova que define `entrar_lista_espera` (a dele apaga `lista_espera_email_uidx` e
+   cria dois índices parciais), não só a de 07/10.
 
 **Pronto quando.** No Chromium: isca preenchida = zero `fetch`; isca vazia = 1 chamada com o corpo de sempre. A
 isca fica fora da vista e do foco, medida (Tab vai do e-mail para a área e depois para o botão; a altura do form não
@@ -286,7 +329,9 @@ honeypot não para quem chama a RPC direto com a chave pública.
 - O ⌘K (7866) abre a paleta, que só indexa lei, verbete, peça e rito (17917; `busca-unica.js:110`). Não há busca
   de tópico do edital em lugar nenhum.
 - `ct_timer` guarda disciplina e tópico só com bloco (`atvKey`, 9469) e nunca guarda `edTop`/`edSub`. A oferta de
-  registro em um toque ao pausar (U11) grava `edTop:null` (12655) e sugere a disciplina da **última sessão** (9415).
+  registro em um toque ao pausar (U11) fora do Magistratura (9415–9438), grava `edTop:null` (12655) e sugere a disciplina da **última sessão**
+  (9415). No Magistratura com bloco (9395–9413), o "Registrar" chama `saveSession` com o rascunho do bloco (9405) e
+  já grava o `edTop` que ele trouxer.
 
 **Faça (com as decisões 4a a 4e).**
 1. Portão em `toggleTimer` só para início **novo** (zerado, `!_cronometroEmUso`, sem `atvKey` e sem tópico): abrir o
@@ -295,7 +340,9 @@ honeypot não para quem chama a RPC direto com a chave pública.
 2. Seletor com busca e foco no campo, alimentado por `_topicosDe` (vista do concurso ativo; subtópico pode ser
    string ou `{name}`), com alvos de 44 px. Entra em `_ocupado` (7857), senão F e espaço agem por baixo dele, e Esc
    fecha sem iniciar.
-3. ⌘K: os tópicos do edital entram na paleta como tipo novo. Escolher um tópico inicia o cronômetro nele. Se mexer
+3. ⌘K: os tópicos do edital entram na paleta como tipo novo. Escolher um tópico inicia o cronômetro nele quando ele
+   está zerado. Com o cronômetro em uso, não troque o tópico nem zere o tempo: abra o registro da sessão atual e
+   avise, como o Magistratura já faz (`Catedra.dc.html:12720`). Se mexer
    em `busca-unica.js` (módulo puro), faça teste `node:test`.
 4. Guarde o tópico escolhido no próprio `ct_timer` (local, por titular, apagado no logout; sem chave `catedra:`
    nova) e restaure-o. A oferta U11 e o registro passam a usar o tópico do cronômetro.
@@ -310,10 +357,21 @@ honeypot não para quem chama a RPC direto com a chave pública.
   - ⌘K acha o tópico do edital ativo e não o de outro concurso.
 - WebKit com toque: do Início ao cronômetro rodando com tópico em até 3 toques, alvos de 44 px ou mais medidos, e
   o PiP "alternar" ainda retoma.
-- Os testes que iniciam sem tópico são atualizados sem afrouxar o que provam: `cronometro-pausa.mjs:40`,
-  `run.mjs:6338` e `6376`, `ciclo-magistratura.mjs:221` e `225`, `ciclo-plataforma.mjs:29`, `ipad-toque.mjs:267`.
+- Os testes que iniciam do zero e sem bloco passam pelo portão e são atualizados sem afrouxar o que provam:
+  `cronometro-pausa.mjs:40` e `run.mjs:6338` e `6376`.
+- Os outros não devem mudar com o portão:
+  - `ipad-toque.mjs:267` é uma retomada (a linha 261 põe `timerSeconds: 754` antes do "alternar");
+  - `ciclo-plataforma.mjs:29` e `ciclo-magistratura.mjs:221` iniciam com o bloco do Magistratura (`toggleTimer`
+    preenche o rascunho por `_cmContexto`, `Catedra.dc.html:9362`);
+  - em `ciclo-magistratura.mjs:225`, o foco entra com o relógio já correndo.
 
-**Cuidado.** No Magistratura, o início por bloco já traz contexto, e "Registrar fora do ciclo" (12432) apaga o
+  Se um desses quebrar, o portão está pegando retomada ou bloco: conserte o portão, não o teste.
+
+**Cuidado.** `toggleTimer` (9358) e `enterFocus` são ligados por `onclick="{{ … }}"` (976, 987, 1265, 1859), e o
+runtime entrega o evento como 1º argumento. Não acrescente parâmetro posicional para pular o portão depois da
+escolha: o evento cairia nele e todo botão pularia o seletor. Ligue o tique por uma função própria.
+
+No Magistratura, o início por bloco já traz contexto, e "Registrar fora do ciclo" (12432) apaga o
 vínculo: só esse caminho avulso pede tópico. Sem edital, o rascunho nasce com "Direito Constitucional" (12339), e
 um portão rígido travaria quem não tem edital (decisão 4b). O domínio por tópico usa `s.topico` normalizado
 (12322): grave o nome exato do tópico do edital.
@@ -335,23 +393,31 @@ um portão rígido travaria quem não tem edital (decisão 4b). O domínio por t
 1. Primeiro, estabilize o runner (decisão 5c):
    - `try/catch` com `ok(false, ...)` nos `await` soltos de `tests/run-webkit.mjs` (156, 157, 159, 161, 192–194,
      327, 332);
-   - em `tests/login-leitores-web.mjs:62–89`, espere o recarregamento do quadro antigo (`framenavigated`, como nas
-     linhas 51–55) antes do `replaceWith`;
+   - em `tests/login-leitores-web.mjs:62–89`, registre a espera do recarregamento do quadro antigo
+     (`page.waitForEvent('framenavigated', …)`) **antes** do `page.evaluate` da linha 62, porque o `dispatchEvent`
+     da linha 69 já dispara o recarregamento; espere por ela antes do `replaceWith` (linha 84), na mesma ordem das
+     linhas 51–55;
    - mire o quadro novo por seletor próprio, não o genérico `'iframe'`.
    - Não aumente só o timeout.
-2. Lei seca: entrar pelo botão `button[data-view="oral"]`, clicar em `button[data-m="lei"]` e afirmar que os chips
-   com `data-v` não vazio são mais de zero **e** iguais a `window.CT_LEIS.length`.
+2. Lei seca: entrar pelo botão `button[data-view="oral"]` e clicar em `button[data-m="lei"]`. Só dentro do cartão de
+   Lei seca (o `.ct-card` que contém "Sortear artigo", como em `tests/oral-lei-seca.mjs:93–107`), afirmar que os chips
+   com `data-v` não vazio são mais de zero **e** iguais a `window.CT_LEIS.length`. A Prova oral tem outros
+   `button[data-v]` (minutos, ramo, tribunal): contados juntos, o número não bate.
 3. LEGIS pelo host: módulo novo que usa `definirContaLeitora` (`tests/_sessao-leitores.mjs:21–28`).
    - Clique em `button[data-view="legis"]` e espere `iframe[data-ct-view="legis"]`.
    - Sirva o texto da lei por `ctx.route` em `**/api/law**`: a suíte não tem rede, e `/api/law` dá 404.
    - Ligue `#rdrLA` e marque "Quem?".
    - Afirme o registro em `CT_LA_CANAL` e no `localStorage` do host.
-   - Em `file://`, se o quadro for opaco, o esperado é a entrada de login.
+   - Em `file://`, o `ctx.route` não ajuda: com `LAW_API_BASE` vazio, a chamada vai para `file:///api/law`, e sem
+     `CATEDRA_API_BASE` o leitor nem abre lei (`legis-web.html:617` e `858`). O WebKit também dá origem opaca a cada
+     arquivo (`tests/volta-origem.mjs:1412`). Ali o caso afirma a entrada de login, como o de
+     `tests/volta-origem.mjs:1489`, e não tenta marcar a grade: a grade marcada é prova da origem `http`.
    - Registre o módulo nos dois runners.
 4. "A cada publicação": o push na `main` já cobre (decisão 5a).
 
-**Pronto quando.** O runner WebKit não aborta com uma falha isolada; o caso de login passa várias vezes seguidas; e
-os dois casos do item rodam em `http` e `file://`.
+**Pronto quando.** O runner WebKit não aborta com uma falha isolada; o caso de login passa várias vezes seguidas;
+a Lei seca roda em `http` e `file://`; e a grade marcada se prova em `http`, enquanto em `file://` o caso afirma a
+entrada de login.
 
 **Cuidado.** Não renomeie o job (check exigido). Não adote `@playwright/test` (dependência nova sem pedido). Clique
 pelo DOM dentro de `page.evaluate`, porque o app re-renderiza a cada tique. A área precisa ser `juridica` para as
@@ -369,7 +435,7 @@ pelo DOM dentro de `page.evaluate`, porque o app re-renderiza a cada tique. A á
 - Cada quesito tem 18 campos, com `pont` literal da banca.
 - Os 35 "não localizados" são texto livre em `D.naoLoc`. Ficaram para rebuscar TRF2 XIX ("Em breve"), as sentenças
   do LI Concurso do TJ-RJ, TJ-BA 2026 e TJ-PE 2026; e como "vista individual" TJ-SC 2022–2025, TJ-CE 2025, TJ-PR
-  2023 e 2025, TJ-MS 2025 e TRF6.
+  2025, TJ-MS 2025 e TRF6 (o TJ-PR 2023 diz só "segue sem espelho público").
 - Nada no repositório registra busca depois de 20/08.
 
 **Faça.**
@@ -381,14 +447,17 @@ pelo DOM dentro de `page.evaluate`, porque o app re-renderiza a cada tique. A á
    1. faça o parse de `D`;
    2. acrescente as linhas **no fim** de `D.rows`, na ordem do PDF, com `pont` literal;
    3. acrescente as `D.instr` correspondentes;
-   4. atualize `nEsp`, `tribs`, `anos` (crescente), `discs` (reuse a grafia existente) e `tipos`;
+   4. atualize `nEsp`, `tribs`, `anos` (crescente), `discs` (reuse a grafia existente) e `tipos`, e use uma grafia
+      de `tipoRaw` que já existe (há 9). Ela entra no id, decide se duas sentenças viram uma prova ou duas e precisa
+      conter "discursiva", "sentença" ou "peça" para a prova aparecer nos filtros (`treino.js:798–799`);
    5. reescreva `D.naoLoc` registrando o que foi procurado sem espelho, com data;
    6. grave `JSON.stringify(D)` na mesma linha, terminada em `;`.
 3. Rode `node scripts/build-espelhos.mjs` **uma vez**, no fim: ele carimba `meta.gerado` com a data do dia. Confira
    o total de cada prova contra a nota máxima do edital e revise os quesitos que saírem como incertos (hoje 89), sem
    reescrever `pont`.
-4. Se entrar prova de 2026 ou mais nova, ajuste o "2021 a 2025" do título e do subtítulo de `banco-espelhos.html`
-   (linhas 4 e 72).
+4. O "2021 a 2025" do título e do subtítulo de `banco-espelhos.html` (linhas 4 e 72) já está defasado: o banco tem
+   uma prova de 2026 (a discursiva do TJ-RJ), e `D.anos` vai até 2026. O PR #259 troca as duas linhas para "2021 a
+   2026". Se ele não tiver entrado, ajuste o intervalo ao ano mais novo de `D.anos`.
 
 **Pronto quando.** Teste `node:test` de coerência:
 - `meta` igual aos arrays;
@@ -400,7 +469,16 @@ pelo DOM dentro de `page.evaluate`, porque o app re-renderiza a cada tique. A á
 
 Nenhum teste fixa 36 nem 586. Devolva a lista do que entrou e do que foi procurado sem espelho público.
 
-**Cuidado.** Nunca insira nem reordene quesito de prova antiga. As instruções vão pela chave `trib ano`, e duas
+**Cuidado.**
+- Os dois builds passam `verificarPII` em tudo o que publicam, `.js` incluído, e abortam (`scripts/build.mjs:494`;
+  `scripts/build-macos.mjs:162`). Um CPF válido copiado de um espelho derruba os dois: transcreva o quesito sem
+  dado pessoal.
+- Os casos de `tests/run.mjs:4274` e `6043` pegam uma prova de `CT_ESPELHOS.provas` (ordenada por ano decrescente):
+  confira se a prova nova muda o alvo deles.
+- A discursiva TJ-RJ 2026 está como "Banca própria", mas os links e o texto dizem VUNESP: confira na página
+  oficial antes de copiar o padrão.
+
+Nunca insira nem reordene quesito de prova antiga. As instruções vão pela chave `trib ano`, e duas
 provas do mesmo tribunal e ano as compartilham. Rode o gerador num caminho sem espaço nem acento: ele usa
 `new URL(import.meta.url).pathname`. O `espelhos.js` maior pode estourar o teto de 14 MiB do acervo offline (U10,
 `tests/run.mjs:571`) se o PR #253 não tiver entrado. A fusão para a Redação e o Simulado nativo é outro banco
@@ -409,7 +487,8 @@ provas do mesmo tribunal e ano as compartilham. Rode o gerador num caminho sem e
 ### Item 7 — Versão visível
 
 **Verificado.**
-- A versão aparece num lugar só: Ajustes › Conta › "Versão e suporte" (`Catedra.dc.html:7114`). Ela sai como
+- Na camada web, a versão aparece num lugar só. O app do Mac tem ainda o "Sobre o Cátedra"
+  (`mac/Sources/main.swift:2315`), mas ele mostra o número nativo do bundle, não o carimbo. O lugar é Ajustes › Conta › "Versão e suporte" (`Catedra.dc.html:7114`). Ela sai como
   "versão <sha> · <alvo>", sem a data (`buildLabel`, 22240), e, sem carimbo, vira "versão de desenvolvimento".
 - Não há rótulo de versão em rodapé nenhum.
 - O carimbo `{versao, data, alvo}` nasce em `scripts/build.mjs:174` e em `scripts/build-macos.mjs:83` e só entra no
@@ -425,7 +504,13 @@ provas do mesmo tribunal e ano as compartilham. Rode o gerador num caminho sem e
    `local`; data no fuso America/Sao_Paulo.
 2. Ajustes mostra versão, data e alvo.
 3. Rodapé: na base do menu lateral, junto do selo de sincronização (`Catedra.dc.html:837–845`). Nas páginas
-   públicas, um marcador explícito substituído no build; o build falha se o marcador não existir.
+   públicas, use um marcador explícito, trocado **só na cópia** que vai para `public/` e `mac/build/web`; o build falha
+   se o marcador não existir.
+   - Não grave sha e data nos arquivos versionados da raiz: cada build e cada `npm test` sujariam o repositório.
+   - `scripts/build-juridico.mjs` regrava `termos.html` e `privacidade.html` na raiz a cada build (linha 164), e o
+     rodapé deles nasce em `montarPagina` (linha 153): o marcador nasce ali.
+   - Como a suíte serve a raiz (`tests/_infra.mjs:26`), o marcador da raiz pinta um texto legível (por exemplo,
+     "versão de desenvolvimento"), nunca o marcador cru.
 4. A fila de erros guarda o build no momento da captura, e `p_build` vai como `sha · AAAA-MM-DD` (cabe em 40).
    Faça depois do item 1, porque mexe na mesma chamada.
 
@@ -448,7 +533,8 @@ conteúdo, outra coisa. A base do menu usa `opacity:.85`: meça o contraste.
 - A conferência própria só existe no modo "À mão" (`terminarMao`, `marcarConf`, `registrarConferencia`,
   `Catedra.dc.html:13889–13952`). A resposta fica no papel, e a entrada grava `texto:''`.
 - O veredicto é um número por índice em `redConf`, estado só de tela, lido como número em 13923, 13925, 21755,
-  21756 e 21765.
+  21756 e 21765. No espelho em prosa, `redConf.unica` guarda a nota digitada como texto (`onConfUnica`, 13914), e
+  `_redConfTemNota` a trata à parte (13904).
 - O resultado vai para `catedra:red` e `catedra:redHist`, que já estão em `ARRAY_ID`.
 
 **Faça (decisões 9a a 9e).**
@@ -508,7 +594,9 @@ Conferido pelo Claude Code em 25/11 e devolvido à dona:
   resposta em texto e o PDF. O host não carrega `espelhos.js`.
 - O **648** não está no código da Mesa de prova. Foi o tamanho de `discursivas.js` de 20 a 27/08 (17 ids duplicados
   saíram em `eb76949`, e o banco caiu para 631) e um texto fixo tirado em 21/08. Hoje só aparece fixo em
-  `pecas.js:3712` e `:3794` ("325 das 648 questões"), no roteiro "Questão discursiva".
+  `pecas.js:3712` e `:3794` ("325 das 648 questões"), no roteiro "Questão discursiva", que abre pela busca do
+  host. São os únicos em texto de tela: o `git grep` acha 648 em mais 30 linhas de `pecas.js`, em comentários do
+  campo `freq`, contados na base antiga.
 - "Mesa de prova" nomeia duas telas: a etapa 2 da Redação (`Catedra.dc.html:3702`) e `segunda-fase-web.html`
   (linha 200).
 
@@ -522,7 +610,8 @@ Conferido pelo Claude Code em 25/11 e devolvido à dona:
 3. Telas do app: a 2ª fase já lê a mesma fonte; mantenha. Para a Redação e o `pecas.js`, siga o padrão provisório da
    seção 8 (decisões 10a e 10b).
 4. Documentos com número escrito à mão passam a citar a fonte, não o número: `PRODUCT.md:64`,
-   `.impeccable/surfaces/sobre-html.md:14`, `docs/especificacao-melhorias.md:163`.
+   `.impeccable/surfaces/sobre-html.md:14`, `docs/especificacao-melhorias.md:163`. O PR #259 reescreve `PRODUCT.md:64` com "586 quesitos de 36
+   provas", e um teste dele exige esse texto: se ele entrar antes, ajuste esse teste junto.
 
 **Pronto quando.**
 - Depois de `node scripts/build.mjs`, `public/sobre.html` mostra os números de `espelhos.js`; depois de
@@ -551,7 +640,9 @@ Conferido pelo Claude Code em 25/11 e devolvido à dona:
 - No host, as únicas entradas de arquivo são o backup em JSON (`Catedra.dc.html:13506`) e o padrão de respostas em
   PDF ou TXT (`Catedra.dc.html:15993`), lido pelo PDF.js, sem OCR. Nenhum `accept` de imagem, `capture`,
   `getUserMedia` ou `mediaDevices` no código web; nenhuma permissão de câmera ou fotos nos nativos.
-- `api/complete.js:53` lê só `body.prompt`; Anthropic, AI Gateway e Gemini recebem só texto (linhas 101, 152, 204).
+- `api/complete.js` lê do corpo só `prompt` (53), `model` (68–69, recusado se estiver fora da lista), `max_tokens`
+  (77) e `temperature` (78), nenhum campo de imagem. Anthropic, AI Gateway e Gemini recebem só o texto do `prompt`
+  (linhas 101, 152, 204).
   O shim web (`scripts/build.mjs:216`) e as pontes nativas mandam só `{prompt}`.
 - O "Prompt 2" e o seu item 10, que o brief usa como condição para a trava cair, não estão no repositório nem no
   `Brief.pdf` (lá os "Pedidos prontos para o chat" estão recolhidos).
@@ -580,12 +671,15 @@ widget, "fotografia" de perícia, "scan" dentro de "buscando"). Mudança só de 
    sincronização de `tests/login-leitores-web.mjs`). O check exigido cai sem relação com a mudança e bloquearia
    todos os outros PRs.
 2. **Item 1.**
-3. **Itens 2 e 10 num PR só:** a contagem no build, o texto da Segunda fase e a linha de preço. O **item 2b** (a
-   pergunta, a migration e a Política) fica num PR à parte, só depois do sim da dona.
+3. **Itens 2 e 10 num PR só:** a contagem no build e o texto da Segunda fase. A linha de preço (**PR 2c**) e a
+   pergunta com a migration e a Política (**PR 2b**) ficam à parte, cada uma esperando a resposta da dona (decisões
+   2a e 2b), por causa do PR #259.
 4. **Item 3:** depois do 2+10, porque mexe em `sobre.html`.
 5. **Item 4.**
 6. **O resto do item 5.**
-7. **Item 6:** depois do PR #253, ou conferindo o U10.
+7. **Item 6:** depois do PR #253, ou conferindo o U10. Se o PR 2+10 já tiver entrado, o build regrava o
+   `sobre.html` da raiz com os números novos de `espelhos.js`, e o PR do item 6 leva esse arquivo junto. O #259 mexe
+   no título de `banco-espelhos.html`.
 8. **Item 7:** depois do 1 (mesma chamada em `Catedra.dc.html:14584`) e do 2+10 (mesmos laços de cópia dos builds).
 9. **Item 9.**
 10. **Item 11:** por último. Ele varre o `sobre.html` final e estende o mesmo teste da linha 3705.
@@ -594,7 +688,12 @@ Arquivos que vários itens mudam:
 - `sobre.html`: itens 2, 3, 10 e 11.
 - `tests/run.mjs:3705`: itens 2 e 11.
 - Laços de cópia de `scripts/build.mjs` e `scripts/build-macos.mjs`: itens 10 e 7.
-- `PRODUCT.md`: itens 2 e 10 e o worktree `banco-espelhos-venda`.
+- `PRODUCT.md` (linha 72) e `.impeccable/surfaces/sobre-html.md`: itens 2 e 10 e o PR #259, que já reescreve a
+  regra do preço.
+- `entrar_lista_espera`, a migration dela, a Política, `juridico.js` e `privacidade.html`: PR 2b, item 3 e PR #259.
+- `banco-espelhos.html` (título e subtítulo, linhas 4 e 72): item 6 e PR #259.
+- `tests/redacao-mesa.mjs`: itens 9 e 11 e o worktree `retomar-mesa-discursiva`.
+- `scripts/build.mjs` e `scripts/build-macos.mjs`: também o PR #259 e o worktree `quesitos-perdidos`.
 - `redacao-motor.js`: item 9 e o worktree `redacao-segunda-leitura`.
 
 Cada PR parte da `origin/main` mais nova. Quando um entrar, atualize os seguintes.
@@ -610,20 +709,20 @@ Para o que exige o sim (banco vivo, telemetria, instalação, merge), prepare e 
 | 1b | Quando o servidor devolve `false`, o item sai da fila? | Não: fica na fila e o envio para. |
 | 1c | Contador exato (RPC nova, migration) ou derivado da lista? | Derivado da lista, com "200+" no teto. Sem migration. |
 | 1d | Capturar erro dos satélites e os que o `support.js` engole? | Fora deste PR (amplia a coleta). Registrar como pendente. |
-| 2a | Texto e lugar da linha de preço, e a exceção em `PRODUCT.md:72`. Atenção ao outro preço do worktree `banco-espelhos-venda`. | "Quando abrir, R$ 197 por ano." na caixa `.honesto` (`sobre.html:135`), com a exceção escrita só para essa linha. |
-| 2b | Pergunta e opções de disposição a pagar; subir a Política para 1.3 (pede novo aceite a todas as contas)? | "Você pagaria R$ 197 por ano?" com Sim, Talvez e Não, opcional e sem pré-seleção. PR separado, que espera o sim. |
+| 2a | A landing ganha a linha "R$ 197 por ano" do brief, se o PR #259 declara em `PRODUCT.md` um preço único ("R$ 197 por um mês de acesso, pagamento único") para o banco de espelhos? São duas ofertas com termos diferentes. | PR 2c separado, com "Quando abrir, R$ 197 por ano (valor previsto, pode mudar)." na caixa `.honesto` (`sobre.html:135`) e a exceção escrita só para essa linha e o seu aviso de hipótese. Não bloqueia o PR 2+10. |
+| 2b | Pergunta e opções de disposição a pagar; subir a versão da Política (pede novo aceite a todas as contas)? O PR #259 já a leva a 1.3. | "Você pagaria R$ 197 por ano?" com Sim, Talvez e Não, opcional e sem pré-seleção. PR separado, que espera o sim. A versão da Política é a seguinte à que estiver na `main`. |
 | 2c | E-mail que já está na lista: grava a resposta nova? | Não (como hoje, para não permitir troca por quem souber o e-mail). |
 | 3a | Honeypot só no cliente ou também no servidor (migration)? | Só no cliente. Isca preenchida mostra o sucesso de sempre e não chama a rede. |
 | 3b | Onde o console mostra a lista? | Aba Controle, junto de "Quem pode entrar". |
-| 4a | O que é "cobertura como consequência de iniciar"? | A sessão iniciada com tópico grava o vínculo (`edTop`). No registro pelo modal, "marcar no edital" vem **ligado** (a pessoa pode desligar). A oferta de um toque grava o vínculo e não marca concluído. |
+| 4a | O que é "cobertura como consequência de iniciar"? | A sessão iniciada com tópico grava o vínculo (`edTop`). "Marcar no edital" vem **ligado** só quando o modal abre na tela para a pessoa (`openSession` ou o "Editar" da oferta), e ela pode desligar. Não mude o `marcarEdital:false` de `_freshSessionDraft` nem ligue a marca no rascunho ao iniciar: no Magistratura, o "Registrar" de um toque grava pelo `saveSession` sem modal e fecharia o tópico sem a pessoa ver (regra "abre, não grava sozinho", `Catedra.dc.html:9379`; nota "Registrar minutos não conclui a etapa", 1727). No modo OAB, que só avança por conclusão explícita (`PRODUCT.md:88`), a marca fica desligada. A oferta de um toque grava o vínculo e não marca concluído. |
 | 4b | Quem não tem edital, ou a disciplina sem tópicos? | Não trava: escolhe a disciplina e o app convida a cadastrar o edital. |
 | 4c | Quais portas passam pelo portão? | Todo início novo. Bloco do Ciclo ou do Magistratura com tópico já vale. Retomar nunca pergunta. |
 | 4d | Como contar os "três toques no iPad"? | A partir do Início: Iniciar, escolher o tópico, começar. |
-| 4e | ⌘K busca tópico em geral? | Sim: tópicos do edital entram na paleta, e escolher um inicia o cronômetro nele. |
+| 4e | ⌘K busca tópico em geral? | Sim: tópicos do edital entram na paleta, e escolher um inicia o cronômetro nele quando ele está zerado. Com o cronômetro em uso, abre o registro da sessão atual e avisa, sem trocar o tópico nem zerar o tempo (`Catedra.dc.html:12720`). |
 | 5a | "A cada publicação" é cada merge ou cada deploy da Vercel? | Cada merge (o push na `main` já dispara). Deploy exigiria conta de teste e segredos. |
 | 5c | Estabilizar o teste instável de login dos leitores? | Sim, no PR 0, só de teste. |
 | 6a | As provas novas vão também para a Redação e o Simulado nativo (fusão)? | Não: só `espelhos.js`, como pede o brief. |
-| 6b | Escopo da coleta. | TJs e TRFs, FGV incluída (já há 19 provas dela). Trabalho e Militar fora. Ano = ano do espelho. |
+| 6b | Escopo da coleta. | TJs e TRFs, FGV incluída (já há 19 provas dela, e `docs/roadmap.md:30` e `:34` a tratam como alvo). Trabalho e Militar fora. Ano = ano do espelho. |
 | 7a | O que é "versão"? | Sha curto, data (dd/mm/aaaa, Brasília) e alvo. |
 | 7b | Qual rodapé? | Base do menu lateral no app e rodapé das páginas públicas. |
 | 7c | Formato em `erros_cliente`? | `p_build` = `sha · AAAA-MM-DD`, sem coluna nova. |
@@ -632,6 +731,7 @@ Para o que exige o sim (banco vivo, telemetria, instalação, merge), prepare e 
 | 9c | "Atendido" é qualquer nota acima de 0? | Sim. |
 | 9d | Espelho em prosa, com nota única? | Isento. |
 | 9e | O simulado de 2ª fase (`segunda-fase-web.html`) entra no item 9? | Não. |
+| 9f | O corretor local sem IA do modo Digitar (`_redFallbackLivre`, `Catedra.dc.html:16224`) entra no "na correção sem IA" do brief? Ali as duas frases seriam conferíveis. | Não neste PR: só a conferência à mão. Fica como pendente. |
 | 10a | O "com espelho" da Redação (596, de `discursivas.js`, todas as carreiras) vira a contagem de `espelhos.js`? | Não: mantém a base e troca o rótulo para "com padrão de resposta". |
 | 10b | O "325 das 648 questões" de `pecas.js:3712` e `:3794`. | Tirar o número fixo do texto. |
 | 10c | De que tela e aparelho veio o "648 da Mesa de prova"? | Pergunta só: não está no código atual. |
