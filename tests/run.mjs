@@ -3711,6 +3711,24 @@ await comCadernoEnam(async (page) => {
   r.buildsERota = /'sobre\.html'/.test(build) && /'sobre\.html'/.test(buildMac) && (vercel.rewrites || []).some(x => x.source === '/sobre' && x.destination === '/sobre.html');
   r.linkNoPortao = /Conhecer a Cátedra/.test(auth) && /id="ctsobre"/.test(auth) && /data-doc="sobre\.html"/.test(auth);
   r.migracaoVersionada = fs.existsSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-lista-espera.sql')) && /for insert to anon/.test(fs.readFileSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-lista-espera.sql'), 'utf8')) && !/for select/.test(fs.readFileSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-lista-espera.sql'), 'utf8'));
+  // Os números do mosaico saem de espelhos.js e voltam a ele (a mesma régua de tests/venda-espelhos.mjs): a página
+  // dizia "566 quesitos de 35 espelhos oficiais, com a pontuação da banca" quando o acervo já tinha 586 de 36 provas —
+  // e em 84 deles o espelho não traz o valor separado (6 provas não trazem de nenhum). Ela diz quantos têm valor.
+  {
+    const ctxE = { window: {} }; new Function('window', fs.readFileSync(path.join(RAIZ, 'espelhos.js'), 'utf8'))(ctxE.window);
+    const E = ctxE.window.CT_ESPELHOS, temValor = (q) => typeof q.valor === 'number' && !isNaN(q.valor);
+    const visivel = html.replace(/<!--[\s\S]*?-->/g, '').replace(/<script[\s\S]*?<\/script>/g, '').replace(/<style[\s\S]*?<\/style>/g, '');
+    const total = E.provas.reduce((a, p) => a + p.quesitos.length, 0), comValor = E.provas.reduce((a, p) => a + p.quesitos.filter(temValor).length, 0);
+    const n = (k) => Number((visivel.match(new RegExp('data-n="' + k + '">(\\d+)<')) || [])[1]);
+    r.mosaicoBateComOAcervo = total === E.meta.quesitos && E.provas.length === E.meta.provas && n('quesitos') === E.meta.quesitos && visivel.includes('quesitos de ' + E.meta.provas + ' provas com espelho oficial');
+    r.valorSoQuandoOEspelhoTraz = comValor < total && visivel.includes('Em ' + comValor + ' o app mostra o valor do quesito; nos outros ' + (total - comValor) + ', o espelho não o traz separado.')
+      && /cada quesito com a exigência da banca, os dispositivos que o espelho cita e o valor, quando o espelho o traz separado/.test(visivel)
+      && !/quesitos de 35 espelhos|com a pontuação da banca|a pontuação atribuída|exigência literal/.test(visivel);
+  }
+  // Sem script, o envio nativo é um GET na própria página: com name= nos campos, o e-mail ia para a barra de endereço,
+  // o histórico e os registros da Vercel. O script lê os campos por id; nenhum campo tem nome (o envio sem script vem
+  // medido lá embaixo, num contexto com JavaScript desligado).
+  r.camposSemNome = !/<(input|select|textarea)\b[^>]*\sname=/i.test(html);
   for (const [k, v] of Object.entries(r)) ok(v, 'PÚBLICO/P15 página ' + k);
   await page.goto(URL0 + '/sobre.html');
   await page.waitForFunction(() => typeof window.ctEmailValido === 'function');
@@ -3738,6 +3756,69 @@ await comCadernoEnam(async (page) => {
     return r;
   });
   for (const [k, v] of Object.entries(f)) ok(v, 'PÚBLICO/P15 formulário ' + k);
+  // O envio sem script, de verdade: JavaScript desligado, e-mail preenchido, clique em "Entrar na lista". O navegador
+  // faz o GET nativo na própria página, e a URL não pode levar o e-mail (antes levava "?email=…&area=…").
+  {
+    const ctxSemJs = await browser.newContext({ javaScriptEnabled: false });
+    try {
+      const p = await ctxSemJs.newPage();
+      await p.goto(URL0 + '/sobre.html');
+      await p.fill('#email', 'pessoa@exemplo.com');
+      await Promise.all([p.waitForEvent('framenavigated'), p.click('#enviar')]);
+      await p.waitForLoadState('load');
+      const u = new URL(p.url());
+      ok(/sobre\.html$/.test(u.pathname) && !/pessoa|exemplo|%40|@|email|area/i.test(u.search + u.hash), 'PÚBLICO/P15 sem script o envio nativo não põe o e-mail na URL — ' + (u.search || 'URL sem consulta'));
+    } finally { await ctxSemJs.close(); }
+  }
+  // A borda é o que mostra o campo (WCAG 1.4.11): 3:1 contra o fundo do campo e contra o fundo em volta, nos dois
+  // esquemas. A seção da lista tem degradê, e a faixa de cima, a mais tingida, também conta. Contexto próprio: não muda
+  // o esquema de cor da página da suíte.
+  {
+    const ctxCor = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    try {
+      const p = await ctxCor.newPage();
+      for (const esquema of ['light', 'dark']) {
+        await p.emulateMedia({ colorScheme: esquema });
+        await p.goto(URL0 + '/sobre.html');
+        const m = await p.evaluate(() => {
+          // as cores chegam como rgb(), rgba() ou color(srgb …) (color-mix); formato desconhecido reprova em vez de passar calado
+          const desconhecidas = [];
+          const cor = (s) => {
+            let x = /^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)(?:\s*[,/]\s*([\d.]+)(%?))?\s*\)$/.exec(s);
+            if (x) return [+x[1], +x[2], +x[3], x[4] == null ? 1 : (x[5] ? x[4] / 100 : +x[4])];
+            x = /^color\(srgb\s+([-\d.e]+)\s+([-\d.e]+)\s+([-\d.e]+)(?:\s*\/\s*([\d.]+)(%?))?\s*\)$/.exec(s);
+            if (x) return [x[1] * 255, x[2] * 255, x[3] * 255, x[4] == null ? 1 : (x[5] ? x[4] / 100 : +x[4])];
+            if (s === 'transparent') return [0, 0, 0, 0];
+            desconhecidas.push(s); return [0, 0, 0, 0];
+          };
+          const sobre = (c, b) => [c[0] * c[3] + b[0] * (1 - c[3]), c[1] * c[3] + b[1] * (1 - c[3]), c[2] * c[3] + b[2] * (1 - c[3]), 1];
+          // fundo opaco atrás do elemento e, se um ancestral tem degradê, também a faixa de cima dele
+          const fundos = (el) => {
+            const pilha = []; for (let e = el; e; e = e.parentElement) pilha.push(e);
+            let base = [255, 255, 255, 1], tinta = null;
+            for (const e of pilha.reverse()) {
+              const cs = getComputedStyle(e); base = sobre(cor(cs.backgroundColor), base); if (tinta) tinta = sobre(cor(cs.backgroundColor), tinta);
+              const g = /linear-gradient\((?:[^,()]*deg,\s*)?((?:rgba?|color)\([^)]*\))/.exec(cs.backgroundImage);
+              if (g) tinta = sobre(cor(g[1]), base);
+              else if (cs.backgroundImage !== 'none' && !/^url/.test(cs.backgroundImage)) desconhecidas.push(cs.backgroundImage.slice(0, 60));
+            }
+            return tinta ? [base, tinta] : [base];
+          };
+          const lin = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+          const L = q => 0.2126 * lin(q[0]) + 0.7152 * lin(q[1]) + 0.0722 * lin(q[2]);
+          const contra = (a, b) => (Math.max(L(a), L(b)) + 0.05) / (Math.min(L(a), L(b)) + 0.05);
+          const borda = (campo) => { const cb = cor(getComputedStyle(campo).borderTopColor); return Math.min(...[...fundos(campo), ...fundos(campo.parentElement)].map(f => contra(sobre(cb, f), f))); };
+          // a nota dos quesitos sem valor é texto novo: 4,5:1 contra o que pinta atrás dela
+          const nota = document.querySelector('.hero .nota');
+          const textoNota = nota && nota.getClientRects().length ? Math.min(...fundos(nota).map(f => contra(sobre(cor(getComputedStyle(nota).color), f), f))) : 0;
+          return { email: borda(document.getElementById('email')), area: borda(document.getElementById('area')), nota: textoNota, desconhecidas };
+        });
+        ok(m.email >= 3 && m.area >= 3, 'PÚBLICO/P15 ' + esquema + ' a borda dos campos tem 3:1 — e-mail ' + m.email.toFixed(2) + ':1, área ' + m.area.toFixed(2) + ':1');
+        ok(m.nota >= 4.5, 'PÚBLICO/P15 ' + esquema + ' a nota do mosaico se lê — ' + m.nota.toFixed(2) + ':1');
+        ok(m.desconhecidas.length === 0, 'PÚBLICO/P15 ' + esquema + ' todas as cores da medição foram lidas' + (m.desconhecidas.length ? ' — ' + m.desconhecidas.slice(0, 2).join(' | ') : ''));
+      }
+    } finally { await ctxCor.close(); }
+  }
 }
 
 /* ============= ACESSIBILIDADE — P16: baixa estimulação, selects com nome, alvos de 44 px, cor-texto ============= */
