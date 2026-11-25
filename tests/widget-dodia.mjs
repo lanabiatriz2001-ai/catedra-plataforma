@@ -42,6 +42,9 @@ export async function testarWidgetDodia(ok) {
   ok(!!cc1647 && /^Ressalvado/.test(cc1647.texto), R + 'o CC art. 1.647 começa por "Ressalvado"');
   const cf5 = art.find(a => a.diploma === 'Constituição Federal' && a.artigo === '5');
   ok(!!cf5 && cf5.titulo === 'Art. 5º' && /Todos são iguais perante a lei/.test(cf5.texto), R + 'o art. 5º da CF traz o caput e o título com ordinal');
+  const cf37 = art.find(a => a.diploma === 'Constituição Federal' && a.artigo === '37');
+  ok(!!cf37 && /legalidade, impessoalidade, moralidade, publicidade e eficiência/.test(cf37.texto),
+    R + 'o CF art. 37 traz a redação vigente do caput, com "eficiência" — não a riscada, de antes da EC 19/1998');
   const s7 = sum.find(s => s.id === 'STJ-SUM-7');
   ok(!!s7 && s7.titulo === 'Súmula 7 do STJ' && /reexame de prova/i.test(s7.texto), R + 'a Súmula 7 do STJ traz o enunciado certo');
   globalThis.window = globalThis.window || {};

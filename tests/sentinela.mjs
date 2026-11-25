@@ -27,6 +27,7 @@ import {
   ultimasDeArquivo, ultimasDoIndice,
 } from '../scripts/sentinela.mjs';
 import { testarColecoes } from './sentinela-colecoes.mjs';
+import { TETO_ACERVO } from '../scripts/lib/planalto.mjs';
 
 const RAIZ = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const globaisDe = (...arquivos) => {
@@ -95,15 +96,15 @@ export async function testarSentinela(ok) {
   }
 
   // ── S4 — artigo cortado no teto compara só o trecho comum, e avisa ─────────
-  // O acervo guarda no máximo 4.000 caracteres por artigo. Num artigo no teto, ganhar
-  // palavras no meio empurra a cauda para fora e as duas versões diferem sozinhas.
+  // O acervo guarda no máximo TETO_ACERVO caracteres por artigo (4.000 até 25/11/2026). Num artigo
+  // no teto, ganhar palavras no meio empurra a cauda para fora e as duas versões diferem sozinhas.
   {
     const enche = (n) => 'x'.repeat(n);
-    const antes = [{ rot: 'Art. 5º', txt: 'Art. 5º ' + enche(3995) }];
-    const depois = [{ rot: 'Art. 5º', txt: 'Art. 5º ' + enche(3995) + 'cauda diferente' }];
+    const antes = [{ rot: 'Art. 5º', txt: 'Art. 5º ' + enche(TETO_ACERVO - 5) }];
+    const depois = [{ rot: 'Art. 5º', txt: 'Art. 5º ' + enche(TETO_ACERVO - 5) + 'cauda diferente' }];
     const d = compararArtigos(antes, depois);
     ok(d.length === 0, 'S4 diferença só na cauda de artigo no teto de tamanho não vira alteração');
-    const mudou = [{ rot: 'Art. 5º', txt: 'Art. 5º MUDOU ' + enche(3995) }];
+    const mudou = [{ rot: 'Art. 5º', txt: 'Art. 5º MUDOU ' + enche(TETO_ACERVO - 5) }];
     const d2 = compararArtigos(antes, mudou);
     ok(d2.length === 1 && d2[0].parcial === true,
       'S4b mudança no começo de artigo no teto é detectada E sai marcada como comparação parcial');
@@ -847,14 +848,14 @@ export async function testarSentinela(ok) {
     ok(de(r2).incorporadoTxt === 'já no LEGIS',
       'S19f a baixa da mudança de lei diz "já no LEGIS" — o selo não afirma o JURIS para item do Planalto');
 
-    // Artigo cortado no teto (4.000 caracteres): a comparação é só do começo do texto, e o
+    // Artigo cortado no teto (TETO_ACERVO caracteres): a comparação é só do começo do texto, e o
     // item sai parcial. Acervo regerado com o mesmo começo NÃO prova que o artigo inteiro
     // entrou — o item parcial nunca recebe baixa.
     const lt = leiFalsa('LT', 30);
     const corpo = 'Disposição extensa da lei LT, repetida para alcançar o teto do acervo de lei seca. ';
-    const longo = ('Art. 7. ' + corpo.repeat(60)).slice(0, 4000);
+    const longo = ('Art. 7. ' + corpo.repeat(Math.ceil(TETO_ACERVO / corpo.length) + 5)).slice(0, TETO_ACERVO);
     const ltAntes = { ...lt, artigos: lt.artigos.map((a, i) => (i === 6 ? { ...a, txt: longo } : a)) };
-    const novoTxt = longo.replace('Disposição extensa', 'Disposição extensa e alterada (Redação dada pela Lei nº 15.777, de 2026)').slice(0, 4000);
+    const novoTxt = longo.replace('Disposição extensa', 'Disposição extensa e alterada (Redação dada pela Lei nº 15.777, de 2026)').slice(0, TETO_ACERVO);
     const pagT = ltAntes.artigos.map((a, i) => (i === 6 ? { ...a, txt: novoTxt } : a));
     const t1 = await rodar({ ...opc, busca: { baixarLei: async () => pagT }, leis: [ltAntes], atuais: [] });
     const itP = t1.itens[0];
@@ -873,15 +874,16 @@ export async function testarSentinela(ok) {
     // trocou D1 por um D2 longo e o leis-seca.js regerado guarda o artigo no teto. A conferência
     // compara só o começo — que D1 e D2 têm igual — e o LEGIS não tem o texto de D1.
     const lu = leiFalsa('LU', 30);
-    const base7 = 'Art. 7. ' + 'Disposição extensa da lei LU para chegar perto do teto do acervo. '.repeat(45);
+    const frase7 = 'Disposição extensa da lei LU para chegar perto do teto do acervo. ';
+    const base7 = 'Art. 7. ' + frase7.repeat(Math.floor((TETO_ACERVO - 400) / frase7.length));
     const dU1 = base7 + ' Parágrafo único. Prazo de 10 dias. (Incluído pela Lei nº 15.701, de 2026)';
-    const dU2 = (base7 + ' Parágrafo único. Prazo de 30 dias, contados em dobro. (Redação dada pela Lei nº 15.702, de 2026) ' + 'Texto acrescentado. '.repeat(80)).slice(0, 4000);
+    const dU2 = (base7 + ' Parágrafo único. Prazo de 30 dias, contados em dobro. (Redação dada pela Lei nº 15.702, de 2026) ' + 'Texto acrescentado. '.repeat(80)).slice(0, TETO_ACERVO);
     const com7 = (txt) => lu.artigos.map((a, i) => (i === 6 ? { ...a, txt } : a));
     const u1 = await rodar({ ...opc, busca: { baixarLei: async () => com7(dU1) }, leis: [{ ...lu, artigos: com7(base7) }], atuais: [] });
     const iD1 = u1.itens[0];
     const u2 = await rodar({ ...opc, busca: { baixarLei: async () => com7(dU2) }, leis: [{ ...lu, artigos: com7(dU2) }], atuais: u1.itens });
     const iD1b = u2.itens.find((i) => i.id === iD1.id);
-    ok(u1.itens.length === 1 && iD1.parcial === false && dU1.length < 3990 && dU2.length >= 3990 && !dU2.includes('Prazo de 10 dias')
+    ok(u1.itens.length === 1 && iD1.parcial === false && dU1.length < TETO_ACERVO - 10 && dU2.length >= TETO_ACERVO - 10 && !dU2.includes('Prazo de 10 dias')
       && u2.baixas === 0 && iD1b && !iD1b.incorporado && !('incorporadoTxt' in iD1b),
       'S19h item inteiro não recebe baixa quando o artigo do acervo regerado está no teto — a comparação só do começo não prova que o LEGIS tem o texto dele');
   }
@@ -1111,10 +1113,16 @@ export async function testarSentinela(ok) {
     ok(p63.length === 4 && compararArtigos(DR.artigos, semAntigas).length === 0 && rD.estado.fontes.planalto.resultado === 'novidades'
       && rD.itens.length === 1 && rD.itens[0].disp === 'Art. 33',
       `S22s limpar as redações intercaladas da Lei de Drogas (63-C/63-D) não derruba a norma, e a mudança no art. 33 chega (${rD.estado.fontes.planalto.resultado}, ${rD.itens.length} item)`);
-    // t) a citação "Art. 48. Caberão embargos… (NR)" deixando de começar linha não derruba o CPC
-    const iNR = CPC.artigos.findIndex((a) => ch(a.rot) === 'art48' && /\(NR\)\s*["”]?\s*$/.test(String(a.txt).trim()));
-    ok(iNR > 0 && compararArtigos(CPC.artigos, CPC.artigos.filter((_, i) => i !== iNR)).length === 0,
-      'S22t a citação de dispositivo de outra lei (termina em "(NR)") que some da página não vira ausência no CPC');
+    // t) a citação "Art. 48. Caberão embargos… (NR)" (Lei 9.099, citada no CPC art. 1.064) deixando de
+    //    começar linha não derruba o CPC. Desde 25/11/2026 o leitor não abre artigo dentro de citação e
+    //    o leis-seca.js não tem mais essa entrada: ela entra aqui no lugar em que o acervo antigo a tinha.
+    const i1064 = CPC.artigos.findIndex((a) => ch(a.rot) === 'art1064');
+    const t1064 = i1064 >= 0 ? String(CPC.artigos[i1064].txt) : '';
+    const k48 = t1064.indexOf('\nArt. 48.');
+    const comoAntes = [...CPC.artigos.slice(0, i1064), { ...CPC.artigos[i1064], txt: t1064.slice(0, k48) },
+      { rot: 'Art. 48', txt: t1064.slice(k48 + 1) }, ...CPC.artigos.slice(i1064 + 1)];
+    ok(i1064 > 0 && k48 > 0 && /\(NR\)/.test(t1064.slice(k48)) && compararArtigos(comoAntes, CPC.artigos).length === 0,
+      'S22t a citação de dispositivo de outra lei (termina em "(NR)") que deixa de começar linha na página não vira ausência no CPC');
     // u) remissão "Art. 1º , …" começando linha no corpo da CF não muda o lugar do ADCT
     const i100 = CF.artigos.findIndex((a) => ch(a.rot) === 'art200');
     const i226 = CF.artigos.findIndex((a) => ch(a.rot) === 'art226');
@@ -1260,9 +1268,12 @@ export async function testarSentinela(ok) {
   // Ajustar uma só passaria a acusar "alterações" que são só diferença de recorte entre as duas.
   {
     const b = readFileSync(path.join(RAIZ, 'scripts/build-leis-seca.mjs'), 'utf8');
-    const importa = /import\s*\{[^}]*\blimparHTML\b[^}]*\bmelhorParse\b[^}]*\}\s*from\s*'\.\/lib\/planalto\.mjs'/.test(b);
+    // Desde 25/11/2026 o build chama lerLeisSeca, da mesma lib, que usa limparHTML e melhorParse.
+    const importa = /import\s*\{[^}]*(?:\blimparHTML\b[^}]*\bmelhorParse\b|\blerLeisSeca\b)[^}]*\}\s*from\s*'\.\/lib\/planalto\.mjs'/.test(b);
+    const lib = readFileSync(path.join(RAIZ, 'scripts/lib/planalto.mjs'), 'utf8');
+    const libUsaOParser = /export async function lerLeisSeca[\s\S]*?melhorParse\(limparHTML\(/.test(lib);
     const copiaPropria = /function\s+(limparHTML|artigos|artigosCorrido|melhorParse|catalogo)\s*\(|const NAMED\s*=|alt\.length > arts\.length/.test(b);
-    ok(importa && !copiaPropria, 'S16 o build da lei seca usa limparHTML e melhorParse de scripts/lib/planalto.mjs, sem cópia própria do parser');
+    ok(importa && libUsaOParser && !copiaPropria, 'S16 o build da lei seca usa o parser de scripts/lib/planalto.mjs (limparHTML e melhorParse, pelo lerLeisSeca), sem cópia própria');
   }
 
   // ── S22–S28 — Fase 2: repercussão geral, repetitivos e súmulas (tests/sentinela-colecoes.mjs) ──
@@ -1310,8 +1321,8 @@ export async function testarSentinela(ok) {
       && !i211.some((x) => x.disp === 'Art. 211'),
       `S29f o art. 211-A sai inteiro (a remissão "art. 142 desta Lei" no começo da linha não o corta) e com a LC 236; o 211 não vira item (${d211a ? d211a.depois.slice(-60) : 'nenhum'})`);
     // O artigo além do teto do acervo sem "antes": só vira item com anotação de norma que o acervo não cita.
-    const longo = 'Art. 1. ' + 'Texto longo do artigo primeiro. '.repeat(140);
-    const acervoCortado = [{ rot: 'Art. 1', txt: longo.slice(0, 4005) }];
+    const longo = 'Art. 1. ' + 'Texto longo do artigo primeiro. '.repeat(Math.ceil((TETO_ACERVO + 600) / 32));
+    const acervoCortado = [{ rot: 'Art. 1', txt: longo.slice(0, TETO_ACERVO + 5) }];
     const pagSemNorma = [{ rot: 'Art. 1', txt: longo + 'Art. 2. Artigo antigo embutido, sem anotação nova.' }];
     const pagComNorma = [{ rot: 'Art. 1', txt: longo + 'Art. 2. Artigo embutido alterado. (Redação dada pela Lei nº 15.999, de 2026)' }];
     const semN = compararArtigos(acervoCortado, pagSemNorma), comN = compararArtigos(acervoCortado, pagComNorma);
@@ -1362,8 +1373,38 @@ export async function testarSentinela(ok) {
         && /Do ocorrido em audiência será lavrado termo em livro próprio/.test(arts[2].txt) && /disposições desta Lei não excluem/.test(arts[3].txt)
         && !arts.some((a) => /Revogado pela Lei nº 13\.813/.test(a.txt)),
         `S29i rótulo com etiqueta no meio ("<strong>A</strong>rt. 107", "Art. 21</font><font>7"), entidade com nome (&ccedil;), ponto dobrado, ponto ou traço fora do lugar ("Art. ." / "Art ." e o número na linha seguinte) e artigo curto de verdade abrem artigo; o toco "(Revogado…)", o "(VETADO). Produção de efeitos", a cabeça riscada antes da redação vigente de mesmo número e o "Art. 5º" sozinho não (${r})`);
+      // Citação de outra norma (Lei 14.133, art. 178): "Art." dentro das aspas é da lei citada; o
+      // ponto separado na mesma linha do número ("Art . 8º", DL 200) abre artigo; aspa perdida que
+      // nunca fecha deixa de valer depois de 300 linhas.
+      const cit = artigos(['Art. 178. O Título XI da Parte Especial do Decreto-Lei nº 2.848 passa a vigorar acrescido do seguinte Capítulo II-B:',
+        '“CAPÍTULO II-B', 'DOS CRIMES EM LICITAÇÕES E CONTRATOS ADMINISTRATIVOS', 'Contratação direta ilegal',
+        'Art. 337-E. Admitir, possibilitar ou dar causa à contratação direta fora das hipóteses previstas em lei:',
+        'Art. 337-F. Frustrar ou fraudar, com o intuito de obter para si ou para outrem vantagem decorrente da adjudicação.”',
+        'Art. 179. Os arts. 2º e 3º da Lei nº 8.987, de 13 de fevereiro de 1995, passam a vigorar com a seguinte redação.',
+        'Art . 8º As atividades da Administração Federal serão objeto de permanente coordenação nos termos da lei.'].join('\n'));
+      const perdida = artigos(['Art. 1º Artigo com uma aspa que abre no começo da linha seguinte e nunca fecha na página.', '“Texto citado sem fim',
+        ...Array.from({ length: 301 }, (_, k) => 'linha ' + k), 'Art. 2º Artigo depois da aspa perdida, com texto bastante para o piso.'].join('\n'));
+      ok(cit.map((a) => a.rot).join(', ') === 'Art. 178, Art. 179, Art. 8º' && /Art\. 337-E\. Admitir/.test(cit[0].txt)
+        && perdida.map((a) => a.rot).join(', ') === 'Art. 1º, Art. 2º',
+        `S29k "Art." dentro de citação de outra norma não abre artigo (os 337-E e 337-F do CP ficam no art. 178), "Art . 8º" abre, e aspa que nunca fecha para de valer (${cit.map((a) => a.rot).join(', ')} | ${perdida.map((a) => a.rot).join(', ')})`);
       ok(quedaSuspeita(60, 60) === null && quedaSuspeita(92, 60) !== null && quedaSuspeita(undefined, 3) === null && quedaSuspeita(977, 782) === null && /abaixo de 80%/.test(quedaSuspeita(977, 781) || ''),
         'S29j a trava de leitura parcial do build da lei seca: abaixo de 80% dos artigos do arquivo atual é suspeito; lei nova (sem anterior) passa');
+      // O laço do build (lerLeisSeca): lei que falha na rede, que não está no catálogo ou que volta pela
+      // metade entra em `falhas` — e o build, com `falhas`, não grava nada (até 25/11/2026 ele gravava o
+      // arquivo sem a lei: o leis-seca-areas.js saiu sem o DL 200).
+      const { lerLeisSeca } = await import('../scripts/lib/planalto.mjs');
+      const pagina = (n) => Buffer.from(Array.from({ length: n }, (_, k) => `<p>Art. ${k + 1}. Texto do artigo ${k + 1}, com tamanho bastante para o piso do leitor.</p>`).join(''), 'latin1');
+      const cat = [{ t: 'Lei Alfa', u: 'https://www.planalto.gov.br/alfa.htm' }, { t: 'Lei Beta', u: 'https://www.planalto.gov.br/beta.htm' }];
+      const baixar = async (u) => { if (/beta/.test(u)) throw new Error('fetch failed'); return pagina(30); };
+      const alvos = [['ALFA', 'Lei Alfa'], ['BETA', 'Lei Beta'], ['GAMA', 'Lei Gama']];
+      const r1 = await lerLeisSeca(alvos, { cat, baixar });
+      const r2 = await lerLeisSeca([['ALFA', 'Lei Alfa']], { cat, baixar, anteriores: new Map([['ALFA', 40]]) });
+      const r3 = await lerLeisSeca([['ALFA', 'Lei Alfa']], { cat, baixar, anteriores: new Map([['ALFA', 40]]), aceitarQueda: new Set(['ALFA']) });
+      ok(r1.saida.map((l) => l.sigla).join() === 'ALFA' && r1.saida[0].artigos.length === 30
+        && r1.falhas.length === 2 && /^BETA: fetch failed/.test(r1.falhas[0]) && /^GAMA: não está no catálogo/.test(r1.falhas[1])
+        && r2.falhas.length === 1 && /leitura parcial suspeita: 30 artigos contra 40/.test(r2.falhas[0]) && /"--aceitar-queda=ALFA"/.test(r2.falhas[0])
+        && r3.falhas.length === 0 && r3.saida.length === 1,
+        'S29l o laço do build da lei seca põe em falhas a lei que cai na rede, a que não está no catálogo e a que volta com menos de 80% dos artigos (salvo --aceitar-queda): com falha, o build não grava');
     }
   }
 

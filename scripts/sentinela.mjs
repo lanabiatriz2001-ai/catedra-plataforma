@@ -48,7 +48,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync, appendFileSync } fr
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import vm from 'node:vm';
-import { ROOT, baixarLei } from './lib/planalto.mjs';
+import { ROOT, baixarLei, TETO_ACERVO } from './lib/planalto.mjs';
 import { buscarFonte } from './lib/tls-fontes.mjs';
 import {
   pior, baseJuris, colecaoNoAcervo, pendenciaColecao, lerRetratos, conteudoRetratos, esperarPadrao, acervoDaColecao, CAMPOS_DATA, ARQ_RETRATOS, LIMIARES,
@@ -401,13 +401,13 @@ const chaveArt = (rot) => String(rot).toLowerCase().replace(/[^a-z0-9]/g, '');
 const normalizar = (t) => String(t).replace(/\s+/g, ' ').trim();
 const textoComparavel = (t) => normalizar(String(t).replace(RE_MARGEM, ' '));
 
-// 3) ARTIGO CORTADO NO TETO. O acervo guarda cada artigo com no máximo 4.000 caracteres
-//    (teto de tamanho do bundle, em scripts/lib/planalto.mjs). Num artigo que bate no
+// 3) ARTIGO CORTADO NO TETO. O acervo guarda cada artigo com no máximo TETO_ACERVO caracteres
+//    (scripts/lib/planalto.mjs: 4.000 até 25/11/2026, 32.000 desde então). Num artigo que bate no
 //    teto, ganhar 22 caracteres no meio empurra a cauda para fora — e as duas versões
 //    passam a diferir no fim mesmo sem nenhuma mudança de lei. Foi o que acusou o art. 77
 //    da Lei 14.133. Nesses casos compara-se só o trecho que os DOIS lados têm, e o item
 //    sai marcado como comparação parcial — nunca como "conferido por inteiro".
-const TETO = 3990;
+const TETO = TETO_ACERVO - 10;
 const noTeto = (t) => String(t).length >= TETO;
 function difereNoTrechoComum(a, b) {
   const x = textoComparavel(a), y = textoComparavel(b);

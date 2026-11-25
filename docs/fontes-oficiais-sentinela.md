@@ -865,8 +865,9 @@ Rodada manual, no Mac (de onde o STF, o STJ e o Planalto respondem).
   lei a lei, e pelos casos S29h e S29i:
   - o código-fonte do Planalto às vezes quebra a linha entre "Art." e o número ("Art.\n146. A
     modificação…"), põe o ponto na linha do número ("Art" / ". 97."), separa ou dobra o ponto ("Art ."
-    / "2º", IBS/CBS; "Art. ." / "182", CLT) ou cola o traço no caput ("528 -Ocorrendo"). A linha "Art."
-    não abria artigo e o artigo ia parar dentro do anterior — e,
+    / "2º", IBS/CBS; "Art. ." / "182", CLT; "Art . 8º" na mesma linha, 22 artigos do DL 200) ou cola o
+    traço no caput ("528 -Ocorrendo"). A linha "Art." não abria artigo e o artigo ia parar dentro do
+    anterior — e,
     depois do teto de 4.000 caracteres, sumia. Eram cerca de 500 artigos em 25 das 49 leis (o CTN
     tinha 130 dos seus 218; a mudança da LC 236 no art. 146 nunca chegaria ao acervo);
   - etiqueta de formatação dentro do rótulo: "<strong>A</strong>rt. 107" (CP, extinção da
@@ -884,12 +885,27 @@ Rodada manual, no Mac (de onde o STF, o STJ e o Planalto respondem).
     246, ANVISA 15, Lavagem 6º), e quem procura o artigo pelo número acharia o texto revogado;
   - entidade com nome (&ccedil;, &atilde;, &Eacute;…) virava espaço: o DL 200, a única página que as
     usa, saía com 6.407 letras a menos ("A delega o de compet ncia") e perdia o art. 12. Vale agora a
-    tabela Latin-1 inteira.
+    tabela Latin-1 inteira;
+  - citação de outra norma: o artigo que altera outra lei reproduz o texto dela entre aspas ("“" no
+    começo de uma linha até "”" no fim de outra), e o "Art." lá dentro é da lei citada. A Lei 14.133
+    passava a ter os arts. 337-E a 337-P do Código Penal como seus (o treino perguntava "O Art. 337-L da
+    Lei 14.133 comporta exceção?"), e o CPC tinha "Art. 48/50/83" de outras leis e o art. 275 do Código
+    Eleitoral. O `<blockquote>` não serve de sinal: o Planalto o usa também em artigos da própria lei
+    (CC art. 853-A, CP arts. 234-A a 234-C). Caso S29k;
+  - teto do acervo: 4.000 caracteres por artigo só não mordia porque as remissões partiam os artigos
+    longos em pedaços, cada um com o seu teto. Com elas devolvidas, o CF art. 37 (16.287 caracteres)
+    virava uma entrada cortada, e o sentinela, que só compara o começo de um artigo cortado, deixava de
+    ver mudança na cauda de 14 artigos longos (CF 37 e 146, CPP 28-A, LIA 17). O teto passa a 32.000
+    (`TETO_ACERVO`, a mesma constante no sentinela): só 3 entradas das 49 leis passam dele, e o acervo
+    cresce 0,66 MiB (o cache offline segue dentro do orçamento).
 - **Lei seca regravada** com `scripts/build-leis-seca.mjs` e o leitor corrigido: as 14 normas do
-  núcleo (7.156 → 7.250 artigos; o único rótulo que some é o toco "(Revogado…)" do CLT art. 26, que
-  só passava no piso porque o art. 27 vinha grudado nele) e as 35 das outras áreas, com a mesma
-  lista, ordem e etiquetas (3.776 → 3.578: saem as remissões; some só o LOAS art. 28-A, que é só
-  "(Revogado pela Lei nº 13.813, de 2019)" e antes carregava dentro dele o texto do art. 29).
+  núcleo (7.156 → 7.235 artigos) e as 35 das outras áreas, com a mesma lista, ordem e etiquetas
+  (3.776 → 3.583: saem as remissões e os artigos de outras leis citados). Os rótulos que somem em
+  relação à `main` são todos conferidos: o toco "(Revogado…)" do CLT art. 26 (só passava no piso
+  porque o art. 27 vinha grudado nele), o LOAS art. 28-A (só "(Revogado…)", e carregava dentro dele o
+  art. 29) e as cópias citadas de artigos de outras leis (CPC 48/50/83/275, Lei 14.133 337-P, ORCRIM
+  288, Tráfico de Pessoas, Primeira Infância, Estatuto PcD 1.783-A, as partes vetadas promulgadas da
+  Lei de Abuso de Autoridade) — o artigo próprio de mesmo número, quando há, continua.
   Conferido por rótulo e ocorrência contra a versão da `main`. Texto novo da lei: CTN (LC 236/2026),
   CPC (Lei 15.484/2026), CF (arts. 7º e 198 e art. 67 do ADCT), CP (arts. 129 e 157), CDC (art. 57,
   MP 1.393/2026), CLT (arts. 790 e 790-B), ECA (art. 4º), Lei 14.133 (art. 77), CTB, LRF (LC
@@ -900,7 +916,9 @@ Rodada manual, no Mac (de onde o STF, o STJ e o Planalto respondem).
   (sem o DL 200). Agora cada lei tem três tentativas, de até 60 s cada; se alguma ainda falhar, nada
   é gravado e o build sai com erro. E lei que volta com menos de 80% dos artigos do arquivo atual (a
   régua do `parseSuspeito` do sentinela) é tratada como leitura parcial: o build para, salvo
-  `--aceitar-queda=SIGLA` (caso S29j).
+  `"--aceitar-queda=SIGLA"` (casos S29j e S29l; o laço do build mora em `lerLeisSeca`, na lib, para
+  poder ser testado sem rede). O piso absoluto de artigos por lei desce de 20 para 10: a Lei 13.344
+  (Tráfico de Pessoas) tem 17 artigos próprios, e só passava dos 20 com os citados de outras leis.
 - **Importador do STJ:** o rótulo "Ramo do Direito" é reconhecido sem depender de maiúsculas (o
   Portal de Precedentes do STJ escreve "Ramo do direito"), e mais de um julgado sem ramo na mesma
   edição é falha — sinal de rótulo que mudou de forma —, não uma edição inteira "sem ramo".
@@ -916,15 +934,22 @@ Rodada manual, no Mac (de onde o STF, o STJ e o Planalto respondem).
 - **Pendente:**
   - os artigos `parcial` da Central (CF arts. 7º e 198, CP arts. 129 e 157, CTN art. 142) continuam
     pedindo conferência na fonte, por desenho: o item nasceu com o artigo acima do teto do acervo;
-  - na Lei 14.133, os arts. 337-E a 337-P do Código Penal, que o art. 178 reproduz em `<blockquote>`,
-    entram como artigos da Lei 14.133 (antes ela era lida pelo parser corrido, que perdia 70 artigos
-    dela). O mesmo acontece, desde antes, com artigos de outras leis citados nas disposições finais de
-    outros códigos; o sentinela os trata como "número repetido na página";
-  - com as remissões devolvidas ao artigo certo, alguns artigos longos passam do teto de 4.000
-    caracteres do acervo e perdem a cauda (LIA art. 10: os incisos XVIII a XXII). Subir o teto muda o
-    tamanho do acervo offline e a régua `TETO` do sentinela: fica para decisão.
+  - três entradas ainda passam do teto novo (a maior é o IBS/CBS art. 544, com 95.842 caracteres) e
+    seguem comparadas só pelo começo.
 - **Temas de repercussão geral e repetitivos no acervo do JURIS:** com a leitura de hoje, o sentinela
   aponta, nos temas que o acervo já tem, 36 situações e 39 teses do STF e 71 situações e 25 teses do
   STJ diferentes da fonte oficial; e há 24 teses de RG ("Há repercussão") e 87 teses de repetitivos
   fora do acervo. Nada disso entra sozinho (atualização assistida): fica para um PR próprio, conferido
   item a item na fonte.
+- **Consumidores da lei seca e dos informativos**, achados pela revisão independente:
+  - o widget do dia ficava, para cada número, com a PRIMEIRA entrada, que é a redação riscada quando o
+    Planalto mantém a antiga antes da vigente: o CF art. 37 aparecia sem "eficiência" (antes da EC
+    19/1998), e mais 10 artigos com texto revogado. Agora vale a última de entradas seguidas com o mesmo
+    número (o mesmo número mais adiante, como no ADCT, não troca o do corpo);
+  - o marcador "Tese vinculante" do card semanal procurava "( Tema 1379)" e perdia os repetitivos do STJ
+    no formato da 910, "( Tema Repetitivo 1469)". Os marcadores moram agora em
+    `scripts/lib/semana-marcadores.mjs`, testáveis sem rodar o build;
+  - a Central de novidades registra as edições incorporadas nesta rodada (STF 1236 a 1238, STJ 909 a
+    911) já com baixa ("já no JURIS"): o sentinela rodou com `--detectar-desde` apontando o
+    `juris-index.js` de antes da incorporação.
+

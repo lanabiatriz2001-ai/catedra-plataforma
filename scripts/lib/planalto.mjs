@@ -36,6 +36,13 @@ const LATIN1 = ('nbsp iexcl cent pound curren yen brvbar sect uml copy ordf laqu
   + 'Oslash Ugrave Uacute Ucirc Uuml Yacute THORN szlig agrave aacute acirc atilde auml aring aelig ccedil egrave eacute '
   + 'ecirc euml igrave iacute icirc iuml eth ntilde ograve oacute ocirc otilde ouml divide oslash ugrave uacute ucirc uuml '
   + 'yacute thorn yuml').split(' ').reduce((t, nome, i) => { t[nome] = String.fromCharCode(160 + i); return t; }, {});
+// TETO DO ACERVO: caracteres guardados por artigo em leis-seca.js e leis-seca-areas.js. Era 4.000,
+// o que só não mordia porque as remissões "art. …" partiam os artigos longos em pedaços, cada um com
+// o seu teto. Com elas devolvidas ao artigo (25/11/2026), o CF art. 37 (16.287 caracteres) virava uma
+// entrada cortada, e o sentinela, que só compara o começo de um artigo cortado, deixava de ver
+// mudança na cauda de 14 artigos longos (CF 37 e 146, CPP 28-A, LIA 17…). Com 32.000, só 3 entradas
+// das 49 leis passam do teto, e o acervo cresce 0,66 MiB. O sentinela usa a mesma constante.
+export const TETO_ACERVO = 32000;
 const NAMED = { ...LATIN1, nbsp: ' ', amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", ordf: 'ª', ordm: 'º', deg: 'º', sect: '§', mdash: '—', ndash: '–', hellip: '…', ldquo: '“', rdquo: '”', lsquo: '‘', rsquo: '’', bull: '•' };
 // Etiqueta de formatação DENTRO do rótulo do artigo. Toda etiqueta vira espaço mais abaixo, e o
 // Planalto às vezes formata só um pedaço do rótulo: "<strong>A</strong>rt. 107" (CP, extinção da
@@ -110,19 +117,36 @@ const chaveDoRotulo = (rot) => String(rot).replace(/\s+/g, '').replace(/\.$/, ''
  *  de uma linha é remissão: até 25/11/2026 ela virava um "artigo" à parte (687 no acervo, nenhum
  *  de verdade — o "ART. 13 DA LEI Nº 9.527" da Lei 8.112 inclusive) e levava junto o texto do
  *  artigo de onde saiu. O sentinela já devolvia esses pedaços ao artigo anterior (porArtigo). */
-export function artigos(texto, teto = 4000) {
+// CITAÇÃO DE OUTRA NORMA. O artigo que altera outra lei reproduz o texto dela entre aspas: a citação
+// abre com "“" no começo de uma linha e fecha com "”" no fim de outra (Lei 14.133, art. 178, com os
+// arts. 337-E a 337-P do Código Penal; o fim do CPC; a Lei do Tráfico de Pessoas). Lá dentro, "Art." no
+// começo de linha é da lei citada e não abre artigo desta — antes, o treino citava "Lei 14.133 ·
+// Art. 337-E". O <blockquote> não serve de sinal: o Planalto o usa também em artigos da própria lei
+// (CC art. 853-A, CP arts. 234-A a 234-C). Citação que não fecha (aspa perdida) deixa de valer depois
+// de MAX_LINHAS_CITACAO linhas.
+const MAX_LINHAS_CITACAO = 300;
+export function artigos(texto, teto = TETO_ACERVO) {
   const linhas = juntarRotuloPartido(texto.split('\n').map((l) => l.trim()).filter(Boolean));
   const out = [];
   let atual = null;
+  let aspas = 0, linhasNaCitacao = 0;
   for (const l0 of linhas) {
-    // "Art. . 154 - A observância…" (CLT, ponto dobrado no rótulo): 14 artigos da CLT ficavam no anterior.
-    const l = l0.replace(/^(Art(?:igo)?)\.\s+\.\s*(?=\d)/, '$1. ');
+    // Ponto separado ou dobrado na mesma linha do número: "Art. . 154 - A observância…" (CLT, 14
+    // artigos), "Art . 8º As atividades…" (DL 200, 22 artigos) ficavam dentro do anterior.
+    const l = l0.replace(/^(Art(?:igo)?)(?:\s+\.|\.\s*\.)\s*(?=\d)/, (_, r) => r + (r === 'Art' ? '. ' : ' '));
     const m = /^(Art(?:igo)?\.?\s*\d+[\dºª°.\-A-Z]*)\s*[.\-–—]?\s*(.*)$/i.exec(l);
-    if (m && m[1].length <= 26 && /^Art/.test(l)) {
+    if (m && m[1].length <= 26 && /^Art/.test(l) && aspas === 0) {
       if (atual && atual.txt.length > 30) out.push(atual);
       atual = { rot: m[1].replace(/\.$/, '').replace(/\s+/g, ' '), txt: m[2] ? m[1] + ' ' + m[2] : m[1] };
     } else if (atual) {
       if (atual.txt.length < teto) atual.txt += '\n' + l;
+    }
+    const abre = (l.match(/“/g) || []).length, fecha = (l.match(/”/g) || []).length;
+    if (aspas === 0) {
+      if (/^“/.test(l) && abre > fecha) { aspas = abre - fecha; linhasNaCitacao = 0; }
+    } else {
+      aspas = Math.max(0, aspas + abre - fecha);
+      if (++linhasNaCitacao > MAX_LINHAS_CITACAO) aspas = 0;
     }
   }
   if (atual && atual.txt.length > 30) out.push(atual);
@@ -145,10 +169,46 @@ export function quedaSuspeita(antes, agora, piso = 0.8) {
   return `leitura parcial suspeita: ${agora} artigos contra ${antes} no arquivo atual (abaixo de ${Math.round(piso * 100)}%)`;
 }
 
+/** Lê as leis do acervo de lei seca para scripts/build-leis-seca.mjs. Devolve { saida, falhas }: quem
+ *  chama só grava se `falhas` vier vazia (lei que falha não some do acervo). `baixar(url)` devolve os
+ *  bytes da página e é injetável nos testes; `anteriores` (sigla → artigos do arquivo atual) alimenta a
+ *  trava de leitura parcial, e `aceitarQueda` lista as siglas liberadas dela. */
+export async function lerLeisSeca(alvos, { cat, baixar, anteriores = new Map(), aceitarQueda = new Set(), log = () => {} }) {
+  // Casamento pelo título INTEIRO normalizado. Comparar só o começo fazia "Código de
+  // Processo Civil" e "Código de Processo Penal" caírem no mesmo prefixo ("Código de
+  // Processo") — e o CPP saía com o texto do CPC, com 1227 artigos idênticos.
+  const chave = (x) => String(x).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+  const saida = [], falhas = [];
+  for (const [sigla, nome, extra] of alvos) {
+    const alvo = chave(nome);
+    const lei = cat.find((l) => chave(l.t) === alvo)
+             || cat.find((l) => chave(l.t).startsWith(alvo))
+             || cat.find((l) => chave(l.t).includes(alvo));
+    if (!lei) { log(`  ✗ ${nome}: não está no catálogo`); falhas.push(`${sigla}: não está no catálogo`); continue; }
+    try {
+      const arts = melhorParse(limparHTML(await baixar(lei.u)));
+      // Piso absoluto baixo: a Lei 13.344 (Tráfico de Pessoas) tem 17 artigos próprios — até 25/11/2026
+      // ela passava dos 20 só porque os artigos de outras leis que ela cita contavam como dela. Queda
+      // de verdade é a trava relativa, logo abaixo, que pega.
+      if (arts.length < 10) throw new Error('só ' + arts.length + ' artigos — parse suspeito');
+      // Página que chega inteira para o HTTP mas curta (republicação, recorte de proxy) passava pelo
+      // piso de 20 e encolhia o acervo — e o sentinela, que mede contra o acervo, deixava de ver.
+      const queda = quedaSuspeita(anteriores.get(sigla), arts.length);
+      if (queda && !aceitarQueda.has(sigla)) throw new Error(queda + ` — para gravar assim mesmo, "--aceitar-queda=${sigla}"`);
+      saida.push({ sigla, nome: lei.t, url: lei.u, artigos: arts, ...(extra || {}) });
+      log(`  ✓ ${sigla.padEnd(16)} ${String(arts.length).padStart(4)} artigos`);
+    } catch (e) {
+      log(`  ✗ ${sigla}: ${e.message}`);
+      falhas.push(`${sigla}: ${e.message}`);
+    }
+  }
+  return { saida, falhas };
+}
+
 /** Segundo parser, para páginas em que o rótulo e o corpo caem em linhas/células
  *  diferentes (a Lei 14.133 é assim: só 32 das 194 linhas começam com "Art."). Aqui o
  *  texto é tratado como corrido e cortado nas ocorrências de "Art. N" que iniciam frase. */
-export function artigosCorrido(texto, teto = 4000) {
+export function artigosCorrido(texto, teto = TETO_ACERVO) {
   const t = texto.replace(/\n+/g, ' ').replace(/\s+/g, ' ');
   const re = /(?:^|[.;:!?]\s+|\s{2,})(Art(?:igo)?\.?\s*\d+[ºª°]?(?:-[A-Z])?)\s*[.\-–—]?\s+(?=[A-ZÀ-Ú§])/g;
   const cortes = [];
@@ -170,9 +230,9 @@ export function artigosCorrido(texto, teto = 4000) {
 }
 
 /** Escolhe entre os dois parsers — critério único, usado pelo build da lei seca e pelo sentinela.
- *  `teto` (caracteres por trecho): 4.000 no bundle (padrão, o que o build usa); o sentinela lê a
+ *  `teto` (caracteres por trecho): TETO_ACERVO no bundle (padrão, o que o build usa); o sentinela lê a
  *  página também sem teto, para comparar artigo por artigo (scripts/sentinela.mjs, 8). */
-export function melhorParse(texto, { teto = 4000 } = {}) {
+export function melhorParse(texto, { teto = TETO_ACERVO } = {}) {
   let arts = artigos(texto, teto);
   const alt = artigosCorrido(texto, teto);
   // fica com o parser que achou mais artigos: nenhuma lei da lista tem menos de 30

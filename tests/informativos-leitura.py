@@ -70,9 +70,14 @@ class LeituraOficial(unittest.TestCase):
         self.assertIn('Tema Repetitivo 1469', sem_ramo['fontePublicacao'])
         self.assertTrue(len(sem_ramo['enunciado']) > 40 and sem_ramo['observacao'] and sem_ramo['data'] == '11/11/2026')
         self.assertFalse(any('acolheu a proposta' in r['enunciado'] for r in recs))
-        # Fora da seção de propostas, bloco sem Destaque continua sendo falha.
+        # Fora da seção de propostas, bloco sem Destaque continua sendo falha — mesmo sem o rótulo
+        # "Informações do Inteiro Teor", que é como uma proposta aparece: só a seção decide o pulo.
         with self.assertRaisesRegex(RuntimeError, 'bloco 1 com campos ausentes'):
             m.parse_stj('0910', stj.replace(b'>Destaque</div>', b'>Campo alterado</div>', 1))
+        sem_tese = stj.replace(b'>Destaque</div>', b'>Campo alterado</div>', 1).replace(b'Informa\xe7\xf5es do Inteiro Teor', b'Outro campo', 1)
+        self.assertNotIn(b'>Destaque</div>', sem_tese.split(b'clsIdentificaProcesso')[1])
+        with self.assertRaisesRegex(RuntimeError, 'bloco 1 com campos ausentes'):
+            m.parse_stj('0910', sem_tese)
         # Rótulo de ramo presente e ilegível é falha, não "sem ramo".
         with self.assertRaisesRegex(RuntimeError, 'bloco 1 com campos ausentes'):
             i = stj.index(b'Ramo do Direito')
