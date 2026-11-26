@@ -119,7 +119,7 @@ def confere(ref):
         assert not DOD.search(json.dumps(r, ensure_ascii=False)), i
 
 
-def aplica_web(ref, sai=frozenset(), novos=None, situacoes=None):
+def aplica_web(ref, sai=frozenset(), novos=None, situacoes=None, correcoes=()):
     p_idx, p_txt = os.path.join(RAIZ, 'juris-index.js'), os.path.join(RAIZ, 'juris-text.js')
     idx, pre_i = le_js(p_idx, '__JURIS_IDX__')
     txt, pre_t = le_js(p_txt, '__JURIS_TXT__')
@@ -155,6 +155,19 @@ def aplica_web(ref, sai=frozenset(), novos=None, situacoes=None):
         txt[r[0]] = {c: v for c, v in novo.items() if v}   # juris-text é um objeto: a ordem das chaves se mantém
     faltam = set(ref) - vistos
     assert not faltam, f'ids da referência ausentes da web: {sorted(faltam)[:5]}'
+    for c in correcoes:
+        i = c['id']
+        assert i in txt and txt[i]['en'] in (c['texto_acervo'], c['tese_oficial']), i
+        txt[i].update(en=c['tese_oficial'], ur=c['url'])
+        if 'observacao' in c:
+            txt[i].update(ob=c['observacao'], og='Corte Especial')
+    por_id = {c['id']: c for c in correcoes}
+    for r in idx:
+        if r[0] in por_id:
+            c = por_id[r[0]]
+            assert (r[1], r[3]) == (c['tribunal'], c['numero'])
+            r[8] = c['situacao_oficial']
+            r[7] = c.get('data', r[7])
     grava_js(p_idx, pre_i, idx)
     grava_js(p_txt, pre_t, txt)
     print(f'web: {len(vistos)} verbetes trocados em juris-index.js e juris-text.js ({len(novos or {})} novos); '
@@ -194,7 +207,7 @@ def reposiciona_dedup(dir_nat, rg_antes, sai, fundir, novo_569):
     print(f'dedup congelada: {mov} posições deslocadas, {alvo} absorvedores trocados pelo canônico, {orfao} sem absorvedor')
 
 
-def aplica_nativo(ref, dir_nat, l4=None, novos=None, situacoes=None):
+def aplica_nativo(ref, dir_nat, l4=None, novos=None, situacoes=None, correcoes=()):
     p_rg = os.path.join(dir_nat, 'build', 'data', 'repercussao_geral.json')
     rg = json.load(open(p_rg, encoding='utf-8'))
     fundir = {i: v['canonico'] for i, v in (l4 or {}).get('fundir', {}).items()}
@@ -253,6 +266,11 @@ def aplica_nativo(ref, dir_nat, l4=None, novos=None, situacoes=None):
     # mais o que retirar desses verbetes.
     # situação oficial dos verbetes de outras compilações: patch por id, que o build_corpus.py aplica
     patches = [{'match': {'id': i}, 'set': {'situacao': s['situacao']}} for i, s in sorted((situacoes or {}).items())]
+    for c in correcoes:
+        campos = {'enunciado': c['tese_oficial'], 'situacao': c['situacao_oficial'], 'url': c['url']}
+        if 'observacao' in c:
+            campos.update(observacao=c['observacao'], data=c['data'], orgaoJulgador='Corte Especial')
+        patches.append({'match': {'id': c['id']}, 'set': campos})
     with open(os.path.join(dir_nat, 'build', 'data', PATCH_NATIVO), 'w', encoding='utf-8') as f:
         f.write(json.dumps(patches, ensure_ascii=False, indent=1) + '\n')
     print(f'nativo: {len(vistos)} registros trocados em repercussao_geral.json ({len(novos or {})} novos), '
@@ -285,7 +303,7 @@ if __name__ == '__main__':
         if os.path.exists(caminho):
             lote_de.update({i: f'L{n}' for i in json.load(open(caminho, encoding='utf-8'))['registros']})
     lote_de.update({i: 'L4' for i in (l4 or {}).get('aplicar', {})})
-    novos, situacoes = {}, {}
+    novos, situacoes, correcoes = {}, {}, {}
     for caminho in ATUALIZACOES:      # em ordem de data: a leitura mais nova vence
         at, nome = json.load(open(caminho, encoding='utf-8')), os.path.basename(caminho)
         for i, r in at.get('registros', {}).items():
@@ -297,6 +315,7 @@ if __name__ == '__main__':
             assert i not in ref and i not in sai, f'{nome}: {i} já existe, foi fundido ou retirado'
             assert r.get('ramo') and r.get('conferencia'), f'{nome}: tema novo {i} sem "ramo" ou sem "conferencia"'
             ref[i] = r; lote_de[i] = nome; novos[i] = r
+        correcoes.update({c['id']: c for c in at.get('correcoes_compilacao', [])})
         for i, s in at.get('situacao_outros', {}).items():
             assert not i.startswith('repgeral-'), f'{nome}: {i} é repgeral-* — a situação dele muda em "registros"'
             assert s.get('situacao') and s.get('conferencia'), f'{nome}: {i} sem situação ou sem conferência'
@@ -305,11 +324,11 @@ if __name__ == '__main__':
               f"{len(at.get('situacao_outros', {}))} situações de outras compilações; "
               f"{len(at.get('sugeridos', {}))} sugeridos e {len(at.get('para_conferir', []))} para conferir ficam de fora")
     confere(ref)
-    aplica_web(ref, sai, novos, situacoes)
+    aplica_web(ref, sai, novos, situacoes, correcoes.values())
     swift = [os.path.join(RAIZ, d, 'vendor', 'juris', 'Store', 'JurisEstadoPersistido.swift') for d in ('mac', 'ios')]
     if '--nativo' in sys.argv:
         dir_nat = sys.argv[sys.argv.index('--nativo') + 1]
         swift.append(os.path.join(dir_nat, 'Sources', 'VadeMecum', 'Store', 'LibraryStore.swift'))
-        aplica_nativo(ref, dir_nat, l4, novos, situacoes)
+        aplica_nativo(ref, dir_nat, l4, novos, situacoes, correcoes.values())
     if l4:
         gera_migracoes(l4, swift)

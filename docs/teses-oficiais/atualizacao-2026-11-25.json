@@ -14,9 +14,10 @@
  "contagem": {
   "registros": 25,
   "situacao_outros": 117,
-  "novos": 0,
-  "sugeridos": 118,
-  "para_conferir": 23
+  "novos": 15,
+  "sugeridos": 103,
+  "para_conferir": 0,
+  "correcoes_compilacao": 23
  },
  "registros": {
   "repgeral-repercussao_geral-STF-1016": {
@@ -30,7 +31,7 @@
    "data": "14/10/2026",
    "situacao": "Mérito julgado",
    "precedentes": "RE 1141156 (leading case), Rel. Min. Edson Fachin, Red. p/ o acórdão Min. Flávio Dino",
-   "observacao": "Este verbete também cobre o Tema 369 (Repetitivo, STJ): tese oficial “A correção monetária dos depósitos judiciais deve incluir os expurgos inflacionários.” (https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=369&cod_tema_final=369)",
+   "observacao": "O STF reformou o acórdão paradigma do Tema 369/STJ no RE 1.141.156 (Tema 1.016, julgamento em 14/10/2026). A tese do STF afasta os expurgos inflacionários em depósitos judiciais e preserva os valores já levantados e as situações consolidadas.",
    "url": "https://portal.stf.jus.br/jurisprudenciaRepercussao/verAndamentoProcesso.asp?incidente=5491645&numeroProcesso=1141156&classeProcesso=RE&numeroTema=1016",
    "fp": "RE 1141156 · Rel. Min. Edson Fachin · Red. p/ o acórdão Min. Flávio Dino",
    "origem_tese": "decisão de julgamento (14/10/2026)",
@@ -62,6 +63,10 @@
     "origem_tese": [
      null,
      "decisão de julgamento (14/10/2026)"
+    ],
+    "observacao": [
+     "Este verbete também cobre o Tema 369 (Repetitivo, STJ): tese oficial “A correção monetária dos depósitos judiciais deve incluir os expurgos inflacionários.” (https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=369&cod_tema_final=369)",
+     "O STF reformou o acórdão paradigma do Tema 369/STJ no RE 1.141.156 (Tema 1.016, julgamento em 14/10/2026). A tese do STF afasta os expurgos inflacionários em depósitos judiciais e preserva os valores já levantados e as situações consolidadas."
     ]
    },
    "motivo": "julgamento de mérito com tese fixada (14/10/2026); a observação de caso c do L3 (Tema 369 do STJ) fica — ver decisões da dona",
@@ -1654,8 +1659,7 @@
    "conferencia": "Lista oficial de temas do STF (exportarDados.asp) e andamentos do leading case na página do Tema 990 (verAndamentoProcesso.asp), lidos em 25/11/2026: situação \"Trânsito em Julgado\"; acórdão publicado em 30/04/2018; julgamento de mérito em 28/11/2019 (Tribunal Pleno); trânsito em julgado em 30/03/2021."
   }
  },
- "novos": {},
- "sugeridos": {
+ "novos": {
   "repgeral-repercussao_geral-STF-18": {
    "tribunal": "STF",
    "fonte": "repercussao_geral",
@@ -1694,6 +1698,264 @@
    "conferencia": "Lista oficial de temas do STF (exportarDados.asp) e andamentos do leading case na página do Tema 96 (verAndamentoProcesso.asp), lidos em 25/11/2026: situação \"Trânsito em Julgado\"; acórdão publicado em 22/06/2018; acórdão publicado em 22/06/2018; acórdão publicado em 22/06/2018; trânsito em julgado em 16/08/2018.",
    "ramo": "Direito Processual Civil"
   },
+  "repgeral-repercussao_geral-STF-498": {
+   "tribunal": "STF",
+   "fonte": "repercussao_geral",
+   "numero": 498,
+   "titulo": "Tema 498 (RG)",
+   "enunciado": "É inconstitucional a distinção de regimes sucessórios entre cônjuges e companheiros prevista no art. 1.790 do CC/2002, devendo ser aplicado, tanto nas hipóteses de casamento quanto nas de união estável, o regime do art. 1.829 do CC/2002. (A mesma tese foi fixada para o Tema 809).",
+   "tema": "Alcance do direito sucessório em face de união estável homoafetiva.",
+   "orgaoJulgador": "Plenário",
+   "data": "10/05/2017",
+   "situacao": "Trânsito em Julgado",
+   "precedentes": "RE 646721 (leading case), Rel. Min. Marco Aurélio",
+   "observacao": null,
+   "url": "https://portal.stf.jus.br/jurisprudenciaRepercussao/verAndamentoProcesso.asp?incidente=4100069&numeroProcesso=646721&classeProcesso=RE&numeroTema=498",
+   "origem_tese": "banco de teses do STF",
+   "fp": "RE 646721 · Rel. Min. Marco Aurélio",
+   "assuntos_oficiais": "DIREITO CIVIL | Sucessões | Inventário e Partilha\n\nDIREITO CIVIL | Família | União Estável ou Concubinato | União Homoafetiva",
+   "conferencia": "Lista oficial de temas do STF (exportarDados.asp) e andamentos do leading case na página do Tema 498 (verAndamentoProcesso.asp), lidos em 25/11/2026: situação \"Trânsito em Julgado\"; acórdão publicado em 11/09/2017; acórdão publicado em 10/12/2018; acórdão publicado em 10/12/2018; trânsito em julgado em 28/03/2019.",
+   "ramo": "Direito Civil"
+  },
+  "repgeral-repercussao_geral-STF-647": {
+   "tribunal": "STF",
+   "fonte": "repercussao_geral",
+   "numero": 647,
+   "titulo": "Tema 647 (RG)",
+   "enunciado": "É possível o confisco de todo e qualquer bem de valor econômico apreendido em decorrência do tráfico de drogas, sem a necessidade de se perquirir a habitualidade, reiteração do uso do bem para tal finalidade, a sua modificação para dificultar a descoberta do local do acondicionamento da droga ou qualquer outro requisito além daqueles previstos expressamente no art. 243, parágrafo único, da Constituição Federal.",
+   "tema": "Possibilidade da decretação de perdimento de bem apreendido em decorrência do tráfico ilícito de entorpecentes e drogas afins, quando não comprovada sua utilização habitual ou sua adulteração para o cometimento do crime.",
+   "orgaoJulgador": "Plenário",
+   "data": "17/05/2017",
+   "situacao": "Trânsito em Julgado",
+   "precedentes": "RE 638491 (leading case), Rel. Min. Luiz Fux",
+   "observacao": null,
+   "url": "https://portal.stf.jus.br/jurisprudenciaRepercussao/verAndamentoProcesso.asp?incidente=4057227&numeroProcesso=638491&classeProcesso=RE&numeroTema=647",
+   "origem_tese": "banco de teses do STF",
+   "fp": "RE 638491 · Rel. Min. Luiz Fux",
+   "assuntos_oficiais": "DIREITO PENAL | Parte Geral | Aplicação da Pena\n\nDIREITO PENAL | Parte Geral | Efeitos da Condenação | Perda de Bens e Valores",
+   "conferencia": "Lista oficial de temas do STF (exportarDados.asp) e andamentos do leading case na página do Tema 647 (verAndamentoProcesso.asp), lidos em 25/11/2026: situação \"Trânsito em Julgado\"; acórdão publicado em 13/05/2013; julgamento de mérito em 17/05/2017 (Tribunal Pleno); acórdão publicado em 23/08/2017; trânsito em julgado em 27/09/2017.",
+   "ramo": "Direito Penal"
+  },
+  "repgeral-repercussao_geral-STF-758": {
+   "tribunal": "STF",
+   "fonte": "repercussao_geral",
+   "numero": 758,
+   "titulo": "Tema 758 (RG)",
+   "enunciado": "O reconhecimento de falta grave consistente na prática de fato definido como crime doloso no curso da execução penal dispensa o trânsito em julgado da condenação criminal no juízo do conhecimento, desde que a apuração do ilícito disciplinar ocorra com observância do devido processo legal, do contraditório e da ampla defesa, podendo a instrução em sede executiva ser suprida por sentença criminal condenatória que verse sobre a materialidade, a autoria e as circunstâncias do crime correspondente à falta grave.",
+   "tema": "Necessidade de condenação com trânsito em julgado para se considerar como falta grave, no âmbito administrativo carcerário, a prática de fato definido como crime doloso.",
+   "orgaoJulgador": "Plenário (sessão virtual)",
+   "data": "07/12/2020",
+   "situacao": "Trânsito em Julgado",
+   "precedentes": "RE 776823 (leading case), Rel. Min. Edson Fachin",
+   "observacao": null,
+   "url": "https://portal.stf.jus.br/jurisprudenciaRepercussao/verAndamentoProcesso.asp?incidente=4477221&numeroProcesso=776823&classeProcesso=RE&numeroTema=758",
+   "origem_tese": "banco de teses do STF",
+   "fp": "RE 776823 · Rel. Min. Edson Fachin",
+   "assuntos_oficiais": "DIREITO PROCESSUAL PENAL | Execução Penal e de Medidas Alternativas | Pena Privativa de Liberdade | Regressão de Regime\n\nDIREITO PENAL | Crime Tentado\n\nDIREITO PENAL | Crimes contra o Patrimônio | Roubo",
+   "conferencia": "Lista oficial de temas do STF (exportarDados.asp) e andamentos do leading case na página do Tema 758 (verAndamentoProcesso.asp), lidos em 25/11/2026: situação \"Trânsito em Julgado\"; julgamento de mérito em 07/12/2020 (Tribunal Pleno, Sessão Virtual); acórdão publicado em 23/02/2021; acórdão publicado em 08/11/2021; trânsito em julgado em 07/12/2021.",
+   "ramo": "Direito Processual Penal"
+  },
+  "repgeral-repercussao_geral-STF-1412": {
+   "tribunal": "STF",
+   "fonte": "repercussao_geral",
+   "numero": 1412,
+   "titulo": "Tema 1412 (RG)",
+   "enunciado": "1. As medidas protetivas de urgência previstas na Lei n. 11.340/2006 aplicam-se a toda forma de violência contra a mulher baseada no gênero, independentemente de sua ocorrência no âmbito doméstico, familiar ou em relação íntima de afeto, devendo ser aplicadas pelo juízo competente para apreciar a situação de risco à integridade da ofendida; 2. O requerimento de medida protetiva de urgência apresentado a juízo materialmente incompetente deve ser apreciado em seu mérito, a fim de deferir a medida, quando houver risco imediato à integridade física ou psíquica da vítima, com o encaminhamento imediato dos autos ao juízo competente, à Vara Especializada em Violência contra a Mulher, onde houver, para ratificação ou reforma da decisão; 3. A proteção em face da violência de gênero contra a mulher compreende a violência política, fato tipificado no art. 326-B do Código Eleitoral, de competência, nesta hipótese, da justiça eleitoral; 4. Cabe a concessão de medidas protetivas inclusive por delegados de polícia ou agentes policiais, nos termos da ADI 6.138 (Relator Ministro Alexandre de Moraes), nas situações de urgência de ameaça ou violência de gênero contra a mulher.",
+   "tema": "Abrangência das medidas protetivas nas hipóteses de violência contra a mulher baseada no gênero, frente às obrigações assumidas pelo Estado brasileiro nos sistemas de proteção dos direitos humanos.",
+   "orgaoJulgador": "Plenário",
+   "data": "19/08/2026",
+   "situacao": "Mérito julgado",
+   "precedentes": "ARE 1537713 (leading case), Rel. Min. Edson Fachin",
+   "observacao": null,
+   "url": "https://portal.stf.jus.br/jurisprudenciaRepercussao/verAndamentoProcesso.asp?incidente=7171450&numeroProcesso=1537713&classeProcesso=ARE&numeroTema=1412",
+   "origem_tese": "banco de teses do STF",
+   "fp": "ARE 1537713 · Rel. Min. Edson Fachin",
+   "assuntos_oficiais": "DIREITO PROCESSUAL PENAL | Ação Penal | Nulidade",
+   "conferencia": "Lista oficial de temas do STF (exportarDados.asp) e andamentos do leading case na página do Tema 1412 (verAndamentoProcesso.asp), lidos em 25/11/2026: situação \"Mérito julgado\"; acórdão publicado em 15/08/2025; julgamento de mérito em 19/08/2026 (Tribunal Pleno).",
+   "ramo": "Direito Processual Penal"
+  },
+  "repgeral-repetitivo-STJ-51": {
+   "tribunal": "STJ",
+   "fonte": "repetitivo",
+   "numero": 51,
+   "titulo": "Tema 51 (Repetitivo)",
+   "enunciado": "1) Considerando que, a partir da MP 513/2010 (que originou a Lei 12.409/2011 e suas alterações posteriores, MP 633/2013 e Lei 13.000/2014), a CEF passou a ser administradora do FCVS, é aplicável o art. 1º da MP 513/2010 aos processos em trâmite na data de sua entrada em vigor (26.11.2010):\n1.1) sem sentença de mérito (na fase de conhecimento), devendo os autos ser remetidos à Justiça Federal para análise do preenchimento dos requisitos legais acerca do interesse da CEF ou da União, caso haja provocação nesse sentido de quaisquer das partes ou intervenientes e respeitados os §§ 4º e 6º do art. 1º-A da Lei 12.409/2011;e\n1.2) com sentença de mérito (na fase de conhecimento), podendo a União e/ou a CEF intervir na causa na defesa do FCVS, de forma espontânea ou provocada, no estágio em que se encontre, em qualquer tempo e grau de jurisdição, nos termos do parágrafo único do art. 5º da Lei 9.469/1997, devendo o feito continuar tramitando na Justiça Comum Estadual até o exaurimento do cumprimento de sentença;\n2) A partir de 26.11.2010, é da Justiça Federal a competência para o processamento e julgamento das causas em que se discute contrato de seguro vinculado à apólice pública, na qual a CEF atue em defesa do FCVS, devendo haver o deslocamento do feito para aquele ramo judiciário a partir do momento em que a referida empresa pública federal ou a União, de forma espontânea ou provocada, indique o interesse em intervir na causa, observados os §§ 4º do art. 64 do CPC e/ou os §§ 4º e 6º do art. 1º-A da Lei\n12.409/2011.\n3) Em observância à modulação dos efeitos das teses fixadas no Tema 1011 pelo STF, mantém-se a eficácia preclusiva da coisa julgada envolvendo os processos transitados em julgado, na fase de conhecimento, antes da publicação do resultado do julgamento de mérito pelo STF no Diário de Justiça Eletrônico (13.7.2020), restando inadmitida futura ação rescisória.\n4) A intervenção da CEF ou da União, em defesa do FCVS, nas ações de indenização securitária, com base em contrato vinculado à apólice pública (ramo 66) do seguro habitacional no âmbito do SFH, deve ser admitida na seguinte forma:\na) a CEF, na condição de parte, e a União, como assistente litisconsorcial, nos processos a partir de 26.11.2010, data da entrada em vigor da MP 513/2010;\nb) de assistente litisconsorcial, nos processos ajuizados em face da seguradora, em trâmite em 26.11.2010, sem sentença de mérito no processo de conhecimento, e;\nc) em razão da modulação feita pelo STF, na forma da intervenção anômala prevista no parágrafo único do art. 5º da Lei 9.469/1997, nos processos já sentenciados, em 26.11.2010.",
+   "tema": "Discussão sobre a necessidade de participação da Caixa Econômica Federal nos feitos que envolvam contratos de seguro habitacional vinculados ao Sistema Financeiro Habitacional e que não tenham relação com o Fundo de Compensação de Variações Salariais (FCVS).",
+   "orgaoJulgador": "Corte Especial",
+   "data": "15/09/2026",
+   "situacao": "Acórdão Publicado",
+   "precedentes": "REsp 1091363/SC, Rel. atual: Min. Maria Isabel Gallotti, julgado em 15/09/2026, acórdão publicado em 23/10/2026; REsp 1091393/SC, Rel. atual: Min. Maria Isabel Gallotti, julgado em 23/10/2026; REsp 1102539/PE, Rel. atual: Min. Maria Isabel Gallotti, julgado em 09/08/2011; REsp 1110899/PB, Rel. atual: Min. Luis Felipe Salomão",
+   "observacao": null,
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=51&cod_tema_final=51",
+   "origem_tese": "portal de repetitivos do STJ",
+   "fp": "REsp 1091363/SC · Rel. atual: Min. Maria Isabel Gallotti",
+   "ramo_oficial": "DIREITO CIVIL",
+   "aguarda_publicacao": false,
+   "conferencia": "Ficha oficial do Tema 51 no portal de precedentes do STJ (pesquisa só do tema), lida em 25/11/2026, última atualização 13/11/2026: situação \"Acórdão Publicado\"; REsp 1091363/SC (principal): afetação 15/10/2008, julgado em 15/09/2026, acórdão publicado em 23/10/2026; REsp 1091393/SC: afetação 15/10/2008, julgado em 23/10/2026; REsp 1102539/PE: afetação 13/02/2009, julgado em 09/08/2011; REsp 1110899/PB: afetação 13/02/2009.",
+   "ramo": "Direito Civil"
+  },
+  "repgeral-repetitivo-STJ-369": {
+   "tribunal": "STJ",
+   "fonte": "repetitivo",
+   "numero": 369,
+   "titulo": "Tema 369 (Repetitivo)",
+   "enunciado": "A correção monetária dos depósitos judiciais deve incluir os expurgos inflacionários.",
+   "tema": "Questão referente aos índices de correção monetária aplicáveis aos depósitos judiciais.",
+   "orgaoJulgador": "Corte Especial",
+   "data": "03/05/2017",
+   "situacao": "Acórdão Publicado - RE Pendente",
+   "precedentes": "REsp 1131360/RJ, Rel. atual: Min. Napoleão Nunes Maia Filho, julgado em 03/05/2017, acórdão publicado em 30/06/2017",
+   "observacao": "O STF reformou o acórdão paradigma do Tema 369/STJ no RE 1.141.156 (Tema 1.016, julgamento em 14/10/2026). A tese do STF afasta os expurgos inflacionários em depósitos judiciais e preserva os valores já levantados e as situações consolidadas. https://portal.stf.jus.br/jurisprudenciaRepercussao/verAndamentoProcesso.asp?incidente=5491645&numeroProcesso=1141156&classeProcesso=RE&numeroTema=1016",
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=369&cod_tema_final=369",
+   "origem_tese": "portal de repetitivos do STJ",
+   "fp": "REsp 1131360/RJ · Rel. atual: Min. Napoleão Nunes Maia Filho",
+   "ramo_oficial": "DIREITO PROCESSUAL CIVIL E DO TRABALHO",
+   "aguarda_publicacao": false,
+   "conferencia": "Ficha oficial do Tema 369 no portal de precedentes do STJ (pesquisa só do tema), lida em 25/11/2026, última atualização 14/04/2026: situação \"Acórdão Publicado - RE Pendente\"; REsp 1131360/RJ (principal): afetação 05/03/2010, julgado em 03/05/2017, acórdão publicado em 30/06/2017.",
+   "ramo": "Direito Processual Civil"
+  },
+  "repgeral-repetitivo-STJ-1154": {
+   "tribunal": "STJ",
+   "fonte": "repetitivo",
+   "numero": 1154,
+   "titulo": "Tema 1154 (Repetitivo)",
+   "enunciado": "1. A natureza e a quantidade de drogas devem ser valoradas sempre de forma conjunta. Não é possível, portanto, realizar a aplicação separada como se fossem elementos autônomos;\n2. A natureza e a quantidade de drogas devem ser valoradas preferencialmente na terceira fase da dosimetria da pena, para modular a fração de diminuição, salvo quando não incidir na hipótese a minorante prevista no § 4º do art. 33 da Lei n. 11.343/2006, caso em que essa circunstância poderá ser aplicada na primeira etapa da dosimetria para aumentar a pena-base;\n3. Caso a instância anterior tenha afastado a incidência da minorante e valorado a natureza e a quantidade de drogas na primeira fase da dosimetria, mas o tribunal, em recurso da defesa, decida aplicar o redutor, deverá, se possível, deslocar a aplicação dessa circunstância para a terceira fase, a fim de modular a fração de diminuição, o que não configura reformatio in pejus.\n4. Não configura bis in idem considerar a quantidade e a natureza de drogas como circunstância judicial negativa para aumentar a pena-base e, ao mesmo tempo, como elemento fático indicador de dedicação a atividades criminosas ou de integração a organização criminosa para afastar a aplicação da minorante prevista no § 4º do art. 33 da Lei n. 11.343/2006. Somente haverá bis in idem se essa circunstância for usada, simultaneamente, para aumentar a pena-base e para modular a fração de redução da pena na terceira fase.\n5. A apreensão de quantidade de drogas de tal modo expressiva que, por sua própria dimensão, seja incompatível com a figura do traficante eventual ou de pequeno traficante, configura fundamento idôneo para afastar a minorante do art. 33, § 4º, da Lei n. 11.343/2006. Fora dessa hipótese, a natureza e a quantidade das drogas podem afastar a minorante quando associadas a outros elementos do caso concreto ? como alto grau de profissionalismo, sofisticada logística de transporte ou complexa estrutura de armazenamento ?, dos quais se possa inferir, mediante fundamentação concreta, a dedicação do agente a atividades criminosas ou sua integração a organização criminosa.",
+   "tema": "Isoladamente consideradas, a natureza e a quantidade do entorpecente apreendido, por si sós, não são suficientes para embasar conclusão acerca da presença das referidas condições obstativas e, assim, afastar o reconhecimento da minorante do tráfico privilegiado.",
+   "orgaoJulgador": "3ª Seção",
+   "data": "18/06/2026",
+   "situacao": "Acórdão Publicado",
+   "precedentes": "REsp 1963433/SP, Rel. atual: Min. Messod Azulay Neto, julgado em 18/06/2026, acórdão publicado em 16/11/2026; REsp 1963489/MS, Rel. atual: Min. Messod Azulay Neto, julgado em 18/06/2026, acórdão publicado em 16/11/2026; REsp 1964296/MG, Rel. atual: Min. Messod Azulay Neto, julgado em 18/06/2026, acórdão publicado em 16/11/2026",
+   "observacao": null,
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=1154&cod_tema_final=1154",
+   "origem_tese": "portal de repetitivos do STJ",
+   "fp": "REsp 1963433/SP · Rel. atual: Min. Messod Azulay Neto",
+   "ramo_oficial": "DIREITO PENAL",
+   "aguarda_publicacao": false,
+   "conferencia": "Ficha oficial do Tema 1154 no portal de precedentes do STJ (pesquisa só do tema), lida em 25/11/2026, última atualização 16/11/2026: situação \"Acórdão Publicado\"; REsp 1963433/SP (principal): afetação 09/05/2022, julgado em 18/06/2026, acórdão publicado em 16/11/2026; REsp 1963489/MS: afetação 09/05/2022, julgado em 18/06/2026, acórdão publicado em 16/11/2026; REsp 1964296/MG: afetação 09/05/2022, julgado em 18/06/2026, acórdão publicado em 16/11/2026.",
+   "ramo": "Direito Penal"
+  },
+  "repgeral-repetitivo-STJ-1241": {
+   "tribunal": "STJ",
+   "fonte": "repetitivo",
+   "numero": 1241,
+   "titulo": "Tema 1241 (Repetitivo)",
+   "enunciado": "1. A natureza e a quantidade de drogas devem ser valoradas sempre de forma conjunta. Não é possível, portanto, realizar a aplicação separada como se fossem elementos autônomos;\n2. A natureza e a quantidade de drogas devem ser valoradas preferencialmente na terceira fase da dosimetria da pena, para modular a fração de diminuição, salvo quando não incidir na hipótese a minorante prevista no § 4º do art. 33 da Lei n. 11.343/2006, caso em que essa circunstância poderá ser aplicada na primeira etapa da dosimetria para aumentar a pena-base;\n3. Caso a instância anterior tenha afastado a incidência da minorante e valorado a natureza e a quantidade de drogas na primeira fase da dosimetria, mas o tribunal, em recurso da defesa, decida aplicar o redutor, deverá, se possível, deslocar a aplicação dessa circunstância para a terceira fase, a fim de modular a fração de diminuição, o que não configura reformatio in pejus.\n4. Não configura bis in idem considerar a quantidade e a natureza de drogas como circunstância judicial negativa para aumentar a pena-base e, ao mesmo tempo, como elemento fático indicador de dedicação a atividades criminosas ou de integração a organização criminosa para afastar a aplicação da minorante prevista no § 4º do art. 33 da Lei n. 11.343/2006. Somente haverá bis in idem se essa circunstância for usada, simultaneamente, para aumentar a pena-base e para modular a fração de redução da pena na terceira fase.\n5. A apreensão de quantidade de drogas de tal modo expressiva que, por sua própria dimensão, seja incompatível com a figura do traficante eventual ou de pequeno traficante, configura fundamento idôneo para afastar a minorante do art. 33, § 4º, da Lei n. 11.343/2006. Fora dessa hipótese, a natureza e a quantidade das drogas podem afastar a minorante quando associadas a outros elementos do caso concreto ? como alto grau de profissionalismo, sofisticada logística de transporte ou complexa estrutura de armazenamento ?, dos quais se possa inferir, mediante fundamentação concreta, a dedicação do agente a atividades criminosas ou sua integração a organização criminosa.",
+   "tema": "Possibilidade de utilização da quantidade e variedade das drogas apreendidas para definir a fração da minorante do tráfico privilegiado, prevista no artigo 33, § 4º, da Lei 11.343/2006.",
+   "orgaoJulgador": "3ª Seção",
+   "data": "18/06/2026",
+   "situacao": "Acórdão Publicado",
+   "precedentes": "REsp 2059576/MG, Rel. atual: Min. Ribeiro Dantas, julgado em 18/06/2026, acórdão publicado em 16/11/2026; REsp 2059577/MG, Rel. atual: Min. Ribeiro Dantas, julgado em 18/06/2026, acórdão publicado em 16/11/2026",
+   "observacao": null,
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=1241&cod_tema_final=1241",
+   "origem_tese": "portal de repetitivos do STJ",
+   "fp": "REsp 2059576/MG · Rel. atual: Min. Ribeiro Dantas",
+   "ramo_oficial": "DIREITO PENAL",
+   "aguarda_publicacao": false,
+   "conferencia": "Ficha oficial do Tema 1241 no portal de precedentes do STJ (pesquisa só do tema), lida em 25/11/2026, última atualização 16/11/2026: situação \"Acórdão Publicado\"; REsp 2059576/MG (principal): afetação 22/03/2024, julgado em 18/06/2026, acórdão publicado em 16/11/2026; REsp 2059577/MG: afetação 22/03/2024, julgado em 18/06/2026, acórdão publicado em 16/11/2026.",
+   "ramo": "Direito Penal"
+  },
+  "repgeral-repetitivo-STJ-1260": {
+   "tribunal": "STJ",
+   "fonte": "repetitivo",
+   "numero": 1260,
+   "titulo": "Tema 1260 (Repetitivo)",
+   "enunciado": "1. A pronúncia não pode se basear, exclusivamente, em elementos informativos do inquérito, ressalvadas as exceções contidas na parte final do 155, caput, do CPP (provas cautelares, não repetíveis e antecipadas).\n2. O testemunho indireto ou de ouvir dizer é prova lícita e admissível no ordenamento jurídico brasileiro, mas, mesmo se produzido em juízo, não é suficiente, por si só, para atingir o standard probatório exigido para a decisão de pronúncia.\n3. Em contextos de intimidação da prova, criminalidade organizada, facções criminosas, silenciamento imposto à vítima ou à testemunha e outras hipóteses objetivamente demonstradas de irrepetibilidade ou dificuldade substancial de produção da prova direta, o testemunho indireto qualificado poderá assumir maior relevo probatório, desde que submetido a controle judicial estrito e não dissociado das garantias do contraditório e da ampla defesa",
+   "tema": "Definir a) se, nos termos do art. 155 do CPP, a pronúncia não pode se fundamentar exclusivamente em elementos colhidos durante o inquérito policial; b) se o testemunho indireto, ainda que colhido em juízo, não constitui, isoladamente, meio de prova idôneo para a pronúncia.",
+   "orgaoJulgador": "3ª Seção",
+   "data": "12/08/2026",
+   "situacao": "Acórdão Publicado",
+   "precedentes": "REsp 2048687/BA, Rel. atual: Min. Reynaldo Soares da Fonseca, julgado em 12/08/2026, acórdão publicado em 08/09/2026",
+   "observacao": null,
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=1260&cod_tema_final=1260",
+   "origem_tese": "portal de repetitivos do STJ",
+   "fp": "REsp 2048687/BA · Rel. atual: Min. Reynaldo Soares da Fonseca",
+   "ramo_oficial": "DIREITO PROCESSUAL PENAL",
+   "aguarda_publicacao": false,
+   "conferencia": "Ficha oficial do Tema 1260 no portal de precedentes do STJ (pesquisa só do tema), lida em 25/11/2026, última atualização 18/09/2026: situação \"Acórdão Publicado\"; REsp 2048687/BA (principal): afetação 29/05/2024, julgado em 12/08/2026, acórdão publicado em 08/09/2026.",
+   "ramo": "Direito Processual Penal"
+  },
+  "repgeral-repetitivo-STJ-1354": {
+   "tribunal": "STJ",
+   "fonte": "repetitivo",
+   "numero": 1354,
+   "titulo": "Tema 1354 (Repetitivo)",
+   "enunciado": "É possível, para fins de cálculo para progressão de regime, a aplicação de percentuais distintos para cada condenação isoladamente, em uma mesma execução, reconhecendo-se a retroatividade da Lei n. 13.964/2019 e a ultratividade da redação anterior do art. 112 da Lei de Execução Penal, em respeito à norma mais favorável ao executado.",
+   "tema": "Definir a possibilidade de aplicação retroativa da Lei n. 13.964/2019 (Pacote Anticrime) a cada condenação isoladamente, em uma mesma execução, para fins de cálculo para progressão de regime.",
+   "orgaoJulgador": "3ª Seção",
+   "data": "18/06/2026",
+   "situacao": "Trânsito em Julgado",
+   "precedentes": "REsp 2037377/SC, Rel. atual: Min. Maria Marluce Caldas, julgado em 18/06/2026, acórdão publicado em 02/07/2026; REsp 2037447/SC, Rel. atual: Min. Maria Marluce Caldas, julgado em 18/06/2026, acórdão publicado em 02/07/2026",
+   "observacao": null,
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=1354&cod_tema_final=1354",
+   "origem_tese": "portal de repetitivos do STJ",
+   "fp": "REsp 2037377/SC · Rel. atual: Min. Maria Marluce Caldas",
+   "ramo_oficial": "DIREITO PROCESSUAL PENAL MILITAR",
+   "aguarda_publicacao": false,
+   "conferencia": "Ficha oficial do Tema 1354 no portal de precedentes do STJ (pesquisa só do tema), lida em 25/11/2026, última atualização 03/09/2026: situação \"Trânsito em Julgado\"; REsp 2037377/SC (principal): afetação 11/06/2025, julgado em 18/06/2026, acórdão publicado em 02/07/2026, trânsito em julgado 02/09/2026; REsp 2037447/SC: afetação 11/06/2025, julgado em 18/06/2026, acórdão publicado em 02/07/2026, trânsito em julgado 02/09/2026.",
+   "ramo": "Direito Penal e Processual Penal Militar"
+  },
+  "repgeral-repetitivo-STJ-1357": {
+   "tribunal": "STJ",
+   "fonte": "repetitivo",
+   "numero": 1357,
+   "titulo": "Tema 1357 (Repetitivo)",
+   "enunciado": "TESE 1: É cabível a remição da pena por aprovação no Exame Nacional do Ensino Médio (ENEM), ainda que o sentenciado tenha concluído o ensino médio anteriormente ao início do cumprimento da pena, pois a aprovação no exame demanda estudo por conta própria e representa fato gerador distinto da mera certificação de conclusão do ensino médio;\nTESE 2: É cabível a remição da pena pela aprovação no Exame Nacional para Certificação de Competências de Jovens e Adultos (ENCCEJA), ainda que o sentenciado já possuísse, ao ingressar no sistema prisional, certificação de conclusão do mesmo nível de ensino avaliado, pois a aprovação no exame durante o cumprimento da pena configura esforço educacional autônomo apto a justificar a remição;\nTESE 3: Não é cabível nova remição de pena quando o fato gerador educacional - aprovação em exame ou conclusão de nível de ensino - já tiver sido integralmente utilizado para remição anteriormente concedida na mesma execução penal, configurando-se, na hipótese, indevido bis in idem.",
+   "tema": "Definir se é possível a concessão do benefício da remição penal, por aprovação no ENEM/ENCCEJA, quando o sentenciado tenha concluído o ensino médio anteriormente ao início do cumprimento da pena.",
+   "orgaoJulgador": "3ª Seção",
+   "data": "18/06/2026",
+   "situacao": "Acórdão Publicado",
+   "precedentes": "REsp 2072985/DF, Rel. atual: Min. Reynaldo Soares da Fonseca, julgado em 18/06/2026, acórdão publicado em 16/07/2026; REsp 2082712/MG, Rel. atual: Min. Reynaldo Soares da Fonseca, julgado em 18/06/2026, acórdão publicado em 16/07/2026; REsp 2117779/MG, Rel. atual: Min. Reynaldo Soares da Fonseca, julgado em 18/06/2026, acórdão publicado em 16/07/2026; REsp 2073005/MG, Rel. atual: Min. Reynaldo Soares da Fonseca, julgado em 18/06/2026, acórdão publicado em 16/07/2026; REsp 2082999/MG, Rel. atual: Min. Reynaldo Soares da Fonseca, julgado em 18/06/2026, acórdão publicado em 16/07/2026",
+   "observacao": null,
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=1357&cod_tema_final=1357",
+   "origem_tese": "portal de repetitivos do STJ",
+   "fp": "REsp 2072985/DF · Rel. atual: Min. Reynaldo Soares da Fonseca",
+   "ramo_oficial": "DIREITO PROCESSUAL PENAL",
+   "aguarda_publicacao": false,
+   "conferencia": "Ficha oficial do Tema 1357 no portal de precedentes do STJ (pesquisa só do tema), lida em 25/11/2026, última atualização 21/07/2026: situação \"Acórdão Publicado\"; REsp 2072985/DF (principal): afetação 11/06/2025, julgado em 18/06/2026, acórdão publicado em 16/07/2026, trânsito em julgado 03/09/2026; REsp 2082712/MG: afetação 11/06/2025, julgado em 18/06/2026, acórdão publicado em 16/07/2026; REsp 2117779/MG: afetação 11/06/2025, julgado em 18/06/2026, acórdão publicado em 16/07/2026; REsp 2073005/MG: afetação 11/06/2025, julgado em 18/06/2026, acórdão publicado em 16/07/2026; REsp 2082999/MG: afetação 12/06/2025, julgado em 18/06/2026, acórdão publicado em 16/07/2026.",
+   "ramo": "Direito Processual Penal"
+  },
+  "repgeral-repetitivo-STJ-1374": {
+   "tribunal": "STJ",
+   "fonte": "repetitivo",
+   "numero": 1374,
+   "titulo": "Tema 1374 (Repetitivo)",
+   "enunciado": "Em atenção aos princípios da legalidade, da taxatividade e do favor rei, a interpretação do art. 112, § 3°, V, da LEP deve se dar de modo restritivo. Portanto, organização criminosa é somente a hipótese de condenação nos termos da Lei 12.850/2013, não abrangendo apenada que tenha participado de associação criminosa (art. 288 do CP) ou associação para o tráfico (art. 35 da Lei 11.343/2006).",
+   "tema": "Definir se o delito de associação para o tráfico de drogas (art. 35 da Lei n. 11.343/2006) equipara-se ou não ao crime de organização criminosa (art. 2º da Lei n. 12.850/2013), de modo a impedir a progressão especial de regime prevista no art. 112, § 3º, V, da Lei n. 7.210/1984 destinada a apenada gestante, mãe ou responsável por crianças ou pessoas com deficiência.",
+   "orgaoJulgador": "3ª Seção",
+   "data": "12/08/2026",
+   "situacao": "Acórdão Publicado",
+   "precedentes": "REsp 2204349/MG, Rel. atual: Min. Sebastião Reis Júnior, julgado em 12/08/2026, acórdão publicado em 20/08/2026",
+   "observacao": null,
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=1374&cod_tema_final=1374",
+   "origem_tese": "portal de repetitivos do STJ",
+   "fp": "REsp 2204349/MG · Rel. atual: Min. Sebastião Reis Júnior",
+   "ramo_oficial": "DIREITO PENAL",
+   "aguarda_publicacao": false,
+   "conferencia": "Ficha oficial do Tema 1374 no portal de precedentes do STJ (pesquisa só do tema), lida em 25/11/2026, última atualização 03/09/2026: situação \"Acórdão Publicado\"; REsp 2204349/MG (principal): afetação 26/08/2025, julgado em 12/08/2026, acórdão publicado em 20/08/2026.",
+   "ramo": "Direito Penal"
+  },
+  "repgeral-repetitivo-STJ-1383": {
+   "tribunal": "STJ",
+   "fonte": "repetitivo",
+   "numero": 1383,
+   "titulo": "Tema 1383 (Repetitivo)",
+   "enunciado": "É possível a penhora de até 1/4 do pecúlio do condenado para o pagamento da pena de multa criminal, desde que não incida sobre os recursos indispensáveis ao sustento do condenado e de sua família, nos termos das previsões contidas nos arts. 50, §§ 1º e 2º, do CP e 168 e 170 da Lei n. 7.210/1984 (LEP). As regras de impenhorabilidade do pecúlio e da quantidade depositada em caderneta de poupança, previstas no art. 833, IV e X, do CPC somente são aplicáveis a dívidas que não tenham como fundamento multa fixada em sentença penal condenatória.",
+   "tema": "Definir se é possível a penhora de pecúlio do condenado para pagamento de pena de multa, diante da alegação de impenhorabilidade das verbas de natureza alimentar.",
+   "orgaoJulgador": "3ª Seção",
+   "data": "12/08/2026",
+   "situacao": "Trânsito em Julgado",
+   "precedentes": "REsp 2204874/SP, Rel. atual: Min. Rogerio Schietti, julgado em 12/08/2026, acórdão publicado em 24/08/2026; REsp 2195564/SP, Rel. atual: Min. Rogerio Schietti, julgado em 12/08/2026, acórdão publicado em 24/08/2026; REsp 2206612/SP, Rel. atual: Min. Rogerio Schietti, julgado em 12/08/2026, acórdão publicado em 24/08/2026",
+   "observacao": null,
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=1383&cod_tema_final=1383",
+   "origem_tese": "portal de repetitivos do STJ",
+   "fp": "REsp 2204874/SP · Rel. atual: Min. Rogerio Schietti",
+   "ramo_oficial": "DIREITO PROCESSUAL PENAL",
+   "aguarda_publicacao": false,
+   "conferencia": "Ficha oficial do Tema 1383 no portal de precedentes do STJ (pesquisa só do tema), lida em 25/11/2026, última atualização 07/10/2026: situação \"Trânsito em Julgado\"; REsp 2204874/SP (principal): afetação 22/09/2025, julgado em 12/08/2026, acórdão publicado em 24/08/2026, trânsito em julgado 06/10/2026; REsp 2195564/SP: afetação 18/09/2025, julgado em 12/08/2026, acórdão publicado em 24/08/2026, trânsito em julgado 24/09/2026; REsp 2206612/SP: afetação 18/09/2025, julgado em 12/08/2026, acórdão publicado em 24/08/2026, trânsito em julgado 24/09/2026.",
+   "ramo": "Direito Processual Penal"
+  }
+ },
+ "sugeridos": {
   "repgeral-repercussao_geral-STF-216": {
    "tribunal": "STF",
    "fonte": "repercussao_geral",
@@ -1770,25 +2032,6 @@
    "conferencia": "Lista oficial de temas do STF (exportarDados.asp) e andamentos do leading case na página do Tema 384 (verAndamentoProcesso.asp), lidos em 25/11/2026: situação \"Trânsito em Julgado\"; acórdão publicado em 08/09/2017; acórdão publicado em 05/09/2018; acórdão publicado em 05/09/2018; trânsito em julgado em 21/09/2018.",
    "ramo": "Direito Administrativo"
   },
-  "repgeral-repercussao_geral-STF-498": {
-   "tribunal": "STF",
-   "fonte": "repercussao_geral",
-   "numero": 498,
-   "titulo": "Tema 498 (RG)",
-   "enunciado": "É inconstitucional a distinção de regimes sucessórios entre cônjuges e companheiros prevista no art. 1.790 do CC/2002, devendo ser aplicado, tanto nas hipóteses de casamento quanto nas de união estável, o regime do art. 1.829 do CC/2002. (A mesma tese foi fixada para o Tema 809).",
-   "tema": "Alcance do direito sucessório em face de união estável homoafetiva.",
-   "orgaoJulgador": "Plenário",
-   "data": "10/05/2017",
-   "situacao": "Trânsito em Julgado",
-   "precedentes": "RE 646721 (leading case), Rel. Min. Marco Aurélio",
-   "observacao": null,
-   "url": "https://portal.stf.jus.br/jurisprudenciaRepercussao/verAndamentoProcesso.asp?incidente=4100069&numeroProcesso=646721&classeProcesso=RE&numeroTema=498",
-   "origem_tese": "banco de teses do STF",
-   "fp": "RE 646721 · Rel. Min. Marco Aurélio",
-   "assuntos_oficiais": "DIREITO CIVIL | Sucessões | Inventário e Partilha\n\nDIREITO CIVIL | Família | União Estável ou Concubinato | União Homoafetiva",
-   "conferencia": "Lista oficial de temas do STF (exportarDados.asp) e andamentos do leading case na página do Tema 498 (verAndamentoProcesso.asp), lidos em 25/11/2026: situação \"Trânsito em Julgado\"; acórdão publicado em 11/09/2017; acórdão publicado em 10/12/2018; acórdão publicado em 10/12/2018; trânsito em julgado em 28/03/2019.",
-   "ramo": "Direito Civil"
-  },
   "repgeral-repercussao_geral-STF-630": {
    "tribunal": "STF",
    "fonte": "repercussao_geral",
@@ -1807,44 +2050,6 @@
    "assuntos_oficiais": "DIREITO TRIBUTÁRIO | Contribuições | Contribuições Sociais | Cofins\n\nDIREITO TRIBUTÁRIO | Contribuições | Contribuições Sociais | PIS\n\nDIREITO TRIBUTÁRIO | Crédito Tributário | Base de Cálculo\n\nDIREITO CIVIL | Obrigações | Espécies de Contratos | Locação de Imóvel",
    "conferencia": "Lista oficial de temas do STF (exportarDados.asp) e andamentos do leading case na página do Tema 630 (verAndamentoProcesso.asp), lidos em 25/11/2026: situação \"Trânsito em Julgado\"; julgamento de mérito em 11/04/2024 (Tribunal Pleno); acórdão publicado em 14/06/2024; acórdão publicado em 26/08/2024; trânsito em julgado em 03/09/2024.",
    "ramo": "Direito Tributário"
-  },
-  "repgeral-repercussao_geral-STF-647": {
-   "tribunal": "STF",
-   "fonte": "repercussao_geral",
-   "numero": 647,
-   "titulo": "Tema 647 (RG)",
-   "enunciado": "É possível o confisco de todo e qualquer bem de valor econômico apreendido em decorrência do tráfico de drogas, sem a necessidade de se perquirir a habitualidade, reiteração do uso do bem para tal finalidade, a sua modificação para dificultar a descoberta do local do acondicionamento da droga ou qualquer outro requisito além daqueles previstos expressamente no art. 243, parágrafo único, da Constituição Federal.",
-   "tema": "Possibilidade da decretação de perdimento de bem apreendido em decorrência do tráfico ilícito de entorpecentes e drogas afins, quando não comprovada sua utilização habitual ou sua adulteração para o cometimento do crime.",
-   "orgaoJulgador": "Plenário",
-   "data": "17/05/2017",
-   "situacao": "Trânsito em Julgado",
-   "precedentes": "RE 638491 (leading case), Rel. Min. Luiz Fux",
-   "observacao": null,
-   "url": "https://portal.stf.jus.br/jurisprudenciaRepercussao/verAndamentoProcesso.asp?incidente=4057227&numeroProcesso=638491&classeProcesso=RE&numeroTema=647",
-   "origem_tese": "banco de teses do STF",
-   "fp": "RE 638491 · Rel. Min. Luiz Fux",
-   "assuntos_oficiais": "DIREITO PENAL | Parte Geral | Aplicação da Pena\n\nDIREITO PENAL | Parte Geral | Efeitos da Condenação | Perda de Bens e Valores",
-   "conferencia": "Lista oficial de temas do STF (exportarDados.asp) e andamentos do leading case na página do Tema 647 (verAndamentoProcesso.asp), lidos em 25/11/2026: situação \"Trânsito em Julgado\"; acórdão publicado em 13/05/2013; julgamento de mérito em 17/05/2017 (Tribunal Pleno); acórdão publicado em 23/08/2017; trânsito em julgado em 27/09/2017.",
-   "ramo": "Direito Penal"
-  },
-  "repgeral-repercussao_geral-STF-758": {
-   "tribunal": "STF",
-   "fonte": "repercussao_geral",
-   "numero": 758,
-   "titulo": "Tema 758 (RG)",
-   "enunciado": "O reconhecimento de falta grave consistente na prática de fato definido como crime doloso no curso da execução penal dispensa o trânsito em julgado da condenação criminal no juízo do conhecimento, desde que a apuração do ilícito disciplinar ocorra com observância do devido processo legal, do contraditório e da ampla defesa, podendo a instrução em sede executiva ser suprida por sentença criminal condenatória que verse sobre a materialidade, a autoria e as circunstâncias do crime correspondente à falta grave.",
-   "tema": "Necessidade de condenação com trânsito em julgado para se considerar como falta grave, no âmbito administrativo carcerário, a prática de fato definido como crime doloso.",
-   "orgaoJulgador": "Plenário (sessão virtual)",
-   "data": "07/12/2020",
-   "situacao": "Trânsito em Julgado",
-   "precedentes": "RE 776823 (leading case), Rel. Min. Edson Fachin",
-   "observacao": null,
-   "url": "https://portal.stf.jus.br/jurisprudenciaRepercussao/verAndamentoProcesso.asp?incidente=4477221&numeroProcesso=776823&classeProcesso=RE&numeroTema=758",
-   "origem_tese": "banco de teses do STF",
-   "fp": "RE 776823 · Rel. Min. Edson Fachin",
-   "assuntos_oficiais": "DIREITO PROCESSUAL PENAL | Execução Penal e de Medidas Alternativas | Pena Privativa de Liberdade | Regressão de Regime\n\nDIREITO PENAL | Crime Tentado\n\nDIREITO PENAL | Crimes contra o Patrimônio | Roubo",
-   "conferencia": "Lista oficial de temas do STF (exportarDados.asp) e andamentos do leading case na página do Tema 758 (verAndamentoProcesso.asp), lidos em 25/11/2026: situação \"Trânsito em Julgado\"; julgamento de mérito em 07/12/2020 (Tribunal Pleno, Sessão Virtual); acórdão publicado em 23/02/2021; acórdão publicado em 08/11/2021; trânsito em julgado em 07/12/2021.",
-   "ramo": "Direito Processual Penal"
   },
   "repgeral-repercussao_geral-STF-885": {
    "tribunal": "STF",
@@ -2016,25 +2221,6 @@
    "assuntos_oficiais": "DIREITO TRIBUTÁRIO | Contribuições | Contribuições Sociais | PIS\n\nDIREITO TRIBUTÁRIO | Crédito Tributário | Extinção do Crédito Tributário | Compensação",
    "conferencia": "Lista oficial de temas do STF (exportarDados.asp) e andamentos do leading case na página do Tema 1309 (verAndamentoProcesso.asp), lidos em 25/11/2026: situação \"Acórdão de mérito publicado\"; acórdão publicado em 04/11/2024; acórdão publicado em 28/02/2025; julgamento de mérito em 02/09/2026 (Tribunal Pleno); acórdão publicado em 09/11/2026.",
    "ramo": "Direito Tributário"
-  },
-  "repgeral-repercussao_geral-STF-1412": {
-   "tribunal": "STF",
-   "fonte": "repercussao_geral",
-   "numero": 1412,
-   "titulo": "Tema 1412 (RG)",
-   "enunciado": "1. As medidas protetivas de urgência previstas na Lei n. 11.340/2006 aplicam-se a toda forma de violência contra a mulher baseada no gênero, independentemente de sua ocorrência no âmbito doméstico, familiar ou em relação íntima de afeto, devendo ser aplicadas pelo juízo competente para apreciar a situação de risco à integridade da ofendida; 2. O requerimento de medida protetiva de urgência apresentado a juízo materialmente incompetente deve ser apreciado em seu mérito, a fim de deferir a medida, quando houver risco imediato à integridade física ou psíquica da vítima, com o encaminhamento imediato dos autos ao juízo competente, à Vara Especializada em Violência contra a Mulher, onde houver, para ratificação ou reforma da decisão; 3. A proteção em face da violência de gênero contra a mulher compreende a violência política, fato tipificado no art. 326-B do Código Eleitoral, de competência, nesta hipótese, da justiça eleitoral; 4. Cabe a concessão de medidas protetivas inclusive por delegados de polícia ou agentes policiais, nos termos da ADI 6.138 (Relator Ministro Alexandre de Moraes), nas situações de urgência de ameaça ou violência de gênero contra a mulher.",
-   "tema": "Abrangência das medidas protetivas nas hipóteses de violência contra a mulher baseada no gênero, frente às obrigações assumidas pelo Estado brasileiro nos sistemas de proteção dos direitos humanos.",
-   "orgaoJulgador": "Plenário",
-   "data": "19/08/2026",
-   "situacao": "Mérito julgado",
-   "precedentes": "ARE 1537713 (leading case), Rel. Min. Edson Fachin",
-   "observacao": null,
-   "url": "https://portal.stf.jus.br/jurisprudenciaRepercussao/verAndamentoProcesso.asp?incidente=7171450&numeroProcesso=1537713&classeProcesso=ARE&numeroTema=1412",
-   "origem_tese": "banco de teses do STF",
-   "fp": "ARE 1537713 · Rel. Min. Edson Fachin",
-   "assuntos_oficiais": "DIREITO PROCESSUAL PENAL | Ação Penal | Nulidade",
-   "conferencia": "Lista oficial de temas do STF (exportarDados.asp) e andamentos do leading case na página do Tema 1412 (verAndamentoProcesso.asp), lidos em 25/11/2026: situação \"Mérito julgado\"; acórdão publicado em 15/08/2025; julgamento de mérito em 19/08/2026 (Tribunal Pleno).",
-   "ramo": "Direito Processual Penal"
   },
   "repgeral-repercussao_geral-STF-1455": {
    "tribunal": "STF",
@@ -2231,26 +2417,6 @@
    "aguarda_publicacao": false,
    "conferencia": "Ficha oficial do Tema 37 no portal de precedentes do STJ (pesquisa só do tema), lida em 25/11/2026, última atualização 20/10/2023: situação \"Trânsito em Julgado\"; REsp 1061134/RS (principal): afetação 29/08/2008, julgado em 10/12/2008, acórdão publicado em 01/04/2009, trânsito em julgado 05/05/2009.",
    "ramo": "Direito do Consumidor"
-  },
-  "repgeral-repetitivo-STJ-51": {
-   "tribunal": "STJ",
-   "fonte": "repetitivo",
-   "numero": 51,
-   "titulo": "Tema 51 (Repetitivo)",
-   "enunciado": "1) Considerando que, a partir da MP 513/2010 (que originou a Lei 12.409/2011 e suas alterações posteriores, MP 633/2013 e Lei 13.000/2014), a CEF passou a ser administradora do FCVS, é aplicável o art. 1º da MP 513/2010 aos processos em trâmite na data de sua entrada em vigor (26.11.2010):\n1.1) sem sentença de mérito (na fase de conhecimento), devendo os autos ser remetidos à Justiça Federal para análise do preenchimento dos requisitos legais acerca do interesse da CEF ou da União, caso haja provocação nesse sentido de quaisquer das partes ou intervenientes e respeitados os §§ 4º e 6º do art. 1º-A da Lei 12.409/2011;e\n1.2) com sentença de mérito (na fase de conhecimento), podendo a União e/ou a CEF intervir na causa na defesa do FCVS, de forma espontânea ou provocada, no estágio em que se encontre, em qualquer tempo e grau de jurisdição, nos termos do parágrafo único do art. 5º da Lei 9.469/1997, devendo o feito continuar tramitando na Justiça Comum Estadual até o exaurimento do cumprimento de sentença;\n2) A partir de 26.11.2010, é da Justiça Federal a competência para o processamento e julgamento das causas em que se discute contrato de seguro vinculado à apólice pública, na qual a CEF atue em defesa do FCVS, devendo haver o deslocamento do feito para aquele ramo judiciário a partir do momento em que a referida empresa pública federal ou a União, de forma espontânea ou provocada, indique o interesse em intervir na causa, observados os §§ 4º do art. 64 do CPC e/ou os §§ 4º e 6º do art. 1º-A da Lei\n12.409/2011.\n3) Em observância à modulação dos efeitos das teses fixadas no Tema 1011 pelo STF, mantém-se a eficácia preclusiva da coisa julgada envolvendo os processos transitados em julgado, na fase de conhecimento, antes da publicação do resultado do julgamento de mérito pelo STF no Diário de Justiça Eletrônico (13.7.2020), restando inadmitida futura ação rescisória.\n4) A intervenção da CEF ou da União, em defesa do FCVS, nas ações de indenização securitária, com base em contrato vinculado à apólice pública (ramo 66) do seguro habitacional no âmbito do SFH, deve ser admitida na seguinte forma:\na) a CEF, na condição de parte, e a União, como assistente litisconsorcial, nos processos a partir de 26.11.2010, data da entrada em vigor da MP 513/2010;\nb) de assistente litisconsorcial, nos processos ajuizados em face da seguradora, em trâmite em 26.11.2010, sem sentença de mérito no processo de conhecimento, e;\nc) em razão da modulação feita pelo STF, na forma da intervenção anômala prevista no parágrafo único do art. 5º da Lei 9.469/1997, nos processos já sentenciados, em 26.11.2010.",
-   "tema": "Discussão sobre a necessidade de participação da Caixa Econômica Federal nos feitos que envolvam contratos de seguro habitacional vinculados ao Sistema Financeiro Habitacional e que não tenham relação com o Fundo de Compensação de Variações Salariais (FCVS).",
-   "orgaoJulgador": "Corte Especial",
-   "data": "15/09/2026",
-   "situacao": "Acórdão Publicado",
-   "precedentes": "REsp 1091363/SC, Rel. atual: Min. Maria Isabel Gallotti, julgado em 15/09/2026, acórdão publicado em 23/10/2026; REsp 1091393/SC, Rel. atual: Min. Maria Isabel Gallotti, julgado em 23/10/2026; REsp 1102539/PE, Rel. atual: Min. Maria Isabel Gallotti, julgado em 09/08/2011; REsp 1110899/PB, Rel. atual: Min. Luis Felipe Salomão",
-   "observacao": null,
-   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=51&cod_tema_final=51",
-   "origem_tese": "portal de repetitivos do STJ",
-   "fp": "REsp 1091363/SC · Rel. atual: Min. Maria Isabel Gallotti",
-   "ramo_oficial": "DIREITO CIVIL",
-   "aguarda_publicacao": false,
-   "conferencia": "Ficha oficial do Tema 51 no portal de precedentes do STJ (pesquisa só do tema), lida em 25/11/2026, última atualização 13/11/2026: situação \"Acórdão Publicado\"; REsp 1091363/SC (principal): afetação 15/10/2008, julgado em 15/09/2026, acórdão publicado em 23/10/2026; REsp 1091393/SC: afetação 15/10/2008, julgado em 23/10/2026; REsp 1102539/PE: afetação 13/02/2009, julgado em 09/08/2011; REsp 1110899/PB: afetação 13/02/2009.",
-   "ramo": "Direito Civil"
   },
   "repgeral-repetitivo-STJ-65": {
    "tribunal": "STJ",
@@ -2672,26 +2838,6 @@
    "conferencia": "Ficha oficial do Tema 302 no portal de precedentes do STJ (pesquisa só do tema), lida em 25/11/2026, última atualização 30/03/2026: situação \"Sobrestado\"; REsp 1107201/DF (principal): afetação 03/11/2009, julgado em 25/08/2010, acórdão publicado em 06/05/2011; REsp 1062648/RJ: afetação 24/11/2009.",
    "ramo": "Direito Civil"
   },
-  "repgeral-repetitivo-STJ-369": {
-   "tribunal": "STJ",
-   "fonte": "repetitivo",
-   "numero": 369,
-   "titulo": "Tema 369 (Repetitivo)",
-   "enunciado": "A correção monetária dos depósitos judiciais deve incluir os expurgos inflacionários.",
-   "tema": "Questão referente aos índices de correção monetária aplicáveis aos depósitos judiciais.",
-   "orgaoJulgador": "Corte Especial",
-   "data": "03/05/2017",
-   "situacao": "Acórdão Publicado - RE Pendente",
-   "precedentes": "REsp 1131360/RJ, Rel. atual: Min. Napoleão Nunes Maia Filho, julgado em 03/05/2017, acórdão publicado em 30/06/2017",
-   "observacao": null,
-   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=369&cod_tema_final=369",
-   "origem_tese": "portal de repetitivos do STJ",
-   "fp": "REsp 1131360/RJ · Rel. atual: Min. Napoleão Nunes Maia Filho",
-   "ramo_oficial": "DIREITO PROCESSUAL CIVIL E DO TRABALHO",
-   "aguarda_publicacao": false,
-   "conferencia": "Ficha oficial do Tema 369 no portal de precedentes do STJ (pesquisa só do tema), lida em 25/11/2026, última atualização 14/04/2026: situação \"Acórdão Publicado - RE Pendente\"; REsp 1131360/RJ (principal): afetação 05/03/2010, julgado em 03/05/2017, acórdão publicado em 30/06/2017.",
-   "ramo": "Direito Processual Civil"
-  },
   "repgeral-repetitivo-STJ-438": {
    "tribunal": "STJ",
    "fonte": "repetitivo",
@@ -3072,26 +3218,6 @@
    "conferencia": "Ficha oficial do Tema 1119 no portal de precedentes do STJ (pesquisa só do tema), lida em 25/11/2026, última atualização 26/10/2026: situação \"Trânsito em Julgado\"; REsp 1941347/SP (principal): afetação 02/12/2021, julgado em 03/09/2026, acórdão publicado em 23/09/2026, trânsito em julgado 16/10/2026.",
    "ramo": "Direito do Consumidor"
   },
-  "repgeral-repetitivo-STJ-1154": {
-   "tribunal": "STJ",
-   "fonte": "repetitivo",
-   "numero": 1154,
-   "titulo": "Tema 1154 (Repetitivo)",
-   "enunciado": "1. A natureza e a quantidade de drogas devem ser valoradas sempre de forma conjunta. Não é possível, portanto, realizar a aplicação separada como se fossem elementos autônomos;\n2. A natureza e a quantidade de drogas devem ser valoradas preferencialmente na terceira fase da dosimetria da pena, para modular a fração de diminuição, salvo quando não incidir na hipótese a minorante prevista no § 4º do art. 33 da Lei n. 11.343/2006, caso em que essa circunstância poderá ser aplicada na primeira etapa da dosimetria para aumentar a pena-base;\n3. Caso a instância anterior tenha afastado a incidência da minorante e valorado a natureza e a quantidade de drogas na primeira fase da dosimetria, mas o tribunal, em recurso da defesa, decida aplicar o redutor, deverá, se possível, deslocar a aplicação dessa circunstância para a terceira fase, a fim de modular a fração de diminuição, o que não configura reformatio in pejus.\n4. Não configura bis in idem considerar a quantidade e a natureza de drogas como circunstância judicial negativa para aumentar a pena-base e, ao mesmo tempo, como elemento fático indicador de dedicação a atividades criminosas ou de integração a organização criminosa para afastar a aplicação da minorante prevista no § 4º do art. 33 da Lei n. 11.343/2006. Somente haverá bis in idem se essa circunstância for usada, simultaneamente, para aumentar a pena-base e para modular a fração de redução da pena na terceira fase.\n5. A apreensão de quantidade de drogas de tal modo expressiva que, por sua própria dimensão, seja incompatível com a figura do traficante eventual ou de pequeno traficante, configura fundamento idôneo para afastar a minorante do art. 33, § 4º, da Lei n. 11.343/2006. Fora dessa hipótese, a natureza e a quantidade das drogas podem afastar a minorante quando associadas a outros elementos do caso concreto ? como alto grau de profissionalismo, sofisticada logística de transporte ou complexa estrutura de armazenamento ?, dos quais se possa inferir, mediante fundamentação concreta, a dedicação do agente a atividades criminosas ou sua integração a organização criminosa.",
-   "tema": "Isoladamente consideradas, a natureza e a quantidade do entorpecente apreendido, por si sós, não são suficientes para embasar conclusão acerca da presença das referidas condições obstativas e, assim, afastar o reconhecimento da minorante do tráfico privilegiado.",
-   "orgaoJulgador": "3ª Seção",
-   "data": "18/06/2026",
-   "situacao": "Acórdão Publicado",
-   "precedentes": "REsp 1963433/SP, Rel. atual: Min. Messod Azulay Neto, julgado em 18/06/2026, acórdão publicado em 16/11/2026; REsp 1963489/MS, Rel. atual: Min. Messod Azulay Neto, julgado em 18/06/2026, acórdão publicado em 16/11/2026; REsp 1964296/MG, Rel. atual: Min. Messod Azulay Neto, julgado em 18/06/2026, acórdão publicado em 16/11/2026",
-   "observacao": null,
-   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=1154&cod_tema_final=1154",
-   "origem_tese": "portal de repetitivos do STJ",
-   "fp": "REsp 1963433/SP · Rel. atual: Min. Messod Azulay Neto",
-   "ramo_oficial": "DIREITO PENAL",
-   "aguarda_publicacao": false,
-   "conferencia": "Ficha oficial do Tema 1154 no portal de precedentes do STJ (pesquisa só do tema), lida em 25/11/2026, última atualização 16/11/2026: situação \"Acórdão Publicado\"; REsp 1963433/SP (principal): afetação 09/05/2022, julgado em 18/06/2026, acórdão publicado em 16/11/2026; REsp 1963489/MS: afetação 09/05/2022, julgado em 18/06/2026, acórdão publicado em 16/11/2026; REsp 1964296/MG: afetação 09/05/2022, julgado em 18/06/2026, acórdão publicado em 16/11/2026.",
-   "ramo": "Direito Penal"
-  },
   "repgeral-repetitivo-STJ-1177": {
    "tribunal": "STJ",
    "fonte": "repetitivo",
@@ -3252,26 +3378,6 @@
    "conferencia": "Ficha oficial do Tema 1230 no portal de precedentes do STJ (pesquisa só do tema), lida em 25/11/2026, última atualização 27/10/2026: situação \"Acórdão Publicado\"; REsp 1894973/PR (principal): afetação 20/12/2023, julgado em 15/09/2026, acórdão publicado em 21/09/2026; REsp 2071335/GO: afetação 20/12/2023, julgado em 15/09/2026, acórdão publicado em 21/09/2026, trânsito em julgado 14/10/2026; REsp 2071382/SE: afetação 20/12/2023, julgado em 15/09/2026, acórdão publicado em 21/09/2026, trânsito em julgado 14/10/2026; REsp 2071259/SP: afetação 20/12/2023, julgado em 15/09/2026, acórdão publicado em 21/09/2026, trânsito em julgado 14/10/2026.",
    "ramo": "Direito Civil"
   },
-  "repgeral-repetitivo-STJ-1241": {
-   "tribunal": "STJ",
-   "fonte": "repetitivo",
-   "numero": 1241,
-   "titulo": "Tema 1241 (Repetitivo)",
-   "enunciado": "1. A natureza e a quantidade de drogas devem ser valoradas sempre de forma conjunta. Não é possível, portanto, realizar a aplicação separada como se fossem elementos autônomos;\n2. A natureza e a quantidade de drogas devem ser valoradas preferencialmente na terceira fase da dosimetria da pena, para modular a fração de diminuição, salvo quando não incidir na hipótese a minorante prevista no § 4º do art. 33 da Lei n. 11.343/2006, caso em que essa circunstância poderá ser aplicada na primeira etapa da dosimetria para aumentar a pena-base;\n3. Caso a instância anterior tenha afastado a incidência da minorante e valorado a natureza e a quantidade de drogas na primeira fase da dosimetria, mas o tribunal, em recurso da defesa, decida aplicar o redutor, deverá, se possível, deslocar a aplicação dessa circunstância para a terceira fase, a fim de modular a fração de diminuição, o que não configura reformatio in pejus.\n4. Não configura bis in idem considerar a quantidade e a natureza de drogas como circunstância judicial negativa para aumentar a pena-base e, ao mesmo tempo, como elemento fático indicador de dedicação a atividades criminosas ou de integração a organização criminosa para afastar a aplicação da minorante prevista no § 4º do art. 33 da Lei n. 11.343/2006. Somente haverá bis in idem se essa circunstância for usada, simultaneamente, para aumentar a pena-base e para modular a fração de redução da pena na terceira fase.\n5. A apreensão de quantidade de drogas de tal modo expressiva que, por sua própria dimensão, seja incompatível com a figura do traficante eventual ou de pequeno traficante, configura fundamento idôneo para afastar a minorante do art. 33, § 4º, da Lei n. 11.343/2006. Fora dessa hipótese, a natureza e a quantidade das drogas podem afastar a minorante quando associadas a outros elementos do caso concreto ? como alto grau de profissionalismo, sofisticada logística de transporte ou complexa estrutura de armazenamento ?, dos quais se possa inferir, mediante fundamentação concreta, a dedicação do agente a atividades criminosas ou sua integração a organização criminosa.",
-   "tema": "Possibilidade de utilização da quantidade e variedade das drogas apreendidas para definir a fração da minorante do tráfico privilegiado, prevista no artigo 33, § 4º, da Lei 11.343/2006.",
-   "orgaoJulgador": "3ª Seção",
-   "data": "18/06/2026",
-   "situacao": "Acórdão Publicado",
-   "precedentes": "REsp 2059576/MG, Rel. atual: Min. Ribeiro Dantas, julgado em 18/06/2026, acórdão publicado em 16/11/2026; REsp 2059577/MG, Rel. atual: Min. Ribeiro Dantas, julgado em 18/06/2026, acórdão publicado em 16/11/2026",
-   "observacao": null,
-   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=1241&cod_tema_final=1241",
-   "origem_tese": "portal de repetitivos do STJ",
-   "fp": "REsp 2059576/MG · Rel. atual: Min. Ribeiro Dantas",
-   "ramo_oficial": "DIREITO PENAL",
-   "aguarda_publicacao": false,
-   "conferencia": "Ficha oficial do Tema 1241 no portal de precedentes do STJ (pesquisa só do tema), lida em 25/11/2026, última atualização 16/11/2026: situação \"Acórdão Publicado\"; REsp 2059576/MG (principal): afetação 22/03/2024, julgado em 18/06/2026, acórdão publicado em 16/11/2026; REsp 2059577/MG: afetação 22/03/2024, julgado em 18/06/2026, acórdão publicado em 16/11/2026.",
-   "ramo": "Direito Penal"
-  },
   "repgeral-repetitivo-STJ-1243": {
    "tribunal": "STJ",
    "fonte": "repetitivo",
@@ -3331,26 +3437,6 @@
    "aguarda_publicacao": false,
    "conferencia": "Ficha oficial do Tema 1251 no portal de precedentes do STJ (pesquisa só do tema), lida em 25/11/2026, última atualização 24/09/2026: situação \"Acórdão Publicado\"; REsp 2031813/SC (principal): afetação 02/05/2024, julgado em 10/12/2025, acórdão publicado em 02/03/2026; REsp 2032021/RS: afetação 02/05/2024, julgado em 10/12/2025, acórdão publicado em 02/03/2026.",
    "ramo": "Direito Civil"
-  },
-  "repgeral-repetitivo-STJ-1260": {
-   "tribunal": "STJ",
-   "fonte": "repetitivo",
-   "numero": 1260,
-   "titulo": "Tema 1260 (Repetitivo)",
-   "enunciado": "1. A pronúncia não pode se basear, exclusivamente, em elementos informativos do inquérito, ressalvadas as exceções contidas na parte final do 155, caput, do CPP (provas cautelares, não repetíveis e antecipadas).\n2. O testemunho indireto ou de ouvir dizer é prova lícita e admissível no ordenamento jurídico brasileiro, mas, mesmo se produzido em juízo, não é suficiente, por si só, para atingir o standard probatório exigido para a decisão de pronúncia.\n3. Em contextos de intimidação da prova, criminalidade organizada, facções criminosas, silenciamento imposto à vítima ou à testemunha e outras hipóteses objetivamente demonstradas de irrepetibilidade ou dificuldade substancial de produção da prova direta, o testemunho indireto qualificado poderá assumir maior relevo probatório, desde que submetido a controle judicial estrito e não dissociado das garantias do contraditório e da ampla defesa",
-   "tema": "Definir a) se, nos termos do art. 155 do CPP, a pronúncia não pode se fundamentar exclusivamente em elementos colhidos durante o inquérito policial; b) se o testemunho indireto, ainda que colhido em juízo, não constitui, isoladamente, meio de prova idôneo para a pronúncia.",
-   "orgaoJulgador": "3ª Seção",
-   "data": "12/08/2026",
-   "situacao": "Acórdão Publicado",
-   "precedentes": "REsp 2048687/BA, Rel. atual: Min. Reynaldo Soares da Fonseca, julgado em 12/08/2026, acórdão publicado em 08/09/2026",
-   "observacao": null,
-   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=1260&cod_tema_final=1260",
-   "origem_tese": "portal de repetitivos do STJ",
-   "fp": "REsp 2048687/BA · Rel. atual: Min. Reynaldo Soares da Fonseca",
-   "ramo_oficial": "DIREITO PROCESSUAL PENAL",
-   "aguarda_publicacao": false,
-   "conferencia": "Ficha oficial do Tema 1260 no portal de precedentes do STJ (pesquisa só do tema), lida em 25/11/2026, última atualização 18/09/2026: situação \"Acórdão Publicado\"; REsp 2048687/BA (principal): afetação 29/05/2024, julgado em 12/08/2026, acórdão publicado em 08/09/2026.",
-   "ramo": "Direito Processual Penal"
   },
   "repgeral-repetitivo-STJ-1276": {
    "tribunal": "STJ",
@@ -3532,46 +3618,6 @@
    "conferencia": "Ficha oficial do Tema 1352 no portal de precedentes do STJ (pesquisa só do tema), lida em 25/11/2026, última atualização 18/11/2026: situação \"Acórdão Publicado\"; REsp 2189004/SP (principal): afetação 09/06/2025, julgado em 11/11/2026, acórdão publicado em 18/11/2026; REsp 2188858/SP: afetação 09/06/2025, julgado em 11/11/2026, acórdão publicado em 18/11/2026; REsp 2171338/SP: afetação 09/06/2025, julgado em 11/11/2026, acórdão publicado em 18/11/2026; REsp 2188859/SP: afetação 09/06/2025, julgado em 11/11/2026, acórdão publicado em 18/11/2026.",
    "ramo": "Direito Previdenciário"
   },
-  "repgeral-repetitivo-STJ-1354": {
-   "tribunal": "STJ",
-   "fonte": "repetitivo",
-   "numero": 1354,
-   "titulo": "Tema 1354 (Repetitivo)",
-   "enunciado": "É possível, para fins de cálculo para progressão de regime, a aplicação de percentuais distintos para cada condenação isoladamente, em uma mesma execução, reconhecendo-se a retroatividade da Lei n. 13.964/2019 e a ultratividade da redação anterior do art. 112 da Lei de Execução Penal, em respeito à norma mais favorável ao executado.",
-   "tema": "Definir a possibilidade de aplicação retroativa da Lei n. 13.964/2019 (Pacote Anticrime) a cada condenação isoladamente, em uma mesma execução, para fins de cálculo para progressão de regime.",
-   "orgaoJulgador": "3ª Seção",
-   "data": "18/06/2026",
-   "situacao": "Trânsito em Julgado",
-   "precedentes": "REsp 2037377/SC, Rel. atual: Min. Maria Marluce Caldas, julgado em 18/06/2026, acórdão publicado em 02/07/2026; REsp 2037447/SC, Rel. atual: Min. Maria Marluce Caldas, julgado em 18/06/2026, acórdão publicado em 02/07/2026",
-   "observacao": null,
-   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=1354&cod_tema_final=1354",
-   "origem_tese": "portal de repetitivos do STJ",
-   "fp": "REsp 2037377/SC · Rel. atual: Min. Maria Marluce Caldas",
-   "ramo_oficial": "DIREITO PROCESSUAL PENAL MILITAR",
-   "aguarda_publicacao": false,
-   "conferencia": "Ficha oficial do Tema 1354 no portal de precedentes do STJ (pesquisa só do tema), lida em 25/11/2026, última atualização 03/09/2026: situação \"Trânsito em Julgado\"; REsp 2037377/SC (principal): afetação 11/06/2025, julgado em 18/06/2026, acórdão publicado em 02/07/2026, trânsito em julgado 02/09/2026; REsp 2037447/SC: afetação 11/06/2025, julgado em 18/06/2026, acórdão publicado em 02/07/2026, trânsito em julgado 02/09/2026.",
-   "ramo": "Direito Penal e Processual Penal Militar"
-  },
-  "repgeral-repetitivo-STJ-1357": {
-   "tribunal": "STJ",
-   "fonte": "repetitivo",
-   "numero": 1357,
-   "titulo": "Tema 1357 (Repetitivo)",
-   "enunciado": "TESE 1: É cabível a remição da pena por aprovação no Exame Nacional do Ensino Médio (ENEM), ainda que o sentenciado tenha concluído o ensino médio anteriormente ao início do cumprimento da pena, pois a aprovação no exame demanda estudo por conta própria e representa fato gerador distinto da mera certificação de conclusão do ensino médio;\nTESE 2: É cabível a remição da pena pela aprovação no Exame Nacional para Certificação de Competências de Jovens e Adultos (ENCCEJA), ainda que o sentenciado já possuísse, ao ingressar no sistema prisional, certificação de conclusão do mesmo nível de ensino avaliado, pois a aprovação no exame durante o cumprimento da pena configura esforço educacional autônomo apto a justificar a remição;\nTESE 3: Não é cabível nova remição de pena quando o fato gerador educacional - aprovação em exame ou conclusão de nível de ensino - já tiver sido integralmente utilizado para remição anteriormente concedida na mesma execução penal, configurando-se, na hipótese, indevido bis in idem.",
-   "tema": "Definir se é possível a concessão do benefício da remição penal, por aprovação no ENEM/ENCCEJA, quando o sentenciado tenha concluído o ensino médio anteriormente ao início do cumprimento da pena.",
-   "orgaoJulgador": "3ª Seção",
-   "data": "18/06/2026",
-   "situacao": "Acórdão Publicado",
-   "precedentes": "REsp 2072985/DF, Rel. atual: Min. Reynaldo Soares da Fonseca, julgado em 18/06/2026, acórdão publicado em 16/07/2026; REsp 2082712/MG, Rel. atual: Min. Reynaldo Soares da Fonseca, julgado em 18/06/2026, acórdão publicado em 16/07/2026; REsp 2117779/MG, Rel. atual: Min. Reynaldo Soares da Fonseca, julgado em 18/06/2026, acórdão publicado em 16/07/2026; REsp 2073005/MG, Rel. atual: Min. Reynaldo Soares da Fonseca, julgado em 18/06/2026, acórdão publicado em 16/07/2026; REsp 2082999/MG, Rel. atual: Min. Reynaldo Soares da Fonseca, julgado em 18/06/2026, acórdão publicado em 16/07/2026",
-   "observacao": null,
-   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=1357&cod_tema_final=1357",
-   "origem_tese": "portal de repetitivos do STJ",
-   "fp": "REsp 2072985/DF · Rel. atual: Min. Reynaldo Soares da Fonseca",
-   "ramo_oficial": "DIREITO PROCESSUAL PENAL",
-   "aguarda_publicacao": false,
-   "conferencia": "Ficha oficial do Tema 1357 no portal de precedentes do STJ (pesquisa só do tema), lida em 25/11/2026, última atualização 21/07/2026: situação \"Acórdão Publicado\"; REsp 2072985/DF (principal): afetação 11/06/2025, julgado em 18/06/2026, acórdão publicado em 16/07/2026, trânsito em julgado 03/09/2026; REsp 2082712/MG: afetação 11/06/2025, julgado em 18/06/2026, acórdão publicado em 16/07/2026; REsp 2117779/MG: afetação 11/06/2025, julgado em 18/06/2026, acórdão publicado em 16/07/2026; REsp 2073005/MG: afetação 11/06/2025, julgado em 18/06/2026, acórdão publicado em 16/07/2026; REsp 2082999/MG: afetação 12/06/2025, julgado em 18/06/2026, acórdão publicado em 16/07/2026.",
-   "ramo": "Direito Processual Penal"
-  },
   "repgeral-repetitivo-STJ-1364": {
    "tribunal": "STJ",
    "fonte": "repetitivo",
@@ -3612,26 +3658,6 @@
    "conferencia": "Ficha oficial do Tema 1372 no portal de precedentes do STJ (pesquisa só do tema), lida em 25/11/2026, última atualização 28/08/2026: situação \"Acórdão Publicado\"; REsp 2174178/SC (principal): afetação 19/08/2025, julgado em 20/08/2026, acórdão publicado em 28/08/2026; REsp 2181166/SP: afetação 19/08/2025, julgado em 20/08/2026, acórdão publicado em 28/08/2026, trânsito em julgado 23/10/2026; REsp 2191532/ES: afetação 19/08/2025, julgado em 20/08/2026, acórdão publicado em 28/08/2026, trânsito em julgado 23/10/2026.",
    "ramo": "Direito Tributário"
   },
-  "repgeral-repetitivo-STJ-1374": {
-   "tribunal": "STJ",
-   "fonte": "repetitivo",
-   "numero": 1374,
-   "titulo": "Tema 1374 (Repetitivo)",
-   "enunciado": "Em atenção aos princípios da legalidade, da taxatividade e do favor rei, a interpretação do art. 112, § 3°, V, da LEP deve se dar de modo restritivo. Portanto, organização criminosa é somente a hipótese de condenação nos termos da Lei 12.850/2013, não abrangendo apenada que tenha participado de associação criminosa (art. 288 do CP) ou associação para o tráfico (art. 35 da Lei 11.343/2006).",
-   "tema": "Definir se o delito de associação para o tráfico de drogas (art. 35 da Lei n. 11.343/2006) equipara-se ou não ao crime de organização criminosa (art. 2º da Lei n. 12.850/2013), de modo a impedir a progressão especial de regime prevista no art. 112, § 3º, V, da Lei n. 7.210/1984 destinada a apenada gestante, mãe ou responsável por crianças ou pessoas com deficiência.",
-   "orgaoJulgador": "3ª Seção",
-   "data": "12/08/2026",
-   "situacao": "Acórdão Publicado",
-   "precedentes": "REsp 2204349/MG, Rel. atual: Min. Sebastião Reis Júnior, julgado em 12/08/2026, acórdão publicado em 20/08/2026",
-   "observacao": null,
-   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=1374&cod_tema_final=1374",
-   "origem_tese": "portal de repetitivos do STJ",
-   "fp": "REsp 2204349/MG · Rel. atual: Min. Sebastião Reis Júnior",
-   "ramo_oficial": "DIREITO PENAL",
-   "aguarda_publicacao": false,
-   "conferencia": "Ficha oficial do Tema 1374 no portal de precedentes do STJ (pesquisa só do tema), lida em 25/11/2026, última atualização 03/09/2026: situação \"Acórdão Publicado\"; REsp 2204349/MG (principal): afetação 26/08/2025, julgado em 12/08/2026, acórdão publicado em 20/08/2026.",
-   "ramo": "Direito Penal"
-  },
   "repgeral-repetitivo-STJ-1379": {
    "tribunal": "STJ",
    "fonte": "repetitivo",
@@ -3651,26 +3677,6 @@
    "aguarda_publicacao": false,
    "conferencia": "Ficha oficial do Tema 1379 no portal de precedentes do STJ (pesquisa só do tema), lida em 25/11/2026, última atualização 29/10/2026: situação \"Acórdão Publicado\"; REsp 2199631/SP (principal): afetação 11/09/2025, julgado em 14/10/2026, acórdão publicado em 29/10/2026; REsp 2070059/SP: afetação 11/09/2025, julgado em 14/10/2026, acórdão publicado em 29/10/2026.",
    "ramo": "Direito Tributário"
-  },
-  "repgeral-repetitivo-STJ-1383": {
-   "tribunal": "STJ",
-   "fonte": "repetitivo",
-   "numero": 1383,
-   "titulo": "Tema 1383 (Repetitivo)",
-   "enunciado": "É possível a penhora de até 1/4 do pecúlio do condenado para o pagamento da pena de multa criminal, desde que não incida sobre os recursos indispensáveis ao sustento do condenado e de sua família, nos termos das previsões contidas nos arts. 50, §§ 1º e 2º, do CP e 168 e 170 da Lei n. 7.210/1984 (LEP). As regras de impenhorabilidade do pecúlio e da quantidade depositada em caderneta de poupança, previstas no art. 833, IV e X, do CPC somente são aplicáveis a dívidas que não tenham como fundamento multa fixada em sentença penal condenatória.",
-   "tema": "Definir se é possível a penhora de pecúlio do condenado para pagamento de pena de multa, diante da alegação de impenhorabilidade das verbas de natureza alimentar.",
-   "orgaoJulgador": "3ª Seção",
-   "data": "12/08/2026",
-   "situacao": "Trânsito em Julgado",
-   "precedentes": "REsp 2204874/SP, Rel. atual: Min. Rogerio Schietti, julgado em 12/08/2026, acórdão publicado em 24/08/2026; REsp 2195564/SP, Rel. atual: Min. Rogerio Schietti, julgado em 12/08/2026, acórdão publicado em 24/08/2026; REsp 2206612/SP, Rel. atual: Min. Rogerio Schietti, julgado em 12/08/2026, acórdão publicado em 24/08/2026",
-   "observacao": null,
-   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=1383&cod_tema_final=1383",
-   "origem_tese": "portal de repetitivos do STJ",
-   "fp": "REsp 2204874/SP · Rel. atual: Min. Rogerio Schietti",
-   "ramo_oficial": "DIREITO PROCESSUAL PENAL",
-   "aguarda_publicacao": false,
-   "conferencia": "Ficha oficial do Tema 1383 no portal de precedentes do STJ (pesquisa só do tema), lida em 25/11/2026, última atualização 07/10/2026: situação \"Trânsito em Julgado\"; REsp 2204874/SP (principal): afetação 22/09/2025, julgado em 12/08/2026, acórdão publicado em 24/08/2026, trânsito em julgado 06/10/2026; REsp 2195564/SP: afetação 18/09/2025, julgado em 12/08/2026, acórdão publicado em 24/08/2026, trânsito em julgado 24/09/2026; REsp 2206612/SP: afetação 18/09/2025, julgado em 12/08/2026, acórdão publicado em 24/08/2026, trânsito em julgado 24/09/2026.",
-   "ramo": "Direito Processual Penal"
   },
   "repgeral-repetitivo-STJ-1384": {
    "tribunal": "STJ",
@@ -3993,7 +3999,7 @@
    "ramo": "Direito Administrativo"
   }
  },
- "para_conferir": [
+ "correcoes_compilacao": [
   {
    "id": "COORD-RG-1261",
    "tribunal": "STF",
@@ -4002,7 +4008,8 @@
    "situacao_oficial": "Trânsito em Julgado",
    "texto_x_tese": "difere",
    "tese_oficial": "É infraconstitucional, a ela se aplicando os efeitos da ausência de repercussão geral, a controvérsia acerca da base de cálculo de vantagens de servidor do magistério público, em decorrência de progressão funcional, conforme regulamentação do Estatuto do Servidor Público do Município de Guaíba/RS e do Plano de Carreira e de Remuneração do Magistério Público do Município (Leis municipais 2.586/2010 e 2.784/2011).",
-   "texto_acervo": "É infraconstitucional, a ela se aplicando os efeitos da ausência de repercussão geral, a controvérsia acerca da base de cálculo de vantagens de servidor do magistério público, em decorrência de progressão funcional, conforme regulamentação do Estatuto do Servidor Público do Município de Guaíba/RS e do Plano de Carreira e de Remuneração do Magistério Público do Município (Leis municipais 2.586/2010 e 2.784/2011."
+   "texto_acervo": "É infraconstitucional, a ela se aplicando os efeitos da ausência de repercussão geral, a controvérsia acerca da base de cálculo de vantagens de servidor do magistério público, em decorrência de progressão funcional, conforme regulamentação do Estatuto do Servidor Público do Município de Guaíba/RS e do Plano de Carreira e de Remuneração do Magistério Público do Município (Leis municipais 2.586/2010 e 2.784/2011.",
+   "url": "https://portal.stf.jus.br/jurisprudenciaRepercussao/tema.asp?num=1261"
   },
   {
    "id": "COORD-REP-50",
@@ -4012,7 +4019,10 @@
    "situacao_oficial": "Acórdão Publicado",
    "texto_x_tese": "difere",
    "tese_oficial": "1) Considerando que, a partir da MP 513/2010 (que originou a Lei 12.409/2011 e suas alterações posteriores, MP 633/2013 e Lei 13.000/2014), a CEF passou a ser administradora do FCVS, é aplicável o art. 1º da MP 513/2010 aos processos em trâmite na data de sua entrada em vigor (26.11.2010):\n1.1) sem sentença de mérito (na fase de conhecimento), devendo os autos ser remetidos à Justiça Federal para análise do preenchimento dos requisitos legais acerca do interesse da CEF ou da União, caso haja provocação nesse sentido de quaisquer das partes ou intervenientes e respeitados os §§ 4º e 6º do art. 1º-A da Lei 12.409/2011;e\n1.2) com sentença de mérito (na fase de conhecimento), podendo a União e/ou a CEF intervir na causa na defesa do FCVS, de forma espontânea ou provocada, no estágio em que se encontre, em qualquer tempo e grau de jurisdição, nos termos do parágrafo único do art. 5º da Lei 9.469/1997, devendo o feito continuar tramitando na Justiça Comum Estadual até o exaurimento do cumprimento de sentença;\n2) A partir de 26.11.2010, é da Justiça Federal a competência para o processamento e julgamento das causas em que se discute contrato de seguro vinculado à apólice pública, na qual a CEF atue em defesa do FCVS, devendo haver o deslocamento do feito para aquele ramo judiciário a partir do momento em que a referida empresa pública federal ou a União, de forma espontânea ou provocada, indique o interesse em intervir na causa, observados os §§ 4º do art. 64 do CPC e/ou os §§ 4º e 6º do art. 1º-A da Lei\n12.409/2011.\n3) Em observância à modulação dos efeitos das teses fixadas no Tema 1011 pelo STF, mantém-se a eficácia preclusiva da coisa julgada envolvendo os processos transitados em julgado, na fase de conhecimento, antes da publicação do resultado do julgamento de mérito pelo STF no Diário de Justiça Eletrônico (13.7.2020), restando inadmitida futura ação rescisória.\n4) A intervenção da CEF ou da União, em defesa do FCVS, nas ações de indenização securitária, com base em contrato vinculado à apólice pública (ramo 66) do seguro habitacional no âmbito do SFH, deve ser admitida na seguinte forma:\na) a CEF, na condição de parte, e a União, como assistente litisconsorcial, nos processos a partir de 26.11.2010, data da entrada em vigor da MP 513/2010;\nb) de assistente litisconsorcial, nos processos ajuizados em face da seguradora, em trâmite em 26.11.2010, sem sentença de mérito no processo de conhecimento, e;\nc) em razão da modulação feita pelo STF, na forma da intervenção anômala prevista no parágrafo único do art. 5º da Lei 9.469/1997, nos processos já sentenciados, em 26.11.2010.",
-   "texto_acervo": "Fica, pois, consolidado o entendimento de que, nas ações envolvendo seguros de mútuo habitacional no âmbito do SFH, a CEF detém interesse jurídico para ingressar na lide como assistente simples somente nos contratos celebrados de 02.12.1988 a 29.12.2009 - período compreendido entre as edições da Lei nº 7.682/88 e da MP nº 478/09 - e nas hipóteses em que o instrumento estiver vinculado ao FCVS (apólices públicas, ramo 66). Ainda que compreendido no mencionado lapso temporal, ausente a vinculação do contrato ao FCVS (apólices privadas, ramo 68), a CEF carece de interesse jurídico a justificar sua intervenção na lide. Ademais, o ingresso da CEF na lide somente será possível a partir do momento em que a instituição financeira provar documentalmente o seu interesse jurídico, mediante demonstração não apenas da existência de apólice pública, mas também do comprometimento d o FCVS, com risco efetivo de exaurimento da reserva técnica do FESA, colhendo o processo no estado em que este se encontrar no instante em que houver a efetiva comprovação desse interesse, sem anulação de nenhum ato anterior. Outrossim, evidenciada desídia ou conveniência na demonstração tardia do seu interesse jurídico de intervir na lide como assistente, não poderá a CEF se beneficiar da faculdade prevista no art. 55, I, do CPC."
+   "texto_acervo": "Fica, pois, consolidado o entendimento de que, nas ações envolvendo seguros de mútuo habitacional no âmbito do SFH, a CEF detém interesse jurídico para ingressar na lide como assistente simples somente nos contratos celebrados de 02.12.1988 a 29.12.2009 - período compreendido entre as edições da Lei nº 7.682/88 e da MP nº 478/09 - e nas hipóteses em que o instrumento estiver vinculado ao FCVS (apólices públicas, ramo 66). Ainda que compreendido no mencionado lapso temporal, ausente a vinculação do contrato ao FCVS (apólices privadas, ramo 68), a CEF carece de interesse jurídico a justificar sua intervenção na lide. Ademais, o ingresso da CEF na lide somente será possível a partir do momento em que a instituição financeira provar documentalmente o seu interesse jurídico, mediante demonstração não apenas da existência de apólice pública, mas também do comprometimento d o FCVS, com risco efetivo de exaurimento da reserva técnica do FESA, colhendo o processo no estado em que este se encontrar no instante em que houver a efetiva comprovação desse interesse, sem anulação de nenhum ato anterior. Outrossim, evidenciada desídia ou conveniência na demonstração tardia do seu interesse jurídico de intervir na lide como assistente, não poderá a CEF se beneficiar da faculdade prevista no art. 55, I, do CPC.",
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=50&cod_tema_final=50",
+   "data": "15/09/2026",
+   "observacao": "Corte Especial. Julgamento conjunto dos Temas 50 e 51 em 15/09/2026, acórdão publicado em 23/10/2026. Histórico: acórdão anterior tornado sem efeito em 13/11/2024. Redação anterior da compilação: Fica, pois, consolidado o entendimento de que, nas ações envolvendo seguros de mútuo habitacional no âmbito do SFH, a CEF detém interesse jurídico para ingressar na lide como assistente simples somente nos contratos celebrados de 02.12.1988 a 29.12.2009 - período compreendido entre as edições da Lei nº 7.682/88 e da MP nº 478/09 - e nas hipóteses em que o instrumento estiver vinculado ao FCVS (apólices públicas, ramo 66). Ainda que compreendido no mencionado lapso temporal, ausente a vinculação do contrato ao FCVS (apólices privadas, ramo 68), a CEF carece de interesse jurídico a justificar sua intervenção na lide. Ademais, o ingresso da CEF na lide somente será possível a partir do momento em que a instituição financeira provar documentalmente o seu interesse jurídico, mediante demonstração não apenas da existência de apólice pública, mas também do comprometimento d o FCVS, com risco efetivo de exaurimento da reserva técnica do FESA, colhendo o processo no estado em que este se encontrar no instante em que houver a efetiva comprovação desse interesse, sem anulação de nenhum ato anterior. Outrossim, evidenciada desídia ou conveniência na demonstração tardia do seu interesse jurídico de intervir na lide como assistente, não poderá a CEF se beneficiar da faculdade prevista no art. 55, I, do CPC."
   },
   {
    "id": "COORD-REP-57",
@@ -4022,7 +4032,8 @@
    "situacao_oficial": "Trânsito em Julgado",
    "texto_x_tese": "difere",
    "tese_oficial": "A ação de cobrança de diferenças de valores de complementação de aposentadoria prescreve em cinco anos contados da data do pagamento.",
-   "texto_acervo": "A ação de cobrança de diferenças de valores de complementação de aposentadoria prescreve em 5 anos contados da data do pagamento."
+   "texto_acervo": "A ação de cobrança de diferenças de valores de complementação de aposentadoria prescreve em 5 anos contados da data do pagamento.",
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=57&cod_tema_final=57"
   },
   {
    "id": "COORD-REP-122",
@@ -4032,7 +4043,8 @@
    "situacao_oficial": "Trânsito em Julgado",
    "texto_x_tese": "difere",
    "tese_oficial": "1-Tanto o promitente comprador (possuidor a qualquer título) do imóvel quanto seu proprietário/promitente vendedor (aquele que tem a propriedade registrada no Registro de Imóveis) são contribuintes responsáveis pelo pagamento do IPTU;\n2-cabe à legislação municipal estabelecer o sujeito passivo do IPTU.",
-   "texto_acervo": "I – Tanto o promitente comprador (possuidor a qualquer título) do imóvel quanto seu proprietário/promitente vendedor (aquele que tem a propriedade registrada no Registro de Imóveis) são contribuintes responsáveis pelo pagamento do IPTU; II - Cabe à legislação municipal estabelecer o sujeito passivo do IPTU."
+   "texto_acervo": "I – Tanto o promitente comprador (possuidor a qualquer título) do imóvel quanto seu proprietário/promitente vendedor (aquele que tem a propriedade registrada no Registro de Imóveis) são contribuintes responsáveis pelo pagamento do IPTU; II - Cabe à legislação municipal estabelecer o sujeito passivo do IPTU.",
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=122&cod_tema_final=122"
   },
   {
    "id": "COORD-REP-146",
@@ -4042,7 +4054,8 @@
    "situacao_oficial": "Trânsito em Julgado",
    "texto_x_tese": "difere",
    "tese_oficial": "É de cinco anos o prazo para a cobrança da multa aplicada ante infração administrativa ao meio ambiente, nos termos do Decreto nº 20.910/32, o qual que deve ser aplicado por isonomia, à falta de regra específica para regular esse prazo prescricional.",
-   "texto_acervo": "É de 5 anos o prazo para a cobrança da multa aplicada ante infração administrativa ao meio ambiente, nos termos do Decreto nº 20.910/32, o qual que deve ser aplicado por isonomia, à falta de regra específica para regular esse prazo prescricional."
+   "texto_acervo": "É de 5 anos o prazo para a cobrança da multa aplicada ante infração administrativa ao meio ambiente, nos termos do Decreto nº 20.910/32, o qual que deve ser aplicado por isonomia, à falta de regra específica para regular esse prazo prescricional.",
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=146&cod_tema_final=146"
   },
   {
    "id": "COORD-REP-252",
@@ -4052,7 +4065,8 @@
    "situacao_oficial": "Trânsito em Julgado",
    "texto_x_tese": "difere",
    "tese_oficial": "É vintenário o prazo prescricional da pretensão executiva atinente à tarifa por prestação de serviços de água e esgoto, cujo vencimento, na data da entrada em vigor do Código Civil de 2002, era superior a dez anos. Ao revés, cuidar-se-á de prazo prescricional decenal.",
-   "texto_acervo": "É vintenário (20 anos) o prazo prescricional da pretensão executiva atinente à tarifa por prestação de serviços de água e esgoto, cujo vencimento, na data da entrada em vigor do Código Civil de 2002, era superior a 10 anos. Ao revés, cuidar-se-á de prazo prescricional decenal (10 anos)."
+   "texto_acervo": "É vintenário (20 anos) o prazo prescricional da pretensão executiva atinente à tarifa por prestação de serviços de água e esgoto, cujo vencimento, na data da entrada em vigor do Código Civil de 2002, era superior a 10 anos. Ao revés, cuidar-se-á de prazo prescricional decenal (10 anos).",
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=252&cod_tema_final=252"
   },
   {
    "id": "COORD-REP-282",
@@ -4062,7 +4076,8 @@
    "situacao_oficial": "Revisado",
    "texto_x_tese": "difere",
    "tese_oficial": "i) A partir de 27.9.99, data de edição da MP 1901- 30/99, exige-se a prova pelo expropriado da efetiva perda de renda para incidência de juros compensatórios (art. 15-A, § 1º, do Decreto-Lei 3365/41);\nii) Desde 5.5.2000, data de edição da MP 2027-38/00, veda-se a incidência dos juros em imóveis com índice de produtividade zero (art. 15-A, § 2º, do DecretoLei 3365/41).",
-   "texto_acervo": "A partir de 27.9.99, data de edição da MP 1901 - 30/99, exige-se a prova pelo expropriado da efetiva perda de renda para incidência de juros compensatórios (art. 15-A, § 1º, do Decreto-Lei 3365/41); Desde 5.5.2000, data de edição da MP 2027-38/00, veda-se a incidência dos juros em imóveis com índice de produtividade zero (art. 15-A, § 2º, do Decreto-lei 3365/41).\""
+   "texto_acervo": "A partir de 27.9.99, data de edição da MP 1901 - 30/99, exige-se a prova pelo expropriado da efetiva perda de renda para incidência de juros compensatórios (art. 15-A, § 1º, do Decreto-Lei 3365/41); Desde 5.5.2000, data de edição da MP 2027-38/00, veda-se a incidência dos juros em imóveis com índice de produtividade zero (art. 15-A, § 2º, do Decreto-lei 3365/41).\"",
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=282&cod_tema_final=282"
   },
   {
    "id": "COORD-REP-310",
@@ -4072,7 +4087,8 @@
    "situacao_oficial": "Trânsito em Julgado",
    "texto_x_tese": "difere",
    "tese_oficial": "Prescreve em 20 (vinte) anos, na vigência do Código Civil de 1916, e em 5 (cinco) anos, na vigência do Código Civil de 2002, a pretensão de cobrança dos valores aportados para a construção de rede de eletrificação rural, posteriormente incorporada ao patrimônio da CEEE/RGE, respeitada a regra de transição prevista no art. 2.028 do Código Civil de 2002.",
-   "texto_acervo": "Prescreve em 20 anos, na vigência do Código Civil de 1916, e em 5 anos, na vigência do Código Civil de 2002, a pretensão de cobrança dos valores aportados para a construção de rede de eletrificação rural, posteriormente incorporada ao patrimônio da CEEE/RGE, respeitada a regra de transição prevista no art. 2.028 do Código Civil de 2002."
+   "texto_acervo": "Prescreve em 20 anos, na vigência do Código Civil de 1916, e em 5 anos, na vigência do Código Civil de 2002, a pretensão de cobrança dos valores aportados para a construção de rede de eletrificação rural, posteriormente incorporada ao patrimônio da CEEE/RGE, respeitada a regra de transição prevista no art. 2.028 do Código Civil de 2002.",
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=310&cod_tema_final=310"
   },
   {
    "id": "COORD-REP-324",
@@ -4082,7 +4098,8 @@
    "situacao_oficial": "Trânsito em Julgado",
    "texto_x_tese": "difere",
    "tese_oficial": "É de cinco anos o prazo decadencial para se constituir o crédito decorrente de infração à legislação administrativa.",
-   "texto_acervo": "É de 5 anos o prazo decadencial para se constituir o crédito decorrente de infração à legislação administrativa."
+   "texto_acervo": "É de 5 anos o prazo decadencial para se constituir o crédito decorrente de infração à legislação administrativa.",
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=324&cod_tema_final=324"
   },
   {
    "id": "COORD-REP-327",
@@ -4092,7 +4109,8 @@
    "situacao_oficial": "Trânsito em Julgado",
    "texto_x_tese": "difere",
    "tese_oficial": "Interrompe-se o prazo decadencial para a constituição do crédito decorrente de infração à legislação administrativa: a) pela notificação ou citação do indiciado ou executado, inclusive por meio de edital; b) por qualquer ato inequívoco, que importe apuração do fato; pela decisão condenatória recorrível; por qualquer ato inequívoco que importe em manifestação expressa de tentativa de solução conciliatória no âmbito interno da administração pública federal.",
-   "texto_acervo": "Interrompe-se o prazo decadencial para a constituição do crédito decorrente de infração à legislação administrativa:\na) pela notificação ou citação do indiciado ou executado, inclusive por meio de edital;\nb) por qualquer ato inequívoco, que importe apuração do fato;\nc) pela decisão condenatória recorrível;\nd) por qualquer ato inequívoco que importe em manifestação expressa de tentativa de solução conciliatória no âmbito interno da administração pública federal."
+   "texto_acervo": "Interrompe-se o prazo decadencial para a constituição do crédito decorrente de infração à legislação administrativa:\na) pela notificação ou citação do indiciado ou executado, inclusive por meio de edital;\nb) por qualquer ato inequívoco, que importe apuração do fato;\nc) pela decisão condenatória recorrível;\nd) por qualquer ato inequívoco que importe em manifestação expressa de tentativa de solução conciliatória no âmbito interno da administração pública federal.",
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=327&cod_tema_final=327"
   },
   {
    "id": "COORD-REP-328",
@@ -4102,7 +4120,8 @@
    "situacao_oficial": "Trânsito em Julgado",
    "texto_x_tese": "difere",
    "tese_oficial": "É de três anos o prazo para a conclusão do processo administrativo instaurado para se apurar a infração administrativa ('prescrição intercorrente').",
-   "texto_acervo": "É de 3 anos o prazo para a conclusão do processo administrativo instaurado para se apurar a infração administrativa (prescrição intercorrente)."
+   "texto_acervo": "É de 3 anos o prazo para a conclusão do processo administrativo instaurado para se apurar a infração administrativa (prescrição intercorrente).",
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=328&cod_tema_final=328"
   },
   {
    "id": "COORD-REP-329",
@@ -4112,7 +4131,8 @@
    "situacao_oficial": "Trânsito em Julgado",
    "texto_x_tese": "difere",
    "tese_oficial": "Prescreve em cinco anos, contados do término do processo administrativo, a pretensão da Administração Pública de promover a execução da multa por infração ambiental.",
-   "texto_acervo": "Prescreve em 5 anos, contados do término do processo administrativo, a pretensão da Administração Pública de promover a execução da multa por infração ambiental."
+   "texto_acervo": "Prescreve em 5 anos, contados do término do processo administrativo, a pretensão da Administração Pública de promover a execução da multa por infração ambiental.",
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=329&cod_tema_final=329"
   },
   {
    "id": "COORD-REP-330",
@@ -4122,7 +4142,8 @@
    "situacao_oficial": "Trânsito em Julgado",
    "texto_x_tese": "difere",
    "tese_oficial": "O termo inicial do prazo prescricional para o ajuizamento da ação executória 'é a constituição definitiva do crédito, que se dá com o término do processo administrativo de apuração da infração e constituição da dívida'.",
-   "texto_acervo": "O termo inicial do prazo prescricional para o ajuizamento da ação executória é a constituição definitiva do crédito, que se dá com o término do processo administrativo de apuração da infração e constituição da dívida [por infração à legislação ambiental]."
+   "texto_acervo": "O termo inicial do prazo prescricional para o ajuizamento da ação executória é a constituição definitiva do crédito, que se dá com o término do processo administrativo de apuração da infração e constituição da dívida [por infração à legislação ambiental].",
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=330&cod_tema_final=330"
   },
   {
    "id": "COORD-REP-376",
@@ -4132,7 +4153,8 @@
    "situacao_oficial": "Trânsito em Julgado",
    "texto_x_tese": "difere",
    "tese_oficial": "A intimação da parte agravada para resposta é procedimento natural de preservação do princípio do contraditório, nos termos do art. 527, V, do CPC. (...) A dispensa do referido ato processual ocorre tão-somente quando o relator nega seguimento ao agravo (art. 527, I), uma vez que essa decisão beneficia o agravado, razão pela qual conclui-se que a intimação para a apresentação de contrarrazões é condição de validade da decisão que causa prejuízo ao recorrente.",
-   "texto_acervo": "A intimação da parte agravada para resposta é procedimento natural de preservação do princípio do contraditório, nos termos do art. 527, V, do CPC. (...) A dispensa do referido ato processual ocorre tãosomente quando o relator nega seguimento ao agravo (ar t. 527, I), uma vez que essa decisão beneficia o agravado, razão pela qual conclui-se que a intimação para a apresentação de contrarrazões é condição de validade da decisão que causa prejuízo ao recorrente."
+   "texto_acervo": "A intimação da parte agravada para resposta é procedimento natural de preservação do princípio do contraditório, nos termos do art. 527, V, do CPC. (...) A dispensa do referido ato processual ocorre tãosomente quando o relator nega seguimento ao agravo (ar t. 527, I), uma vez que essa decisão beneficia o agravado, razão pela qual conclui-se que a intimação para a apresentação de contrarrazões é condição de validade da decisão que causa prejuízo ao recorrente.",
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=376&cod_tema_final=376"
   },
   {
    "id": "COORD-REP-566",
@@ -4142,7 +4164,8 @@
    "situacao_oficial": "Trânsito em Julgado",
    "texto_x_tese": "difere",
    "tese_oficial": "O prazo de 1 (um) ano de suspensão do processo e do respectivo prazo prescricional previsto no art. 40, §§ 1º e 2º da Lei n. 6.830/80 - LEF tem início automaticamente na data da ciência da Fazenda Pública a respeito da não localização do devedor ou da inexistência de bens penhoráveis no endereço fornecido, havendo, sem prejuízo dessa contagem automática, o dever de o magistrado declarar ter ocorrido a suspensão da execução.",
-   "texto_acervo": "O prazo de 1 ano de suspensão do processo e do respectivo prazo prescricional previsto no art. 40, §§ 1º e 2º da Lei n. 6.830/80 - LEF tem início automaticamente na data da ciência da Fazenda Pública a respeito da não localização do devedor ou da inexistência de bens penhoráveis no endereço fornecido, havendo, sem prejuízo dessa contagem automática, o dever de o magistrado declarar ter ocorrido a suspensão da execução."
+   "texto_acervo": "O prazo de 1 ano de suspensão do processo e do respectivo prazo prescricional previsto no art. 40, §§ 1º e 2º da Lei n. 6.830/80 - LEF tem início automaticamente na data da ciência da Fazenda Pública a respeito da não localização do devedor ou da inexistência de bens penhoráveis no endereço fornecido, havendo, sem prejuízo dessa contagem automática, o dever de o magistrado declarar ter ocorrido a suspensão da execução.",
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=566&cod_tema_final=566"
   },
   {
    "id": "COORD-REP-569",
@@ -4152,7 +4175,8 @@
    "situacao_oficial": "Trânsito em Julgado",
    "texto_x_tese": "difere",
    "tese_oficial": "Havendo ou não petição da Fazenda Pública e havendo ou não pronunciamento judicial nesse sentido, findo o prazo de 1 (um) ano de suspensão inicia-se automaticamente o prazo prescricional aplicável.",
-   "texto_acervo": "Havendo ou não petição da Fazenda Pública e havendo ou não pronunciamento judicial nesse sentido, findo o prazo de 1 ano de suspensão inicia-se automaticamente o prazo prescricional aplicável."
+   "texto_acervo": "Havendo ou não petição da Fazenda Pública e havendo ou não pronunciamento judicial nesse sentido, findo o prazo de 1 ano de suspensão inicia-se automaticamente o prazo prescricional aplicável.",
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=569&cod_tema_final=569"
   },
   {
    "id": "COORD-REP-570",
@@ -4162,7 +4186,8 @@
    "situacao_oficial": "Trânsito em Julgado",
    "texto_x_tese": "difere",
    "tese_oficial": "A Fazenda Pública, em sua primeira oportunidade de falar nos autos (art. 245 do CPC/73, correspondente ao art. 278 do CPC/2015), ao alegar nulidade pela falta de qualquer intimação dentro do procedimento do art. 40 da LEF, deverá demonstrar o prejuízo que sofreu (exceto a falta da intimação que constitui o termo inicial - 4.1., onde o prejuízo é presumido), por exemplo, deverá demonstrar a ocorrência de qualquer causa interruptiva ou suspensiva da prescrição.",
-   "texto_acervo": "A Fazenda Pública, em sua primeira oportunidade de falar nos autos (art. 245 do CPC/73, correspondente ao art. 278 do CPC/2015), ao alegar nulidade pela falta de qualquer intimação dentro do procedimento do art. 40 da LEF, deverá demonstrar o prejuízo que sofreu (exceto a falta da intimação que constitui o termo inicial - 4.1, onde o prejuízo é presumido), por exemplo, deverá demonstrar a ocorrência de qualquer causa interruptiva ou suspensiva da prescrição."
+   "texto_acervo": "A Fazenda Pública, em sua primeira oportunidade de falar nos autos (art. 245 do CPC/73, correspondente ao art. 278 do CPC/2015), ao alegar nulidade pela falta de qualquer intimação dentro do procedimento do art. 40 da LEF, deverá demonstrar o prejuízo que sofreu (exceto a falta da intimação que constitui o termo inicial - 4.1, onde o prejuízo é presumido), por exemplo, deverá demonstrar a ocorrência de qualquer causa interruptiva ou suspensiva da prescrição.",
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=570&cod_tema_final=570"
   },
   {
    "id": "COORD-REP-780",
@@ -4172,7 +4197,8 @@
    "situacao_oficial": "Trânsito em Julgado",
    "texto_x_tese": "difere",
    "tese_oficial": "(a) é ilegal a disciplina de creditamento prevista nas Instruções Normativas da SRF ns. 247/2002 e 404/2004, porquanto compromete a eficácia do sistema de não-cumulatividade da contribuição ao PIS e da COFINS, tal como definido nas Leis 10.637/2002 e 10.833/2003; e (b) o conceito de insumo deve ser aferido à luz dos critérios de essencialidade ou relevância, ou seja, considerando-se a imprescindibilidade ou a importância de determinado item - bem ou serviço - para o desenvolvimento da atividade econômica desempenhada pelo Contribuinte.",
-   "texto_acervo": "a) é ilegal a disciplina de creditamento prevista nas Instruções Normativas da SRF ns. 247/2002 e 404/2004, porquanto compromete a eficácia do sistema de não-cumulatividade da contribuição ao PIS e da COFINS, tal como definido nas Leis 10.637/2002 e 10.833/2003; e b) o conceito de insumo deve ser aferido à luz dos critérios de essencialidade ou relevância, ou seja, considerando-se a imprescindibilidade ou a importância de determinado item - bem ou serviço - para o desenvolvimento da atividade econômica desempenhada pelo Contribuinte."
+   "texto_acervo": "a) é ilegal a disciplina de creditamento prevista nas Instruções Normativas da SRF ns. 247/2002 e 404/2004, porquanto compromete a eficácia do sistema de não-cumulatividade da contribuição ao PIS e da COFINS, tal como definido nas Leis 10.637/2002 e 10.833/2003; e b) o conceito de insumo deve ser aferido à luz dos critérios de essencialidade ou relevância, ou seja, considerando-se a imprescindibilidade ou a importância de determinado item - bem ou serviço - para o desenvolvimento da atividade econômica desempenhada pelo Contribuinte.",
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=780&cod_tema_final=780"
   },
   {
    "id": "COORD-REP-886",
@@ -4182,7 +4208,8 @@
    "situacao_oficial": "Trânsito em Julgado",
    "texto_x_tese": "difere",
    "tese_oficial": "a) O que define a responsabilidade pelo pagamento das obrigações condominiais não é o registro do compromisso de venda e compra, mas a relação jurídica material com o imóvel, representada pela imissão na posse pelo promissário comprador e pela ciência inequívoca do Condomínio acerca da transação;\nb) Havendo compromisso de compra e venda não levado a registro, a responsabilidade pelas despesas de condomínio pode recair tanto sobre o promitente vendedor quanto sobre o promissário comprador, dependendo das circunstâncias de cada caso concreto; c) Se restar comprovado: (i) que o promissário comprador imitira-se na posse; e (ii) o Condomínio teve ciência inequívoca da transação, afasta-se a legitimidade passiva do promitente vendedor para responder por despesas condominiais relativas a período em que a posse foi exercida pelo promissário comprador.",
-   "texto_acervo": "I - O que define a responsabilidade pelo pagamento das obrigações condominiais não é o registro do compromisso de venda e compra, mas a relação jurídica material com o imóvel, representada pela imissão na posse pelo promissário comprador e pela ciência inequívoca do Condomínio acerca da transação; II - Havendo compromisso de compra e venda não levado a registro, a responsabilidade pelas despesas de condomínio pode recair tanto sobre o promitente vendedor quanto sobre o promissário comprador, dependendo das circunstâncias de cada caso concreto; III - Se restar comprovado:\n(i) que o promissário comprador imitira-se na posse; e\n(ii) o Condomínio teve ciência inequívoca da transação, afasta-se a legitimidade passiva do promitente vendedor para responder por despesas condominiais relativas a período em que a posse foi exercida pelo promissário comprador."
+   "texto_acervo": "I - O que define a responsabilidade pelo pagamento das obrigações condominiais não é o registro do compromisso de venda e compra, mas a relação jurídica material com o imóvel, representada pela imissão na posse pelo promissário comprador e pela ciência inequívoca do Condomínio acerca da transação; II - Havendo compromisso de compra e venda não levado a registro, a responsabilidade pelas despesas de condomínio pode recair tanto sobre o promitente vendedor quanto sobre o promissário comprador, dependendo das circunstâncias de cada caso concreto; III - Se restar comprovado:\n(i) que o promissário comprador imitira-se na posse; e\n(ii) o Condomínio teve ciência inequívoca da transação, afasta-se a legitimidade passiva do promitente vendedor para responder por despesas condominiais relativas a período em que a posse foi exercida pelo promissário comprador.",
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=886&cod_tema_final=886"
   },
   {
    "id": "COORD-REP-916",
@@ -4192,7 +4219,8 @@
    "situacao_oficial": "Trânsito em Julgado",
    "texto_x_tese": "difere",
    "tese_oficial": "Consuma-se o crime de roubo com a inversão da posse do bem, mediante emprego de violência ou grave ameaça, ainda que por breve tempo e em seguida a perseguição imediata ao agente e recuperação da coisa roubada, sendo prescindível a posse mansa e pacífica ou desvigiada.",
-   "texto_acervo": "Consuma-se o crime de ROUBO com a inversão da posse do bem, mediante emprego de violência ou grave ameaça, ainda que por breve tempo e em seguida a perseguição imediata ao agente e recuperação da coisa roubada, sendo prescindível (desnecessária) a posse mansa e pacífica ou desvigiada."
+   "texto_acervo": "Consuma-se o crime de ROUBO com a inversão da posse do bem, mediante emprego de violência ou grave ameaça, ainda que por breve tempo e em seguida a perseguição imediata ao agente e recuperação da coisa roubada, sendo prescindível (desnecessária) a posse mansa e pacífica ou desvigiada.",
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=916&cod_tema_final=916"
   },
   {
    "id": "COORD-REP-990",
@@ -4202,7 +4230,8 @@
    "situacao_oficial": "Trânsito em Julgado",
    "texto_x_tese": "difere",
    "tese_oficial": "As operadoras de plano de saúde não estão obrigadas a fornecer medicamento não registrado pela ANVISA.",
-   "texto_acervo": "As operadoras de planos de saúde não estão obrigadas a fornecer medicamento não registrado pela ANVISA."
+   "texto_acervo": "As operadoras de planos de saúde não estão obrigadas a fornecer medicamento não registrado pela ANVISA.",
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=990&cod_tema_final=990"
   },
   {
    "id": "COORD-REP-1030",
@@ -4212,7 +4241,8 @@
    "situacao_oficial": "Trânsito em Julgado",
    "texto_x_tese": "difere",
    "tese_oficial": "Ao autor que deseje litigar no âmbito de Juizado Especial Federal Cível, é lícito renunciar, de modo expresso e para fins de atribuição de valor à causa, ao montante que exceda os 60 (sessenta) salários mínimos previstos no art. 3º, caput, da Lei 10.259/2001, aí incluídas, sendo o caso, até doze prestações vincendas, nos termos do art. 3º, § 2º, da referida lei, c/c o art. 292, §§ 1º e 2º, do CPC/2015.",
-   "texto_acervo": "Ao autor que deseje litigar no âmbito de Juizado Especial Federal Cível, é lícito renunciar, de modo expresso e para fins de atribuição de valor à causa, ao montante que exceda os 60 salários mínimos previstos no art. 3º, caput, da Lei 10.259/2001, aí incluídas, sendo o caso, até 12 prestações vincendas, nos termos do art. 3º, § 2º, da referida lei, c/c o art. 292, §§ 1º e 2º, do CPC/2015."
+   "texto_acervo": "Ao autor que deseje litigar no âmbito de Juizado Especial Federal Cível, é lícito renunciar, de modo expresso e para fins de atribuição de valor à causa, ao montante que exceda os 60 salários mínimos previstos no art. 3º, caput, da Lei 10.259/2001, aí incluídas, sendo o caso, até 12 prestações vincendas, nos termos do art. 3º, § 2º, da referida lei, c/c o art. 292, §§ 1º e 2º, do CPC/2015.",
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=1030&cod_tema_final=1030"
   },
   {
    "id": "COORD-REP-1072",
@@ -4222,7 +4252,9 @@
    "situacao_oficial": "Trânsito em Julgado",
    "texto_x_tese": "difere",
    "tese_oficial": "\"Os juros compensatórios observam o percentual vigente no momento de sua incidência.\"",
-   "texto_acervo": "Os juros compensatórios [na desapropriação] observam o percentual vigente no momento de sua incidência."
+   "texto_acervo": "Os juros compensatórios [na desapropriação] observam o percentual vigente no momento de sua incidência.",
+   "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=1072&cod_tema_final=1072"
   }
- ]
+ ],
+ "para_conferir": []
 }

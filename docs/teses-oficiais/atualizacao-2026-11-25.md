@@ -1,5 +1,9 @@
 # Atualização assistida de 25/11/2026 — temas de repercussão geral e repetitivos
 
+**Deliberação de 26/11/2026 — primeira etapa aplicada no ramo do PR.** O Tema 106/STF permanece pesquisável como cancelado. Os Temas 1.016/STF e 369/STJ passam a ter referências históricas recíprocas. O Tema 50/STJ e os outros 22 registros da compilação recebem o texto oficial sob seus identificadores originais. O lote JSON conserva as redações anteriores em `correcoes_compilacao`. A Central registra os dois avisos do Tema 50 como incorporados.
+
+Entraram 15 temas: STF 18, 96, 498, 647, 758 e 1412; STJ 51, 369, 1154, 1241, 1260, 1354, 1357, 1374 e 1383. Continuam em `sugeridos` 96 temas da incorporação em etapas e sete do STJ que aguardavam publicação no levantamento. O relatório abaixo documenta o retrato anterior à decisão.
+
 Leitura nova da fonte oficial, conferida tema a tema, dos temas de repercussão geral do STF e de recursos
 repetitivos do STJ que o acervo do CátedraJURIS já tem. Ponto de partida: o sentinela de 25/11/2026 apontava,
 nesses temas, situações e teses diferentes da fonte oficial e teses fixadas fora do acervo ("Conferir" na Central).

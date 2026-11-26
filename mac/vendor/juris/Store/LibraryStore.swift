@@ -832,7 +832,10 @@ final class LibraryStore {
     /// Ids dos cartões vencidos (due ≤ hoje).
     func srsDueIds(now: Date = Date()) -> [String] {
         let today = Self.srsCalendar.startOfDay(for: now)
-        return srs.compactMap { $0.value.due <= today ? $0.key : nil }
+        return srs.compactMap { id, card in
+            guard card.due <= today, byId[id]?.situacaoKind != .cancelada else { return nil }
+            return id
+        }
     }
     var srsDueCount: Int { srsDueIds().count }
     /// Cartões revisados hoje (deriva de lastReviewed).
