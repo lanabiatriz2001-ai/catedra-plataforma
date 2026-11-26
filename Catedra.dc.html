@@ -6646,7 +6646,7 @@ window.ctPdfLib = (function(){
                 <header><h3>Bugs e feedback</h3><p>o que chegou de dentro do app</p></header>
                 <sc-if value="{{ admFeedbackVazio }}" hint-placeholder-val="{{ true }}"><div class="adm-empty">Nenhum relato ainda.</div></sc-if>
                 <sc-for list="{{ admFeedback }}" as="f" hint-placeholder-count="3">
-                  <div data-adm-relato="{{ f.id }}" style="border-top:1px solid var(--k-line);padding:14px 16px;">
+                  <div data-adm-relato="{{ f.id }}" style="border-top:1px solid var(--k-line);padding:var(--ct-e3) var(--ct-e4);">
                     <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:7px;">
                       <span class="adm-pill" style="{{ f.statusStyle }}">{{ f.status }}</span>
                       <sc-if value="{{ f.naoLido }}" hint-placeholder-val="{{ false }}"><span class="adm-pill" data-adm-naolido="1">não lido</span></sc-if>
@@ -6654,7 +6654,7 @@ window.ctPdfLib = (function(){
                     </div>
                     <div style="font-size:var(--fs-sm);line-height:1.6;white-space:pre-wrap;color:var(--k-ink);font-family:var(--body);">{{ f.mensagem }}</div>
                     <sc-if value="{{ f.temNota }}" hint-placeholder-val="{{ false }}">
-                      <div data-adm-nota="1" style="margin-top:9px;border:1px solid color-mix(in oklab, var(--k-acc) 38%, var(--border));padding-left:10px;font-size:var(--fs-xs);color:var(--k-dim);white-space:pre-wrap;background-image:linear-gradient(90deg,color-mix(in oklab, var(--k-acc) 19%, transparent),transparent 46%);">nota: {{ f.nota }}</div>
+                      <div data-adm-nota="1" style="margin-top:var(--ct-e2);border:1px solid color-mix(in oklab, var(--k-acc) 38%, var(--border));padding-left:var(--ct-e3);font-size:var(--fs-xs);color:var(--k-dim);white-space:pre-wrap;background-image:linear-gradient(90deg,color-mix(in oklab, var(--k-acc) 19%, transparent),transparent 46%);">nota: {{ f.nota }}</div>
                     </sc-if>
                     <div style="font-size:var(--fs-2xs);color:var(--k-dim2);margin-top:8px;">{{ f.ctx }}</div>
                     <div class="adm-acts" style="margin-top:10px;">
