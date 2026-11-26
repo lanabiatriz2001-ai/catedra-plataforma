@@ -7,8 +7,8 @@
 <meta name="description" content="A Cátedra reúne lei seca, jurisprudência, espelhos de correção oficiais e treino de prova oral num só lugar, funcionando sem internet.">
 <!-- Página pública (P15). Direção "vitrine": cor por ramo do direito como identidade, serifa grande, composição
      ousada. Sem promessa de aprovação, sem depoimento, sem número de adoção, sem preço — nada disso existe
-     (PRODUCT.md). Os números abaixo são o tamanho do acervo que está no repositório, conferido. Fontes locais,
-     sem CDN: a página abre igual sem rede. -->
+     (PRODUCT.md). Os números abaixo são o tamanho do acervo que está no repositório, conferido; os dos espelhos o
+     P15 (tests/run.mjs) confere contra espelhos.js. Fontes locais, sem CDN: a página abre igual sem rede. -->
 <style>
 @font-face{font-family:'Spectral';font-style:normal;font-weight:700;font-display:swap;src:url('./fonts/spectral-700-normal.woff2') format('woff2');}
 @font-face{font-family:'Spectral';font-style:normal;font-weight:500;font-display:swap;src:url('./fonts/spectral-500-normal.woff2') format('woff2');}
@@ -48,6 +48,7 @@ main { max-width:1080px; margin:0 auto; padding:0 clamp(16px,4vw,48px) var(--e7)
 .mosaico div { --c:var(--accent); border-radius:var(--radius); padding:var(--e4); background:color-mix(in srgb,var(--c) 14%,var(--surface)); border:1px solid color-mix(in srgb,var(--c) 40%,var(--border)); min-height:120px; display:flex; flex-direction:column; justify-content:flex-end; }
 .mosaico b { font-family:var(--display); font-size:clamp(28px,3.4vw,40px); line-height:1; color:color-mix(in srgb,var(--c) 72%,var(--ink)); letter-spacing:-.02em; }
 .mosaico span { font-size:13px; color:var(--text2); margin-top:6px; }
+.hero .nota { font-size:14px; color:var(--text3); margin:var(--e3) 0 0; max-width:none; }
 .secao { margin-top:clamp(40px,6vw,72px); }
 .secao h2 { font-family:var(--display); font-size:clamp(26px,3.6vw,40px); line-height:1.1; letter-spacing:-.015em; margin:0 0 var(--e2); }
 .secao > p { color:var(--text2); max-width:60ch; margin:0 0 var(--e5); font-size:17px; }
@@ -66,7 +67,7 @@ main { max-width:1080px; margin:0 auto; padding:0 clamp(16px,4vw,48px) var(--e7)
 .espera h2 { margin-top:0; }
 form { display:grid; gap:var(--e3); }
 label { font-size:13px; font-weight:600; color:var(--text2); display:grid; gap:6px; }
-input, select { width:100%; min-height:48px; border:1.5px solid var(--border); background:var(--surface); color:var(--ink); border-radius:var(--r-md); padding:10px 14px; font:inherit; font-size:16px; }
+input, select { width:100%; min-height:48px; border:1.5px solid color-mix(in srgb,var(--ink) 60%,var(--surface)); background:var(--surface); color:var(--ink); border-radius:var(--r-md); padding:10px 14px; font:inherit; font-size:16px; }
 .erro { min-height:20px; font-size:14px; color:var(--warn); line-height:1.45; }
 .ok { display:none; background:var(--accentSoft); color:var(--accentD); border-radius:var(--r-md); padding:14px 16px; font-weight:600; }
 .ok[data-mostra="1"] { display:block; }
@@ -88,11 +89,14 @@ input, select { width:100%; min-height:48px; border:1.5px solid var(--border); b
       <p>A Cátedra junta, num só lugar e sem depender de internet, a lei seca, a jurisprudência, os espelhos de correção oficiais e o treino da prova oral.</p>
       <div class="acoes"><a class="botao" href="#lista">Entrar na lista de espera</a><a class="botao-2" href="#como-funciona">Ver como funciona</a></div>
     </div>
-    <div class="mosaico" aria-label="O acervo que está dentro do app">
-      <div style="--c:var(--ramo-constitucional)"><b>566</b><span>quesitos de 35 espelhos oficiais, com a pontuação da banca</span></div>
-      <div style="--c:var(--ramo-civil)"><b>35</b><span>leis embarcadas, lidas ativamente artigo por artigo</span></div>
-      <div style="--c:var(--ramo-penal)"><b>14 mil</b><span>verbetes de jurisprudência, com a incidência por artigo</span></div>
-      <div style="--c:var(--ramo-administrativo)"><b>400</b><span>questões oficiais do ENAM, com o gabarito definitivo</span></div>
+    <div>
+      <div class="mosaico" role="group" aria-label="O acervo que está dentro do app">
+        <div style="--c:var(--ramo-constitucional)"><b data-n="quesitos">586</b><span>quesitos de 36 provas com espelho oficial</span></div>
+        <div style="--c:var(--ramo-civil)"><b>35</b><span>leis embarcadas, lidas ativamente artigo por artigo</span></div>
+        <div style="--c:var(--ramo-penal)"><b data-n="verbetes">15 mil</b><span>verbetes de jurisprudência, com a incidência por artigo</span></div>
+        <div style="--c:var(--ramo-administrativo)"><b>400</b><span>questões oficiais do ENAM, com o gabarito definitivo</span></div>
+      </div>
+      <p class="nota">Em 502 o app mostra o valor do quesito; nos outros 84, o espelho não o traz separado.</p>
     </div>
   </section>
 
@@ -108,7 +112,7 @@ input, select { width:100%; min-height:48px; border:1.5px solid var(--border); b
       <article class="cartao" style="--c:var(--ramo-constitucional)">
         <div class="n">Segunda fase</div>
         <h3>Espelhos oficiais quesito a quesito</h3>
-        <p>Sentença e discursiva corrigidas pelo espelho que a banca publicou: cada quesito com a exigência literal, a pontuação atribuída e os dispositivos citados. Nada de opinião no lugar do critério.</p>
+        <p>Sentença e discursiva corrigidas pelo espelho que a banca publicou: cada quesito com a exigência da banca, os dispositivos que o espelho cita e o valor, quando o espelho o traz separado. Nada de opinião no lugar do critério.</p>
       </article>
       <article class="cartao" style="--c:var(--ramo-penal)">
         <div class="n">Prova oral</div>
@@ -141,8 +145,8 @@ input, select { width:100%; min-height:48px; border:1.5px solid var(--border); b
       <p>Deixe o seu e-mail e diga o que está estudando. Quando abrirmos novas vagas do beta, avisamos por e-mail e só para isso usamos o endereço. Você pode pedir a remoção a qualquer momento.</p>
     </div>
     <form id="formEspera" novalidate>
-      <label for="email">E-mail<input id="email" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="voce@email.com" required maxlength="254"></label>
-      <label for="area">O que você está estudando<select id="area" name="area">
+      <label for="email">E-mail<input id="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="voce@email.com" required maxlength="254"></label>
+      <label for="area">O que você está estudando<select id="area">
         <option value="magistratura">Magistratura</option>
         <option value="enam">ENAM</option>
         <option value="ministerio-publico">Ministério Público</option>
