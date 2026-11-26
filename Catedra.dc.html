@@ -8397,6 +8397,11 @@ class Component extends DCLogic {
     this._onSynced = ()=>{ try{ this._rehydrateFromLocal(); }catch(_){} };
     window.addEventListener('catedra:syncstate', this._onSyncState);
     window.addEventListener('catedra:synced', this._onSynced);
+    // Antes de cada mescla com a nuvem, o auth.js pede o que ainda está no debounce do autosave
+    // (gravarPendenteDoApp): grava só o que a memória mudou desde o último salvamento, para a
+    // mescla vê-lo carimbado. Nunca a memória inteira — o resto pode estar velho (ver _salvarAgora).
+    this._onAntesDaMescla = ()=>{ try{ this._salvarAgora(); }catch(_){} };
+    window.addEventListener('catedra:antesdamescla', this._onAntesDaMescla);
     // primeiro acerto com a nuvem: agora o conserto do edital pode ir ao disco sem vencer edição
     // mais nova de outro aparelho. setTimeout: deixa a reidratação do mesmo tique assentar antes.
     this._onSyncPronto = ()=>{ setTimeout(()=>{ try{ this._cmagSeed(); }catch(_){} try{ this._edPersistirReparo(); }catch(_){} try{ this._carregarCotaIA(); }catch(_){} }, 0); };
@@ -8532,6 +8537,7 @@ class Component extends DCLogic {
     /* O CONCURSO ATIVO TAMBÉM PODE TER MUDADO NA NUVEM (outro aparelho trocou), e ele decide
        de onde o ciclo é lido. Mesmo tratamento da área, logo depois dela (editalAtivo é da
        área): fecha o ciclo aberto no concurso anterior, adota o novo e só então relê. */
+    let _concursoNovo=false;
     try{
       const r=localStorage.getItem(this._chave('editalAtivo'));
       const v=(r!=null) ? (JSON.parse(r)||'') : '';
@@ -8539,7 +8545,7 @@ class Component extends DCLogic {
         this._salvarAgora();
         this.state.editalAtivo=v;
         try{ localStorage.setItem(this._chave('editalAtivo'), JSON.stringify(v)); }catch(_){}
-        patch.editalAtivo=v; this._edSig=null;
+        patch.editalAtivo=v; this._edSig=null; _concursoNovo=true;
       }
     }catch(_){}
     try{ const raw=localStorage.getItem(this._chave('sessions')); if(raw){ const a=JSON.parse(raw); if(Array.isArray(a)) patch.sessions=a; } }catch(_){}
@@ -8621,19 +8627,58 @@ class Component extends DCLogic {
     try{ Object.keys(patch).forEach(k=>{
       try{ if(JSON.stringify(patch[k])===JSON.stringify(this.state[k])) delete patch[k]; }catch(_){}
     }); }catch(_){}
-    if(!Object.keys(patch).length) return;   // nada veio de novo: não mexe no estado
+    /* A EDIÇÃO AINDA NO DEBOUNCE NÃO VOLTA ATRÁS (25/11/2026). Antes, tudo o que o disco tinha
+       entrava no patch e o _lastSaved dava tudo por salvo: a escolha que a pessoa fez nos 500 ms do
+       autosave voltava ao valor gravado, na tela e no aparelho, e nunca subia — mesmo numa chave
+       que a nuvem nem tinha mudado. O auth.js já pede ao app que grave o pendente antes de cada
+       mescla ('catedra:antesdamescla'); isto é a outra metade, para o que ainda estiver só na
+       memória quando o aviso chega. Pendente é o que _edicaoPendente diz: a memória mudou desde o
+       último salvamento e o disco não tem a mudança. Uma chave assim:
+       · não volta ao valor do disco: escalar e objeto ficam como a pessoa deixou; numa lista por id
+         a mudança dela vai para cima do que a mescla gravou (_mesclarListaPendente) — a lista crua
+         da memória, gravada por cima, criaria lápide para o item que chegou do outro aparelho;
+       · não é dada por salva: o _lastSaved dela passa a ser o que o disco tem, e o autosave a grava
+         com o carimbo de agora, que vence a nuvem na mescla seguinte.
+       Troca de área ou de concurso já fechou o caderno anterior (_salvarAgora, lá em cima) e releu
+       o novo: aí não há o que proteger — e memória do caderno velho não pode entrar no novo. */
+    const L=this._lastSaved||(this._lastSaved={});
+    const pendentes=(_areaNova===null && !_concursoNovo) ? this._edicaoPendente() : [];
+    pendentes.forEach(k=>{
+      let disco; try{ const r=localStorage.getItem(this._chave(k)); disco=(r==null)?undefined:JSON.parse(r); }catch(_){ disco=undefined; }
+      const mem=this.state[k];
+      const fica=(Array.isArray(mem) && Array.isArray(disco) && this._ehListaPorId(k)) ? this._mesclarListaPendente(L[k], mem, disco) : mem;
+      let igual=(fica===mem); if(!igual){ try{ igual=JSON.stringify(fica)===JSON.stringify(mem); }catch(_){} }
+      if(igual) delete patch[k]; else patch[k]=fica;
+      L[k]=disco;   // a base passa a ser o que o disco tem; a memória segue pendente sobre ela
+    });
+    // nada veio de novo: não mexe no estado (e a edição pendente, se houver, tem autosave armado)
+    if(!Object.keys(patch).length){ if(pendentes.length) this._autosave(); return; }
     /* Aplica sem deixar o _autosave achar que tudo mudou (senão regrava e sobe tudo).
        O carimbo TEM de ser posto ANTES do render: zerar _lastSaved e só recarimbar no
        callback do setState deixa uma janela em que o componentDidUpdate já disparou o
        _autosave e ARMOU o timer de 500 ms — e aquele timer grava sem reavaliar `dirty`.
        Era por essa fresta que o caderno errado ia para o disco e para a nuvem. */
     try{ clearTimeout(this._asT); }catch(_){}
-    const L=this._lastSaved||(this._lastSaved={});
-    this._autosaveKeys().forEach(k=>{ L[k]=(k in patch)?patch[k]:this.state[k]; });
+    this._autosaveKeys().forEach(k=>{ if(pendentes.indexOf(k)>=0) return; L[k]=(k in patch)?patch[k]:this.state[k]; });
+    /* A FRESTA DO RENDER. Entre este setState e o callback dele o React ainda vai pintar, e a
+       pessoa pode editar nesse meio-tempo — a tecla entra antes do commit. O callback recarimbava
+       TODAS as chaves com a memória e cancelava o autosave: a edição feita na fresta ficava dada por
+       salva sem ter sido gravada. Agora o componentDidUpdate fotografa a memória no começo do commit
+       (_reidrFoto) e o callback só recarimba o que não mudou ANTES dele. O que muda DENTRO dele é
+       derivação do próprio render (a projeção do edital, a captura do concurso) e segue como era:
+       conta como salvo, sem gravar nem subir por conta própria. */
+    this._reidrArmada=(this._reidrArmada||0)+1;
     this.setState(patch, ()=>{
-      try{ clearTimeout(this._asT); }catch(_){}
+      const F=this._reidrFoto;
+      this._reidrArmada=Math.max(0, (this._reidrArmada||0)-1); if(!this._reidrArmada) this._reidrFoto=null;
       const L2=this._lastSaved||(this._lastSaved={});
-      this._autosaveKeys().forEach(k=>{ L2[k]=this.state[k]; });
+      this._autosaveKeys().forEach(k=>{
+        if(pendentes.indexOf(k)>=0) return;            // edição pendente: segue suja até o autosave gravar
+        if(F && (k in F) && F[k]!==L2[k]) return;      // mudou antes do commit: edição feita na fresta
+        L2[k]=this.state[k];
+      });
+      try{ clearTimeout(this._asT); }catch(_){}
+      this._autosave();                                 // rearma só se sobrou edição por gravar
       this._avisarAreaAoNativo();   // a nuvem pode ter trocado a área
       // tema veio da nuvem → os satélites (LEGIS/JURIS) precisam ser repintados junto,
       // senão eles ficam com o tema velho até a próxima troca manual.
@@ -8964,10 +9009,13 @@ class Component extends DCLogic {
       try{ localStorage.setItem('catedra:schemaVersion', String(V)); }catch(_){}
     }catch(_){ }
   }
-  componentWillUnmount(){ window.removeEventListener('catedra:sessaoleitor',this._retomarLeitor); clearTimeout(this._argRascunhoT);if(this._argSaida)window.removeEventListener("pagehide",this._argSaida); if(this._redFocoEsc){ try{ document.removeEventListener('keydown', this._redFocoEsc); document.documentElement.removeAttribute('data-red-foco'); }catch(_){} this._redFocoEsc=null; } if(this._redCronoT) clearInterval(this._redCronoT); if(this._redCorrT) clearInterval(this._redCorrT); try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onSelChange){ document.removeEventListener('selectionchange', this._onSelChange); clearTimeout(this._selChangeT); } ['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev, this._acDespertar)); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._areaMsg) window.removeEventListener('message', this._areaMsg); if(this._acervoMsg) window.removeEventListener('message', this._acervoMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._pausaT) clearInterval(this._pausaT); if(this._revT) clearInterval(this._revT);
+  componentWillUnmount(){ window.removeEventListener('catedra:sessaoleitor',this._retomarLeitor); clearTimeout(this._argRascunhoT);if(this._argSaida)window.removeEventListener("pagehide",this._argSaida); if(this._redFocoEsc){ try{ document.removeEventListener('keydown', this._redFocoEsc); document.documentElement.removeAttribute('data-red-foco'); }catch(_){} this._redFocoEsc=null; } if(this._redCronoT) clearInterval(this._redCronoT); if(this._redCorrT) clearInterval(this._redCorrT); try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} try{ if(this._onAntesDaMescla) window.removeEventListener('catedra:antesdamescla', this._onAntesDaMescla); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onSelChange){ document.removeEventListener('selectionchange', this._onSelChange); clearTimeout(this._selChangeT); } ['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev, this._acDespertar)); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._areaMsg) window.removeEventListener('message', this._areaMsg); if(this._acervoMsg) window.removeEventListener('message', this._acervoMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._pausaT) clearInterval(this._pausaT); if(this._revT) clearInterval(this._revT);
     try{ if(this._mqDark && this._onMqDark){ if(this._mqDark.removeEventListener) this._mqDark.removeEventListener('change', this._onMqDark); else if(this._mqDark.removeListener) this._mqDark.removeListener(this._onMqDark); } }catch(_){}
     if(this._pipMsgT) clearTimeout(this._pipMsgT); if(this._bkpAutoT) clearInterval(this._bkpAutoT); if(this._salaT) clearTimeout(this._salaT); this._pipStop(); this._closeDocPiP();  }
   componentDidUpdate(){
+    // A fresta do render da reidratação: o que a memória tem quando o commit começa, antes das
+    // derivações abaixo (ver o callback do setState em _rehydrateFromLocal).
+    if(this._reidrArmada) this._reidrFoto=this._fotoAutosave();
     // O concurso também pode mudar pela sincronização enquanto a conferência está aberta.
     if(this.state.edRaw && this._edOrigem) this._edConferirDestino();
     // Conta/área/concurso podem mudar sem desmontar o app. Nunca reatribuir as notas
@@ -9280,6 +9328,47 @@ class Component extends DCLogic {
         L[k]=this.state[k]; }catch(_){}
     });
   }
+  /** As chaves que a memória mudou e o disco ainda não tem: a edição no debounce do _autosave.
+      A régua é a do _salvarAgora (referência diferente do último salvamento), com duas travas a
+      mais: o CONTEÚDO mudou (referência nova com o mesmo conteúdo não é edição) e o disco ainda não
+      o tem. Ficam de fora a cor, que tem portão próprio na reidratação (_podeAdotarTema decide pela
+      hora da escolha), e o edital consertado na leitura, que grava por _edPersistirReparo. */
+  _edicaoPendente(){
+    const L=this._lastSaved||{};
+    return this._autosaveKeys().filter(k=>{
+      const v=this.state[k];
+      if(k==='accent' || v===undefined || v===L[k]) return false;
+      if(k==='edital' && this._edSoReparado()) return false;
+      try{ const s=this._serializar(k, v);
+        return s!==this._serializar(k, L[k]) && s!==localStorage.getItem(this._chave(k)); }catch(_){ return false; }
+    });
+  }
+  /** A chave é lista que a mescla une por id (ARRAY_ID do auth.js)? Pergunta ao auth.js, que é quem
+      mescla. Sem a camada de sync não há mescla nem lápide: a memória da pessoa fica como está. */
+  _ehListaPorId(k){ try{ const S=window.CatedraSync; return !!(S && typeof S.ehListaPorId==='function' && S.ehListaPorId(this._chave(k))); }catch(_){ return false; } }
+  /* Lista por id com edição pendente, e a mescla da nuvem já gravada no disco: leva para cima dela
+     só o que a pessoa fez desde a base (o último salvamento) — o item que ela criou ou editou, e a
+     exclusão dela. O item que só o disco tem, e que a base não tinha, chegou do outro aparelho e
+     fica. O que a pessoa não tocou fica como a mescla decidiu; o que os dois tocaram vai pelo
+     carimbo (up/ts), como no mergeArr do auth.js, e o empate é dela. A ordem é a da tela dela; o que
+     chegou vai para o fim, como a mescla faz com o que só um lado tem. */
+  _mesclarListaPendente(base, mem, disco){
+    const st=x=>(x && (x.up||x.ts))||0, temId=x=>!!x && x.id!=null;
+    const js=x=>{ try{ return JSON.stringify(x); }catch(_){ return ''; } };
+    const naBase=new Map((Array.isArray(base)?base:[]).filter(temId).map(x=>[x.id,x]));
+    const naMem=new Set(mem.filter(temId).map(x=>x.id));
+    const noDisco=new Map(disco.filter(temId).map(x=>[x.id,x]));
+    const out=mem.map(x=>{
+      if(!temId(x) || !noDisco.has(x.id)) return x;
+      const d=noDisco.get(x.id), b=naBase.get(x.id);
+      if(b!==undefined && (b===x || js(b)===js(x))) return d;   // a pessoa não mexeu: vale o que a mescla decidiu
+      return st(d)>st(x) ? d : x;                               // os dois mexeram: o carimbo decide, e o empate é dela
+    });
+    disco.forEach(d=>{ if(temId(d) && !naMem.has(d.id) && !naBase.has(d.id)) out.push(d); });
+    return out;
+  }
+  /** A memória das chaves do autosave neste instante (a fotografia da fresta do render). */
+  _fotoAutosave(){ const f={}; this._autosaveKeys().forEach(k=>{ f[k]=this.state[k]; }); return f; }
   /** O vazio certo de cada chave — array, objeto ou escalar. Sem isto, um caderno novo
       nasceria com `undefined` onde a tela espera lista. */
   _oabPlano(){const {historico,...p}=this.state.oabPlano||{};return {fase:'1',area:'Civil',pos:{},rascunhos:{},feitos:{},voltas:{},concursos:{},...p};}
