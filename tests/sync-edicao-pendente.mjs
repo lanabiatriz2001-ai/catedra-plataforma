@@ -375,6 +375,18 @@ export async function testarSyncEdicaoPendente(pageDaSuite, base, ok, opcoes = {
       await nova.goto(base + '/__semente');
       ok(await nova.evaluate(() => JSON.parse(localStorage.getItem('catedra:redText'))) === texto,
         R + '(g) ' + evento + ' conserva a edição ao reabrir o armazenamento');
+      // Reabre o host real sem injetar o Supabase da fixture. A folha só pode reler o aparelho.
+      await nova.route('**/Catedra.dc.html*', route => route.continue());
+      await nova.goto(base + '/Catedra.dc.html');
+      await nova.waitForFunction(() => !!window.__catedraApp);
+      ok(await nova.evaluate(() => window.__catedraApp.state.redText) === texto,
+        R + '(g) ' + evento + ' recupera a resposta no app sem consultar a nuvem');
+      if (texto) {
+        await nova.evaluate(() => window.__catedraGoView('redacao'));
+        await nova.waitForSelector(campo, { timeout: 15000 });
+        ok(await nova.locator(campo).inputValue() === texto,
+          R + '(g) a folha reaberta exibe a última frase');
+      }
     });
   }
 
