@@ -137,6 +137,14 @@ if (process.env.CT_SO === 'redacao-mesa') {
   console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
   process.exit(falhas.length ? 1 : 0);
 }
+// CT_SO=auth-hidratacao: só a hidratação e o portão de aceite dos Termos (tests/auth-hidratacao.mjs), no motor de CT_BROWSER
+if (process.env.CT_SO === 'auth-hidratacao') {
+  try { await testarAuthHidratacao(page, URL0, ok, { motor }); }
+  catch (e) { ok(false, 'AUTH HIDRATAÇÃO [' + motor + '] o roteiro correu sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
+  await browser.close(); srv.close();
+  console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
+  process.exit(falhas.length ? 1 : 0);
+}
 
 try { await testarPrioridadeErrosResolvidos(ok); }
 catch (e) { ok(false, 'PRIORIDADE erro resolvido exceção: ' + e.message); }
@@ -3548,6 +3556,10 @@ await comCadernoEnam(async (page) => {
   r.versaoVigente = J.versao === '1.0/1.2' && J.termos.arquivo === 'termos.html' && J.privacidade.data === '2026-10-01';
   r.aceiteVigentePuro = J.aceiteVigente({ versao: '1.0/1.2', ts: 1 }) === true && J.aceiteVigente('{"versao":"1.0/1.2","ts":5}') === true && J.aceiteVigente({ versao: '0.9/1.0', ts: 1 }) === false && J.aceiteVigente(null) === false && J.aceiteVigente('lixo') === false && J.aceiteVigente({ versao: '1.0/1.2' }) === false;
   const auth = fs.readFileSync(path.join(RAIZ, 'auth.js'), 'utf8');
+  // O aceite de versão MAIS NOVA também vale: o app de build mais velho que o aceite da nuvem não volta ao portão a cada
+  // abertura. Termos e privacidade comparados em separado; versão malformada, outro número de documentos ou sem carimbo
+  // não vale. Os casos servem para o vigente 1.0/1.2 e para o 1.0/1.3.
+  r.aceiteVersaoMaisNova = J.aceiteVigente({ versao: '1.0/1.4', ts: 1 }) === true && J.aceiteVigente({ versao: '1.1/1.3', ts: 1 }) === true && J.aceiteVigente({ versao: '2.0/1.0', ts: 1 }) === false && J.aceiteVigente({ versao: '1.0/1.3x', ts: 1 }) === false && J.aceiteVigente({ versao: '1.0', ts: 1 }) === false && J.aceiteVigente({ versao: '1.0/1.4' }) === false && J.aceiteVigente({ versao: '1.0/9.x', ts: 1 }) === false;
   r.portaoDeLoginPedeAceite = /aceiteVigente\(aceiteLocal, row && row\.data && row\.data\['catedra:aceite'\]\)/.test(auth) && /showAceite\(function \(\) \{ try \{ _si\('catedra:aceite'/.test(auth) && /data-doc="termos\.html"/.test(auth) && /data-doc="privacidade\.html"/.test(auth);
   r.exclusaoPelaRpc = /sb\.rpc\('excluir_minha_conta'\)/.test(auth) && /excluirConta: excluirConta/.test(auth) && fs.existsSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-excluir-minha-conta.sql'));
   // A Política acompanha o código (versão 1.2, 01/10/2026): o que o app manda para `feedback` e o que a página pública

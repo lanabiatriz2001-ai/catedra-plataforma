@@ -168,11 +168,18 @@ export function gerar() {
   if (faltamTotal.length) console.warn('  ⚠ Termos/Política saem como RASCUNHO — faltam em docs/juridico/controlador.json: ' + faltamTotal.join(', '));
   // a versão vigente do aceite é o par: mudou qualquer um dos dois, pede-se aceite de novo
   const versao = info.termos.versao + '/' + info.privacidade.versao;
+  // O aceite de versão MAIS NOVA também vale. A mescla do auth.js (aceiteVencedor) dá a vitória ao aceite
+  // mais novo; com igualdade estrita, o app de build mais velho que o aceite da nuvem (aceito no site ou
+  // num aparelho já atualizado) pedia o aceite a cada abertura, e a mescla seguinte o desfazia. Cada
+  // documento é comparado em separado, parte a parte e só com números; versão fora do formato, ou com
+  // outro número de documentos, não vale. Sintaxe ES5: o JavaScriptCore do Mac e do iPad lê este arquivo.
   const js = '// juridico.js — GERADO por scripts/build-juridico.mjs a partir de docs/juridico/*.md. Não editar à mão.\n'
     + '// A versão vigente do aceite é "termos/privacidade"; catedra:aceite guarda {versao, ts}.\n'
     + '(function (raiz) {\n  var J = ' + JSON.stringify({ versao, termos: info.termos, privacidade: info.privacidade }) + ';\n'
-    + '  /** true quando o aceite guardado ({versao, ts}, objeto ou JSON) é da versão vigente. Puro, sem estado. */\n'
-    + '  J.aceiteVigente = function (v) { try { if (typeof v === "string") v = JSON.parse(v); } catch (e) { return false; } return !!(v && v.versao === J.versao && +v.ts > 0); };\n'
+    + '  /** true quando o aceite guardado ({versao, ts}, objeto ou JSON) é da versão vigente ou de uma mais nova: termos e\n'
+    + '      privacidade comparados em separado, cada um maior ou igual ao vigente, parte a parte e só com números. Versão fora\n'
+    + '      do formato ou com outro número de documentos = false. Puro, sem estado. */\n'
+    + '  J.aceiteVigente = function (v) { try { if (typeof v === "string") v = JSON.parse(v); } catch (e) { return false; } if (!(v && typeof v.versao === "string" && +v.ts > 0)) return false; var a = v.versao.split("/"), b = J.versao.split("/"); if (a.length !== b.length) return false; for (var i = 0; i < b.length; i++) { if (!/^\\d+(\\.\\d+)*$/.test(a[i]) || !/^\\d+(\\.\\d+)*$/.test(b[i])) return false; var x = a[i].split("."), y = b[i].split("."), c = 0; for (var k = 0; k < Math.max(x.length, y.length) && !c; k++) { var p = +(x[k] || 0), q = +(y[k] || 0); c = p > q ? 1 : p < q ? -1 : 0; } if (c < 0) return false; } return true; };\n'
     + '  raiz.CT_JURIDICO = J;\n})(typeof window !== "undefined" ? window : globalThis);\n';
   writeFileSync(join(ROOT, 'juridico.js'), js);
   return { versao, info };

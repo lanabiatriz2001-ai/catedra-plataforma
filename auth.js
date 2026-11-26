@@ -1177,6 +1177,11 @@
   var INPUT = 'width:100%;box-sizing:border-box;border:1.5px solid ' + BRD + ';background:' + CARD + ';border-radius:12px;padding:13px 14px;font-size:15px;color:' + INK + ';font-family:' + SANS + ';outline:none;transition:border-color .15s,box-shadow .15s;';
   var BTN = 'width:100%;background:' + GRAD + ';color:#fff;border:none;border-radius:12px;padding:14px;font-weight:700;font-size:15px;cursor:pointer;font-family:' + SANS + ';letter-spacing:.01em;box-shadow:0 8px 22px -10px ' + ACC + ';transition:transform .12s,opacity .12s;';
   var GHOST = 'width:100%;background:' + CARD + ';color:' + INK + ';border:1.5px solid ' + BRD + ';border-radius:12px;padding:12px;font-weight:600;font-size:14px;cursor:pointer;font-family:' + SANS + ';display:flex;align-items:center;justify-content:center;gap:10px;';
+  // SANS e SERIF têm aspas duplas ("Inter", "Spectral"): dentro de style="…" elas fecham o atributo, e tudo o que vem
+  // depois some calado (medido na tela de aceite: o display:flex do fim do GHOST e o min-height somado a ele nunca valeram, e
+  // o título ficava sem cor — preto no escuro). A família já vem da folha do portão (#catedra-auth-gate button), então
+  // a versão para atributo só tira a declaração. Os outros usos antigos de SANS/SERIF em atributo ficam como estão.
+  var GHOST_ATTR = GHOST.replace(/font-family:[^;]*;/, '');
   var CSS = '<style>'
     + '#catedra-auth-gate *{-webkit-tap-highlight-color:transparent}'
     + '#catedra-auth-gate div,#catedra-auth-gate p,#catedra-auth-gate label,#catedra-auth-gate button,#catedra-auth-gate input,#catedra-auth-gate li,#catedra-auth-gate small{font-family:' + SANS + '}'
@@ -1204,7 +1209,10 @@
   var ICO = {'scale':'<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path>',
     'repeat':'<path d="m17 2 4 4-4 4"></path><path d="M3 11v-1a4 4 0 0 1 4-4h14"></path><path d="m7 22-4-4 4-4"></path><path d="M21 13v1a4 4 0 0 1-4 4H3"></path>',
     'clipboard-list':'<rect width="8" height="4" x="8" y="2" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="M12 11h4"></path><path d="M12 16h4"></path><path d="M8 11h.01"></path><path d="M8 16h.01"></path>',
-    'mail':'<path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"></path><rect x="2" y="4" width="20" height="16" rx="2"></rect>'};
+    'mail':'<path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"></path><rect x="2" y="4" width="20" height="16" rx="2"></rect>',
+    // tela de aceite: "Baixar meus dados" e "Excluir minha conta" (o trash-2 é o mesmo traço do sprite do host)
+    'download':'<path d="M12 15V3"></path><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m7 10 5 5 5-5"></path>',
+    'trash-2':'<path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>'};
   function ico(nome) { return '<svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="' + nome + '" style="flex:none">' + (ICO[nome] || '') + '</svg>'; }
   var MAGIC = ico('mail') + ' Receber um link de acesso por e-mail';
 
@@ -1478,7 +1486,16 @@
       if (window.CatedraAuth) window.CatedraAuth.user = ident;
       window.dispatchEvent(new CustomEvent('catedra:authuser', { detail: ident }));
     } catch (_) {}
-    if (sessionStorage.getItem('catedra:hydrated') === '1') { viaPendente = false; _si('catedra:auth', '1'); hydrating = false; hide(); setStatus(isDirty() ? 'enviando' : 'salvo'); if (isDirty()) pushNow(); else pullAndMerge(); return; }
+    // Aba que já hidratou (na web; no Mac e no iPad todo lançamento zera a sessionStorage) segue direto SÓ com o aceite
+    // vigente neste aparelho. Com documento novo publicado, o reload de uma aba aberta já roda o código novo: antes ela
+    // seguia sincronizando, dias se ficasse fixada, sem o aceite da versão vigente, e o portão só vinha numa aba nova.
+    // Agora refaz a hidratação, que lê a nuvem (lá pode estar o aceite dado em outro aparelho) e pede o aceite antes de
+    // subir qualquer coisa (P14). Aceite de versão mais nova que a deste build também vale (J.aceiteVigente).
+    if (sessionStorage.getItem('catedra:hydrated') === '1') {
+      var aceiteDaAba = null; try { aceiteDaAba = localStorage.getItem('catedra:aceite'); } catch (_) {}
+      if (aceiteVigente(aceiteDaAba, null)) { viaPendente = false; _si('catedra:auth', '1'); hydrating = false; hide(); setStatus(isDirty() ? 'enviando' : 'salvo'); if (isDirty()) pushNow(); else pullAndMerge(); return; }
+      sessionStorage.removeItem('catedra:hydrated');
+    }
     // Daqui até o reload nada sobe nem desce fora desta hidratação (ver hidratacaoEmCurso).
     hidratacaoEmCurso = true;
     showLoading('Carregando seus dados…');
@@ -1563,7 +1580,8 @@
       if (aceiteVigente(aceiteLocal, row && row.data && row.data['catedra:aceite'])) prosseguir();
       // O aceite novo leva carimbo (_kts): escrita da pessoa, como qualquer outra — sem ele o
       // empate na mescla da hidratação devolvia o aceite antigo da nuvem (ver aceiteVencedor).
-      else showAceite(function () { try { _si('catedra:aceite', JSON.stringify({ versao: window.CT_JURIDICO.versao, ts: Date.now() })); ktsStamp('catedra:aceite'); } catch (_) {} prosseguir(); });
+      // A linha lida da nuvem (`row`) vai junto: quem não aceita baixa a nuvem + este aparelho, sem subir nada.
+      else showAceite(function () { try { _si('catedra:aceite', JSON.stringify({ versao: window.CT_JURIDICO.versao, ts: Date.now() })); ktsStamp('catedra:aceite'); } catch (_) {} prosseguir(); }, row);
     }).catch(function () { if (!paginaAtual() || user !== u || leitura !== leituraHidratacao) return; leituraRespondida = leitura; abrirSemHidratar(); });
   }
   /* A leitura da hidratação falhou (rede, portal cativo, erro do servidor): o app abre com o que
@@ -1771,27 +1789,113 @@
     var J = window.CT_JURIDICO; if (!J || !J.versao || !J.aceiteVigente) return true;   // sem documentos publicados neste build, nada a pedir
     return J.aceiteVigente(local) || J.aceiteVigente(nuvem);
   }
-  function showAceite(cb) {
+  /* Cópia dos dados da conta para quem não aceita (Termos 12.2: "Se você não concordar, poderá exportar seus dados e
+     encerrar a conta"). A nuvem lida pela hidratação (`row`) e o que está neste aparelho, mesclados como a hidratação
+     mesclaria (mergeAll, preferindo a nuvem nos escalares sem carimbo), SEM gravar nada aqui e sem subir nada: mergeAll e
+     collect só leem. No app nativo o arquivo vai pela ponte catedraBackup — no Mac, a pasta Cátedra do iCloud Drive (ou o
+     painel de salvar); no iPad, o seletor de Arquivos — e a promise só resolve depois de salvo: a pergunta de excluir
+     nunca disputa a tela com o seletor (o download por <a> abre o seletor do iPad sozinho, no meio da pergunta). Na web,
+     <a download> com Blob. Resolve sempre: {ok, nome, onde} ou {ok: false, nome, motivo}. */
+  function baixarDadosDaConta(row) {
+    var d = new Date(), dois = function (n) { return (n < 10 ? '0' : '') + n; };
+    var nome = 'catedra-dados-' + d.getFullYear() + '-' + dois(d.getMonth() + 1) + '-' + dois(d.getDate()) + '.json', json;
+    try {
+      json = JSON.stringify({
+        formato: 'catedra-dados-da-conta', geradoEm: d.toISOString(), conta: (user && user.email) || '',
+        observacao: 'Cada chave catedra:* é um dado da sua conta, no formato em que a Cátedra o guarda (texto JSON).',
+        dados: mergeAll((row && row.data) || {}, collect(), true)
+      }, null, 2);
+    } catch (_) { return Promise.resolve({ ok: false, nome: nome, motivo: 'não deu para montar o arquivo' }); }
+    var ponte = null;
+    try { ponte = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.catedraBackup; } catch (_) {}
+    if (ponte) {
+      return Promise.resolve().then(function () { return ponte.postMessage({ acao: 'salvar', nome: nome, json: json }); }).then(function (r) {
+        if (r && r.ok) return { ok: true, nome: nome, onde: String(r.onde || '') };
+        return { ok: false, nome: nome, motivo: r && r.cancelado ? 'cancelado' : String((r && r.erro) || 'sem resposta do aparelho') };
+      }, function (e) { return { ok: false, nome: nome, motivo: String((e && e.message) || 'falhou') }; });
+    }
+    try {
+      var url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+      var a = document.createElement('a'); a.href = url; a.download = nome; a.style.display = 'none';
+      el.appendChild(a); a.click(); el.removeChild(a);
+      setTimeout(function () { try { URL.revokeObjectURL(url); } catch (_) {} }, 60000);
+      return Promise.resolve({ ok: true, nome: nome, onde: '' });
+    } catch (_) { return Promise.resolve({ ok: false, nome: nome, motivo: 'o navegador recusou o download' }); }
+  }
+  function showAceite(cb, row) {
     var J = window.CT_JURIDICO || {};
     painel(
-      '<h2 style="font-family:' + SERIF + ';font-size:26px;font-weight:700;color:' + INK + ';margin:0;letter-spacing:-.01em;">Antes de continuar</h2>'
-      + '<p style="font-size:14px;color:' + MUT + ';margin:8px 0 16px;line-height:1.55;">Para usar a Cátedra com a sua conta, você precisa aceitar os Termos de uso e a Política de privacidade (versão ' + (J.versao || '') + '). Leia os dois — leva alguns minutos e diz o que fazemos com os seus dados.</p>'
+      // título sem font-family no atributo (a folha do portão já dá a SERIF; as aspas dela cortavam o estilo e o título
+      // saía preto, invisível no escuro) e texto em LAB, que passa de 4,5:1 no claro (o MUT dava 3,5:1)
+      '<h2 style="font-size:26px;font-weight:700;color:' + INK + ';margin:0;letter-spacing:-.01em;">Antes de continuar</h2>'
+      + '<p style="font-size:14px;color:' + LAB + ';margin:8px 0 16px;line-height:1.55;">Para usar a Cátedra com a sua conta, você precisa aceitar os Termos de uso e a Política de privacidade (versão ' + (J.versao || '') + '). Leia os dois — leva alguns minutos e diz o que fazemos com os seus dados.</p>'
       + '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">'
       +   '<button type="button" data-doc="termos.html" style="' + GHOST + 'width:auto;flex:1;min-height:44px;">Termos de uso</button>'
       +   '<button type="button" data-doc="privacidade.html" style="' + GHOST + 'width:auto;flex:1;min-height:44px;">Política de privacidade</button>'
       + '</div>'
       + '<label style="display:flex;align-items:flex-start;gap:10px;font-size:14px;color:' + INK + ';line-height:1.5;cursor:pointer;margin-bottom:16px;"><input id="ctac" type="checkbox" style="width:18px;height:18px;margin-top:2px;flex:none;"> <span>Li e aceito os Termos de uso e a Política de privacidade.</span></label>'
       + '<button id="ctacok" type="button" disabled style="' + BTN + 'opacity:.55;">Aceitar e continuar</button>'
-      + '<p style="font-size:12.5px;color:' + MUT + ';text-align:center;margin:14px 0 0;"><a href="#" id="ctacsair" style="color:' + MUT + ';">Não aceito — sair da conta</a></p>'
+      // Termos 12.2: quem não concorda exporta os dados e encerra a conta SEM aceitar o texto de que discorda — e o Ajustes,
+      // onde ficam a exportação e a exclusão, está atrás deste portão. Os dois caminhos ficam aqui. Texto em LAB, que passa
+      // de 4,5:1 no claro e no escuro (o MUT do claro dá 3,5:1); todo alvo com 44 px no toque.
+      + '<div style="margin:22px 0 0;padding-top:18px;border-top:1px solid ' + BRD + ';">'
+      +   '<p id="ctacnc" style="font-size:13.5px;color:' + LAB + ';margin:0 0 10px;line-height:1.5;">Não concorda? Você pode baixar os seus dados e excluir a conta sem aceitar.</p>'
+      +   '<button type="button" id="ctacbaixar" style="' + GHOST_ATTR + 'min-height:44px;">' + ico('download') + ' Baixar meus dados</button>'
+      +   '<button type="button" id="ctacexcluir" style="' + GHOST_ATTR + 'min-height:44px;margin-top:8px;">' + ico('trash-2') + ' Excluir minha conta</button>'
+      +   '<div id="ctacmsg" role="status" aria-live="polite" style="min-height:18px;font-size:13px;color:' + LAB + ';margin:8px 0 0;line-height:1.45;"></div>'
+      +   '<button type="button" id="ctacsair" style="width:100%;min-height:44px;margin-top:2px;padding:10px 12px;background:transparent;border:none;border-radius:12px;color:' + LAB + ';font-size:13.5px;font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer;">Não aceito — sair da conta</button>'
+      + '</div>'
     );
     var bts = el.querySelectorAll('button[data-doc]');
     for (var i = 0; i < bts.length; i++) bts[i].onclick = function () { abrirDoc(this.getAttribute('data-doc')); };
     var chk = el.querySelector('#ctac'), ok = el.querySelector('#ctacok');
+    var bBaixar = el.querySelector('#ctacbaixar'), bExcluir = el.querySelector('#ctacexcluir'), bSair = el.querySelector('#ctacsair'), msg = el.querySelector('#ctacmsg');
+    var ocupado = false;
+    var avisar = function (t) { msg.textContent = t || ''; };
+    var ondeFoi = function (r) { return r.onde ? 'salvo em ' + r.onde : 'baixado'; };
+    // durante a exclusão nada mais se toca: nem aceitar, nem sair, nem baixar de novo
+    var travar = function (sim) { bBaixar.disabled = bExcluir.disabled = bSair.disabled = chk.disabled = sim; ok.disabled = sim || !chk.checked; ok.style.opacity = ok.disabled ? '.55' : '1'; };
     chk.onchange = function () { ok.disabled = !chk.checked; ok.style.opacity = chk.checked ? '1' : '.55'; };
     ok.onclick = function () { if (!chk.checked) return; ok.disabled = true; ok.textContent = 'Carregando seus dados…'; cb(); };
+    bBaixar.onclick = function () {
+      if (ocupado) return;
+      ocupado = true; avisar('Preparando o arquivo…');
+      baixarDadosDaConta(row).then(function (r) {
+        ocupado = false;
+        // "à sua conta", não "à nuvem": no Mac o arquivo pode ir para o iCloud Drive, que também é nuvem
+        avisar(r.ok ? 'Arquivo ' + r.nome + ' ' + ondeFoi(r) + '. Nada foi enviado à sua conta.'
+          : r.motivo === 'cancelado' ? 'O arquivo não foi salvo.' : 'Não deu para salvar o arquivo (' + r.motivo + ').');
+      });
+    };
+    // Excluir: primeiro a mesma cópia do botão acima, depois a pergunta, que diz o que apaga, o que não apaga e se a cópia
+    // foi salva. A exclusão é a do Ajustes (excluirConta → RPC excluir_minha_conta), que só precisa da sessão aberta.
+    bExcluir.onclick = function () {
+      if (ocupado) return;
+      ocupado = true; avisar('Preparando o arquivo com os seus dados…');
+      baixarDadosDaConta(row).then(function (r) {
+        var copia = r.ok ? 'O arquivo com os seus dados (' + r.nome + ') acabou de ser ' + ondeFoi(r) + '.'
+          : 'O arquivo com os seus dados NÃO foi salvo' + (r.motivo === 'cancelado' ? '' : ' (' + r.motivo + ')') + '.';
+        if (!confirm('Excluir a sua conta apaga o cadastro e os dados da conta, na nuvem e neste aparelho: estudos, participação nos grupos, relatos enviados pelo app e a contagem de uso da IA. Não apaga os cadastros feitos nas páginas públicas, sem conta: a lista de espera do beta e o pedido de aviso de venda, se você fez algum (Política de privacidade, 9.5).\n\n' + copia + '\n\nNão dá para desfazer. Excluir mesmo assim?')) {
+          ocupado = false; avisar('Nada foi excluído.' + (r.ok ? ' Arquivo ' + r.nome + ' ' + ondeFoi(r) + '.' : '')); return;
+        }
+        travar(true); avisar('Excluindo a conta…');
+        excluirConta().catch(function (err) {
+          ocupado = false; travar(false);
+          var m = String((err && err.message) || '');
+          avisar(/admin_nao_pode/.test(m) ? 'Conta de administração não pode ser excluída por aqui.' : 'Não deu para excluir agora. Confira a internet e tente de novo.');
+        });
+      });
+    };
     // "Não aceito": nada sobe (a trava da hidratação segue ligada até aqui). No fim, sem conta
     // (user nulo) e sem o dado local, a trava é solta: um login seguinte nesta aba liga a dele.
-    el.querySelector('#ctacsair').onclick = function (e) { e.preventDefault(); saindo = true; sessionStorage.removeItem('catedra:hydrated'); var fin = function () { clearTimeout(pushT); user = null; if (donoDaPagina === localStorage.getItem('catedra:_owner')) clearLocal(); soltarTravaHidratacao(); location.reload(); }; avisarWidgetSaida(); revogarPasseWidget().then(function () { sb.auth.signOut().then(fin, fin); }); };
+    // Com estudo que ainda não subiu (feito sem rede, envio que falhou), pergunta antes de apagar o aparelho, como o Sair
+    // comum (concluirSaida): toda versão nova dos documentos manda todas as contas para cá. Cancelar deixa tudo como estava.
+    bSair.onclick = function (e) {
+      if (e) e.preventDefault();
+      if (ocupado) return;
+      if (isDirty() && !confirm('Há estudos deste aparelho que ainda não subiram para a sua conta.\n\nSair sem aceitar vai apagá-los daqui de vez. Para guardá-los sem aceitar, toque em Cancelar e use “Baixar meus dados”.\n\nQuer sair mesmo assim?')) return;
+      saindo = true; sessionStorage.removeItem('catedra:hydrated'); var fin = function () { clearTimeout(pushT); user = null; if (donoDaPagina === localStorage.getItem('catedra:_owner')) clearLocal(); soltarTravaHidratacao(); location.reload(); }; avisarWidgetSaida(); revogarPasseWidget().then(function () { sb.auth.signOut().then(fin, fin); });
+    };
   }
   /** Exclusão da conta pela própria pessoa: a função excluir_minha_conta (security definer) apaga o blob,
       a participação e a atividade em grupos, feedback, uso de IA, acesso beta e a linha em auth.users. */
