@@ -837,8 +837,9 @@
       }
       if (!paginaAtual() || !isData(e.key)) return;
       // só carimbo + sujo: tombOnSet compara com o valor ANTIGO do storage, e no evento
-      // 'storage' a escrita já aconteceu — chamá-lo aqui seria um não-op enganoso
-      ktsStamp(e.key);
+      // 'storage' a escrita já aconteceu — chamá-lo aqui seria um não-op enganoso. O carimbo
+      // segue a regra do setImpl: antes de a pessoa chegar ao app, a escrita é do app.
+      if (pessoaNoApp) ktsStamp(e.key);
       if (window.CatedraSync && window.CatedraSync.push) window.CatedraSync.push();
     } catch (_) {}
   });
@@ -1216,7 +1217,31 @@
   // lápide → o item voltava. O push segue gateado para não subir no meio da hidratação.
   // Com sessão pendente (aberto offline) a escrita também marca sujo: o push em si espera
   // `user`, mas o que foi estudado sem rede precisa subir assim que a sessão for reconfirmada.
-  var setImpl = function (k, v) { if (chaveDaConta(k) && !paginaAtual()) return; if (isData(k)) { tombOnSet(k, v); if (k !== 'catedra:_kts') ktsStamp(k); } _si(k, v); if ((user || pendente) && !hydrating && isData(k)) window.CatedraSync.push(); };
+  //
+  // CARIMBO SÓ DEPOIS QUE A PESSOA CHEGA AO APP (25/11/2026). O carimbo (_kts) decide, entre
+  // aparelhos, qual valor é o mais novo — então só pode carimbar a escrita que pode ser da PESSOA.
+  // Até o portão fechar pela primeira vez nesta página (abertura, tela de login, "Carregando seus
+  // dados…", aceite) ninguém estudou aqui: quem grava é o próprio app — os valores padrão do
+  // primeiro render, a reconciliação do dia, migrações. Carimbado com a hora, esse valor vencia a
+  // nuvem na mescla da hidratação e subia por cima dela: entrar num aparelho sem dados (Safari
+  // limpo, aparelho novo, ou depois do Sair) trocava pelos padrões as configurações da conta
+  // (simulados, preferências, perfil, banca, horas, concurso ativo, área, rascunho da Redação) e o
+  // ciclo e os hábitos do dia; e o segundo aparelho do dia, ao abrir com rede, zerava os hábitos e
+  // os blocos marcados no primeiro. Sem carimbo novo, a chave guarda o carimbo que já tinha: perde
+  // para a nuvem mais nova e continua valendo quando a nuvem não mudou.
+  // A marca liga no primeiro fechamento do portão (setGateOpen) e NÃO desliga quando ele reabre: o
+  // autosave do app grava 500 ms depois da edição, e o portão reabre com o app vivo (a rede volta
+  // na sessão pendente, a hidratação refeita, o aceite, a sessão expirada, o Sair). Decidir pelo
+  // portão na hora da gravação deixava sem carimbo a edição que a pessoa acabara de fazer, e ela
+  // perdia para a nuvem. Toda saída que zera o aparelho (Sair, troca de conta, "Não aceito", troca
+  // de dono) termina em location.reload(): a página nova começa sem a marca.
+  // NÃO coberto aqui (já era assim antes): a reconciliação do dia que roda com a marca já ligada
+  // ainda carimba como escrita da pessoa — ao despertar depois de suspensão, e na abertura em que o
+  // portão fecha ANTES de o app montar (sessão pendente offline, leitura que falha rápido, recarga
+  // de aba já hidratada); e o evento 'storage' carimba pela marca DESTA aba o que outra aba grava.
+  // O aceite dos Termos carimba por conta própria (showAceite), e as lápides seguem como estavam.
+  var pessoaNoApp = false;
+  var setImpl = function (k, v) { if (chaveDaConta(k) && !paginaAtual()) return; if (isData(k)) { tombOnSet(k, v); if (k !== 'catedra:_kts' && pessoaNoApp) ktsStamp(k); } _si(k, v); if ((user || pendente) && !hydrating && isData(k)) window.CatedraSync.push(); };
   var remImpl = function (k) { if (chaveDaConta(k) && !paginaAtual()) return; if (isData(k)) tombOnRemove(k); _ri(k); if (k === 'catedra:auth' && (user || pendente)) { logout(); return; } if ((user || pendente) && !hydrating && isData(k)) window.CatedraSync.push(); };
   try {
     Object.defineProperty(localStorage, 'setItem', { configurable: true, writable: true, enumerable: false, value: setImpl });
@@ -1367,6 +1392,7 @@
     }
 
     el.style.display = 'none';
+    pessoaNoApp = true;   // daqui em diante a escrita pode ser da pessoa e carimba (ver setImpl)
     if (observador) { try { observador.disconnect(); } catch (_) {} }
     if (!gateRestore) return;
     document.documentElement.style.overflow = gateRestore.htmlOverflow;

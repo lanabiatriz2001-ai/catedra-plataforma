@@ -10,6 +10,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import vm from 'node:vm';
+import { marcar } from './lib/semana-marcadores.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const QTD = Math.max(10, parseInt(process.argv[2], 10) || 60);   // itens no arquivo final
@@ -62,31 +63,7 @@ const data = (s) => {
 //   pelo veto de órgão julgador embutido no ramo 1 (sentinela @OG@) — julgado de Turma cujo `en`
 //   foi contaminado pela tese vizinha (Info 868 e Info 863 · STJ).
 
-const MARCADORES = [
-  {
-    chave: 'superacao',
-    rotulo: 'Superação de entendimento',
-    campos: (t, r) => (t.en || '') + ' . ' + (r[I.te] || ''),   // o " . " é obrigatório: o ponto barra o gap entre campos
-    re: /(?:^|[^0-9A-Za-zÀ-ÖØ-öø-ÿ])(?:s[úu]mula|s[úu]mulas|verbete|verbetes|enunciado|enunciados|tese|teses|tema|temas|precedente|precedentes|orienta[çc][ãa]o|entendimento|entendimentos|jurisprud[êe]ncia|posicionamento)(?![0-9A-Za-zÀ-ÖØ-öø-ÿ])(?:(?!n[ãa]o\s|poder[áã]|em breve|eventual|quando\s|deve-se\s|dever[áã])[^.;:!?]){0,60}(?:^|[^0-9A-Za-zÀ-ÖØ-öø-ÿ])(?:cancelad[oa]s?|cancelamento|cancelamentos|cancelou|revogad[oa]s?|revoga[çc][ãa]o|revogou|superad[oa]s?|superou)(?![0-9A-Za-zÀ-ÖØ-öø-ÿ])|(?:^|[^0-9A-Za-zÀ-ÖØ-öø-ÿ])(?:cancelad[oa]s?|cancelamento|cancelamentos|cancelou|revogad[oa]s?|revoga[çc][ãa]o|revogou|superad[oa]s?|superou)(?![0-9A-Za-zÀ-ÖØ-öø-ÿ])(?:(?!n[ãa]o\s|poder[áã]|em breve|eventual|quando\s|deve-se\s|dever[áã])[^.;:!?]){0,35}(?:^|[^0-9A-Za-zÀ-ÖØ-öø-ÿ])(?:s[úu]mula|s[úu]mulas|verbete|verbetes|enunciado|enunciados|tese|teses|tema|temas|precedente|precedentes|orienta[çc][ãa]o|entendimento|entendimentos|jurisprud[êe]ncia|posicionamento)(?![0-9A-Za-zÀ-ÖØ-öø-ÿ])|(?:^|[^0-9A-Za-zÀ-ÖØ-öø-ÿ])mudan[çc]a de entendimento\s*[!.]|(?:^|[^0-9A-Za-zÀ-ÖØ-öø-ÿ])alter(?:ou|ando)\s+(?:o\s+|a\s+)?(?:seu|sua)\s+(?:entendimento|orienta[çc][ãa]o|posicionamento|jurisprud[êe]ncia)|(?:^|[^0-9A-Za-zÀ-ÖØ-öø-ÿ])entendimento\s+(?:anterior|atual)\s+d[eo]\s+(?:STJ|STF|TSE|Superior|Supremo)\s*[:–—-]|(?:(?:^|[.;:!?]\s*)|(?:^|[^0-9A-Za-zÀ-ÖØ-öø-ÿ])(?!(?:posterior|anterior|superveniente|eventual|futur[oa]|poss[íi]vel|hip[óo]tese)[^0-9A-Za-zÀ-ÖØ-öø-ÿ])[0-9A-Za-zÀ-ÖØ-öø-ÿ]{1,25}[^0-9A-Za-zÀ-ÖØ-öø-ÿ]{1,3})overruling(?![0-9A-Za-zÀ-ÖØ-öø-ÿ])|(?:^|[^0-9A-Za-zÀ-ÖØ-öø-ÿ])(?:revis[ãa]o|modifica[çc][ãa]o|adequa[çc][ãa]o|adapta[çc][ãa]o)\s+d?[aàeo]s?\s*(?:tese|teses|tema|temas)(?![0-9A-Za-zÀ-ÖØ-öø-ÿ])/i,
-  },
-  {
-    chave: 'divergencia',
-    rotulo: 'Divergência entre cortes',
-    campos: (t, r) => (t.en || ''),                             // só a tese: título, tema e `ob` só trouxeram ruído
-    re: /^(?=[\s\S]*(?:(?:^|[\n•·*])\s*|[.?!]\s+)STJ\s*:)(?=[\s\S]*(?:(?:^|[\n•·*])\s*|[.?!]\s+)STF\s*:)|^(?=[\s\S]*(?:diverg|dividid|entendimentos?\s+(?:contr[áa]rios?|opostos?|diversos?)|posi(?:ção|ções)\s+(?:contr[áa]ri|opost|divergent|antagônic|conflitant)|(?:^|[\n•·*-]|:)\s*(?:SIM|NÃO)\s*[.,;:•]))(?=[\s\S]*\b1[ªa]\s*Turma(?!\s*(?:Recursal|C[íi]vel|Criminal|Regional|do\s+TRF|do\s+TJ|do\s+TRT)))(?=[\s\S]*\b2[ªa]\s*Turma(?!\s*(?:Recursal|C[íi]vel|Criminal|Regional|do\s+TRF|do\s+TJ|do\s+TRT)))|^(?=[\s\S]*(?:diverg|dividid|entendimentos?\s+(?:contr[áa]rios?|opostos?|diversos?)|posi(?:ção|ções)\s+(?:contr[áa]ri|opost|divergent|antagônic|conflitant)|(?:^|[\n•·*-]|:)\s*(?:SIM|NÃO)\s*[.,;:•]))(?=[\s\S]*\b3[ªa]\s*Turma(?!\s*(?:Recursal|C[íi]vel|Criminal|Regional|do\s+TRF|do\s+TJ|do\s+TRT)))(?=[\s\S]*\b4[ªa]\s*Turma(?!\s*(?:Recursal|C[íi]vel|Criminal|Regional|do\s+TRF|do\s+TJ|do\s+TRT)))|^(?=[\s\S]*(?:diverg|dividid|entendimentos?\s+(?:contr[áa]rios?|opostos?|diversos?)|posi(?:ção|ções)\s+(?:contr[áa]ri|opost|divergent|antagônic|conflitant)|(?:^|[\n•·*-]|:)\s*(?:SIM|NÃO)\s*[.,;:•]))(?=[\s\S]*\b5[ªa]\s*Turma(?!\s*(?:Recursal|C[íi]vel|Criminal|Regional|do\s+TRF|do\s+TJ|do\s+TRT)))(?=[\s\S]*\b6[ªa]\s*Turma(?!\s*(?:Recursal|C[íi]vel|Criminal|Regional|do\s+TRF|do\s+TJ|do\s+TRT)))|Tribunais Superiores diverg|(?:jurisprudência|STF|STJ|Supremo|Superior Tribunal|Corte|\d[ªa]\s*(?:Turma|Seção))[^.;!?]{0,60}está\s+dividid|divergência[\s.:;,–—-]{0,8}\d[ªa]\s*(?:Turma|Seção)|divergência\s+(?:n[oa]|d[oa])\s*(?:STF|STJ|Supremo|Superior Tribunal)|divergência\s+entre\s+(?:as?\s+)?(?:\d[ªa]\s*)?(?:Turmas?|Seções|Seção)/i,
-  },
-  {
-    chave: 'vinculante',
-    rotulo: 'Tese vinculante',
-    campos: (t, r) => [t.en || '', t.fp || '', t.ob || ''].join('\n') + '\n@OG@' + (t.og || ''),
-    re: /\d{4}\s*\.?\s*\(\s+Temas?\s+n?\.?\s*\d|(?:^|\n)[ \t]*(?:Temas?|IAC)\s+n?\.?\s*\d[^\n]{0,90}(?=\n|$)|^(?![\s\S]*@OG@[\s\S]*Turmas?(?![0-9A-Za-zÀ-ÖØ-öø-ÿ]))[\s\S]*?(?:^|[\n.;:)"”'’\]]\s*)Teses?\s+fixadas?(?:\s+pelo\s+STF|\s+para\s+fins\s+de\s+repercuss[ãa]o\s+geral)?\s*:/i,
-  },
-];
-
-function marcar(t, r) {
-  for (const m of MARCADORES) { try { if (m.re.test(m.campos(t, r))) return m.chave; } catch (_) {} }
-  return null;   // sem marcador é resultado legítimo, não falha
-}
+// Os marcadores moram em scripts/lib/semana-marcadores.mjs (testáveis sem rodar este build).
 
 // ---- recorte: informativos com data, por semana da EDIÇÃO e, dentro dela, do julgado mais novo
 // A data de um verbete é a do julgamento, não a da publicação: o STJ 903 (fim de setembro) traz
