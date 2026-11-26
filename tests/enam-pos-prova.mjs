@@ -81,6 +81,7 @@ export function testarEnamPosProvaEstatico(ok) {
     ok(E.contagem(EN_2026_2, em('2026-11-25T10:00:00-03:00'), SP).id === '2026.2', R + 'antes da prova, a edição da pessoa continua mandando');
   } finally { E.EDICOES.pop(); }
   ok(/^Nenhuma edição futura cadastrada; /.test(E.SEM_EDICAO) && !/\d/.test(E.SEM_EDICAO) && !/realizad|passou|atras/i.test(E.SEM_EDICAO), R + 'a linha neutra não traz número nem alarme');
+  ok(/ela entra aqui numa atualização do app\.$/.test(E.SEM_EDICAO), R + 'a linha neutra não promete que a próxima edição aparece sozinha: ela entra numa atualização do app (' + E.SEM_EDICAO + ')');
 
   // (b) corrigir: por área, erros, brancos e líquido; os dois cortes, no total e por área
   const { its, resp } = provaSintetica(E);
@@ -103,7 +104,7 @@ export function testarEnamPosProvaEstatico(ok) {
     && k('civil', 56).faltam === 8 && k('civil', 40).faltam === 5 && k('penal', 56).faltam === 9 && k('penal', 40).faltam === 6 && k('empresarial', 40).alvo === 3 && k('empresarial', 40).faltam === 3,
     R + 'por área, a régua proporcional para os dois cortes (cota × corte ÷ 80)');
   ok(c.porAreaEdital.every(a => { const x = a.cortes.find(y => y.meta === 56); return x.alvo === a.alvo && x.alvoInt === a.alvoInt && x.faltam === (a.deficit > 0 ? Math.ceil(a.deficit) : 0); }),
-    R + 'o corte da meta escolhida é a mesma régua das barras e do "Onde faltou"');
+    R + 'o corte da meta escolhida usa o mesmo alvo e o mesmo déficit da correção por área (o que pinta as barras é conferido no navegador, na borda)');
   const rb = {}; its.forEach(it => { const n = +it.id.split('-').pop(); rb[it.id] = ((it.area === 'constitucional' && n < 11) || (it.area === 'humanistica' && n < 3)) ? 'C' : 'A'; });
   const cb = E.corrigir(its, rb, 56), kb = (id, m) => cb.porAreaEdital.find(a => a.area === id).cortes.find(x => x.meta === m);
   ok(kb('constitucional', 56).faltam === 1 && kb('constitucional', 56).atingiu === false && kb('humanistica', 40).atingiu === true && kb('humanistica', 40).faltam === 0,
@@ -232,26 +233,35 @@ export async function testarEnamPosProva(pageDaSuite, base, ok, opcoes = {}) {
         const reta19 = await naReta();
         const outros = await page.evaluate(async () => {
           const w = ms => new Promise(r => setTimeout(r, ms)), r = {};
-          window.__catedraGoView('ajustes'); for (let i = 0; i < 60 && !document.querySelector('main .aj-abas button[data-s="enam"]'); i++) await w(100);
-          document.querySelector('main .aj-abas button[data-s="enam"]').click();
-          for (let i = 0; i < 60 && !document.querySelector('main [data-enam-aj-linha]'); i++) await w(100);
-          const linha = document.querySelector('main [data-enam-aj-linha]');
-          r.ajLinha = linha ? linha.textContent.replace(/\s+/g, ' ').trim() : null;
-          r.ajSemContagem = !/prova realizada|faltam \d+ dias|falta 1 dia|é hoje/.test(document.querySelector('main').textContent);
-          r.ajOpcoes = [...document.querySelectorAll('#aj-enam-edicao option')].map(o => o.value).join(',');
+          // uma edição do MESMO dia que já terminou (8h às 13h de Brasília): só o fim da prova a separa da 2026.2.
+          // O filtro antigo (data civil ≥ hoje) a ofereceria como futura; ela não é a da pessoa, então não entra.
+          window.CT_ENAM.EDICOES.push({ id: '2026.9', numero: 'X', data: '2026-11-29', inicio: '08:00', edital: 'edição de teste' });
+          try {
+            window.__catedraGoView('ajustes'); for (let i = 0; i < 60 && !document.querySelector('main .aj-abas button[data-s="enam"]'); i++) await w(100);
+            document.querySelector('main .aj-abas button[data-s="enam"]').click();
+            for (let i = 0; i < 60 && !document.querySelector('main [data-enam-aj-linha]'); i++) await w(100);
+            const linha = document.querySelector('main [data-enam-aj-linha]');
+            r.ajLinha = linha ? linha.textContent.replace(/\s+/g, ' ').trim() : null;
+            r.ajSemContagem = !/prova realizada|faltam \d+ dias|falta 1 dia|é hoje/.test(document.querySelector('main').textContent);
+            r.ajOpcoes = [...document.querySelectorAll('#aj-enam-edicao option')].map(o => o.value).join(',');
+            // a prova que já passou não aparece sob "Prova" como se fosse a próxima
+            r.ajProva = !!document.querySelector('main [data-enam-aj-prova]');
+            r.ajDataPassada = /29 de novembro de 2026/.test(document.querySelector('main').textContent);
+          } finally { window.CT_ENAM.EDICOES.pop(); }
           window.__catedraGoView('inicio'); await w(300);
           return r;
         });
         ok(!/ENAM/.test(reta19.tx) && !reta19.marco && reta19.n === '— dias', R + '29/11 19h: a régua da Reta final não conta mais o ENAM (fica "' + reta19.n + '", sem marco)');
         ok(outros.ajLinha === v.semEdicao && outros.ajSemContagem, R + '29/11 19h: em Ajustes → ENAM, a linha neutra no lugar dos dias (' + outros.ajLinha + ')');
-        ok(outros.ajOpcoes === '2026.2', R + '29/11 19h: Ajustes não oferece edição passada como futura (opções: ' + outros.ajOpcoes + ')');
+        ok(outros.ajOpcoes === '2026.2', R + '29/11 19h: Ajustes não oferece edição passada como futura, nem a do mesmo dia que já terminou (opções: ' + outros.ajOpcoes + ')');
+        ok(!outros.ajProva && !outros.ajDataPassada, R + '29/11 19h: Ajustes não mostra a prova de 29/11 sob "Prova" como se fosse a próxima');
       }
 
       // 30/11 10h: idem, e proxima() é null
       v = await momento('2026-11-30T10:00:00', () => !!document.querySelector('main [data-enam-sem-edicao]'));
       const px30 = await page.evaluate(() => ({ px: window.CT_ENAM.proxima(), nome: window.__catedraApp._enamNome() }));
       ok(v.chip === null && v.dias === null && v.sem === v.semEdicao && px30.px === null, R + '30/11 10h: sem contagem, linha neutra e proxima() null');
-      ok(px30.nome === 'ENAM 2026.2 · simulado', R + '30/11 10h: sem edição futura, o simulado leva a edição que a pessoa guardou (' + px30.nome + ')');
+      ok(px30.nome === 'ENAM · simulado', R + '30/11 10h: sem edição futura, o simulado não leva a edição que já passou, como o cabeçalho da trilha (' + px30.nome + ')');
       if (completo) {
         const vazio = await page.evaluate(async () => {
           const w = ms => new Promise(r => setTimeout(r, ms)), app = window.__catedraApp;
@@ -264,6 +274,7 @@ export async function testarEnamPosProva(pageDaSuite, base, ok, opcoes = {}) {
           return tx;
         });
         ok(vazio.includes('Nenhuma edição futura cadastrada') && !/próxima edição é a 2026\.2/.test(vazio), R + '30/11: com a trilha desligada, Ajustes não diz mais "a próxima edição é a 2026.2"');
+        ok(!/passa a contar os dias/.test(vazio) && /a contagem dos dias volta com a próxima edição/.test(vazio), R + '30/11: o convite não promete contar os dias logo depois de dizer que não há edição futura (' + vazio.trim().slice(0, 220) + ')');
       }
 
       // 30/11 com uma edição futura cadastrada: a contagem volta
@@ -280,6 +291,7 @@ export async function testarEnamPosProva(pageDaSuite, base, ok, opcoes = {}) {
           for (let i = 0; i < 60 && !document.querySelector('main [data-enam-aj-linha]'); i++) await w(100);
           r.linha = (document.querySelector('main [data-enam-aj-linha]') || {}).textContent || '';
           r.sel = (document.querySelector('#aj-enam-edicao') || {}).value || '';
+          r.prova = ((document.querySelector('main [data-enam-aj-prova]') || {}).textContent || '').replace(/\s+/g, ' ');
           app.setState({ enam: Object.assign({}, app.state.enam, { ativo: false }) });
           let d = null; for (let i = 0; i < 60 && !(d = [...document.querySelectorAll('main .ct-estado')].find(x => /Vai fazer o ENAM/.test(x.textContent))); i++) await w(100);
           r.vazio = d ? d.textContent.replace(/\s+/g, ' ') : '';
@@ -287,7 +299,8 @@ export async function testarEnamPosProva(pageDaSuite, base, ok, opcoes = {}) {
           return r;
         });
         ok(/^faltam \d+ dias · o chip do Início/.test(aj.linha.trim()) && aj.sel === '2027.1', R + '30/11 com a 2027.1: Ajustes conta e seleciona a edição futura (' + aj.sel + ')');
-        ok(/A próxima edição é a 2027\.1/.test(aj.vazio), R + '30/11 com a 2027.1: a frase "a próxima edição é…" volta, com a edição certa');
+        ok(/16 de maio de 2027/.test(aj.prova) && /80 questões · 5 horas/.test(aj.prova), R + '30/11 com a 2027.1: o bloco "Prova" volta, com a data da edição futura (' + aj.prova.trim().slice(0, 120) + ')');
+        ok(/A próxima edição é a 2027\.1/.test(aj.vazio) && /O app passa a contar os dias/.test(aj.vazio), R + '30/11 com a 2027.1: a frase "a próxima edição é…" volta, com a edição certa e a promessa de contar os dias');
         // a pessoa ainda guarda a 2026.2: o nome do simulado e a agenda seguem a edição que a contagem conta
         const ag = await page.evaluate(async () => {
           const w = ms => new Promise(r => setTimeout(r, ms)), app = window.__catedraApp, r = {};
@@ -324,20 +337,38 @@ export async function testarEnamPosProva(pageDaSuite, base, ok, opcoes = {}) {
         r.nota = (document.querySelector('main [data-enam-liq-nota]') || {}).textContent || '';
         r.selo = (document.querySelector('main .ct-enam-selo') || {}).textContent || '';
         const warn = t.querySelector('tbody td[data-ok=""]'), okc = t.querySelector('tbody td[data-ok="1"]');
+        const sua = [...t.querySelectorAll('thead small')].find(s => s.textContent.trim());
         r.contrastes = [['faltaram', warn], ['atingiu', okc], ['número', t.querySelector('tbody td:not([data-ok])')], ['disciplina', t.querySelector('tbody th')],
-          ['cabeçalho', t.querySelector('thead th')], ['total', t.querySelector('tfoot td')], ['situação do total', t.querySelector('tfoot td[data-ok]')],
+          ['cabeçalho', t.querySelector('thead th')], ['sua meta', sua], ['total', t.querySelector('tfoot td')], ['situação do total', t.querySelector('tfoot td[data-ok]')],
           ['nota do líquido', document.querySelector('main [data-enam-liq-nota]')]].map(([n, el]) => [n, el ? M.contraste(el) : 0]);
         r.corSituacao = !!warn && !!okc && getComputedStyle(warn).color !== getComputedStyle(okc).color && getComputedStyle(warn).color !== getComputedStyle(t.querySelector('tbody td:not([data-ok])')).color;
         r.monoNumeros = /mono|Menlo|Courier|SF Mono/i.test(getComputedStyle(t.querySelector('tbody td')).fontFamily);
         r.fonteCorpo = Math.min(...[...t.querySelectorAll('tbody td, tbody th, tfoot td, tfoot th')].map(e => parseFloat(getComputedStyle(e).fontSize)));
+        // o cabeçalho e o "sua meta" no menor degrau da escala do host (--fs-3xs = 10,5), nunca o "smaller" do navegador
+        r.fonteCab = Math.min(...[...t.querySelectorAll('thead th, thead small')].map(e => parseFloat(getComputedStyle(e).fontSize)));
+        r.fonteSua = sua ? parseFloat(getComputedStyle(sua).fontSize) : 0;
         r.caixa = M.caixa(t); r.linhaAlta = Math.min(...linhas.map(l => M.caixa(l).h));
         r.semRolagem820 = document.documentElement.scrollWidth <= innerWidth + 2;
         r.caixaRola = getComputedStyle(t.parentElement).overflowX;
-        // meta 40: a coluna "sua meta" troca de lado; o resto da tabela não muda
+        r.cabeInteira820 = t.parentElement.scrollWidth <= t.parentElement.clientWidth + 1;   // iPad em retrato: a tabela inteira, sem rolar
+        // meta 40: a coluna "sua meta" troca de lado e o veredito do total vai com ela
         app.setState({ enamCor: E.corrigir(its, resp, 40, { segundos: 16920 }) }); await w(50);
         for (let i = 0; i < 60 && !/40\/80 · 50%\s*sua meta/.test(cel(document.querySelector('main [data-enam-tab] thead tr')).join(' | ')); i++) await w(100);
         r.cab40 = cel(document.querySelector('main [data-enam-tab] thead tr')).join(' | ');
         r.total40 = cel(document.querySelector('main [data-enam-tab] tfoot tr')).join(' | ');
+        // na borda — exatamente o alvo ARREDONDADO em cada área (11 de 16, 7 de 10, 4 de 6…): a barra de "Por área do
+        // edital" e a linha da tabela dizem o mesmo. 11 de 16 ainda não é 70% (alvo 11,2): barra sem verde e "faltaram 1".
+        const inteiro = {}; E.AREAS.forEach(a => { inteiro[a.id] = Math.round(Math.round(a.cota * 56 / 80 * 10) / 10); });
+        const rb = {}; its.forEach(it => { rb[it.id] = (+it.id.split('-').pop() < inteiro[it.area]) ? 'C' : 'A'; });
+        app.setState({ enamCor: E.corrigir(its, rb, 56, { segundos: 16920 }) }); await w(50);
+        for (let i = 0; i < 60 && !/alvo 11,2/.test((document.querySelector('main .ct-enam-barra') || {}).textContent || ''); i++) await w(100);
+        const barras = [...document.querySelectorAll('main .ct-enam-barra')], linhasB = [...document.querySelectorAll('main [data-enam-tab] tbody tr')];
+        r.borda = barras.map((b, i) => { const td = linhasB[i] ? linhasB[i].children[5] : null;
+          return { nome: b.children[0].textContent.trim(), barra: b.getAttribute('data-ok'), tabela: td ? td.getAttribute('data-ok') : null, tx: b.children[1].textContent.replace(/\s+/g, ' ').trim(), cel: td ? td.textContent.trim() : '' }; });
+        r.bordaTotal = cel(document.querySelector('main [data-enam-tab] tfoot tr')).join(' | ');
+        r.bordaFaltou = [...document.querySelectorAll('main .ct-enam-faltou > div .tx')].map(x => x.textContent.trim()).join(' / ');
+        app.setState({ enamCor: E.corrigir(its, resp, 56, { segundos: 16920 }) }); await w(50);
+        for (let i = 0; i < 60 && !/habilitaria|atingiu \(\+11\)/.test(cel(document.querySelector('main [data-enam-tab] tfoot tr')).join(' | ')); i++) await w(100);
         return r;
       });
       if (res.semTabela) ok(false, R + 'a tabela por disciplina aparece no resultado do Modo ENAM');
@@ -345,19 +376,58 @@ export async function testarEnamPosProva(pageDaSuite, base, ok, opcoes = {}) {
         ok(res.nomes === 'Constitucional,Administrativo,Formação Humanística,Direitos Humanos,Processual Civil,Civil,Empresarial,Penal', R + 'resultado: uma linha por disciplina, na ordem do edital (' + res.nomes + ')');
         ok(res.const === '16 | 0 | 0 | 16 | atingiu | atingiu' && res.civil === '1 | 11 | 0 | −10 | faltaram 8 | faltaram 5' && res.penal === '0 | 8 | 4 | −8 | faltaram 9 | faltaram 6',
           R + 'resultado: acertos, erros, brancos, líquido e os dois cortes por disciplina (Civil: ' + res.civil + ')');
-        ok(res.total === 'Total | 51 | 25 | 4 | 26 | faltaram 5 | habilitaria (+11)', R + 'resultado: no total, os dois cortes lado a lado (' + res.total + ')');
+        // "habilitaria" é o veredito da meta da pessoa; no outro corte, que ela não escolheu, só "atingiu"
+        ok(res.total === 'Total | 51 | 25 | 4 | 26 | faltaram 5 | atingiu (+11)', R + 'resultado: no total, os dois cortes lado a lado, sem veredito no corte que não é a meta (' + res.total + ')');
         ok(/56\/80 · 70%\s*sua meta/.test(res.cab) && !/40\/80 · 50%\s*sua meta/.test(res.cab) && /Líquido/.test(res.cab), R + 'resultado: o cabeçalho marca a meta escolhida (' + res.cab + ')');
         ok(/^Líquido = acertos − erros; no ENAM o erro não desconta/.test(res.nota.trim()), R + 'resultado: o rótulo do líquido é explícito');
         ok(res.selo.trim() === 'faltaram 5 acertos', R + 'resultado: o selo principal continua respondendo pela meta escolhida');
         const fracos = res.contrastes.filter(([, c]) => c < 4.5);
         ok(fracos.length === 0, R + 'resultado: todo texto da tabela ≥ 4,5:1 (' + res.contrastes.map(([n, c]) => n + ' ' + c).join(', ') + ')');
         ok(res.corSituacao && res.monoNumeros && res.fonteCorpo >= 12, R + 'resultado: situação em cor de --ok/--warn além da palavra, números em mono, corpo ≥ 12 px (' + res.fonteCorpo + ')');
+        ok(res.fonteCab >= 10.5 && res.fonteSua >= 10.5, R + 'resultado: cabeçalho e "sua meta" no menor degrau da escala ou acima (≥ 10,5 px; "sua meta" ' + res.fonteSua + ' px)');
         ok(res.caixa.w > 300 && res.caixa.h > 8 * 20 && res.linhaAlta >= 20, R + 'resultado: a tabela pinta (' + res.caixa.w + '×' + res.caixa.h + ')');
-        ok(res.semRolagem820 && res.caixaRola === 'auto', R + 'resultado: a 820 px a página não rola de lado; a caixa da tabela rola sozinha se precisar');
-        ok(/40\/80 · 50%\s*sua meta/.test(res.cab40) && res.total40 === 'Total | 51 | 25 | 4 | 26 | faltaram 5 | habilitaria (+11)', R + 'resultado com meta 40: "sua meta" troca de coluna e o total não muda');
+        ok(res.semRolagem820 && res.caixaRola === 'auto' && res.cabeInteira820, R + 'resultado: a 820 px (iPad em retrato) a tabela cabe inteira e a página não rola de lado');
+        ok(/40\/80 · 50%\s*sua meta/.test(res.cab40) && res.total40 === 'Total | 51 | 25 | 4 | 26 | faltaram 5 | habilitaria (+11)', R + 'resultado com meta 40: "sua meta" troca de coluna e o veredito vai com ela (' + res.total40 + ')');
+        const b = res.borda || [], porNome = n => b.find(x => x.nome === n) || {};
+        ok(b.length === 8 && b.every(x => x.barra === x.tabela), R + 'resultado na borda: cada barra de "Por área do edital" e a linha da tabela dizem o mesmo (' + b.map(x => x.nome + ' ' + (x.barra || '·') + '/' + (x.tabela || '·')).join(', ') + ')');
+        ok(porNome('Constitucional').tx === '11 de 16 · alvo 11,2' && porNome('Constitucional').barra === '' && porNome('Constitucional').cel === 'faltaram 1'
+          && porNome('Administrativo').tx === '7 de 10 · alvo 7' && porNome('Administrativo').barra === '1' && porNome('Administrativo').cel === 'atingiu',
+          R + 'resultado na borda: 11 de 16 mostra o alvo 11,2 sem verde e "faltaram 1"; 7 de 10 (alvo 7) atinge (' + porNome('Constitucional').tx + ')');
+        ok(res.bordaTotal === 'Total | 54 | 26 | 0 | 28 | faltaram 2 | atingiu (+14)' && /faltaram 1 · 8 de 12 \(alvo 8,4\)/.test(res.bordaFaltou),
+          R + 'resultado na borda: o total (54/80) não habilita e o "Onde faltou" usa o mesmo alvo com a casa decimal (' + res.bordaTotal + ')');
+        // tela estreita (390 px): a caixa rola de lado, a página não; a disciplina fica presa à esquerda; a última
+        // coluna é alcançável rolando a caixa; a caixa recebe foco e as setas a rolam
         await page.setViewportSize({ width: 390, height: 844 });
-        const estreito = await page.evaluate(() => new Promise(r => setTimeout(() => r(document.documentElement.scrollWidth <= innerWidth + 2), 300)));
-        ok(estreito, R + 'resultado: a 390 px a página não rola de lado');
+        const est = await page.evaluate(async () => {
+          const w = ms => new Promise(r => setTimeout(r, ms)), M = window.__ctMedir;
+          for (let i = 0; i < 40 && document.querySelector('main [data-enam-tab]').parentElement.clientWidth > 400; i++) await w(100);
+          const cx = document.querySelector('main [data-enam-tab]').parentElement, r = {};
+          const rc0 = cx.getBoundingClientRect();
+          r.cw = cx.clientWidth; r.sw = cx.scrollWidth; r.ox = getComputedStyle(cx).overflowX;
+          r.foco = cx.getAttribute('tabindex') === '0' && cx.getAttribute('role') === 'region' && !!cx.getAttribute('aria-label');
+          r.dentro = rc0.left >= -1 && rc0.right <= innerWidth + 1;
+          r.docOk = document.documentElement.scrollWidth <= innerWidth + 2;
+          // a área de rolagem do app que contém a tabela (overflow-y:auto faz o x virar auto também)
+          const sc = cx.closest('.ct-scroll'); r.scrollOk = !!sc && sc.scrollWidth <= sc.clientWidth + 2;
+          cx.scrollLeft = cx.scrollWidth; await w(200);
+          const rc = cx.getBoundingClientRect(), ult = [...cx.querySelectorAll('thead th')].pop().getBoundingClientRect(), pri = cx.querySelector('tbody th[scope="row"]'), rp = pri.getBoundingClientRect();
+          r.rolou = cx.scrollLeft > 0;
+          r.ultimaVisivel = ult.right <= rc.right + 1 && ult.right <= innerWidth + 1 && ult.left >= rp.right - 1;
+          r.presa = Math.abs(rp.left - rc.left) <= 1;
+          const fc = M.px(getComputedStyle(pri).backgroundColor), fundo = M.fundo(cx);
+          r.fundoIgual = fc[3] >= 0.99 && [0, 1, 2].every(i => Math.abs(fc[i] - fundo[i]) <= 2);
+          cx.scrollLeft = 0; await w(100); cx.focus();
+          r.focou = document.activeElement === cx;
+          return r;
+        });
+        // a seta SEGURADA como a de uma pessoa (~150 ms): o WebKit rola pelo teclado com animação, e o press()
+        // instantâneo do Playwright solta a tecla antes de ela andar (0 px na sonda; segurada, 224 a 253 px)
+        for (let k = 0; k < 2; k++) { await page.keyboard.down('ArrowRight'); await page.waitForTimeout(150); await page.keyboard.up('ArrowRight'); await page.waitForTimeout(250); }
+        const rolouTeclado = await page.evaluate(() => new Promise(r => setTimeout(() => r(document.querySelector('main [data-enam-tab]').parentElement.scrollLeft), 400)));
+        ok(est.ox === 'auto' && est.sw > est.cw && est.dentro && est.docOk && est.scrollOk, R + 'resultado a 390 px: a caixa rola de lado (' + est.cw + ' de ' + est.sw + ' px) dentro da tela, e nem a página nem a área de rolagem do app rolam de lado');
+        ok(est.rolou && est.ultimaVisivel, R + 'resultado a 390 px: rolando a caixa, a última coluna (40/80) aparece inteira, ao lado da disciplina');
+        ok(est.presa && est.fundoIgual, R + 'resultado a 390 px: a coluna da disciplina fica presa à esquerda, com o fundo do cartão');
+        ok(est.foco && est.focou && rolouTeclado > 0, R + 'resultado a 390 px: a caixa é uma região com rótulo, recebe foco e as setas a rolam (scrollLeft ' + rolouTeclado + ')');
         await page.setViewportSize({ width: 820, height: 1180 });
       }
       ok(errosPagina.length === 0, R + 'sem erro de JS na página' + (errosPagina.length ? ' (' + errosPagina[0].slice(0, 140) + ')' : ''));

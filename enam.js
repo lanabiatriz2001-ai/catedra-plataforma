@@ -105,8 +105,10 @@
      início + DURACAO_MIN (5 h), no fuso da prova (o do edital), nunca no do aparelho. No dia, antes e
      durante a prova, ela ainda é futura e a contagem diz "é hoje"; às 18h de Brasília de 29/11/2026
      (17h em Porto Velho) deixa de ser. Sem edição futura cadastrada — em EDICOES ou na data que a
-     pessoa guardou em catedra:enam — não há contagem em lugar nenhum, só a linha neutra SEM_EDICAO. */
-  var SEM_EDICAO = 'Nenhuma edição futura cadastrada; quando sair o edital da próxima, ela aparece aqui.';
+     pessoa guardou em catedra:enam — não há contagem em lugar nenhum, só a linha neutra SEM_EDICAO.
+     A próxima edição só existe depois que alguém a inclui em EDICOES e o app é atualizado: o texto diz
+     isso, para não prometer que ela aparece sozinha. */
+  var SEM_EDICAO = 'Nenhuma edição futura cadastrada; quando sair o edital da próxima, ela entra aqui numa atualização do app.';
   /** O instante (ms UTC) em que a prova da edição termina, ou null se a data não é válida. */
   function fimDaProva(ed) {
     if (!ed) return null;

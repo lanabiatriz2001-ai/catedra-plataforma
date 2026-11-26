@@ -4567,7 +4567,8 @@ window.ctPdfLib = (function(){
                          lado — no total (rodapé) e proporcional à cota de cada área (a mesma régua das barras) -->
                     <div class="ct-eb" style="margin-top:var(--ct-e4);">Por disciplina — líquido e os dois cortes do edital</div>
                     <div class="ct-nota ct-nota-solta" data-enam-liq-nota="1">Líquido = acertos − erros; no ENAM o erro não desconta: a habilitação conta só os acertos (item 9.2 do edital). Por disciplina, cada corte é proporcional à cota da área.</div>
-                    <div class="ct-enam-tab-caixa">
+                    <!-- em tela estreita a caixa rola de lado: com foco (tabindex) as setas a rolam, e o leitor de tela a anuncia -->
+                    <div class="ct-enam-tab-caixa" tabindex="0" role="region" aria-label="Resultado por disciplina, com os dois cortes do edital">
                       <table class="ct-enam-tab" data-enam-tab="1">
                         <thead><tr><th scope="col">Disciplina</th><th scope="col">Acertos</th><th scope="col">Erros</th><th scope="col">Brancos</th><th scope="col">Líquido</th><th scope="col">56/80 · 70%<small>{{ enamCorSua56 }}</small></th><th scope="col">40/80 · 50%<small>{{ enamCorSua40 }}</small></th></tr></thead>
                         <tbody>
@@ -5733,7 +5734,8 @@ window.ctPdfLib = (function(){
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;display:flex;flex-direction:column;gap:14px;">
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;">
         <div><label for="aj-enam-edicao" class="ct-rotulo">Edição</label><select id="aj-enam-edicao" value="{{ enamEdicaoSel }}" onchange="{{ enamSetEdicao }}" class="ct-campo"><sc-for list="{{ enamEdicoes }}" as="e" hint-placeholder-count="2"><option value="{{ e.id }}" selected="{{ e.sel }}">{{ e.rotulo }}</option></sc-for></select></div>
-        <div><div class="ct-rotulo">Prova</div><div style="font-size:var(--fs-base);color:var(--ink);font-weight:600;">{{ enamDataFmt }}</div><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;">{{ enamHora }} · 80 questões · 5 horas</div></div>
+        <!-- sem edição futura, a data da prova que já passou não aparece como se fosse a próxima -->
+        <sc-if value="{{ enamTemProva }}" hint-placeholder-val="{{ true }}"><div data-enam-aj-prova="1"><div class="ct-rotulo">Prova</div><div style="font-size:var(--fs-base);color:var(--ink);font-weight:600;">{{ enamDataFmt }}</div><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;">{{ enamHora }} · 80 questões · 5 horas</div></div></sc-if>
       </div>
       <div>
         <div class="ct-rotulo">Meta de acertos</div>
@@ -5752,7 +5754,7 @@ window.ctPdfLib = (function(){
   <sc-if value="{{ enamOff }}" hint-placeholder-val="{{ true }}">
     <div class="ct-estado">
       <div class="ct-estado-titulo">Vai fazer o ENAM? Ative a trilha</div>
-      <div class="ct-estado-desc">{{ enamProximaFrase }} O app passa a contar os dias, a mostrar a meta e, com o banco oficial, a montar o simulado no formato da prova.</div>
+      <div class="ct-estado-desc">{{ enamProximaFrase }} {{ enamConviteResto }}</div>
       <div class="ct-estado-acao"><button type="button" onclick="{{ enamAtivar }}" class="ct-btn">Ativar a trilha ENAM</button></div>
     </div>
   </sc-if>
@@ -14232,21 +14234,27 @@ class Component extends DCLogic {
       ...(()=>{ const c=(st.sjModo==='enam'&&st.sjFim)?st.enamCor:null; if(!c) return {enamTemCor:false, enamCorBarras:[], enamCorFaltou:[], enamCorTab:[]};
         const curto=n=>String(n||'').replace('Noções Gerais de Direito e ','').replace('Direito ','');
         const falt=Math.max(0, -c.margem);
+        // 25/11/2026: o alvo por área vai com a casa decimal (11,2 de 16) e a barra só fica verde quando os acertos
+        // chegam a ele. Arredondado, "11 de 16 · alvo 11" pintava de verde o que a tabela por disciplina, logo
+        // abaixo, chama de "faltaram 1" — 11 de 16 ainda não é 70%. Uma régua só nas barras, no "Onde faltou" e na tabela.
+        const dec=n=>String(n==null?'':n).replace('.',',');
         return { enamTemCor:true, enamCorAcertos:String(c.acertos), enamCorTotal:String(c.total),
           enamCorOk:c.habilitaria?'1':'', enamCorSelo:c.habilitaria?'habilitaria':('faltaram '+falt+' acerto'+(falt===1?'':'s')),
           enamCorMeta:'meta de '+c.meta+' acertos · margem '+(c.margem>=0?'+':'−')+Math.abs(c.margem)+' · '+c.brancos+' em branco · '+c.erros+' erro'+(c.erros===1?'':'s'),
           enamCorTempo:c.respondidas?(c.segPorQuestao+' s por questão respondida · '+c.segDisponivel+' s disponíveis por questão'):'nenhuma questão respondida',
           enamCorTempoLento:c.respondidas>0 && c.segPorQuestao>c.segDisponivel,
           enamCorNota:(c.foraDoEnam?(c.foraDoEnam+' quest'+(c.foraDoEnam>1?'ões':'ão')+' de outra prova de magistratura completaram áreas sem estoque e contam à parte. '):'')+(c.comPausa?'Tentativa com pausa — a prova real não tem. ':'')+(c.anuladas?(c.anuladas+' anulada'+(c.anuladas>1?'s':'')+' não contam. '):''),
-          enamCorBarras:c.porAreaEdital.map(a=>({area:a.area, nome:curto(a.nome), txt:a.ok+' de '+a.cota+' · alvo '+a.alvoInt, ok:a.ok>=a.alvoInt?'1':'',
+          enamCorBarras:c.porAreaEdital.map(a=>({area:a.area, nome:curto(a.nome), txt:a.ok+' de '+a.cota+' · alvo '+dec(a.alvo), ok:a.ok>=a.alvo?'1':'',
             fill:'width:'+Math.min(100,Math.round(a.ok/(a.cota||1)*100))+'%;', marca:'left:'+Math.min(100,Math.round(a.alvo/(a.cota||1)*100))+'%;',
-            aria:curto(a.nome)+': '+a.ok+' de '+a.cota+', alvo '+a.alvoInt})),
-          enamCorFaltou:c.porArea.filter(a=>a.deficit>0).slice(0,3).map(a=>({area:a.area, nome:curto(a.nome), txt:'faltaram '+Math.ceil(a.deficit)+' · '+a.ok+' de '+a.cota+' (alvo '+a.alvoInt+')'})),
+            aria:curto(a.nome)+': '+a.ok+' de '+a.cota+', alvo '+dec(a.alvo)})),
+          enamCorFaltou:c.porArea.filter(a=>a.deficit>0).slice(0,3).map(a=>({area:a.area, nome:curto(a.nome), txt:'faltaram '+Math.ceil(a.deficit)+' · '+a.ok+' de '+a.cota+' (alvo '+dec(a.alvo)+')'})),
           enamCorTemFaltou:c.porArea.some(a=>a.deficit>0),
           // 25/11/2026: por disciplina — acertos, erros, brancos e líquido (acertos − erros) — e os dois cortes do
           // edital lado a lado, no total e na régua proporcional por área; a conta é do CT_ENAM.corrigir
-          ...(()=>{ const num=n=>(n==null||isNaN(+n))?'—':((n<0?'−':'')+Math.abs(+n)), dec=n=>String(n).replace('.',','), corte=(l,m)=>(l||[]).find(x=>x.meta===m)||{};
-            const cel=(x,total)=>(x.meta==null)?'—':(total?(x.habilitaria?('habilitaria ('+(x.margem>=0?'+':'−')+Math.abs(x.margem)+')'):('faltaram '+x.faltam)):(x.atingiu?'atingiu':('faltaram '+x.faltam)));
+          ...(()=>{ const num=n=>(n==null||isNaN(+n))?'—':((n<0?'−':'')+Math.abs(+n)), corte=(l,m)=>(l||[]).find(x=>x.meta===m)||{};
+            // no total, "habilitaria" só no corte que é a meta da pessoa; no outro, "atingiu" — a plataforma não
+            // sabe (nem pergunta) se o corte de 50% vale para ela, então não dá veredito sobre ele
+            const cel=(x,total)=>(x.meta==null)?'—':(total?(x.habilitaria?((x.meta===c.meta?'habilitaria':'atingiu')+' ('+(x.margem>=0?'+':'−')+Math.abs(x.margem)+')'):('faltaram '+x.faltam)):(x.atingiu?'atingiu':('faltaram '+x.faltam)));
             const t56=corte(c.cortes,56), t40=corte(c.cortes,40);
             return { enamCorTab:(c.porAreaEdital||[]).map(a=>{ const k56=corte(a.cortes,56), k40=corte(a.cortes,40);
                 return {area:a.area, nome:curto(a.nome), ok:String(a.ok), erros:String(a.erros||0), brancos:String(a.brancos||0), liquido:num(a.liquido),
@@ -14422,9 +14430,10 @@ class Component extends DCLogic {
      avisos discretos de 60 e 15 minutos. */
   setSjModo = (e)=>{ const v=e.currentTarget.getAttribute('data-v')==='enam'?'enam':'misto'; if(v!==this.state.sjModo) this.setState({sjModo:v, enamErro:'', sjItens:[], sjResp:{}, sjRev:{}, sjAtual:0, sjFim:false, sjRel:null}); };
   _enamAcervos(){ return this._treino().then(T=>T.acervoQuestoesEnam().then(()=>T.acervoQuestoesProva().catch(()=>null)).then(()=>T)); }
-  // a edição do simulado é a que a contagem conta (CT_ENAM.alvo); sem edição futura, a que a pessoa guardou;
-  // sem nenhuma (proxima() devolve null depois da última prova), o nome fica "ENAM · simulado"
-  _enamEdicaoAtual(){ const E=window.CT_ENAM, en=this.state.enam, a=(E&&E.alvo)?E.alvo(en):null; return (a&&a.id)||(en&&en.edicao)||''; }
+  // a edição do simulado é a que a contagem conta (CT_ENAM.alvo). Sem edição futura não há edição a nomear: o
+  // simulado fica "ENAM · simulado", como o cabeçalho da trilha, e a tentativa grava edicao vazia — um treino
+  // feito depois da 2026.2 não sai rotulado como dela
+  _enamEdicaoAtual(){ const E=window.CT_ENAM, en=this.state.enam; if(E&&E.alvo){ const a=E.alvo(en); return (a&&a.id)||''; } return (en&&en.edicao)||''; }
   _enamNome(){ const ed=this._enamEdicaoAtual(); return 'ENAM'+(ed?' '+ed:'')+' · simulado'; }
   iniciarEnam = ()=>{
     const E=window.CT_ENAM;
@@ -20192,9 +20201,12 @@ class Component extends DCLogic {
       const ct=(on&&E.contagem)?E.contagem(en):null, ref=ct||en;
       const r={ on, chipOn:!!ct, edicao:on?String((ct&&ct.id)||en.edicao||''):'', data:ct?ct.data:'', dias:ct?ct.dias:null, diasLabel:ct?ct.rotulo:'', chipSub:'', hora:'', dataFmt:'', edicoes:[], meta:on?(+en.metaAcertos||56):56, proximaFrase:'',
         semEdicao:(E&&E.SEM_EDICAO)||'', ajLinha:'',
+        conviteResto:'O app passa a contar os dias, a mostrar a meta e, com o banco oficial, a montar o simulado no formato da prova.',
         metaStyle:(m)=>'min-height:44px;padding:0 16px;border-radius:99px;font-family:inherit;font-size:var(--fs-base);font-weight:700;cursor:pointer;border:1px solid '+(r.meta===m?'transparent':'var(--border)')+';background:'+(r.meta===m?'var(--accentSolid)':'var(--surface2)')+';color:'+(r.meta===m?'var(--onAccent)':'var(--text2)')+';' };
       const fmtData=(iso, opc)=>{ try{ return new Date(iso+'T12:00:00').toLocaleDateString('pt-BR', opc); }catch(_){ return iso; } };
       if(E){ const px=E.proxima(); r.proximaFrase=px?('A próxima edição é a '+px.id+', em '+fmtData(px.data,{day:'2-digit',month:'long',year:'numeric'})+'.'):r.semEdicao;
+        // sem edição futura o convite não promete contar dias logo depois de dizer que não há o que contar
+        if(!px) r.conviteResto='Ativada, a trilha já mostra a meta e, com o banco oficial, monta o simulado no formato da prova; a contagem dos dias volta com a próxima edição.';
         r.edicoes=E.EDICOES.filter(e=>(E.futura?E.futura(e):E.diasAte(e.data)>=0) || (on&&e.id===r.edicao)).map(e=>({id:e.id, rotulo:e.id+' · '+e.numero+' ENAM · '+fmtData(e.data), sel:on&&e.id===r.edicao})); }
       if(!on) return r;
       // Ajustes mostra a edição contada; sem ela, a que a pessoa cadastrou — com a linha neutra no lugar dos dias
@@ -22200,7 +22212,7 @@ class Component extends DCLogic {
       retaComOpts, retaComVal:_retaCom, retaProvaData:this.state.provaData||'', retaDias:_regua.retaDias, retaProvaNome:_regua.retaProvaNome, retaProvaCap:_regua.retaProvaCap,
       reguaSegunda:_regua.segunda, reguaSegundaLeft:String(_regua.segundaLeft), reguaSegundaCap:_regua.segundaCap,
       // trilha ENAM (E1)
-      enamOn:_enam.on, enamOff:!_enam.on, enamChipOn:_enam.on&&_enam.chipOn, enamAjLinha:_enam.ajLinha, enamEdicao:_enam.edicao, enamEdicaoSel:_enam.edicao, enamEdicoes:_enam.edicoes, enamDataFmt:_enam.dataFmt, enamHora:_enam.hora,
+      enamOn:_enam.on, enamOff:!_enam.on, enamChipOn:_enam.on&&_enam.chipOn, enamTemProva:_enam.on&&_enam.chipOn, enamConviteResto:_enam.conviteResto, enamAjLinha:_enam.ajLinha, enamEdicao:_enam.edicao, enamEdicaoSel:_enam.edicao, enamEdicoes:_enam.edicoes, enamDataFmt:_enam.dataFmt, enamHora:_enam.hora,
       enamDias:String(_enam.dias==null?'':_enam.dias), enamDiasLabel:_enam.diasLabel, enamChipSub:_enam.chipSub, enamProximaFrase:_enam.proximaFrase,
       enamMeta56:_enam.meta===56?'true':'false', enamMeta40:_enam.meta===40?'true':'false',
       enamMeta56Style:_enam.metaStyle(56), enamMeta40Style:_enam.metaStyle(40),

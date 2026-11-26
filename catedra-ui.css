@@ -1036,14 +1036,17 @@ button:disabled { cursor: not-allowed; }
 /* por disciplina (25/11/2026): acertos, erros, brancos e líquido, e os dois cortes do edital lado a
    lado. Números em mono à direita, como o "Painel por disciplina" do Início; a situação de cada corte
    vem escrita ("atingiu", "faltaram N", em texto corrido, não em mono) e a cor só reforça. Em tela
-   estreita a caixa rola, a página não. */
+   estreita a caixa rola, a página não; a coluna da disciplina fica presa à esquerda (fundo do cartão,
+   bordas "separate" para a linha andar junto com a célula presa), e a caixa recebe foco para as setas. */
 .ct-enam-tab-caixa { overflow-x: auto; margin-top: var(--ct-e2); }
-.ct-enam-tab { width: 100%; border-collapse: collapse; font-size: var(--fs-sm, 12.5px); color: var(--text2, #4a463f); }
+.ct-enam-tab { width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--fs-sm, 12.5px); color: var(--text2, #4a463f); }
 .ct-enam-tab th, .ct-enam-tab td { padding: var(--ct-e2); border-top: 1px solid var(--border, #e6e1d4); text-align: right; white-space: nowrap; vertical-align: bottom; }
 .ct-enam-tab thead th { border-top: 0; font-size: var(--fs-2xs, 11px); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text3, #7a7368); }
 .ct-enam-tab thead th:first-child { text-align: left; }
-.ct-enam-tab thead th small { display: block; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--text2, #4a463f); }
+/* "sua meta": o <small> herdava o font-size: smaller do navegador (9 px); fica no degrau do cabeçalho */
+.ct-enam-tab thead th small { display: block; font-size: var(--fs-2xs, 11px); font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--text2, #4a463f); }
 .ct-enam-tab th[scope="row"] { text-align: left; font-weight: 600; color: var(--ink, #1c1a16); }
+.ct-enam-tab thead th:first-child, .ct-enam-tab th[scope="row"] { position: sticky; left: 0; z-index: 1; background: var(--surface, #fffdf8); }
 .ct-enam-tab td { font-family: var(--mono, ui-monospace, monospace); }
 .ct-enam-tab td[data-ok] { font-family: inherit; }
 .ct-enam-tab tbody td[data-ok] { font-weight: 600; }
