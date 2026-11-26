@@ -124,9 +124,12 @@ const RE_DATA = /^(\d{2})\/(\d{2})\/(\d{4})$/;
 const dataOuNull = (s) => (s && RE_DATA.test(s) ? s : null);
 const cmpData = (a, b) => { const f = (s) => s.split('/').reverse().join(''); return f(a) < f(b) ? -1 : f(a) > f(b) ? 1 : 0; };
 
-/** O "Temas (N)" (dentro de #tipoPrecedenteT) e o "N documentos encontrados". */
+/** O contador da aba #tipoPrecedenteT e o "N documentos encontrados". Até out/2026 a aba dizia
+ *  "Temas (N)"; em nov/2026 o portal passou a dizer "Repetitivos (N)" (e ganhou a aba
+ *  "Relevância (N)", #tipoPrecedenteE, que não é desta pesquisa). Só o rótulo mudou: o número
+ *  continua sendo o dos temas repetitivos da faixa. */
 export function totalDaPagina(html) {
-  const a = String(html).match(/id="tipoPrecedenteT"[\s\S]{0,200}?Temas\s*\((\d+)\)/);
+  const a = String(html).match(/id="tipoPrecedenteT"[\s\S]{0,200}?(?:Temas|Repetitivos)\s*\((\d+)\)/);
   const b = String(html).match(/(\d+)\s+documentos?\s+encontrados?/);
   return { temas: a ? +a[1] : null, documentos: b ? +b[1] : null };
 }
@@ -199,7 +202,7 @@ export function parseBloco(b) {
  *  questão. Página vazia consistente ("Temas (0)", "0 documentos") devolve { total: 0, temas: [] }. */
 export function parsePaginaRepetitivos(html, { porPagina = 50 } = {}) {
   const tot = totalDaPagina(html);
-  if (tot.temas == null || tot.documentos == null) throw new Error('página sem o contador "Temas (N)"/"N documentos encontrados": o portal mudou de formato ou não respondeu a pesquisa');
+  if (tot.temas == null || tot.documentos == null) throw new Error('página sem o contador "Repetitivos (N)" (antes "Temas (N)")/"N documentos encontrados": o portal mudou de formato ou não respondeu a pesquisa');
   if (tot.temas !== tot.documentos) throw new Error(`contadores discordam: Temas (${tot.temas}) × ${tot.documentos} documentos`);
   const temas = String(html).split(/<div class="container containerDocumento">/).slice(1).map(parseBloco).filter(Boolean);
   const esperado = Math.min(tot.temas, porPagina);

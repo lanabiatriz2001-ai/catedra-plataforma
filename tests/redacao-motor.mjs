@@ -305,7 +305,7 @@ async function pedidos(pageDaSuite, base, ok, R) {
       await abrirRedacao(page, base);
       await armarIA(page, 'boa', BOA); await entregar(page);
       await page.waitForSelector('[data-red="cortes-ia"]', { timeout: 15000 });
-      ok(/a resposta passa de 15000 caracteres/.test(await page.textContent('[data-red="cortes-ia"]')), R + esquema + ': texto acima do limite avisa o corte na tela da nota');
+      ok(/a resposta passa de 15\.000 caracteres/.test(await page.textContent('[data-red="cortes-ia"]')), R + esquema + ': texto acima do limite avisa o corte na tela da nota');
       let m = await contraste(page, ['[data-red="cortes-ia"] .ct-eb', '[data-red="cortes-ia"] .ct-nota']);
       for (const x of m) ok(!x.falta && x.r >= 4.5, R + esquema + ': contraste de ' + x.s + ' ≥ 4,5:1 (mediu ' + (x.falta ? 'ausente' : x.r) + ')');
       await page.locator('[data-red="cortes-ia"]').scrollIntoViewIfNeeded();

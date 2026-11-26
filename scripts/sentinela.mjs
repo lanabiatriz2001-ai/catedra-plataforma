@@ -48,7 +48,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync, appendFileSync } fr
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import vm from 'node:vm';
-import { ROOT, baixarLei } from './lib/planalto.mjs';
+import { ROOT, baixarLei, TETO_ACERVO } from './lib/planalto.mjs';
 import { buscarFonte } from './lib/tls-fontes.mjs';
 import {
   pior, baseJuris, colecaoNoAcervo, pendenciaColecao, lerRetratos, conteudoRetratos, esperarPadrao, acervoDaColecao, CAMPOS_DATA, ARQ_RETRATOS, LIMIARES,
@@ -401,13 +401,13 @@ const chaveArt = (rot) => String(rot).toLowerCase().replace(/[^a-z0-9]/g, '');
 const normalizar = (t) => String(t).replace(/\s+/g, ' ').trim();
 const textoComparavel = (t) => normalizar(String(t).replace(RE_MARGEM, ' '));
 
-// 3) ARTIGO CORTADO NO TETO. O acervo guarda cada artigo com no máximo 4.000 caracteres
-//    (teto de tamanho do bundle, em scripts/lib/planalto.mjs). Num artigo que bate no
+// 3) ARTIGO CORTADO NO TETO. O acervo guarda cada artigo com no máximo TETO_ACERVO caracteres
+//    (scripts/lib/planalto.mjs: 4.000 até 25/11/2026, 32.000 desde então). Num artigo que bate no
 //    teto, ganhar 22 caracteres no meio empurra a cauda para fora — e as duas versões
 //    passam a diferir no fim mesmo sem nenhuma mudança de lei. Foi o que acusou o art. 77
 //    da Lei 14.133. Nesses casos compara-se só o trecho que os DOIS lados têm, e o item
 //    sai marcado como comparação parcial — nunca como "conferido por inteiro".
-const TETO = 3990;
+const TETO = TETO_ACERVO - 10;
 const noTeto = (t) => String(t).length >= TETO;
 function difereNoTrechoComum(a, b) {
   const x = textoComparavel(a), y = textoComparavel(b);
@@ -981,7 +981,11 @@ async function buscar(url, { timeoutMs = 40000, prazo = 0, codificacao = 'latin1
   };
 }
 
-// Uma edição existe quando a página responde 200 E o <title> traz o NÚMERO PEDIDO. Medido
+// O formato de outubro identifica a edição no <title>. Em 06/11/2026 o STJ passou
+// a usar título genérico também nas edições reais: o número está em
+// span.clsInformativoTitulo. Menu, busca e remissões NÃO identificam a edição.
+// Uma resposta vazia só é conclusiva com a mensagem explícita de nenhum documento.
+// Formato anterior medido
 // nas páginas oficiais em 01/10/2026 (os títulos e status estão em
 // tests/fixtures/informativos/manifesto.json):
 //
@@ -1007,6 +1011,16 @@ const RE_TIT_STJ = 'Informativo de Jurisprud\\S{1,2}ncia';
 const RE_TIT_EXTRA = 'Edi\\S{2,4}o\\s+Extraordin\\S{1,2}ria';
 const reNumero = (n) => `0*${Number(n)}(?!\\d)`;
 
+// Primeiros caracteres visíveis do <body>, sem marcação: onde o STF escreve o cabeçalho da edição.
+const inicioDoCorpo = (texto) => {
+  const t = String(texto || '');
+  const i = t.toLowerCase().indexOf('<body');
+  if (i < 0) return '';
+  return t.slice(i).replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<!--[\s\S]*?-->/gi, ' ')
+    .replace(/<[^>]+>/g, ' ').replace(/&nbsp;|&#160;/g, ' ').replace(/&ordm;|&#186;/g, 'º')
+    .replace(/\s+/g, ' ').trim().slice(0, 120);
+};
+
 export function edicaoNaPagina(fonte, r, n, extra = false) {
   const status = r && r.status;
   const titulo = tituloDe(r && r.texto);
@@ -1014,14 +1028,33 @@ export function edicaoNaPagina(fonte, r, n, extra = false) {
     if (status === 404) return { estado: 'nao-existe' };
     if (status !== 200) return { estado: 'falha', motivo: `HTTP ${status}` };
     const re = new RegExp(`\\bN(?:º|°|o|\\.º|\\.°|Âº|Â°)?\\s*${reNumero(n)}`);
-    return titulo && re.test(titulo)
-      ? { estado: 'existe', titulo }
-      : { estado: 'falha', motivo: 'a página respondeu 200 sem o número da edição no título' };
+    if (titulo && re.test(titulo)) return { estado: 'existe', titulo };
+    // Em 10/11/2026 o STF publicou a 1236 com o título cortado em "Nº". Só com o título sem
+    // número algum vale o cabeçalho do próprio conteúdo ("INFORMATIVO STF Nº 1236/2026 Data de
+    // divulgação"); título com o número de outra edição continua sendo falha. Mesma régua de
+    // scripts/atualizar-informativos.py.
+    const cab = new RegExp(`^INFORMATIVO STF N\\S{0,3}\\s*${reNumero(n)}/\\d{4}\\s+Data de divulga`);
+    if (titulo && /\bN(?:º|°|o|\.º|\.°|Âº|Â°)?\s*$/.test(titulo) && cab.test(inicioDoCorpo(r && r.texto))) {
+      return { estado: 'existe', titulo: `${titulo} ${Number(n)}` };
+    }
+    return { estado: 'falha', motivo: 'a página respondeu 200 sem o número da edição no título' };
   }
   if (status !== 200) return { estado: 'falha', motivo: `HTTP ${status}` };
   if (!titulo || !new RegExp(RE_TIT_STJ, 'i').test(titulo)) return { estado: 'falha', motivo: 'a página não traz o título do Informativo do STJ' };
-  const re = new RegExp(`${extra ? RE_TIT_EXTRA : RE_TIT_STJ}\\s+n(?:\\.|º|°)?\\s*${reNumero(n)}`, 'i');
-  return re.test(titulo) ? { estado: 'existe', titulo } : { estado: 'nao-existe' };
+  const texto = String(r.texto || '');
+  const cabecalhos = [...texto.matchAll(/<span\b[^>]*class=["'][^"']*\bclsInformativoTitulo\b[^"']*["'][^>]*>([\s\S]*?)<\/span>/gi)]
+    .map((m) => m[1].replace(/<[^>]*>/g, ' ').replace(/&nbsp;|&#160;/g, ' ').replace(/&ordm;|&#186;/g, 'º').replace(/\s+/g, ' ').trim());
+  const re = new RegExp(`^${extra ? RE_TIT_EXTRA : 'Informativo'}\\s+n(?:\\.|º|°|Âº|Â°)?\\s*${reNumero(n)}`, 'i');
+  if (cabecalhos.length) {
+    if (cabecalhos.every((c) => re.test(c)) && /\bclsIdentificaProcesso\b/.test(texto)) return { estado: 'existe', titulo: cabecalhos[0] };
+    return { estado: 'falha', motivo: 'o cabeçalho não confirma a edição e a série pedidas, ou faltam os julgados' };
+  }
+  const antigo = new RegExp(`${extra ? RE_TIT_EXTRA : RE_TIT_STJ}\\s+n(?:\\.|º|°)?\\s*${reNumero(n)}`, 'i');
+  if (antigo.test(titulo)) return { estado: 'existe', titulo };
+  // Outra edição no título, ou corpo truncado, não prova ausência da edição pedida.
+  const vazio = /<div\b[^>]*class=["'][^"']*\bclsCaixaMensagem\b[^"']*["'][^>]*>\s*Nenhum documento encontrado!\s*<\/div>/i.test(texto);
+  if (vazio && !/\bclsIdentificaProcesso\b/.test(texto) && !/\bn(?:\.|º|°)?\s*\d+/i.test(titulo)) return { estado: 'nao-existe' };
+  return { estado: 'falha', motivo: 'resposta sem identificação da edição nem confirmação explícita de busca vazia' };
 }
 
 const urlEdicao = (fonte, n, extra) => (fonte === 'stf'
@@ -1743,5 +1776,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   }
   // Falha de fonte não derruba o processo: o relatório já diz o que falhou, e derrubar
   // faria a rotina diária não gravar o que as outras fontes conseguiram ler.
-  process.exit(0);
+  // Deixe stdout terminar: process.exit truncava o JSON quando os registros do PR
+  // excediam o buffer do pipe, tornando o resultado de falha ilegível para quem o chamou.
+  process.exitCode = 0;
 }
