@@ -278,11 +278,11 @@ e nada nela pode sugerir cobrança agora. Ajuste junto:
 - o teste da linha 3705, que passa a aceitar **só** essa linha e continua recusando qualquer outro `R$`, "por mês" e
   "assinatura por".
 
-Não mexa nos Termos nem em `docs/pedidos-claude-code.md` (as linhas 309 e 455 são registro da dona). Na descrição
-do PR, cite a decisão de 25/11 e o item "Marca" das "Decisões minhas": a busca de colidência no INPI, que o #259
-põe antes do primeiro preço sob o nome, e esta linha pode ser esse preço. Se o #259 ainda estiver aberto, avise na
-descrição que os dois mudam o mesmo parágrafo de `PRODUCT.md` e que, no conflito, fica o texto dele. Esse PR não
-bloqueia o PR 2+10 e não espera mais resposta para ser feito; o merge, como todos, espera o sim da dona.
+Não mexa nos Termos nem em `docs/pedidos-claude-code.md` (as linhas 309 e 455 são registro da dona). Se o #259
+ainda estiver aberto, avise na descrição do PR que os dois mudam o mesmo parágrafo de `PRODUCT.md` e que, no
+conflito, fica o texto dele. Esse PR não bloqueia o PR 2+10 e não espera mais resposta para ser feito. O merge
+espera a busca de colidência de "Cátedra" no INPI (item "Marca" das "Decisões minhas"; decisão da dona em 25/11),
+porque esta linha pode ser o primeiro preço sob o nome: deixe o PR pronto e diga isso no topo da descrição.
 
 **Faça (PR 2b, separado, só depois do sim da dona).** A pergunta de disposição a pagar (decisão 2b):
 1. Parta da definição mais nova de `entrar_lista_espera`: a do banco vivo (seção 4) ou a do PR #259, se a
@@ -293,6 +293,7 @@ bloqueia o PR 2+10 e não espera mais resposta para ser feito; o merge, como tod
    `juridico.js` por `scripts/build-juridico.mjs`.
 3. A migration é aplicada **antes** do merge da página. Se o corpo mandar uma chave que a RPC viva não conhece, a
    lista inteira cai em "Não deu para registrar agora".
+4. A pergunta também mostra o preço, então o merge espera a mesma busca de marca do PR 2c.
 
 **Pronto quando.** Teste `node:test` sobre `sobre.html` sem comentários: a frase velha sumiu; o cartão cita espelho
 oficial e espelho sugerido por IA; e, no PR 2c, há exatamente uma linha de preço, que no Chromium pinta com
@@ -706,7 +707,7 @@ widget, "fotografia" de perícia, "scan" dentro de "buscando"). Mudança só de 
 2. **Item 1.**
 3. **Itens 2 e 10 num PR só:** a contagem no build e o texto da Segunda fase. A linha de preço (**PR 2c**, já
    decidida: a landing mostra o preço) e a pergunta com a migration e a Política (**PR 2b**, que espera a decisão
-   2b) ficam à parte, por causa do PR #259.
+   2b) ficam à parte, por causa do PR #259. O merge dos dois espera a busca de marca no INPI.
 4. **Item 3:** depois do 2+10, porque mexe em `sobre.html`.
 5. **Item 4.**
 6. **O resto do item 5.**
@@ -742,8 +743,8 @@ Para o que exige o sim (banco vivo, telemetria, instalação, merge), prepare e 
 | 1b | Quando o servidor devolve `false`, o item sai da fila? | Não: fica na fila e o envio para. |
 | 1c | Contador exato (RPC nova, migration) ou derivado da lista? | Derivado da lista, com "200+" no teto. Sem migration. |
 | 1d | Capturar erro dos satélites e os que o `support.js` engole? | Fora deste PR (amplia a coleta). Registrar como pendente. |
-| 2a | A landing ganha a linha "R$ 197 por ano" do brief, se o PR #259 declara em `PRODUCT.md` um preço único ("R$ 197 por um mês de acesso, pagamento único") para o banco de espelhos? São duas ofertas com termos diferentes. | **Decidida pela dona em 25/11: sim, a landing mostra o preço.** PR 2c separado, com "Quando abrir, R$ 197 por ano (valor previsto, pode mudar)." na caixa `.honesto` (`sobre.html:135`) e a exceção escrita só para essa linha e o seu aviso de hipótese (item 2). Não bloqueia o PR 2+10. |
-| 2b | Pergunta e opções de disposição a pagar; subir a versão da Política (pede novo aceite a todas as contas)? O PR #259 já a leva a 1.3. | "Você pagaria R$ 197 por ano?" com Sim, Talvez e Não, opcional e sem pré-seleção. PR separado, que espera o sim. A versão da Política é a seguinte à que estiver na `main`. |
+| 2a | A landing ganha a linha "R$ 197 por ano" do brief, se o PR #259 declara em `PRODUCT.md` um preço único ("R$ 197 por um mês de acesso, pagamento único") para o banco de espelhos? São duas ofertas com termos diferentes. | **Decidida pela dona em 25/11: sim, a landing mostra o preço, e o merge espera a busca de marca no INPI.** PR 2c separado, com "Quando abrir, R$ 197 por ano (valor previsto, pode mudar)." na caixa `.honesto` (`sobre.html:135`) e a exceção escrita só para essa linha e o seu aviso de hipótese (item 2). Não bloqueia o PR 2+10. |
+| 2b | Pergunta e opções de disposição a pagar; subir a versão da Política (pede novo aceite a todas as contas)? O PR #259 já a leva a 1.3. | "Você pagaria R$ 197 por ano?" com Sim, Talvez e Não, opcional e sem pré-seleção. PR separado, que espera o sim e, para o merge, a busca de marca no INPI. A versão da Política é a seguinte à que estiver na `main`. |
 | 2c | E-mail que já está na lista: grava a resposta nova? | Não (como hoje, para não permitir troca por quem souber o e-mail). |
 | 3a | Honeypot só no cliente ou também no servidor (migration)? | Só no cliente. Isca preenchida mostra o sucesso de sempre e não chama a rede. |
 | 3b | Onde o console mostra a lista? | Aba Controle, junto de "Quem pode entrar". |
