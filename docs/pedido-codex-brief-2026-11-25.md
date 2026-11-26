@@ -102,6 +102,10 @@ responde.
 - O WebKit está **instável** em `tests/login-leitores-web.mjs:87` (veio com o PR #256). No PR #257, que só muda
   documento, ele falhou em `f506d86` e passou em `42e4cfa` e `e1050d9`. `tests/run-webkit.mjs:156` chama o caso sem
   `try/catch`, então o timeout derruba o runner inteiro e pula a iteração `file://` dos casos seguintes.
+- O job `testes` (Chromium) também já caiu sem relação com a mudança. No PR #257, em `b1a6e83` (merge com a `main`
+  em `806b4a9`, que passou), `tests/logica-publicada.mjs:105` achou a direção `sutil` no lugar de `clean` depois do
+  reload, no caso `chromium/file-http-bloqueado/clean/light`. Rode o job de novo antes de investigar; se repetir com
+  a `main` verde, avise a dona em vez de mexer no teste.
 - A Vercel publica o build de cada merge na `main`. Commit feito no Mac sai "unverified" e o preview do PR aparece
   bloqueado; isso não é falha sua.
 - PR aberto que toca arquivos destes itens: #253 (sobe o teto do acervo offline de 14 para 15 MiB em `sw.js` e
@@ -121,8 +125,8 @@ responde.
 
   Ele cruza com os itens 2, 2b, 3, 6, 7 e 10. Não mexa nele. Antes de cada um desses PRs, veja se ele entrou e parta
   da `main`. Se a migration dele tiver sido aplicada, os fatos da lista de espera desta seção ficaram velhos.
-- **PR #266** (aberto em 25/11 por outra sessão, ramo `melhorias/sobre-quesitos-formulario`, não é rascunho) mexe
-  em `sobre.html` e no bloco P15 de `tests/run.mjs`:
+- **PR #266** (de outra sessão, ramo `melhorias/sobre-quesitos-formulario`) **entrou na `main` em 25/11**
+  (`9fbf68c`). Ele mexeu em `sobre.html` e no bloco P15 de `tests/run.mjs`:
   - o mosaico passa a "586 · quesitos de 36 provas com espelho oficial", com `data-n="quesitos"` conferido contra
     `CT_ESPELHOS.meta`, e ganha a nota dos 502 quesitos com valor e 84 sem;
   - no cartão da Segunda fase, "a exigência literal, a pontuação atribuída" vira "a exigência da banca, os
@@ -131,7 +135,7 @@ responde.
   - os campos do formulário perdem o `name` (sem script, o envio punha o e-mail na URL), travados pelo teste
     `camposSemNome`; a borda dos campos muda de cor.
 
-  Ele cruza com os itens 2, 3, 6, 10 e 11 e com os PRs 2b e 2c. Se tiver entrado, parta dele:
+  Ele cruza com os itens 2, 3, 6, 10 e 11 e com os PRs 2b e 2c. Parta dele:
   - o item 10 troca os números escritos à mão pelos gerados e mantém o `data-n`; até lá, o item 6 atualiza o mosaico
     e a nota, porque o teste do #266 cai quando o acervo cresce;
   - o PR 2+10 tira a frase e acrescenta o espelho sugerido sem desfazer o texto novo;
