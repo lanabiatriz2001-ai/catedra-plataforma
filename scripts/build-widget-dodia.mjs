@@ -77,13 +77,22 @@ export function montar() {
   const texto = new Map();
   for (const l of leis) {
     const m = texto.get(norm(l.nome)) || new Map();
-    // leis-seca.js tem linhas espúrias de remissão ("art. 1.647 ;\nV - …", rot minúsculo): prefere a linha que é o
-    // próprio artigo (rot e txt começando por "Art."), a primeira delas; senão a de texto mais longo.
+    // Prefere a linha que é o próprio artigo (rot e txt começando por "Art."); senão a de texto mais
+    // longo. Entre entradas SEGUIDAS com o mesmo número, a última: o Planalto mantém a redação riscada
+    // logo antes da vigente, e ficar com a primeira mostrava o caput do CF art. 37 sem "eficiência"
+    // (anterior à EC 19/1998) e mais 10 artigos com o texto revogado. O mesmo número mais adiante
+    // (ADCT, outro trecho da página) não troca o do corpo: a redação seguinte só substitui a guardada
+    // quando as duas são do MESMO grupo de entradas seguidas (sem isso, as duas redações do art. 71 do
+    // ADCT punham o Fundo Social de Emergência no lugar do CF art. 71, e o 109 do ADCT no do 109).
+    let nAnterior = null, grupo = 0;
     for (const a of l.artigos || []) {
-      const n = numArt(a.rot); if (!n) continue;
+      const n = numArt(a.rot); if (!n) { nAnterior = null; continue; }
+      if (n !== nAnterior) grupo++;
       const boa = /^Art\./.test(String(a.rot)) && /^\s*Art\./.test(String(a.txt || ''));
       const ant = m.get(n);
-      if (!ant || (boa && !ant.boa) || (!boa && !ant.boa && String(a.txt || '').length > ant.txt.length)) m.set(n, { boa, txt: String(a.txt || '') });
+      const redacaoSeguinte = !!ant && ant.grupo === grupo;
+      if (!ant || (redacaoSeguinte && boa) || (boa && !ant.boa) || (!boa && !ant.boa && String(a.txt || '').length > ant.txt.length)) m.set(n, { boa, txt: String(a.txt || ''), grupo });
+      nAnterior = n;
     }
     texto.set(norm(l.nome), m);
   }
