@@ -365,6 +365,13 @@ async function toqueEscuroBaixa(pageDaSuite, base, ok, R) {
         rSelo: B.razao(document.querySelector('.ct-dono-op .ct-selo')), rEstado: B.razao(document.querySelector('[data-dono-estado]')) }; });
     ok(s.n === 2 && s.hMin >= 44, R + 'iPad no toque: as duas escolhas do dono têm ≥ 44 px (' + Math.round(s.hMin) + ' px)');
     ok(s.rMin >= 4.5 && s.rSelo >= 4.5 && s.rEstado >= 4.5, R + 'contraste do seletor ≥ 4,5:1 no escuro (texto ' + s.rMin.toFixed(2) + ', selo ' + s.rSelo.toFixed(2) + ', estado ' + s.rEstado.toFixed(2) + ')');
+
+    // o "desfazer" do aviso é a volta rápida do lote no iPad: o aviso mora no <body>, fora do
+    // [data-toque] da raiz, e o alvo de 44 px tem de vir dele mesmo (antes media uns 26 px)
+    const t = await page.evaluate(() => { window.__catedraApp._toastAcoes('Aviso de teste', [{ rotulo: 'desfazer', on: () => {} }], 8);
+      const b = [...document.querySelectorAll('[role="status"] button')].find(x => x.textContent === 'desfazer'); if (!b) return null;
+      const r = b.getBoundingClientRect(); return { h: r.height, w: r.width }; });
+    ok(!!t && t.h >= 44 && t.w >= 44, R + 'iPad no toque: o "desfazer" do aviso tem alvo de ' + (t ? Math.round(t.w) + '×' + Math.round(t.h) : 'ausente') + ' px (≥ 44)');
   } finally { await ctx.close(); }
 }
 

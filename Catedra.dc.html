@@ -15037,7 +15037,9 @@ class Component extends DCLogic {
         const sp=document.createElement('span'); sp.textContent=msg; t.appendChild(sp);
         (botoes||[]).forEach(bt=>{
           const b=document.createElement('button'); b.type='button'; b.textContent=bt.rotulo;
-          b.style.cssText='background:'+(bt.destaque?'#fff':'transparent')+';border:1px solid rgba(255,255,255,.35);color:'+(bt.destaque?'#1f2a26':'#fff')+';border-radius:99px;padding:5px 12px;font:inherit;font-size:12.5px;cursor:pointer;white-space:nowrap;';
+          b.style.cssText='background:'+(bt.destaque?'#fff':'transparent')+';border:1px solid rgba(255,255,255,.35);color:'+(bt.destaque?'#1f2a26':'#fff')+';border-radius:99px;padding:5px 12px;font:inherit;font-size:12.5px;cursor:pointer;white-space:nowrap;'
+            // o aviso mora no <body>, fora do [data-toque] da raiz: no toque, o alvo de 44 px vem daqui
+            +(this._toque?'min-height:var(--ct-alvo-toque,44px);min-width:var(--ct-alvo-toque,44px);':'');
           b.onclick=()=>{ esconder(); try{ bt.on&&bt.on(); }catch(_){} };
           t.appendChild(b);
         });
