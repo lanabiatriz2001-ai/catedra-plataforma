@@ -3741,6 +3741,13 @@ await comCadernoEnam(async (page) => {
   // medido lá embaixo, num contexto com JavaScript desligado).
   r.camposSemNome = !/<(input|select|textarea)\b[^>]*\sname=/i.test(html);
   for (const [k, v] of Object.entries(r)) ok(v, 'PÚBLICO/P15 página ' + k);
+  // Os verbetes do mosaico são o milhar cheio do juris-index.js: o "14 mil" ficou para trás quando o JURIS passou de
+  // 15 mil. Nunca acima do acervo, nunca um milhar inteiro abaixo — o rótulo diz o que trocar quando o acervo crescer.
+  {
+    const ctxJ = { window: {} }; new Function('window', fs.readFileSync(path.join(RAIZ, 'juris-index.js'), 'utf8'))(ctxJ.window);
+    const totalJ = ctxJ.window.__JURIS_IDX__.length, mil = Number((html.match(/data-n="verbetes">(\d+) mil</) || [])[1]);
+    ok(mil === Math.floor(totalJ / 1000), 'PÚBLICO/P15 o mosaico diz ' + mil + ' mil verbetes e o juris-index.js tem ' + totalJ);
+  }
   await page.goto(URL0 + '/sobre.html');
   await page.waitForFunction(() => typeof window.ctEmailValido === 'function');
   const f = await page.evaluate(async () => {
@@ -3788,6 +3795,9 @@ await comCadernoEnam(async (page) => {
     const ctxCor = await browser.newContext({ viewport: { width: 1280, height: 900 } });
     try {
       const p = await ctxCor.newPage();
+      // o mosaico tem nome para leitor de tela: aria-label num div sem papel não nomeia nada; com role="group" é um grupo nomeado
+      await p.goto(URL0 + '/sobre.html');
+      ok(await p.getByRole('group', { name: 'O acervo que está dentro do app' }).count() === 1, 'PÚBLICO/P15 o mosaico é um grupo com nome para leitor de tela');
       for (const esquema of ['light', 'dark']) {
         await p.emulateMedia({ colorScheme: esquema });
         await p.goto(URL0 + '/sobre.html');
