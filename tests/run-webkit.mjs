@@ -40,6 +40,7 @@ import { testarTemplateFileUrl } from './template-file-url.mjs';
 import { testarLoginLeitoresWeb } from './login-leitores-web.mjs';
 import { testarLoginLeitoresPublicados } from './login-leitores-publicados.mjs';
 import { testarSegurancaPerfilRelease } from './seguranca-perfil-release.mjs';
+import { testarAdminVisaoFeedback } from './admin-visao-feedback.mjs';
 import { testarLoginLeitoresAuth } from './login-leitores-auth.mjs';
 import { testarAuthModoLocal } from './auth-modo-local.mjs';
 import { testarSyncMemoriaVelha } from './sync-memoria-velha.mjs';
@@ -155,6 +156,9 @@ for (const [base, origem, arquivo] of ORIGENS) {
   if (origem === 'http') {
     await testarLoginLeitoresWeb(browser, base, ok);
     await testarSegurancaPerfilRelease(page, base, ok);
+    // console de administração no WebKit: Panorama e resposta por e-mail (semeia por /__semente)
+    try { await testarAdminVisaoFeedback(page, base, ok, { motor }); }
+    catch (e) { ok(false, 'ADMIN [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0].slice(0, 160)); }
   }
   if (origem === 'http') await testarLoginLeitoresAuth(browser, base, ok);
   if (origem !== 'bundle') {
