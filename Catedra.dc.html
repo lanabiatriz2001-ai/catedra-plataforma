@@ -6763,7 +6763,7 @@ window.ctPdfLib = (function(){
             </div>
           </div>
           <div class="ct-nota ct-nota-antes">muda tipografia, cores e formas em toda a plataforma — claro e escuro para cada uma</div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));grid-auto-rows:1fr;gap:12px;">
             <button data-dir="sutil" onclick="{{ onDir }}" style="{{ dirCardSutil }}">
               <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><div style="font-family:'Spectral',serif;font-weight:600;font-size:var(--fs-xl);color:var(--ink);">Planilha</div><sc-if value="{{ dirIsSutil }}" hint-placeholder-val="{{ true }}"><span style="width:18px;height:18px;border-radius:99px;background:var(--accentSolid);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="var(--onAccent)" stroke-width="3"><path d="M5 12l4.5 4.5L19 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></sc-if></div>
               <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:4px;line-height:1.4;">A identidade aprovada — papel, serifa, verde e navy.</div>
@@ -6803,6 +6803,18 @@ window.ctPdfLib = (function(){
               <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><div style="font-family:'Inter Tight','Inter',sans-serif;font-weight:600;font-size:var(--fs-xl);color:var(--ink);">Holo</div><sc-if value="{{ dirIsHolo }}" hint-placeholder-val="{{ false }}"><span style="width:18px;height:18px;border-radius:99px;background:var(--accentSolid);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="var(--onAccent)" stroke-width="3"><path d="M5 12l4.5 4.5L19 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></sc-if></div>
               <div style="font-size:var(--fs-xs);color:var(--text3);margin-top:4px;line-height:1.4;">Perolado com iridescência violeta→ciano→rosa.</div>
               <div style="display:flex;gap:5px;margin-top:12px;"><i style="width:22px;height:22px;border-radius:var(--r-sm);background:#8b5cf6;"></i><i style="width:22px;height:22px;border-radius:var(--r-sm);background:#0ea5e9;"></i><i style="width:22px;height:22px;border-radius:var(--r-sm);background:#ec4899;"></i></div>
+            </button>
+            <!-- Ateliê: opção FUTURA do catálogo de temas (pedido da dona, 25/11/2026). Ainda não é
+                 direção: fora de CT_DIRS, THEMES(), do CSS [data-dir] e do auth.js, sem paleta. Sem
+                 data-dir e sem onclick, nada aqui muda o tema. aria-disabled, e não disabled: o disabled
+                 escrito fixo não sobrevive ao runtime (vira texto vazio e o React o descarta); o aria-disabled
+                 deixa o cartão no Tab, anunciado como indisponível. Título na fonte do corpo (o Ateliê
+                 ainda não tem tipografia) e linha curta: com grid-auto-rows:1fr, o cartão sem função
+                 não pode ser o mais alto, senão estica os oito de verdade. -->
+            <button type="button" data-tema-futuro="atelie" aria-disabled="true" style="{{ dirCardAtelie }}">
+              <div style="font-family:inherit;font-weight:600;font-size:var(--fs-xl);color:var(--text2);">Ateliê</div>
+              <div style="font-size:var(--fs-xs);color:var(--text2);margin-top:var(--ct-e1);line-height:1.4;">Opção futura — ainda não disponível.</div>
+              <div style="display:flex;align-items:center;margin-top:var(--ct-e3);"><span class="ct-selo" style="background:var(--surface);border-color:var(--border);">em breve</span></div>
             </button>
           </div>
         </div>
@@ -22300,6 +22312,9 @@ class Component extends DCLogic {
       accentOpts: accentOpts.map(c=>({c, sel: accentSel===c, ring: accentSel===c?'0 0 0 3px var(--surface),0 0 0 5px '+c:'none'})),
       dirCardSutil:dirCard('sutil'), dirCardPremium:dirCard('premium'), dirCardClean:dirCard('clean'), dirCardModerno:dirCard('moderno'),
       dirCardAurora:dirCard('aurora'), dirCardSolar:dirCard('solar'), dirCardTerminal:dirCard('terminal'), dirCardHolo:dirCard('holo'),
+      // Ateliê (opção futura): a caixa dos irmãos (dirCard), tracejada, recuada e sem cursor de
+      // clique. opacity:1 vence o .55 do aria-disabled (catedra-ui.css §16): texto fica ≥ 4,5:1.
+      dirCardAtelie:dirCard('atelie')+'border-style:dashed;background:var(--surface2);cursor:not-allowed;opacity:1;',
       dirIsSutil:this.state.dir==='sutil', dirIsPremium:this.state.dir==='premium', dirIsClean:this.state.dir==='clean', dirIsModerno:this.state.dir==='moderno',
       dirIsAurora:this.state.dir==='aurora', dirIsSolar:this.state.dir==='solar', dirIsTerminal:this.state.dir==='terminal', dirIsHolo:this.state.dir==='holo',
       toggleDark:this.toggleDark, modeLightBtn:modeBtn(false), modeDarkBtn:modeBtn(true),

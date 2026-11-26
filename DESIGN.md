@@ -94,6 +94,8 @@ O Cátedra é uma plataforma de estudo para concurso que roda em três alvos a p
 
 A espinha é **um conjunto de tokens e oito direções visuais** que os preenchem. A direção é escolha da pessoa, não do desenvolvedor: `sutil` (Planilha, a identidade aprovada), `premium` (Tribunal), `clean` (Fibra), `moderno` (Neon), `aurora`, `solar`, `terminal`, `holo`. Cada uma traz paleta clara e escura completas, mais tipografia e raio próprios. **Nenhuma tela pode escrever cor, fonte ou raio na mão** — se escrever, ela quebra em sete das oito direções.
 
+**Opção futura do catálogo: Ateliê** — aparece em Ajustes como cartão desabilitado ("em breve"); ainda não é direção, não tem paleta e fica fora de `CT_DIRS` e `THEMES()` até ser desenhada e aprovada.
+
 Os tokens do frontmatter acima são os da direção `sutil` em modo claro: papel quente, serifa calma, verde-oliva e navy de cabeçalho. Ela é a referência quando algo precisa de um valor concreto.
 
 ## Colors

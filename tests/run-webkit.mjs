@@ -56,6 +56,7 @@ import { testarPrioridadeErrosResolvidos } from './prioridade-erros-resolvidos.m
 import { testarRevisaoFonte } from './revisao-fonte.mjs';
 import { testarVoltaOrigem } from './volta-origem.mjs';
 import { testarContrasteDestaque } from './contraste-destaque.mjs';
+import { testarTemaAtelieFuturo } from './tema-atelie-futuro.mjs';
 import { testarIconesAlvos } from './icones-alvos.mjs';
 import { testarFaixaMapaAlvos } from './faixa-mapa-alvos.mjs';
 import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
@@ -261,6 +262,10 @@ await testarCicloMagistratura(page, base, ok, { motor, origem }); } catch (e) { 
     // cópia no LEGIS são o que o iPad e o Mac pintam
     try { await testarContrasteDestaque(page, base, ok, { motor }); }
     catch (e) { ok(false, 'CONTRASTE/DESTAQUE [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
+    // o Ateliê como opção futura do catálogo de temas: o toque não muda o tema, e caixa e
+    // contraste do cartão desabilitado medidos no motor que o iPad pinta
+    try { await testarTemaAtelieFuturo(page, base, ok, { motor }); }
+    catch (e) { ok(false, 'ATELIÊ [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
     // os ícones do app, dos satélites e do portão (SVG Lucide, não emoji) e os alvos do cronômetro no toque, no motor que o
     // iPad pinta — e a nota da Prova oral, cujo fundo inválido o WebKit também descartava
     try { await testarIconesAlvos(page, base, ok, { motor }); }
