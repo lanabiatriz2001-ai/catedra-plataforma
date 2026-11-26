@@ -4595,6 +4595,9 @@ for (const [k, v] of Object.entries(sem)) ok(v, 'SEMANA ' + k);
 // no juris-index.js, e as fatias de dados/juris-text/ sem o texto dos julgados novos: o
 // atualizar-informativos.py gravava o acervo e ninguém rodava os dois geradores depois.
 {
+  const leitura = spawnSync('python3', [path.join(RAIZ, 'tests', 'informativos-leitura.py')], { encoding: 'utf8' });
+  ok(leitura.status === 0, 'INFORMATIVOS respostas oficiais, falhas, série extraordinária e preservação do acervo ('
+    + (leitura.status === 0 ? '8 casos sem rede' : (leitura.stderr || leitura.error || '').toString().slice(-1200)) + ')');
   const importacao = spawnSync('python3', [path.join(RAIZ, 'tests', 'informativos-gerados.py')], { encoding: 'utf8' });
   ok(importacao.status === 0, 'INFORMATIVOS a citação nova atualiza o widget; falha aborta e simulação preserva ('
     + (importacao.status === 0 ? '3 casos sem rede' : (importacao.stderr || importacao.error || '').toString().slice(-1200)) + ')');
@@ -4636,6 +4639,16 @@ for (const [k, v] of Object.entries(sem)) ok(v, 'SEMANA ' + k);
   ok(w.CT_SEMANA.itens.slice(0, 6).some((x) => maisNovos.includes(x.id)) || itS.slice(0, 6).every((x) => x.s === 0),
     'SEMANA os 6 itens do Início mostram a edição mais nova (topo: ' +
     w.CT_SEMANA.itens.slice(0, 6).map((x) => x.titulo.replace('Info ', '') + ' ' + x.quando.slice(0, 5)).join(', ') + ')');
+  // O STJ passou a escrever "( Tema Repetitivo 1469)" na citação do repetitivo (Info 910, 11/11/2026); até a
+  // 906 era "( Tema 1379)". Os dois são tese vinculante; a citação de tema alheio no meio do texto não é.
+  {
+    const { marcar } = await import('../scripts/lib/semana-marcadores.mjs');
+    const fp = (s) => ({ en: 'Tese do julgado.', fp: 'REsp 2.242.339-BA, Rel. Ministra Regina Helena Costa, Primeira Seção, por unanimidade, julgado em 11/11/2026' + s, ob: '', og: 'STJ. Primeira Seção' });
+    const linha = ['INF2026-STJ-910-07', 'STJ', 'informativo_stj', 910, 'Info 910 · STJ', null, 'Tema.', '11/11/2026', null, 0];
+    ok(marcar(fp(' ( Tema Repetitivo 1469).'), linha) === 'vinculante' && marcar(fp(' ( Tema repetitivo 1412).'), linha) === 'vinculante'
+      && marcar(fp(' ( Tema 1379).'), linha) === 'vinculante' && marcar(fp('.'), linha) === null,
+      'SEMANA repetitivo do STJ no formato novo ("( Tema Repetitivo 1469)") e no antigo ("( Tema 1379)") sai como tese vinculante; sem tema, sem marcador');
+  }
   const man = JSON.parse(fs.readFileSync(path.join(RAIZ, 'dados', 'juris-text', 'manifesto.json'), 'utf8'));
   ok(man.chaves === Object.keys(w.__JURIS_TXT__).length,
     'FATIAS dados/juris-text tem todos os textos do juris-text.js (' + man.chaves + ' × ' + Object.keys(w.__JURIS_TXT__).length + ')');
