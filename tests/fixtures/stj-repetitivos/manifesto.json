@@ -31,6 +31,19 @@
         "documentos": 0
       },
       "temasLidos": 0
+    },
+    "1451-1500 (25/11/2026)": {
+      "url": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?novaConsulta=true&tipo_pesquisa=T&cod_tema_inicial=1451&cod_tema_final=1500&quantidadeResultadosPorPagina=50",
+      "status": 200,
+      "bytes": 329885,
+      "sha256Resposta": "4fb361448b944247398e65cc142b0f6145c7c8712dc0142c030cf28077ead399",
+      "arquivo": "cabecalho-1451-1500-2026-11-25.html",
+      "contador": {
+        "temas": 24,
+        "documentos": 24
+      },
+      "temasLidos": 24,
+      "nota": "formato de nov/2026: a aba #tipoPrecedenteT diz \"Repetitivos (24)\", não \"Temas (24)\"; a faixa 1501–1550 respondeu \"Repetitivos (0)\" e \"0 documentos encontrados\""
     }
   },
   "amostras": {
