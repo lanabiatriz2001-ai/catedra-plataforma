@@ -329,7 +329,8 @@ const MARCA = 'CATEDRA-AUDIO-FALSO-7f3a';
    atravessa o recarregamento: normal, nativo (ponte catedraNav), semGravador e negado. */
 function instalarFalsos({ MARCA, safari }) {
   const cen = sessionStorage.getItem('__cenarioGrav') || 'normal';
-  window.__grav = { aberturas: 0, soltas: 0, mimes: [], bits: null, falharProxima: '' };
+  // segurar: o microfone só abre quando o teste chama window.__grav.soltar() (permissão demorando)
+  window.__grav = { aberturas: 0, soltas: 0, mimes: [], bits: null, falharProxima: '', segurar: false, soltar: null };
   // voz da banca de mentira: a leitura só termina quando o teste chama window.__voz.onend()
   window.SpeechSynthesisUtterance = function (t) { this.text = t; };
   try { Object.defineProperty(window, 'speechSynthesis', { configurable: true, value: { cancel() {}, speak(u) { window.__voz = u; } } }); } catch (e) {}
@@ -346,6 +347,7 @@ function instalarFalsos({ MARCA, safari }) {
     if (cen === 'negado') { const e = new Error('Permissão negada'); e.name = 'NotAllowedError'; return Promise.reject(e); }
     // um tropeço só (microfone ocupado por outro app): a próxima tentativa abre
     if (window.__grav.falharProxima) { const e = new Error('Microfone ocupado'); e.name = window.__grav.falharProxima; window.__grav.falharProxima = ''; return Promise.reject(e); }
+    if (window.__grav.segurar) return new Promise((r) => { window.__grav.soltar = () => { window.__grav.soltar = null; r(fluxo()); }; });
     return Promise.resolve(fluxo());
   };
   try { Object.defineProperty(navigator, 'mediaDevices', { configurable: true, value: { getUserMedia: gum } }); } catch (e) {}
@@ -470,7 +472,8 @@ export async function testarOralGravacao24h(pageDaSuite, base, ok, opcoes = {}) 
   const partes = { gravacao: () => gravacao(pageDaSuite, base, ok, R, motor, opcoes.arquivo),
     caminhos: () => caminhos(pageDaSuite, base, ok, R, motor, opcoes.arquivo),
     duracao: () => duracao(pageDaSuite, base, ok, R, motor, opcoes.arquivo),
-    indisponivel: () => indisponivel(pageDaSuite, base, ok, R, motor, opcoes.arquivo), janela: () => janela(pageDaSuite, base, ok, R, opcoes.arquivo) };
+    indisponivel: () => indisponivel(pageDaSuite, base, ok, R, motor, opcoes.arquivo), janela: () => janela(pageDaSuite, base, ok, R, opcoes.arquivo),
+    corrida: () => corrida(pageDaSuite, base, ok, R, motor, opcoes.arquivo) };
   for (const nome of Object.keys(partes)) {
     if (so && so !== nome) continue;
     try { await partes[nome](); } catch (e) { ok(false, R + nome + ': exceção ' + String(e && e.message || e).split('\n')[0].slice(0, 200)); }
@@ -836,6 +839,60 @@ async function indisponivel(pageDaSuite, base, ok, R, motor, arquivo) {
     m = await medir(page, '[data-grav="indisponivel"]');
     ok(!!m && /bloqueado/.test(m.texto) && (await page.locator('[data-grav="gravar"]').count()) === 0 && (await estado(page, () => window.__catedraApp.state.argGrav.estado)) === 'parada',
       R + 'microfone negado: o botão vira o motivo, nada fica girando — "' + (m && m.texto) + '"');
+  } finally { await ctx.close(); }
+}
+
+/* ---------- microfone que demora a abrir (permissão pendente): sair da sala ou pausar antes
+   de ele responder não pode deixar o microfone gravando fora da tela nem religar o relógio ---------- */
+async function corrida(pageDaSuite, base, ok, R, motor, arquivo) {
+  const { ctx, page, erros } = await contexto(pageDaSuite, { toque: true });
+  await ctx.addInitScript(instalarFalsos, { MARCA, safari: motor === 'webkit' });
+  const ler = () => estado(page, () => { const a = window.__catedraApp, g = a.state.argGrav || {};
+    return { grav: !!a._grav, abrindo: !!a._gravAbrindo, fase: a.state.argFase, rodando: a.state.argRodando, est: g.estado || '', view: a.state.view,
+      mr: window.__mrUltimo ? window.__mrUltimo.state : 'nenhum', soltas: window.__grav.soltas, seg: a.state.argSeg }; });
+  // abre a sala numa fase dada, sem relógio correndo, e toca em "Gravar" com o microfone segurado
+  const pedirMicrofone = async (id, fase) => {
+    await page.evaluate(({ id, fase }) => { const a = window.__catedraApp; window.__grav.segurar = true; window.__grav.soltas = 0; window.__mrUltimo = null;
+      a.setState({ view: 'oral', oralModo: 'bancas', argOn: true, argFim: false, argSessaoId: id, argOrigemArea: 'juridica', argOrigemConta: a._argConta(),
+        argFila: [{ id: 'q', enunciado: 'Pergunta de teste.', padrao: 'Padrão de teste.', disciplina: 'Direito Civil' }], argIdx: 0, argMin: 3, argSeg: 180, argRespostas: [],
+        argRodando: false, argFase: fase, oralQMostrarPadrao: false, argGrav: null }); }, { id, fase });
+    const sala = page.getByRole('region', { name: 'Conversa de arguição' });
+    await sala.waitFor({ timeout: 15000 });
+    await sala.locator('[data-grav="gravar"]').click();
+    await page.waitForFunction(() => typeof window.__grav.soltar === 'function', null, { timeout: 8000 });
+  };
+  // solta o microfone, espera o desfecho e mais que um tique do relógio: se algo o religasse, já teria corrido
+  const soltarEEsperar = async (cond) => {
+    await page.evaluate(() => window.__grav.soltar());
+    await page.waitForFunction(cond, null, { timeout: 8000 }).catch(() => {});
+    await page.waitForTimeout(1400);
+    return ler();
+  };
+  try {
+    await semear(page, base);
+    await page.goto(base + '/' + (arquivo || 'Catedra.dc.html'));
+    await esperarApp(page);
+    // 1) "Gravar" e, antes de o microfone responder, sai da Fase Oral
+    await pedirMicrofone('corrida-saida', 'respondendo');
+    await page.evaluate(() => window.__catedraGoView('inicio'));
+    let s = await soltarEEsperar(() => (window.__catedraApp.state.argGrav || {}).estado === 'parada');
+    ok(!s.grav && !s.abrindo && s.view !== 'oral' && s.fase === 'pausado' && s.rodando === false && s.est === 'parada' && s.mr !== 'recording' && s.soltas >= 1 && s.seg === 180,
+      R + 'saiu da sala antes de o microfone abrir: nada grava fora da tela, o microfone é solto e o relógio da arguição fica parado (' + JSON.stringify(s) + ')');
+    // 2) "Gravar" e, antes de o microfone responder, "Pausar conversa"
+    await pedirMicrofone('corrida-pausa', 'respondendo');
+    await page.getByRole('button', { name: 'Pausar conversa' }).click();
+    s = await soltarEEsperar(() => (window.__catedraApp.state.argGrav || {}).estado === 'parada');
+    ok(!s.grav && s.view === 'oral' && s.fase === 'pausado' && s.rodando === false && s.est === 'parada' && s.mr !== 'recording' && s.soltas >= 1 && s.seg === 180,
+      R + 'pausou antes de o microfone abrir: a conversa continua pausada e nada grava (' + JSON.stringify(s) + ')');
+    ok((await page.locator('[data-grav="gravar"]').count()) === 1, R + 'depois do cancelamento o botão "Gravar" volta, para tentar de novo');
+    // 3) controle: sem sair nem pausar, o microfone que demora começa a gravar e a resposta corre
+    await pedirMicrofone('corrida-controle', 'pausado');
+    s = await soltarEEsperar(() => (window.__catedraApp.state.argGrav || {}).estado === 'gravando');
+    ok(s.grav && s.est === 'gravando' && s.mr === 'recording' && s.fase === 'respondendo' && s.rodando === true && s.seg < 180,
+      R + 'sem sair nem pausar, o microfone que demora grava e a resposta corre ("gravar é responder") (' + JSON.stringify(s) + ')');
+    await page.evaluate(() => window.__catedraApp.argGravarToggle());
+    await page.waitForFunction(() => /guardada|nao-guardada/.test((window.__catedraApp.state.argGrav || {}).estado || ''), null, { timeout: 8000 }).catch(() => {});
+    ok(erros.length === 0, R + 'corrida do microfone sem erro na página (' + (erros[0] || 'nenhum') + ')');
   } finally { await ctx.close(); }
 }
 

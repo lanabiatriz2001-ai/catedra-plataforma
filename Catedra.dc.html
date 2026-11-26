@@ -15304,7 +15304,10 @@ class Component extends DCLogic {
     const G=this._gravMod(), st=this.state;
     if(!G||this._gravAbrindo||!st.argOn||st.argFim||st.oralQMostrarPadrao||!st.argSessaoId||!this._gravSuporte().ok) return;
     const ctx={sessaoId:st.argSessaoId, idx:st.argIdx, conta:this._argConta(), area:st.areaEstudo||'juridica'}, chave=G.chave(ctx.sessaoId,ctx.idx);
-    this._gravAbrindo=true; this.setState({argGrav:{estado:'abrindo',chave}});
+    // cada pedido de microfone tem número: sair da sala, pausar ou encerrar enquanto ele abre
+    // cancela o pedido (_gravCancelarAbertura), e o microfone que chega depois é descartado
+    this._gravAbrindo=true; const pedido=this._gravPedido=(this._gravPedido||0)+1; this.setState({argGrav:{estado:'abrindo',chave}});
+    const cancelado=()=>pedido!==this._gravPedido;
     // só microfone recusado ou ausente troca o botão pelo motivo; o tropeço passageiro (microfone
     // ocupado por outro app) devolve o botão com o aviso, para tentar de novo
     const recusou=(e)=>{ this._gravAbrindo=false; const f=G.falhaDoErro(e);
@@ -15315,21 +15318,25 @@ class Component extends DCLogic {
     let meu=null;
     G.loja.total().then(total=>{
       if(!G.cabe(total)){ this._gravAbrindo=false; this.setState({argGrav:{estado:'cheio',chave}}); return; }
+      // cancelado antes de pedir o microfone: nem chega a abrir (a luz do microfone não acende)
+      if(cancelado()){ this._gravAbrindo=false; this.setState({argGrav:{estado:'parada',chave}}); return; }
       let tipo=''; try{ const a=document.createElement('audio'); tipo=G.escolherTipo(t=>window.MediaRecorder.isTypeSupported(t), t=>a.canPlayType(t)); }catch(_){}
       return G.gravar({md:navigator.mediaDevices, MR:window.MediaRecorder, tipo, aoTique:()=>this.setState({argGravTick:Date.now()}), aoTerminar:(r)=>{ if(meu&&this._grav===meu) this._grav=null; this._gravGuardar(ctx,r); }}).then(c=>{
         this._gravAbrindo=false;
-        // a pergunta mudou enquanto o microfone abria: nada se grava no lugar errado
-        if(!this.state.argOn||this.state.argSessaoId!==ctx.sessaoId||this.state.argIdx!==ctx.idx||this.state.oralQMostrarPadrao){ c.parar('descartar'); return; }
+        // a pessoa saiu da sala, pausou ou a pergunta mudou enquanto o microfone abria: nada se
+        // grava fora da tela nem no lugar errado, e o relógio da arguição não volta a correr
+        if(cancelado()||this.state.view!=='oral'||!this.state.argOn||this.state.argFim||this.state.argSessaoId!==ctx.sessaoId||this.state.argIdx!==ctx.idx||this.state.oralQMostrarPadrao){ c.parar('descartar'); return; }
         meu=c; this._grav=c;
         if(this.state.argFase!=='respondendo') this.argMinhaVez();   // gravar é responder: a leitura da banca para
         this.setState({argGrav:{estado:'gravando',chave}});
       }, recusou);
     }).catch(()=>{ this._gravAbrindo=false; if(!this._grav) this.setState({argGrav:{estado:'parada',chave}}); });
   };
-  _gravParar(motivo){ const c=this._grav; if(!c) return; this._grav=null; this.setState({argGrav:{estado:'salvando',chave:(this.state.argGrav||{}).chave}}); try{ c.parar(motivo||'manual'); }catch(_){} }
+  _gravCancelarAbertura(){ if(this._gravAbrindo) this._gravPedido=(this._gravPedido||0)+1; }
+  _gravParar(motivo){ this._gravCancelarAbertura(); const c=this._grav; if(!c) return; this._grav=null; this.setState({argGrav:{estado:'salvando',chave:(this.state.argGrav||{}).chave}}); try{ c.parar(motivo||'manual'); }catch(_){} }
   // pausar a conversa pausa a gravação (o arquivo segue um só); sem pause() no navegador, fecha e guarda.
   // Só pausa o que está gravando: pausar de novo uma gravação já pausada não pode encerrá-la.
-  _gravPausar(){ const c=this._grav; if(!c||c.estado()!=='recording') return; if(c.pausar()) this.setState({argGrav:{...(this.state.argGrav||{}),estado:'pausada'}}); else this._gravParar('pausa'); }
+  _gravPausar(){ this._gravCancelarAbertura(); const c=this._grav; if(!c||c.estado()!=='recording') return; if(c.pausar()) this.setState({argGrav:{...(this.state.argGrav||{}),estado:'pausada'}}); else this._gravParar('pausa'); }
   _gravRetomar(){ const c=this._grav; if(c&&c.retomar()) this.setState({argGrav:{...(this.state.argGrav||{}),estado:'gravando'}}); }
   _gravGuardar(ctx,r){
     const G=this._gravMod(), chave=G?G.chave(ctx.sessaoId,ctx.idx):'';
