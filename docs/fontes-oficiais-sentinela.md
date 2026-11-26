@@ -491,6 +491,36 @@ oficial" (dialog `#ct-revisao-oficial`). O painel é da sessão "Interface de at
 oficial" e vem empilhado sobre este trabalho (branch `revisao-oficial-transversal`). Quando ele
 entrar, o mesmo botão passa a abrir o painel.
 
+> Em 07/10/2026 (commit `adadbab`, "Simplifica início…") esse bloco saiu do template do Início; os
+> dados continuam no render e na Central. Desde 25/11/2026, o Início só mostra um chip, descrito
+> abaixo.
+
+### No Início — chip "conferidas aguardando o acervo" (25/11/2026)
+
+Um chip na fileira do cabeçalho do Início, ao lado da ofensiva e do ENAM: "N novidade(s)
+conferida(s) aguardando o acervo →". Conta os itens que a pessoa marcou como conferidos e que o motor
+ainda não incorporou (`conferidosAguardando` em `revisao-oficial.js`, sobre o `statusItem`): item já
+"No acervo" não conta, e item de comparação parcial não conta nem conferido, porque o motor nunca dá
+baixa em item parcial (`mesclarNovidades`) e o aviso ficaria aceso para sempre. Some com zero. O
+toque abre a Central já filtrada nesses itens (filtro "Situação", só de tela) e desce até esse
+filtro, com os itens logo abaixo. O filtro e o chip usam a mesma régua (`aguardaAcervo`): a lista
+filtrada mostra exatamente os itens que o chip conta. Entrar na Central por outro caminho (menu,
+paleta, notificação, também saindo do LEGIS ou do JURIS da web) desliga o filtro. Só a pílula
+"Voltar à Central de novidades" do LEGIS e do JURIS o mantém: `_voltarDoAcervo` diz ao `_irPara`
+o recorte em que a Central estava, e o `_irPara` não adivinha pela tela de partida. A marca não
+incorpora nada: incorporar continua sendo do motor, depois de conferido na fonte. Com baixa
+estimulação o chip continua, porque informa sobre o acervo e não cobra nada da pessoa.
+
+Limite: o chip conta os itens que o app conhece — os do pacote publicado (`novidades.js`) e os da
+busca ao vivo DESTA sessão, que não são gravados. Item da busca ao vivo marcado como conferido acende
+o chip até o app fechar; ao reabrir (ou no outro aparelho, que recebe a marca pelo sync), o item não
+está mais no app e o chip não o conta. Com o pacote ainda vazio, é o caso de toda novidade hoje.
+Guardar esses itens é decisão pendente da dona (25/11/2026). Na lei do Planalto e no Informativo, a
+busca ao vivo nunca devolve o item como "No acervo": quando o acervo recebe o texto (ou a edição),
+ela só deixa de trazê-lo. Tema e súmula podem voltar "No acervo" (o `juris-index.js` vai junto com a
+função). Por isso, uma cópia guardada precisaria de uma regra de saída, senão o chip ficaria aceso
+depois da incorporação.
+
 ### Central de novidades — em "Mais opções"
 
 Fica em "Mais opções" no menu lateral e na paleta de comandos, só nas mesmas áreas do bloco do
@@ -517,6 +547,25 @@ Início. O título da tela é "Central de novidades"; abaixo de 900 px de largur
   conferir.
 - "Abrir o texto oficial" só aceita `https` em `planalto.gov.br`, `stf.jus.br` e `stj.jus.br`. No
   Mac e no iPad, abre no navegador do sistema.
+- Cada item diz, abaixo de "detectada em", a última varredura do diário dele, com data e hora do
+  último sucesso. Vale o diário da coleção do item (Informativo, repercussão geral, repetitivos,
+  súmulas) quando o pacote o traz, e a frase a nomeia: "Última varredura da coleção Repercussão
+  geral (STF): …". A data dela não é a da fonte, que o cartão da fonte mostra ao lado com outro
+  valor (uma coleção que falha deixa a fonte inteira "Falhou"). Sem diário da coleção, vale o da
+  fonte: "Última varredura da fonte: …". Se esse sucesso foi uma leitura parcial (resultado
+  `parcial`, que move o último sucesso com uma lacuna nomeada), a data ganha "(leitura parcial)".
+  Se a última tentativa falhou depois do sucesso, a frase continua com "· última tentativa falhou
+  em <data e hora>"; sem sucesso registrado, "nenhuma concluída"; sem dado no pacote, "não
+  informada". A régua é `varreduraItem` e `varreduraTxt` de `revisao-oficial.js`. Falha do pedido
+  inteiro feita neste aparelho (sem rede, servidor fora) o host grava só no diário da fonte; o item
+  de coleção a reconhece por ser mais nova que o diário de todas as coleções (o motor carimba cada
+  coleção que roda com a data da fonte) e mostra o último sucesso da coleção com "· última tentativa
+  falhou em …". Coleção que ficou fora de uma rodada filtrada não herda a falha de outra.
+- Com item conferido fora do acervo, os filtros ganham "Situação: Conferidas aguardando o acervo ·
+  N", o mesmo recorte do chip do Início. Estado só de tela (não grava nada).
+- O painel "Revisão oficial" mostra a mesma frase, na data curta do painel, e o link "Fonte
+  oficial" (mesma lista de hosts, por `urlSegura`), que abre fora do app. O painel lê só o pacote
+  publicado: item da busca ao vivo aparece na Central, não no painel.
 - "Abrir no LEGIS" usa o mesmo canal das revisões: abre a aba nativa no Mac e no iPad e mantém a
   volta à origem. Informativo ainda não incorporado não tem botão de acervo, só o texto oficial.
 - "Agendar revisão" só age com clique, uma vez por novidade, e pode ser desfeita. Nada muda no
@@ -759,9 +808,14 @@ carregado pelo host, pelo `legis-web.html` e pelo `juris-web.html`. Ele dá o vo
   botão "Ver revisão oficial" do resumo do Início (PR #175). Filtros Todos / Precisa revisar / LEGIS /
   JURIS / Falhas e parciais; "Cobertura e limites" sempre visível.
 - **LEGIS**: aba "Mudanças oficiais" — agrupada por norma, texto anterior × atual com só o trecho
-  mudado destacado, vigência futura, "Detectado no Planalto em …".
+  mudado destacado, vigência futura, "Detectado no Planalto em …" e, desde 25/11/2026, a frase da
+  última varredura do item (a mesma do painel).
 - **JURIS**: aba "Informativos oficiais" — fila editorial por tribunal (e ramo, quando o item traz),
-  com "Ver no acervo", "Registro oficial" e "Marcar como conferido".
+  com a frase da última varredura do item, "Ver no acervo", "Registro oficial" e "Marcar como
+  conferido".
+- Nos três, o link da fonte ("Fonte oficial", "Ver no Planalto", "Registro oficial") só sai para
+  `https` de host oficial (`fonteUrl`, por `urlSegura`); endereço `http` ou de outro host fica sem
+  link.
 - Abrir de um item no host leva `?oficial=<id>` (1ª carga) ou `ctOficialAbrir` (iframe vivo); o
   satélite marca pedindo ao host `ctOficialMarcar` (o host é o dono de `catedra:novidLidas`).
 

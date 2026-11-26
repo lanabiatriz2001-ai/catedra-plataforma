@@ -576,10 +576,13 @@ function renderOficial(){
         +'<div class="ct-of-linha">'+sel.join('')+'</div>'
         +'<div class="ct-of-titulo" style="margin-top:6px">'+R.esc(i.rotulo||i.disp||i.titulo)+'</div>'
         +'<div class="ct-of-meta">Detectado no Planalto em '+R.esc(i.quando)+(i.parcial?' · comparação parcial (artigo no teto de tamanho)':'')+'</div>'
+        // a última varredura do diário do item, na mesma frase do painel do Cátedra (revisao-oficial.js)
+        +(i.varreduraTxt?'<div class="ct-of-meta" data-of-varredura>'+R.esc(i.varreduraTxt)+'</div>':'')
         +'<div class="ct-of-resumo">'+R.esc(i.resumo)+'</div>'+cmp
         +'<div class="ct-of-acoes"><button type="button" class="ct-of-btn" data-of-abrir="'+R.esc(i.id)+'">Abrir no leitor</button>'
         +(i.podeMarcar?'<button type="button" class="ct-of-btn" data-of-marcar="'+R.esc(i.id)+'" data-st="'+(conf?'conferir':'conferido')+'" aria-pressed="'+(conf?'true':'false')+'">'+(conf?'Manter em revisão':'Marcar como conferido')+'</button>':'')
-        +(i.urlOficial?'<a class="ct-of-btn" href="'+R.esc(i.urlOficial)+'" target="_blank" rel="noopener">Ver no Planalto<span class="ct-sr"> (abre fora do app)</span></a>':'')+'</div></article>';
+        // só https de host oficial vira link (fonteUrl, já conferido pelo módulo): o endereço vem do pacote
+        +(i.fonteUrl?'<a class="ct-of-btn" href="'+R.esc(i.fonteUrl)+'" target="_blank" rel="noopener">Ver no Planalto<span class="ct-sr"> (abre fora do app)</span></a>':'')+'</div></article>';
     });
     h+='</div>';
   });

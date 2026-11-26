@@ -69,6 +69,7 @@ import { testarMenuLateral } from './menu-lateral.mjs';
 import { testarImportadorEdital } from './importador-edital.mjs';
 import { testarEditalPorConcurso } from './edital-por-concurso.mjs';
 import { testarNovidadesCentral } from './novidades-central.mjs';
+import { testarSentinelaVarreduraAviso } from './sentinela-varredura-aviso.mjs';
 import { testarSemDodEstatico, testarSemDodNavegador } from './sem-dod.mjs';
 import { testarMigracaoL4Navegador } from './teses-oficiais.mjs';
 import { testarSemMapasMentaisEstatico, testarSemMapasMentaisNavegador } from './sem-mapas-mentais.mjs';
@@ -257,6 +258,9 @@ await testarCicloMagistratura(page, base, ok, { motor, origem }); } catch (e) { 
     // selos, 44 px no toque, nada de lado a 390 e a busca ao vivo (falha nunca vira "nada de novo")
     try { await testarNovidadesCentral(page, base, ok, { motor, origem }); }
     catch (e) { ok(false, 'NOVIDADES [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
+    // a varredura por item e o chip do Início no motor do iPad: data local em UTC−4, 44 px no toque, escuro
+    try { await testarSentinelaVarreduraAviso(page, base, ok, { motor }); }
+    catch (e) { ok(false, 'VARREDURA/AVISO [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
     // o texto sobre o destaque medido no motor da Apple: gradiente, color-mix e os tokens por
     // cópia no LEGIS são o que o iPad e o Mac pintam
     try { await testarContrasteDestaque(page, base, ok, { motor }); }
