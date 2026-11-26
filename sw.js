@@ -121,10 +121,13 @@ if (!IS_PROD) {
   var ACERVOS_SOB_PEDIDO = [];
   /*__ACERVOS_SOB_PEDIDO__*/
 
-  // Teto do aquecimento. Hoje a lista soma ~11 MB e cabe inteira; o teto existe
+  // Teto do aquecimento. Em 06/11/2026 a lista soma 14.681.423 bytes:
+  // as edições STF 1235/STJ 908 fizeram o índice ultrapassar 14 MiB em 1.359 bytes.
+  // 15 MiB preservam a busca JURIS offline, com a trava de espaço livre abaixo.
+  // O teto existe
   // para o dia em que alguém acrescentar um acervo grande sem medir — aí a cauda
   // da lista é cortada em silêncio, em vez de o cache do app estourar a cota.
-  var ORCAMENTO_ACERVO = 14 * 1024 * 1024;
+  var ORCAMENTO_ACERVO = 15 * 1024 * 1024;
   // Quando é ela quem manda baixar, o teto sobe para caber a camada 3 — mas a
   // trava da cota (abaixo) continua valendo: pedido dela não cria espaço no aparelho.
   var ORCAMENTO_PEDIDO = 42 * 1024 * 1024;
