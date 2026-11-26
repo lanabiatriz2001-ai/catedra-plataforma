@@ -344,6 +344,40 @@ export async function testarSyncEdicaoPendente(pageDaSuite, base, ok, opcoes = {
       R + '(e) e nenhuma lápide cai na revisão que o outro aparelho criou (lápides=' + (r.lapides || 'nenhuma') + ')');
   });
 
+  for (const evento of ['pagehide', 'visibilitychange']) {
+    if (!roda('g')) continue;
+    await caso(ok, R + '(g) ' + evento, aparelho, async (page) => {
+      const campo = '[data-red="folha"] textarea';
+      await page.evaluate(() => window.__catedraGoView('redacao'));
+      await page.waitForSelector(campo);
+      const texto = evento === 'pagehide' ? 'Última frase antes de fechar.' : '';
+      const resultado = await page.evaluate(({ campo, evento, texto }) => {
+        const folha = document.querySelector(campo);
+        folha.value = texto;
+        folha.dispatchEvent(new Event('input', { bubbles: true }));
+        const lerTexto = () => JSON.parse(localStorage.getItem('catedra:redText'));
+        const anterior = lerTexto();
+        if (evento === 'visibilitychange') {
+          Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'hidden' });
+          document.dispatchEvent(new Event(evento));
+        } else {
+          window.dispatchEvent(new Event(evento));
+        }
+        const gravado = lerTexto();
+        window.dispatchEvent(new Event('pagehide'));
+        return { anterior, gravado, repetido: lerTexto() };
+      }, { campo, evento, texto });
+      ok(resultado.anterior !== texto && resultado.gravado === texto && resultado.repetido === texto,
+        R + '(g) ' + evento + ' grava a última entrada antes do temporizador');
+      const contexto = page.context();
+      await page.close();
+      const nova = await contexto.newPage();
+      await nova.goto(base + '/__semente');
+      ok(await nova.evaluate(() => JSON.parse(localStorage.getItem('catedra:redText'))) === texto,
+        R + '(g) ' + evento + ' conserva a edição ao reabrir o armazenamento');
+    });
+  }
+
   // (f) a fresta do render, no app sem a camada de sync (a nuvem é imitada como em
   //     tests/sync-memoria-velha.mjs: grava a chave e avisa)
   if (roda('f')) await caso(ok, R + '(f)', async () => {
