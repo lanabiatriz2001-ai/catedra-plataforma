@@ -62,7 +62,8 @@
           signInWithOAuth: function (a) { chamou('signInWithOAuth', a.options.redirectTo); return Promise.resolve({ data: {}, error: null }); },
           resetPasswordForEmail: function (em, opcoes) { chamou('resetPasswordForEmail', { email: em, retorno: opcoes.redirectTo }); return Promise.resolve({ data: {}, error: null }); },
           updateUser: function () { return Promise.resolve({ data: {}, error: null }); },
-          signOut: function () { chamou('signOut'); try { localStorage.removeItem('__ct:sessao'); } catch (_) {} return Promise.resolve({ error: null }); },
+          // __ct:signOutAtraso (ms): a saída demora esse tanto — abre a janela entre o "Não aceito" confirmado e o reload
+          signOut: function () { chamou('signOut'); try { localStorage.removeItem('__ct:sessao'); } catch (_) {} var atraso = +cfg('signOutAtraso', 0) || 0; return atraso ? new Promise(function (res) { setTimeout(function () { res({ error: null }); }, atraso); }) : Promise.resolve({ error: null }); },
           getUser: function () { return Promise.resolve({ data: { user: null }, error: null }); }
         },
         /* PREGUIÇOSO como o postgrest-js de verdade: select/upsert/insert/update/delete só
