@@ -469,9 +469,11 @@ para fevereiro/2027); ciclo 2027.1 com edital previsto para março e prova para 
         sem data-limite. Propostas da revisão: apagar até 30 dias depois do envio e nunca guardar
         mais de 12 meses contados do pedido (ou uma data fixa, como 31/05/2027). O número muda a §3,
         a §9.5 e a linha de consentimento da página.
-      - **Ordem da instalação**: mesclar; a sessão instaladora builda e instala Mac e iPad no mesmo
-        dia; só depois aceitar a 1.3. Com o build antigo, depois de aceitar no site, o portão volta a
-        cada abertura: aceitar de novo, nunca tocar em "Não aceito" (no build antigo, ele apaga o que
+      - **Ordem da instalação**: (1) mesclar o PR #268 (portão de aceite); (2) a sessão instaladora
+        builda e instala Mac e iPad com ele — é esse build que passa a aceitar a versão mais nova;
+        (3) mesclar este PR; (4) instalar de novo; (5) só então aceitar a 1.3, em qualquer lugar.
+        Num aparelho que ficou sem o passo 2, depois de aceitar no site o portão volta a cada
+        abertura: aceitar de novo, nunca tocar em "Não aceito" (no build antigo, ele apaga o que
         ainda não subiu).
 - [ ] **Banco de Espelhos — antes de divulgar o link** (`banco-espelhos-venda.html`, rota
       `/banco-de-espelhos`):
