@@ -1,0 +1,167 @@
+"""Regressões do formato oficial de 06/11/2026; nenhuma chamada de rede."""
+import importlib.util
+import json
+from pathlib import Path
+import tempfile
+import unittest
+from unittest.mock import patch
+
+RAIZ = Path(__file__).resolve().parent.parent
+FIXTURES = RAIZ / 'tests/fixtures/informativos/2026-11-06'
+NOV25 = RAIZ / 'tests/fixtures/informativos/2026-11-25'
+spec = importlib.util.spec_from_file_location('importador', RAIZ / 'scripts/atualizar-informativos.py')
+m = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(m)
+
+
+def fixture(nome):
+    return (FIXTURES / (nome + '.html')).read_bytes()
+
+
+class LeituraOficial(unittest.TestCase):
+    def test_respostas_reais_identificam_edicao_e_extraordinaria(self):
+        for p in json.loads((FIXTURES / 'manifesto.json').read_text())['paginas']:
+            with self.subTest(p=p['arquivo']):
+                raw = (FIXTURES / p['arquivo']).read_bytes()
+                self.assertEqual(m.edicao_na_pagina(p['fonte'], p['status'], raw, p['numero'], p['extra']), p['estado'])
+                if not p['julgados']:
+                    continue
+                recs = m.parse_stf(p['numero'], raw) if p['fonte'] == 'stf' else m.parse_stj(f"{p['numero']:04d}{'E' if p['extra'] else ''}", raw)
+                self.assertEqual(len(recs), p['julgados'])
+                self.assertEqual(len(set(r['id'] for r in recs)), len(recs))
+                self.assertTrue(all(r['url'] == p['url'] and r['enunciado'] and r['observacao'] for r in recs))
+                self.assertTrue(all('\ufffd' not in json.dumps(r, ensure_ascii=False) for r in recs))
+                if p['fonte'] == 'stj':
+                    with self.assertRaises(RuntimeError):
+                        m.edicao_na_pagina('stj', 200, raw, p['numero'] + 1, p['extra'])
+                    with self.assertRaises(RuntimeError):
+                        m.edicao_na_pagina('stj', 200, raw, p['numero'], not p['extra'])
+
+    def test_formato_de_25_11_titulo_cortado_propostas_e_julgado_sem_ramo(self):
+        """STF 1236 com o título cortado em "Nº"; STJ 910 com a seção de propostas de
+        relevância (sem Destaque) e um julgado sem o campo Ramo do Direito."""
+        man = {p['arquivo']: p for p in json.loads((NOV25 / 'manifesto.json').read_text())['paginas']}
+        stf = (NOV25 / 'stf-1236.html').read_bytes()
+        self.assertNotRegex(stf.decode('latin1').split('<title>')[1].split('</title>')[0], r'\d{4}\s*$')
+        self.assertEqual(m.edicao_na_pagina('stf', 200, stf, 1236), 'existe')
+        self.assertEqual(len(m.parse_stf(1236, stf)), man['stf-1236.html']['julgados'])
+        # O cabeçalho do corpo só vale para a edição que ele mesmo declara.
+        with self.assertRaisesRegex(RuntimeError, 'sem o número pedido'):
+            m.edicao_na_pagina('stf', 200, stf, 1237)
+        # Título com o número de outra edição não é salvo pelo corpo.
+        outro = stf.replace(b'</title>', b' 1230</title>', 1)
+        with self.assertRaisesRegex(RuntimeError, 'sem o número pedido'):
+            m.edicao_na_pagina('stf', 200, outro, 1236)
+        # Número só em remissão ou citação, sem o cabeçalho no início do corpo, não identifica.
+        sem_cab = stf.replace(b'1236/2026', b'9999/2026', 1)
+        self.assertIn(b'1236/2026', sem_cab)
+        with self.assertRaisesRegex(RuntimeError, 'sem o número pedido'):
+            m.edicao_na_pagina('stf', 200, sem_cab, 1236)
+
+        stj = (NOV25 / 'stj-0910.html').read_bytes()
+        p = man['stj-0910.html']
+        self.assertEqual(m.edicao_na_pagina('stj', 200, stj, 910), 'existe')
+        recs = m.parse_stj('0910', stj)
+        self.assertEqual((len(recs), p['propostas']), (12, 5))
+        self.assertEqual(len(recs) + p['propostas'], stj.count(b'clsIdentificaProcesso'))
+        self.assertEqual([r['id'] for r in recs], [f'INF2026-STJ-910-{i:02d}' for i in range(1, 13)])
+        self.assertEqual([r['id'] for r in recs if not r['ramoDireito']], ['INF2026-STJ-910-07'])
+        sem_ramo = recs[6]
+        self.assertIn('Tema Repetitivo 1469', sem_ramo['fontePublicacao'])
+        self.assertTrue(len(sem_ramo['enunciado']) > 40 and sem_ramo['observacao'] and sem_ramo['data'] == '11/11/2026')
+        self.assertFalse(any('acolheu a proposta' in r['enunciado'] for r in recs))
+        # Fora da seção de propostas, bloco sem Destaque continua sendo falha — mesmo sem o rótulo
+        # "Informações do Inteiro Teor", que é como uma proposta aparece: só a seção decide o pulo.
+        with self.assertRaisesRegex(RuntimeError, 'bloco 1 com campos ausentes'):
+            m.parse_stj('0910', stj.replace(b'>Destaque</div>', b'>Campo alterado</div>', 1))
+        sem_tese = stj.replace(b'>Destaque</div>', b'>Campo alterado</div>', 1).replace(b'Informa\xe7\xf5es do Inteiro Teor', b'Outro campo', 1)
+        self.assertNotIn(b'>Destaque</div>', sem_tese.split(b'clsIdentificaProcesso')[1])
+        with self.assertRaisesRegex(RuntimeError, 'bloco 1 com campos ausentes'):
+            m.parse_stj('0910', sem_tese)
+        # Rótulo de ramo presente e ilegível é falha, não "sem ramo".
+        with self.assertRaisesRegex(RuntimeError, 'bloco 1 com campos ausentes'):
+            i = stj.index(b'Ramo do Direito')
+            m.parse_stj('0910', stj[:i] + stj[i:].replace(b'divCell clsInformativoTexto', b'divCell clsOutraClasse', 1))
+        self.assertEqual(m.edicao_na_pagina('stj', 200, (NOV25 / 'stj-0912.html').read_bytes(), 912), 'nao-existe')
+        # O rótulo do ramo não depende de maiúsculas ("Ramo do direito", como no Portal de Precedentes);
+        # rótulo que deixa de ser reconhecido em mais de um julgado é falha, não edição "sem ramo".
+        rotulo = b'clsInformativoLabel">Ramo do Direito</div>'
+        minuscula = m.parse_stj('0910', stj.replace(rotulo, b'clsInformativoLabel">Ramo do direito</div>'))
+        self.assertEqual([r['id'] for r in minuscula if not r['ramoDireito']], ['INF2026-STJ-910-07'])
+        with self.assertRaisesRegex(RuntimeError, 'julgados sem "Ramo do Direito"'):
+            m.parse_stj('0910', stj.replace(rotulo, b'clsInformativoLabel">Ramificacao</div>'))
+
+    def test_falhas_http_e_respostas_incompletas_nao_sao_ausencia(self):
+        for status in (0, 403, 429, 500, 503):
+            with self.subTest(status=status), self.assertRaisesRegex(RuntimeError, 'HTTP'):
+                m.edicao_na_pagina('stj', status, b'', 908)
+        for h in ('<title>Request Rejected</title>', '<title>STJ - Informativo de Jurisprudência</title>',
+                  '<title>STJ - Informativo de Jurisprudência</title><option>Informativo nº 908</option>'):
+            with self.subTest(h=h), self.assertRaises(RuntimeError):
+                m.edicao_na_pagina('stj', 200, h.encode('latin1'), 908)
+        self.assertEqual(m.edicao_na_pagina('stf', 404, b'', 1236), 'nao-existe')
+
+    def test_bloco_incompleto_nao_some_silenciosamente(self):
+        raw = fixture('stj-0908').replace(b'>Destaque</div>', b'>Campo alterado</div>', 1)
+        with self.assertRaisesRegex(RuntimeError, 'campos ausentes'):
+            m.parse_stj('0908', raw)
+        with self.assertRaisesRegex(RuntimeError, 'blocos de julgamento'):
+            m.parse_stj('0908', fixture('stj-0908').replace(b'divTabela clsIdentificaProcesso', b'divTabela outra clsIdentificaProcesso', 1))
+
+    def test_textos_completos_e_data_do_primeiro_dia(self):
+        recs = m.parse_stj('0908', fixture('stj-0908'))
+        self.assertEqual(recs[0]['data'], '01/09/2026')
+        self.assertTrue(any(len(r['observacao']) > 1500 for r in recs))
+        self.assertTrue(recs[-1]['observacao'].endswith('ausência de contato físico.'))
+
+    def test_coleta_confere_ancora_e_so_para_por_ausencia(self):
+        respostas = [(200, fixture('stj-0907')), (200, fixture('stj-0908')),
+                     (200, fixture('stj-0909')), (200, fixture('stj-0909'))]
+        with patch.object(m, 'get', side_effect=respostas) as buscar, patch.object(m.time, 'sleep'):
+            self.assertEqual(len(m.coletar_serie('stj', 907)), 10)
+            self.assertEqual(buscar.call_count, 4)
+        with patch.object(m, 'get', side_effect=respostas[:1] + [(503, b'')]), patch.object(m.time, 'sleep'):
+            with self.assertRaisesRegex(RuntimeError, 'edição 908: HTTP 503'):
+                m.coletar_serie('stj', 907)
+        with patch.object(m, 'get', return_value=(200, fixture('stj-0909'))):
+            with self.assertRaisesRegex(RuntimeError, 'âncora'):
+                m.coletar_serie('stj', 907)
+        with patch.object(m, 'get', side_effect=respostas[:2]), patch.object(m.time, 'sleep'), patch.object(m, 'MAXED', 1):
+            with self.assertRaisesRegex(RuntimeError, 'limite'):
+                m.coletar_serie('stj', 907)
+        # Duas extraordinárias novas não podem travar a importação no terceiro probe.
+        # A descoberta é simulada aqui; o parsing extraordinário usa o HTML real acima.
+        with patch.object(m, 'ler_edicao', side_effect=[[{'id': 'ancora'}], [{'id': 'ee34'}], [{'id': 'ee35'}], None, None]) as ler, patch.object(m.time, 'sleep'):
+            self.assertEqual(m.coletar_serie('stj', 33, True), [{'id': 'ee34'}, {'id': 'ee35'}])
+            self.assertEqual(ler.call_args.args, ('stj', 37, True))
+
+    def test_falha_de_uma_fonte_preserva_acervo_e_nao_gera_derivados(self):
+        with tempfile.TemporaryDirectory() as d:
+            idx = Path(d) / 'juris-index.js'
+            txt = Path(d) / 'juris-text.js'
+            idx.write_text('window.__JURIS_IDX__ = ' + json.dumps([
+                ['INF2026-STF-1234-01', 'STF', 'informativo_stf', 1234],
+                ['INF2026-STJ-907-01', 'STJ', 'informativo_stj', 907],
+                ['INF2026-STJ-EE33-01', 'STJ', 'informativo_stj', 33]]) + ';')
+            txt.write_text('window.__JURIS_TXT__ = {};')
+            antes = (idx.read_bytes(), txt.read_bytes())
+            with patch.object(m, 'IDX', str(idx)), patch.object(m, 'TXT', str(txt)), \
+                 patch.object(m, 'coletar_serie', side_effect=[[{'id': 'novo'}], RuntimeError('bloqueio HTTP 403'), []]), \
+                 patch.object(m.subprocess, 'run') as gerar:
+                with self.assertRaisesRegex(RuntimeError, 'consulta incompleta; acervo preservado'):
+                    m.main()
+                gerar.assert_not_called()
+            self.assertEqual((idx.read_bytes(), txt.read_bytes()), antes)
+
+    def test_erro_de_rede_final_e_5xx_nao_viram_zero(self):
+        with patch.object(m.urllib.request, 'urlopen', side_effect=m.urllib.error.URLError('DNS')), patch.object(m.time, 'sleep'):
+            with self.assertRaisesRegex(RuntimeError, 'falha de rede'):
+                m.get('https://processo.stj.jus.br/teste')
+        erro = m.urllib.error.HTTPError('https://processo.stj.jus.br/teste', 503, 'indisponível', {}, None)
+        with patch.object(m.urllib.request, 'urlopen', side_effect=erro) as abrir, patch.object(m.time, 'sleep'):
+            self.assertEqual(m.get('https://processo.stj.jus.br/teste'), (503, b''))
+            self.assertEqual(abrir.call_count, m.RETRY_MAX + 1)
+
+
+if __name__ == '__main__':
+    unittest.main()

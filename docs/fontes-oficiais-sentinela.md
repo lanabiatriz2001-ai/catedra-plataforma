@@ -224,28 +224,49 @@ Datas por fonte:
 
 ### Nos informativos
 
-- A edição é reconhecida pelo número pedido no título da página (`<title>`, lido em latin1):
-  "Informativo de Jurisprudência n. N" no STJ, "Edição Extraordinária n. N" na extraordinária e
-  "Nº N" no STF. Marcadores do corpo da página e tamanho não contam.
-- Âncora: antes das edições novas, o motor consulta a última edição do acervo (no STJ, também a
-  última extraordinária). Se a régua não a reconhecer, a fonte é `falha`: "a régua não reconheceu
-  a edição N, que já está no acervo: a página mudou de formato". Âncora com resposta diferente de
-  200 também é `falha`.
-- STJ: a página genérica (200, título sem número) é edição que não saiu. Resposta diferente de
-  200, ou página sem o título do Informativo, é falha daquela edição.
-- STF: só o 404 é edição que não saiu. 200 sem o número no título, 403 e 500 são falha daquela
-  edição.
-- Ordinárias e extraordinárias correm em séries separadas. Duas ordinárias seguidas que não
-  saíram encerram as ordinárias, que vão no máximo a 12 edições além da última do acervo
-  (`--max-edicoes`). As três extraordinárias seguintes são sempre consultadas. Três falhas
-  seguidas interrompem a série, e a fonte fica `parcial`.
-- Se nenhuma edição nova teve resposta conclusiva, a fonte é `falha`, não "sem novidade".
-- Títulos reais baixados em 01/10/2026: STJ 900 a 904 e 7777, extraordinárias 29, 33 e 34;
-  STF 1224, 1225, 1230 e o 404 da 1231. As demais edições são simuladas no mesmo formato. Com
-  isso, a régua dá STJ 901, 902 e 903 novas, nenhuma extraordinária nova (a 34 não saiu), e
-  STF 1225 a 1230.
-- Edição nova nasce pendente de revisão. Decisão mais recente não significa superação da
-  anterior.
+Atualização conferida em 06/11/2026:
+
+- STF: HTTP 200 com o número pedido no `<title>` identifica a edição; só HTTP 404 confirma ausência.
+- STJ: o título agora é genérico também nas edições publicadas. A identificação vem do
+  `span.clsInformativoTitulo`, com número e série corretos, junto dos blocos de julgados
+  `clsIdentificaProcesso`. O formato antigo com número no título continua aceito.
+- STJ sem edição: exige HTTP 200, título do Informativo, mensagem específica
+  `clsCaixaMensagem` com “Nenhum documento encontrado!” e nenhum bloco de julgamento.
+  Título genérico sozinho, menu, campo da última edição e parâmetro de pesquisa não comprovam ausência.
+- Outra edição/série, resposta sem os elementos esperados, HTTP 403/429/5xx e falha de
+  rede são falhas. A âncora de cada série precisa ser reconhecida antes das edições novas.
+- O Sentinela consulta até 12 ordinárias (`--max-edicoes`) e três extraordinárias;
+  duas ausências ordinárias consecutivas encerram a série. Mantém falhas nomeadas no diário.
+- O importador `scripts/atualizar-informativos.py` confere também o parsing das âncoras,
+  exige todos os campos dos julgados do STJ e interrompe a incorporação inteira antes de
+  gravar se alguma série falhar. O limite de busca sem confirmação do fim também é erro.
+  Falha não imprime `NOVOS: 0`. Se um gerador falhar depois da coleta, o lote de índice,
+  textos e derivados é restaurado, permitindo uma nova tentativa completa.
+  HTTP 5xx e falhas de transporte têm tentativas limitadas;
+  HTTP 403 não é repetido nem contornado.
+- Os textos explicativos novos são guardados sem o antigo corte de 1.500 caracteres.
+  Os registros anteriores permanecem intactos. Data como `1º/9/2026` é normalizada.
+- As fixtures de `tests/fixtures/informativos/2026-11-06/` guardam recortes oficiais,
+  URLs, status, contagens e hashes; `tests/informativos-leitura.py` e
+  `tests/sentinela.mjs` cobrem resposta real, busca vazia, outra série e respostas incompletas.
+- Resultado da rodada: **STF 1235 (4 notas/julgados) e STJ 908 (10)**. STF 1236/1237
+  responderam 404; STJ 909/910 e extraordinárias 34/35/36 responderam busca vazia.
+  A extraordinária 33 foi relida como âncora (21 julgados), sem duplicação.
+- A planilha oficial do STF foi consultada com sucesso (11.642 linhas); permanece o
+  aviso histórico do **STF 1225: quatro notas na planilha e três no acervo**. Essa
+  revisão histórica não é resolvida pela incorporação das edições novas.
+
+O PR #200 estava aberto em rascunho, na branch `sentinela/atualizacoes`, ponta
+`038c3d2`, quando este trabalho começou. Suas contribuições foram integradas à branch
+da correção sobre `origin/main` (`d499913`). A entrega usa PR separado porque o workflow
+atual refaz a branch automática a partir da main e só recupera os registros do Sentinela:
+uma rodada poderia retirar código e acervo ainda em revisão. O #200 permanece intacto.
+
+O agendamento local `scripts/sentinela-mac.sh` continua responsável pela **detecção**;
+a incorporação desta rodada foi executada explicitamente no Mac. Não houve alteração
+de agendamento, ativação de incorporação no Actions, merge, publicação ou instalação.
+Repetitivos, RG, súmulas e Planalto não foram consultados nesta rodada; seus erros e
+carimbos anteriores foram mantidos. Não se declara atualização geral dessas coleções.
 
 ### Baixa: o que já entrou no acervo
 
@@ -754,8 +775,9 @@ O que continua valendo:
   "Conferir", também a da lacuna; a fonte que não respondeu ao sentinela sai `falha`, com aviso;
   e a trava do recuo protege o PR aberto. Fora do workflow, o script sozinho não avisa. Este PR
   não muda o script.
-- **Lei seca do CTN e do CPC**: as mudanças da LC 236/2026 e da Lei 15.484/2026 não estão em
-  `leis-seca.js`.
+- ~~**Lei seca do CTN e do CPC**: as mudanças da LC 236/2026 e da Lei 15.484/2026 não estão em
+  `leis-seca.js`.~~ Resolvido em 25/11/2026: `leis-seca.js` e `leis-seca-areas.js` foram
+  regravados (ver "Atualização de 25/11/2026").
 - Nenhuma automação atualiza a lei seca do LEGIS. Regravar `leis-seca.js` pode deslocar as
   marcações da leitura ativa, cujo id usa a posição do dispositivo na lei.
 - Certificado do STF: desde 01/10/2026 o STF serve a cadeia completa da Sectigo (folha até
@@ -874,3 +896,114 @@ Para o Mac acordar sozinho antes do horário (opcional, pede senha): `sudo pmset
   em 12). Varredura completa: toda quarta-feira e sempre que o CSV falhar, vier com menos de
   1.400 temas ou estiver há mais de 3 dias sem regravação. A varredura filtrada não move o
   carimbo "última leitura completa".
+
+## Atualização de 25/11/2026
+
+Rodada manual, no Mac (de onde o STF, o STJ e o Planalto respondem).
+
+- **Informativos.** Entraram 47 julgados: STF 1236 a 1238 e STJ 909 a 911. A extraordinária 33
+  segue a última; 34 a 36 confirmadas ausentes. Acervo: 15.229 → 15.276 registros.
+- **Duas mudanças de formato das fontes**, que travavam a incorporação desde 10/11/2026:
+  - o STF publicou a 1236 com o `<title>` cortado em "Nº", sem o número. Só nesse caso (título
+    sem número nenhum) a edição é reconhecida pelo cabeçalho do início do conteúdo
+    ("INFORMATIVO STF Nº 1236/2026 Data de divulgação"). Título com o número de outra edição e
+    número só em citação continuam sendo falha. A régua é a mesma no importador e no sentinela;
+  - desde a 910 o STJ fecha o Informativo com a seção "PROPOSTA DE RELEVÂNCIA DA QUESTÃO
+    FEDERAL": processo afetado, sem tese, com só Processo, Ramo e Tema. Esses blocos ficam fora
+    do acervo e são contados (a soma julgados + propostas tem de bater com os blocos da página).
+    Fora dessa seção, bloco sem Destaque continua sendo falha. Na 910 um julgado (Tema
+    Repetitivo 1469) veio sem o campo "Ramo do Direito": entra sem ramo, que não se inventa.
+  - Fixtures em `tests/fixtures/informativos/2026-11-25/`, com o hash da resposta integral.
+- **Leitor do Planalto corrigido** (`scripts/lib/planalto.mjs`), em defeitos que vinham de antes e
+  escondiam artigos e mudanças da lei. Conferido por agentes independentes contra o HTML oficial,
+  lei a lei, e pelos casos S29h e S29i:
+  - o código-fonte do Planalto às vezes quebra a linha entre "Art." e o número ("Art.\n146. A
+    modificação…"), põe o ponto na linha do número ("Art" / ". 97."), separa ou dobra o ponto ("Art ."
+    / "2º", IBS/CBS; "Art. ." / "182", CLT; "Art . 8º" na mesma linha, 22 artigos do DL 200) ou cola o
+    traço no caput ("528 -Ocorrendo"). A linha "Art." não abria artigo e o artigo ia parar dentro do
+    anterior — e,
+    depois do teto de 4.000 caracteres, sumia. Eram cerca de 500 artigos em 25 das 49 leis (o CTN
+    tinha 130 dos seus 218; a mudança da LC 236 no art. 146 nunca chegaria ao acervo);
+  - etiqueta de formatação dentro do rótulo: "<strong>A</strong>rt. 107" (CP, extinção da
+    punibilidade), "A<span>rt. 405" (CPP), "Art. 21</font><font>7" (CTN art. 217), e o ponto dobrado
+    "Art. . 154" (14 artigos da CLT);
+  - só "Art."/"Artigo" com inicial maiúscula abre artigo. A remissão "art. 927 da Lei…" no começo
+    de linha virava um "artigo" à parte (687 no acervo, nenhum de verdade), levando junto o texto do
+    artigo de onde saiu; o treino e a oral mostravam esse texto com o número errado. O sentinela já
+    devolvia esses pedaços ao artigo anterior (`porArtigo`), então a comparação não muda de sentido;
+  - o piso de tamanho (rótulo + 40 caracteres) cortava artigo curto de verdade: CPC 724 ("Da
+    sentença caberá apelação.") e 1.001 ("Dos despachos não cabe recurso."), CPP 202 e 262. Agora
+    fica também o que tem 12 ou mais caracteres de texto próprio, fora as anotações (entre parênteses
+    ou em link solto, como "Produção de efeitos") — e desde que a entrada seguinte não tenha o mesmo
+    número: nesse caso ela é a cabeça da redação riscada que o Planalto mantém antes da vigente (CPC
+    246, ANVISA 15, Lavagem 6º), e quem procura o artigo pelo número acharia o texto revogado;
+  - entidade com nome (&ccedil;, &atilde;, &Eacute;…) virava espaço: o DL 200, a única página que as
+    usa, saía com 6.407 letras a menos ("A delega o de compet ncia") e perdia o art. 12. Vale agora a
+    tabela Latin-1 inteira;
+  - citação de outra norma: o artigo que altera outra lei reproduz o texto dela entre aspas ("“" no
+    começo de uma linha até "”" no fim de outra), e o "Art." lá dentro é da lei citada. A Lei 14.133
+    passava a ter os arts. 337-E a 337-P do Código Penal como seus (o treino perguntava "O Art. 337-L da
+    Lei 14.133 comporta exceção?"), e o CPC tinha "Art. 48/50/83" de outras leis e o art. 275 do Código
+    Eleitoral. O `<blockquote>` não serve de sinal: o Planalto o usa também em artigos da própria lei
+    (CC art. 853-A, CP arts. 234-A a 234-C). Caso S29k;
+  - teto do acervo: 4.000 caracteres por artigo só não mordia porque as remissões partiam os artigos
+    longos em pedaços, cada um com o seu teto. Com elas devolvidas, o CF art. 37 (16.287 caracteres)
+    virava uma entrada cortada, e o sentinela, que só compara o começo de um artigo cortado, deixava de
+    ver mudança na cauda de 14 artigos longos (CF 37 e 146, CPP 28-A, LIA 17). O teto passa a 32.000
+    (`TETO_ACERVO`, a mesma constante no sentinela): só 3 entradas das 49 leis passam dele, e o acervo
+    cresce 0,66 MiB (o cache offline segue dentro do orçamento).
+- **Lei seca regravada** com `scripts/build-leis-seca.mjs` e o leitor corrigido: as 14 normas do
+  núcleo (7.156 → 7.235 artigos) e as 35 das outras áreas, com a mesma lista, ordem e etiquetas
+  (3.776 → 3.583: saem as remissões e os artigos de outras leis citados). Os rótulos que somem em
+  relação à `main` são todos conferidos: o toco "(Revogado…)" do CLT art. 26 (só passava no piso
+  porque o art. 27 vinha grudado nele), o LOAS art. 28-A (só "(Revogado…)", e carregava dentro dele o
+  art. 29) e as cópias citadas de artigos de outras leis (CPC 48/50/83/275, Lei 14.133 337-P, ORCRIM
+  288, Tráfico de Pessoas, Primeira Infância, Estatuto PcD 1.783-A, as partes vetadas promulgadas da
+  Lei de Abuso de Autoridade) — o artigo próprio de mesmo número, quando há, continua.
+  Conferido por rótulo e ocorrência contra a versão da `main`. Texto novo da lei: CTN (LC 236/2026),
+  CPC (Lei 15.484/2026), CF (arts. 7º e 198 e art. 67 do ADCT), CP (arts. 129 e 157), CDC (art. 57,
+  MP 1.393/2026), CLT (arts. 790 e 790-B), ECA (art. 4º), Lei 14.133 (art. 77), CTB, LRF (LC
+  239/2026), ANVISA (Lei 15.524/2026) e IBS/CBS (LC 235/2026). O sentinela do Planalto, rodado em
+  seguida, leu as 14 normas sem diferença entre a página e o acervo.
+- **O build da lei seca não grava mais arquivo incompleto.** Ele seguia sem a lei que falhava e
+  gravava o resto: numa queda de rede desta rodada, o `leis-seca-areas.js` saiu com 34 das 35 leis
+  (sem o DL 200). Agora cada lei tem três tentativas, de até 60 s cada; se alguma ainda falhar, nada
+  é gravado e o build sai com erro. E lei que volta com menos de 80% dos artigos do arquivo atual (a
+  régua do `parseSuspeito` do sentinela) é tratada como leitura parcial: o build para, salvo
+  `"--aceitar-queda=SIGLA"` (casos S29j e S29l; o laço do build mora em `lerLeisSeca`, na lib, para
+  poder ser testado sem rede). O piso absoluto de artigos por lei desce de 20 para 10: a Lei 13.344
+  (Tráfico de Pessoas) tem 17 artigos próprios, e só passava dos 20 com os citados de outras leis.
+- **Importador do STJ:** o rótulo "Ramo do Direito" é reconhecido sem depender de maiúsculas (o
+  Portal de Precedentes do STJ escreve "Ramo do direito"), e mais de um julgado sem ramo na mesma
+  edição é falha — sinal de rótulo que mudou de forma —, não uma edição inteira "sem ramo".
+- **Repetitivos do STJ voltam a ser lidos.** Em nov/2026 a aba da pesquisa do portal passou de
+  "Temas (N)" a "Repetitivos (N)" (e ganhou a aba "Relevância (N)"). A régua procurava "Temas (N)":
+  as 31 faixas da varredura saíam "página sem o contador" e a última leitura completa era de
+  14/10/2026. O contador aceita os dois rótulos; o da aba de Relevância nunca conta (caso S24c2,
+  com o cabeçalho real de 25/11/2026).
+- **Leitura ativa não é afetada:** o leitor do LEGIS na web lê a lei pelo `/api/law`, não por
+  `leis-seca.js` (conferido em `legis-web.html` em 25/11/2026). `leis-seca.js` alimenta o treino,
+  a prova oral e o simulado de lei seca, que sorteiam pelo texto; os ids das questões de lei seca
+  valem só dentro do simulado, nada da pessoa fica gravado por eles.
+- **Pendente:**
+  - os artigos `parcial` da Central (CF arts. 7º e 198, CP arts. 129 e 157, CTN art. 142) continuam
+    pedindo conferência na fonte, por desenho: o item nasceu com o artigo acima do teto do acervo;
+  - três entradas ainda passam do teto novo (a maior é o IBS/CBS art. 544, com 95.842 caracteres) e
+    seguem comparadas só pelo começo.
+- **Temas de repercussão geral e repetitivos no acervo do JURIS:** com a leitura de hoje, o sentinela
+  aponta, nos temas que o acervo já tem, 36 situações e 39 teses do STF e 71 situações e 25 teses do
+  STJ diferentes da fonte oficial; e há 24 teses de RG ("Há repercussão") e 87 teses de repetitivos
+  fora do acervo. Nada disso entra sozinho (atualização assistida): fica para um PR próprio, conferido
+  item a item na fonte.
+- **Consumidores da lei seca e dos informativos**, achados pela revisão independente:
+  - o widget do dia ficava, para cada número, com a PRIMEIRA entrada, que é a redação riscada quando o
+    Planalto mantém a antiga antes da vigente: o CF art. 37 aparecia sem "eficiência" (antes da EC
+    19/1998), e mais 10 artigos com texto revogado. Agora vale a última de entradas seguidas com o mesmo
+    número (o mesmo número mais adiante, como no ADCT, não troca o do corpo);
+  - o marcador "Tese vinculante" do card semanal procurava "( Tema 1379)" e perdia os repetitivos do STJ
+    no formato da 910, "( Tema Repetitivo 1469)". Os marcadores moram agora em
+    `scripts/lib/semana-marcadores.mjs`, testáveis sem rodar o build;
+  - a Central de novidades registra as edições incorporadas nesta rodada (STF 1236 a 1238, STJ 909 a
+    911) já com baixa ("já no JURIS"): o sentinela rodou com `--detectar-desde` apontando o
+    `juris-index.js` de antes da incorporação.
+

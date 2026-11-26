@@ -34,6 +34,7 @@ import { testarAuthIpad } from './auth-ipad.mjs';
 import { testarAuthAbertura } from './auth-abertura.mjs';
 import { testarAuthHidratacao } from './auth-hidratacao.mjs';
 import { testarAuthFechamento } from './auth-fechamento.mjs';
+import { testarLoginSemDados } from './login-sem-dados.mjs';
 import { testarWidgetResumo } from './widget-resumo.mjs';
 import { testarCarregamentoInicial, testarAberturaEmbutida, testarAberturaPendente } from './carregamento-inicial.mjs';
 import { testarTemplateFileUrl } from './template-file-url.mjs';
@@ -62,6 +63,7 @@ import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
 import { testarRedacaoMesa } from './redacao-mesa.mjs';
 import { testarRedacaoMotor } from './redacao-motor.mjs';
 import { testarRedacaoResultado } from './redacao-resultado.mjs';
+import { testarRedacaoSegunda } from './redacao-segunda.mjs';
 import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 import { testarRevisaoOficial } from './revisao-oficial.mjs';
@@ -173,6 +175,12 @@ for (const [base, origem, arquivo] of ORIGENS) {
       ok(false, 'AUTH HIDRATAÇÃO [' + motor + '] o roteiro correu sem exceção ('
         + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
     }
+    // login sem dados não sobrescreve a nuvem: só a escrita com o portão fechado carimba
+    try { await testarLoginSemDados(page, base, ok, { motor }); }
+    catch (e) {
+      ok(false, 'LOGIN SEM DADOS [' + motor + '] o roteiro correu sem exceção ('
+        + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+    }
     // fechamento e Sair sem sobrescrever a nuvem: PATCH condicional no pagehide, Sair espera o pushNow
     try { await testarAuthFechamento(page, base, ok, { motor }); }
     catch (e) {
@@ -197,6 +205,7 @@ for (const [base, origem, arquivo] of ORIGENS) {
     try { await testarRedacaoMesa(page, base, ok, { motor: 'webkit' }); } catch(e) { ok(false, 'MESA exceção: '+e.message); }
     try { await testarRedacaoMotor(page, base, ok, { motor: 'webkit' }); } catch(e) { ok(false, 'MOTOR exceção: '+e.message); }
     try { await testarRedacaoResultado(page, base, ok, { motor: 'webkit' }); } catch(e) { ok(false, 'RESULTADO exceção: '+e.message); }
+    try { await testarRedacaoSegunda(page, base, ok, { motor }); } catch(e) { ok(false, 'SEGUNDA exceção: '+e.message); }
     try { await testarRevisaoFonte(page, base, ok, { motor, origem }); }
     catch (e) {
       ok(false, 'REVISÃO/FONTE [' + motor + '] o roteiro correu sem exceção ('

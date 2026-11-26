@@ -1,0 +1,78 @@
+{
+  "consultadoEm": "2026-11-06",
+  "nota": "Recortes literais em latin1 do título e corpo dos julgados do STJ, sem menus/rastreadores; STF integral em cp1252. Mensagem de busca vazia preservada com o campo da última edição, que não prova a edição pesquisada. Hash da resposta integral para rastreabilidade. Finais de linha normalizados para LF e espaços finais removidos; conteúdo preservado.",
+  "paginas": [
+    {
+      "arquivo": "stj-0907.html",
+      "fonte": "stj",
+      "numero": 907,
+      "extra": false,
+      "status": 200,
+      "julgados": 11,
+      "estado": "existe",
+      "url": "https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=%270907%27.cod.",
+      "sha256Resposta": "7eb95c0c65b13a20783cac5ceb9d4cc36cfa3945e4aa2d3173a30d261ae4e457",
+      "sha256Fixture": "f531d363ebacf9de8cb695bae9ca85f232d692a3837047eeee08ea7093a808fc"
+    },
+    {
+      "arquivo": "stj-0908.html",
+      "fonte": "stj",
+      "numero": 908,
+      "extra": false,
+      "status": 200,
+      "julgados": 10,
+      "estado": "existe",
+      "url": "https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=%270908%27.cod.",
+      "sha256Resposta": "e18254dafb96fe524fd68f0f5a56bb521c51107420c08a458bda04920266fd15",
+      "sha256Fixture": "cd981acfb819274d41f5a76c419038cebdf4f8932039f496f24f9eb886bfe1c1"
+    },
+    {
+      "arquivo": "stj-0033E.html",
+      "fonte": "stj",
+      "numero": 33,
+      "extra": true,
+      "status": 200,
+      "julgados": 21,
+      "estado": "existe",
+      "url": "https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=%270033E%27.cod.",
+      "sha256Resposta": "30a06ac57fec35dbab4ae664a5b1e04214d54134d2ca80708afb109c4964b434",
+      "sha256Fixture": "9b8415ab2a60948ac1a3ea6be6233f4986d70918e99083b25582d7fb86e70e5b"
+    },
+    {
+      "arquivo": "stj-0909.html",
+      "fonte": "stj",
+      "numero": 909,
+      "extra": false,
+      "status": 200,
+      "julgados": 0,
+      "estado": "nao-existe",
+      "url": "https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=%270909%27.cod.",
+      "sha256Resposta": "bf8580812c9663457dcc8ad9efc2cd0fc8681468b8332b7a69fd51c345ba0f4a",
+      "sha256Fixture": "c22b5102f567f62c9765152a03864e28184812e8875437328bc6ce74dc6e916d"
+    },
+    {
+      "arquivo": "stj-0034E.html",
+      "fonte": "stj",
+      "numero": 34,
+      "extra": true,
+      "status": 200,
+      "julgados": 0,
+      "estado": "nao-existe",
+      "url": "https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=%270034E%27.cod.",
+      "sha256Resposta": "cd8d3dd3503843003faad4692a7253148558370e471d2b7b1be29830735f3635",
+      "sha256Fixture": "c22b5102f567f62c9765152a03864e28184812e8875437328bc6ce74dc6e916d"
+    },
+    {
+      "arquivo": "stf-1235.html",
+      "fonte": "stf",
+      "numero": 1235,
+      "extra": false,
+      "status": 200,
+      "julgados": 4,
+      "estado": "existe",
+      "url": "https://www.stf.jus.br/arquivo/informativo/documento/informativo1235.htm",
+      "sha256Resposta": "e3293ea240194d78a9307bb0990f94e884d219f83d6ac5bf8c410aed49888644",
+      "sha256Fixture": "02d050917678f3a8c1da4e7961e581d621345a5768912aa0d5b741568ea8a858"
+    }
+  ]
+}
