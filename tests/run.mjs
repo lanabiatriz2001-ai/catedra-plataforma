@@ -57,7 +57,6 @@ import { testarFaixaMapaAlvos } from './faixa-mapa-alvos.mjs';
 import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
 import { testarRedacaoMesa } from './redacao-mesa.mjs';
 import { testarRedacaoMotorEstatico, testarRedacaoMotor } from './redacao-motor.mjs';
-import { testarEspelhoSugeridoEstatico, testarEspelhoSugerido } from './espelho-sugerido.mjs';
 import { testarRedacaoResultadoEstatico, testarRedacaoResultado } from './redacao-resultado.mjs';
 import { testarOnboardingImportar } from './onboarding-importar.mjs';
 import { testarCotaIA } from './cota-ia.mjs';
@@ -125,13 +124,6 @@ if (process.env.CT_SO === 'redacao-resultado') {
   console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
   process.exit(falhas.length ? 1 : 0);
 }
-if (process.env.CT_SO === 'espelho-sugerido') {
-  testarEspelhoSugeridoEstatico(ok);
-  await testarEspelhoSugerido(page, URL0, ok, { motor });
-  await browser.close(); srv.close();
-  console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
-  process.exit(falhas.length ? 1 : 0);
-}
 if (process.env.CT_SO === 'redacao-motor') {
   testarRedacaoMotorEstatico(ok);
   await testarRedacaoMotor(page, URL0, ok, { motor });
@@ -141,6 +133,15 @@ if (process.env.CT_SO === 'redacao-motor') {
 }
 if (process.env.CT_SO === 'redacao-mesa') {
   await testarRedacaoMesa(page, URL0, ok, { motor });
+  await browser.close(); srv.close();
+  console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
+  process.exit(falhas.length ? 1 : 0);
+}
+// C3 · espelho sugerido (selo, fundamentos com link, descartes): tests/espelho-sugerido.mjs
+if (process.env.CT_SO === 'espelho-sugerido') {
+  const { testarEspelhoSugeridoEstatico, testarEspelhoSugerido } = await import('./espelho-sugerido.mjs');
+  testarEspelhoSugeridoEstatico(ok);
+  await testarEspelhoSugerido(page, URL0, ok, { motor });
   await browser.close(); srv.close();
   console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
   process.exit(falhas.length ? 1 : 0);
@@ -6790,6 +6791,9 @@ ok(/aproximada/.test(fonteHost) && /espelho-sugerido/.test(fonteHost),
   'C3 a nota tirada de espelho sugerido é marcada como aproximada');
 const authSrc = fs.readFileSync(path.join(RAIZ, 'auth.js'), 'utf8');
 ok(/catedra:espelhosSugeridos/.test(authSrc), 'C3 espelhosSugeridos está no ARRAY_ID (apagar gruda)');
+// C3 na tela: selo em toda a correção, fundamentos com link e descartes contados (tests/espelho-sugerido.mjs)
+try { const E = await import('./espelho-sugerido.mjs'); E.testarEspelhoSugeridoEstatico(ok); await E.testarEspelhoSugerido(page, URL0, ok, { motor }); }
+catch (e) { ok(false, 'ESPSUG exceção: ' + e.message); }
 
 /* ===== D12 · BARRA DO TOPO + D13 · SALA DE FOCO =====
    O topo empilhava 8 controles no mesmo nível (busca, pílula de sync com texto longo, sino,
@@ -9863,7 +9867,6 @@ catch (e) {
 try { await testarPrioridadeDiscursiva(page, URL0, ok); } catch(e) { ok(false, 'DISCURSIVA exceção: '+e.message); }
 try { await testarRedacaoMesa(page, URL0, ok, { motor }); } catch(e) { ok(false, 'MESA exceção: '+e.message); }
 try { testarRedacaoMotorEstatico(ok); await testarRedacaoMotor(page, URL0, ok, { motor }); } catch(e) { ok(false, 'MOTOR exceção: '+e.message); }
-try { testarEspelhoSugeridoEstatico(ok); await testarEspelhoSugerido(page, URL0, ok, { motor }); } catch(e) { ok(false, 'ESPSUG exceção: '+e.message); }
 try { testarRedacaoResultadoEstatico(ok); await testarRedacaoResultado(page, URL0, ok, { motor }); } catch(e) { ok(false, 'RESULTADO exceção: '+e.message); }
 try { await testarRevisaoFonte(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
