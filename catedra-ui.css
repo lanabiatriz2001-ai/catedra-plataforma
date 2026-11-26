@@ -1840,6 +1840,19 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 .ct-cmp-linhas { margin-top: var(--ct-e3); display: flex; flex-direction: column; }
 .ct-cmp-linha { display: flex; align-items: center; gap: var(--ct-e3); padding: var(--ct-e2) 0; border-top: 1px solid var(--border); color: var(--ink); }
 .ct-cmp-sinal { font-weight: 800; margin-left: auto; }
+/* Leitura da IA depois da conferência própria: uma linha por quesito — a sua nota e a dela, sobre o máximo.
+   Divergência vira selo com fundo (o texto diz qual: cor nunca é o único sinal); quesito sem nota ou sem
+   régua não é divergência e fica no peso normal. Os números são o que se lê primeiro na linha. */
+.ct-ia2-linha { padding: var(--ct-e3) 0; border-top: 1px solid var(--border); }
+.ct-ia2-cab { display: flex; align-items: baseline; flex-wrap: wrap; gap: var(--ct-e2) var(--ct-e3); color: var(--ink); }
+.ct-ia2-par { display: inline-flex; align-items: baseline; gap: var(--ct-e1); }
+.ct-ia2-num { font-family: var(--mono); font-size: var(--fs-md); font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+.ct-ia2-rotulo { margin-left: auto; font-size: var(--fs-sm); color: var(--text2); }
+.ct-ia2-linha[data-d="ia-mais"] .ct-ia2-rotulo, .ct-ia2-linha[data-d="ia-menos"] .ct-ia2-rotulo { color: var(--ink); font-weight: 700; padding: var(--ct-e1) var(--ct-e3); border-radius: 99px; }
+.ct-ia2-linha[data-d="ia-mais"] .ct-ia2-rotulo { background: color-mix(in srgb, var(--accent) 16%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); }
+.ct-ia2-linha[data-d="ia-menos"] .ct-ia2-rotulo { background: color-mix(in srgb, var(--warn) 18%, transparent); border: 1px solid color-mix(in srgb, var(--warn) 50%, transparent); }
+.ct-ia2-det { margin-top: var(--ct-e2); }
+.ct-ia2-texto { color: var(--ink); font-size: var(--fs-base); line-height: 1.6; }
 
 /* ===== Redação · mesa de prova (03/10/2026) =====
    Questão à esquerda, folha à direita; empilha quando o conteúdo tem menos de 880px (janela de ~1180px com o menu aberto).
