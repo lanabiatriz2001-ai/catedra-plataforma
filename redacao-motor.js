@@ -28,6 +28,7 @@
     'cota':    'As chamadas de IA de hoje acabaram.',
     'rede':    'Sem conexão com a IA no momento.',
     'tempo':   'A IA demorou mais de 90 segundos para responder.',
+    'demora':  'A IA demorou demais para responder.',
     'pausada': 'O acesso à IA desta conta está pausado.',
     'sessao':  'Entre na sua conta para usar a IA.',
     'invalida': 'A IA respondeu fora do formato da correção.',
@@ -196,13 +197,16 @@
       if (!comI.length && json.quesitos.length === qs.length) {       // sem "i" nenhum e mesma quantidade: vale a posição
         json.quesitos.forEach(function (x, k) { if (x) porI[k + 1] = x; });
       } else {
-        comI.forEach(function (x) { var k = lerI(x.i); if (porI[k] === undefined) porI[k] = x; });
+        var ks = comI.map(function (x) { return lerI(x.i); });
+        var base0 = ks.indexOf(0) >= 0 && ks.every(function (k) { return k < qs.length; });
+        comI.forEach(function (x) { var k = lerI(x.i) + (base0 ? 1 : 0); if (porI[k] === undefined) porI[k] = x; });
       }
       var pulados = [], soma = 0, total = 0;
       var itens = qs.map(function (q, idx) {
         var x = porI[idx + 1], max = maxDe(q);
         total += max;
-        if (!x || foraDaRegua(x.nota, q)) { pulados.push(idx); return { n: q.n, texto: q.texto, obtido: 0, pontos: max, trecho: '', faltou: '', estimado: true }; }
+        var semNumero = !!(ctx && ctx.semNumeroPula) && !!x && !isFinite(parseFloat(String(x.nota == null ? '' : x.nota).replace(',', '.')));
+        if (!x || semNumero || foraDaRegua(x.nota, q)) { pulados.push(idx); return { n: q.n, texto: q.texto, obtido: 0, pontos: max, trecho: '', faltou: '', estimado: true }; }
         var obtido = naEscala(x.nota, q);
         soma += obtido;
         return { n: q.n, texto: q.texto, obtido: obtido, pontos: max, trecho: trechoOuVazio(resposta, x.trecho),
@@ -233,10 +237,11 @@
   function motivoDaFalha(err) {
     if (err && err.ctMotivo && MOTIVOS[err.ctMotivo]) return err.ctMotivo;
     var m = String((err && err.message) || err || '');
-    if (/chamadas de IA de hoje|\b429\b|\bcota\b/i.test(m)) return 'cota';
+    if (/chamadas de IA de hoje/i.test(m)) return 'cota';   // a frase da cota (mensagemCota); 429 do provedor não é a cota do dia
     if (/recus|consent|não autoriz/i.test(m)) return 'recusou';
     if (/foi pausado|está pausad|ia_pausada/i.test(m)) return 'pausada';
     if (/entre na sua conta|sess[ãa]o expirad/i.test(m)) return 'sessao';
+    if (/\b504\b|timed out|solicita[çc][ãa]o expirou/i.test(m)) return 'demora';
     if (/failed to fetch|load failed|network|offline|sem conex|\brede\b/i.test(m)) return 'rede';
     return 'erro';
   }
@@ -245,14 +250,16 @@
      ler. Aqui só se compara: quesito a quesito, a nota que ela se deu contra a nota da IA.
      - Mesmo parser dos dois lados (_redQuesitos sobre o mesmo espelho); ainda assim, lista de tamanho ou
        máximo diferente não é comparada linha a linha (desalinhado) — sobra o total.
-     - Quesito cuja régua da conferência tem um degrau só (opcoes com menos de 2 valores) não se compara:
+     - Quesito cuja régua da conferência tem um degrau só (opcoes com menos de 2 valores DISTINTOS, ou marcado
+       semRegua na gravação) não se compara:
        as duas leituras saem iguais à força ("sem-regua").
      - Quesito que a IA não avaliou ("sem-nota") não conta como divergência.
      - Com quesito sem nota ou sem régua, o total da IA não existe (notaIA e difNota null): somar zero
        rebaixaria, e somar a estimativa do corretor local poria na boca da IA uma nota que ela não deu.
      - A comparação usa a precisão da tela (2 casas), e o total da IA sai pela MESMA conta da
        conferência (soma das notas sem arredondar sobre o total arredondado): notas iguais dão total igual. */
-  function compararLeituras(sua, ia) {
+  function compararLeituras(sua, ia, opts) {
+    var cortada = !!(opts && opts.cortada);
     var a = Array.isArray(sua && sua.quesitos) ? sua.quesitos : [];
     var b = Array.isArray(ia && ia.quesitos) ? ia.quesitos : [];
     var num = function (v) { var n = +v; return isFinite(n) ? n : 0; };
@@ -261,6 +268,8 @@
     var out = { notaSua: Math.round(num(sua && sua.nota) * 10) / 10, notaIA: notaIA,
       linhas: [], divergentes: 0, semNota: 0, semRegua: 0, avaliados: 0, desalinhado: false };
     out.difNota = notaIA == null ? null : Math.round((notaIA - out.notaSua) * 10) / 10;
+    // texto acima do limite: a IA leu só o começo, então o total dela não se compara ao da pessoa
+    if (cortada) { out.notaIA = null; out.difNota = null; out.cortada = true; }
     if (!a.length || !b.length) return out;
     var difMax = function (qa, i) { var qb = b[i] || {}; return qa.pontos != null && qb.pontos != null && Math.abs(num(qa.pontos) - num(qb.pontos)) > 0.005; };
     if (a.length !== b.length || a.some(difMax)) { out.desalinhado = true; return out; }
@@ -268,7 +277,8 @@
     out.linhas = a.map(function (qa, i) {
       var qb = b[i] || {}, s = c2(qa.obtido), n = c2(qb.obtido);
       var m = /(\d+)/.exec(String(qa.quesito || qb.quesito || ''));
-      var umDegrau = Array.isArray(qa.opcoes) && qa.opcoes.length < 2, sem = !umDegrau && !!qb.estimado;
+      var distintos = Array.isArray(qa.opcoes) ? qa.opcoes.map(c2).filter(function (v, k, l) { return l.indexOf(v) === k; }).length : null;
+      var umDegrau = (distintos !== null && distintos < 2) || !!qb.semRegua, sem = !umDegrau && !!qb.estimado;
       var fora = umDegrau || sem;
       var d = umDegrau ? 'sem-regua' : sem ? 'sem-nota' : (n < s ? 'ia-menos' : (n > s ? 'ia-mais' : 'igual'));
       var dif = fora ? null : Math.round((n - s) * 100) / 100;
@@ -278,7 +288,7 @@
         dif: dif, d: d, trecho: fora ? '' : String(qb.trecho || ''), faltou: fora ? '' : String(qb.faltou || '') };
     });
     out.avaliados = out.linhas.length - out.semNota - out.semRegua;
-    if (out.semNota || out.semRegua) { out.notaIA = null; out.difNota = null; }
+    if (out.semNota || out.semRegua || cortada) { out.notaIA = null; out.difNota = null; }
     else {
       var t = Math.round(total * 100) / 100;
       out.notaIA = t ? Math.round(somaIA / t * 100) / 10 : 0;

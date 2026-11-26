@@ -4053,7 +4053,7 @@ window.ctPdfLib = (function(){
                   <div class="ct-cmp-linhas"><sc-for list="{{ redSegLinhas }}" as="l"><div class="ct-ia2-linha" data-red="segunda-linha" data-d="{{ l.d }}"><div class="ct-ia2-cab"><span class="ct-quesito-n">{{ l.q }}</span><span class="ct-ia2-par"><span class="ct-nota">você</span><span class="ct-ia2-num" data-red="segunda-linha-sua">{{ l.sua }}</span></span><span class="ct-ia2-par"><span class="ct-nota">IA</span><span class="ct-ia2-num" data-red="segunda-linha-ia">{{ l.ia }}</span></span><span class="ct-nota">de {{ l.max }}</span><span class="ct-ia2-rotulo">{{ l.rotulo }}</span></div><sc-if value="{{ l.temTrecho }}" hint-placeholder-val="{{ false }}"><div class="ct-ia2-det"><span class="ct-nota">A IA pontuou este trecho:</span> <span class="ct-quesito-trecho">“{{ l.trecho }}”</span></div></sc-if><sc-if value="{{ l.temFaltou }}" hint-placeholder-val="{{ false }}"><div class="ct-ia2-det"><span class="ct-nota">Segundo a IA, faltou:</span> <span class="ct-quesito-falta">{{ l.faltou }}</span></div></sc-if></div></sc-for></div>
                 </sc-if>
                 <sc-if value="{{ redSegTemGeral }}" hint-placeholder-val="{{ false }}"><div class="ct-ia2-det" data-red="segunda-geral"><span class="ct-nota">O que a IA disse no geral:</span> <span class="ct-ia2-texto">{{ redSegGeral }}</span></div></sc-if>
-                <sc-if value="{{ redSegTemCortes }}" hint-placeholder-val="{{ false }}"><div class="ct-nota" data-red="segunda-cortes" style="margin-top:var(--ct-e3);color:var(--ink);">A IA não leu tudo — {{ redSegCortes }}.</div></sc-if>
+                <sc-if value="{{ redSegTemCortes }}" hint-placeholder-val="{{ false }}"><div data-red="segunda-cortes" style="margin-top:var(--ct-e3);"><div class="ct-eb ct-eb-warn">Texto acima do limite</div><div class="ct-nota" style="margin-top:var(--ct-e1);color:var(--ink);">{{ redSegCortes }}.</div></div></sc-if>
                 <div class="ct-nota" style="margin-top:var(--ct-e3);">A nota registrada continua sendo a da sua conferência. A IA leu o texto que você digitou, não o papel.</div>
               </sc-if>
               <sc-if value="{{ redSegConvite }}" hint-placeholder-val="{{ true }}">
@@ -4067,7 +4067,7 @@ window.ctPdfLib = (function(){
                 <div class="ct-nota" id="ct-seg-dica" data-red="segunda-dica" style="margin-top:var(--ct-e2);">{{ redSegDica }}</div>
                 <sc-if value="{{ redSegSubstitui }}" hint-placeholder-val="{{ false }}"><div class="ct-nota" data-red="segunda-substitui" style="margin-top:var(--ct-e1);">A nova leitura vai substituir a que está acima.</div></sc-if>
               </sc-if>
-              <sc-if value="{{ redSegTemErro }}" hint-placeholder-val="{{ false }}"><div class="ct-nota" data-red="segunda-erro" tabindex="-1" style="margin-top:var(--ct-e2);color:var(--ink);">{{ redSegErro }}</div></sc-if>
+              <sc-if value="{{ redSegTemErro }}" hint-placeholder-val="{{ false }}"><div data-red="segunda-erro" tabindex="-1" style="margin-top:var(--ct-e3);"><div class="ct-eb ct-eb-warn">Leitura não concluída</div><div class="ct-nota" style="margin-top:var(--ct-e1);color:var(--ink);">{{ redSegErro }}</div></div></sc-if>
               <div class="ct-mesa-linha" style="margin-top:var(--ct-e3);">
                 <sc-if value="{{ redSegFechadaPode }}" hint-placeholder-val="{{ true }}"><button class="ct-btn-2" data-red="segunda-abrir" onclick="{{ abrirSegunda }}">{{ redSegAbrirTxt }}</button></sc-if>
                 <sc-if value="{{ redSegAberta }}" hint-placeholder-val="{{ false }}"><button class="ct-btn-2" data-red="segunda-pedir" onclick="{{ pedirSegunda }}" disabled="{{ redSegNaoPode }}" aria-busy="{{ redSegBusy }}" aria-describedby="ct-seg-dica">{{ redSegBtnTxt }}</button></sc-if>
@@ -7794,7 +7794,7 @@ class Component extends DCLogic {
       redRascunhoOculto:false,
       redQuestaoAberta:true, redMarcasAberto:false, redEditandoEnun:false,   // mesa de prova: só de tela
       redModoResposta:(String(this._load('redText','')||'').trim()?'digitar':'mao'), redCronoOn:false, redCronoTick:0,
-      redLinhasN:null, redFoco:false, redGabVista:'', redGabErro:'', redGabOk:'', redConferindo:false, redConf:{}, redLinhasMao:'', redResultId:'', redReescritaDe:'', redReescritaNota:'', redRecBusy:false, redSegAberta:false, redSegText:'', redSegBusy:false, redSegErro:'', redCorrDesde:0, redCorrTick:0,    // U4: a faixa do rascunho da redação, depois de dispensada
+      redLinhasN:null, redFoco:false, redGabVista:'', redGabErro:'', redGabOk:'', redConferindo:false, redConf:{}, redLinhasMao:'', redResultId:'', redReescritaDe:'', redReescritaNota:'', redRecBusy:false, redSegAberta:false, redSegText:'', redSegBusy:false, redSegErro:'', redSegErroViva:false, redCorrDesde:0, redCorrTick:0,    // U4: a faixa do rascunho da redação, depois de dispensada
       // 'video' e 'mapa' (este em 25/09/2026) saíram dos formatos; quem tivesse essa
       // preferência salva ficaria numa aba sem botão para sair dela. Cai para texto; o
       // mfGen antigo continua guardado, só não é mais lido.
@@ -13657,7 +13657,7 @@ class Component extends DCLogic {
 
   // ===== redação =====
   _redLoad(){ try{ const r=localStorage.getItem('catedra:red'); if(r){ const a=JSON.parse(r); if(Array.isArray(a)) return a; } }catch(_){} return []; }
-  _redSave(h){ try{ localStorage.setItem('catedra:red', JSON.stringify(h)); }catch(_){} }
+  _redSave(h){ try{ localStorage.setItem('catedra:red', JSON.stringify(h)); return true; }catch(_){ return false; } }
   // O carimbo do rascunho (U4): sem ele a faixa "rascunho de …" não teria data para dizer,
   // e é a data que responde a única pergunta que importa ao reabrir — isto aqui é de hoje
   // ou é de três semanas atrás? É escalar, então o carimbo por chave do sync já resolve.
@@ -16060,7 +16060,8 @@ class Component extends DCLogic {
     if(disc && !this._redDiscOpcoes().some(d=>d.v===disc)) return;
     this.setState({redDisciplina:{...(this.state.redDisciplina||{}),disc,origem:'manual'}});
   };
-  redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.')) return; this._redBoot=''; this._redCorrAbortar(); this._redCronoZerar(); this.setState({redReescritaDe:'', redReescritaNota:'', redResult:null, redText:'', redTextTs:0, redRascunhoOculto:false, redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false, redModoProva:false, redEditandoEnun:false, redQuestaoAberta:true, redModoResposta:'mao', redGabVista:'', redGabErro:'', redGabOk:'', redConferindo:false, redConf:{}, redLinhasMao:'', redProvaId:'', redDisciplina:{}, espSugAtual:null}); try{ localStorage.setItem(this._chave('redText'),JSON.stringify('')); localStorage.setItem(this._chave('redGabarito'),JSON.stringify('')); localStorage.setItem(this._chave('redEnunciado'),JSON.stringify('')); }catch(_){} };
+  redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.'
+      +(this.state.redSegBusy?' A leitura da IA em andamento é interrompida, e a chamada já contou na cota de hoje.':''))) return; this._redBoot=''; this._redCorrAbortar(); this._redCronoZerar(); this.setState({redReescritaDe:'', redReescritaNota:'', redResult:null, redText:'', redTextTs:0, redRascunhoOculto:false, redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false, redModoProva:false, redEditandoEnun:false, redQuestaoAberta:true, redModoResposta:'mao', redGabVista:'', redGabErro:'', redGabOk:'', redConferindo:false, redConf:{}, redLinhasMao:'', redProvaId:'', redDisciplina:{}, espSugAtual:null}); try{ localStorage.setItem(this._chave('redText'),JSON.stringify('')); localStorage.setItem(this._chave('redGabarito'),JSON.stringify('')); localStorage.setItem(this._chave('redEnunciado'),JSON.stringify('')); }catch(_){} };
   redOpenHist = (e)=>{ const id=e.currentTarget.dataset.id; const h=(this.state.redHistory||[]).find(x=>x.id===id);
     if(!h||!h.res){ this._toast('Correção completa não disponível para este item'); return; }
     this._redCorrAbortar();
@@ -16123,7 +16124,8 @@ class Component extends DCLogic {
   _redCorrParar(){ if(this._redCorrT){ clearInterval(this._redCorrT); this._redCorrT=null; } }
   /** Descarta a correção em curso: quem troca de prova, zera o rascunho ou abre o histórico no meio da
       espera não pode receber depois, por cima da tela nova, a resposta da prova antiga. */
-  _redCorrAbortar(){ this._redCorrTok=(this._redCorrTok||0)+1; this._redCorrParar();
+  _redCorrAbortar(explicito){ const lendo=!!this.state.redSegBusy; this._redCorrTok=(this._redCorrTok||0)+1; this._redCorrParar();
+    if(lendo && !explicito) this._toast('A leitura da IA foi interrompida; a chamada já contou na cota de hoje.');
     try{ if(this._redCorrCtl) this._redCorrCtl.abort(); }catch(_){} this._redCorrCtl=null; this._redTardia=null;
     if(this.state.redBusy || this.state.redRecBusy || this.state.redSegBusy) this.setState({redBusy:false, redRecBusy:false, redSegBusy:false}); }
   /** Pede a correção à IA e CONFERE a resposta. Rejeita com {ctMotivo} quando não serve. */
@@ -16141,7 +16143,7 @@ class Component extends DCLogic {
     // enviada e já contou na cota do dia, então se a IA responder depois a resposta é aproveitada (_redTardia).
     let ctl=null; try{ ctl=(typeof AbortController==='function')?new AbortController():null; }catch(_){ ctl=null; }
     this._redCorrCtl=ctl;
-    const conferir=(bruto)=>{ const c=M.interpretar(this._parseJSON(String(bruto||'')), {quesitos:qs, resposta:text});
+    const conferir=(bruto)=>{ const c=M.interpretar(this._parseJSON(String(bruto||'')), {quesitos:qs, resposta:text, semNumeroPula:!!(opts&&opts.semNumeroPula)});
       if(!c) throw {ctMotivo:'invalida'}; return this._redResDaIA(c, ped.cortes, local); };
     const chamada=Promise.resolve().then(()=>window.claude.complete(ped.prompt, ctl?{signal:ctl.signal}:undefined));
     let relogio=null;
@@ -16264,7 +16266,7 @@ class Component extends DCLogic {
   };
   /** A reescrita só vale como ligação se a tentativa anterior ainda está no histórico. */
   _redAnteriorId(){ const id=this.state.redReescritaDe; return (id && (this.state.redHistory||[]).some(h=>h.id===id)) ? id : ''; }
-  cancelarCorrecao = ()=>{ const eraEntrega=!!this.state.redBusy; this._redCorrAbortar();
+  cancelarCorrecao = ()=>{ const eraEntrega=!!this.state.redBusy; this._redCorrAbortar(true);
     if(eraEntrega) this.setState({redEspelhoOculto:!!this._redOcultoAntes}); };
   /** A estimativa local está na tela; tenta de novo com a IA e, se der, SUBSTITUI a entrada do histórico. */
   recorrigirIA = async ()=>{
@@ -16298,11 +16300,18 @@ class Component extends DCLogic {
   // para um botão que um Espaço ou Enter dispararia sem querer, e não tira a pessoa de um campo em que ela
   // está escrevendo fora do cartão. (No Safari, clicar num botão não o foca: o foco "de antes" pode estar em
   // qualquer lugar, então o que a pessoa pede no próprio cartão move o foco sem essa trava.)
-  _redSegFocar(sel, aviso){ let n=0; const tenta=()=>{ let el=null;
-      try{ if(aviso){ const a=document.activeElement, card=document.querySelector('[data-red="segunda"]');
-          if(a && card && !card.contains(a) && (a.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))) return; }
+  _redSegFocar(sel, aviso, senao){ let n=0; const desiste=()=>{ if(senao) try{ senao(); }catch(_){} };
+    const tenta=()=>{ let el=null;
+      try{ if(aviso){
+          // modal aberto: não tira o foco dele; ao fechar, _syncModalFocus devolve o foco a este aviso
+          if(document.querySelector('.ct-modal-panel')){ el=document.querySelector(sel);
+            if(el){ const lf=this._lastFocus, card=document.querySelector('[data-red="segunda"]');
+              if(!lf || !lf.isConnected || (card && card.contains(lf))) this._lastFocus=el; desiste(); return; }
+            if(++n<20) setTimeout(tenta, 30); else desiste(); return; }
+          const a=document.activeElement, card=document.querySelector('[data-red="segunda"]');
+          if(a && card && !card.contains(a) && (a.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))){ desiste(); return; } }
         el=document.querySelector(sel); if(el) el.focus(); }catch(_){ return; }
-      if((!el || document.activeElement!==el) && ++n<20) setTimeout(tenta, 30); };
+      if(!el || document.activeElement!==el){ if(++n<20) setTimeout(tenta, 30); else desiste(); } };
     setTimeout(tenta, 0); }
   // Rascunho da transcrição por correção, só na memória: trocar de correção e voltar não perde o que foi digitado.
   _redSegRascunho(id, texto){ const m=(this._redSegRasc=this._redSegRasc||{}); if(texto===undefined) return m[id]||'';
@@ -16325,9 +16334,10 @@ class Component extends DCLogic {
     const gab=String(alvo.gabarito||this.state.redSubGab||''), enun=String(r0.enunciado||'');
     if(words<40 || !gab.trim()) return;         // o que falta fica escrito junto do botão (redSegDica)
     const M=window.CT_REDACAO_MOTOR;
-    const falha=(motivo)=>{ const extra=motivo==='tempo'?' A chamada já contou na cota de hoje.':'';
-      this.setState({redSegBusy:false, redSegErro:((M&&M.MOTIVOS[motivo||'erro'])||'A IA não respondeu.')+extra+' A sua conferência continua registrada.'});
-      this._redSegFocar('[data-red="segunda-erro"]', true); };
+    const falha=(motivo, texto)=>{ const extra=motivo==='tempo'?' A chamada já contou na cota de hoje.':(motivo==='demora'?' A chamada pode ter contado na cota de hoje.':'');
+      const msg=texto||(((M&&M.MOTIVOS[motivo||'erro'])||'A IA não respondeu.')+extra+' A sua conferência continua registrada.');
+      this.setState({redSegBusy:false, redSegErro:msg, redSegErroViva:false},
+        ()=>this._redSegFocar('[data-red="segunda-erro"]', true, ()=>this.setState({redSegErroViva:true}))); };
     // consentimento ANTES da espera: o cartão não diz "a IA está lendo" enquanto o termo ainda pergunta
     try{ await this._iaAutorizar(); }catch(_){ falha('recusou'); return; }
     if(this.state.redResultId!==id || this.state.redSegBusy) return;   // mudou de correção, ou o 2º toque, com o termo aberto
@@ -16337,7 +16347,7 @@ class Component extends DCLogic {
     this._redSegFocar('[data-red="segunda-cancelar"]');
     let res=null, motivo='';
     // Sem reserva local (quesito que a IA pular fica "não avaliou", sem número inventado) e com a régua da conferência.
-    try{ res=await this._redCorrigirIA(text, gab, enun, ()=>null, {reguaDaConferencia:true}); }
+    try{ res=await this._redCorrigirIA(text, gab, enun, ()=>null, {reguaDaConferencia:true, semNumeroPula:true}); }
     catch(e){ try{ motivo=M.motivoDaFalha(e); }catch(_){ motivo='erro'; }
       // Tempo esgotado: _redCorrigirIA guardou a chamada para a correção aproveitar a resposta tardia.
       // Aqui ela não vira leitura por trás da tela, mas não pode ficar sem tratador de erro.
@@ -16345,14 +16355,23 @@ class Component extends DCLogic {
     if(tok!==this._redCorrTok) return;          // cancelada, ou a pessoa abriu outra correção no meio
     this._redCorrParar();
     if(!res){ falha(motivo); return; }
-    const qs=(res.quesitos||[]).map(q=>({quesito:q.quesito, obtido:q.obtido, pontos:q.pontos, trecho:q.trecho||'', faltou:q.faltou||'', estimado:!!q.estimado}));
-    // quesito pulado entra na soma da IA como zero: com ele, o total dela não existe
-    const segunda={ ts:Date.now(), nota:qs.some(q=>q.estimado)?null:res.nota, geral:String(res.geral||''), quesitos:qs, texto:text, words,
+    // quesito cuja régua da conferência tem um degrau só sai gravado sem nota da IA (o encaixe ali é forçado)
+    const qsG=this._redQuesitos(gab), alinh=qsG.length===(res.quesitos||[]).length;
+    const umDegrau=(i)=>{ if(!alinh||!qsG[i]) return false; const o=this._redConfOpcoes(qsG[i]).map(v=>Math.round(v*100)/100); return o.filter((v,k)=>o.indexOf(v)===k).length<2; };
+    const qs=(res.quesitos||[]).map((q,i)=>{ const sr=umDegrau(i);
+      return {quesito:q.quesito, obtido:sr?null:q.obtido, pontos:q.pontos, trecho:sr?'':(q.trecho||''), faltou:sr?'':(q.faltou||''), estimado:!!q.estimado, ...(sr?{semRegua:true}:{})}; });
+    const cortada=text.length>((M&&M.LIMITES&&M.LIMITES.resposta)||15000);
+    // quesito pulado, sem régua ou texto cortado: o total da IA não se compara ao da pessoa
+    const segunda={ ts:Date.now(), nota:(cortada||qs.some(q=>q.estimado||q.semRegua))?null:res.nota, geral:String(res.geral||''), quesitos:qs, texto:text, words,
       ...(res.cortes&&res.cortes.length?{cortes:res.cortes.slice(0,4).map(String)}:{}) };
     const hist=(this.state.redHistory||[]).map(h=> h.id!==id ? h : {...h, up:Date.now(), segunda});
-    this._redSave(hist); this._redSegRascunho(id, '');
-    this.setState({redHistory:hist, redSegBusy:false, redSegAberta:false, redSegText:''});
-    this.flashSync(); this._redSegFocar('[data-red="segunda-resumo"]', true);
+    // o texto só sai do campo depois de gravado de verdade (armazenamento cheio não apaga a transcrição)
+    if(!hist.some(h=>h.id===id) || !this._redSave(hist)){
+      falha('', 'A leitura chegou, mas não foi possível guardá-la neste aparelho. O texto continua no campo; a sua conferência continua registrada.'); return; }
+    this._redSegRascunho(id, '');
+    this.setState({redHistory:hist, redSegBusy:false, redSegAberta:false, redSegText:'', redSegErro:''},
+      ()=>this._redSegFocar('[data-red="segunda-resumo"]', true));
+    this.flashSync();
   };
   // ---------------------------------------------------------------------------
   // CORRETOR LOCAL (sem IA). Deixou de ser "cobertura de palavras" e passou a corrigir
@@ -22097,56 +22116,68 @@ class Component extends DCLogic {
         // a régua que a conferência ofereceu em cada quesito: com um degrau só, as duas leituras saem iguais à força
         const qsEsp=cur?this._redQuesitos(gabCur):[]; const quesSua=(_redRes&&_redRes.quesitos)||[];
         const suaQ=quesSua.map((q,i)=>({...q, opcoes:(qsEsp.length===quesSua.length&&qsEsp[i])?this._redConfOpcoes(qsEsp[i]):null}));
-        const cmp=(seg&&M&&M.compararLeituras)?M.compararLeituras({nota:cur.nota, quesitos:suaQ}, seg):null;
+        const limite=(M&&M.LIMITES&&M.LIMITES.resposta)||15000;
+        // texto acima do limite: a IA leu só o começo; a comparação vale para o que ela leu, sem total
+        const cortadaSeg=!!seg&&String(seg.texto||'').length>limite;
+        const cmp=(seg&&M&&M.compararLeituras)?M.compararLeituras({nota:cur.nota, quesitos:suaQ}, seg, {cortada:cortadaSeg}):null;
         const f1=(x)=>(+x||0).toFixed(1).replace('.',','); const w=((st.redSegText||'').match(/\S+/g)||[]).length; const c=st.cotaIA;
         const milhar=(n)=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
         const semEsp=!gabCur.trim();
         const semIA=!(window.claude && typeof window.claude.complete==='function'), semCota=!!(c&&c.restante===0);
+        const semRede=typeof navigator!=='undefined' && navigator.onLine===false;
         const rot={'igual':'mesma nota','ia-menos':'a IA deu menos','ia-mais':'a IA deu mais','sem-nota':'a IA não avaliou','sem-regua':'sem régua para comparar'};
-        const linhas=cmp?cmp.linhas.map(l=>({ q:'Q'+l.n, d:l.d, sua:this._redNum(l.sua), ia:l.ia==null?'—':this._redNum(l.ia), max:this._redNum(l.max), rotulo:rot[l.d],
+        const linhas=cmp?cmp.linhas.map(l=>({ q:'Q'+l.i, d:l.d, sua:this._redNum(l.sua), ia:l.ia==null?'—':this._redNum(l.ia), max:this._redNum(l.max), rotulo:rot[l.d],
           temTrecho:(l.d==='ia-mais'||l.d==='ia-menos')&&!!l.trecho, trecho:l.trecho, temFaltou:l.d==='ia-menos'&&!!l.faltou, faltou:l.faltou })):[];
         // O resumo conta só o que dá para comparar; o que ficou de fora é nomeado, e com ele não há total da IA.
         const qq=(n)=>n+(n===1?' quesito':' quesitos');
         const lista=(a)=>a.length>1?(a.slice(0,-1).join(', ')+' e '+a[a.length-1]):(a[0]||'');
-        const foraSem=cmp?cmp.linhas.filter(l=>l.d==='sem-nota').map(l=>'o Q'+l.n):[];
-        const foraRegua=cmp?cmp.linhas.filter(l=>l.d==='sem-regua').map(l=>'no Q'+l.n):[];
+        const foraSem=cmp?cmp.linhas.filter(l=>l.d==='sem-nota').map(l=>'o Q'+l.i):[];
+        const foraRegua=cmp?cmp.linhas.filter(l=>l.d==='sem-regua').map(l=>'no Q'+l.i):[];
         const qual=(cmp&&cmp.semRegua)?(cmp.avaliados===1?' comparável':' comparáveis'):((cmp&&cmp.semNota)?' que avaliou':'');
         let resumo='';
         if(cmp){
-          if(cmp.desalinhado) resumo='Os quesitos desta conferência não batem com os da leitura; dá para comparar só o total.';
-          else if(!cmp.linhas.length) resumo=cmp.difNota==null?'A IA não deu nota geral.'
+          if(cmp.desalinhado) resumo=cmp.notaIA==null?'Os quesitos desta conferência não batem com os da leitura, e não há total da IA para comparar.'
+            :'Os quesitos desta conferência não batem com os da leitura; dá para comparar só o total.';
+          else if(!cmp.linhas.length) resumo=cmp.difNota==null?(cmp.cortada?'':'A IA não deu nota geral.')
             :(cmp.difNota?('A IA deu '+f1(Math.abs(cmp.difNota))+(cmp.difNota<0?' a menos':' a mais')+' na nota geral.'):'A IA chegou à mesma nota geral.');
           else if(!cmp.avaliados) resumo='Não há quesito que dê para comparar.';
           else resumo=cmp.divergentes?('A IA deu nota diferente em '+cmp.divergentes+' de '+qq(cmp.avaliados)+qual+'.')
             :(cmp.avaliados===1?('A IA chegou à mesma nota no quesito'+qual+'.'):('A IA chegou às mesmas notas nos '+qq(cmp.avaliados)+qual+'.'));
           if(foraSem.length) resumo+=' Ela não avaliou '+lista(foraSem)+'.';
           if(foraRegua.length){ const t=lista(foraRegua); resumo+=' '+t.charAt(0).toUpperCase()+t.slice(1)+', o espelho só permite uma nota: ali não há o que comparar.'; }
-          if(cmp.linhas.length && cmp.notaIA==null) resumo+=' Por isso não há total da IA.';
+          if(cmp.cortada) resumo='A IA leu só os primeiros '+milhar(limite)+' caracteres: onde ela deu menos, pode ser efeito do corte.'+(resumo?' '+resumo:'');
+          if(!cmp.desalinhado && cmp.notaIA==null && (foraSem.length||foraRegua.length||cmp.cortada)) resumo+=' Por isso não há total da IA.';
         }
-        const limite=(M&&M.LIMITES&&M.LIMITES.resposta)||15000; const longo=String(st.redSegText||'').trim().length>limite;
+        const longo=String(st.redSegText||'').trim().length>limite;
         const cortes=(seg&&Array.isArray(seg.cortes))?seg.cortes:[];
         const conviteTxt='Digite o que você escreveu no papel e a IA lê contra o mesmo espelho. A sua nota não muda; '
           +(qsEsp.length?'você vê em quais quesitos ela discorda.':'você vê a nota que ela daria.');
-        return { redSegShow:!!cur, redSegTem:!!cmp, redSegConvite:!!cur&&!cmp, redSegConviteTxt:conviteTxt, redSegResumo:resumo,
+        return { redSegShow:!!cur, redSegTem:!!cmp, redSegConvite:!!cur&&!cmp&&!semIA, redSegConviteTxt:conviteTxt, redSegResumo:resumo,
           redSegSua:cmp?f1(cmp.notaSua):'', redSegIA:cmp?(cmp.notaIA==null?'—':f1(cmp.notaIA)):'',
           redSegLinhas:linhas, redSegTemLinhas:linhas.length>0,
           redSegTemGeral:!!cmp&&!!(seg&&String(seg.geral||'').trim()), redSegGeral:String((seg&&seg.geral)||''),
           redSegAprox:!!(cur&&(cur.aproximada||(cur.res&&cur.res.aproximada))),
-          redSegTemIndisp:!!cur&&(semIA||semCota), redSegIndisp:semIA?((M&&M.MOTIVOS['sem-ia'])||'A IA não está disponível agora.'):'As chamadas de IA de hoje acabaram; a leitura fica para amanhã.',
+          // com o campo aberto, a dica ligada a ele já fala da cota; com uma leitura na tela, não se promete "a leitura"
+          redSegTemIndisp:!!cur&&(semIA||semRede||(semCota&&!st.redSegAberta)),
+          redSegIndisp:semIA?((M&&M.MOTIVOS['sem-ia'])||'A IA não está disponível agora.')
+            :(semRede?'Sem conexão agora: a leitura da IA precisa de internet.'
+            :(cmp?'As chamadas de IA de hoje acabaram; uma nova leitura só amanhã.':'As chamadas de IA de hoje acabaram; a leitura fica para amanhã.')),
           redSegAberta:!!st.redSegAberta, redSegFechadaPode:!st.redSegAberta&&!semIA, redSegSubstitui:!!cmp&&!!st.redSegAberta,
           redSegText:st.redSegText||'', onSegText:this.onSegText, abrirSegunda:this.abrirSegunda, fecharSegunda:this.fecharSegunda,
           pedirSegunda:this.pedirSegunda, cancelarSegunda:this.cancelarSegunda,
           redSegBusy:!!st.redSegBusy, redSegNaoPode:!!st.redSegBusy||w<40||semEsp||semIA, redSegPodeFechar:!!st.redSegAberta&&!st.redSegBusy,
           redSegBtnTxt:st.redSegBusy?('Lendo com IA · '+this._redFmtTempo(Date.now()-(+st.redCorrDesde||Date.now()))):'Pedir a leitura da IA',
           redSegAbrirTxt:cmp?'Pedir uma nova leitura':'Digitar o que escrevi',
-          redSegDica:semEsp?'Esta conferência não guardou o espelho; sem ele a IA não tem contra o que ler.'
+          redSegDica:st.redSegBusy?'A IA está lendo. Se você cancelar, a chamada já conta na cota de hoje.'
+            :semEsp?'Esta conferência não guardou o espelho; sem ele a IA não tem contra o que ler.'
             :(w<40?((40-w)===1?'Falta 1 palavra (mínimo de 40).':('Faltam '+(40-w)+' palavras (mínimo de 40).'))
             :(semCota?'As chamadas de IA de hoje acabaram; a leitura não vai sair agora.'
             :(longo?('O texto passa de '+milhar(limite)+' caracteres: a IA vai ler só o começo.')
-            :'Copie como está na folha, sem melhorar: é esse texto que a IA compara com a sua conferência. Ele fica guardado nesta correção.'))),
+            :'Copie como está na folha, sem melhorar. A IA lê esse texto contra o espelho, sem ver as suas notas. O texto só fica guardado nesta correção depois da leitura.'))),
           redSegTemCortes:!!cmp&&cortes.length>0, redSegCortes:cortes.join('; '),
           // região viva que já existe antes da mudança: anuncia a espera e a falha (o resultado recebe o foco)
-          redSegAviso:st.redSegBusy?'A IA está lendo o seu texto.':(st.redSegErro||''),
+          // na falha, o foco vai para a mensagem; a região só a repete quando o foco não pôde ir (um canal por evento)
+          redSegAviso:st.redSegBusy?'A IA está lendo o seu texto.':((st.redSegErroViva&&st.redSegErro)||''),
           redSegTemErro:!!st.redSegErro, redSegErro:st.redSegErro||'' }; })(),
       reescreverRed:this.reescreverRed, redReescreverTxt:(_redRes&&_redRes.propria)?'Refazer à mão':'Reescrever esta resposta',
       redReescreverDica:(_redRes&&_redRes.propria)?'Refaça no papel com o padrão guardado e compare as duas conferências.':'Volte à folha com o seu texto, corrija o que faltou e compare as duas correções.',

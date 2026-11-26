@@ -43,11 +43,30 @@ export function testarRedacaoSegundaEstatico(ok) {
   // listas desalinhadas (máximo diferente no mesmo índice): não compara linha a linha
   const d = M.compararLeituras({ nota: 5, quesitos: [q(0.3, 0.3), q(0.2, 0.3)] }, { nota: 4, quesitos: [q(0.3, 0.3), q(0, 0.4)] });
   ok(d.desalinhado === true && d.linhas.length === 0 && d.notaIA === 4, R + 'quesitos com máximo diferente no mesmo índice não são comparados linha a linha');
-  // o rótulo é o número do quesito no espelho, não a posição
+  // a linha guarda a posição (Q1, Q2: a mesma numeração do pedido à IA, do "geral" e do "faltou" dela) e o número do espelho
   const n = M.compararLeituras({ nota: 5, quesitos: [q(0.3, 0.3, { quesito: 'Quesito 1' }), q(0.2, 0.3, { quesito: 'Quesito 4' })] }, { nota: 5, quesitos: [q(0.3, 0.3), q(0.2, 0.3)] });
-  ok(n.linhas.map(l => l.n).join() === '1,4', R + 'a linha leva o número do quesito do espelho (Q4), não a posição na lista');
+  ok(n.linhas.map(l => l.i).join() === '1,2' && n.linhas.map(l => l.n).join() === '1,4', R + 'a linha leva a posição do quesito (a mesma do pedido à IA) e guarda o número do espelho');
+  // régua com o mesmo valor repetido ([0,0,0], escala "0,00" do banco) também é um degrau só; e a marca gravada vale
+  const r0 = M.compararLeituras({ nota: 5, quesitos: [q(0, 0, { opcoes: [0, 0, 0] }), q(0.3, 0.3, { opcoes: [0, 0.1, 0.2, 0.3] })] }, { nota: 5, quesitos: [q(0, 0, { estimado: true }), q(0.3, 0.3)] });
+  ok(r0.linhas[0].d === 'sem-regua' && r0.semNota === 0 && r0.notaIA === null, R + 'régua [0,0,0] conta como um degrau: "sem régua", e não "a IA não avaliou"');
+  const rg = M.compararLeituras({ nota: 10, quesitos: [q(0.4, 0.4), q(0.3, 0.3)] }, { nota: 5, quesitos: [q(null, 0.4, { semRegua: true }), q(0.3, 0.3)] });
+  ok(rg.linhas[0].d === 'sem-regua' && rg.notaIA === null, R + 'a marca "semRegua" gravada na leitura vale mesmo sem as opções da conferência');
+  // texto acima do limite: a leitura é parcial, sem total da IA
+  const ct = M.compararLeituras({ nota: 8, quesitos: [q(0.3, 0.3), q(0.1, 0.3)] }, { nota: 6, quesitos: [q(0.3, 0.3), q(0, 0.3)] }, { cortada: true });
+  ok(ct.cortada === true && ct.notaIA === null && ct.difNota === null && ct.linhas[1].d === 'ia-menos', R + 'leitura de texto cortado: linhas comparadas, sem total da IA');
+  // a IA que numera os quesitos de 0 a n-1 não desloca a comparação
+  const QS = [{ n: 1, texto: 'a', max: 0.3 }, { n: 2, texto: 'b', max: 0.3 }, { n: 3, texto: 'c', max: 0.4 }];
+  const b0 = M.interpretar({ quesitos: [{ i: 0, nota: 0.3 }, { i: 1, nota: 0.1 }, { i: 2, nota: 0.4 }] }, { quesitos: QS, resposta: 'x' });
+  ok(!!b0 && b0.pulados.length === 0 && b0.quesitos.map(x => x.obtido).join() === '0.3,0.1,0.4', R + 'IA que numera a partir de 0: cada nota cai no seu quesito');
+  // nota vazia: na leitura é "a IA não avaliou"; na correção comum continua como antes
+  const nl = { quesitos: [{ i: 1, nota: 0.3 }, { i: 2, nota: 0.1 }, { i: 3, nota: null }] };
+  const nl1 = M.interpretar(nl, { quesitos: QS, resposta: 'x', semNumeroPula: true }), nl2 = M.interpretar(nl, { quesitos: QS, resposta: 'x' });
+  ok(!!nl1 && nl1.pulados.join() === '2' && !!nl2 && nl2.pulados.length === 0, R + 'nota vazia da IA vira "não avaliou" só na leitura (opção semNumeroPula)');
   ok(M.motivoDaFalha({ message: 'O acesso à IA desta conta foi pausado. Fale com quem te convidou.' }) === 'pausada'
     && M.motivoDaFalha({ message: 'Entre na sua conta do Cátedra para usar a IA.' }) === 'sessao', R + 'IA pausada pelo console e sessão expirada têm motivo próprio');
+  ok(M.motivoDaFalha({ message: 'As chamadas de IA de hoje acabaram (60 de 60).' }) === 'cota' && M.motivoDaFalha({ message: 'Erro do Gemini (429)' }) !== 'cota'
+    && M.motivoDaFalha({ message: 'Não foi possível conferir a cota de IA. Tente novamente em instantes.' }) !== 'cota', R + 'só a frase da cota do dia vira "cota"; 429 do provedor e falha da reserva, não');
+  ok(['IA HTTP 504', 'The request timed out.', 'Falha de rede: A solicitação expirou.'].every(m => M.motivoDaFalha({ message: m }) === 'demora'), R + 'tempo do servidor ou da ponte (504, timed out) vira "demora", com a cota mencionada na tela');
   const longo = M.montarPrompt({ enunciado: 'E', quesitos: [{ n: 1, texto: 'quesito de teste', max: 1 }], resposta: 'palavra '.repeat(3000) });
   ok(/15\.000/.test(longo.cortes[0]) && /cortada aqui/.test(longo.prompt) && /pode estar depois do corte/.test(longo.prompt), R + 'resposta cortada: o aviso diz 15.000 e o pedido avisa a IA do corte');
 }
@@ -96,7 +115,7 @@ async function abrirCampo(page) { await page.click('[data-red="segunda-abrir"]')
 
 export async function testarRedacaoSegunda(pageDaSuite, base, ok, opcoes = {}) {
   const R = 'SEGUNDA [' + (opcoes.motor || 'chromium') + '] ';
-  for (const b of [fluxo, pulado, cancelar, tempo, indisponivel, prosa, umDegrau, medidas]) {
+  for (const b of [fluxo, pulado, cancelar, tempo, consentimento, gravacao, indisponivel, prosa, umDegrau, medidas]) {
     try { await b(pageDaSuite, base, ok, R); } catch (e) { ok(false, R + b.name + ' exceção: ' + String(e.message).split('\n')[0]); }
   }
 }
@@ -114,7 +133,7 @@ async function fluxo(pageDaSuite, base, ok, R) {
     const ordem = await page.evaluate(() => { const r = document.querySelector('[data-red="reescrever"]'), s = document.querySelector('[data-red="segunda"]');
       return !!(r && s && (r.compareDocumentPosition(s) & Node.DOCUMENT_POSITION_FOLLOWING)); });
     ok(ordem, R + 'papel primeiro: o cartão da IA vem depois de "Refazer à mão"');
-    await page.waitForTimeout(1400);                 // o registro da conferência chega ao storage pelo autosave
+    await page.clock.runFor(1500);                   // dispara o autosave (500 ms) que grava o registro da conferência
     const evo0 = await evo(page); const h0 = await hist(page);
     ok(evo0.length === 1 && h0.length === 1 && h0[0].texto === '', R + 'a conferência própria deixou um registro na evolução e uma entrada sem texto');
 
@@ -129,13 +148,17 @@ async function fluxo(pageDaSuite, base, ok, R) {
     ok(await page.getAttribute('[data-red="segunda-aviso"]', 'role') === 'status' && (await page.textContent('[data-red="segunda-aviso"]')).trim() === '', R + 'a região viva já existe, vazia, antes de pedir');
     await armarIA(page, 'rede', IA2);
     await page.fill('[data-red="segunda-texto"]', RESPOSTA);
+    const dica = await page.textContent('[data-red="segunda-dica"]');
+    ok(/sem ver as suas notas/.test(dica) && /só fica guardado nesta correção depois da leitura/.test(dica) && !/Ele fica guardado/.test(dica),
+      R + 'a dica diz que a IA lê contra o espelho sem ver as notas, e que o texto só fica guardado depois da leitura');
     await page.click('[data-red="segunda-pedir"]'); await page.waitForSelector('[data-red="segunda-erro"]', { timeout: 8000 });
     await page.waitForTimeout(1400);
     let h = await hist(page);
-    ok(/conex|rede|internet/i.test(await page.textContent('[data-red="segunda-erro"]')) && /continua registrada/.test(await page.textContent('[data-red="segunda-erro"]')), R + 'falha da IA é dita na tela, com o motivo');
-    ok(/continua registrada/.test(await page.textContent('[data-red="segunda-aviso"]')), R + 'a região viva anuncia o motivo ao leitor de tela');
+    const erroTxt = await page.textContent('[data-red="segunda-erro"]');
+    ok(/Leitura não concluída/.test(erroTxt) && /conex|rede|internet/i.test(erroTxt) && /continua registrada/.test(erroTxt), R + 'falha da IA é dita na tela, com rótulo próprio e o motivo');
     ok(h.length === 1 && !h[0].segunda && h[0].nota === 8 && await page.locator('[data-red="segunda-linha"]').count() === 0, R + 'falha não grava leitura nem inventa estimativa local como se fosse a IA');
     ok(await page.inputValue('[data-red="segunda-texto"]') === RESPOSTA && await esperarFoco(page, 'segunda-erro'), R + 'o texto continua no campo depois da falha, e o foco vai para a mensagem (texto, não o botão que um Enter dispararia)');
+    ok((await page.textContent('[data-red="segunda-aviso"]')).trim() === '', R + 'um canal por evento: com o foco na mensagem, a região viva não a repete');
 
     // resposta fora do formato: motivo próprio, nada gravado
     await armarIA(page, 'lixo', IA2);
@@ -160,7 +183,7 @@ async function fluxo(pageDaSuite, base, ok, R) {
     ok(await page.locator('[data-red="segunda-texto"]').count() === 0, R + 'depois da leitura o campo fecha');
     ok(await esperarFoco(page, 'segunda-resumo'), R + 'o foco vai para o resumo, que o leitor de tela lê na chegada (foco em: ' + await foco(page) + ')');
 
-    await page.waitForTimeout(1400);
+    await page.clock.runFor(1500);
     h = await hist(page);
     ok(h.length === 1 && h[0].nota === 8 && h[0].origem === 'conferencia-propria' && h[0].res.propria === true, R + 'a nota registrada continua sendo a da conferência própria (8,0)');
     ok(!!h[0].segunda && h[0].segunda.nota === 6 && h[0].segunda.quesitos.length === 3 && h[0].segunda.texto === RESPOSTA && h[0].segunda.words === RESPOSTA.split(/\s+/).length,
@@ -172,7 +195,10 @@ async function fluxo(pageDaSuite, base, ok, R) {
     // persiste e volta a pintar depois de recarregar e abrir pelo histórico
     // ("Suas correções" só aparece na etapa 1, sem prova na mesa: a semente tira o enunciado antes de reabrir)
     await page.goto(base + '/__semente');
-    await page.evaluate(() => { localStorage.setItem('catedra:redEnunciado', JSON.stringify('')); localStorage.setItem('catedra:redGabarito', JSON.stringify('')); });
+    await page.evaluate(() => { localStorage.setItem('catedra:redEnunciado', JSON.stringify('')); localStorage.setItem('catedra:redGabarito', JSON.stringify(''));
+      // rascunho na folha + entrada no formato que um app sem a trava deixaria (texto de topo = transcrição)
+      localStorage.setItem('catedra:redText', JSON.stringify('Rascunho da folha'));
+      const r = JSON.parse(localStorage.getItem('catedra:red') || '[]'); if (r[0] && r[0].segunda) r[0].texto = r[0].segunda.texto; localStorage.setItem('catedra:red', JSON.stringify(r)); });
     await page.goto(base + '/Catedra.dc.html');
     await page.waitForFunction(() => typeof window.__catedraGoView === 'function');
     await page.evaluate(() => window.__catedraGoView('redacao')); await armarIA(page, 'boa', IA2);   // a página nova traz o shim de novo
@@ -180,13 +206,19 @@ async function fluxo(pageDaSuite, base, ok, R) {
     const rascunho0 = await page.evaluate(() => localStorage.getItem('catedra:redText'));
     await page.click('button[data-id="' + h[0].id + '"]'); await page.waitForSelector('[data-red="segunda-linha"]', { timeout: 8000 });
     ok((await linhas(page)).map(l => l.d).join() === 'igual,ia-mais,ia-menos' && /Pedir uma nova leitura/.test(await page.textContent('[data-red="segunda-abrir"]')), R + 'recarregando e abrindo pelo histórico a comparação volta, com o convite para uma nova leitura');
-    await page.waitForTimeout(1400);
-    ok(await page.evaluate(() => localStorage.getItem('catedra:redText')) === rascunho0, R + 'abrir a conferência pelo histórico não leva a transcrição para o rascunho da folha');
+    await page.clock.runFor(1500);
+    ok(/Rascunho da folha/.test(rascunho0 || '') && await page.evaluate(() => localStorage.getItem('catedra:redText')) === rascunho0, R + 'abrir a conferência pelo histórico não troca o rascunho da folha pela transcrição');
     await abrirCampo(page);
     ok(await page.inputValue('[data-red="segunda-texto"]') === RESPOSTA && await esperarFoco(page, 'segunda-texto') && await page.locator('[data-red="segunda-substitui"]').count() === 1,
       R + 'pedir nova leitura abre o campo com a transcrição guardada, com o foco, e avisa que a nova substitui a atual');
     await page.click('[data-red="segunda-fechar"]');
     ok(await esperarFoco(page, 'segunda-abrir') && await page.locator('[data-red="segunda-texto"]').count() === 0, R + '"Agora não" fecha o campo e devolve o foco ao botão que o abriu');
+    // cota zerada com uma leitura já na tela: não promete "a leitura fica para amanhã"
+    await page.evaluate(() => window.__catedraApp.setState({ cotaIA: { limite: 5, usadas: 5, restante: 0 } }));
+    const indisp = await page.textContent('[data-red="segunda-indisp"]');
+    ok(/uma nova leitura só amanhã/.test(indisp) && !/a leitura fica para amanhã/.test(indisp), R + 'cota zerada com leitura na tela: o aviso fala de uma nova leitura (' + indisp.trim() + ')');
+    await abrirCampo(page);
+    ok(await page.locator('[data-red="segunda-indisp"]').count() === 0 && /acabaram/.test(await page.textContent('[data-red="segunda-dica"]')), R + 'com o campo aberto, a cota é dita só na dica ligada a ele (sem repetir o aviso)');
     ok(erros.length === 0, R + 'nenhum erro de página no fluxo (' + erros.slice(0, 1).join('') + ')');
   } finally { await ctx.close(); }
 }
@@ -220,10 +252,14 @@ async function pulado(pageDaSuite, base, ok, R) {
     await armarIA(page, 'boa', IA2);
     await page.click('[data-red="segunda-pedir"]');
     await page.waitForSelector('[data-red="segunda-cortes"]', { timeout: 15000 });
-    ok(/A IA não leu tudo — a resposta passa de 15\.000 caracteres/.test(await page.textContent('[data-red="segunda-cortes"]')) && (await linhas(page)).map(l => l.d).join() === 'igual,ia-mais,ia-menos', R + 'depois da leitura o cartão diz que o texto foi cortado, e a nova leitura substitui a anterior');
-    await page.waitForTimeout(1400);
+    const cortesTxt = await page.textContent('[data-red="segunda-cortes"]');
+    ok(/Texto acima do limite/.test(cortesTxt) && /a resposta passa de 15\.000 caracteres/.test(cortesTxt) && (await linhas(page)).map(l => l.d).join() === 'igual,ia-mais,ia-menos', R + 'depois da leitura o cartão diz, com rótulo próprio, que o texto foi cortado; a nova leitura substitui a anterior');
+    const resumoCortado = await page.textContent('[data-red="segunda-resumo"]');
+    ok(/A IA leu só os primeiros 15\.000 caracteres/.test(resumoCortado) && /não há total da IA/.test(resumoCortado) && (await page.textContent('[data-red="segunda-ia"]')).trim() === '—', R + 'texto cortado: o resumo avisa que onde a IA deu menos pode ser o corte, e não há total da IA');
+    ok(await esperarFoco(page, 'segunda-resumo') && await page.evaluate(() => /15\.000/.test(document.activeElement.textContent)), R + 'na nova leitura, o foco cai no resumo NOVO, não no anterior');
+    await page.waitForTimeout(600);
     h = await hist(page);
-    ok(h.length === 1 && h[0].segunda.nota === 6 && Array.isArray(h[0].segunda.cortes) && h[0].segunda.cortes.length === 1 && h[0].nota === 8, R + 'a nova leitura fica na mesma entrada, com o aviso de corte guardado; a nota registrada segue 8,0');
+    ok(h.length === 1 && h[0].segunda.nota === null && Array.isArray(h[0].segunda.cortes) && h[0].segunda.cortes.length === 1 && h[0].nota === 8, R + 'a nova leitura fica na mesma entrada, sem total e com o aviso de corte; a nota registrada segue 8,0');
   } finally { await ctx.close(); }
 }
 
@@ -239,6 +275,7 @@ async function cancelar(pageDaSuite, base, ok, R) {
     ok(/Lendo com IA/.test(await page.textContent('[data-red="segunda-pedir"]')) && (await page.textContent('[data-red="segunda-aviso"]')).trim() === 'A IA está lendo o seu texto.', R + 'durante a leitura o botão mostra a espera e a região viva anuncia uma frase fixa (sem contar segundos)');
     ok(await esperarFoco(page, 'segunda-cancelar'), R + 'durante a leitura o foco vai para "Cancelar" (o botão de pedir fica desligado)');
     ok(await page.getAttribute('[data-red="segunda-texto"]', 'readonly') !== null, R + 'durante a leitura o campo fica só para leitura: o que se digitasse ali se perderia');
+    ok(/Se você cancelar, a chamada já conta na cota/.test(await page.textContent('[data-red="segunda-dica"]')), R + 'durante a leitura a dica diz, à vista, que cancelar não devolve a chamada à cota');
     await page.click('[data-red="segunda-cancelar"]');
     await page.waitForSelector('[data-red="segunda-cancelar"]', { state: 'detached', timeout: 8000 });
     ok(/Pedir a leitura da IA/.test(await page.textContent('[data-red="segunda-pedir"]')) && await page.inputValue('[data-red="segunda-texto"]') === RESPOSTA, R + 'cancelar destrava o botão e mantém o texto no campo');
@@ -249,6 +286,18 @@ async function cancelar(pageDaSuite, base, ok, R) {
     await page.waitForTimeout(1400);
     const h = await hist(page);
     ok(h.length === 1 && !h[0].segunda && await page.locator('[data-red="segunda-linha"]').count() === 0, R + 'a resposta que chega depois de cancelar é descartada: nada gravado, nada pintado');
+    // caminho do site: o fetch rejeita na hora do aborto
+    await page.evaluate(() => { window.claude.complete = (p, o) => new Promise((_, rej) => { if (o && o.signal) o.signal.addEventListener('abort', () => rej(new DOMException('signal is aborted without reason', 'AbortError')), { once: true }); }); });
+    await page.click('[data-red="segunda-pedir"]'); await page.waitForSelector('[data-red="segunda-cancelar"]', { timeout: 8000 });
+    await page.click('[data-red="segunda-cancelar"]'); await page.waitForTimeout(400);
+    ok(await page.locator('[data-red="segunda-erro"]').count() === 0 && (await page.textContent('[data-red="segunda-aviso"]')).trim() === '' && await esperarFoco(page, 'segunda-pedir'),
+      R + 'cancelar quando a chamada rejeita no aborto: nenhuma mensagem de falha, foco no botão de pedir');
+    // interromper por outro caminho (Refazer à mão) avisa que a chamada contou
+    await armarIA(page, 'pendente', IA2);
+    await page.click('[data-red="segunda-pedir"]'); await page.waitForSelector('[data-red="segunda-cancelar"]', { timeout: 8000 });
+    await page.click('[data-red="reescrever"]');
+    await page.waitForFunction(() => [...document.querySelectorAll('[role="status"]')].some(e => /interrompida/.test(e.textContent)), null, { timeout: 4000 }).catch(() => {});
+    ok(await page.evaluate(() => [...document.querySelectorAll('[role="status"]')].some(e => /interrompida.*contou na cota/.test(e.textContent))), R + 'sair da leitura por "Refazer à mão" avisa que ela foi interrompida e que a chamada contou');
   } finally { await ctx.close(); }
 }
 
@@ -259,18 +308,69 @@ async function tempo(pageDaSuite, base, ok, R) {
     await semear(page, base, CONSENT()); await abrirRedacao(page, base); await armarIA(page, 'boa', IA2);
     await conferir(page);
     await abrirCampo(page);
-    await armarIA(page, 'pendente', 'não é json');
     await page.fill('[data-red="segunda-texto"]', RESPOSTA);
+    // 1ª rodada: a resposta tardia é VÁLIDA — se ela virasse leitura, o teste veria
+    await armarIA(page, 'pendente', IA2);
     await page.click('[data-red="segunda-pedir"]'); await page.waitForSelector('[data-red="segunda-cancelar"]', { timeout: 8000 });
     await page.clock.fastForward(91000);
     await page.waitForSelector('[data-red="segunda-erro"]', { timeout: 8000 });
     const erro = await page.textContent('[data-red="segunda-erro"]');
     ok(/90 segundos/.test(erro) && /já contou na cota/.test(erro), R + 'tempo esgotado: o motivo aparece e diz que a chamada já contou na cota (' + erro.trim() + ')');
-    await page.evaluate(() => window.__iaSolta && window.__iaSolta());   // a resposta tardia, fora do formato, chega agora
-    await page.waitForTimeout(1400);
-    const h = await hist(page);
-    ok(h.length === 1 && !h[0].segunda && await page.locator('[data-red="segunda-linha"]').count() === 0, R + 'a resposta que chega depois do tempo esgotado não vira leitura');
-    ok(erros.length === 0, R + 'a resposta tardia fora do formato não deixa rejeição solta nem erro de página (' + erros.slice(0, 1).join('') + ')');
+    await page.evaluate(() => window.__iaSolta());
+    await page.waitForTimeout(900);
+    let h = await hist(page);
+    ok(h.length === 1 && !h[0].segunda && await page.locator('[data-red="segunda-linha"]').count() === 0 && /90 segundos/.test(await page.textContent('[data-red="segunda-erro"]')),
+      R + 'a resposta válida que chega depois do tempo esgotado não vira leitura');
+    // 2ª rodada: a resposta tardia é inválida — não pode sobrar rejeição solta
+    await armarIA(page, 'pendente', 'não é json');
+    await page.click('[data-red="segunda-pedir"]'); await page.waitForSelector('[data-red="segunda-cancelar"]', { timeout: 8000 });
+    await page.clock.fastForward(91000);
+    await page.waitForSelector('[data-red="segunda-cancelar"]', { state: 'detached', timeout: 8000 });
+    await page.evaluate(() => window.__iaSolta());
+    await page.waitForTimeout(900);
+    h = await hist(page);
+    ok(!h[0].segunda && erros.length === 0, R + 'a resposta tardia fora do formato não deixa rejeição solta nem erro de página (' + erros.slice(0, 1).join('') + ')');
+  } finally { await ctx.close(); }
+}
+
+async function consentimento(pageDaSuite, base, ok, R) {
+  const { ctx, page } = await novoContexto(pageDaSuite);
+  try {
+    await semear(page, base, CONSENT()); await abrirRedacao(page, base); await armarIA(page, 'boa', IA2);
+    await conferir(page);
+    await abrirCampo(page);
+    await page.fill('[data-red="segunda-texto"]', RESPOSTA);
+    // o termo de consentimento fica aberto até a pessoa responder
+    await page.evaluate(() => { window.__catedraApp._iaAutorizar = () => new Promise((res, rej) => { window.__recusa = () => rej(new Error('ia_sem_consentimento')); }); });
+    await page.click('[data-red="segunda-pedir"]');
+    await page.waitForFunction(() => typeof window.__recusa === 'function', null, { timeout: 8000 });
+    ok(await page.locator('[data-red="segunda-cancelar"]').count() === 0 && (await page.textContent('[data-red="segunda-aviso"]')).trim() === ''
+      && /Pedir a leitura da IA/.test(await page.textContent('[data-red="segunda-pedir"]')) && await page.evaluate(() => window.__iaChamadas === 0),
+      R + 'com o termo de consentimento aberto, o cartão não diz que a IA está lendo e nada foi enviado');
+    await page.evaluate(() => window.__recusa());
+    await page.waitForSelector('[data-red="segunda-erro"]', { timeout: 8000 });
+    const erro = await page.textContent('[data-red="segunda-erro"]');
+    ok(/não autorizou/.test(erro) && /continua registrada/.test(erro) && await page.evaluate(() => window.__iaChamadas === 0) && !(await hist(page))[0].segunda,
+      R + 'recusar o consentimento: o motivo aparece, nenhuma chamada sai e nada é gravado');
+  } finally { await ctx.close(); }
+}
+
+async function gravacao(pageDaSuite, base, ok, R) {
+  const { ctx, page } = await novoContexto(pageDaSuite);
+  try {
+    await semear(page, base, CONSENT()); await abrirRedacao(page, base); await armarIA(page, 'boa', IA2);
+    await conferir(page);
+    await abrirCampo(page);
+    await page.fill('[data-red="segunda-texto"]', RESPOSTA);
+    // armazenamento cheio só para o histórico da Redação
+    await page.evaluate(() => { const o = Storage.prototype.setItem; window.__setItemOriginal = o;
+      Storage.prototype.setItem = function (k, v) { if (k === 'catedra:red') throw new DOMException('cheio', 'QuotaExceededError'); return o.call(this, k, v); }; });
+    await page.click('[data-red="segunda-pedir"]');
+    await page.waitForSelector('[data-red="segunda-erro"]', { timeout: 15000 });
+    const erro = await page.textContent('[data-red="segunda-erro"]');
+    ok(/não foi possível guardá-la/.test(erro) && await page.inputValue('[data-red="segunda-texto"]') === RESPOSTA && await page.locator('[data-red="segunda-linha"]').count() === 0,
+      R + 'leitura que não coube no armazenamento: a falha é dita e a transcrição continua no campo');
+    await page.evaluate(() => { Storage.prototype.setItem = window.__setItemOriginal; });
   } finally { await ctx.close(); }
 }
 
@@ -320,6 +420,10 @@ async function umDegrau(pageDaSuite, base, ok, R) {
     await page.click('[data-red="segunda-pedir"]'); await page.waitForSelector('[data-red="segunda-linha"]', { timeout: 15000 });
     const ls = await linhas(page); const resumo = await page.textContent('[data-red="segunda-resumo"]');
     ok(ls.map(l => l.d).join() === 'ia-menos,sem-regua' && ls[1].ia === '—' && /sem régua para comparar/.test(ls[1].txt), R + 'quesito com uma nota só no espelho fica "sem régua para comparar", sem nota da IA forçada no degrau');
+    await page.waitForTimeout(600);
+    const hu = await hist(page);
+    ok(!!hu[0].segunda && hu[0].segunda.nota === null && hu[0].segunda.quesitos[1].semRegua === true && hu[0].segunda.quesitos[1].obtido === null,
+      R + 'gravado: o quesito de um degrau fica marcado sem régua e sem nota da IA, e a leitura sem total');
     ok(/diferente em 1 de 1 quesito comparável\./.test(resumo) && /No Q2, o espelho só permite uma nota/.test(resumo) && (await page.textContent('[data-red="segunda-ia"]')).trim() === '—',
       R + 'o resumo não afirma concordância forçada: nomeia o Q2 e não dá total da IA (' + resumo.trim() + ')');
   } finally { await ctx.close(); }
@@ -340,7 +444,7 @@ async function medidas(pageDaSuite, base, ok, R) {
       // falha medida, não só lida
       await armarIA(page, 'rede', IA2); await page.fill('[data-red="segunda-texto"]', RESPOSTA);
       await page.click('[data-red="segunda-pedir"]'); await page.waitForSelector('[data-red="segunda-erro"]', { timeout: 8000 });
-      const falha = await contraste(page, ['[data-red="segunda-erro"]', '[data-red="segunda-dica"]', '[data-red="segunda-pedir"]', '[data-red="segunda-fechar"]', 'label[for="ct-seg-texto"]']);
+      const falha = await contraste(page, ['[data-red="segunda-erro"] .ct-eb', '[data-red="segunda-erro"] .ct-nota', '[data-red="segunda-dica"]', '[data-red="segunda-pedir"]', '[data-red="segunda-fechar"]', 'label[for="ct-seg-texto"]']);
       ok(falha.every(m => !m.falta && m.r >= 4.5) && falha.filter(m => /pedir|fechar/.test(m.s)).every(m => m.h >= 44), T + 'na falha, texto ≥ 4,5:1 e botões com 44 px (' + falha.map(m => m.r + '/' + m.h).join(' ') + ')');
       await armarIA(page, 'boa', IA2);
       await page.click('[data-red="segunda-pedir"]'); await page.waitForSelector('[data-red="segunda-linha"]', { timeout: 15000 });
