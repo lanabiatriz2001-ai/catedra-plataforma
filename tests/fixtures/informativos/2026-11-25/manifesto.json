@@ -1,0 +1,46 @@
+{
+  "consultadoEm": "2026-11-25",
+  "nota": "Mesmo recorte de 2026-11-06: título e corpo dos julgados do STJ em latin1, sem menus/rastreadores; STF integral em cp1252; finais de linha em LF e espaços finais removidos. O STF 1236 saiu com o título cortado em \"Nº\"; o STJ 910 traz a seção de propostas de relevância (blocos sem Destaque) e tem um julgado sem o campo Ramo do Direito.",
+  "paginas": [
+    {
+      "arquivo": "stf-1236.html",
+      "fonte": "stf",
+      "numero": 1236,
+      "extra": false,
+      "status": 200,
+      "julgados": 4,
+      "estado": "existe",
+      "url": "https://www.stf.jus.br/arquivo/informativo/documento/informativo1236.htm",
+      "sha256Resposta": "c7c1c384f10a2bde69da439572d6437d2f9204b19747c7ccaded9aede2b62ad5",
+      "sha256Fixture": "32f3b5fd125cdc1041af05cecb1a4f24de5c5025c39f44647ed1674eacbee905"
+    },
+    {
+      "arquivo": "stj-0910.html",
+      "fonte": "stj",
+      "numero": 910,
+      "extra": false,
+      "status": 200,
+      "julgados": 12,
+      "estado": "existe",
+      "url": "https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=%270910%27.cod.",
+      "sha256Resposta": "99cb3e0b3e2ce026580c481fa9a49e30d679dd7ff15c837e27c5d53f3e3bdcda",
+      "sha256Fixture": "ffbdaf0cb7cae7333310e89a2745170688fe6defa4672bfe59ec67e44fb0590c",
+      "propostas": 5,
+      "semRamo": [
+        "INF2026-STJ-910-07"
+      ]
+    },
+    {
+      "arquivo": "stj-0912.html",
+      "fonte": "stj",
+      "numero": 912,
+      "extra": false,
+      "status": 200,
+      "julgados": 0,
+      "estado": "nao-existe",
+      "url": "https://processo.stj.jus.br/jurisprudencia/externo/informativo/?acao=pesquisarumaedicao&livre=%270912%27.cod.",
+      "sha256Resposta": "b5040c2b229b498f0907aef3a93098bb3df3b796dead6000615e7cb3ca22ce45",
+      "sha256Fixture": "8b6976418928a55f3eb3d4bf5a6415940521a3d27f5620d9730e96a2e78821c1"
+    }
+  ]
+}

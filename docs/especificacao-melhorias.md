@@ -18,6 +18,10 @@ onde mexer, critérios de aceite e armadilhas conhecidas.
   de `id` único e carimbo `up` (ms) a cada edição, e a chave entra em `ARRAY_ID` no
   `auth.js` — é o que dá merge por id entre aparelhos e faz exclusão colar (lápides).
   Escalares/objetos já são cobertos pelo carimbo por chave (`catedra:_kts`), sem ação.
+  O carimbo só vale para a escrita feita depois que a pessoa chega ao app (o portão de login
+  fecha pela primeira vez na página): o que o app grava antes disso — padrões do primeiro
+  render, reconciliação do dia, migrações — fica sem carimbo novo e perde para a nuvem mais
+  nova (login sem dados, 25/11/2026).
 - **Arquivo novo entra no bundle.** Página ou .js novo precisa ser adicionado às listas
   de cópia em `scripts/build.mjs` (site) e `scripts/build-macos.mjs` (app do Mac).
 - **Testes.** A suíte `tests/run.mjs` (roda no CI a cada push via

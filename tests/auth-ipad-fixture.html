@@ -18,6 +18,8 @@
     try { localStorage.setItem('__ct:chamadas', JSON.stringify(lista)); } catch (_) {}
   }
   window.__ctChamadas = function () { return cfg('chamadas', []); };
+  // solta as leituras presas por __ct:selectPendente; devolve quantas soltou
+  window.__ctResolverSelect = function () { var l = window.__ctSelectsPresos || []; window.__ctSelectsPresos = []; l.forEach(function (f) { f(); }); return l.length; };
   window.__ctStatus = [];
   window.addEventListener('catedra:syncstate', function (e) { window.__ctStatus.push(e.detail.status); });
   // navigator.onLine controlável: __ct:online = "0" → offline (o auth.js consulta a propriedade)
@@ -72,7 +74,10 @@
            por anos o upsert solto da hidratação, que no app real nunca saiu (não tinha .then).
            __ct:upsertAtraso (ms): a resposta do upsert demora esse tanto — é o que prova que o
            dirty só some DEPOIS da resposta, e não quando o pedido é montado. __ct:selectAtraso
-           (ms): o mesmo para a leitura — abre a janela do "Carregando seus dados…". */
+           (ms): o mesmo para a leitura — abre a janela do "Carregando seus dados…".
+           __ct:selectPendente: a leitura fica PRESA até o teste chamar __ctResolverSelect(), e
+           responde com o __ct:select daquele instante — é o que deixa o teste conferir o que o
+           app gravou ANTES de a nuvem chegar, sem depender de quanto a máquina demora. */
         from: function (tabela) {
           var pedido = null;
           var q = {
@@ -86,6 +91,11 @@
               var p = pedido || { nome: 'select', arg: tabela };
               chamou(p.nome, p.arg);
               var resp = p.nome === 'select' ? cfg('select', { data: null, error: null }) : cfg('upsert', { data: null, error: null });
+              if (p.nome === 'select' && cfg('selectPendente', false)) {
+                return new Promise(function (res) {
+                  (window.__ctSelectsPresos = window.__ctSelectsPresos || []).push(function () { res(cfg('select', resp)); });
+                }).then(ok, er);
+              }
               var atraso = +cfg(p.nome === 'upsert' ? 'upsertAtraso' : 'selectAtraso', 0) || 0;
               var pr = atraso ? new Promise(function (res) { setTimeout(function () { res(resp); }, atraso); }) : Promise.resolve(resp);
               return pr.then(ok, er);
