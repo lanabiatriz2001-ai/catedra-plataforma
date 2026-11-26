@@ -55,7 +55,7 @@ const pub = join(ROOT, 'public');
    a conferência acontece ANTES de qualquer escrita e de qualquer rede. Antes o laço de
    cópia pulava em silêncio o que faltava: um arquivo renomeado ou apagado saía do deploy
    sem ninguém ver, e o satélite que dependia dele abria quebrado só em produção. */
-const COPIAR = ['support.js', 'icon.svg', 'auth.js', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'discursivas-textos.js', 'espelhos.js', 'segunda-fase-web.html', 'prioridade-dados.js', 'prioridade-web.html', 'oral.js', 'oral-conteudo.js', 'treino.js', 'sessao-leitor.js', 'tema-satelite.js', 'satellite-base.css', 'leis-catalogo.js', 'busca-unica.js', 'prioridade-calc.js', 'fsrs.js', 'ciclo-magistratura.js', 'ct-dados.js', 'leis-seca.js', 'leis-seca-areas.js', 'questoes-prova.js', 'area-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'mapa-grafo.js', 'mapa-processual.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'area-modulos.js', 'semana-juris.js', 'novidades.js', 'revisao-oficial.js', 'plataformas-questoes.js', 'espelho-sugerido.js', 'redacao-motor.js', 'area-registry.js', 'casos.js', 'leitura-ativa.js', 'enam.js', 'questoes-enam.js', 'catedra-ui.css', 'juridico.js', 'termos.html', 'privacidade.html', 'sobre.html', 'incidencia-verbetes.js'];
+const COPIAR = ['support.js', 'icon.svg', 'auth.js', 'sync-conflitos.js', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'discursivas-textos.js', 'espelhos.js', 'segunda-fase-web.html', 'prioridade-dados.js', 'prioridade-web.html', 'oral.js', 'oral-conteudo.js', 'treino.js', 'sessao-leitor.js', 'tema-satelite.js', 'satellite-base.css', 'leis-catalogo.js', 'busca-unica.js', 'prioridade-calc.js', 'fsrs.js', 'ciclo-magistratura.js', 'ct-dados.js', 'leis-seca.js', 'leis-seca-areas.js', 'questoes-prova.js', 'area-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'mapa-grafo.js', 'mapa-processual.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'area-modulos.js', 'semana-juris.js', 'novidades.js', 'revisao-oficial.js', 'plataformas-questoes.js', 'espelho-sugerido.js', 'redacao-motor.js', 'area-registry.js', 'casos.js', 'leitura-ativa.js', 'enam.js', 'questoes-enam.js', 'catedra-ui.css', 'juridico.js', 'termos.html', 'privacidade.html', 'sobre.html', 'incidencia-verbetes.js'];
 {
   const faltam = COPIAR.filter((f) => !existsSync(join(ROOT, f)));
   if (!existsSync(join(ROOT, 'dados'))) faltam.push('dados/');
@@ -193,6 +193,8 @@ ${reactDomTag}
 <!-- Login social e Google Drive: só entram quando configurados no deploy (GOOGLE_CLIENT_ID, OAUTH_PROVIDERS=google,apple). -->
 <script>window.CATEDRA_GOOGLE = { clientId: ${JSON.stringify(process.env.GOOGLE_CLIENT_ID || '')} }; window.CATEDRA_OAUTH = ${JSON.stringify((process.env.OAUTH_PROVIDERS || '').split(',').map((s) => s.trim()).filter(Boolean))};</script>
 ${supabaseTag}
+<!-- última sincronização e conflito (Ajustes › Dados e backup): módulo puro que o auth.js usa no merge e no envio — vem ANTES dele -->
+<script src="./sync-conflitos.js"></script>
 <script src="./auth.js"></script>
 <script>
 /* Provedor de IA em produção: encaminha o prompt para a função serverless
@@ -376,6 +378,8 @@ const casca = [...vendorados, './prioridade-calc.js', './ciclo-magistratura.js',
   './plataformas-questoes.js', './espelho-sugerido.js', './redacao-motor.js', './area-registry.js', './casos.js',
   // leitura ativa (LA1): <script> do <head> do host e do LEGIS — sem ele o app instalado abriria sem CT_LA
   './leitura-ativa.js', './enam.js', './juridico.js', './catedra-ui.css', './icon-180.png',
+  // última sincronização e conflito: vem na injeção, antes do auth.js (o host o lê para os textos dos Ajustes)
+  './sync-conflitos.js',
   // revisão oficial: <script> do <head> do host, do LEGIS e do JURIS (pacote do sentinela + vocabulário)
   './novidades.js', './revisao-oficial.js'];
 if (fontsHref) {

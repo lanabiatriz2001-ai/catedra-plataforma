@@ -116,5 +116,7 @@
   </div>
 <!-- Na preparação, a mesma origem precisa de storage livre das rotinas ao trocar de conta. -->
 <script>if (location.search === '?semente') window.CATEDRA_SUPABASE = null;</script>
+<!-- como na injeção do build: o módulo da última sincronização e dos conflitos vem ANTES do auth.js -->
+<script src="sync-conflitos.js"></script>
 <script src="auth.js"></script>
 </body>
