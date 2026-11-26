@@ -953,7 +953,9 @@
     return true;
   }
   function flushSync() {
-    if (!paginaAtual() || !user || hydrating || hidratacaoEmCurso) return;
+    if (!paginaAtual() || hydrating || hidratacaoEmCurso) return;
+    gravarPendenteDoApp();
+    if (!user) return;
     clearTimeout(pushT);
     enviarCondicional();
   }
@@ -961,7 +963,12 @@
     // Minimizar/trocar de aba NÃO é fechar: a página segue viva, então dá tempo do
     // caminho seguro (pushNow faz read-before-write). O envio com keepalive (condicional,
     // ver enviarCondicional) fica só para o pagehide, onde não há tempo de reler o servidor.
-    if (document.visibilityState === 'hidden') { if (hidratacaoEmCurso) return; clearTimeout(pushT); if (isDirty()) pushNow(); }
+    if (document.visibilityState === 'hidden') {
+      if (!paginaAtual() || hydrating || hidratacaoEmCurso) return;
+      gravarPendenteDoApp();
+      clearTimeout(pushT);
+      if (isDirty()) pushNow();
+    }
     else if (document.visibilityState === 'visible') { if (pendente) reconfirmarSessao(); else if (!refazerHidratacao()) pullAndMerge(); }
   });
   window.addEventListener('pagehide', flushSync);
