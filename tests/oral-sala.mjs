@@ -15,19 +15,75 @@ try {
  const preparo=p.getByRole('region',{name:'Preparar arguição'});
  await preparo.waitFor();
  await p.waitForFunction(()=>window.__catedraApp.state.oralQPronto&&document.querySelectorAll('[aria-label="Carreira da arguição"] option').length>1);
- assert.ok((await preparo.getByRole('combobox',{name:'Carreira da arguição'}).locator('option').count())>1);
- await preparo.getByRole('combobox',{name:'Quantidade de perguntas'}).selectOption('3');
+ const carreira=preparo.getByRole('combobox',{name:'Carreira da arguição'});
+ const disciplina=preparo.getByRole('combobox',{name:'Disciplina da arguição'});
+ const quantidade=preparo.getByRole('combobox',{name:'Quantidade de perguntas'});
+ const iniciar=preparo.locator('[data-i="treinar"]');
+ const estoque=preparo.getByRole('status');
+ const sala=p.getByRole('region',{name:'Conversa de arguição'});
+ const capturas=process.env.CT_CAPTURA_DIR;if(capturas)fs.mkdirSync(capturas,{recursive:true});
+ assert.ok((await carreira.locator('option').count())>1);
+ await quantidade.selectOption('10');
+ await carreira.selectOption('Magistratura Estadual');
+ await disciplina.selectOption('DIREITO EMPRESARIAL');
+ await estoque.getByText(/Nenhuma pergunta disponível.*altere os filtros/i).waitFor();
+ assert.ok(await iniciar.isDisabled());
+
+ await carreira.selectOption('');
+ await estoque.getByText(/3 perguntas disponíveis.*escolha menos perguntas/i).waitFor();
+ assert.ok(await iniciar.isDisabled());
+ assert.equal(await quantidade.inputValue(),'10');
+ await p.getByRole('navigation',{name:'Fontes da prova oral'}).getByRole('button',{name:'Bancas reais',exact:true}).click();
+ const iniciarBancas=p.getByRole('button',{name:'Começar com 10 perguntas',exact:true});
+ await iniciarBancas.waitFor();
+ assert.ok(await iniciarBancas.isDisabled());
+ assert.equal(await p.locator('#ct-arg-estoque-bancas').innerText(),await estoque.innerText());
+ await p.setViewportSize({width:390,height:844});
+ await p.waitForFunction(()=>window.__catedraApp.state.isMobile);
+ for(const dir of ['sutil','premium'])for(const dark of [false,true]){
+  await p.evaluate(({dir,dark})=>window.__catedraApp.setState({dir,darkMode:dark}),{dir,dark});
+  await p.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
+  const medidas=await p.evaluate(()=>{
+   const luminancia=cor=>(cor.match(/[\d.]+/g)||[]).slice(0,3).map(Number).reduce((total,canal,i)=>{
+    canal/=255;
+    return total+(canal<=.04045?canal/12.92:((canal+.055)/1.055)**2.4)*[.2126,.7152,.0722][i];
+   },0);
+   const painel=document.querySelector('.ct-oral-preparo-painel');
+   const nota=painel.querySelector('[role=status]');
+   const botao=painel.querySelector('[data-i=treinar]');
+   const tinta=luminancia(getComputedStyle(nota).color), fundo=luminancia(getComputedStyle(painel).backgroundColor);
+   return {contraste:(Math.max(tinta,fundo)+.05)/(Math.min(tinta,fundo)+.05), altura:botao.getBoundingClientRect().height,
+    cabe:painel.scrollWidth<=painel.clientWidth+1};
+  });
+  assert.ok(medidas.contraste>=4.5&&medidas.altura>=44&&medidas.cabe,JSON.stringify({dir,dark,...medidas}));
+  if(capturas&&dir==='sutil'){
+   const painel=preparo.locator('.ct-oral-preparo-painel');
+   await painel.evaluate(el=>el.scrollIntoView({block:'center'}));
+   await painel.screenshot({path:capturas+'/oral-estoque-390-'+(dark?'escuro':'claro')+'.png'});
+  }
+ }
+ await p.evaluate(()=>window.__catedraApp.setState({dir:'sutil',darkMode:false}));
+ await p.setViewportSize({width:1280,height:900});
+ await p.evaluate(()=>window.__catedraApp.iniciarArguicao());
+ assert.equal(await sala.count(),0);
+
+ await quantidade.selectOption('3');
+ await p.getByRole('button',{name:'Começar com 3 perguntas',exact:true}).click();
+ await sala.waitFor();
+ const filaReal=await p.evaluate(()=>window.__catedraApp.state.argFila.map(q=>q.disciplina));
+ assert.deepEqual(filaReal,Array(3).fill('DIREITO EMPRESARIAL'));
+ await sala.getByRole('button',{name:'Encerrar conversa',exact:true}).click();
+ await preparo.waitFor();
  await preparo.getByRole('combobox',{name:'Tempo por resposta'}).selectOption('5');
  await p.waitForFunction(()=>window.__catedraApp.state.argQtd===3&&window.__catedraApp.state.argMin===5);
  await p.evaluate(()=>{window.CT_ORAL_Q=Array.from({length:10},(_,i)=>({id:'documento-compartilhado',enunciado:'Pergunta de treino número '+i+'. Explique sua posição e apresente o fundamento.',padrao:'Padrão oficial de teste. '.repeat(20),disciplina:'Direito Civil',carreira:'Magistratura Estadual',orgao:'Banca de teste',ano:'2026',url:'https://example.test/prova'}));window.__catedraApp.setState({oralQPronto:true,oralBancasPronto:true,oralQDisc:'',oralQCarr:'',argVoz:false});});
- const capturas=process.env.CT_CAPTURA_DIR;if(capturas)fs.mkdirSync(capturas,{recursive:true});
  for(const width of [390,768,1024,1280]){
   await p.setViewportSize({width,height:900});await p.waitForFunction(()=>window.__catedraApp.state.isMobile===(innerWidth<900));
   assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2));
   if(capturas&&[390,1280].includes(width))await preparo.screenshot({path:capturas+'/oral-preparo-'+width+'.png'});
  }
  await preparo.locator('[data-i="treinar"]').click();
- const sala=p.getByRole('region',{name:'Conversa de arguição'});await sala.waitFor();
+ await sala.waitFor();
  await p.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));assert.ok(await p.evaluate(()=>document.querySelector('.ct-oral-sala-topo').getBoundingClientRect().top>=document.querySelector('.ct-topbar').getBoundingClientRect().bottom));
  const estado=await p.evaluate(()=>{const s=window.__catedraApp.state;return {fila:s.argFila,id:s.argSessaoId,min:s.argMin};});
  const inicio=await p.evaluate(id=>window.__catedraApp.state.sessions.find(s=>s.id===id),estado.id);assert.equal(inicio.date,'');assert.equal(inicio.countMeta,false);
@@ -109,5 +165,5 @@ try {
  assert.ok(await p.evaluate(()=>document.querySelector('.ct-oral-sala').contains(document.activeElement)&&document.activeElement.tagName==='BUTTON'));
  await sala.getByRole('button',{name:'Encerrar conversa',exact:true}).click();
  assert.deepEqual(erros,[]);
- console.log(motor+': sala, filtros, fila sem repetição, tempo, contraste medido, toque, retomada integral, histórico único e isolamento de conta passaram.');
+ console.log(motor+': sala, filtros, estoque real, quantidade escolhida, fila sem repetição, tempo, contraste medido, toque, retomada integral, histórico único e isolamento de conta passaram.');
 }finally{await browser.close();srv.close();}

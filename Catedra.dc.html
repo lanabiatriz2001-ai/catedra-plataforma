@@ -4196,7 +4196,19 @@ window.ctPdfLib = (function(){
         <!-- BANCADA · o hero é o FOCO (o que você vai treinar); a grade "o que você veio
              fazer aqui", logo abaixo, é a FILA. Sem apoio inventado: a Oral não tem um
              material fixo por sessão — ele nasce da escolha do acervo. -->
-        <section class="ct-oral-preparo" aria-label="Preparar arguição"><div class="ct-oral-preparo-intro"><div class="ct-eb">Fase Oral · presença, fundamento e clareza</div><h2>Entre na sala.<br>Construa sua resposta.</h2><p>Uma pergunta de cada vez, com tempo para organizar o raciocínio. Responda primeiro; confira o critério publicado pela banca depois.</p></div><div class="ct-oral-preparo-painel"><div class="ct-eb">Sua próxima conversa</div><sc-if value="{{ capOralBancas }}"><label class="ct-rotulo">Carreira<select class="ct-campo" aria-label="Carreira da arguição" value="{{ oralQCarrValor }}" onchange="{{ setOralQCarr }}"><sc-for list="{{ oralQCarrOpts }}" as="o"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></label><label class="ct-rotulo">Disciplina<select class="ct-campo" aria-label="Disciplina da arguição" value="{{ oralQDiscValor }}" onchange="{{ setOralQDisc }}"><sc-for list="{{ oralQDiscOpts }}" as="o"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></label><div class="ct-oral-preparo-dupla"><label class="ct-rotulo">Perguntas<select class="ct-campo" aria-label="Quantidade de perguntas" value="{{ argQtdValor }}" onchange="{{ setArgQtd }}"><option value="3">3 perguntas</option><option value="5">5 perguntas</option><option value="10">10 perguntas</option></select></label><label class="ct-rotulo">Tempo por resposta<select class="ct-campo" aria-label="Tempo por resposta" value="{{ argMinValor }}" onchange="{{ setArgMin }}"><option value="3">3 minutos</option><option value="5">5 minutos</option><option value="10">10 minutos</option></select></label></div><button class="ct-btn" data-i="treinar" onclick="{{ oralIntencao }}"><b>Treinar arguição agora</b><span>A banca pergunta, você responde em voz alta e compara com o padrão oficial. Perguntas sorteadas, tempo de resposta e uma conversa guardada.</span></button></sc-if><sc-if value="{{ !capOralBancas }}"><p class="ct-nota">Treine a explicação a partir das fontes normativas da sua área, no material abaixo.</p></sc-if></div></section>
+        <section class="ct-oral-preparo" aria-label="Preparar arguição">
+          <div class="ct-oral-preparo-intro"><div class="ct-eb">Fase Oral · presença, fundamento e clareza</div><h2>Entre na sala.<br>Construa sua resposta.</h2><p>Uma pergunta de cada vez, com tempo para organizar o raciocínio. Responda primeiro; confira o critério publicado pela banca depois.</p></div>
+          <div class="ct-oral-preparo-painel"><div class="ct-eb">Sua próxima conversa</div>
+            <sc-if value="{{ capOralBancas }}">
+              <label class="ct-rotulo">Carreira<select class="ct-campo" aria-label="Carreira da arguição" value="{{ oralQCarrValor }}" onchange="{{ setOralQCarr }}"><sc-for list="{{ oralQCarrOpts }}" as="o"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></label>
+              <label class="ct-rotulo">Disciplina<select class="ct-campo" aria-label="Disciplina da arguição" value="{{ oralQDiscValor }}" onchange="{{ setOralQDisc }}"><sc-for list="{{ oralQDiscOpts }}" as="o"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></label>
+              <div class="ct-oral-preparo-dupla"><label class="ct-rotulo">Perguntas<select class="ct-campo" aria-label="Quantidade de perguntas" aria-describedby="ct-arg-estoque" value="{{ argQtdValor }}" onchange="{{ setArgQtd }}"><option value="3">3</option><option value="5">5</option><option value="10">10</option></select></label><label class="ct-rotulo">Tempo por resposta<select class="ct-campo" aria-label="Tempo por resposta" value="{{ argMinValor }}" onchange="{{ setArgMin }}"><option value="3">3 minutos</option><option value="5">5 minutos</option><option value="10">10 minutos</option></select></label></div>
+              <p id="ct-arg-estoque" class="ct-nota" role="status" style="margin:0;">{{ argEstoqueLabel }}</p>
+              <button class="ct-btn" data-i="treinar" onclick="{{ oralIntencao }}" disabled="{{ !argPodeIniciar }}" aria-describedby="ct-arg-estoque"><b>Treinar arguição agora</b><span>A banca pergunta, você responde em voz alta e compara com o padrão oficial. Perguntas sorteadas, tempo de resposta e uma conversa guardada.</span></button>
+            </sc-if>
+            <sc-if value="{{ !capOralBancas }}"><p class="ct-nota">Treine a explicação a partir das fontes normativas da sua área, no material abaixo.</p></sc-if>
+          </div>
+        </section>
         <sc-if value="{{ argRetomarTem }}"><section class="ct-oral-retomada" aria-label="Arguição para retomar"><div><div class="ct-eb">Sua conversa ficou aqui</div><b>{{ argRetomarLabel }}</b><p class="ct-nota">Retome com o tempo pausado e a resposta preservada.</p></div><button class="ct-btn-2" data-id="{{ argRetomarId }}" onclick="{{ argRetomar }}">Retomar arguição</button></section></sc-if>
         <sc-if value="{{ oralIntencoesShow }}"><div class="ct-oral-caminhos"><button class="ct-oral-caminho" data-i="responder" onclick="{{ oralIntencao }}"><b>Responder questão de banca</b><span>Escolha uma pergunta real para desenvolver a resposta no seu ritmo, com o padrão de correção disponível depois.</span></button><button class="ct-oral-caminho" data-i="consultar" onclick="{{ oralIntencao }}"><b>Consultar concursos e documentos</b><span>Explore os pontos sorteáveis, editais e critérios publicados. Prepare seus fundamentos antes da próxima conversa.</span></button></div></sc-if>
         <section class="ct-oral-fontes" aria-label="Material para a Fase Oral"><div><div class="ct-eb">Aprofundar o estudo</div><h3 class="ct-titulo">Fontes e perguntas</h3></div><nav class="ct-fluxo-abas" aria-label="Fontes da prova oral"><sc-if value="{{ capJuris }}"><button class="ct-btn-2" data-m="juris" onclick="{{ setOralModo }}">Jurisprudência</button></sc-if><button class="ct-btn-2" data-m="lei" onclick="{{ setOralModo }}">{{ oralAbaLeiRot }}</button><sc-if value="{{ capOralBancas }}"><button class="ct-btn-2" data-m="bancas" onclick="{{ setOralModo }}">Bancas reais</button></sc-if></nav></section>
@@ -4379,14 +4391,14 @@ window.ctPdfLib = (function(){
                 <button onclick="{{ sortearPerguntaBanca }}" class="ct-btn">Sortear pergunta real</button>
               </div>
             </sc-if>
-            <sc-if value="{{ argTemPool }}" hint-placeholder-val="{{ true }}">
+            <sc-if value="{{ oralQPronto }}" hint-placeholder-val="{{ true }}">
               <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:14px 16px;margin-top:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
                 <div style="flex:1;min-width:200px;">
                   <div style="font-weight:600;color:var(--ink);">Modo arguição</div>
-                  <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:2px;line-height:1.5;">5 perguntas sorteadas, cronômetro correndo e o padrão só depois — como na banca.</div>
+                  <p id="ct-arg-estoque-bancas" class="ct-nota" style="margin:0;">{{ argEstoqueLabel }}</p>
                 </div>
                 <div style="display:flex;gap:6px;flex-wrap:wrap;"><sc-for list="{{ argMinOpts }}" as="o" hint-placeholder-count="3"><button data-v="{{ o.v }}" onclick="{{ setArgMin }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></div>
-                <button onclick="{{ iniciarArguicao }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Começar</button>
+                <button class="ct-btn" onclick="{{ iniciarArguicao }}" disabled="{{ !argPodeIniciar }}" aria-describedby="ct-arg-estoque-bancas">Começar com {{ argQtdValor }} perguntas</button>
               </div>
             </sc-if>
             <sc-if value="{{ !oralQPronto }}" hint-placeholder-val="{{ true }}">
@@ -14092,6 +14104,19 @@ class Component extends DCLogic {
     const _chipz=(arr)=>arr.map(o=>({...o, style:_chipO(!!o.sel)}));
     // ---- modo arguição (item 3): pergunta atual, relógio e resumo da sessão
     const _argQ=(st.argOn && st.argFila[st.argIdx]) ? st.argFila[st.argIdx] : null;
+    const argDisponiveis=this._argPool().length;
+    const argPodeIniciar=st.oralQPronto&&argDisponiveis>=st.argQtd;
+    let argEstoqueLabel='Carregando as perguntas com padrão de resposta…';
+    if(st.oralQPronto){
+      argEstoqueLabel=argDisponiveis===0?'Nenhuma pergunta disponível com esses filtros.'
+        :argDisponiveis===1?'1 pergunta disponível com esses filtros.'
+        :argDisponiveis+' perguntas disponíveis com esses filtros.';
+      if(!argPodeIniciar) argEstoqueLabel+=argDisponiveis>=3
+        ?' Escolha menos perguntas ou altere os filtros.'
+        :' Altere os filtros para encontrar pelo menos 3 perguntas.';
+    }else if(st.oralErro){
+      argEstoqueLabel='Não foi possível carregar as perguntas.';
+    }
     const _argRel=(()=>{ const t=Math.max(0,st.argSeg|0); return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0'); })();
     const _argResumo=(()=>{
       const R=st.argRespostas||[]; if(!R.length) return {n:'0',bem:'0',parcial:'0',nao:'0',media:'—'};
@@ -14190,7 +14215,7 @@ class Component extends DCLogic {
       argRodando:st.argRodando, argMostrar:st.oralQMostrarPadrao,
       argMinOpts:_chipz([3,5,10].map(m=>({v:String(m), label:m+' min', sel:st.argMin===m}))),
       argVozLabel:(st.argVoz?'voz ligada':'ligar voz'), argVozOn:!!st.argVoz, argVozStr:st.argVoz?'true':'false',
-      argResumo:_argResumo, argTemPool:(this._argPool().length>=3),
+      argResumo:_argResumo, argPodeIniciar, argEstoqueLabel,
       iniciarArguicao:this.iniciarArguicao, argResponder:this.argResponder, argAvaliar:this.argAvaliar,
       oralIntencao:this.oralIntencao,
       argEncerrar:this.argEncerrar, argMaisTempo:this.argMaisTempo, setArgMin:this.setArgMin, argVozToggle:this.argVozToggle,
@@ -15218,10 +15243,13 @@ class Component extends DCLogic {
   /** Começa uma sessão: N perguntas sorteadas SEM repetição (a banca não repete ponto). */
   iniciarArguicao = ()=>{
     if(window.CT_AREA_REG&&!window.CT_AREA_REG.tem(this.state.areaEstudo||'juridica','provaOralBancas'))return;
-    const pool=this._argPool();
-    if(pool.length<3){ this._toast('Poucas perguntas com esses filtros — tire um filtro'); return; }
+    const pool=this._argPool(), quantidade=this.state.argQtd;
+    if(pool.length<quantidade){
+      this._toast('Não há '+quantidade+' perguntas disponíveis com esses filtros.');
+      return;
+    }
     const emb=pool.slice(); for(let i=emb.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [emb[i],emb[j]]=[emb[j],emb[i]]; }
-    const fila=emb.slice(0,Math.max(3,Math.min(10,+this.state.argQtd||5)));
+    const fila=emb.slice(0,quantidade);
     this._treino && this._oralCarregarQ && this._oralCarregarQ();
     this.setState({argOrigemArea:this.state.areaEstudo||'juridica',argOrigemConta:this._argConta(),argTempoExtra:0,argSessaoId:'oral-'+Date.now(),argRespostaTexto:'',argFase:'respondendo',argOn:true, argFila:fila, argIdx:0, argRespostas:[], argFim:false,
       argSeg:this.state.argMin*60, argRodando:true, oralQMostrarPadrao:false},()=>{
