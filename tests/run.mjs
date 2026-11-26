@@ -91,6 +91,7 @@ import { testarSentinela } from './sentinela.mjs';
 import { testarSupportCorrecoesLocais } from './support-correcoes-locais.mjs';
 import { testarDesignNativo } from './design-nativo.mjs';
 import { testarExclusaoContaCobertura } from './exclusao-conta-cobertura.mjs';
+import { testarJuridicoLgpdRetencaoEstatico, testarJuridicoLgpdRetencao } from './juridico-lgpd-retencao.mjs';
 import { testarWidgetDodia } from './widget-dodia.mjs';
 import { testarWidgetSwift } from './widget-swift.mjs';
 import { testarSegurancaBackup } from './seguranca-backup.mjs';
@@ -116,6 +117,14 @@ const falhas = [];
 const ok = (cond, label) => { console.log((cond ? '✓ ' : '✗ ') + label); if (!cond) falhas.push(label); };
 page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
 
+// CT_SO=juridico-lgpd-retencao: versão da Política no rodapé, LGPD e IA fora do Brasil, retenção dos relatos.
+if (process.env.CT_SO === 'juridico-lgpd-retencao') {
+  await testarJuridicoLgpdRetencaoEstatico(ok);
+  await testarJuridicoLgpdRetencao(page, URL0, ok, { motor });
+  await browser.close(); srv.close();
+  console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
+  process.exit(falhas.length ? 1 : 0);
+}
 // CT_SO=redacao-mesa roda só o módulo pedido — para o ciclo curto de uma tela.
 if (process.env.CT_SO === 'redacao-resultado') {
   testarRedacaoResultadoEstatico(ok);
@@ -3525,15 +3534,15 @@ await comCadernoEnam(async (page) => {
   {
     const mdT = fs.readFileSync(path.join(RAIZ, 'docs/juridico/termos-de-uso.md'), 'utf8'), mdP = fs.readFileSync(path.join(RAIZ, 'docs/juridico/politica-de-privacidade.md'), 'utf8');
     const COLCHETE = /\[[A-ZÇÃÉ][^\]]*\]/, COLCHETES = /\[[A-ZÇÃÉ][^\]]*\]/g;
-    const cheio = { controlador: 'Fulana de Tal', cnpjCpf: '000.000.000-00', endereco: 'Rua X, 1', emailContato: 'contato@ex.com', emailEncarregado: 'dpo@ex.com', prazos: { avisoEncerramentoDias: '30', avisoMudancaDias: '15', exclusaoNuvemDias: '30', retencaoIaMeses: '12' } };
+    const cheio = { controlador: 'Fulana de Tal', cnpjCpf: '000.000.000-00', endereco: 'Rua X, 1', emailContato: 'contato@ex.com', emailEncarregado: 'dpo@ex.com', prazos: { avisoEncerramentoDias: '30', avisoMudancaDias: '15', exclusaoNuvemDias: '30', retencaoIaMeses: '12', retencaoFeedbackMeses: '12' } };
     const vazio = BJ.preencher(mdT, {}), completo = BJ.preencher(mdT, cheio), completoP = BJ.preencher(mdP, cheio);
-    r.controladorVazioMantemMarcadores = vazio.faltam.length === 9 && (vazio.md.match(COLCHETES) || []).length === (mdT.match(COLCHETES) || []).length && /¹ Os campos entre colchetes/.test(vazio.md);
+    r.controladorVazioMantemMarcadores = vazio.faltam.length === 10 && (vazio.md.match(COLCHETES) || []).length === (mdT.match(COLCHETES) || []).length && /¹ Os campos entre colchetes/.test(vazio.md);
     r.controladorCompletoPreenche = completo.faltam.length === 0 && completoP.faltam.length === 0 && !COLCHETE.test(completo.md) && !COLCHETE.test(completoP.md) && !/¹/.test(completo.md) && !/¹/.test(completoP.md)
       && /operada por Fulana de Tal, 000\.000\.000-00, com endereço em Rua X, 1 e contato em contato@ex\.com\. O tratamento/.test(completo.md) && /antecedência mínima de 30 dias/.test(completo.md) && /Contagem de IA e trilha: 12 meses/.test(completoP.md) && /Outros assuntos: contato@ex\.com\./.test(completoP.md);
     const parcial = BJ.preencher(mdT, { cnpjCpf: '1', prazos: { avisoMudancaDias: 'quinze' } });
-    r.controladorParcialContaOQueFalta = parcial.faltam.length === 8 && !/\[CNPJ\/CPF\]/.test(parcial.md) && /\[MUDANÇA: 15\]/.test(parcial.md) && /¹ Os campos entre colchetes/.test(parcial.md);
+    r.controladorParcialContaOQueFalta = parcial.faltam.length === 9 && !/\[CNPJ\/CPF\]/.test(parcial.md) && /\[MUDANÇA: 15\]/.test(parcial.md) && /¹ Os campos entre colchetes/.test(parcial.md);
     const pagCheia = BJ.montarPagina({ titulo: 'T', irmao: { html: 'x', titulo: 'x' } }, completo.md, completo.faltam), pagVazia = BJ.montarPagina({ titulo: 'T', irmao: { html: 'x', titulo: 'x' } }, vazio.md, vazio.faltam);
-    r.carimboDeRascunhoSegueOsDados = /<div class="meta">Versão 1\.0 · 02\/09\/2026<\/div>/.test(pagCheia) && !/rascunho/.test(pagCheia) && /rascunho: faltam 9 dado\(s\) do controlador/.test(pagVazia);
+    r.carimboDeRascunhoSegueOsDados = /<div class="meta">Versão 1\.0 · 02\/09\/2026<\/div>/.test(pagCheia) && !/rascunho/.test(pagCheia) && /rascunho: faltam 10 dado\(s\) do controlador/.test(pagVazia);
     // as páginas geradas no repositório refletem o estado atual do JSON — nunca marcador sem carimbo, nem carimbo sem marcador
     const faltaHoje = BJ.preencher(mdT, BJ.lerControlador()).faltam.length > 0;
     r.paginasPublicadasCoerentes = [termos, priv].every(x => (/rascunho: faltam/.test(x) === faltaHoje) && (COLCHETE.test(x) === faltaHoje));
@@ -3545,12 +3554,13 @@ await comCadernoEnam(async (page) => {
   r.tokensSemHexFixoNoTexto = /var\(--ink,/.test(termos) && /var\(--bg,/.test(termos) && /min-height: 44px/.test(termos);
   await import('../juridico.js');
   const J = globalThis.CT_JURIDICO;
-  r.versaoVigente = J.versao === '1.0/1.2' && J.termos.arquivo === 'termos.html' && J.privacidade.data === '2026-10-01';
-  r.aceiteVigentePuro = J.aceiteVigente({ versao: '1.0/1.2', ts: 1 }) === true && J.aceiteVigente('{"versao":"1.0/1.2","ts":5}') === true && J.aceiteVigente({ versao: '0.9/1.0', ts: 1 }) === false && J.aceiteVigente(null) === false && J.aceiteVigente('lixo') === false && J.aceiteVigente({ versao: '1.0/1.2' }) === false;
+  r.versaoVigente = J.versao === '1.0/1.3' && J.termos.arquivo === 'termos.html' && J.privacidade.data === '2026-11-25';
+  // o último caso é a versão VIGENTE sem carimbo: com um literal de versão antiga ali, o ramo do ts ficava sem teste
+  r.aceiteVigentePuro = J.aceiteVigente({ versao: '1.0/1.3', ts: 1 }) === true && J.aceiteVigente('{"versao":"1.0/1.3","ts":5}') === true && J.aceiteVigente({ versao: '0.9/1.0', ts: 1 }) === false && J.aceiteVigente(null) === false && J.aceiteVigente('lixo') === false && J.aceiteVigente({ versao: J.versao }) === false;
   const auth = fs.readFileSync(path.join(RAIZ, 'auth.js'), 'utf8');
   r.portaoDeLoginPedeAceite = /aceiteVigente\(aceiteLocal, row && row\.data && row\.data\['catedra:aceite'\]\)/.test(auth) && /showAceite\(function \(\) \{ try \{ _si\('catedra:aceite'/.test(auth) && /data-doc="termos\.html"/.test(auth) && /data-doc="privacidade\.html"/.test(auth);
   r.exclusaoPelaRpc = /sb\.rpc\('excluir_minha_conta'\)/.test(auth) && /excluirConta: excluirConta/.test(auth) && fs.existsSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-excluir-minha-conta.sql'));
-  // A Política acompanha o código (versão 1.2, 01/10/2026): o que o app manda para `feedback` e o que a página pública
+  // A Política acompanha o código (versão 1.3, 25/11/2026): o que o app manda para `feedback` e o que a página pública
   // grava em `lista_espera` estão nas §2 e §3, e a §9 diz o que cada caminho de exclusão apaga. Se o código mudar (a
   // remoção pela administração passar a apagar o relato, a lista de espera ganhar vínculo com a conta), o caso cai e
   // obriga a reescrever o texto e a subir a versão.
@@ -3652,10 +3662,10 @@ await comCadernoEnam(async (page) => {
     window.__catedraGoView('ajustes'); await w(600);
     const abaDados = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => b.dataset.s === 'dados'); if (abaDados) { abaDados.click(); await w(600); }
     const card = document.querySelector('main [data-card="juridico"]');
-    r.cardEmAjustes = !!card && /Termos de uso/.test(card.textContent) && /Política de privacidade/.test(card.textContent) && /versão 1\.0\/1\.2 · 02\/09\/2026/.test(card.textContent);
+    r.cardEmAjustes = !!card && /Termos de uso/.test(card.textContent) && /Política de privacidade/.test(card.textContent) && /Política de privacidade · versão 1\.3 · 25\/11\/2026/.test((card.querySelector('[data-politica-rodape]') || {}).textContent || '');
     r.aceiteAindaNao = /ainda não foi aceita nesta conta/.test(card.querySelector('[data-aceite-txt]').textContent);
-    app.setState({ aceite: { versao: '1.0/1.2', ts: Date.now() } }); await w(300);
-    r.aceiteMostrado = /Você aceitou a versão 1\.0\/1\.2 em/.test(document.querySelector('main [data-aceite-txt]').textContent);
+    app.setState({ aceite: { versao: '1.0/1.3', ts: Date.now() } }); await w(300);
+    r.aceiteMostrado = /Você aceitou a versão 1\.0\/1\.3 em/.test(document.querySelector('main [data-aceite-txt]').textContent);
     r.iaAutorizadaNoTexto = /Autorizado em/.test(document.querySelector('main [data-ia-txt]').textContent);
     [...document.querySelectorAll('main [data-card="juridico"] button')].find(b => /Revogar o consentimento/.test(b.textContent)).click(); await w(900);
     r.revogarApaga = guardado() === null && /Nenhum recurso de IA é chamado/.test(document.querySelector('main [data-ia-txt]').textContent);
@@ -3693,6 +3703,10 @@ await comCadernoEnam(async (page) => {
   if (h.__excecao) ok(false, 'JURÍDICO/P14 host o roteiro correu sem exceção (' + h.__excecao + ')');
   else for (const [k, v] of Object.entries(h)) ok(v, 'JURÍDICO/P14 host ' + k);
 }
+// (c) Política 1.3: versão e data DA POLÍTICA no rodapé (Ajustes, portão, sobre.html), LGPD e IA fora do Brasil,
+//     relatos guardados por até 12 meses com a purga no banco (tests/juridico-lgpd-retencao.mjs)
+try { await testarJuridicoLgpdRetencaoEstatico(ok); await testarJuridicoLgpdRetencao(page, URL0, ok, { motor }); }
+catch (e) { ok(false, 'JURÍDICO/LGPD o roteiro correu sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 200) + ')'); }
 
 /* ============= PÚBLICO — P15: sobre.html e a lista de espera ============= */
 // A página pública: sem promessa de aprovação, sem depoimento, sem número de adoção, sem preço; fontes locais; o

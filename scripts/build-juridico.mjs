@@ -5,8 +5,11 @@
 //   · termos.html e privacidade.html — páginas avulsas, sem rede, sem CDN, com os tokens do
 //     design (var(--x, fallback)) e modo escuro por prefers-color-scheme; abrem no site, no
 //     app do Mac/iPad (file://) e dentro do host por <iframe>;
-//   · juridico.js — window.CT_JURIDICO: a versão e a data vigentes de cada documento e
-//     aceiteVigente(), a função pura que o portão de login (auth.js) e o host consultam.
+//   · juridico.js — window.CT_JURIDICO: a versão e a data vigentes de cada documento (a data
+//     da Política separada da dos Termos), a linha de rodapé de cada um ("Política de
+//     privacidade · versão 1.3 · 25/11/2026", a mesma no cartão de Ajustes, no portão de login
+//     e de aceite e no sobre.html) e aceiteVigente(), a função pura que o portão de login
+//     (auth.js) e o host consultam.
 //
 // Conversor Markdown→HTML mínimo e próprio: só o que os dois documentos usam (títulos, parágrafos,
 // negrito, itálico, listas, tabela, nota de rodapé). Sem dependência externa. O TEXTO dos
@@ -16,6 +19,8 @@
 // docs/juridico/controlador.json (o único lugar a editar antes de publicar). Enquanto faltar
 // algum, o marcador entre colchetes fica no texto e a página sai carimbada como rascunho; com
 // tudo preenchido, o carimbo e a nota de rodapé "¹ Os campos entre colchetes…" somem sozinhos.
+// O bloco "publicacao" do mesmo arquivo é a trava da publicação (travasDePublicacao): não muda os
+// gerados; quem a cobra é a CI, por tests/juridico-lgpd-retencao.mjs.
 //
 // Importado pelos dois builds (scripts/build.mjs e scripts/build-macos.mjs), que copiam os três
 // arquivos; roda também sozinho: `node scripts/build-juridico.mjs`.
@@ -58,7 +63,15 @@ export const CAMPOS = [
   { campo: 'prazos.avisoMudancaDias', re: /\[MUDANÇA:\s*\d+\]/g, rotulo: 'prazo de aviso de mudança', numero: true },
   { campo: 'prazos.exclusaoNuvemDias', re: /\[EXCLUSÃO:\s*\d+\]/g, rotulo: 'prazo de exclusão da nuvem', numero: true },
   { campo: 'prazos.retencaoIaMeses', re: /\[RETENÇÃO IA:\s*\d+\]/g, rotulo: 'retenção da contagem de IA', numero: true },
+  // o mesmo número da purga em supabase/migrations/2026-11-25-retencao-feedback.sql: a Política só promete o que o banco apaga
+  { campo: 'prazos.retencaoFeedbackMeses', re: /\[RETENÇÃO FEEDBACK:\s*\d+\]/g, rotulo: 'retenção dos relatos enviados pelo app', numero: true },
 ];
+
+/** A linha que identifica um documento onde ele aparece: "Política de privacidade · versão 1.3 · 25/11/2026". Pura. */
+export function linhaDeRodape(titulo, versao, data) {
+  const t = String(titulo || '');
+  return versao ? t + ' · versão ' + versao + (data ? ' · ' + data : '') : t;
+}
 
 export function lerControlador() {
   const p = join(ROOT, 'docs/juridico/controlador.json');
@@ -142,7 +155,8 @@ th { font-weight: 700; }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
 `;
 
-export function montarPagina(doc, md, faltam) {
+/** irmaoCab (opcional): o cabeçalho do outro documento — o link do rodapé leva a versão e a data dele. */
+export function montarPagina(doc, md, faltam, irmaoCab) {
   const cab = cabecalho(md);
   if (faltam && faltam.length) cab.nota = (cab.nota ? cab.nota + ' — ' : '') + 'rascunho: faltam ' + faltam.length + ' dado(s) do controlador';
   const corpo = converterMarkdown(md.replace(/^\*\*Vers[ãa]o[^\n]*\n\*\*Data:[^\n]*\n?/m, ''));
@@ -150,31 +164,88 @@ export function montarPagina(doc, md, faltam) {
     + '<title>' + escapar(doc.titulo) + ' — Cátedra</title>\n<meta name="robots" content="noindex">\n<style>' + CSS + '</style>\n</head>\n<body>\n'
     + '<header class="topo"><b>Cátedra</b><nav><a href="./' + doc.irmao.html + '">' + doc.irmao.titulo + '</a><a href="#" data-fechar="1" onclick="if(window.parent!==window){window.parent.postMessage({type:\'ctFecharDoc\'},(location.protocol===\'http:\'||location.protocol===\'https:\')?location.origin:\'*\');}else if(history.length>1){history.back();}else{location.href=\'./\';}return false;">Voltar ao app</a></nav></header>\n'
     + '<main>\n<div class="meta">Versão ' + escapar(cab.versao) + (cab.nota ? ' — ' + escapar(cab.nota) : '') + (cab.data ? ' · ' + escapar(cab.data) : '') + '</div>\n' + corpo + '\n'
-    + '<footer class="rodape"><a href="./' + doc.irmao.html + '">' + doc.irmao.titulo + '</a><span>Versão ' + escapar(cab.versao) + (cab.data ? ' · ' + escapar(cab.data) : '') + '</span></footer>\n</main>\n</body>\n</html>\n';
+    + '<footer class="rodape"><a href="./' + doc.irmao.html + '">' + escapar(irmaoCab ? linhaDeRodape(doc.irmao.titulo, irmaoCab.versao, irmaoCab.data) : doc.irmao.titulo) + '</a><span>' + escapar(linhaDeRodape(doc.titulo, cab.versao, cab.data)) + '</span></footer>\n</main>\n</body>\n</html>\n';
 }
 
-/** Gera os três arquivos e devolve o resumo. */
-export function gerar() {
-  const info = {}, dados = lerControlador();
+/**
+ * Os três arquivos, em memória e SEM gravar nada: { arquivos: { 'termos.html', 'privacidade.html', 'juridico.js' },
+ * versao, info, faltam }. Lê só as fontes (docs/juridico/*.md e controlador.json); o teste compara isto com os
+ * versionados sem depender de o import ter regravado o disco antes.
+ */
+export function montarArquivos() {
+  const info = {}, arquivos = {}, dados = lerControlador();
   let faltamTotal = [];
-  for (const doc of DOCS) {
+  // os dois cabeçalhos primeiro: o rodapé de cada página traz também a versão e a data do outro documento
+  const lidos = DOCS.map((doc) => {
     const { md, faltam } = preencher(readFileSync(join(ROOT, doc.md), 'utf8'), dados);
     const cab = cabecalho(md);
     if (!cab.versao) throw new Error(doc.md + ': sem linha "**Versão X.Y …**" no cabeçalho — o aceite é versionado e precisa dela');
-    writeFileSync(join(ROOT, doc.html), montarPagina(doc, md, faltam));
-    info[doc.id] = { versao: cab.versao, data: cab.dataISO, titulo: doc.titulo, arquivo: doc.html };
+    return { doc, md, faltam, cab };
+  });
+  for (const { doc, md, faltam, cab } of lidos) {
+    const irmao = lidos.find((x) => x.doc.html === doc.irmao.html);
+    arquivos[doc.html] = montarPagina(doc, md, faltam, irmao && irmao.cab);
+    info[doc.id] = { versao: cab.versao, data: cab.dataISO, dataBR: cab.data, titulo: doc.titulo, arquivo: doc.html, rodape: linhaDeRodape(doc.titulo, cab.versao, cab.data) };
     faltamTotal = faltamTotal.concat(faltam.filter((f) => !faltamTotal.includes(f)));
   }
-  if (faltamTotal.length) console.warn('  ⚠ Termos/Política saem como RASCUNHO — faltam em docs/juridico/controlador.json: ' + faltamTotal.join(', '));
   // a versão vigente do aceite é o par: mudou qualquer um dos dois, pede-se aceite de novo
   const versao = info.termos.versao + '/' + info.privacidade.versao;
-  const js = '// juridico.js — GERADO por scripts/build-juridico.mjs a partir de docs/juridico/*.md. Não editar à mão.\n'
+  arquivos['juridico.js'] = '// juridico.js — GERADO por scripts/build-juridico.mjs a partir de docs/juridico/*.md. Não editar à mão.\n'
     + '// A versão vigente do aceite é "termos/privacidade"; catedra:aceite guarda {versao, ts}.\n'
+    + '// data (ISO) e dataBR são de CADA documento; rodape é a linha "Título · versão X · DD/MM/AAAA" que o app mostra.\n'
     + '(function (raiz) {\n  var J = ' + JSON.stringify({ versao, termos: info.termos, privacidade: info.privacidade }) + ';\n'
     + '  /** true quando o aceite guardado ({versao, ts}, objeto ou JSON) é da versão vigente. Puro, sem estado. */\n'
     + '  J.aceiteVigente = function (v) { try { if (typeof v === "string") v = JSON.parse(v); } catch (e) { return false; } return !!(v && v.versao === J.versao && +v.ts > 0); };\n'
     + '  raiz.CT_JURIDICO = J;\n})(typeof window !== "undefined" ? window : globalThis);\n';
-  writeFileSync(join(ROOT, 'juridico.js'), js);
+  return { arquivos, versao, info, faltam: faltamTotal };
+}
+
+/** A purga dos relatos vencidos: o mesmo número de meses que o texto promete (prazos.retencaoFeedbackMeses). */
+export const MIGRACAO_PURGA_FEEDBACK = 'supabase/migrations/2026-11-25-retencao-feedback.sql';
+
+/** "AAAA-MM-DD" de um dia que existe no calendário, ou ''. */
+function diaValido(s) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s == null ? '' : s).trim());
+  if (!m) return '';
+  const t = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+  return t.getUTCFullYear() === +m[1] && t.getUTCMonth() === +m[2] - 1 && t.getUTCDate() === +m[3] ? m[0] : '';
+}
+
+/**
+ * Travas da publicação, lidas de controlador.json › publicacao. Pura: o dia vem de fora ("AAAA-MM-DD" no fuso da dona).
+ * Devolve o que ainda impede publicar os documentos como estão (vazio = liberado). tests/juridico-lgpd-retencao.mjs
+ * reprova na CI enquanto houver trava, e a main só aceita PR com as checagens verdes: é isso que segura a mesclagem,
+ * não um aviso no relatório.
+ *  · o texto da Política promete apagar os relatos ([RETENÇÃO FEEDBACK]) e a dona ainda não confirmou a purga no banco
+ *    (purgaFeedbackAplicadaEm: data válida, nem anterior à migração nem posterior a hoje);
+ *  · naoAntesDe: a versão nova pede novo aceite a TODAS as contas, que não pode chegar antes desse dia.
+ */
+export function travasDePublicacao(mdPolitica, dados, hoje) {
+  const pub = (dados && dados.publicacao) || {}, travas = [], h = diaValido(hoje);
+  if (!h) return ['o dia de hoje não veio como AAAA-MM-DD ("' + hoje + '")'];
+  if (/\[RETENÇÃO FEEDBACK:/.test(String(mdPolitica || ''))) {
+    const preenchido = String(pub.purgaFeedbackAplicadaEm == null ? '' : pub.purgaFeedbackAplicadaEm).trim();
+    const em = diaValido(preenchido), desde = MIGRACAO_PURGA_FEEDBACK.match(/\d{4}-\d{2}-\d{2}/)[0];
+    if (!em || em < desde || em > h) {
+      travas.push('purga dos relatos não confirmada no banco: aplicar ' + MIGRACAO_PURGA_FEEDBACK + ' no SQL Editor do projeto vivo,'
+        + ' ver a linha "catedra-purgar-feedback" em cron.job e só então preencher publicacao.purgaFeedbackAplicadaEm (AAAA-MM-DD)'
+        + ' em docs/juridico/controlador.json' + (preenchido ? ' (está "' + preenchido + '": data inválida, anterior a ' + desde + ' ou posterior a hoje)' : ''));
+    }
+  }
+  const naoAntes = String(pub.naoAntesDe == null ? '' : pub.naoAntesDe).trim();
+  if (naoAntes) {
+    const nao = diaValido(naoAntes);
+    if (!nao) travas.push('publicacao.naoAntesDe não é uma data AAAA-MM-DD ("' + naoAntes + '")');
+    else if (h < nao) travas.push('o novo aceite, que vale para todas as contas, só a partir de ' + nao + ' (publicacao.naoAntesDe, combinado com a dona); hoje é ' + h);
+  }
+  return travas;
+}
+
+/** Gera os três arquivos e devolve o resumo. */
+export function gerar() {
+  const { arquivos, versao, info, faltam } = montarArquivos();
+  if (faltam.length) console.warn('  ⚠ Termos/Política saem como RASCUNHO — faltam em docs/juridico/controlador.json: ' + faltam.join(', '));
+  for (const [nome, txt] of Object.entries(arquivos)) writeFileSync(join(ROOT, nome), txt);
   return { versao, info };
 }
 

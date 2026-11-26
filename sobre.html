@@ -161,10 +161,11 @@ input, select { width:100%; min-height:48px; border:1.5px solid var(--border); b
   <footer class="rodape">
     <span>Cátedra · CátedraLEGIS · CátedraJURIS</span>
     <a href="./termos.html">Termos de uso</a>
-    <a href="./privacidade.html">Política de privacidade</a>
+    <a href="./privacidade.html" data-politica-rodape="1">Política de privacidade</a>
     <a href="./">Entrar no app</a>
   </footer>
 </main>
+<script src="./juridico.js"></script>
 <script>
 // Lista pública: RPC valida e limita as gravações; o cliente nunca lê e-mails.
 (function () {
@@ -207,6 +208,12 @@ input, select { width:100%; min-height:48px; border:1.5px solid var(--border); b
       window.parent.postMessage({ type: 'ctFecharDoc' }, destino);
     } catch (_) {}
   });
+})();
+// Rodapé: versão e data da Política vêm de juridico.js (gerado de docs/juridico/*.md), a mesma linha do
+// app e do portão de login — nunca escritas à mão aqui. Sem o arquivo, o link fica só com o nome.
+(function () {
+  var J = window.CT_JURIDICO, a = document.querySelector('.rodape [data-politica-rodape]');
+  if (a && J && J.privacidade && J.privacidade.rodape) a.textContent = J.privacidade.rodape;
 })();
 </script>
 </body>

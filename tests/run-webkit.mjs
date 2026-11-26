@@ -31,6 +31,7 @@ import { testarProvaEncerrarUmaVez } from './prova-encerrar-uma-vez.mjs';
 import { testarIpadToque } from './ipad-toque.mjs';
 import { testarIpadToqueSatelites } from './ipad-toque-satelites.mjs';
 import { testarAuthIpad } from './auth-ipad.mjs';
+import { testarJuridicoLgpdRetencao } from './juridico-lgpd-retencao.mjs';
 import { testarAuthAbertura } from './auth-abertura.mjs';
 import { testarAuthHidratacao } from './auth-hidratacao.mjs';
 import { testarAuthFechamento } from './auth-fechamento.mjs';
@@ -162,6 +163,15 @@ for (const [base, origem, arquivo] of ORIGENS) {
     try { await testarAuthIpad(page, base, ok, { motor, origem }); }
     catch (e) {
       ok(false, 'AUTH IPAD [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
+        + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+    }
+  }
+  // versão e data da Política no rodapé: cartão de Ajustes (iPad por toque), portão de login e de aceite,
+  // sobre.html — medidos no WebKit. Só http: semeia por base+'/__semente' e usa a fixture do auth.js.
+  if (origem === 'http') {
+    try { await testarJuridicoLgpdRetencao(page, base, ok, { motor }); }
+    catch (e) {
+      ok(false, 'JURÍDICO/LGPD [' + motor + '] o roteiro correu sem exceção ('
         + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
     }
   }

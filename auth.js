@@ -1180,12 +1180,15 @@
   var CSS = '<style>'
     + '#catedra-auth-gate *{-webkit-tap-highlight-color:transparent}'
     + '#catedra-auth-gate div,#catedra-auth-gate p,#catedra-auth-gate label,#catedra-auth-gate button,#catedra-auth-gate input,#catedra-auth-gate li,#catedra-auth-gate small{font-family:' + SANS + '}'
+    // Os <h2> do portão levam a família SÓ por esta regra: SERIF tem aspas duplas e, dentro de style="…", fechava
+    // o atributo — o título perdia cor, tamanho e margem e, no escuro, sumia (preto sobre o fundo escuro, 1,1:1).
     + '#catedra-auth-gate h1,#catedra-auth-gate h2{font-family:' + SERIF + '}'
     + '#catedra-auth-gate .ct-hero div,#catedra-auth-gate .ct-hero span{font-family:' + SANS + '}'
     + '#catedra-auth-gate .ct-hero .ct-marca{font-family:' + SERIF + '}'
     + '#catedra-auth-gate input:focus{border-color:' + ACC + '!important;box-shadow:0 0 0 4px ' + ACC + '22}'
     + '#catedra-auth-gate button:active{transform:translateY(1px)}'
     + '#catedra-auth-gate button[disabled]{opacity:.6;cursor:progress}'
+    + '#catedra-auth-gate [data-politica-rodape]:empty{display:none}'
     + '#catedra-auth-gate .ct-seg{display:flex;background:' + (DARK ? '#0e1116' : '#ecebe4') + ';border-radius:12px;padding:4px;margin:0 0 22px}'
     // min-height 44px: a aba media 34px, abaixo do alvo de toque do iPad
     + '#catedra-auth-gate .ct-seg button{flex:1;min-height:44px;border:none;background:transparent;border-radius:9px;padding:9px;font:600 13.5px ' + SANS + ';color:' + MUT + ';cursor:pointer}'
@@ -1279,7 +1282,7 @@
   function showForm() {
     var login = mode === 'login';
     painel(
-      '<h2 style="font-family:' + SERIF + ';font-size:28px;font-weight:700;color:' + INK + ';margin:0;letter-spacing:-.01em;">' + (login ? 'Bem-vinda de volta' : 'Criar sua conta') + '</h2>'
+      '<h2 style="font-size:28px;font-weight:700;color:' + INK + ';margin:0;letter-spacing:-.01em;">' + (login ? 'Bem-vinda de volta' : 'Criar sua conta') + '</h2>'
       + '<p style="font-size:14px;color:' + MUT + ';margin:6px 0 20px;line-height:1.5;">' + (login ? 'Entre para continuar de onde parou — em qualquer aparelho.' : 'Leva um minuto. Seus estudos ficam salvos e sincronizados.') + '</p>'
       // Aba precisa DIZER que está selecionada, não só parecer. E só a ativa entra na
       // ordem de tabulação (roving tabindex) — é assim que um tablist se comporta.
@@ -1310,7 +1313,9 @@
       // P14: os documentos ficam a um toque do portão — e o aceite versionado é pedido antes de sincronizar (showAceite)
       // P15: quem chegou sem convite conhece a plataforma antes de pedir acesso
       + '<p style="font-size:13px;text-align:center;margin:14px 0 0;"><a href="./sobre.html" id="ctsobre" data-doc="sobre.html" style="color:' + INK + ';font-weight:600;min-height:44px;display:inline-flex;align-items:center;">Conhecer a Cátedra</a></p>'
-      + '<p style="font-size:11.5px;color:' + MUT + ';text-align:center;margin:8px 0 0;line-height:1.6;">Ao entrar ou criar conta você concorda com os <a href="./termos.html" data-doc="termos.html" style="color:' + INK + ';">Termos de uso</a> e a <a href="./privacidade.html" data-doc="privacidade.html" style="color:' + INK + ';">Política de privacidade</a>.</p>'
+      // a frase do consentimento em LAB, como a linha da Política logo abaixo: MUT no claro dava 3,48:1
+      + '<p style="font-size:11.5px;color:' + LAB + ';text-align:center;margin:8px 0 0;line-height:1.6;">Ao entrar ou criar conta você concorda com os <a href="./termos.html" data-doc="termos.html" style="color:' + INK + ';">Termos de uso</a> e a <a href="./privacidade.html" data-doc="privacidade.html" style="color:' + INK + ';">Política de privacidade</a>.</p>'
+      + rodapePolitica('4px')
     );
     ligarDocs();
     // Trocar de aba redesenha o formulário: sem devolver o foco, ele volta para o body e
@@ -1683,7 +1688,7 @@
   function showNovaSenha() {
     hydrating = false;
     painel('<form id="ctnf">'
-      + '<h2 style="font-family:' + SERIF + ';font-size:28px;font-weight:700;color:' + INK + ';margin:0;">Nova senha</h2>'
+      + '<h2 style="font-size:28px;font-weight:700;color:' + INK + ';margin:0;">Nova senha</h2>'
       + '<p style="font-size:13.5px;color:' + MUT + ';margin:6px 0 24px;">Escolha a senha que você vai usar daqui em diante.</p>'
       + '<div style="position:relative;"><input id="ctnp" type="password" autocomplete="new-password" ' + SENHA_ATTRS + ' placeholder="Nova senha (mín. 8 caracteres)" style="' + INPUT + 'padding-right:78px;">' + olho('ctnp') + '</div>'
       + '<div id="ctnerr" style="min-height:18px;font-size:12.5px;color:#e0533f;margin:4px 0 10px;line-height:1.4;"></div>'
@@ -1771,18 +1776,36 @@
     var J = window.CT_JURIDICO; if (!J || !J.versao || !J.aceiteVigente) return true;   // sem documentos publicados neste build, nada a pedir
     return J.aceiteVigente(local) || J.aceiteVigente(nuvem);
   }
+  // Versão e data DA POLÍTICA no pé do login e do aceite — a mesma linha do cartão de Ajustes e do sobre.html,
+  // pronta em juridico.js. No app o build injeta este arquivo no topo do <head>, ANTES do juridico.js: o login
+  // sem sessão pode ser desenhado antes dele, e a linha vazia (que some pelo :empty) é completada no
+  // DOMContentLoaded. Cor LAB, não MUT: MUT sobre o fundo do portão fica abaixo de 4,5:1 no modo claro.
+  function linhaPolitica() { var J = window.CT_JURIDICO; return (J && J.privacidade && J.privacidade.rodape) || ''; }
+  function rodapePolitica(margem) {
+    return '<p data-politica-rodape="1" style="font-size:11.5px;color:' + LAB + ';text-align:center;margin:' + margem + ' 0 0;line-height:1.6;">' + esc(linhaPolitica()) + '</p>';
+  }
+  document.addEventListener('DOMContentLoaded', function () {
+    var p = el.querySelector('[data-politica-rodape]');
+    if (p && !p.textContent) p.textContent = linhaPolitica();
+  });
   function showAceite(cb) {
     var J = window.CT_JURIDICO || {};
     painel(
-      '<h2 style="font-family:' + SERIF + ';font-size:26px;font-weight:700;color:' + INK + ';margin:0;letter-spacing:-.01em;">Antes de continuar</h2>'
-      + '<p style="font-size:14px;color:' + MUT + ';margin:8px 0 16px;line-height:1.55;">Para usar a Cátedra com a sua conta, você precisa aceitar os Termos de uso e a Política de privacidade (versão ' + (J.versao || '') + '). Leia os dois — leva alguns minutos e diz o que fazemos com os seus dados.</p>'
+      '<h2 style="font-size:26px;font-weight:700;color:' + INK + ';margin:0;letter-spacing:-.01em;">Antes de continuar</h2>'
+      // LAB, não MUT, nos três textos do aceite: MUT sobre o fundo claro do portão dá 3,48:1
+      + '<p style="font-size:14px;color:' + LAB + ';margin:8px 0 16px;line-height:1.55;">Para usar a Cátedra com a sua conta, você precisa aceitar os Termos de uso e a Política de privacidade (versão ' + (J.versao || '') + '). Leia os dois — leva alguns minutos e diz o que fazemos com os seus dados.</p>'
+      // min-height ANTES do GHOST: as aspas de SANS fecham o style="…" e nada depois da família chega (os dois
+      // mediam 336×43 no iPad); o width/flex do fim volta a valer quando o SANS for consertado, em item próprio
       + '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">'
-      +   '<button type="button" data-doc="termos.html" style="' + GHOST + 'width:auto;flex:1;min-height:44px;">Termos de uso</button>'
-      +   '<button type="button" data-doc="privacidade.html" style="' + GHOST + 'width:auto;flex:1;min-height:44px;">Política de privacidade</button>'
+      +   '<button type="button" data-doc="termos.html" style="min-height:44px;' + GHOST + 'width:auto;flex:1;">Termos de uso</button>'
+      +   '<button type="button" data-doc="privacidade.html" style="min-height:44px;' + GHOST + 'width:auto;flex:1;">Política de privacidade</button>'
       + '</div>'
-      + '<label style="display:flex;align-items:flex-start;gap:10px;font-size:14px;color:' + INK + ';line-height:1.5;cursor:pointer;margin-bottom:16px;"><input id="ctac" type="checkbox" style="width:18px;height:18px;margin-top:2px;flex:none;"> <span>Li e aceito os Termos de uso e a Política de privacidade.</span></label>'
+      // o rótulo é o alvo de toque do checkbox de 18 px: 44 px de altura (media 336×42)
+      + '<label style="display:flex;align-items:flex-start;gap:10px;min-height:44px;font-size:14px;color:' + INK + ';line-height:1.5;cursor:pointer;margin-bottom:16px;"><input id="ctac" type="checkbox" style="width:18px;height:18px;margin-top:2px;flex:none;"> <span>Li e aceito os Termos de uso e a Política de privacidade.</span></label>'
       + '<button id="ctacok" type="button" disabled style="' + BTN + 'opacity:.55;">Aceitar e continuar</button>'
-      + '<p style="font-size:12.5px;color:' + MUT + ';text-align:center;margin:14px 0 0;"><a href="#" id="ctacsair" style="color:' + MUT + ';">Não aceito — sair da conta</a></p>'
+      // o link media 156×15: no iPad, alvo de 44 px como o "Conhecer a Cátedra" do login
+      + '<p style="font-size:12.5px;color:' + LAB + ';text-align:center;margin:14px 0 0;"><a href="#" id="ctacsair" style="color:' + LAB + ';min-height:44px;display:inline-flex;align-items:center;">Não aceito — sair da conta</a></p>'
+      + rodapePolitica('10px')
     );
     var bts = el.querySelectorAll('button[data-doc]');
     for (var i = 0; i < bts.length; i++) bts[i].onclick = function () { abrirDoc(this.getAttribute('data-doc')); };

@@ -1,9 +1,13 @@
 # Política de privacidade — Cátedra
 
-**Versão 1.2**
-**Data: 01/10/2026**
+**Versão 1.3**
+**Data: 25/11/2026**
+
+**O que mudou nesta versão**: o início da política passou a dizer, numa frase, que o tratamento segue a LGPD e em que bases legais se apoia o uso de inteligência artificial, cujos provedores têm servidores fora do Brasil (seção 7); e os relatos enviados pelo app passaram a ter prazo: ficam guardados por até [RETENÇÃO FEEDBACK: 12] meses depois do envio e então são apagados automaticamente (seções 3 e 9.6). Nada mudou no que coletamos nem com quem compartilhamos.
 
 Esta política explica quais dados pessoais a **Cátedra** (incluindo as submarcas CátedraLEGIS e CátedraJURIS) trata, para quê, com que fundamento, por quanto tempo e como você exerce seus direitos. Vale para o site e para os aplicativos de Mac e iPad e complementa os Termos de uso (LGPD, arts. 6º, VI, e 9º; Marco Civil da Internet, art. 7º, VIII).
+
+O tratamento segue a Lei Geral de Proteção de Dados Pessoais (LGPD, Lei nº 13.709/2018), inclusive no uso de inteligência artificial, cujos provedores têm servidores fora do Brasil: o texto que você envia é tratado com base no seu consentimento (art. 7º, I), e a transferência internacional se apoia no seu consentimento específico e em destaque (art. 33, VIII) e, quanto aos provedores, em garantias contratuais compatíveis com a LGPD (art. 33, II), como detalha a seção 7.
 
 ## 1. Controlador e encarregado
 
@@ -35,7 +39,7 @@ Todos os dados abaixo são fornecidos por você, diretamente ou pelo login com G
 | Corrigir redações e discursivas, gerar flashcards e perguntas orais, ler em voz (IA) | Texto ou trecho que você envia | Consentimento específico ao acionar o recurso (inciso I; art. 8º) | Resposta fica com seu material; texto enviado não é retido por nós além da chamada (seção 7) |
 | Grupos de estudo e ranking semanal (opcional) | Código do grupo, apelido, tempo de estudo e mensagens, visíveis aos demais membros | Consentimento (inciso I); você entra e sai quando quiser | Enquanto for membro; mensagens até você apagá-las ou excluir a conta |
 | Notificações no navegador (lembretes e avisos) | Permissão e preferências | Consentimento (inciso I) | Até a revogação |
-| Receber, responder e resolver relatos de problema e sugestões que você envia pelo app | Mensagem, e-mail da conta e dados técnicos anexados (versão, tela, estado da sincronização, navegador, tamanho da janela) | Legítimo interesse (inciso IX; art. 10, II) | Enquanto a conta existir (a administração pode apagar o relato antes); apagado na exclusão pela própria pessoa (seção 9.2); se a conta for removida pela administração, até [RETENÇÃO IA: 12] meses depois da remoção (seção 9.4) |
+| Receber, responder e resolver relatos de problema e sugestões que você envia pelo app | Mensagem, e-mail da conta e dados técnicos anexados (versão, tela, estado da sincronização, navegador, tamanho da janela) | Legítimo interesse (inciso IX; art. 10, II) | Enquanto a conta existir, por até [RETENÇÃO FEEDBACK: 12] meses depois do envio, quando é apagado automaticamente (a administração pode apagar o relato antes); apagado na exclusão pela própria pessoa (seção 9.2); se a conta for removida pela administração, até [RETENÇÃO IA: 12] meses depois da remoção (seção 9.4) |
 | Avisar por e-mail quando abrir vaga no beta (lista de espera da página pública) | E-mail, área de estudo e data do cadastro | Consentimento (inciso I), dado ao enviar o formulário | Até você pedir a remoção ou a lista de espera ser encerrada; não é apagada com a exclusão da conta (seção 9.5) |
 | Segurança, prevenção a fraude e abuso, controle de custo da IA, diagnóstico de erro | Contagem de chamadas de IA, trilha de auditoria, IP, última falha no aparelho | Legítimo interesse (inciso IX; art. 10) | Contagem de IA e trilha: [RETENÇÃO IA: 12] meses; última falha: no aparelho, sobrescrita pela seguinte |
 | Diagnóstico de erro e melhoria das telas (telemetria de primeira parte, quando ligada) | Falhas saneadas do aplicativo e contagem diária de aberturas por tela, associadas à conta | Legítimo interesse (inciso IX; art. 10) | Enquanto a conta existir; apagadas junto com a exclusão da conta |
@@ -92,6 +96,8 @@ Podemos fornecer dados quando exigido por lei ou ordem judicial (Marco Civil, ar
 9.4. **O que permanece**: em qualquer exclusão, a trilha de auditoria das ações administrativas, pelo prazo da seção 3; registros de acesso à aplicação por 6 meses, sob sigilo, por obrigação legal (Marco Civil, art. 15; LGPD, arts. 7º, II, e 16, I); registro mínimo do pedido de exclusão, para comprovar o atendimento (LGPD, art. 16, I); seus backups no iCloud Drive ou Google Drive; cópias de segurança técnicas do banco, que expiram no ciclo do provedor. Na remoção pela administração (9.3), permanecem também os relatos enviados pelo app, com o e-mail e a mensagem, por até [RETENÇÃO IA: 12] meses depois da remoção, e a contagem de chamadas de IA, desvinculada da conta (sem e-mail nem identificador), pelo prazo da seção 3.
 
 9.5. **Lista de espera**: o cadastro na lista de espera é feito na página pública, sem conta, e não tem vínculo com ela; por isso não é apagado quando a conta é excluída, nem por você nem pela administração. Para sair da lista, peça a remoção pelo canal do encarregado, [E-MAIL DO ENCARREGADO], de preferência a partir do e-mail cadastrado (seção 11.2).
+
+9.6. **Relatos enviados pelo app**: cada relato de problema ou sugestão (seção 2), com o e-mail e os dados técnicos anexados, fica guardado por até [RETENÇÃO FEEDBACK: 12] meses depois do envio e, passado esse prazo, é apagado automaticamente, com a conta ativa ou já removida pela administração; antes disso, ele é apagado na exclusão da conta pela própria pessoa (9.2) ou quando a administração o apaga.
 
 ## 10. Segurança e incidentes
 
