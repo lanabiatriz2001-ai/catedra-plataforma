@@ -7633,6 +7633,8 @@ class Component extends DCLogic {
     // Área de estudo escolhida (id de CT_AREAS). É lida ANTES do state porque as
     // disciplinas-padrão dos rascunhos saem dela — sem área salva, cai na jurídica.
     const _areaIni = CT_AREA(this._load('areaEstudo',''));
+    const redProvaId = this._load('redProvaId', '');
+    const redGabarito = this._load('redGabarito', '');
     this.state = {
       areaEstudo:this._load('areaEstudo',''),
       view:'inicio',
@@ -7748,13 +7750,13 @@ class Component extends DCLogic {
       loggedIn: (typeof localStorage!=='undefined' && localStorage.getItem('catedra:auth')==='1'),
       loginEmail:'', loginPass:'',
       errors:this._load('errors', []),
-      redText:this._load('redText', ''), redTextTs:this._load('redTextTs', 0), redTempoMs:this._redTempoBoot(), redBusy:false, redResult:null, redHistory:this._redLoad(), redHist:this._load('redHist',[]), redDisciplina:this._load('redDisciplina',{}), redEvoOpen:false, redGabarito:this._load('redGabarito', ''), redEspelhoOculto:false, redModoProva:false, redGabBusy:false,
+      redText:this._load('redText', ''), redTextTs:this._load('redTextTs', 0), redTempoMs:this._redTempoBoot(), redBusy:false, redResult:null, redHistory:this._redLoad(), redHist:this._load('redHist',[]), redDisciplina:this._load('redDisciplina',{}), redEvoOpen:false, redGabarito, redEspelhoOculto:!!(redProvaId && redGabarito), redModoProva:!!redProvaId, redGabBusy:false,
       // C3: espelhos SUGERIDOS pela IA (nunca oficiais) — cache por prova, sincronizado
       espelhosSugeridos:this._load('espelhosSugeridos',[]), espSugBusy:false, espSugAtual:null,
       // guarda qual prova está aberta: sem isso, recarregar o app deixava o gabarito
       // sugerido na tela mas sem o selo que diz que ele é sugerido
       bancoLimite:180,
-      redProvaId:this._load('redProvaId',''), redMarcas:this._load('redMarcas', {}), redSelTxt:'', redSelOcorr:0, redEspSituacao:'', redEspTemPdf:false, redGabFile:'', redEnunciado:this._load('redEnunciado', ''), bancoOpen:false, bancoQ:'', bancoDisc:'', bancoCarr:'', bancoBanca:'', bancoTipo:'', bancoSoEsp:false,
+      redProvaId, redMarcas:this._load('redMarcas', {}), redSelTxt:'', redSelOcorr:0, redEspSituacao:'', redEspTemPdf:false, redGabFile:'', redEnunciado:this._load('redEnunciado', ''), bancoOpen:false, bancoQ:'', bancoDisc:'', bancoCarr:'', bancoBanca:'', bancoTipo:'', bancoSoEsp:false,
       // Prova oral (veio do CátedraJURIS/LEGIS para cá: é aqui que moram desempenho e histórico)
       // Simulado jogável (veio do CátedraJURIS): monta itens C/E do acervo, corrige e
       // já preenche o formulário de registro — o resultado alimenta o desempenho.
@@ -8622,6 +8624,16 @@ class Component extends DCLogic {
       try{ if(JSON.stringify(patch[k])===JSON.stringify(this.state[k])) delete patch[k]; }catch(_){}
     }); }catch(_){}
     if(!Object.keys(patch).length) return;   // nada veio de novo: não mexe no estado
+    // Quando chega outra prova do banco, ela não herda a edição ou o espelho aberto da anterior.
+    // Se mudou apenas a resposta ou outra parte do estudo, a escolha de revelar continua valendo.
+    if('redProvaId' in patch || 'redEnunciado' in patch || 'redGabarito' in patch){
+      const id = 'redProvaId' in patch ? patch.redProvaId : this.state.redProvaId;
+      if(id || this.state.redProvaId){
+        const gabarito = 'redGabarito' in patch ? patch.redGabarito : this.state.redGabarito;
+        Object.assign(patch, {redModoProva:!!id, redEspelhoOculto:!!(id && gabarito),
+          redEditandoEnun:false, redGabVista:'', redConferindo:false, redConf:{}});
+      }
+    }
     /* Aplica sem deixar o _autosave achar que tudo mudou (senão regrava e sobe tudo).
        O carimbo TEM de ser posto ANTES do render: zerar _lastSaved e só recarimbar no
        callback do setState deixa uma janela em que o componentDidUpdate já disparou o
@@ -13890,7 +13902,8 @@ class Component extends DCLogic {
     });
     try{ localStorage.setItem(this._chave('redEnunciado'),JSON.stringify(cab+'\n\n'+(q.enunciado||'')));
       localStorage.setItem(this._chave('redGabarito'),JSON.stringify(_gab));
-      localStorage.setItem(this._chave('redText'),JSON.stringify('')); }catch(_){}
+      localStorage.setItem(this._chave('redText'),JSON.stringify(''));
+      localStorage.setItem(this._chave('redProvaId'),JSON.stringify(q.id)); }catch(_){}
     // Aqui SIM há onde voltar: a prova aberta é o ponto de retomada da Redação.
     this._marcarPonto('redacao', {termo:String(q.tema||q.disciplina||'').slice(0,60)});
     // O aviso diz a verdade sobre POR QUE não há espelho transcrito: culpa da banca (não
@@ -16061,7 +16074,11 @@ class Component extends DCLogic {
     this.setState({redDisciplina:{...(this.state.redDisciplina||{}),disc,origem:'manual'}});
   };
   redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.'
-      +(this.state.redSegBusy?' A leitura da IA em andamento é interrompida, e a chamada já contou na cota de hoje.':''))) return; this._redBoot=''; this._redCorrAbortar(); this._redCronoZerar(); this.setState({redReescritaDe:'', redReescritaNota:'', redResult:null, redText:'', redTextTs:0, redRascunhoOculto:false, redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false, redModoProva:false, redEditandoEnun:false, redQuestaoAberta:true, redModoResposta:'mao', redGabVista:'', redGabErro:'', redGabOk:'', redConferindo:false, redConf:{}, redLinhasMao:'', redProvaId:'', redDisciplina:{}, espSugAtual:null}); try{ localStorage.setItem(this._chave('redText'),JSON.stringify('')); localStorage.setItem(this._chave('redGabarito'),JSON.stringify('')); localStorage.setItem(this._chave('redEnunciado'),JSON.stringify('')); }catch(_){} };
+      +(this.state.redSegBusy?' A leitura da IA em andamento é interrompida, e a chamada já contou na cota de hoje.':''))) return; this._redBoot=''; this._redCorrAbortar(); this._redCronoZerar(); this.setState({redReescritaDe:'', redReescritaNota:'', redResult:null, redText:'', redTextTs:0, redRascunhoOculto:false, redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false, redModoProva:false, redEditandoEnun:false, redQuestaoAberta:true, redModoResposta:'mao', redGabVista:'', redGabErro:'', redGabOk:'', redConferindo:false, redConf:{}, redLinhasMao:'', redProvaId:'', redDisciplina:{}, espSugAtual:null});
+    try{ localStorage.setItem(this._chave('redText'),JSON.stringify(''));
+      localStorage.setItem(this._chave('redGabarito'),JSON.stringify(''));
+      localStorage.setItem(this._chave('redEnunciado'),JSON.stringify(''));
+      localStorage.setItem(this._chave('redProvaId'),JSON.stringify('')); }catch(_){} };
   redOpenHist = (e)=>{ const id=e.currentTarget.dataset.id; const h=(this.state.redHistory||[]).find(x=>x.id===id);
     if(!h||!h.res){ this._toast('Correção completa não disponível para este item'); return; }
     this._redCorrAbortar();
