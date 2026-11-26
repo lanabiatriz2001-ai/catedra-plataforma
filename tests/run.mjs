@@ -59,6 +59,7 @@ import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
 import { testarRedacaoMesa } from './redacao-mesa.mjs';
 import { testarRedacaoMotorEstatico, testarRedacaoMotor } from './redacao-motor.mjs';
 import { testarRedacaoResultadoEstatico, testarRedacaoResultado } from './redacao-resultado.mjs';
+import { testarRedacaoSegundaEstatico, testarRedacaoSegunda } from './redacao-segunda.mjs';
 import { testarOnboardingImportar } from './onboarding-importar.mjs';
 import { testarCotaIA } from './cota-ia.mjs';
 import { testarIphoneSatelites390 } from './iphone-satelites-390.mjs';
@@ -68,6 +69,7 @@ import { testarAuthIpad } from './auth-ipad.mjs';
 import { testarAuthAbertura } from './auth-abertura.mjs';
 import { testarAuthHidratacao } from './auth-hidratacao.mjs';
 import { testarAuthFechamento } from './auth-fechamento.mjs';
+import { testarLoginSemDados } from './login-sem-dados.mjs';
 import { testarWidgetResumo } from './widget-resumo.mjs';
 import { testarCarregamentoInicial, testarAberturaEmbutida, testarAberturaPendente } from './carregamento-inicial.mjs';
 import { testarSelectHost } from './select-host.mjs';
@@ -130,6 +132,13 @@ if (process.env.CT_SO === 'oral-gravacao-24h') {
 if (process.env.CT_SO === 'redacao-resultado') {
   testarRedacaoResultadoEstatico(ok);
   await testarRedacaoResultado(page, URL0, ok, { motor });
+  await browser.close(); srv.close();
+  console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
+  process.exit(falhas.length ? 1 : 0);
+}
+if (process.env.CT_SO === 'redacao-segunda') {
+  testarRedacaoSegundaEstatico(ok);
+  await testarRedacaoSegunda(page, URL0, ok, { motor });
   await browser.close(); srv.close();
   console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
   process.exit(falhas.length ? 1 : 0);
@@ -1088,6 +1097,15 @@ const sync = await page.evaluate(() => {
   //     abertura recarimbava a chave e a mandava para a nuvem: Mac no claro e iPad no
   //     escuro viravam o tema um do outro a cada abertura, e o aparelho no automático
   //     apagava a escolha manual feita no outro. O gravarDerivado grava sem carimbar.
+  //     A escolha manual é da pessoa NO APP: o carimbo só vale depois que o portão fecha pela
+  //     primeira vez (auth.js, setImpl — login sem dados, 25/11/2026). Esta fixture nunca
+  //     resolve a sessão, então o portão segue aberto até a ponte fechá-lo; antes disso a
+  //     mesma escrita é do app e não carimba.
+  const portao = document.getElementById('catedra-auth-gate');
+  localStorage.removeItem('catedra:_kts');
+  localStorage.setItem('catedra:dark', '1');                       // o app, antes de a pessoa chegar
+  r.escritaAntesDaPessoaNaoCarimba = !(JSON.parse(localStorage.getItem('catedra:_kts') || '{}')['catedra:dark']);
+  portao.__setGateOpen(false);                                     // a pessoa chega ao app
   localStorage.removeItem('catedra:_kts');
   localStorage.setItem('catedra:dark', '1');                       // escolha manual
   r.escolhaManualCarimba = !!(JSON.parse(localStorage.getItem('catedra:_kts') || '{}')['catedra:dark']);
@@ -1095,6 +1113,7 @@ const sync = await page.evaluate(() => {
   window.CatedraSync.gravarDerivado('catedra:dark', '0');          // leitura do sistema
   r.derivadoNaoCarimba = !(JSON.parse(localStorage.getItem('catedra:_kts') || '{}')['catedra:dark']);
   r.derivadoGravaMesmoAssim = localStorage.getItem('catedra:dark') === '0';
+  portao.__setGateOpen(true);   // reabre o portão; a marca de "a pessoa chegou" segue ligada até o próximo goto
   localStorage.removeItem('catedra:_kts'); localStorage.removeItem('catedra:dark');
   // o próprio interruptor do Auto é deste aparelho: não pode atravessar o merge
   r.autoNaoSincroniza = !M({ 'catedra:_temaAuto': '1' }, {}, false)['catedra:_temaAuto'];
@@ -3721,7 +3740,32 @@ await comCadernoEnam(async (page) => {
   r.buildsERota = /'sobre\.html'/.test(build) && /'sobre\.html'/.test(buildMac) && (vercel.rewrites || []).some(x => x.source === '/sobre' && x.destination === '/sobre.html');
   r.linkNoPortao = /Conhecer a Cátedra/.test(auth) && /id="ctsobre"/.test(auth) && /data-doc="sobre\.html"/.test(auth);
   r.migracaoVersionada = fs.existsSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-lista-espera.sql')) && /for insert to anon/.test(fs.readFileSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-lista-espera.sql'), 'utf8')) && !/for select/.test(fs.readFileSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-lista-espera.sql'), 'utf8'));
+  // Os números do mosaico saem de espelhos.js e voltam a ele (a mesma régua de tests/venda-espelhos.mjs): a página
+  // dizia "566 quesitos de 35 espelhos oficiais, com a pontuação da banca" quando o acervo já tinha 586 de 36 provas —
+  // e em 84 deles o espelho não traz o valor separado (6 provas não trazem de nenhum). Ela diz quantos têm valor.
+  {
+    const ctxE = { window: {} }; new Function('window', fs.readFileSync(path.join(RAIZ, 'espelhos.js'), 'utf8'))(ctxE.window);
+    const E = ctxE.window.CT_ESPELHOS, temValor = (q) => typeof q.valor === 'number' && !isNaN(q.valor);
+    const visivel = html.replace(/<!--[\s\S]*?-->/g, '').replace(/<script[\s\S]*?<\/script>/g, '').replace(/<style[\s\S]*?<\/style>/g, '');
+    const total = E.provas.reduce((a, p) => a + p.quesitos.length, 0), comValor = E.provas.reduce((a, p) => a + p.quesitos.filter(temValor).length, 0);
+    const n = (k) => Number((visivel.match(new RegExp('data-n="' + k + '">(\\d+)<')) || [])[1]);
+    r.mosaicoBateComOAcervo = total === E.meta.quesitos && E.provas.length === E.meta.provas && n('quesitos') === E.meta.quesitos && visivel.includes('quesitos de ' + E.meta.provas + ' provas com espelho oficial');
+    r.valorSoQuandoOEspelhoTraz = comValor < total && visivel.includes('Em ' + comValor + ' o app mostra o valor do quesito; nos outros ' + (total - comValor) + ', o espelho não o traz separado.')
+      && /cada quesito com a exigência da banca, os dispositivos que o espelho cita e o valor, quando o espelho o traz separado/.test(visivel)
+      && !/quesitos de 35 espelhos|com a pontuação da banca|a pontuação atribuída|exigência literal/.test(visivel);
+  }
+  // Sem script, o envio nativo é um GET na própria página: com name= nos campos, o e-mail ia para a barra de endereço,
+  // o histórico e os registros da Vercel. O script lê os campos por id; nenhum campo tem nome (o envio sem script vem
+  // medido lá embaixo, num contexto com JavaScript desligado).
+  r.camposSemNome = !/<(input|select|textarea)\b[^>]*\sname=/i.test(html);
   for (const [k, v] of Object.entries(r)) ok(v, 'PÚBLICO/P15 página ' + k);
+  // Os verbetes do mosaico são o milhar cheio do juris-index.js: o "14 mil" ficou para trás quando o JURIS passou de
+  // 15 mil. Nunca acima do acervo, nunca um milhar inteiro abaixo — o rótulo diz o que trocar quando o acervo crescer.
+  {
+    const ctxJ = { window: {} }; new Function('window', fs.readFileSync(path.join(RAIZ, 'juris-index.js'), 'utf8'))(ctxJ.window);
+    const totalJ = ctxJ.window.__JURIS_IDX__.length, mil = Number((html.match(/data-n="verbetes">(\d+) mil</) || [])[1]);
+    ok(mil === Math.floor(totalJ / 1000), 'PÚBLICO/P15 o mosaico diz ' + mil + ' mil verbetes e o juris-index.js tem ' + totalJ);
+  }
   await page.goto(URL0 + '/sobre.html');
   await page.waitForFunction(() => typeof window.ctEmailValido === 'function');
   const f = await page.evaluate(async () => {
@@ -3748,6 +3792,72 @@ await comCadernoEnam(async (page) => {
     return r;
   });
   for (const [k, v] of Object.entries(f)) ok(v, 'PÚBLICO/P15 formulário ' + k);
+  // O envio sem script, de verdade: JavaScript desligado, e-mail preenchido, clique em "Entrar na lista". O navegador
+  // faz o GET nativo na própria página, e a URL não pode levar o e-mail (antes levava "?email=…&area=…").
+  {
+    const ctxSemJs = await browser.newContext({ javaScriptEnabled: false });
+    try {
+      const p = await ctxSemJs.newPage();
+      await p.goto(URL0 + '/sobre.html');
+      await p.fill('#email', 'pessoa@exemplo.com');
+      await Promise.all([p.waitForEvent('framenavigated'), p.click('#enviar')]);
+      await p.waitForLoadState('load');
+      const u = new URL(p.url());
+      ok(/sobre\.html$/.test(u.pathname) && !/pessoa|exemplo|%40|@|email|area/i.test(u.search + u.hash), 'PÚBLICO/P15 sem script o envio nativo não põe o e-mail na URL — ' + (u.search || 'URL sem consulta'));
+    } finally { await ctxSemJs.close(); }
+  }
+  // A borda é o que mostra o campo (WCAG 1.4.11): 3:1 contra o fundo do campo e contra o fundo em volta, nos dois
+  // esquemas. A seção da lista tem degradê, e a faixa de cima, a mais tingida, também conta. Contexto próprio: não muda
+  // o esquema de cor da página da suíte.
+  {
+    const ctxCor = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    try {
+      const p = await ctxCor.newPage();
+      // o mosaico tem nome para leitor de tela: aria-label num div sem papel não nomeia nada; com role="group" é um grupo nomeado
+      await p.goto(URL0 + '/sobre.html');
+      ok(await p.getByRole('group', { name: 'O acervo que está dentro do app' }).count() === 1, 'PÚBLICO/P15 o mosaico é um grupo com nome para leitor de tela');
+      for (const esquema of ['light', 'dark']) {
+        await p.emulateMedia({ colorScheme: esquema });
+        await p.goto(URL0 + '/sobre.html');
+        const m = await p.evaluate(() => {
+          // as cores chegam como rgb(), rgba() ou color(srgb …) (color-mix); formato desconhecido reprova em vez de passar calado
+          const desconhecidas = [];
+          const cor = (s) => {
+            let x = /^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)(?:\s*[,/]\s*([\d.]+)(%?))?\s*\)$/.exec(s);
+            if (x) return [+x[1], +x[2], +x[3], x[4] == null ? 1 : (x[5] ? x[4] / 100 : +x[4])];
+            x = /^color\(srgb\s+([-\d.e]+)\s+([-\d.e]+)\s+([-\d.e]+)(?:\s*\/\s*([\d.]+)(%?))?\s*\)$/.exec(s);
+            if (x) return [x[1] * 255, x[2] * 255, x[3] * 255, x[4] == null ? 1 : (x[5] ? x[4] / 100 : +x[4])];
+            if (s === 'transparent') return [0, 0, 0, 0];
+            desconhecidas.push(s); return [0, 0, 0, 0];
+          };
+          const sobre = (c, b) => [c[0] * c[3] + b[0] * (1 - c[3]), c[1] * c[3] + b[1] * (1 - c[3]), c[2] * c[3] + b[2] * (1 - c[3]), 1];
+          // fundo opaco atrás do elemento e, se um ancestral tem degradê, também a faixa de cima dele
+          const fundos = (el) => {
+            const pilha = []; for (let e = el; e; e = e.parentElement) pilha.push(e);
+            let base = [255, 255, 255, 1], tinta = null;
+            for (const e of pilha.reverse()) {
+              const cs = getComputedStyle(e); base = sobre(cor(cs.backgroundColor), base); if (tinta) tinta = sobre(cor(cs.backgroundColor), tinta);
+              const g = /linear-gradient\((?:[^,()]*deg,\s*)?((?:rgba?|color)\([^)]*\))/.exec(cs.backgroundImage);
+              if (g) tinta = sobre(cor(g[1]), base);
+              else if (cs.backgroundImage !== 'none' && !/^url/.test(cs.backgroundImage)) desconhecidas.push(cs.backgroundImage.slice(0, 60));
+            }
+            return tinta ? [base, tinta] : [base];
+          };
+          const lin = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+          const L = q => 0.2126 * lin(q[0]) + 0.7152 * lin(q[1]) + 0.0722 * lin(q[2]);
+          const contra = (a, b) => (Math.max(L(a), L(b)) + 0.05) / (Math.min(L(a), L(b)) + 0.05);
+          const borda = (campo) => { const cb = cor(getComputedStyle(campo).borderTopColor); return Math.min(...[...fundos(campo), ...fundos(campo.parentElement)].map(f => contra(sobre(cb, f), f))); };
+          // a nota dos quesitos sem valor é texto novo: 4,5:1 contra o que pinta atrás dela
+          const nota = document.querySelector('.hero .nota');
+          const textoNota = nota && nota.getClientRects().length ? Math.min(...fundos(nota).map(f => contra(sobre(cor(getComputedStyle(nota).color), f), f))) : 0;
+          return { email: borda(document.getElementById('email')), area: borda(document.getElementById('area')), nota: textoNota, desconhecidas };
+        });
+        ok(m.email >= 3 && m.area >= 3, 'PÚBLICO/P15 ' + esquema + ' a borda dos campos tem 3:1 — e-mail ' + m.email.toFixed(2) + ':1, área ' + m.area.toFixed(2) + ':1');
+        ok(m.nota >= 4.5, 'PÚBLICO/P15 ' + esquema + ' a nota do mosaico se lê — ' + m.nota.toFixed(2) + ':1');
+        ok(m.desconhecidas.length === 0, 'PÚBLICO/P15 ' + esquema + ' todas as cores da medição foram lidas' + (m.desconhecidas.length ? ' — ' + m.desconhecidas.slice(0, 2).join(' | ') : ''));
+      }
+    } finally { await ctxCor.close(); }
+  }
 }
 
 /* ============= ACESSIBILIDADE — P16: baixa estimulação, selects com nome, alvos de 44 px, cor-texto ============= */
@@ -4513,6 +4623,9 @@ for (const [k, v] of Object.entries(sem)) ok(v, 'SEMANA ' + k);
 // no juris-index.js, e as fatias de dados/juris-text/ sem o texto dos julgados novos: o
 // atualizar-informativos.py gravava o acervo e ninguém rodava os dois geradores depois.
 {
+  const leitura = spawnSync('python3', [path.join(RAIZ, 'tests', 'informativos-leitura.py')], { encoding: 'utf8' });
+  ok(leitura.status === 0, 'INFORMATIVOS respostas oficiais, falhas, série extraordinária e preservação do acervo ('
+    + (leitura.status === 0 ? '8 casos sem rede' : (leitura.stderr || leitura.error || '').toString().slice(-1200)) + ')');
   const importacao = spawnSync('python3', [path.join(RAIZ, 'tests', 'informativos-gerados.py')], { encoding: 'utf8' });
   ok(importacao.status === 0, 'INFORMATIVOS a citação nova atualiza o widget; falha aborta e simulação preserva ('
     + (importacao.status === 0 ? '3 casos sem rede' : (importacao.stderr || importacao.error || '').toString().slice(-1200)) + ')');
@@ -4554,6 +4667,16 @@ for (const [k, v] of Object.entries(sem)) ok(v, 'SEMANA ' + k);
   ok(w.CT_SEMANA.itens.slice(0, 6).some((x) => maisNovos.includes(x.id)) || itS.slice(0, 6).every((x) => x.s === 0),
     'SEMANA os 6 itens do Início mostram a edição mais nova (topo: ' +
     w.CT_SEMANA.itens.slice(0, 6).map((x) => x.titulo.replace('Info ', '') + ' ' + x.quando.slice(0, 5)).join(', ') + ')');
+  // O STJ passou a escrever "( Tema Repetitivo 1469)" na citação do repetitivo (Info 910, 11/11/2026); até a
+  // 906 era "( Tema 1379)". Os dois são tese vinculante; a citação de tema alheio no meio do texto não é.
+  {
+    const { marcar } = await import('../scripts/lib/semana-marcadores.mjs');
+    const fp = (s) => ({ en: 'Tese do julgado.', fp: 'REsp 2.242.339-BA, Rel. Ministra Regina Helena Costa, Primeira Seção, por unanimidade, julgado em 11/11/2026' + s, ob: '', og: 'STJ. Primeira Seção' });
+    const linha = ['INF2026-STJ-910-07', 'STJ', 'informativo_stj', 910, 'Info 910 · STJ', null, 'Tema.', '11/11/2026', null, 0];
+    ok(marcar(fp(' ( Tema Repetitivo 1469).'), linha) === 'vinculante' && marcar(fp(' ( Tema repetitivo 1412).'), linha) === 'vinculante'
+      && marcar(fp(' ( Tema 1379).'), linha) === 'vinculante' && marcar(fp('.'), linha) === null,
+      'SEMANA repetitivo do STJ no formato novo ("( Tema Repetitivo 1469)") e no antigo ("( Tema 1379)") sai como tese vinculante; sem tema, sem marcador');
+  }
   const man = JSON.parse(fs.readFileSync(path.join(RAIZ, 'dados', 'juris-text', 'manifesto.json'), 'utf8'));
   ok(man.chaves === Object.keys(w.__JURIS_TXT__).length,
     'FATIAS dados/juris-text tem todos os textos do juris-text.js (' + man.chaves + ' × ' + Object.keys(w.__JURIS_TXT__).length + ')');
@@ -9872,6 +9995,7 @@ try { await testarPrioridadeDiscursiva(page, URL0, ok); } catch(e) { ok(false, '
 try { await testarRedacaoMesa(page, URL0, ok, { motor }); } catch(e) { ok(false, 'MESA exceção: '+e.message); }
 try { testarRedacaoMotorEstatico(ok); await testarRedacaoMotor(page, URL0, ok, { motor }); } catch(e) { ok(false, 'MOTOR exceção: '+e.message); }
 try { testarRedacaoResultadoEstatico(ok); await testarRedacaoResultado(page, URL0, ok, { motor }); } catch(e) { ok(false, 'RESULTADO exceção: '+e.message); }
+try { testarRedacaoSegundaEstatico(ok); await testarRedacaoSegunda(page, URL0, ok, { motor }); } catch(e) { ok(false, 'SEGUNDA exceção: '+e.message); }
 try { await testarRevisaoFonte(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'REVISÃO/FONTE [' + motor + '] o roteiro correu sem exceção ('
@@ -10000,6 +10124,12 @@ catch (e) {
 try { await testarAuthHidratacao(page, URL0, ok, { motor }); }
 catch (e) {
   ok(false, 'AUTH HIDRATAÇÃO [' + motor + '] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+// Login sem dados não sobrescreve a nuvem (tests/login-sem-dados.mjs): só a escrita com o portão fechado carimba
+try { await testarLoginSemDados(page, URL0, ok, { motor }); }
+catch (e) {
+  ok(false, 'LOGIN SEM DADOS [' + motor + '] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 // Fechamento e Sair sem sobrescrever a nuvem (tests/auth-fechamento.mjs): PATCH condicional no pagehide, Sair espera o pushNow

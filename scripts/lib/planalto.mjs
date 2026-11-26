@@ -25,7 +25,33 @@ export function catalogo() {
   return JSON.parse(html.slice(i, j)).laws || [];
 }
 
-const NAMED = { nbsp: ' ', amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", ordf: 'ª', ordm: 'º', deg: 'º', sect: '§', mdash: '—', ndash: '–', hellip: '…', ldquo: '“', rdquo: '”', lsquo: '‘', rsquo: '’', bull: '•' };
+// Entidades com nome. Até 25/11/2026 só as desta lista curta eram traduzidas, e toda letra acentuada
+// escrita como entidade (&ccedil;, &atilde;, &Eacute;…) virava ESPAÇO: o DL 200, a única das 49 páginas
+// que as usa, saía com 6.407 letras a menos ("A delega o de compet ncia ser utilizada") e perdia o art. 12
+// ("Art. 12 . &Eacute; facultado…"). Agora vale a tabela Latin-1 inteira do HTML (códigos 160 a 255), com
+// as escolhas antigas por cima (nbsp vira espaço comum; deg vira o ordinal "º", como o Planalto o usa).
+const LATIN1 = ('nbsp iexcl cent pound curren yen brvbar sect uml copy ordf laquo not shy reg macr deg plusmn sup2 sup3 '
+  + 'acute micro para middot cedil sup1 ordm raquo frac14 frac12 frac34 iquest Agrave Aacute Acirc Atilde Auml Aring '
+  + 'AElig Ccedil Egrave Eacute Ecirc Euml Igrave Iacute Icirc Iuml ETH Ntilde Ograve Oacute Ocirc Otilde Ouml times '
+  + 'Oslash Ugrave Uacute Ucirc Uuml Yacute THORN szlig agrave aacute acirc atilde auml aring aelig ccedil egrave eacute '
+  + 'ecirc euml igrave iacute icirc iuml eth ntilde ograve oacute ocirc otilde ouml divide oslash ugrave uacute ucirc uuml '
+  + 'yacute thorn yuml').split(' ').reduce((t, nome, i) => { t[nome] = String.fromCharCode(160 + i); return t; }, {});
+// TETO DO ACERVO: caracteres guardados por artigo em leis-seca.js e leis-seca-areas.js. Era 4.000,
+// o que só não mordia porque as remissões "art. …" partiam os artigos longos em pedaços, cada um com
+// o seu teto. Com elas devolvidas ao artigo (25/11/2026), o CF art. 37 (16.287 caracteres) virava uma
+// entrada cortada, e o sentinela, que só compara o começo de um artigo cortado, deixava de ver
+// mudança na cauda de 14 artigos longos (CF 37 e 146, CPP 28-A, LIA 17…). Com 32.000, só 3 entradas
+// das 49 leis passam do teto, e o acervo cresce 0,66 MiB. O sentinela usa a mesma constante.
+export const TETO_ACERVO = 32000;
+const NAMED = { ...LATIN1, nbsp: ' ', amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", ordf: 'ª', ordm: 'º', deg: 'º', sect: '§', mdash: '—', ndash: '–', hellip: '…', ldquo: '“', rdquo: '”', lsquo: '‘', rsquo: '’', bull: '•' };
+// Etiqueta de formatação DENTRO do rótulo do artigo. Toda etiqueta vira espaço mais abaixo, e o
+// Planalto às vezes formata só um pedaço do rótulo: "<strong>A</strong>rt. 107" (CP, extinção da
+// punibilidade), "A<span …>rt. 405" (CPP), "A<strike>rt. 76" (ADCT) viravam "A rt." e o artigo ia
+// para dentro do anterior; "Art. 21</font><font …>7" (CTN art. 217) virava "Art. 21 7". Só as
+// etiquetas de formatação em linha entram aqui — célula, parágrafo e quebra continuam separando.
+const ETQ_LINHA = '(?:<\\/?(?:font|span|b|strong|i|em|u|strike|s|a)\\b[^>]*>)+';
+const RE_ART_PARTIDO = new RegExp('(^|[\\s>])A' + ETQ_LINHA + 'rt(?=\\.?\\s*\\d)', 'g');
+const RE_NUMERO_PARTIDO = new RegExp('(Art(?:igo)?\\.?\\s*\\d+)' + ETQ_LINHA + '(?=\\d)', 'g');
 
 export function limparHTML(buf) {
   // O Planalto NÃO é uniforme: a maioria das páginas vem em windows-1252, mas algumas
@@ -37,6 +63,7 @@ export function limparHTML(buf) {
   else if (b[0] === 0xFE && b[1] === 0xFF) enc = 'utf-16be';
   else if (b[0] === 0xEF && b[1] === 0xBB && b[2] === 0xBF) enc = 'utf-8';
   let s = new TextDecoder(enc).decode(buf);
+  s = s.replace(RE_ART_PARTIDO, '$1Art').replace(RE_NUMERO_PARTIDO, '$1');
   s = s.replace(/<(script|style)[\s\S]*?<\/\1>/gi, ' ')
        .replace(/<\/(p|div|tr|h[1-6]|li|br)>/gi, '\n')
        .replace(/<br\s*\/?>/gi, '\n')
@@ -47,29 +74,141 @@ export function limparHTML(buf) {
   return s.replace(/[ \t ]+/g, ' ').replace(/\n{2,}/g, '\n').trim();
 }
 
-/** Quebra o texto corrido em artigos, preservando incisos e parágrafos de cada um. */
-export function artigos(texto, teto = 4000) {
-  const linhas = texto.split('\n').map((l) => l.trim()).filter(Boolean);
+// RÓTULO PARTIDO. O código-fonte do Planalto às vezes quebra a linha entre "Art." e o número
+// ("Art.\r\n146. A modificação…", CTN de 25/11/2026). No navegador isso é só espaço; aqui a
+// quebra vira linha, a linha "Art." não abre artigo e o 146 ia parar DENTRO do 142 (e, depois do
+// teto de 4.000 caracteres, sumia). Em 25/11/2026 isso escondia 516 artigos de 25 das 49 leis do
+// acervo (o CTN tinha 130 dos seus 218). Junta-se a linha que é só "Art."/"Artigo" com a seguinte
+// quando esta começa como número de artigo (algarismos, ordinal, letra do acréscimo e o início do
+// caput em maiúscula, ou nada).
+// Também quando o ponto do rótulo cai na linha do número ("Art" / ". 97. Os Ministros…", DL 200),
+// quando vem separado ou dobrado ("Art ." / "2º …", IBS/CBS; "Art. ." / "182 - …", CLT) e quando o
+// traço vem colado ao caput ("Art." / "528 -Ocorrendo dissídio…", CLT). O rótulo sai sempre como
+// "Art."/"Artigo".
+const RE_ROTULO_SO = /^Art(?:igo)?\s*\.?(?:\s*\.)?$/;
+const RE_NUMERO_DE_ARTIGO = /^\d+(?:\.\d{3})*[ºª°o]?(?:-[A-Z])?(?:\s*[.\-–—]\s*(?:[A-ZÀ-Ú§"“(]|$)|\s+[A-ZÀ-Ú§"“]|\s*$)/;
+export function juntarRotuloPartido(linhas) {
+  const out = [];
+  for (let i = 0; i < linhas.length; i++) {
+    if (RE_ROTULO_SO.test(linhas[i]) && i + 1 < linhas.length) {
+      const prox = linhas[i + 1].replace(/^\.\s*(?=\d)/, '');
+      if (RE_NUMERO_DE_ARTIGO.test(prox)) {
+        out.push((/^Artigo/.test(linhas[i]) ? 'Artigo' : 'Art.') + ' ' + prox);
+        i++;
+        continue;
+      }
+    }
+    out.push(linhas[i]);
+  }
+  return out;
+}
+
+// O corpo do artigo sem o rótulo nem as anotações: as entre parênteses ("(Revogado pela Lei …)",
+// "(VETADO)", "(Redação dada …)") e as que o Planalto põe como link solto ("Produção de efeitos",
+// "Vigência", "Regulamento", "Mensagem de veto", "Vide …"). Serve para separar artigo curto de
+// verdade de índice e de toco.
+const RE_ANOTACAO_SOLTA = /\b(?:Produ[çc][ãa]o\s+de\s+efeitos?|Vig[êe]ncia|Regulamento|Mensagem\s+de\s+veto|Vide\b[^.;\n]*)/gi;
+const corpoProprio = (a) => a.txt.slice(a.rot.length).replace(/\([^)]*\)/g, ' ').replace(RE_ANOTACAO_SOLTA, ' ')
+  .replace(/^[\s.\-–—ºª°o]+/, '').replace(/[\s.;,]+$/, '').trim();
+const chaveDoRotulo = (rot) => String(rot).replace(/\s+/g, '').replace(/\.$/, '').replace(/[ºª°o]$/, '').toLowerCase();
+
+/** Quebra o texto corrido em artigos, preservando incisos e parágrafos de cada um.
+ *  Só "Art."/"Artigo" com inicial MAIÚSCULA abre artigo. "art. 927 da Lei nº 13.105…" no começo
+ *  de uma linha é remissão: até 25/11/2026 ela virava um "artigo" à parte (687 no acervo, nenhum
+ *  de verdade — o "ART. 13 DA LEI Nº 9.527" da Lei 8.112 inclusive) e levava junto o texto do
+ *  artigo de onde saiu. O sentinela já devolvia esses pedaços ao artigo anterior (porArtigo). */
+// CITAÇÃO DE OUTRA NORMA. O artigo que altera outra lei reproduz o texto dela entre aspas: a citação
+// abre com "“" no começo de uma linha e fecha com "”" no fim de outra (Lei 14.133, art. 178, com os
+// arts. 337-E a 337-P do Código Penal; o fim do CPC; a Lei do Tráfico de Pessoas). Lá dentro, "Art." no
+// começo de linha é da lei citada e não abre artigo desta — antes, o treino citava "Lei 14.133 ·
+// Art. 337-E". O <blockquote> não serve de sinal: o Planalto o usa também em artigos da própria lei
+// (CC art. 853-A, CP arts. 234-A a 234-C). Citação que não fecha (aspa perdida) deixa de valer depois
+// de MAX_LINHAS_CITACAO linhas.
+const MAX_LINHAS_CITACAO = 300;
+export function artigos(texto, teto = TETO_ACERVO) {
+  const linhas = juntarRotuloPartido(texto.split('\n').map((l) => l.trim()).filter(Boolean));
   const out = [];
   let atual = null;
-  for (const l of linhas) {
+  let aspas = 0, linhasNaCitacao = 0;
+  for (const l0 of linhas) {
+    // Ponto separado ou dobrado na mesma linha do número: "Art. . 154 - A observância…" (CLT, 14
+    // artigos), "Art . 8º As atividades…" (DL 200, 22 artigos) ficavam dentro do anterior.
+    const l = l0.replace(/^(Art(?:igo)?)(?:\s+\.|\.\s*\.)\s*(?=\d)/, (_, r) => r + (r === 'Art' ? '. ' : ' '));
     const m = /^(Art(?:igo)?\.?\s*\d+[\dºª°.\-A-Z]*)\s*[.\-–—]?\s*(.*)$/i.exec(l);
-    if (m && m[1].length <= 26) {
+    if (m && m[1].length <= 26 && /^Art/.test(l) && aspas === 0) {
       if (atual && atual.txt.length > 30) out.push(atual);
       atual = { rot: m[1].replace(/\.$/, '').replace(/\s+/g, ' '), txt: m[2] ? m[1] + ' ' + m[2] : m[1] };
     } else if (atual) {
       if (atual.txt.length < teto) atual.txt += '\n' + l;
     }
+    const abre = (l.match(/“/g) || []).length, fecha = (l.match(/”/g) || []).length;
+    if (aspas === 0) {
+      if (/^“/.test(l) && abre > fecha) { aspas = abre - fecha; linhasNaCitacao = 0; }
+    } else {
+      aspas = Math.max(0, aspas + abre - fecha);
+      if (++linhasNaCitacao > MAX_LINHAS_CITACAO) aspas = 0;
+    }
   }
   if (atual && atual.txt.length > 30) out.push(atual);
-  // descarta índice/sumário: artigo cujo corpo é só o rótulo
-  return out.filter((a) => a.txt.length > a.rot.length + 40);
+  // Descarta índice/sumário (artigo cujo corpo é só o rótulo) e toco de revogado. O piso antigo
+  // (rótulo + 40 caracteres) levava junto artigo curto de verdade: CPC 724 ("Da sentença caberá
+  // apelação.") e 1.001 ("Dos despachos não cabe recurso."), CPP 202 ("Toda pessoa poderá ser
+  // testemunha.") e 262. Fica também o que tem pelo menos 12 caracteres de texto próprio — salvo
+  // quando a entrada seguinte tem o MESMO número: aí ela é só a cabeça da redação riscada que o
+  // Planalto mantém antes da vigente (CPC 246 "A citação será feita:", ANVISA 15, Lavagem 6º), e
+  // quem procura o artigo pelo número acharia o texto revogado antes do vigente.
+  const pisoAntigo = (a) => a.txt.length > a.rot.length + 40;
+  return out.filter((a, i) => pisoAntigo(a)
+    || (corpoProprio(a).length >= 12 && !(out[i + 1] && chaveDoRotulo(out[i + 1].rot) === chaveDoRotulo(a.rot))));
+}
+
+/** Leitura parcial: a lei voltou com menos de 80% dos artigos que o arquivo atual tem (a mesma
+ *  régua do parseSuspeito do sentinela). Devolve a mensagem, ou null quando não há queda. */
+export function quedaSuspeita(antes, agora, piso = 0.8) {
+  if (!antes || agora >= piso * antes) return null;
+  return `leitura parcial suspeita: ${agora} artigos contra ${antes} no arquivo atual (abaixo de ${Math.round(piso * 100)}%)`;
+}
+
+/** Lê as leis do acervo de lei seca para scripts/build-leis-seca.mjs. Devolve { saida, falhas }: quem
+ *  chama só grava se `falhas` vier vazia (lei que falha não some do acervo). `baixar(url)` devolve os
+ *  bytes da página e é injetável nos testes; `anteriores` (sigla → artigos do arquivo atual) alimenta a
+ *  trava de leitura parcial, e `aceitarQueda` lista as siglas liberadas dela. */
+export async function lerLeisSeca(alvos, { cat, baixar, anteriores = new Map(), aceitarQueda = new Set(), log = () => {} }) {
+  // Casamento pelo título INTEIRO normalizado. Comparar só o começo fazia "Código de
+  // Processo Civil" e "Código de Processo Penal" caírem no mesmo prefixo ("Código de
+  // Processo") — e o CPP saía com o texto do CPC, com 1227 artigos idênticos.
+  const chave = (x) => String(x).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+  const saida = [], falhas = [];
+  for (const [sigla, nome, extra] of alvos) {
+    const alvo = chave(nome);
+    const lei = cat.find((l) => chave(l.t) === alvo)
+             || cat.find((l) => chave(l.t).startsWith(alvo))
+             || cat.find((l) => chave(l.t).includes(alvo));
+    if (!lei) { log(`  ✗ ${nome}: não está no catálogo`); falhas.push(`${sigla}: não está no catálogo`); continue; }
+    try {
+      const arts = melhorParse(limparHTML(await baixar(lei.u)));
+      // Piso absoluto baixo: a Lei 13.344 (Tráfico de Pessoas) tem 17 artigos próprios — até 25/11/2026
+      // ela passava dos 20 só porque os artigos de outras leis que ela cita contavam como dela. Queda
+      // de verdade é a trava relativa, logo abaixo, que pega.
+      if (arts.length < 10) throw new Error('só ' + arts.length + ' artigos — parse suspeito');
+      // Página que chega inteira para o HTTP mas curta (republicação, recorte de proxy) passava pelo
+      // piso de 20 e encolhia o acervo — e o sentinela, que mede contra o acervo, deixava de ver.
+      const queda = quedaSuspeita(anteriores.get(sigla), arts.length);
+      if (queda && !aceitarQueda.has(sigla)) throw new Error(queda + ` — para gravar assim mesmo, "--aceitar-queda=${sigla}"`);
+      saida.push({ sigla, nome: lei.t, url: lei.u, artigos: arts, ...(extra || {}) });
+      log(`  ✓ ${sigla.padEnd(16)} ${String(arts.length).padStart(4)} artigos`);
+    } catch (e) {
+      log(`  ✗ ${sigla}: ${e.message}`);
+      falhas.push(`${sigla}: ${e.message}`);
+    }
+  }
+  return { saida, falhas };
 }
 
 /** Segundo parser, para páginas em que o rótulo e o corpo caem em linhas/células
  *  diferentes (a Lei 14.133 é assim: só 32 das 194 linhas começam com "Art."). Aqui o
  *  texto é tratado como corrido e cortado nas ocorrências de "Art. N" que iniciam frase. */
-export function artigosCorrido(texto, teto = 4000) {
+export function artigosCorrido(texto, teto = TETO_ACERVO) {
   const t = texto.replace(/\n+/g, ' ').replace(/\s+/g, ' ');
   const re = /(?:^|[.;:!?]\s+|\s{2,})(Art(?:igo)?\.?\s*\d+[ºª°]?(?:-[A-Z])?)\s*[.\-–—]?\s+(?=[A-ZÀ-Ú§])/g;
   const cortes = [];
@@ -91,9 +230,9 @@ export function artigosCorrido(texto, teto = 4000) {
 }
 
 /** Escolhe entre os dois parsers — critério único, usado pelo build da lei seca e pelo sentinela.
- *  `teto` (caracteres por trecho): 4.000 no bundle (padrão, o que o build usa); o sentinela lê a
+ *  `teto` (caracteres por trecho): TETO_ACERVO no bundle (padrão, o que o build usa); o sentinela lê a
  *  página também sem teto, para comparar artigo por artigo (scripts/sentinela.mjs, 8). */
-export function melhorParse(texto, { teto = 4000 } = {}) {
+export function melhorParse(texto, { teto = TETO_ACERVO } = {}) {
   let arts = artigos(texto, teto);
   const alt = artigosCorrido(texto, teto);
   // fica com o parser que achou mais artigos: nenhuma lei da lista tem menos de 30
