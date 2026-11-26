@@ -22,6 +22,7 @@ import { iniciarServidor, lancarNavegador } from './_infra.mjs';
 import { definirContaLeitora, abrirComponenteDoLeitor } from './_sessao-leitores.mjs';
 import { testarOralPontos } from './oral-pontos.mjs';
 import { testarOralLeiSeca } from './oral-lei-seca.mjs';
+import { testarOralGravacao24hEstatico, testarOralGravacao24h } from './oral-gravacao-24h.mjs';
 import { testarPastaSincronizada } from './pasta-sincronizada.mjs';
 import { testarPiiVerificador, testarPiiBuildSemTrecho } from './pii-verificador.mjs';
 import { testarLegisGuiado } from './legis-guiado.mjs';
@@ -115,6 +116,15 @@ const page = await browser.newPage();
 const falhas = [];
 const ok = (cond, label) => { console.log((cond ? '✓ ' : '✗ ') + label); if (!cond) falhas.push(label); };
 page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
+
+// CT_SO=oral-gravacao-24h: Fase Oral — resposta gravada no aparelho e janela de 24 h.
+if (process.env.CT_SO === 'oral-gravacao-24h') {
+  await testarOralGravacao24hEstatico(ok);
+  await testarOralGravacao24h(page, URL0, ok, { motor });
+  await browser.close(); srv.close();
+  console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
+  process.exit(falhas.length ? 1 : 0);
+}
 
 // CT_SO=redacao-mesa roda só o módulo pedido — para o ciclo curto de uma tela.
 if (process.env.CT_SO === 'redacao-resultado') {
@@ -9818,6 +9828,12 @@ ok(depoisDoEnd === antesDeRolar, 'GATE a tecla End não rola o app atrás do log
 try { await testarOralLeiSeca(page, URL0, ok, { motor, origem: 'http' }); await testarOralPontos(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'ORAL LEI SECA [' + motor + '] [http] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+// Fase Oral: resposta gravada no aparelho e janela de 24 h (tests/oral-gravacao-24h.mjs)
+try { await testarOralGravacao24hEstatico(ok); await testarOralGravacao24h(page, URL0, ok, { motor }); }
+catch (e) {
+  ok(false, 'ORAL GRAVAÇÃO [' + motor + '] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 

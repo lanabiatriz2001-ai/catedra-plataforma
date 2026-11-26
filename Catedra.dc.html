@@ -37,6 +37,8 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;mostr
 <script src="./leitura-ativa.js"></script>
 <!-- ENAM: as oito áreas do quadro 8.6, a duração e as metas — constante única (enam.js) -->
 <script src="./enam.js"></script>
+<!-- Fase Oral: resposta gravada só neste aparelho (IndexedDB) e janela de 24 h entre sorteio e arguição -->
+<script src="./oral-gravacao.js"></script>
 <script src="./juridico.js"></script>
 <!-- C2: para onde mandar praticar questões (só link de saída — nada é copiado de lá) -->
 <link rel="stylesheet" href="./catedra-ui.css">
@@ -4132,7 +4134,7 @@ window.ctPdfLib = (function(){
       </sc-if>
 
 <sc-if value="{{ isOral }}" hint-placeholder-val="{{ false }}">
-<sc-if value="{{ argReverTem }}"><div class="ct-modal-fundo" onclick="{{ argHistoricoFechar }}" style="position:fixed;inset:0;background:color-mix(in srgb,var(--ink) 45%,transparent);z-index:110;display:flex;align-items:center;justify-content:center;padding:var(--ct-e4);"><section class="ct-modal-panel ct-card ct-arg-historico" role="dialog" aria-modal="true" aria-label="Histórico de arguição" onclick="{{ stop }}" style="width:100%;max-height:85vh;overflow:auto;box-sizing:border-box;"><div class="ct-arg-acoes"><h2 class="ct-titulo" style="flex:1;">Arguição registrada</h2><button class="ct-btn-2" onclick="{{ argHistoricoFechar }}">Fechar histórico</button></div><sc-for list="{{ argReverRespostas }}" as="r"><article class="ct-arg-mensagem"><b>{{ r.avaliacao }}</b><p>{{ r.pergunta }}</p><div class="ct-eb">Sua resposta registrada</div><p>{{ r.resposta }}</p></article></sc-for></section></div></sc-if>
+<sc-if value="{{ argReverTem }}"><div class="ct-modal-fundo" onclick="{{ argHistoricoFechar }}" style="position:fixed;inset:0;background:color-mix(in srgb,var(--ink) 45%,transparent);z-index:110;display:flex;align-items:center;justify-content:center;padding:var(--ct-e4);"><section class="ct-modal-panel ct-card ct-arg-historico" role="dialog" aria-modal="true" aria-label="Histórico de arguição" onclick="{{ stop }}" style="width:100%;max-height:85vh;overflow:auto;box-sizing:border-box;"><div class="ct-arg-acoes"><h2 class="ct-titulo" style="flex:1;">Arguição registrada</h2><button class="ct-btn-2" onclick="{{ argHistoricoFechar }}">Fechar histórico</button></div><sc-for list="{{ argReverRespostas }}" as="r"><article class="ct-arg-mensagem"><b>{{ r.avaliacao }}</b><p>{{ r.pergunta }}</p><div class="ct-eb">Sua resposta registrada</div><p>{{ r.resposta }}</p><sc-if value="{{ r.audioTem }}" hint-placeholder-val="{{ false }}"><div class="ct-oral-audio" data-grav="ouvir-historico"><div class="ct-eb">Resposta gravada · {{ r.audioDur }}</div><audio controls="{{ true }}" preload="none" src="{{ r.audioUrl }}" aria-label="Ouvir a resposta gravada"></audio><button type="button" class="ct-btn-2" data-chave="{{ r.audioChave }}" onclick="{{ argGravApagar }}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="#ct-i-trash-2"></use></svg>Apagar gravação</button></div></sc-if></article></sc-for></section></div></sc-if>
        <div style="display:flex;flex-direction:column;gap:16px;">
           <!-- MODO ARGUIÇÃO (item 3): a banca pergunta, você responde de viva voz, o padrão
                só aparece depois. É o formato real da prova — ler o padrão antes não treina nada. -->
@@ -4145,8 +4147,8 @@ window.ctPdfLib = (function(){
                   <sc-if value="{{ argTemRespostas }}"><details class="ct-oral-anteriores"><summary>Perguntas anteriores · {{ argFeitas }}</summary><sc-for list="{{ argConversaAnterior }}" as="r"><article class="ct-oral-turno"><div class="ct-eb">Banca · {{ r.disc }}</div><p>{{ r.pergunta }}</p><div class="ct-oral-resposta-salva"><div class="ct-eb">Sua resposta · {{ r.avaliacao }}</div><p>{{ r.resposta }}</p></div></article></sc-for></details></sc-if>
                   <article class="ct-oral-turno ct-oral-pergunta"><div class="ct-oral-interlocutor"><span class="ct-oral-avatar" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><use href="#ct-i-scale"></use></svg></span><div><b>Banca examinadora</b><span>Pergunta oficial</span></div></div><p>{{ argPergunta }}</p></article>
                   <div class="ct-oral-estado" data-estado="{{ argFase }}" role="status" aria-live="polite"><span class="ct-oral-pulso" aria-hidden="true"></span><div><b>{{ argEstadoLabel }}</b><p class="ct-nota">{{ argEstadoNota }}</p></div></div>
-                  <sc-if value="{{ !argMostrar }}"><div class="ct-oral-compositor"><label class="ct-rotulo" for="ct-arg-resposta">Sua resposta · texto opcional</label><textarea id="ct-arg-resposta" class="ct-campo" rows="6" value="{{ argRespostaTexto }}" oninput="{{ onArgResposta }}" placeholder="Responda em voz alta. Se quiser guardar suas palavras, escreva ou use o ditado do teclado."></textarea><div class="ct-oral-compositor-rodape"><span class="ct-nota">{{ argTextoStatus }}</span><button class="ct-btn" onclick="{{ argResponder }}">Respondi — ver o padrão</button></div></div></sc-if>
-                  <sc-if value="{{ argMostrar }}"><section class="ct-oral-correcao" aria-label="Comparação com a banca"><div class="ct-eb">Padrão de resposta oficial</div><p class="ct-oral-texto">{{ argPadrao }}</p><sc-if value="{{ argRespostaTem }}"><details open><summary>Sua resposta registrada</summary><p class="ct-oral-texto">{{ argRespostaTexto }}</p></details></sc-if><div class="ct-oral-criterios"><b>Antes de avançar, confira</b><span>Respondi ao que foi perguntado?</span><span>Indiquei a posição e o fundamento?</span><span>Expliquei as ressalvas com clareza?</span></div><p class="ct-nota">Sua autoavaliação orienta os próximos estudos. Respostas parciais e dúvidas geram erro, cartão e revisão.</p><div class="ct-arg-acoes"><button class="ct-btn" data-v="bem" onclick="{{ argAvaliar }}">Respondi bem</button><button class="ct-btn-2" data-v="parcial" onclick="{{ argAvaliar }}">Parcial</button><button class="ct-btn-2" data-v="nao" onclick="{{ argAvaliar }}">Não sabia</button></div></section></sc-if>
+                  <sc-if value="{{ !argMostrar }}"><div class="ct-oral-compositor"><label class="ct-rotulo" for="ct-arg-resposta">Sua resposta · texto opcional</label><textarea id="ct-arg-resposta" class="ct-campo" rows="6" value="{{ argRespostaTexto }}" oninput="{{ onArgResposta }}" placeholder="Responda em voz alta. Se quiser guardar suas palavras, escreva ou use o ditado do teclado."></textarea><div class="ct-oral-gravar" data-grav="controle"><sc-if value="{{ argGravPode }}" hint-placeholder-val="{{ false }}"><button type="button" class="ct-btn-2" data-grav="gravar" data-estado="{{ argGravEstado }}" aria-busy="{{ argGravOcupado }}" onclick="{{ argGravarToggle }}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="#ct-i-mic"></use></svg>{{ argGravLabel }}</button><sc-if value="{{ argGravTempo }}" hint-placeholder-val="{{ false }}"><span class="ct-oral-grav-tempo" aria-hidden="true">{{ argGravTempo }}</span></sc-if><p class="ct-oral-grav-status" role="status">{{ argGravStatus }}</p></sc-if><sc-if value="{{ !argGravPode }}" hint-placeholder-val="{{ true }}"><p class="ct-oral-grav-status" data-grav="indisponivel">{{ argGravMotivo }}</p></sc-if></div><div class="ct-oral-compositor-rodape"><span class="ct-nota">{{ argTextoStatus }}</span><button class="ct-btn" onclick="{{ argResponder }}">Respondi — ver o padrão</button></div></div></sc-if>
+                  <sc-if value="{{ argMostrar }}"><section class="ct-oral-correcao" aria-label="Comparação com a banca"><sc-if value="{{ argGravTem }}" hint-placeholder-val="{{ false }}"><div class="ct-oral-audio" data-grav="ouvir"><div class="ct-eb">Sua resposta gravada · {{ argGravDur }}</div><audio controls="{{ true }}" preload="none" src="{{ argGravUrl }}" aria-label="Ouvir sua resposta gravada"></audio><button type="button" class="ct-btn-2" data-grav="apagar" data-chave="{{ argGravChave }}" onclick="{{ argGravApagar }}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="#ct-i-trash-2"></use></svg>Apagar gravação</button></div></sc-if><div class="ct-eb">Padrão de resposta oficial</div><p class="ct-oral-texto">{{ argPadrao }}</p><sc-if value="{{ argRespostaTem }}"><details open><summary>Sua resposta registrada</summary><p class="ct-oral-texto">{{ argRespostaTexto }}</p></details></sc-if><div class="ct-oral-criterios"><b>Antes de avançar, confira</b><span>Respondi ao que foi perguntado?</span><span>Indiquei a posição e o fundamento?</span><span>Expliquei as ressalvas com clareza?</span></div><p class="ct-nota">Sua autoavaliação orienta os próximos estudos. Respostas parciais e dúvidas geram erro, cartão e revisão.</p><div class="ct-arg-acoes"><button class="ct-btn" data-v="bem" onclick="{{ argAvaliar }}">Respondi bem</button><button class="ct-btn-2" data-v="parcial" onclick="{{ argAvaliar }}">Parcial</button><button class="ct-btn-2" data-v="nao" onclick="{{ argAvaliar }}">Não sabia</button></div></section></sc-if>
                 </div>
                 <section class="ct-oral-apoio" role="complementary" aria-label="Controles da arguição"><div class="ct-eb">Durante a conversa</div><p class="ct-nota">Ouça a pergunta. Apresente sua posição, fundamente e conclua.</p><sc-if value="{{ !argMostrar }}"><button class="ct-btn-2" onclick="{{ argPausaToggle }}">{{ argPausaLabel }}</button><button class="ct-btn-2" onclick="{{ argMinhaVez }}">Responder em voz alta</button><button class="ct-btn-2" onclick="{{ argRepetirPergunta }}">Ouvir pergunta novamente</button><button class="ct-btn-2" onclick="{{ argMaisTempo }}">+1 min</button><button class="ct-btn-2" onclick="{{ argVozToggle }}" aria-pressed="{{ argVozStr }}"><sc-if value="{{ argVozOn }}"><svg data-ico="volume-2" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="#ct-i-volume-2"></use></svg></sc-if><sc-if value="{{ !argVozOn }}"><svg data-ico="volume-x" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="#ct-i-volume-x"></use></svg></sc-if>{{ argVozLabel }}</button></sc-if><div class="ct-oral-guardar"><b>Pode parar quando precisar</b><p class="ct-nota">Pergunta, resposta e tempo ficam guardados para retomar esta sessão.</p><button class="ct-btn-2" onclick="{{ argEncerrar }}">Encerrar conversa</button></div></section>
               </div>
@@ -4159,8 +4161,10 @@ window.ctPdfLib = (function(){
         <!-- BANCADA · o hero é o FOCO (o que você vai treinar); a grade "o que você veio
              fazer aqui", logo abaixo, é a FILA. Sem apoio inventado: a Oral não tem um
              material fixo por sessão — ele nasce da escolha do acervo. -->
-        <section class="ct-oral-preparo" aria-label="Preparar arguição"><div class="ct-oral-preparo-intro"><div class="ct-eb">Fase Oral · presença, fundamento e clareza</div><h2>Entre na sala.<br>Construa sua resposta.</h2><p>Uma pergunta de cada vez, com tempo para organizar o raciocínio. Responda primeiro; confira o critério publicado pela banca depois.</p></div><div class="ct-oral-preparo-painel"><div class="ct-eb">Sua próxima conversa</div><sc-if value="{{ capOralBancas }}"><label class="ct-rotulo">Carreira<select class="ct-campo" aria-label="Carreira da arguição" value="{{ oralQCarrValor }}" onchange="{{ setOralQCarr }}"><sc-for list="{{ oralQCarrOpts }}" as="o"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></label><label class="ct-rotulo">Disciplina<select class="ct-campo" aria-label="Disciplina da arguição" value="{{ oralQDiscValor }}" onchange="{{ setOralQDisc }}"><sc-for list="{{ oralQDiscOpts }}" as="o"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></label><div class="ct-oral-preparo-dupla"><label class="ct-rotulo">Perguntas<select class="ct-campo" aria-label="Quantidade de perguntas" value="{{ argQtdValor }}" onchange="{{ setArgQtd }}"><option value="3">3 perguntas</option><option value="5">5 perguntas</option><option value="10">10 perguntas</option></select></label><label class="ct-rotulo">Tempo por resposta<select class="ct-campo" aria-label="Tempo por resposta" value="{{ argMinValor }}" onchange="{{ setArgMin }}"><option value="3">3 minutos</option><option value="5">5 minutos</option><option value="10">10 minutos</option></select></label></div><button class="ct-btn" data-i="treinar" onclick="{{ oralIntencao }}"><b>Treinar arguição agora</b><span>A banca pergunta, você responde em voz alta e compara com o padrão oficial. Perguntas sorteadas, tempo de resposta e uma conversa guardada.</span></button></sc-if><sc-if value="{{ !capOralBancas }}"><p class="ct-nota">Treine a explicação a partir das fontes normativas da sua área, no material abaixo.</p></sc-if></div></section>
+        <section class="ct-oral-preparo" aria-label="Preparar arguição"><div class="ct-oral-preparo-intro"><div class="ct-eb">Fase Oral · presença, fundamento e clareza</div><h2>Entre na sala.<br>Construa sua resposta.</h2><p>Uma pergunta de cada vez, com tempo para organizar o raciocínio. Responda primeiro; confira o critério publicado pela banca depois.</p></div><div class="ct-oral-preparo-painel"><div class="ct-eb">Sua próxima conversa</div><sc-if value="{{ capOralBancas }}"><label class="ct-rotulo">Carreira<select class="ct-campo" aria-label="Carreira da arguição" value="{{ oralQCarrValor }}" onchange="{{ setOralQCarr }}"><sc-for list="{{ oralQCarrOpts }}" as="o"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></label><label class="ct-rotulo">Disciplina<select class="ct-campo" aria-label="Disciplina da arguição" value="{{ oralQDiscValor }}" onchange="{{ setOralQDisc }}"><sc-for list="{{ oralQDiscOpts }}" as="o"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></label><div class="ct-oral-preparo-dupla"><label class="ct-rotulo">Perguntas<select class="ct-campo" aria-label="Quantidade de perguntas" value="{{ argQtdValor }}" onchange="{{ setArgQtd }}"><option value="3">3 perguntas</option><option value="5">5 perguntas</option><option value="10">10 perguntas</option></select></label><label class="ct-rotulo">Tempo por resposta<select class="ct-campo" aria-label="Tempo por resposta" value="{{ argMinValor }}" onchange="{{ setArgMin }}"><option value="3">3 minutos</option><option value="5">5 minutos</option><option value="10">10 minutos</option></select></label></div><label class="ct-rotulo">Quando arguir<select class="ct-campo" aria-label="Quando arguir" value="{{ argQuandoValor }}" onchange="{{ setArgQuando }}"><option value="agora">Agora</option><option value="24h">Em 24 horas, como na prova</option></select></label><button class="ct-btn" data-i="treinar" onclick="{{ oralIntencao }}"><b>{{ argBotaoTit }}</b><span>{{ argBotaoDesc }}</span></button></sc-if><sc-if value="{{ !capOralBancas }}"><p class="ct-nota">Treine a explicação a partir das fontes normativas da sua área, no material abaixo.</p></sc-if></div></section>
         <sc-if value="{{ argRetomarTem }}"><section class="ct-oral-retomada" aria-label="Arguição para retomar"><div><div class="ct-eb">Sua conversa ficou aqui</div><b>{{ argRetomarLabel }}</b><p class="ct-nota">Retome com o tempo pausado e a resposta preservada.</p></div><button class="ct-btn-2" data-id="{{ argRetomarId }}" onclick="{{ argRetomar }}">Retomar arguição</button></section></sc-if>
+        <!-- JANELA DE 24 H: as perguntas sorteadas esperam a arguição, como na prova; o enunciado só aparece na sala -->
+        <sc-if value="{{ janTem }}" hint-placeholder-val="{{ false }}"><section class="ct-oral-janela" aria-label="Perguntas sorteadas"><div class="ct-oral-janela-cab"><div><div class="ct-eb">Perguntas sorteadas · arguição em 24 horas</div><h3 class="ct-titulo">{{ janTitulo }}</h3><p class="ct-oral-janela-quando" role="status">{{ janQuando }}</p><p class="ct-oral-janela-nota">{{ janSorteio }}</p></div><div class="ct-arg-acoes"><sc-if value="{{ janLiberada }}" hint-placeholder-val="{{ false }}"><button type="button" class="ct-btn" onclick="{{ iniciarJanela }}">Começar a arguição</button></sc-if><button type="button" class="ct-btn-2" onclick="{{ janelaMaterial }}">Estudar o material</button><button type="button" class="ct-btn-2" onclick="{{ desistirJanela }}">Desistir do sorteio</button></div></div><ul class="ct-oral-janela-pontos" aria-label="O que estudar até a arguição"><sc-for list="{{ janPontos }}" as="p"><li><b>{{ p.titulo }}</b><span>{{ p.detalhe }}</span><sc-if value="{{ p.topicos }}" hint-placeholder-val="{{ false }}"><p>{{ p.topicos }}</p></sc-if></li></sc-for></ul></section></sc-if>
         <sc-if value="{{ oralIntencoesShow }}"><div class="ct-oral-caminhos"><button class="ct-oral-caminho" data-i="responder" onclick="{{ oralIntencao }}"><b>Responder questão de banca</b><span>Escolha uma pergunta real para desenvolver a resposta no seu ritmo, com o padrão de correção disponível depois.</span></button><button class="ct-oral-caminho" data-i="consultar" onclick="{{ oralIntencao }}"><b>Consultar concursos e documentos</b><span>Explore os pontos sorteáveis, editais e critérios publicados. Prepare seus fundamentos antes da próxima conversa.</span></button></div></sc-if>
         <section class="ct-oral-fontes" aria-label="Material para a Fase Oral"><div><div class="ct-eb">Aprofundar o estudo</div><h3 class="ct-titulo">Fontes e perguntas</h3></div><nav class="ct-fluxo-abas" aria-label="Fontes da prova oral"><sc-if value="{{ capJuris }}"><button class="ct-btn-2" data-m="juris" onclick="{{ setOralModo }}">Jurisprudência</button></sc-if><button class="ct-btn-2" data-m="lei" onclick="{{ setOralModo }}">{{ oralAbaLeiRot }}</button><sc-if value="{{ capOralBancas }}"><button class="ct-btn-2" data-m="bancas" onclick="{{ setOralModo }}">Bancas reais</button></sc-if></nav></section>
 
@@ -7734,6 +7738,9 @@ class Component extends DCLogic {
       // bancas reais: as 999 perguntas com padrão de resposta (oral-conteudo.js)
       oralQPronto:false, oralQDisc:'', oralQCarr:'', oralQAtual:null, oralQMostrarPadrao:false, oralQResposta:'',
       argQtd:5,argRespostaTexto:'',argFase:'respondendo',argSessaoId:'',argOn:false, argFila:[], argIdx:0, argSeg:180, argRodando:false, argMin:3, argRespostas:[], argFim:false, argVoz:false, discCarregado:false, discErro:false,
+      // Fase Oral (oral-gravacao.js): gravação é estado de tela (o áudio mora no IndexedDB deste aparelho);
+      // só oralJanela, o sorteio à espera das 24 h, é dado da conta — autosave e sync.
+      argGrav:{estado:'parada'}, argGravacoes:{}, argGravFalha:'', argGravTick:0, argQuando:'agora', oralJanTick:0, oralJanela:this._load('oralJanela', null),
       perfMode:'liquido',
       viewBloqueada:'',   // qual view foi barrada pelo guarda de área (só para a tela explicar)
       areaPreview:'',     // área PROPOSTA, aguardando confirmação (não é a ativa)
@@ -9085,6 +9092,8 @@ class Component extends DCLogic {
     'bancaAreaSel','bancaSel','bancaAreaConc','bancaAssunto','semanaLidos','espelhosSugeridos',
     'redProvaId','ajPerfis','lastPonto','lastPontoDispensado','provaDurationMin','sessions','sessionsLixeira',
     'hl','fc','casos','oabPlano','oabHist','cmag','cmagRevs',
+    // o sorteio da Fase Oral à espera das 24 h: a fila sai do acervo da área e a arguição grava em sessions, que é da área
+    'oralJanela',
     // os concursos projetam o `edital`, que é da área: ficam na mesma área que ele
     'editais','editalAtivo','editaisGerenciados']);
   /** A área ativa, legível ANTES de this.state existir (o construtor usa _load). */
@@ -9221,7 +9230,7 @@ class Component extends DCLogic {
   // Chaves que o app salva sozinho. Lista ÚNICA: o _autosave grava a partir dela e
   // o _rehydrateFromLocal recarrega a partir dela — se as duas divergirem, o que vem
   // da nuvem é sobrescrito pela memória velha deste aparelho.
-  _autosaveKeys(){ return ['areaEstudo', 'oabPlano', 'oabHist', 'casos', 'edital', 'editais', 'editalAtivo', 'editaisGerenciados', 'reviews', 'leituras', 'enam', 'enamSim', 'aceite', 'iaConsentimento', 'blocks', 'blocksDate', 'cicloVolta', 'manualVoltaN', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs','redTempoMs', 'redGabarito', 'redEnunciado', 'redMarcas', 'redDisciplina', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'novidLidas', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis', 'cmag', 'cmagRevs']; }
+  _autosaveKeys(){ return ['areaEstudo', 'oabPlano', 'oabHist', 'casos', 'edital', 'editais', 'editalAtivo', 'editaisGerenciados', 'reviews', 'leituras', 'enam', 'enamSim', 'aceite', 'iaConsentimento', 'blocks', 'blocksDate', 'cicloVolta', 'manualVoltaN', 'manualFixed', 'manualRot', 'rotPointer', 'manualFixedRoteiroAtual', 'agendaFeitas', 'planoLegis', 'metas', 'eventos', 'errors', 'sim', 'prefs', 'profile', 'accent', 'discItems', 'ankiHist', 'redText', 'redTextTs','redTempoMs', 'redGabarito', 'redEnunciado', 'redMarcas', 'redDisciplina', 'lastPonto', 'lastPontoDispensado', 'redHist', 'planHoras', 'simAnalysis', 'relPeriod', 'notifsRead', 'multiFmt', 'multiSrc', 'mfGen', 'ankiImported', 'provaDurationMin', 'meusGrupos', 'escudos', 'streakFreezeUsados', 'streakCheckDate', 'escudoUltimoGanho', 'notifPush', 'bancaDicas', 'bancaAreaSel', 'bancaSel', 'bancaAreaConc', 'bancaAssunto', 'semanaLidos', 'novidLidas', 'plataformaQuestoes', 'espelhosSugeridos', 'apPreset', 'redProvaId', 'ajPerfis', 'cmag', 'cmagRevs', 'oralJanela']; }
   /** Grava JÁ o que está pendente, sem esperar o debounce de 500 ms.
       PENDENTE é só o que a memória mudou desde o último salvamento (a mesma régua do
       _autosave). O resto já está no disco — e o disco pode ter acabado de receber a nuvem:
@@ -9270,7 +9279,7 @@ class Component extends DCLogic {
   oabConcluir=(e)=>{if(e?.currentTarget?.dataset.id!==this._oabAtual(this._oabPlano()).id)return;this._oabGuardar(true);};
   _cycleModeLoad(){try{return localStorage.getItem(this._chave('cycleMode'))||(this._areaAtiva()==='oab'?'manual':'sugestao');}catch(_){return 'sugestao';}}
   _vazioDe(k){
-    if(['oabPlano','cmag'].includes(k)) return null;
+    if(['oabPlano','cmag','oralJanela'].includes(k)) return null;
     const v=this.state[k];
     if(Array.isArray(v)) return [];
     if(v && typeof v==='object') return {};
@@ -11023,7 +11032,7 @@ class Component extends DCLogic {
   /** Troca de view com o guarda aplicado. Devolve a view que REALMENTE abriu. */
   _irPara(v, extra){
     if(v!=='oral'&&this.state.view==='oral'&&this.state.argOn&&!this.state.argFim){
-      clearInterval(this._argT);this._argCancelarVoz();
+      clearInterval(this._argT);this._argCancelarVoz();this._gravParar('saida');   // sair da sala solta o microfone
       this.setState({argFase:'pausado',argRodando:false},()=>this._argGuardarHistorico());
     }
     // sair da Redação pausa o cronômetro da resposta na hora (o tique é só a rede de segurança)
@@ -14138,7 +14147,7 @@ class Component extends DCLogic {
       oralQUrl:st.oralQAtual?st.oralQAtual.url:'',
       oralQResposta:st.oralQResposta, oralQMostrarPadrao:st.oralQMostrarPadrao,
       // ---- modo arguição (item 3)
-      argHistorico:(st.sessions||[]).filter(s=>Array.isArray(s.oralArguicao)).slice(0,20).map(s=>({id:s.id,label:(s.topico||'Arguição')+' · '+new Date(s.ts||0).toLocaleDateString('pt-BR')})),argHistoricoTem:(st.sessions||[]).some(s=>Array.isArray(s.oralArguicao)),argHistoricoAbrir:this.argHistoricoAbrir,argHistoricoFechar:this.argHistoricoFechar,argReverTem:!!st.argRever,argReverRespostas:((st.argRever||{}).oralArguicao||[]).map(r=>({...r,resposta:r.resposta||'Nenhuma resposta escrita registrada.',avaliacao:({bem:'Respondi bem',parcial:'Resposta parcial',nao:'Não soube',pendente:'Sem autoavaliação'})[r.v]||'Sem autoavaliação'})),
+      argHistorico:(st.sessions||[]).filter(s=>Array.isArray(s.oralArguicao)).slice(0,20).map(s=>({id:s.id,label:(s.topico||'Arguição')+' · '+new Date(s.ts||0).toLocaleDateString('pt-BR')})),argHistoricoTem:(st.sessions||[]).some(s=>Array.isArray(s.oralArguicao)),argHistoricoAbrir:this.argHistoricoAbrir,argHistoricoFechar:this.argHistoricoFechar,argReverTem:!!st.argRever,argReverRespostas:((st.argRever||{}).oralArguicao||[]).map(r=>({...r,...this._gravDoRegistro(st.argRever,r),resposta:r.resposta||'Nenhuma resposta escrita registrada.',avaliacao:({bem:'Respondi bem',parcial:'Resposta parcial',nao:'Não soube',pendente:'Sem autoavaliação'})[r.v]||'Sem autoavaliação'})),
       oralQCarrValor:st.oralQCarr||'',oralQDiscValor:st.oralQDisc||'',setOralQCarr:this.setOralQCarr,setOralQDisc:this.setOralQDisc,argQtdValor:String(st.argQtd||5),argMinValor:String(st.argMin||3),setArgQtd:this.setArgQtd,argRepetirPergunta:this.argRepetirPergunta,
       argTemRespostas:!!st.argRespostas.length,argFeitas:st.argRespostas.length,argConversaAnterior:st.argRespostas.map(r=>({...r,resposta:r.resposta||'Resposta em voz alta, sem registro escrito.',avaliacao:({bem:'Respondi bem',parcial:'Parcial',nao:'Não sabia'})[r.v]||''})),argPassos:st.argFila.map((q,i)=>({numero:i+1,estado:i<st.argIdx?'feito':i===st.argIdx?'atual':'proximo',label:'Pergunta '+(i+1)+(i<st.argIdx?' respondida':i===st.argIdx?' atual':' a seguir')})),argRespostaTem:!!st.argRespostaTexto,argTextoStatus:st.argRespostaTexto?'Rascunho guardado nesta sessão':'Responda em voz alta ou registre suas palavras aqui.',
       argRetomarTem:(st.sessions||[]).some(s=>s.oralEstado&&!s.oralEstado.concluido&&s.oralEstado.area===(st.areaEstudo||'juridica')&&s.oralEstado.conta===this._argConta()),argRetomarId:((st.sessions||[]).find(s=>s.oralEstado&&!s.oralEstado.concluido&&s.oralEstado.area===(st.areaEstudo||'juridica')&&s.oralEstado.conta===this._argConta())||{}).id||'',argRetomarLabel:((st.sessions||[]).find(s=>s.oralEstado&&!s.oralEstado.concluido&&s.oralEstado.area===(st.areaEstudo||'juridica')&&s.oralEstado.conta===this._argConta())||{}).topico||'',argRetomar:this.argRetomar,argSessaoAtual:st.argSessaoId||'',
@@ -14173,6 +14182,7 @@ class Component extends DCLogic {
         return {rotulo:m.rotulo||ROT[m.tipo]||'Material', titulo:m.titulo||m.url, url:m.url, obs:(m.obs||'').slice(0,180), ouro:ouro,
           styleRot:'font-size:var(--fs-2xs);font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 8px;border-radius:99px;'
             +(ouro?'background:#f59e0b22;color:#b8770a;':'background:var(--surface2);color:var(--text2);')}; }):[],
+      ...this._oralGravVM(st),   // gravação no aparelho e janela de 24 h (oral-gravacao.js)
     };
   }
 
@@ -15032,7 +15042,8 @@ class Component extends DCLogic {
       if(area!==(this.state.areaEstudo||'juridica')||conta!==this._argConta()||this.state.view!=='oral')return;
       // treinar = modo arguição, que já tem relógio, +1 min, voz e autoavaliação; não se
       // cria outro cronômetro aqui. responder = a pergunta escrita com padrão de resposta.
-      if(i==='treinar') this.iniciarArguicao();
+      // "Em 24 horas" sorteia agora e guarda a fila; a arguição abre quando a janela vence
+      if(i==='treinar'){ if(this.state.argQuando==='24h') this.sortearJanela(); else this.iniciarArguicao(); }
       else if(i==='responder') this.sortearPerguntaBanca();
       else setTimeout(()=>{ const el=document.getElementById('ct-oral-consulta'); if(el) el.scrollIntoView({block:'start', behavior:this._rolagem()}); }, 60);
     }).catch(()=>{});
@@ -15196,7 +15207,7 @@ class Component extends DCLogic {
     this._argT=setInterval(()=>{
       if(!this.state.argRodando) return;
       const s=this.state.argSeg-1;
-      if(s<=0){ clearInterval(this._argT);this._argCancelarVoz();this.setState({argFase:'comparando',argSeg:0,argRodando:false,oralQMostrarPadrao:true},()=>this._argGuardarHistorico());return; }
+      if(s<=0){ clearInterval(this._argT);this._argCancelarVoz();this._gravParar('tempo');this.setState({argFase:'comparando',argSeg:0,argRodando:false,oralQMostrarPadrao:true},()=>this._argGuardarHistorico());return; }
       this.setState({argSeg:s});
     }, 1000);
   }
@@ -15207,22 +15218,23 @@ class Component extends DCLogic {
     const q=this.state.argFila[this.state.argIdx];if(!q||!window.speechSynthesis||!window.SpeechSynthesisUtterance)return;
     this._argCancelarVoz();const token=this._argVozToken;
     try{const u=new SpeechSynthesisUtterance(this._argLimpa(q.enunciado));u.lang='pt-BR';u.rate=0.95;
-      clearInterval(this._argT);this.setState({argFase:'ouvindo',argRodando:false});
-      const fim=()=>{if(token!==this._argVozToken||!this.state.argOn||this.state.oralQMostrarPadrao)return;this.setState({argFase:'respondendo',argRodando:true},()=>this._argTick());};
+      // a gravação é da resposta: pausa enquanto a banca lê e volta junto com a vez de responder
+      clearInterval(this._argT);this._gravPausar();this.setState({argFase:'ouvindo',argRodando:false});
+      const fim=()=>{if(token!==this._argVozToken||!this.state.argOn||this.state.oralQMostrarPadrao)return;this._gravRetomar();this.setState({argFase:'respondendo',argRodando:true},()=>this._argTick());};
       u.onend=fim;u.onerror=fim;window.speechSynthesis.speak(u);
-    }catch(_){this.setState({argFase:'respondendo',argRodando:true},()=>this._argTick());}
+    }catch(_){this._gravRetomar();this.setState({argFase:'respondendo',argRodando:true},()=>this._argTick());}
   }
   // O rascunho usa o mesmo id do histórico: salvar de novo substitui a sessão.
   onArgResposta = (e)=>this.setState({argRespostaTexto:String(e.currentTarget.value||'').slice(0,12000)},()=>{clearTimeout(this._argRascunhoT);this._argRascunhoT=setTimeout(()=>{if(this.state.argOn)this._argGuardarHistorico();},400);});
-  argMinhaVez = ()=>{this._argCancelarVoz();if(this.state.oralQMostrarPadrao)return;this.setState({argFase:'respondendo',argRodando:true},()=>this._argTick());};
+  argMinhaVez = ()=>{this._argCancelarVoz();if(this.state.oralQMostrarPadrao)return;this._gravRetomar();this.setState({argFase:'respondendo',argRodando:true},()=>this._argTick());};
   argPausaToggle = ()=>{if(this.state.oralQMostrarPadrao)return;
     if(this.state.argFase==='pausado'){this.argMinhaVez();return;}
-    clearInterval(this._argT);this._argCancelarVoz();this.setState({argFase:'pausado',argRodando:false},()=>this._argGuardarHistorico());};
+    clearInterval(this._argT);this._argCancelarVoz();this._gravPausar();this.setState({argFase:'pausado',argRodando:false},()=>this._argGuardarHistorico());};
   argVozToggle = ()=>{ const v=!this.state.argVoz;
     if(!v){this._argCancelarVoz();if(this.state.argFase==='ouvindo')this.argMinhaVez();}
     this.setState({argVoz:v}, ()=>{ if(v) this._argFalar(); }); };
   /** "Respondi" (ou o tempo acabou): revela o padrão da banca. */
-  argResponder = ()=>{ clearInterval(this._argT);this._argCancelarVoz();
+  argResponder = ()=>{ clearInterval(this._argT);this._argCancelarVoz();this._gravParar('revelar');
     try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(_){}
     this.setState({argFase:'comparando',argRodando:false,oralQMostrarPadrao:true},()=>{this._argGuardarHistorico();this._argComparacaoTopo();}); };
   argMaisTempo = ()=> this.setState({argSeg:this.state.argSeg+60,argTempoExtra:(this.state.argTempoExtra||0)+60},()=>this._argGuardarHistorico());
@@ -15260,8 +15272,8 @@ class Component extends DCLogic {
   _argComparacaoTopo(){requestAnimationFrame(()=>{const comparacao=document.querySelector('.ct-oral-correcao'),cab=document.querySelector('.ct-topbar'),topo=document.querySelector('.ct-oral-sala-topo');if(comparacao){comparacao.style.scrollMarginTop=(((cab&&cab.getBoundingClientRect().height)||0)+((topo&&topo.getBoundingClientRect().height)||0))+'px';comparacao.scrollIntoView({block:'start',behavior:'auto'});}});}
   setArgQtd=(e)=>this.setState({argQtd:[3,5,10].includes(+e.currentTarget.value)?+e.currentTarget.value:5});
   argRepetirPergunta=()=>{if(!this.state.argOn||this.state.oralQMostrarPadrao)return;this.setState({argVoz:true},()=>this._argFalar());};
-  argRetomar=(e)=>{const s=(this.state.sessions||[]).find(s=>s.id===e.currentTarget.dataset.id),r=s&&s.oralEstado;if(!r||r.concluido||!Array.isArray(r.fila)||!r.fila[r.idx]||r.area!==(this.state.areaEstudo||'juridica')||r.conta!==this._argConta())return;clearInterval(this._argT);this._argCancelarVoz();this.setState({view:'oral',argSessaoId:s.id,argOrigemArea:r.area,argOrigemConta:r.conta,argFila:r.fila,argIdx:r.idx,argSeg:r.seg,argMin:r.min,argTempoExtra:r.extra||0,argRespostaTexto:r.resposta||'',argRespostas:r.respostas||[],argOn:true,argFim:false,argRodando:false,argFase:r.mostrar?'comparando':'pausado',oralQMostrarPadrao:!!r.mostrar},()=>this._argTopo());};
-  argHistoricoAbrir = (e)=>{const r=(this.state.sessions||[]).find(s=>s.id===e.currentTarget.dataset.id&&Array.isArray(s.oralArguicao));if(r)this.setState({argRever:r});};
+  argRetomar=(e)=>{const s=(this.state.sessions||[]).find(s=>s.id===e.currentTarget.dataset.id),r=s&&s.oralEstado;if(!r||r.concluido||!Array.isArray(r.fila)||!r.fila[r.idx]||r.area!==(this.state.areaEstudo||'juridica')||r.conta!==this._argConta())return;clearInterval(this._argT);this._argCancelarVoz();this.setState({view:'oral',argSessaoId:s.id,argOrigemArea:r.area,argOrigemConta:r.conta,argFila:r.fila,argIdx:r.idx,argSeg:r.seg,argMin:r.min,argTempoExtra:r.extra||0,argRespostaTexto:r.resposta||'',argRespostas:r.respostas||[],argOn:true,argFim:false,argRodando:false,argFase:r.mostrar?'comparando':'pausado',oralQMostrarPadrao:!!r.mostrar},()=>{this._argTopo();this._gravCarregar(s.id);});};
+  argHistoricoAbrir = (e)=>{const r=(this.state.sessions||[]).find(s=>s.id===e.currentTarget.dataset.id&&Array.isArray(s.oralArguicao));if(r){this.setState({argRever:r});this._gravCarregar(r.id);}};
   argHistoricoFechar = ()=>this.setState({argRever:null});
   _argConta(){const u=window.CatedraAuth&&window.CatedraAuth.user;return(u&&(u.id||u.email))||this.state.authEmail||'';}
   _argGuardarHistorico(){
@@ -15271,9 +15283,192 @@ class Component extends DCLogic {
     const rec={id,up:Date.now(),ts:(anterior&&anterior.ts)||Date.now(),date:R.length?((anterior&&anterior.date)||this._hoje()):'',disc:'Prova oral',topico:this.state.argFim?('Arguição · '+R.length+' pergunta'+(R.length===1?'':'s')):('Arguição em pausa · pergunta '+(this.state.argIdx+1)+' de '+this.state.argFila.length),categoria:'Prova oral',categorias:['Prova oral'],min:Math.round(R.reduce((n,r)=>n+(r.gasto||0),0)/60),questoes:0,acertos:0,erradas:0,brancos:0,countMeta:R.length>0,oralArguicao:R,oralEstado:{fila:this.state.argFila,idx:this.state.argIdx,seg:this.state.argSeg,min:this.state.argMin,extra:this.state.argTempoExtra||0,resposta:this.state.argRespostaTexto||'',mostrar:!!this.state.oralQMostrarPadrao,concluido:!!this.state.argFim,respostas:this.state.argRespostas||[],area:this.state.areaEstudo||'juridica',conta:this._argConta()},origem:'arguicao'};
     const sessions=[rec,...(this.state.sessions||[]).filter(x=>x.id!==id)];this._saveSessions(sessions);this.setState({sessions});this.flashSync();
   }
-  argEncerrar = ()=>{ clearTimeout(this._argRascunhoT);clearInterval(this._argT);this._argCancelarVoz();this._argGuardarHistorico();
+  argEncerrar = ()=>{ clearTimeout(this._argRascunhoT);clearInterval(this._argT);this._argCancelarVoz();this._gravParar('encerrar');this._argGuardarHistorico();
     try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(_){}
     this.setState({argOn:false, argFim:false, argRodando:false, oralQMostrarPadrao:false}); };
+
+  // ===== FASE ORAL · resposta gravada no aparelho e janela de 24 h (oral-gravacao.js) =====
+  // A lógica mora no módulo, testado em Node; aqui fica só o fio até a tela. O áudio nunca
+  // sai do IndexedDB deste aparelho; a janela (oralJanela) é dado da conta e sincroniza.
+  _gravMod(){ return window.CT_ORAL_GRAV||null; }
+  _gravSuporte(){
+    const G=this._gravMod(); if(!G) return {ok:false,motivo:'Gravação indisponível neste aparelho.'};
+    let md=null; try{ md=navigator.mediaDevices; }catch(_){}
+    // No Mac e no iPad (ponte catedraNav) o app ainda não pede o microfone: o aviso vem antes de
+    // tentar. CT_NATIVO_MICROFONE é o sinal que a casca nativa injetará quando passar a pedir.
+    return G.suporte({nativo:this._temAbasNativas()&&window.CT_NATIVO_MICROFONE!==true, seguro:window.isSecureContext!==false,
+      temMediaRecorder:typeof window.MediaRecorder==='function', temGetUserMedia:!!(md&&md.getUserMedia), temIndexedDB:!!window.indexedDB, falha:this.state.argGravFalha});
+  }
+  argGravarToggle = ()=>{
+    if(this._grav){ this._gravParar('manual'); return; }
+    const G=this._gravMod(), st=this.state;
+    if(!G||this._gravAbrindo||!st.argOn||st.argFim||st.oralQMostrarPadrao||!st.argSessaoId||!this._gravSuporte().ok) return;
+    const ctx={sessaoId:st.argSessaoId, idx:st.argIdx, conta:this._argConta(), area:st.areaEstudo||'juridica'}, chave=G.chave(ctx.sessaoId,ctx.idx);
+    this._gravAbrindo=true; this.setState({argGrav:{estado:'abrindo',chave}});
+    // só microfone recusado ou ausente troca o botão pelo motivo; o tropeço passageiro (microfone
+    // ocupado por outro app) devolve o botão com o aviso, para tentar de novo
+    const recusou=(e)=>{ this._gravAbrindo=false; const f=G.falhaDoErro(e);
+      if(f==='negado'||f==='sem-microfone') this.setState({argGravFalha:f, argGrav:{estado:'parada',chave}});
+      else this.setState({argGrav:{estado:'falhou',chave}}); };
+    // o gravador pode parar sozinho (limite, erro, microfone interrompido): aí ele solta o
+    // controle, senão a tela seguiria dizendo "gravando" e o botão travaria em "guardando"
+    let meu=null;
+    G.loja.total().then(total=>{
+      if(!G.cabe(total)){ this._gravAbrindo=false; this.setState({argGrav:{estado:'cheio',chave}}); return; }
+      let tipo=''; try{ const a=document.createElement('audio'); tipo=G.escolherTipo(t=>window.MediaRecorder.isTypeSupported(t), t=>a.canPlayType(t)); }catch(_){}
+      return G.gravar({md:navigator.mediaDevices, MR:window.MediaRecorder, tipo, aoTique:()=>this.setState({argGravTick:Date.now()}), aoTerminar:(r)=>{ if(meu&&this._grav===meu) this._grav=null; this._gravGuardar(ctx,r); }}).then(c=>{
+        this._gravAbrindo=false;
+        // a pergunta mudou enquanto o microfone abria: nada se grava no lugar errado
+        if(!this.state.argOn||this.state.argSessaoId!==ctx.sessaoId||this.state.argIdx!==ctx.idx||this.state.oralQMostrarPadrao){ c.parar('descartar'); return; }
+        meu=c; this._grav=c;
+        if(this.state.argFase!=='respondendo') this.argMinhaVez();   // gravar é responder: a leitura da banca para
+        this.setState({argGrav:{estado:'gravando',chave}});
+      }, recusou);
+    }).catch(()=>{ this._gravAbrindo=false; if(!this._grav) this.setState({argGrav:{estado:'parada',chave}}); });
+  };
+  _gravParar(motivo){ const c=this._grav; if(!c) return; this._grav=null; this.setState({argGrav:{estado:'salvando',chave:(this.state.argGrav||{}).chave}}); try{ c.parar(motivo||'manual'); }catch(_){} }
+  // pausar a conversa pausa a gravação (o arquivo segue um só); sem pause() no navegador, fecha e guarda.
+  // Só pausa o que está gravando: pausar de novo uma gravação já pausada não pode encerrá-la.
+  _gravPausar(){ const c=this._grav; if(!c||c.estado()!=='recording') return; if(c.pausar()) this.setState({argGrav:{...(this.state.argGrav||{}),estado:'pausada'}}); else this._gravParar('pausa'); }
+  _gravRetomar(){ const c=this._grav; if(c&&c.retomar()) this.setState({argGrav:{...(this.state.argGrav||{}),estado:'gravando'}}); }
+  _gravGuardar(ctx,r){
+    const G=this._gravMod(), chave=G?G.chave(ctx.sessaoId,ctx.idx):'';
+    if(!G||!r||r.motivo==='descartar'||!r.blob||!r.blob.size){ if((this.state.argGrav||{}).chave===chave) this.setState({argGrav:{estado:'parada',chave}}); return; }
+    let url=''; try{ url=URL.createObjectURL(r.blob); }catch(_){}
+    this._gravPor(chave,{url,dur:r.dur,bytes:r.bytes,mime:r.mime});
+    const meta={id:chave, sessaoId:ctx.sessaoId, idx:ctx.idx, conta:ctx.conta, area:ctx.area, mime:r.mime, dur:r.dur, bytes:r.bytes, criadoEm:Date.now()};
+    const fim=(ok)=>this.setState({argGrav:{estado:ok?'guardada':'nao-guardada', motivo:r.motivo, chave}});
+    G.paraBuffer(r.blob).then(buf=>G.loja.guardar(meta,buf)).then(fim,()=>fim(false));
+  }
+  _gravPor(chave,v){
+    const mapa={...(this.state.argGravacoes||{})}, velho=mapa[chave];
+    if(velho&&velho.url&&(!v||velho.url!==v.url)){ try{ URL.revokeObjectURL(velho.url); }catch(_){} }
+    if(v) mapa[chave]=v; else delete mapa[chave];
+    this.setState({argGravacoes:mapa});
+  }
+  _gravCarregar(sessaoId){
+    const G=this._gravMod(); if(!G||!sessaoId||!window.indexedDB) return;
+    G.loja.daSessao(sessaoId).then(lista=>lista.forEach(x=>{
+      if(!x||!x.meta||!x.dados||(this.state.argGravacoes||{})[x.meta.id]) return;
+      let url=''; try{ url=URL.createObjectURL(new Blob([x.dados],{type:x.meta.mime||''})); }catch(_){ return; }
+      this._gravPor(x.meta.id,{url,dur:x.meta.dur,bytes:x.meta.bytes,mime:x.meta.mime});
+    })).catch(()=>{});
+  }
+  _gravDoRegistro(sessao,r){
+    const G=this._gravMod(), k=(G&&sessao)?G.chave(sessao.id,G.idxDoRegistro(r)):'', a=k?(this.state.argGravacoes||{})[k]:null;
+    return {audioTem:!!(a&&a.url), audioUrl:a?a.url:'', audioDur:a?G.duracao(a.dur):'', audioChave:k};
+  }
+  argGravApagar = (e)=>{
+    const G=this._gravMod(), chave=e.currentTarget.dataset.chave; if(!G||!chave) return;
+    if(!window.confirm('Apagar esta gravação? Ela existe só neste aparelho e não pode ser recuperada.')) return;
+    G.loja.apagar([chave]).then(()=>{ this._gravPor(chave,null); this.setState({argGrav:{estado:'apagada',chave}}); });
+  };
+  // A arguição apagada de vez (fora da lixeira) leva o áudio junto.
+  _gravApagarSessoes(ids){
+    const G=this._gravMod(); if(!G||!window.indexedDB||!(ids||[]).length) return;
+    G.loja.apagarSessoes(ids).then(chaves=>(chaves||[]).forEach(k=>{ if((this.state.argGravacoes||{})[k]) this._gravPor(k,null); })).catch(()=>{});
+  }
+  // A arguição apagada de vez no OUTRO aparelho chega pelo sync; o áudio dela fica órfão aqui.
+  // Faxina uma vez por abertura, só depois do acerto com a nuvem e só do caderno aberto.
+  _gravFaxina(){
+    const G=this._gravMod(); if(this._gravFaxinaFeita||!G||!window.indexedDB||!this._edSincronizado()) return;
+    this._gravFaxinaFeita=true;
+    const vivos={}; (this.state.sessions||[]).concat(this.state.sessionsLixeira||[]).forEach(s=>{ if(s&&s.id) vivos[s.id]=1; });
+    const ctx={conta:this._argConta(), area:this.state.areaEstudo||'juridica', vivos};
+    G.loja.resumo().then(l=>G.loja.apagar(G.orfas(l,ctx))).catch(()=>{});
+  }
+  setArgQuando = (e)=>this.setState({argQuando:e.currentTarget.value==='24h'?'24h':'agora'});
+  // Mesmo acervo e mesma regra do iniciarArguicao; só o momento muda: a fila fica guardada.
+  sortearJanela = ()=>{
+    const G=this._gravMod(), area=this.state.areaEstudo||'juridica'; if(!G) return;
+    if(window.CT_AREA_REG&&!window.CT_AREA_REG.tem(area,'provaOralBancas')) return;
+    const atual=this.state.oralJanela;
+    if(G.pendente(atual)&&!window.confirm('Você já tem perguntas sorteadas ('+G.rotuloLiberacao(atual,Date.now()).toLowerCase()+'). Trocar por um novo sorteio?')) return;
+    const fila=G.sortearFila(this._argPool(), this.state.argQtd);
+    if(!fila){ this._toast('Poucas perguntas com esses filtros — tire um filtro'); return; }
+    this.setState({oralJanela:G.novaJanela(fila,{agora:Date.now(), min:this.state.argMin, area})},()=>{ this._salvarAgora(); this._janelaTopo(); });
+  };
+  iniciarJanela = ()=>{
+    const G=this._gravMod(), j=this.state.oralJanela, agora=Date.now(), area=this.state.areaEstudo||'juridica';
+    if(!G||!G.liberada(j,agora)||this.state.argOn) return;
+    if(window.CT_AREA_REG&&!window.CT_AREA_REG.tem(area,'provaOralBancas')) return;
+    const min=Math.max(1,Math.min(15,+j.min||this.state.argMin||3)), sessaoId='oral-'+agora;
+    // exatamente a fila sorteada 24 h antes; o resto é o começo de sempre da arguição
+    this.setState({oralJanela:G.encerrar(j,'iniciada',agora,{sessaoId}), argMin:min, argOrigemArea:area, argOrigemConta:this._argConta(), argTempoExtra:0, argSessaoId:sessaoId, argRespostaTexto:'', argFase:'respondendo', argOn:true, argFila:j.fila, argIdx:0, argRespostas:[], argFim:false, argSeg:min*60, argRodando:true, oralQMostrarPadrao:false},()=>{
+      this._salvarAgora(); this._argTick(); this._argFalar(); this._argGuardarHistorico(); this._argTopo();
+    });
+  };
+  desistirJanela = ()=>{
+    const G=this._gravMod(), j=this.state.oralJanela; if(!G||!G.pendente(j)) return;
+    if(!window.confirm('Desistir deste sorteio? As perguntas sorteadas serão descartadas.')) return;
+    this.setState({oralJanela:G.encerrar(j,'desistida',Date.now())},()=>this._salvarAgora());
+  };
+  // Estudar = as fontes (jurisprudência ou lei seca, na ordem com que a Oral abre), nunca "Bancas
+  // reais": lá estão as perguntas com o padrão, e o sorteio dali pode trazer uma das que esperam.
+  janelaMaterial = ()=>{
+    if(this.state.oralModo==='bancas'){
+      let m='lei'; try{ if(window.CT_AREA_REG.tem(this.state.areaEstudo||'juridica','jurisprudencia')) m='juris'; }catch(_){}
+      this.setState({oralModo:m, oralCorrecao:null, oralPontosSobrescritas:{}});
+      if(m==='lei') this._oralCarregarLeis(); else this._oralCarregarAcervo();
+    }
+    requestAnimationFrame(()=>this._rolarAbaixoDaBarra(document.querySelector('.ct-oral-fontes')));
+  };
+  _janelaTopo(){ requestAnimationFrame(()=>this._rolarAbaixoDaBarra(document.querySelector('.ct-oral-janela'))); }
+  // a barra do topo é fixa: sem a margem do tamanho dela, o alvo rolado para o topo ficava por baixo (como no _argTopo)
+  _rolarAbaixoDaBarra(el){ if(!el) return; const cab=document.querySelector('.ct-topbar'); el.style.scrollMarginTop=((cab&&cab.getBoundingClientRect().height)||0)+'px'; el.scrollIntoView({block:'start',behavior:this._rolagem()}); }
+  // A tela da janela troca sozinha de "amanhã" para "hoje" e mostra o botão na hora certa;
+  // liberada a arguição, o relógio para (o botão já está na tela).
+  _janelaVigiar(){
+    if(this._janT) return;
+    this._janT=setInterval(()=>{ const G=this._gravMod(), j=this.state.oralJanela;
+      const parar=()=>{ clearInterval(this._janT); this._janT=null; };
+      if(this.state.view!=='oral'||!G||!G.pendente(j)){ parar(); return; }
+      if(G.liberada(j,Date.now())) parar();
+      this.setState({oralJanTick:Date.now()}); }, 30000);
+  }
+  _oralGravVM(st){
+    const G=this._gravMod();
+    if(!G) return {janTem:false, janLiberada:false, janAguarda:false, janPontos:[], argGravPode:false, argGravMotivo:'Gravação indisponível neste aparelho.', argGravTem:false, argQuandoValor:'agora', argBotaoTit:'Treinar arguição agora', argBotaoDesc:''};
+    const agora=Date.now(), j=st.oralJanela;
+    let cap=true; try{ cap=window.CT_AREA_REG.tem(st.areaEstudo||'juridica','provaOralBancas'); }catch(_){}
+    const pend=cap&&G.pendente(j), lib=pend&&G.liberada(j,agora);
+    if(pend&&!lib) this._janelaVigiar();
+    this._gravFaxina();
+    const sup=this._gravSuporte(), chaveAtual=G.chave(st.argSessaoId,st.argIdx), atual=(st.argGravacoes||{})[chaveAtual]||null;
+    // gravando = o gravador vivo; o que parou sozinho já soltou o controle (argGravarToggle)
+    const g=(st.argGrav&&st.argGrav.chave===chaveAtual)?st.argGrav:{estado:'parada'}, c=this._grav, gravando=!!c&&c.estado()!=='inactive';
+    const minMax=Math.round(G.LIMITES.segPorResposta/60), n=pend?j.fila.length:0, ficou=' O que você disse até ali ficou guardado.';
+    const status=gravando?(c.estado()==='paused'?(st.argFase==='ouvindo'?'Gravação pausada enquanto a banca lê a pergunta.':'Gravação pausada junto com a conversa.'):'Gravando sua resposta.')
+      :g.estado==='abrindo'?'Abrindo o microfone…'
+      :g.estado==='salvando'?'Guardando a gravação neste aparelho…'
+      :g.estado==='falhou'?'O microfone não abriu agora. Tente de novo; se continuar, confira se outro app está usando o microfone.'
+      :g.estado==='cheio'?'O espaço das gravações neste aparelho acabou ('+G.tamanho(G.LIMITES.bytesTotal)+'). Encerre a conversa e apague gravações antigas em Suas arguições.'
+      :g.estado==='nao-guardada'?'A gravação toca agora, mas não foi guardada neste aparelho: ela some ao fechar o app.'
+      :g.motivo==='limite'?'A gravação parou em '+minMax+' min, o limite por resposta.'+ficou
+      :g.motivo==='bytes'?'A gravação parou em '+G.tamanho(G.LIMITES.bytesPorResposta)+', o limite por resposta.'+ficou
+      :g.motivo==='interrompida'?'A gravação parou sozinha: o microfone foi interrompido.'+ficou
+      :g.motivo==='erro'?'A gravação parou por um erro do gravador.'+ficou
+      :atual?'Resposta gravada ('+G.duracao(atual.dur)+'). Ela toca junto do padrão da banca; gravar de novo substitui.'
+      :'Grave a resposta para ouvir junto do padrão da banca. O áudio fica só neste aparelho, até '+minMax+' min.';
+    return {
+      // janela de 24 h (o sorteio é de perguntas, que podem vir de pontos diferentes: a tela não promete um ponto só)
+      argQuandoValor:st.argQuando==='24h'?'24h':'agora', setArgQuando:this.setArgQuando,
+      argBotaoTit:st.argQuando==='24h'?'Sortear as perguntas agora':'Treinar arguição agora',
+      argBotaoDesc:st.argQuando==='24h'?'As perguntas ficam guardadas e a arguição abre 24 horas depois, como na prova. Até lá, estude os pontos de onde elas saíram.':'A banca pergunta, você responde em voz alta e compara com o padrão oficial. Perguntas sorteadas, tempo de resposta e uma conversa guardada.',
+      janTem:pend, janLiberada:lib, janAguarda:pend&&!lib,
+      janTitulo:pend?(n+' pergunta'+(n===1?'':'s')+' · '+(j.min||3)+' min por resposta'):'',
+      janQuando:pend?G.rotuloLiberacao(j,agora):'', janSorteio:pend?(G.rotuloSorteio(j,agora)+'. As perguntas só aparecem na arguição.'):'',
+      janPontos:pend?G.pontosDaFila(j.fila):[],
+      iniciarJanela:this.iniciarJanela, desistirJanela:this.desistirJanela, janelaMaterial:this.janelaMaterial,
+      // gravação da resposta
+      argGravPode:sup.ok, argGravMotivo:sup.motivo, argGravarToggle:this.argGravarToggle,
+      argGravEstado:gravando?(c.estado()==='paused'?'pausada':'gravando'):'parada', argGravOcupado:(g.estado==='abrindo'||g.estado==='salvando')?'true':'false',
+      argGravLabel:gravando?'Parar gravação':atual?'Gravar de novo':'Gravar resposta',
+      argGravStatus:status, argGravTempo:gravando?G.duracao(c.seg()):'',
+      argGravTem:!!(atual&&atual.url), argGravUrl:atual?atual.url:'', argGravDur:atual?G.duracao(atual.dur):'', argGravChave:chaveAtual,
+      argGravApagar:this.argGravApagar,
+    };
+  }
 
   setOralQDisc = (e)=> this.setState({oralQDisc:(e.currentTarget.dataset.v!==undefined?e.currentTarget.dataset.v:e.currentTarget.value)});
   setOralQCarr = (e)=> this.setState({oralQCarr:(e.currentTarget.dataset.v!==undefined?e.currentTarget.dataset.v:e.currentTarget.value)});
@@ -17664,8 +17859,8 @@ class Component extends DCLogic {
   limparHistorico = ()=>{ const n=(this.state.sessions||[]).length; if(!n){ this._toast('Histórico já está vazio'); return; } if(!window.confirm('Mover as '+n+' sessões do histórico para a lixeira? Você poderá restaurar depois.')) return; this.setState(s=>{ const marc=(s.sessions||[]).map(x=>({...x, _delAt:Date.now()})); const lix=[...marc, ...(s.sessionsLixeira||[])]; try{ this._saveSessions([]); this._saveLixeira(lix); }catch(_){} return {sessions:[], sessionsLixeira:lix}; }); try{ this._toast(n+' sessões movidas para a lixeira ✦'); }catch(_){} this.flashSync(); };
   toggleLixeira = ()=> this.setState(s=>({histLixeiraOpen:!s.histLixeiraOpen}));
   restoreSession = (e)=>{ const id=e.currentTarget.dataset.id; const _alvo=(this.state.sessionsLixeira||[]).find(x=>x.id===id); this.setState(s=>{ const alvo=(s.sessionsLixeira||[]).find(x=>x.id===id); if(!alvo) return {}; const lix=s.sessionsLixeira.filter(x=>x.id!==id); const rec={...alvo}; delete rec._delAt; rec.up=Date.now(); /* carimbo: restauração vence a exclusão no merge entre aparelhos */ const sessions=[rec, ...(s.sessions||[])].sort((a,b)=>(b.ts||0)-(a.ts||0)); try{ this._saveSessions(sessions); this._saveLixeira(lix); }catch(_){} return {sessions, sessionsLixeira:lix}; }); try{ this._toast('Sessão restaurada ✦'); }catch(_){} try{ this._fecharAtividade(_alvo); }catch(_){} try{ this._reconcileStreak(); }catch(_){} try{ this._pubAtvT=0; this._publicarAtividade(); }catch(_){} this.flashSync(); };
-  purgeSession = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>{ const lix=(s.sessionsLixeira||[]).filter(x=>x.id!==id); try{ this._saveLixeira(lix); }catch(_){} return {sessionsLixeira:lix}; }); this.flashSync(); };
-  esvaziarLixeira = ()=>{ const n=(this.state.sessionsLixeira||[]).length; if(!n) return; if(!window.confirm('Apagar DE VEZ as '+n+' sessões da lixeira? Isso não pode ser desfeito.')) return; this.setState(()=>{ try{ this._saveLixeira([]); }catch(_){} return {sessionsLixeira:[]}; }); try{ this._toast('Lixeira esvaziada'); }catch(_){} this.flashSync(); };
+  purgeSession = (e)=>{ const id=e.currentTarget.dataset.id; this.setState(s=>{ const lix=(s.sessionsLixeira||[]).filter(x=>x.id!==id); try{ this._saveLixeira(lix); }catch(_){} return {sessionsLixeira:lix}; }); this._gravApagarSessoes([id]); this.flashSync(); };
+  esvaziarLixeira = ()=>{ const n=(this.state.sessionsLixeira||[]).length; if(!n) return; if(!window.confirm('Apagar DE VEZ as '+n+' sessões da lixeira? Isso não pode ser desfeito.')) return; this._gravApagarSessoes((this.state.sessionsLixeira||[]).filter(x=>Array.isArray(x.oralArguicao)).map(x=>x.id)); this.setState(()=>{ try{ this._saveLixeira([]); }catch(_){} return {sessionsLixeira:[]}; }); try{ this._toast('Lixeira esvaziada'); }catch(_){} this.flashSync(); };
   openHistEdit = (e)=>{ const id=e.currentTarget.dataset.id; const r=this.state.sessions.find(x=>x.id===id); if(!r) return;
     const cats=(Array.isArray(r.categorias)&&r.categorias.length?r.categorias:[r.categoria].filter(Boolean));
     this.setState({histEdit:{ id, disc:r.disc||'Direito Constitucional', topico:r.topico||'', categorias:cats, minutos:String(r.min||0), acertos:String(r.acertos||0), erradas:String(r.erradas||0), brancos:String(r.brancos||0), nota:r.nota||'' }}); };

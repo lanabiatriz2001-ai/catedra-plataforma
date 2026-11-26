@@ -2109,7 +2109,8 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 .ct-oral-preparo-intro p{font-size:var(--fs-lg);line-height:1.65;max-width:35rem;color:var(--text2)}
 .ct-oral-preparo-painel{display:flex;flex-direction:column;gap:var(--ct-e4);padding:var(--ct-e5);border-radius:var(--ct-r-lg);border:1px solid var(--border);background:var(--surface)}
 .ct-oral-preparo-painel .ct-btn{text-align:left;display:flex;flex-direction:column;gap:var(--ct-e2);white-space:normal}
-.ct-oral-preparo-painel .ct-btn span{font-size:var(--fs-sm);line-height:1.6;font-weight:400}
+/* filho direto: o runtime embrulha cada {{ }} num <span>, e o título em <b> não pode virar descrição */
+.ct-oral-preparo-painel .ct-btn > span{font-size:var(--fs-sm);line-height:1.6;font-weight:400}
 .ct-oral-preparo-dupla,.ct-oral-caminhos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--ct-e4)}
 .ct-oral-caminho{display:flex;flex-direction:column;gap:var(--ct-e3);padding:var(--ct-e5);text-align:left;background:var(--surface);color:var(--ink);border:1px solid var(--border);border-radius:var(--ct-r-lg);font:inherit;cursor:pointer;min-height:2.75rem}
 .ct-oral-caminho b{font-size:var(--fs-lg)}
@@ -2159,6 +2160,33 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 @keyframes ct-oral-pulso{50%{opacity:.4}}
 @media(max-width:48rem){.ct-oral-preparo,.ct-oral-sala-corpo,.ct-oral-caminhos{grid-template-columns:minmax(0,1fr)}.ct-oral-preparo{padding:var(--ct-e5);gap:var(--ct-e4)}.ct-oral-sala{padding:var(--ct-e4)}.ct-oral-apoio{display:flex;flex-direction:row;flex-wrap:wrap}.ct-oral-apoio>.ct-eb,.ct-oral-apoio>.ct-nota,.ct-oral-guardar{width:100%}.ct-oral-relogio .ct-eb{max-width:8rem}.ct-oral-relogio{max-width:40%}.ct-oral-compositor{padding:var(--ct-e4)}}
 @media(prefers-reduced-motion:reduce){.ct-oral-pulso{animation:none!important}}
+/* Fase Oral · resposta gravada no aparelho e janela de 24 h (oral-gravacao.js). Sem animação:
+   o estado da gravação é dito no rótulo, no tempo em mono e na cor de situação escurecida. */
+.ct-oral-gravar{display:flex;align-items:center;gap:var(--ct-e3);flex-wrap:wrap}
+.ct-oral-gravar .ct-btn-2{min-height:2.75rem}
+/* tão específico quanto o .ct-btn-2:hover genérico (0,5,0) e escrito depois dele: no iPad o hover
+   fica preso ao botão depois do toque e trocava a cor de "gravando" pela do accent */
+.ct-oral-sala .ct-oral-gravar .ct-btn-2[data-grav="gravar"]:is([data-estado="gravando"],[data-estado="pausada"]){border-color:color-mix(in srgb,var(--danger) 55%,var(--border));background:color-mix(in srgb,var(--danger) 8%,var(--surface));color:color-mix(in srgb,var(--danger) 72%,var(--ink))}
+.ct-oral-grav-tempo{font:600 var(--fs-md)/1 var(--mono);font-variant-numeric:tabular-nums;color:var(--ink)}
+.ct-oral-grav-status{flex-basis:100%;margin:0;font-size:var(--fs-sm);line-height:1.55;color:var(--text2)}
+.ct-oral-audio{display:flex;flex-direction:column;gap:var(--ct-e3);padding:var(--ct-e4);margin-top:var(--ct-e4);background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md)}
+/* na correção o tocador vem antes do padrão (que passa de várias telas): ouve-se enquanto se lê */
+.ct-oral-correcao>.ct-oral-audio{margin:0 0 var(--ct-e5)}
+/* height, não min-height: o WebKit ignora o min-height do <audio> e o desenhava com 31 px */
+.ct-oral-audio audio{display:block;width:100%;height:2.75rem}
+/* o tocador é nativo: sem color-scheme, ficava uma pílula clara sobre o cartão escuro */
+[data-dark="1"] .ct-oral-audio audio{color-scheme:dark}
+.ct-oral-audio .ct-btn-2{align-self:flex-start;min-height:2.75rem}
+.ct-oral-janela{display:flex;flex-direction:column;gap:var(--ct-e4);padding:var(--ct-e5);background:var(--surface);border:1px solid var(--border);border-radius:var(--ct-r-lg);color:var(--ink)}
+.ct-oral-janela-cab{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--ct-e4);flex-wrap:wrap}
+.ct-oral-janela-cab .ct-arg-acoes{margin-top:0}
+.ct-oral-janela-quando{margin:var(--ct-e2) 0 0;font:600 var(--fs-lg)/1.4 var(--body);color:var(--ink)}
+.ct-oral-janela-nota{margin:var(--ct-e1) 0 0;font-size:var(--fs-sm);line-height:1.55;color:var(--text2)}
+.ct-oral-janela-pontos{list-style:none;margin:0;padding:0;display:grid;gap:var(--ct-e3)}
+.ct-oral-janela-pontos li{display:flex;flex-direction:column;gap:var(--ct-e1);padding:var(--ct-e4);background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md)}
+/* filho direto: o <span> que o runtime põe dentro do título e do programa herda deles, não do detalhe */
+.ct-oral-janela-pontos li>span{font-size:var(--fs-sm);color:var(--text2)}
+.ct-oral-janela-pontos p{margin:var(--ct-e2) 0 0;max-width:74ch;line-height:1.6;color:var(--ink);overflow-wrap:anywhere}
 
 /* Ciclo e registro: hierarquia entre a volta ativa, a fila e o tempo de estudo. */
 .cm-mapa{padding:var(--ct-e5);margin-block:var(--ct-e4)}
