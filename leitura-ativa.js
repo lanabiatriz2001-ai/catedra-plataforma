@@ -180,7 +180,7 @@
   /** Explicação curta, literal, por regra — uma frase. Para o prazo: "Prazo de cinco anos,
       contado de forma ininterrupta e sem oposição" (o resto da marca e o fragmento
       seguinte do texto viram qualificadores). Nunca IA. */
-  function explicacao(el, marca, base, nuc) {
+  function explicacao(el, marca, base, nuc, onde) {
     var t = String(marca || '').replace(/\s+/g, ' ').trim().replace(/[.;,]+$/, '');
     if (el === 'prazo' && nuc && nuc.t !== t) {
       var resto = t.replace(nuc.t, ' ').replace(/\s+/g, ' ').trim();
@@ -188,8 +188,9 @@
       if (/ininterrupt/i.test(resto)) frase += ', contado de forma ininterrupta';
       else if (/improrrog/i.test(resto)) frase += ', improrrog\u00e1vel';
       else if (/prorrog/i.test(resto)) frase += ', prorrog\u00e1vel';
-      // o fragmento seguinte do texto ("sem oposição", "contados da citação") qualifica o prazo
-      var pos = String(base || '').indexOf(marca);
+      // o fragmento seguinte do texto ("sem oposição", "contados da citação") qualifica o prazo;
+      // `onde` é a posição achada da marca (no inciso, nunca no tronco do caput que vem antes)
+      var pos = (onde != null && onde >= 0) ? onde : String(base || '').indexOf(marca);
       if (pos >= 0) {
         var depois = String(base).slice(pos + marca.length).replace(/^[\s,;]+/, '');
         var frag = (depois.split(/[,;.]/)[0] || '').trim();
@@ -210,18 +211,20 @@
    *        inciso, como proposicoesDoArtigo faz); as marcas são reencontradas por offset
    *        ou por indexOf, o padrão de renderGr.
    *   opc  { inverter: fn(txt) → {de, para} | null (CT_TREINO.inverter, se houver),
-   *          situacao: 'revogado' | 'vetado' | '' }
+   *          situacao: 'revogado' | 'vetado' | '',
+   *          desloc: onde o texto do dispositivo começa dentro de txt — o offset da marca é
+   *          contado no inciso, e o tronco do caput vem na frente (LA7) }
    */
   function cloze(item, el, txt, opc) {
     if (!item || !ehEl(el)) return null;
     opc = opc || {};
     var base = String(txt == null ? '' : txt).replace(/\s+/g, ' ').trim();
+    var desloc = (+opc.desloc > 0 && +opc.desloc < base.length) ? Math.floor(+opc.desloc) : 0;
     var ms = ((item.el && item.el[el]) || []).map(function (m) {
-      if (!m || !m.t) return null;
-      var i = (m.s != null && base.substr(m.s, m.t.length) === m.t) ? m.s : base.indexOf(m.t);
-      if (i < 0) return null;
-      var nuc = nucleo(el, m.t);
-      return { a: i + nuc.i, b: i + nuc.i + nuc.t.length, t: nuc.t, marca: m.t, nuc: nuc };
+      var achada = acharMarca(base, m, desloc);
+      if (!achada) return null;
+      var nuc = nucleo(el, achada.t);
+      return { a: achada.i + nuc.i, b: achada.i + nuc.i + nuc.t.length, t: nuc.t, marca: achada.t, onde: achada.i, nuc: nuc };
     }).filter(function (x) { return !!x; }).sort(function (a, b) { return a.a - b.a; });
     // sem sobreposição; no máximo 3 lacunas — as excedentes ficam visíveis
     var limpas = [], fim = -1;
@@ -235,7 +238,7 @@
     });
     front += escapeCloze(base.slice(pos)); back += base.slice(pos);
     var cab = [item.sigla, item.rot].filter(function (x) { return !!x; }).join(' \u00b7 ');
-    var extra = (cab ? cab + ' \u00b7 ' : '') + rotulo(el) + ' \u2014 ' + explicacao(el, limpas[0].marca, base, limpas[0].nuc);
+    var extra = (cab ? cab + ' \u00b7 ' : '') + rotulo(el) + ' \u2014 ' + explicacao(el, limpas[0].marca, base, limpas[0].nuc, limpas[0].onde);
     var inverter = opc.inverter || (raiz.CT_TREINO && raiz.CT_TREINO.inverter) || null;
     if (typeof inverter === 'function') {
       for (var k = 0; k < limpas.length; k++) {
@@ -248,6 +251,155 @@
     return { front: cortarSeguro(front, MAX_FRONT), back: back, extra: extra,
              tags: ['leitura-ativa'].concat(item.sigla ? [String(item.sigla)] : []).concat([el]),
              termos: limpas.map(function (m) { return m.t; }) };
+  }
+  /* Onde a marca está no texto-base. Sem tronco na frente (desloc 0) é o padrão de renderGr,
+     como sempre: o offset, e o indexOf como recurso. Com o tronco do caput na frente do inciso
+     ou da alínea (LA7), o offset conta a partir de desloc e a busca nunca volta ao tronco —
+     antes, o "a lei" do art. 5º, XXXV virava lacuna no "perante a lei" do caput. E o texto-base
+     do inciso perdeu a pontuação final e a inicial maiúscula ("…de lei;" virou "…de lei."): a
+     marca casa sem essas duas diferenças, e a lacuna leva o trecho como ele está no texto-base. */
+  function acharMarca(base, m, desloc) {
+    if (!m || !m.t) return null;
+    var t = String(m.t), s = (m.s != null && isFinite(+m.s) && +m.s >= 0) ? desloc + Math.floor(+m.s) : -1;
+    if (s >= 0 && base.substr(s, t.length) === t) return { i: s, t: t };
+    if (!desloc) { var j = base.indexOf(t); return j >= 0 ? { i: j, t: t } : null; }
+    var curta = t.replace(/[\s;,.:]+$/, '');
+    if (!curta) return null;
+    var minuscula = curta.charAt(0).toLowerCase() + curta.slice(1);
+    var casa = function (i) { var p = base.substr(i, curta.length); return p === curta || (i === desloc && p === minuscula); };
+    if (s >= desloc && casa(s)) return { i: s, t: base.substr(s, curta.length) };
+    var k = base.indexOf(t, desloc);
+    if (k >= 0) return { i: k, t: t };
+    k = base.indexOf(curta, desloc);
+    if (k >= 0) return { i: k, t: curta };
+    return casa(desloc) ? { i: desloc, t: base.substr(desloc, curta.length) } : null;
+  }
+
+  /* ===== LA7 — o cartão nasce na marcação, no mesmo gesto =====
+     Um cartão por dispositivo E por pergunta: o cloze do LA5 tal como é — uma pergunta por
+     cartão, no máximo 3 lacunas, cada dispositivo no seu cartão (a regra do deck dela). O id é
+     determinístico: marcar de novo a mesma pergunta atualiza o MESMO cartão, e a conferência
+     (LA4) e a revisão da pergunta (rv|la|<leitura>|<el>) apontam para ele. */
+  function idCartao(leitura, el) {
+    var id = (leitura && typeof leitura === 'object') ? leitura.id : leitura;
+    id = String(id == null ? '' : id);
+    return (id && ehEl(el)) ? 'fc|la|' + id + '|' + el : '';
+  }
+  /** acharCartao(baralho, leituraId, el) → o id do cartão daquela pergunta: o determinístico;
+      se ele ainda não existe, o que a conferência criou antes do LA7 (id 'fc<número>', com
+      la.id e la.el) — reaproveitá-lo evita o mesmo trecho duas vezes no Baralho; sem nenhum,
+      o determinístico, que é o id do cartão novo. */
+  function acharCartao(baralho, leituraId, el) {
+    var lid = String(((leituraId && typeof leituraId === 'object') ? leituraId.id : leituraId) || '');
+    var id = idCartao(lid, el);
+    if (!id) return '';
+    var lista = Array.isArray(baralho) ? baralho : [], velho = '';
+    for (var k = 0; k < lista.length; k++) {
+      var c = lista[k];
+      if (!c || !c.id) continue;
+      if (c.id === id) return id;
+      if (!velho && c.la && c.la.id === lid && c.la.el === el) velho = String(c.id);
+    }
+    return velho || id;
+  }
+  /** cartoesDispositivo(item, txt, opc) → {quem: cartão | null, …}: o cloze() de cada pergunta
+      com marca (null nas outras). É o que o LEGIS manda junto da leitura — só ele tem o texto
+      da lei; o host não recorta nada. */
+  function cartoesDispositivo(item, txt, opc) {
+    var out = {};
+    if (!item || !item.id) return out;
+    IDS.forEach(function (el) { out[el] = cloze(item, el, txt, opc); });
+    return out;
+  }
+  /** mudados(antes, depois) → as perguntas cujas marcas este gesto mudou — só elas mexem no
+      Baralho. Se a redação do dispositivo mudou ("Confirmar como está"), todas as que têm ou
+      tinham marca: o texto dos cartões acompanha a lei. */
+  function mudados(antes, depois) {
+    if (!depois) return [];
+    var marcas = function (it, el) { return JSON.stringify(((it && it.el && it.el[el]) || []).map(function (m) { return [m.s, m.t]; })); };
+    var redacao = !!antes && antes.hash !== depois.hash;
+    return IDS.filter(function (el) {
+      var agora = marcas(depois, el), era = antes ? marcas(antes, el) : '[]';
+      return redacao ? (agora !== '[]' || era !== '[]') : agora !== era;
+    });
+  }
+  /* O host recebe o cartão de um iframe: só o conteúdo entra, com tetos, e só cloze de
+     verdade — grupos c1..cN seguidos, de 1 a MAX_LACUNAS. Devolve null se não reconhece. */
+  function sanearCartao(c) {
+    if (!c || typeof c !== 'object') return null;
+    var front = String(c.front || ''), back = String(c.back || '');
+    var grupos = {}, n = 0, re = /\{\{c(\d+)::/g, m;
+    while ((m = re.exec(front))) { if (!grupos[m[1]]) { grupos[m[1]] = 1; n++; } }
+    if (!n || n > MAX_LACUNAS || !back.trim()) return null;
+    for (var g = 1; g <= n; g++) if (!grupos[g]) return null;
+    var palavra = function (t) { return String(t == null ? '' : t).replace(/\s+/g, '_').slice(0, 40); };
+    return {
+      front: cortarSeguro(front, MAX_FRONT), back: back.slice(0, 1200), extra: String(c.extra || '').slice(0, 900),
+      tags: (Array.isArray(c.tags) ? c.tags : []).map(palavra).filter(function (t) { return !!t; }).slice(0, 6),
+      termos: (Array.isArray(c.termos) ? c.termos : []).map(function (t) { return String(t == null ? '' : t).slice(0, MAX_TRECHO); }).slice(0, MAX_LACUNAS)
+    };
+  }
+  // campos do agendamento (FSRS), do nascimento e da identidade: o conteúdo novo nunca os toca
+  var NAO_E_CONTEUDO = { id: 1, up: 1, criado: 1, dueDate: 1, due: 1, intervalo: 1, facilidade: 1, repeticoes: 1, fsrs: 1 };
+  /** O cartão já foi revisado no Baralho: tem agenda (FSRS ou a de antes) ou repetições. */
+  function revisado(c) { return !!(c && (c.fsrs || c.dueDate || (+c.repeticoes > 0))); }
+  /**
+   * fundirCartao(baralho, id, conteudo, agora) → {lista, acao, antes}
+   *   Põe o cartão no baralho sem zerar o agendamento: se o id já existe, troca só o
+   *   conteúdo (e avança o `up`); dueDate, intervalo, repetições e fsrs ficam. conteudo
+   *   null tira o cartão — menos o que já foi revisado: esse FICA, com a agenda e o último
+   *   conteúdo, porque um toque na marca não pode apagar o histórico de revisões.
+   *   acao: 'criado' | 'atualizado' | 'igual' | 'removido' | 'mantido' | 'nada' — em 'igual',
+   *   'mantido' e 'nada' a lista volta a MESMA (referência igual): nada mudou.
+   */
+  function fundirCartao(baralho, id, conteudo, agora) {
+    var lista = Array.isArray(baralho) ? baralho : [];
+    id = String(id || '');
+    var t = (+agora > 0) ? Math.floor(+agora) : Date.now();
+    if (!id) return { lista: lista, acao: 'nada', antes: null };
+    var i = -1;
+    for (var k = 0; k < lista.length; k++) if (lista[k] && lista[k].id === id) { i = k; break; }
+    if (!conteudo || typeof conteudo !== 'object') {
+      if (i < 0) return { lista: lista, acao: 'nada', antes: null };
+      if (revisado(lista[i])) return { lista: lista, acao: 'mantido', antes: lista[i] };
+      return { lista: lista.slice(0, i).concat(lista.slice(i + 1)), acao: 'removido', antes: lista[i] };
+    }
+    var c, kk;
+    if (i < 0) {
+      c = { id: id };
+      for (kk in conteudo) if (Object.prototype.hasOwnProperty.call(conteudo, kk) && !NAO_E_CONTEUDO[kk]) c[kk] = conteudo[kk];
+      c.criado = t; c.up = t;
+      return { lista: [c].concat(lista), acao: 'criado', antes: null };
+    }
+    var velho = lista[i], igual = true;
+    for (kk in conteudo) {
+      if (!Object.prototype.hasOwnProperty.call(conteudo, kk) || NAO_E_CONTEUDO[kk]) continue;
+      if (JSON.stringify(velho[kk]) !== JSON.stringify(conteudo[kk])) { igual = false; break; }
+    }
+    if (igual) return { lista: lista, acao: 'igual', antes: velho };
+    c = {};
+    for (kk in velho) if (Object.prototype.hasOwnProperty.call(velho, kk)) c[kk] = velho[kk];
+    for (kk in conteudo) if (Object.prototype.hasOwnProperty.call(conteudo, kk) && !NAO_E_CONTEUDO[kk]) c[kk] = conteudo[kk];
+    c.id = id;
+    c.up = t > (+velho.up || 0) ? t : (+velho.up || 0) + 1;   // o merge por id do auth.js decide pelo maior `up`
+    var out = lista.slice(); out[i] = c;
+    return { lista: out, acao: 'atualizado', antes: velho };
+  }
+  /** avisoGesto(feitos, onde) → o aviso ÚNICO do gesto, '' quando não há o que dizer. feitos =
+      {criado, removido, mantido, falhou: [el]}: cartão que entrou, que saiu, que ficou por já
+      ter revisões ou que não deu para montar. Atualizar não avisa — nada de aviso a cada marca. */
+  function avisoGesto(feitos, onde) {
+    feitos = feitos || {}; onde = String(onde || '') || 'dispositivo';
+    var de = function (k) { return (Array.isArray(feitos[k]) ? feitos[k] : []).filter(ehEl); };
+    var c = de('criado'), r = de('removido'), m = de('mantido'), f = de('falhou'), partes = [];
+    var um = function (el) { return onde + ' · ' + rotulo(el); };
+    if (c.length) partes.push(c.length === 1 ? 'Cartão de ' + um(c[0]) + ' no Baralho' : c.length + ' cartões de ' + onde + ' no Baralho');
+    if (r.length) partes.push(r.length === 1 ? 'Cartão de ' + um(r[0]) + ' saiu do Baralho' : r.length + ' cartões de ' + onde + ' saíram do Baralho');
+    if (m.length) partes.push(m.length === 1 ? 'O cartão de ' + um(m[0]) + ' fica no Baralho: já tem revisões'
+      : m.length + ' cartões de ' + onde + ' ficam no Baralho: já têm revisões');
+    if (f.length) partes.push(f.length === 1 ? 'O trecho de ' + rotulo(f[0]) + ' não está no texto de ' + onde + ': o cartão não mudou'
+      : 'Os trechos de ' + f.map(rotulo).join(' e ') + ' não estão no texto de ' + onde + ': os cartões não mudaram');
+    return partes.join(' · ');
   }
   /** O front em pedaços, para quem renderiza por template (o host): [{t, lacuna, n, w}]. */
   function segmentosCloze(front) {
@@ -276,7 +428,8 @@
   /* LA4 — conferência imediata: "erro como filtro". A conferência é registrada no item e
      `criar` diz o que o host deve gerar — q=5 (acertei) NÃO cria nada; q=3 (hesitei) cria
      flashcard e revisão; q=1 (errei) cria flashcard, revisão e item no caderno de erros.
-     Ler não gera cartão; só o que ela errou ou hesitou vira revisão. */
+     Desde o LA7 o cartão de cada pergunta nasce na marcação (cartoesDispositivo): `criar.fc`
+     só faz o host criá-lo quando ainda falta; só o que ela errou ou hesitou vira revisão. */
   function conferir(item, el, q) {
     if (!item || !ehEl(el)) return null;
     q = +q;
@@ -322,6 +475,35 @@
     var completos = lista.filter(function (x) { return completude(x).respondidas === IDS.length; }).length;
     var total = +totalDispositivos || 0;
     return { lidos: lista.length, completos: completos, pct: total > 0 ? Math.round(100 * lista.length / total) : 0 };
+  }
+
+  /**
+   * painel(leituras, leiId, dispositivos) → {lidos, pendentes, total, nLidos, completos, pct}
+   *   O painel por lei (LA7). `dispositivos` é o que o leitor desenhou, na ordem do texto:
+   *   [{gi, rot}]. "Lido ativamente" é a régua de progresso(): o dispositivo tem leitura (é o
+   *   número do catálogo); cada lido leva a completude, e completo = as 7 respondidas.
+   *   lidos: [{gi, rot, respondidas, total, completo}] · pendentes: [{gi, rot}].
+   */
+  function painel(leituras, leiId, dispositivos) {
+    leiId = String(leiId || '');
+    var porGi = {};
+    (Array.isArray(leituras) ? leituras : []).forEach(function (x) {
+      if (x && x.leiId === leiId && x.gi != null && isFinite(+x.gi)) porGi[Math.floor(+x.gi)] = x;
+    });
+    var lidos = [], pendentes = [], vistos = {}, dosDispositivos = [];
+    (Array.isArray(dispositivos) ? dispositivos : []).forEach(function (d) {
+      if (!d || d.gi == null || !isFinite(+d.gi)) return;
+      var gi = Math.floor(+d.gi);
+      if (vistos[gi]) return;
+      vistos[gi] = 1;
+      var it = porGi[gi], rot = String(d.rot || (it && it.rot) || '');
+      if (!it) { pendentes.push({ gi: gi, rot: rot }); return; }
+      var c = completude(it);
+      dosDispositivos.push(it);
+      lidos.push({ gi: gi, rot: rot, respondidas: c.respondidas, total: c.total, completo: c.respondidas === c.total });
+    });
+    var total = lidos.length + pendentes.length, p = progresso(dosDispositivos, leiId, total);
+    return { lidos: lidos, pendentes: pendentes, total: total, nLidos: p.lidos, completos: p.completos, pct: p.pct };
   }
 
   /* O host recebe itens de um iframe: antes de guardar, ele passa por aqui. Só as chaves
@@ -389,6 +571,9 @@
     cloze: cloze, renderCloze: renderCloze, conferir: conferir,
     rotulo: rotulo, lacunas: lacunas, cartaoConferencia: cartaoConferencia, LACUNA: LACUNA,
     segmentosCloze: segmentosCloze, cortarSeguro: cortarSeguro, escapeCloze: escapeCloze, MAX_LACUNAS: MAX_LACUNAS,
-    progresso: progresso, sanear: sanear, upsert: upsert
+    progresso: progresso, sanear: sanear, upsert: upsert,
+    idCartao: idCartao, acharCartao: acharCartao, cartoesDispositivo: cartoesDispositivo, mudados: mudados,
+    sanearCartao: sanearCartao, revisado: revisado, fundirCartao: fundirCartao, avisoGesto: avisoGesto,
+    painel: painel
   };
 })(typeof window !== 'undefined' ? window : globalThis);
