@@ -53,11 +53,11 @@ import { testarRevisaoFonte } from './revisao-fonte.mjs';
 import { testarVoltaOrigem } from './volta-origem.mjs';
 import { testarContrasteDestaque } from './contraste-destaque.mjs';
 import { testarIconesAlvos } from './icones-alvos.mjs';
+import { testarForaDoEscopoEstatico, testarForaDoEscopo } from './fora-do-escopo.mjs';
 import { testarFaixaMapaAlvos } from './faixa-mapa-alvos.mjs';
 import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
 import { testarRedacaoMesa } from './redacao-mesa.mjs';
 import { testarRedacaoMotorEstatico, testarRedacaoMotor } from './redacao-motor.mjs';
-import { testarForaDoEscopoEstatico, testarForaDoEscopo } from './fora-do-escopo.mjs';
 import { testarRedacaoResultadoEstatico, testarRedacaoResultado } from './redacao-resultado.mjs';
 import { testarOnboardingImportar } from './onboarding-importar.mjs';
 import { testarCotaIA } from './cota-ia.mjs';
@@ -117,17 +117,19 @@ const falhas = [];
 const ok = (cond, label) => { console.log((cond ? '✓ ' : '✗ ') + label); if (!cond) falhas.push(label); };
 page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
 
-// CT_SO=redacao-mesa roda só o módulo pedido — para o ciclo curto de uma tela.
-if (process.env.CT_SO === 'redacao-resultado') {
-  testarRedacaoResultadoEstatico(ok);
-  await testarRedacaoResultado(page, URL0, ok, { motor });
+// CT_SO=fora-do-escopo: o ranking de turma atrás da flag (item 14) e o resto da Comunidade medido
+if (process.env.CT_SO === 'fora-do-escopo') {
+  testarForaDoEscopoEstatico(ok);
+  await testarForaDoEscopo(page, URL0, ok, { motor });
   await browser.close(); srv.close();
   console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
   process.exit(falhas.length ? 1 : 0);
 }
-if (process.env.CT_SO === 'fora-do-escopo') {
-  testarForaDoEscopoEstatico(ok);
-  await testarForaDoEscopo(page, URL0, ok, { motor });
+
+// CT_SO=redacao-mesa roda só o módulo pedido — para o ciclo curto de uma tela.
+if (process.env.CT_SO === 'redacao-resultado') {
+  testarRedacaoResultadoEstatico(ok);
+  await testarRedacaoResultado(page, URL0, ok, { motor });
   await browser.close(); srv.close();
   console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
   process.exit(falhas.length ? 1 : 0);
@@ -3770,6 +3772,11 @@ await comCadernoEnam(async (page) => {
     const vis = (el) => !!el && el.getClientRects().length > 0 && getComputedStyle(el).display !== 'none';
     window.__catedraGoView('inicio'); await w(600);
     r.semBaixaTudoAparece = raiz.getAttribute('data-baixa') === '' && [...document.querySelectorAll('.ct-emo')].some(vis) && [...document.querySelectorAll('.ct-gam')].some(vis);
+    // item 14: o ranking de turma está atrás da flag rankingTurma (desligada). A flag liga só neste trecho, para a
+    // promessa da baixa estimulação continuar MEDIDA: sem a baixa o ranking aparece; com ela, some. Desliga no fim.
+    localStorage.setItem('ct_flag:rankingTurma', '1');
+    window.__catedraGoView('comunidade'); await w(700);
+    r.comunidadeRankingSemBaixa = vis(document.querySelector('main [data-com-ranking]')) && /Ranking da semana/.test(document.querySelector('main').innerText);
     // o interruptor em Ajustes
     window.__catedraGoView('ajustes'); await w(600);
     const aba = [...document.querySelectorAll('main .aj-abas button[data-s]')].find(b => b.dataset.s === 'automacoes'); if (aba) { aba.click(); await w(500); }
@@ -3783,7 +3790,9 @@ await comCadernoEnam(async (page) => {
     r.dadosContinuam = typeof app.state.escudos !== 'undefined' || true;
     window.__catedraGoView('comunidade'); await w(700);
     const mainTxt = () => document.querySelector('main').innerText;
-    r.comunidadeSemRankingNemDesafio = !/Ranking da semana/.test(mainTxt()) && !/Desafio da semana/.test(mainTxt());
+    const rkBaixa = document.querySelector('main [data-com-ranking]');
+    r.comunidadeSemRankingNemDesafio = !!rkBaixa && !vis(rkBaixa) && !/Ranking da semana/.test(mainTxt()) && !/Desafio da semana/.test(mainTxt());
+    localStorage.removeItem('ct_flag:rankingTurma');
     window.__catedraGoView('conquistas'); await w(600);
     r.conquistasSemSequencia = !/Sequência atual/.test(mainTxt());
     // toasts: celebração some, aviso normal fica sem emoji
@@ -9863,7 +9872,6 @@ catch (e) {
 try { await testarPrioridadeDiscursiva(page, URL0, ok); } catch(e) { ok(false, 'DISCURSIVA exceção: '+e.message); }
 try { await testarRedacaoMesa(page, URL0, ok, { motor }); } catch(e) { ok(false, 'MESA exceção: '+e.message); }
 try { testarRedacaoMotorEstatico(ok); await testarRedacaoMotor(page, URL0, ok, { motor }); } catch(e) { ok(false, 'MOTOR exceção: '+e.message); }
-try { testarForaDoEscopoEstatico(ok); await testarForaDoEscopo(page, URL0, ok, { motor }); } catch(e) { ok(false, 'ESCOPO exceção: '+e.message); }
 try { testarRedacaoResultadoEstatico(ok); await testarRedacaoResultado(page, URL0, ok, { motor }); } catch(e) { ok(false, 'RESULTADO exceção: '+e.message); }
 try { await testarRevisaoFonte(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
@@ -9895,6 +9903,9 @@ catch (e) {
   ok(false, 'ÍCONES/ALVOS [' + motor + '] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
+// Fora do escopo (item 14): ranking de turma atrás da flag; sala ao vivo, grupos, mural, seletor do
+// grupo e desafio coletivo continuam, medidos no claro e no escuro, com mouse e no toque (tests/fora-do-escopo.mjs)
+try { testarForaDoEscopoEstatico(ok); await testarForaDoEscopo(page, URL0, ok, { motor }); } catch(e) { ok(false, 'ESCOPO exceção: '+e.message); }
 
 // JURIS sem faixa lateral colorida no cartão (a cor do ramo tinge a borda e lava o fundo) e os
 // alvos do mapa processual com 44 px no toque, intactos com mouse (tests/faixa-mapa-alvos.mjs)

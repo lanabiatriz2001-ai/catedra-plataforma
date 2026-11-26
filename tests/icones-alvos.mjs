@@ -256,7 +256,9 @@ const TELAS = [
         'o humor tem 5 escolhas nomeadas pelo rótulo, sem o emoji no nome, e dizem se estão marcadas (' + humor.map(b => b.nome + '=' + b.pressed).join(', ') + ')'],
         [r.ladrilhos.length >= 12 && r.ladrilhos.every(l => l.pinta && l.contraste >= 3),
           'os ladrilhos tingidos pintam e o traço passa de 3:1 sobre a lavagem (' + r.ladrilhos.length + '; pior ' + Math.min(...r.ladrilhos.map(l => l.contraste)) + ':1)']]; } },
-  { id: 'comunidade', nome: 'Comunidade', icos: ['flame', 'target', 'medal', 'triangle-alert'], escuro: true,
+  { id: 'comunidadePadrao', nome: 'Comunidade (padrão, sem ranking de turma)', icos: ['flame', 'target', 'triangle-alert'], escuro: true,
+    extra: r => [[r.medalhas.length === 0, 'sem o ranking de turma (item 14): nenhuma medalha (' + r.medalhas.length + ')']] },
+  { id: 'comunidade', nome: 'Comunidade (flag rankingTurma ligada)', icos: ['flame', 'target', 'medal', 'triangle-alert'], escuro: true,
     extra: r => [[r.medalhas.length === 3 && new Set(r.medalhas.map(m => m.cor)).size === 3 && r.medalhas.every(m => m.contraste >= 3),
       'ouro, prata e bronze: três medalhas de cores distintas, traço ≥ 3:1 (' + r.medalhas.map(m => m.pos + ' ' + m.cor + ' ' + m.contraste + ':1').join(', ') + ')']] },
   { id: 'relatorio', nome: 'Relatório (Desempenho)', icos: ['flame'] },
@@ -305,6 +307,7 @@ async function prepararTela(id) {
   const w = ms => new Promise(r => setTimeout(r, ms));
   const a = window.__catedraApp, ir = v => window.__catedraGoView(v);
   const set = o => new Promise(r => a.setState(o, r));
+  try { localStorage.removeItem('ct_flag:rankingTurma'); } catch (_) {}   // a flag do item 14 só vale no cenário que a liga
   await set({ onboardStep: 0, revSession: null, treino: null, histLixeiraOpen: false, histEdit: null, notifOpen: false, areaSelOpen: false, argOn: false, comErro: '' });
   if (id === 'onb1' || id === 'onb2' || id === 'onb4') { await set({ loggedIn: true, onboardStep: +id.slice(3) }); return {}; }
   if (id === 'revAgora' || id === 'revFim') {
@@ -316,8 +319,8 @@ async function prepararTela(id) {
     await set({ redEnunciado: 'Discorra sobre a prescrição.', redText: 'Texto do rascunho salvo.', redTextTs: Date.now() - 36e5, redResult: null, redRascunhoOculto: false }); return {}; }
   if (id === 'calendario') { ir('calendario'); await set({ reviews: [], manualFixed: [], provaData: '', eventos: [] }); return {}; }
   if (id === 'bemestar') { ir('bemestar'); return {}; }
-  // o ranking de turma está atrás da flag (item 14): o cenário liga a flag para medir as medalhas
-  if (id === 'comunidade') { try { localStorage.setItem('ct_flag:rankingTurma', '1'); } catch (_) {} ir('comunidade');
+  // o ranking de turma está atrás da flag (item 14): o padrão é medido sem ela; o outro cenário a liga para medir as medalhas
+  if (id === 'comunidade' || id === 'comunidadePadrao') { if (id === 'comunidade') { try { localStorage.setItem('ct_flag:rankingTurma', '1'); } catch (_) {} } ir('comunidade');
     await set({ comMyUid: 'eu', comErro: 'Não consegui carregar os grupos agora.', meusGrupos: [{ id: 'g1', nome: 'Turma TJSP', codigo: 'ABC123', membros: [] }], comGrupoAtivo: 'g1',
       comRankRows: [{ user_id: 'a', nome: 'Ana', minutos: 900, ao_vivo: true, streak: 4, revisoes: 12 }, { user_id: 'eu', nome: 'Você', minutos: 600, streak: 0, revisoes: 3 },
         { user_id: 'b', nome: 'Bruno', minutos: 300, streak: 0, revisoes: 2 }, { user_id: 'c', nome: 'Caio', minutos: 120, streak: 0, revisoes: 1 }] }); return {}; }
