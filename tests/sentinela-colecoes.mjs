@@ -29,7 +29,7 @@ import {
   URL_EXPORT_RG, lerExportRG, retratoRG, compararRG, lerAndamentosRG, incidenteDaPaginaTema, consultarRG, PARCIAL_TESE_RG,
 } from '../scripts/lib/stf-rg.mjs';
 import {
-  urlFaixaRep, parseBloco, parsePaginaRepetitivos, retratoTemaRep, trechoModulacao, compararRepetitivos, faixasDaVarredura,
+  urlFaixaRep, parseBloco, parsePaginaRepetitivos, retratoTemaRep, trechoModulacao, compararRepetitivos, faixasDaVarredura, totalDaPagina,
   CSV_TEMAS_REP,
   consultarRepetitivos,
 } from '../scripts/lib/stj-repetitivos.mjs';
@@ -320,6 +320,18 @@ export async function testarColecoes(ok) {
       && lanca(() => parsePaginaRepetitivos(discord), /contadores discordam/) && lanca(() => parsePaginaRepetitivos(umBloco), /esperado 2/)
       && lanca(() => parsePaginaRepetitivos(semSit), /sem situação/),
       'S24c a página: vazia consistente é "nenhum tema"; a sintética lê 2; contadores discordantes, bloco faltando e ficha sem situação lançam');
+    // Nov/2026: a aba da pesquisa passou a dizer "Repetitivos (N)" e ganhou "Relevância (N)" (#tipoPrecedenteE).
+    // Com a régua antiga, as 31 faixas da varredura de 25/11/2026 saíram "página sem o contador" e os
+    // repetitivos ficaram sem leitura desde 14/10/2026. O número da aba de Relevância nunca é o da pesquisa.
+    {
+      const CAB_NOV = ler('stj-repetitivos/cabecalho-1451-1500-2026-11-25.html');
+      const sintNov = CAB_NOV.replace('Repetitivos (24)', 'Repetitivos (2)').replace('24 documentos', '2 documentos') + BLOCO(1455) + BLOCO(1474);
+      const soRelevancia = CAB_NOV.replace(/Repetitivos \(24\)/, 'Repetitivas (24)');
+      ok(isDeepStrictEqual(totalDaPagina(CAB_NOV), { temas: 24, documentos: 24 }) && /Relevância \(14\)/.test(CAB_NOV)
+        && parsePaginaRepetitivos(sintNov).temas.map((t) => t.numero).join(',') === '1455,1474'
+        && totalDaPagina(soRelevancia).temas === null && lanca(() => parsePaginaRepetitivos(soRelevancia), /sem o contador/),
+        'S24c2 formato de nov/2026: "Repetitivos (24)" é o contador da faixa; o "Relevância (14)" da aba vizinha nunca conta; sem o rótulo da aba, a página continua sendo falha');
+    }
     const cauda = blocosDe(lerL1('stj-repetitivos/cauda-2026-10-01.html'));
     ok(JSON.stringify(cauda.map((t) => t.numero)) === JSON.stringify([1470, 1474]) && cauda[0].orgao === 'PRIMEIRA SEÇÃO' && cauda[1].orgao === 'SEGUNDA SEÇÃO',
       'S24d a cauda real lida em latin1: Temas 1470 e 1474, com "PRIMEIRA SEÇÃO" e "SEGUNDA SEÇÃO" acentuados');
@@ -710,7 +722,7 @@ async function testarApi(ok) {
     const r2 = await chamar();
     const e2 = r2.body && r2.body.fontes.stf;
     res = [!!RG && r1.code === 200 && c1.resultado === 'sem-novidade' && c1.colecoes.rg.resultado === 'sem-novidade' && c1.colecoes.sumulas.resultado === 'sem-novidade'
-      && /1476 temas lidos na lista oficial/.test(c1.colecoes.rg.detalhe || '') && typeof T1 === 'string',
+      && (c1.colecoes.rg.detalhe || '').includes(`${Object.keys(RG.temas).length} temas lidos na lista oficial`) && typeof T1 === 'string',
     r2.code === 200 && r2.body.ok === false && e2.resultado === 'falha' && /tempo esgotado/.test(e2.erro || '') && e2.colecoes.rg.resultado === 'falha'
       && e2.colecoes.rg.ultimoSucesso === T1 && e2.colecoes.informativo.ultimoSucesso === c1.colecoes.informativo.ultimoSucesso && e2.ultimoSucesso === c1.ultimoSucesso];
   } catch (e) { erro = e; } finally {
@@ -723,7 +735,7 @@ async function testarApi(ok) {
     await new Promise((r) => setTimeout(r, 50));
     console.log = log;
   }
-  ok(!erro && res[0], 'S27h a api, ao vivo: a lista de RG montada da linha de base versionada (1.476 temas) contra ela mesma não dá item; o STF fica "sem novidade" e entra no cache' + (erro ? ` (${erro.message})` : ''));
+  ok(!erro && res[0], 'S27h a api, ao vivo: a lista de RG montada da linha de base versionada contra ela mesma não dá item; o STF fica "sem novidade" e entra no cache' + (erro ? ` (${erro.message})` : ''));
   ok(!erro && res[1], 'S27h2 a api no tempo esgotado: falha em cada coleção, com o último sucesso de cada uma (o do cache da instância) preservado — nunca 504 mudo');
 }
 
