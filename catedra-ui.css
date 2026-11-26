@@ -2254,6 +2254,38 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 .cth-inicio .cth-gcard{background:var(--surface);border:1px solid var(--border);box-shadow:none}
 .cth-inicio .cth-cols{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--ct-e5)}
 .cth-inicio .cth-recomendacao{padding:var(--ct-e3) var(--ct-e4)!important}
+/* Início · cartões do Baralho vencidos até hoje, colados à próxima ação: uma linha, um toque
+   (baralho.js). Convite, não cobrança: superfície neutra e nunca cor de alarme. "Revisar" é
+   texto em tinta (o --accentD de um destaque escolhido escurece nos dois temas e, no escuro,
+   caía para 2–3:1); a cor fica na seta, que é decoração. Na baixa estimulação, nem a seta. */
+.cth-pa-cartoes{display:flex;align-items:center;gap:var(--ct-e3);width:100%;min-height:var(--ct-alvo-toque);margin-top:var(--ct-e2);padding:var(--ct-e2) var(--ct-e4);background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);color:var(--ink);font:inherit;font-size:var(--fs-sm);line-height:1.4;text-align:left;cursor:pointer}
+.cth-pa-cartoes>svg{flex:none;color:var(--text2)}
+.cth-pa-cartoes .cth-pa-txt{flex:1;min-width:0}
+.cth-pa-cartoes b{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.cth-pa-cartoes .cth-pa-ir{flex:none;display:inline-flex;align-items:center;gap:var(--ct-e1);font-weight:700;color:var(--ink)}
+.cth-pa-cartoes .cth-pa-ir svg{color:var(--accent)}
+.cth-pa-cartoes:hover{border-color:color-mix(in srgb,var(--accent) 44%,var(--border))}
+.cth-inicio>.cth-pa-cartoes{margin-top:calc(var(--ct-e2) - var(--ct-e5))}   /* o Início é grade com vão e5: a linha cola no cartão de cima */
+[data-baixa="1"] .cth-pa-cartoes .cth-pa-ir svg{color:var(--ink)}
+/* Ajustes › Seus dados · quem agenda a revisão dos cartões: duas escolhas, cada uma dizendo a consequência. */
+.ct-dono{margin-top:var(--ct-e4);padding-top:var(--ct-e4);border-top:1px solid var(--border)}
+.ct-dono-tit{font-weight:600;color:var(--ink);font-size:var(--fs-base)}
+.ct-dono-ops{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,calc(var(--ct-e7)*5)),1fr));gap:var(--ct-e3);margin:var(--ct-e3) 0 var(--ct-e2)}
+.ct-dono-op{display:flex;flex-direction:column;align-items:flex-start;gap:var(--ct-e1);min-height:var(--ct-alvo-toque);padding:var(--ct-e3) var(--ct-e4);background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.ct-dono-op b{font-size:var(--fs-base)}
+.ct-dono-op>span{font-size:var(--fs-sm);color:var(--text2);line-height:1.5}
+.ct-dono-op[aria-pressed="true"]{border-color:var(--accent);background:var(--accentSoft);box-shadow:inset 0 0 0 1px var(--accent)}
+.ct-dono-op[aria-pressed="true"]>span{color:var(--ink)}
+.ct-dono-op:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* o selo "em uso" mantém o fundo e a borda do destaque, mas o texto é tinta: o --accentD do
+   .ct-selo-hoje, com destaque escolhido, caía abaixo de 4,5:1 no escuro */
+.ct-dono-op .ct-selo-hoje{color:var(--ink)}
+/* o lote de hoje volta ao Baralho (mesmo desenho do "desfazer" de Ritmo e metas) */
+.ct-dono-lote{margin-top:var(--ct-e2);display:flex;align-items:center;justify-content:space-between;gap:var(--ct-e3);flex-wrap:wrap;padding:var(--ct-e2) var(--ct-e4);border-radius:var(--radius);background:var(--accentSoft);color:var(--ink);font-size:var(--fs-sm);line-height:1.5}
+.ct-dono-lote .ct-btn-2{min-height:var(--ct-alvo-toque);color:var(--ink)}
+/* Baralho com o Anki dono: a nota de quantos já estão no Anki ganha linha própria — o `p` do foco
+   zerava a margem e ela parecia o fim do parágrafo de cima. */
+.ct-bc-foco p[data-fc-no-anki]{margin-top:var(--ct-e2);font-size:var(--fs-sm)}
 @media(max-width:900px){.cth-bancada{grid-template-columns:1fr}.cth-apoio{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}}
 @media(max-width:640px){.cth-apoio,.cth-inicio .cth-cols,.cth-inicio .cth-kpis{grid-template-columns:1fr}.cth-etapas li{grid-template-columns:minmax(0,1fr) auto}.cth-etapas li span{grid-column:1;grid-row:2}.cth-etapas li small{grid-column:2;grid-row:1}.cth-inicio .cth-card,.cth-inicio .cth-timer{padding:var(--ct-e4)}}
 
