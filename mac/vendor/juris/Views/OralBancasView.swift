@@ -140,7 +140,7 @@ struct OralBancasView: View {
                                  trailing: AnyView(botaoSessao)) {
                         ScrollView {
                             detalhe(c)
-                                .padding(.horizontal, 28).padding(.vertical, 24)
+                                .margemPaginaAcervo().padding(.vertical, 24)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -153,7 +153,7 @@ struct OralBancasView: View {
                              search: $busca, searchPrompt: "Buscar órgão, cargo, concurso…") {
                     ScrollView {
                         catalogo
-                            .padding(.horizontal, 28).padding(.vertical, 24)
+                            .margemPaginaAcervo().padding(.vertical, 24)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)

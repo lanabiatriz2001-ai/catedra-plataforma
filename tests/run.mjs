@@ -80,6 +80,7 @@ import { testarAvisosOficiaisEstatico, testarAvisosOficiaisNavegador } from './a
 import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 import { testarRevisaoOficial } from './revisao-oficial.mjs';
+import { testarGeometriaInterface } from './geometria-interface.mjs';
 import { testarMenuLateral } from './menu-lateral.mjs';
 import { testarNovidadesCentral } from './novidades-central.mjs';
 import { testarSemDodEstatico, testarSemDodNavegador } from './sem-dod.mjs';
@@ -10053,6 +10054,7 @@ try { await testarCotaIA(page, URL0, ok); } catch (e) { ok(false, 'COTA/IA exce�
 { const ctxR = await browser.newContext(); const pageR = await ctxR.newPage(); try { await testarReguaUnica(pageR, URL0, ok); } catch (e) { ok(false, 'RÉGUA/única exceção: ' + e.message); } finally { await ctxR.close(); } }
 try { await testarTemplateFileUrl(browser, URL0, ok, { motor }); } catch (e) { ok(false, 'TEMPLATE/file exceção: ' + e.message); }
 testarPerfisLeitores(ok);
+await testarGeometriaInterface(browser, URL0, ok);
 await testarLoginLeitoresWeb(browser, URL0, ok);
 await testarLoginLeitoresPublicados(browser, URL0, ok);
 await testarSegurancaPerfilRelease(page, URL0, ok);
