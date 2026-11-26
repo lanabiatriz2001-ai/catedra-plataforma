@@ -1,5 +1,5 @@
 {
-  "geradoEm": "2026-11-25T21:35:31.277Z",
+  "geradoEm": "2026-11-26T03:41:34.726Z",
   "fontes": {
     "planalto": {
       "rotulo": "Planalto — texto compilado das normas",
@@ -92,13 +92,13 @@
         "Súmulas: situação anotada só no acervo (as súmulas \"Superada\" que o próprio Cátedra registra) não vira item: vale apenas a marca oficial",
         "Súmulas: a data de publicação mostrada é a do portal do STF, que pode diferir da registrada no acervo"
       ],
-      "ultimaTentativa": "2026-11-25T21:35:31.279Z",
-      "ultimoSucesso": "2026-11-25T21:35:31.279Z",
-      "ultimaLeituraCompleta": "2026-11-25T21:35:31.279Z",
-      "resultado": "novidades",
+      "ultimaTentativa": "2026-11-26T03:41:34.728Z",
+      "ultimoSucesso": "2026-11-26T03:41:34.728Z",
+      "ultimaLeituraCompleta": "2026-11-26T03:41:34.728Z",
+      "resultado": "sem-novidade",
       "erro": null,
-      "detalhe": "a partir da edição 1236; 6 páginas consultadas, contando a conferência da última edição do acervo · planilha oficial: sem mudança desde a última leitura (304); as edições recentes do acervo têm todas as notas",
-      "novidadesNaConsulta": 3,
+      "detalhe": "1495 temas lidos na lista oficial (até o Tema 1501), comparados com a leitura de 25/11/2026; datas oficiais lidas em 0 de 0 tema(s)",
+      "novidadesNaConsulta": 0,
       "colecoes": {
         "informativo": {
           "rotulo": "STF — Informativo de Jurisprudência",
@@ -112,8 +112,7 @@
           "ultimoSucesso": "2026-11-25T21:35:31.279Z",
           "ultimaLeituraCompleta": "2026-11-25T21:35:31.279Z",
           "erro": null,
-          "detalhe": "a partir da edição 1236; 6 páginas consultadas, contando a conferência da última edição do acervo · planilha oficial: sem mudança desde a última leitura (304); as edições recentes do acervo têm todas as notas",
-          "novidadesNaConsulta": 3
+          "detalhe": "a partir da edição 1236; 6 páginas consultadas, contando a conferência da última edição do acervo · planilha oficial: sem mudança desde a última leitura (304); as edições recentes do acervo têm todas as notas"
         },
         "rg": {
           "rotulo": "STF — Repercussão geral",
@@ -127,11 +126,12 @@
             "relator e título do tema não são comparados: o relator da lista é o atual, não o do julgamento"
           ],
           "resultado": "sem-novidade",
-          "ultimaTentativa": "2026-11-25T13:30:21.186Z",
-          "ultimoSucesso": "2026-11-25T13:30:21.186Z",
-          "ultimaLeituraCompleta": "2026-11-25T13:30:21.186Z",
+          "ultimaTentativa": "2026-11-26T03:41:34.728Z",
+          "ultimoSucesso": "2026-11-26T03:41:34.728Z",
+          "ultimaLeituraCompleta": "2026-11-26T03:41:34.728Z",
           "erro": null,
-          "detalhe": "1495 temas lidos na lista oficial (até o Tema 1501), comparados com a leitura de 25/11/2026; datas oficiais lidas em 0 de 0 tema(s)"
+          "detalhe": "1495 temas lidos na lista oficial (até o Tema 1501), comparados com a leitura de 25/11/2026; datas oficiais lidas em 0 de 0 tema(s)",
+          "novidadesNaConsulta": 0
         },
         "sumulas": {
           "rotulo": "STF — Súmulas e súmulas vinculantes",
@@ -168,12 +168,12 @@
         "Súmulas: superação de súmula não é detectada: o STJ não a marca, e uma decisão mais recente não significa superação",
         "Súmulas: edição do Informativo incorporada fora da rotina não tem o bloco de súmulas relido; a lista oficial cobre essa falta mais tarde"
       ],
-      "ultimaTentativa": "2026-11-25T21:35:37.788Z",
-      "ultimoSucesso": "2026-11-25T21:35:37.788Z",
+      "ultimaTentativa": "2026-11-26T03:41:42.801Z",
+      "ultimoSucesso": "2026-11-26T03:41:42.801Z",
       "ultimaLeituraCompleta": "2026-11-25T21:35:37.788Z",
-      "resultado": "novidades",
-      "erro": null,
-      "detalhe": "a partir da edição 909 e da extraordinária 34; 10 páginas consultadas, contando a conferência da última edição do acervo",
+      "resultado": "parcial",
+      "erro": "Tema 1270 da leitura anterior não veio na pesquisa; a entrada foi mantida",
+      "detalhe": "1473 temas lidos em 31 faixa(s); comparados com a leitura de 25/11/2026 · varredura completa semanal (quarta-feira)",
       "novidadesNaConsulta": 3,
       "colecoes": {
         "informativo": {
@@ -188,8 +188,7 @@
           "ultimoSucesso": "2026-11-25T21:35:37.788Z",
           "ultimaLeituraCompleta": "2026-11-25T21:35:37.788Z",
           "erro": null,
-          "detalhe": "a partir da edição 909 e da extraordinária 34; 10 páginas consultadas, contando a conferência da última edição do acervo",
-          "novidadesNaConsulta": 3
+          "detalhe": "a partir da edição 909 e da extraordinária 34; 10 páginas consultadas, contando a conferência da última edição do acervo"
         },
         "repetitivos": {
           "rotulo": "STJ — Recursos repetitivos",
@@ -203,11 +202,12 @@
             "as datas são as do processo paradigma principal; a \"Última atualização\" da ficha não é usada como sinal de mudança"
           ],
           "resultado": "parcial",
-          "ultimaTentativa": "2026-11-25T13:30:34.337Z",
-          "ultimoSucesso": "2026-11-25T13:30:34.337Z",
+          "ultimaTentativa": "2026-11-26T03:41:42.801Z",
+          "ultimoSucesso": "2026-11-26T03:41:42.801Z",
           "ultimaLeituraCompleta": "2026-10-07T10:40:25.872Z",
-          "erro": "Tema 1270 da leitura anterior não veio na pesquisa; a entrada foi mantida; volume atípico: 92 itens numa rodada contra a linha de base de 14/10/2026 — confira se a linha de base está certa",
-          "detalhe": "1473 temas lidos em 31 faixa(s); comparados com a leitura de 14/10/2026 · varredura completa semanal (quarta-feira)"
+          "erro": "Tema 1270 da leitura anterior não veio na pesquisa; a entrada foi mantida",
+          "detalhe": "1473 temas lidos em 31 faixa(s); comparados com a leitura de 25/11/2026 · varredura completa semanal (quarta-feira)",
+          "novidadesNaConsulta": 3
         },
         "sumulas": {
           "rotulo": "STJ — Súmulas",

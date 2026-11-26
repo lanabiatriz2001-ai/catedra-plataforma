@@ -54,12 +54,21 @@ const carrega = (f, g) => { const e = {}; new Function('window', fs.readFileSync
 const numDoTitulo = (t) => { const m = /^Tema\s+(\d+)\b/.exec(String(t || '')); return m ? Number(m[1]) : null; };
 
 const lerLote = (l) => JSON.parse(fs.readFileSync(path.join(DIR_REF, l.toLowerCase() + '-referencia.json'), 'utf8'));
+/** Atualizações assistidas pela fonte oficial (docs/teses-oficiais/atualizacao-AAAA-MM-DD.json), em ordem de data. */
+export const ATUALIZACOES = () => fs.readdirSync(DIR_REF).filter(f => /^atualizacao-\d{4}-\d{2}-\d{2}\.json$/.test(f)).sort();
+const lerAtualizacao = (f) => JSON.parse(fs.readFileSync(path.join(DIR_REF, f), 'utf8'));
 
-/** Registros dos lotes num objeto só, cada um com `lote` (L1–L3 e o "aplicar" do L4). */
-export function lerReferencia() {
+/** Registros dos lotes num objeto só, cada um com `lote` (L1–L3 e o "aplicar" do L4); por cima, os das
+ *  atualizações assistidas (a leitura mais nova vence; `lote` = nome do arquivo da atualização). */
+export function lerReferencia({ comAtualizacoes = true } = {}) {
   const tudo = {};
   for (const l of LOTES) for (const [i, r] of Object.entries(lerLote(l).registros)) tudo[i] = { ...r, lote: l };
   for (const [i, r] of Object.entries(L4().aplicar)) tudo[i] = { ...r, lote: 'L4' };
+  if (comAtualizacoes) for (const f of ATUALIZACOES()) {
+    const at = lerAtualizacao(f), lote = f.replace(/\.json$/, '');
+    for (const [i, r] of Object.entries(at.registros || {})) tudo[i] = { ...r, lote };
+    for (const [i, r] of Object.entries(at.novos || {})) tudo[i] = { ...r, lote };
+  }
   return tudo;
 }
 
@@ -72,9 +81,10 @@ export function testarTesesOficiaisEstatico(ok, opcoes = {}) {
   const l4 = L4();
   nLote.L4 = Object.keys(l4.aplicar).length;
   const soma = LOTES.reduce((a, l) => a + nLote[l], 0) + nLote.L4;
-  ok(nLote.L1 >= 1300 && nLote.L2 >= 200 && nLote.L3 >= 100 && nLote.L4 === 1 && soma === ids.length && ids.every(i => i.startsWith('repgeral-')),
+  const nNovos = ATUALIZACOES().reduce((a, f) => a + Object.keys(lerAtualizacao(f).novos || {}).length, 0);
+  ok(nLote.L1 >= 1300 && nLote.L2 >= 200 && nLote.L3 >= 100 && nLote.L4 === 1 && soma + nNovos === ids.length && ids.every(i => i.startsWith('repgeral-')),
     R + 'as referências versionadas têm ' + ids.length + ' registros (L1 ' + nLote.L1 + ', L2 ' + nLote.L2 + ', L3 ' + nLote.L3
-      + ', L4 ' + nLote.L4 + '), cada id num lote só, todos da compilação repgeral-*');
+      + ', L4 ' + nLote.L4 + (nNovos ? ', novos ' + nNovos : '') + '), cada id num lote só, todos da compilação repgeral-*');
   const l2 = ids.filter(i => ref[i].lote === 'L2'), l3 = ids.filter(i => ref[i].lote === 'L3');
   ok(l2.every(i => Array.isArray(ref[i].conferencia_auditoria) && ref[i].conferencia_auditoria.length >= 2
       && /^auditoria mexeu/.test(ref[i].conferencia_auditoria[0])),
@@ -165,7 +175,8 @@ export function testarTesesOficiaisEstatico(ok, opcoes = {}) {
   const repg = linhas.filter(r => r[0].startsWith('repgeral-'));
   const semRef = repg.filter(r => !(r[0] in ref)).map(r => r[0]);
   ok(repg.length === ids.length && semRef.length === 0,
-    R + '(e) o acervo web tem exatamente os ' + ids.length + ' verbetes repgeral-* das referências (1.943 − 105 − 46)' + mostra(semRef));
+    R + '(e) o acervo web tem exatamente os ' + ids.length + ' verbetes repgeral-* das referências (1.943 − 105 − 46'
+      + (nNovos ? ' + ' + nNovos + ' novos' : '') + ')' + mostra(semRef));
   const voltou = fora.filter(i => IDX[i] || TXT[i]);
   ok(voltou.length === 0, R + '(e) nenhum dos 151 ids fundidos ou retirados está no índice nem no texto web' + mostra(voltou));
   const porTemaWeb = {};
@@ -284,6 +295,71 @@ export function testarTesesOficiaisEstatico(ok, opcoes = {}) {
       ok(sobrou.length === 0 && Object.keys(notas).length > 1000,
         R + '(c) ' + rotulo + ': as notas de estudo dos registros dos lotes saíram do notas.json (' + Object.keys(notas).length + ' notas restantes)' + mostra(sobrou));
     }
+  }
+
+  // (i) atualização assistida pela fonte oficial (docs/teses-oficiais/atualizacao-*.json; a primeira, de
+  //     25/11/2026, pôs no estado oficial os temas de RG e repetitivos que o sentinela apontou como "Conferir").
+  //     Cada registro substitui o do lote que nomeia, diz o que mudou e onde foi conferido; o acervo (web e
+  //     nativo, pelos casos a e c acima) mostra a versão nova; verbete de outra compilação ganha só a
+  //     situação, e só sobre a tese oficial; nada de "sugeridos" entra sem a dona.
+  let anterior = lerReferencia({ comAtualizacoes: false });
+  for (const f of ATUALIZACOES()) {
+    const at = lerAtualizacao(f), rot = R + '(i) ' + f.replace(/\.json$/, '') + ': ';
+    const dataBr = (at.obtido_em || '').split('-').reverse().join('/');
+    const regs = Object.entries(at.registros || {});
+    const ruinsAt = regs.filter(([i, r]) => {
+      const a = anterior[i];
+      if (!a || r.substitui !== a.lote || !r.mudou || !Object.keys(r.mudou).length) return true;
+      if (!(r.conferencia || '').includes(dataBr) || !/(portal|lista oficial|ficha oficial|andamentos)/i.test(r.conferencia)) return true;
+      // o que mudou é exatamente a diferença para o registro anterior; o resto ficou como estava
+      const campos = ['tribunal', 'fonte', 'numero', 'titulo', 'tema', 'enunciado', 'orgaoJulgador', 'data', 'situacao', 'precedentes', 'observacao', 'url', 'fp'];
+      return campos.some(c => {
+        const antes = a[c] ?? null, depois = r[c] ?? null;
+        return c in r.mudou ? (JSON.stringify(r.mudou[c]) !== JSON.stringify([antes, depois]) || antes === depois) : antes !== depois;
+      });
+    }).map(([i]) => i);
+    ok(regs.length > 0 && ruinsAt.length === 0,
+      rot + 'cada um dos ' + regs.length + ' registros substitui o do lote que nomeia, muda só o que diz em "mudou" e traz a conferência na fonte oficial (' + dataBr + ')' + mostra(ruinsAt));
+    for (const [i, r] of regs) anterior[i] = { ...r, lote: f.replace(/\.json$/, '') };
+    for (const [i, r] of Object.entries(at.novos || {})) anterior[i] = { ...r, lote: f.replace(/\.json$/, '') };
+    // verbetes de outra compilação: só a situação oficial, e só onde o texto é a tese oficial do tema
+    const sit = Object.entries(at.situacao_outros || {});
+    const sitRuim = sit.filter(([i, s]) => i.startsWith('repgeral-') || !IDX[i] || IDX[i][8] !== s.situacao
+      || IDX[i][1] !== s.tribunal || IDX[i][2] !== s.fonte || IDX[i][3] !== s.numero
+      || !['igual', 'contida'].includes(s.texto_x_tese) || !(s.conferencia || '').includes(dataBr)).map(([i]) => i);
+    ok(sitRuim.length === 0, rot + 'os ' + sit.length + ' verbetes de outras compilações cujo texto é a tese oficial mostram a situação oficial do tema' + mostra(sitRuim));
+    // o que fica para a dona: nada entra sozinho
+    const sug = Object.entries(at.sugeridos || {});
+    const sugEntrou = sug.filter(([i]) => IDX[i] || TXT[i]).map(([i]) => i);
+    const sugIncompleto = sug.filter(([, o]) => !o.enunciado || !OFICIAL.test(o.url || '') || !o.situacao || !o.tema || !o.conferencia || numDoTitulo(o.titulo) !== o.numero).map(([i]) => i);
+    ok(sugEntrou.length === 0 && sugIncompleto.length === 0,
+      rot + 'os ' + sug.length + ' temas sugeridos têm o registro oficial completo e NÃO entraram no acervo sem a dona' + mostra(sugEntrou.concat(sugIncompleto)));
+    const conf = at.para_conferir || [];
+    const mexeu = conf.filter(x => !IDX[x.id] || IDX[x.id][8] !== x.situacao_acervo).map(x => x.id);
+    ok(mexeu.length === 0, rot + 'os ' + conf.length + ' casos "para conferir" (texto que não é a tese oficial, ou situação que pede decisão) ficaram como estavam' + mostra(mexeu));
+    for (const [rotulo, dir] of corpora) {
+      const fc = path.join(dir, 'corpus.json');
+      if (!fs.existsSync(fc)) continue;
+      const nat = Object.fromEntries(JSON.parse(fs.readFileSync(fc, 'utf8')).map(x => [x.id, x]));
+      const natRuim = sit.filter(([i, s]) => !nat[i] || nat[i].situacao !== s.situacao).map(([i]) => i);
+      ok(natRuim.length === 0, rot + rotulo + ': as ' + sit.length + ' situações de outras compilações chegaram ao corpus nativo' + mostra(natRuim));
+    }
+  }
+  // fatos da atualização de 25/11/2026, medidos no acervo web (conferidos nas páginas oficiais dos temas)
+  if (ATUALIZACOES().includes('atualizacao-2026-11-25.json')) {
+    const tema = (trib, n) => ids.find(i => ref[i].tribunal === trib && ref[i].numero === n);
+    const s106 = tema('STF', 106), s1016 = tema('STF', 1016), s837 = tema('STF', 837), j1124 = tema('STJ', 1124), j1245 = tema('STJ', 1245), s394 = tema('STF', 394);
+    ok(IDX[s106][8] === 'Cancelado' && /^Tema cancelado em 15\/10\/2026\. Decisão de 15\/10\/2026: O Tribunal, por unanimidade/.test(TXT[s106].ob || ''),
+      R + '(i) STF Tema 106: cancelado em 15/10/2026, com a decisão literal na observação (padrão dos Temas 474 e 964)');
+    ok(IDX[s1016][8] === 'Mérito julgado' && IDX[s1016][7] === '14/10/2026' && /^1\. O depósito judicial é figura processual de direito público/.test(TXT[s1016].en)
+      && / · Red\. p\/ o acórdão Min\. Flávio Dino$/.test(TXT[s1016].fp || ''),
+      R + '(i) STF Tema 1016: mérito julgado em 14/10/2026, com a tese fixada na decisão e o redator do acórdão (relator vencido)');
+    ok(IDX[s837][8] === 'Trânsito em Julgado' && IDX[j1124][8] === 'Trânsito em Julgado',
+      R + '(i) STF Tema 837 e STJ Tema 1124: trânsito em julgado');
+    ok(IDX[j1245][8] === 'Acórdão Publicado - RE Pendente',
+      R + '(i) STJ Tema 1245: fica a situação da ficha oficial ("Acórdão Publicado - RE Pendente"), não a data de trânsito de um só paradigma');
+    ok(/10\.599\/02 \[sic\]/.test(TXT[s394].en),
+      R + '(i) STF Tema 394: o [sic] posto em 03/10/2026 no erro de digitação da fonte fica');
   }
 }
 

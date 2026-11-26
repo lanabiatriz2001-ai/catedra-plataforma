@@ -941,6 +941,21 @@ Rodada manual, no Mac (de onde o STF, o STJ e o Planalto respondem).
   STJ diferentes da fonte oficial; e há 24 teses de RG ("Há repercussão") e 87 teses de repetitivos
   fora do acervo. Nada disso entra sozinho (atualização assistida): fica para um PR próprio, conferido
   item a item na fonte.
+  - **Feito no mesmo dia** (`docs/teses-oficiais/atualizacao-2026-11-25.md`, dados em
+    `atualizacao-2026-11-25.json`): conferido tema a tema na página oficial, o grosso das diferenças não
+    estava nos verbetes oficiais (`repgeral-*`), e sim nos da compilação "Coordenados 2026" (`COORD-*`),
+    que vieram sem situação. Entraram: 25 verbetes oficiais com situação, tese, data ou relator novos
+    (STF 106, 516, 837, 912, 1016 e 1427; STJ 67, 1124, 1130, 1153, 1158, 1190, 1195, 1198, 1229, 1236,
+    1304, 1311, 1312, 1329, 1373, 1380, 1401, 1413 e 1421) e a situação oficial em 117 verbetes da
+    compilação cujo texto é a tese oficial. As "teses diferentes" restantes são o `[sic]` dos avisos de
+    03/10, a tese da decisão onde o banco do STF ainda não a tem e o texto editado da compilação. A
+    Central deu baixa em 24 itens; seguem "Conferir" o STJ 1245 (a ficha diz "Acórdão Publicado - RE
+    Pendente"), o estado intermediário do STJ 1304 e os dois do STJ 50 (decisão da dona). Os temas
+    novos (24 STF, 94 STJ) estão em "sugeridos", com o registro oficial completo, à espera da dona.
+  - **Mecânica para as próximas leituras:** `scripts/aplicar-teses-oficiais.py` lê
+    `docs/teses-oficiais/atualizacao-AAAA-MM-DD.json` por cima dos lotes L1–L4 (a leitura mais nova
+    vence; tema aprovado vai em "novos"; verbete de outra compilação recebe só a situação, em
+    "situacao_outros", e no nativo pelo `build/data/patches_temas_oficiais.json`).
 - **Consumidores da lei seca e dos informativos**, achados pela revisão independente:
   - o widget do dia ficava, para cada número, com a PRIMEIRA entrada, que é a redação riscada quando o
     Planalto mantém a antiga antes da vigente: o CF art. 37 aparecia sem "eficiência" (antes da EC
