@@ -11,7 +11,8 @@ verificação adversarial dos mapas terminou depois, e dois revisores leram este
 correções deles estão no commit seguinte a `111de26`. Trate cada linha citada como ponto de partida e confira o
 trecho ao abrir: se o código divergir, o código manda, e você registra a
 divergência na devolução. As linhas de `Catedra.dc.html` são da `ff3c87f`; o PR #258 (já na `main`, `806b4a9`)
-desloca esse arquivo em +12 a +83 linhas: procure pelo trecho citado, não pelo número.
+desloca esse arquivo em +12 a +83 linhas: procure pelo trecho citado, não pelo número. Depois, o PR #265 (`00619e7`)
+acrescentou cerca de 200 linhas a `Catedra.dc.html`, e ele e o #269 (`b388600`) deslocaram `tests/run.mjs`.
 
 ## 1. O pedido em uma frase
 
@@ -108,8 +109,8 @@ responde.
   a `main` verde, avise a dona em vez de mexer no teste.
 - A Vercel publica o build de cada merge na `main`. Commit feito no Mac sai "unverified" e o preview do PR aparece
   bloqueado; isso não é falha sua.
-- PR aberto que toca arquivos destes itens: #253 (sobe o teto do acervo offline de 14 para 15 MiB em `sw.js` e
-  `scripts/build.mjs`, e mexe em `tests/run.mjs`); o #260 (acervo de 25/11) traz a mesma subida. O #250 mexe em
+- O #253, que sobe o teto do acervo offline de 14 para 15 MiB, entrou na `main` em 25/11 junto com o #260 (`60e1987`,
+  acervo de 25/11): o teto já é 15 MiB (`sw.js:130`, `scripts/build.mjs:458`). Continua aberto o #250, que mexe em
   `treino.js`.
 - **PR #259** (rascunho aberto em 25/11 por outra sessão, ramo `banco-espelhos-venda`: a página de venda do banco de
   espelhos) mexe nos mesmos arquivos de vários itens:
@@ -142,8 +143,13 @@ responde.
   - a isca do item 3 vai sem `name`;
   - no PR 2b, radio sem `name` não forma grupo: dê `name` só ao grupo da pergunta e estreite o `camposSemNome` a
     ele, dizendo no PR por quê (a resposta não é dado pessoal), ou faça as opções como botões com `aria-pressed`.
+- **PR #269** (de outra sessão, ramo `melhorias/sobre-verbetes-grupo`) **entrou na `main` em 25/11** (`b388600`). No
+  `sobre.html`, o mosaico ganha `role="group"` (o `aria-label` fica) e o ladrilho do JURIS passa de "14 mil" a
+  `<b data-n="verbetes">15 mil</b>`. No bloco P15 de `tests/run.mjs`, dois casos novos: o milhar do mosaico tem de ser
+  o `Math.floor` do total de `juris-index.js`, e o mosaico tem de ser um grupo com nome para leitor de tela. Parta
+  dele: o item 10 gera só os números de `espelhos.js` e não mexe no ladrilho dos verbetes, que tem trava própria;
+  nenhum PR desfaz o `role` nem o `data-n="verbetes"`.
 - Worktrees de outras sessões têm trabalho sem commit nos mesmos arquivos:
-  - `redacao-segunda-leitura`: linha de export de `redacao-motor.js`;
   - `espelho-sugerido-selo`: `espelho-sugerido.js`;
   - `retomar-mesa-discursiva`: `Catedra.dc.html` e `tests/redacao-mesa.mjs`, que os itens 9 e 11 também mudam;
   - `quesitos-perdidos`: `Catedra.dc.html`, `scripts/build.mjs`, `scripts/build-macos.mjs`, `tests/run*.mjs` e o
@@ -151,13 +157,17 @@ responde.
   - `fora-do-escopo-flag`: `Catedra.dc.html`, `tests/run.mjs` e `tests/run-webkit.mjs`;
   - `quantidade-real-arguicao`: `Catedra.dc.html`, `tests/run.mjs` e `tests/oral-sala.mjs`;
   - `geometria-interface`;
-  - `juridico-lgpd-retencao` (sem PR): `sobre.html` (o link da Política no rodapé passa a ler versão e data de
-    `juridico.js`), `scripts/build-juridico.mjs` (referência dos itens 7 e 10), Termos, Política, `juridico.js`,
-    `auth.js`, `Catedra.dc.html` e uma migration nova; cruza com o PR 2b.
+  - `juridico-lgpd-retencao`: o trabalho dele saiu no PR #278 (abaixo), e o worktree ainda tem arquivos sem commit.
 
-  O `banco-espelhos-venda` virou o PR #259 (acima). Parte do resto também já é PR: #265 (`redacao-segunda-leitura`),
-  #262 (quesitos perdidos), #263 (espelho sugerido), #264 (fora do escopo) e #261 (ENAM pós-prova), todos em
-  `Catedra.dc.html` e `tests/run*.mjs`. Espere conflito de mescla e não toque nesses worktrees nem nesses PRs.
+  O `banco-espelhos-venda` virou o PR #259 (acima), e o `redacao-segunda-leitura` virou o #265, que entrou na `main`
+  em 25/11 (`00619e7`). Parte do resto também já é PR: #262 (quesitos perdidos), #263 (espelho sugerido), #264 (fora
+  do escopo) e #261 (ENAM pós-prova), todos em `Catedra.dc.html` e `tests/run*.mjs`. O #278 (ramo
+  `entrega/juridico-lgpd-retencao`) leva a Política a 1.3, o mesmo número que o #259 usa; faz o link da Política no
+  rodapé do `sobre.html` ler versão e data de `juridico.js`; e muda `scripts/build-juridico.mjs` (referência dos itens
+  7 e 10), `juridico.js`, `privacidade.html`, `termos.html`, `auth.js` e `Catedra.dc.html`, com uma migration nova.
+  Ele cruza com o PR 2b. Outros PRs abertos tocam os mesmos arquivos: o #271 muda o parágrafo da leitura ativa do
+  `sobre.html`, e os #272, #273, #275, #276 e #277 mexem nas listas de cópia de `scripts/build.mjs` e
+  `scripts/build-macos.mjs` (itens 7 e 10). Espere conflito de mescla e não toque nesses worktrees nem nesses PRs.
 
 ## 5. Como testar nesta casa
 
@@ -285,8 +295,10 @@ e nada nela pode sugerir cobrança agora. Ajuste junto:
 Não mexa nos Termos nem em `docs/pedidos-claude-code.md` (as linhas 309 e 455 são registro da dona). Se o #259
 ainda estiver aberto, avise na descrição do PR que os dois mudam o mesmo parágrafo de `PRODUCT.md` e que, no
 conflito, fica o texto dele. Esse PR não bloqueia o PR 2+10 e não espera mais resposta para ser feito. O merge
-espera a busca de colidência de "Cátedra" no INPI (item "Marca" das "Decisões minhas"; decisão da dona em 25/11),
-porque esta linha pode ser o primeiro preço sob o nome: deixe o PR pronto e diga isso no topo da descrição.
+espera a decisão da dona sobre a marca (item "Marca" das "Decisões minhas"), porque esta linha pode ser o primeiro
+preço sob o nome. A busca de colidência de "Cátedra" no INPI já foi feita em 25/11, e o resultado ficou com ela,
+fora do repositório: busca feita não libera o merge, só o sim dela. Deixe o PR pronto, diga no topo da descrição
+que ele espera essa decisão e não escreva nada sobre a busca nem sobre a marca além disso, no PR ou no repositório.
 
 **Faça (PR 2b, separado, só depois do sim da dona).** A pergunta de disposição a pagar (decisão 2b):
 1. Parta da definição mais nova de `entrar_lista_espera`: a do banco vivo (seção 4) ou a do PR #259, se a
@@ -297,7 +309,7 @@ porque esta linha pode ser o primeiro preço sob o nome: deixe o PR pronto e dig
    `juridico.js` por `scripts/build-juridico.mjs`.
 3. A migration é aplicada **antes** do merge da página. Se o corpo mandar uma chave que a RPC viva não conhece, a
    lista inteira cai em "Não deu para registrar agora".
-4. A pergunta também mostra o preço, então o merge espera a mesma busca de marca do PR 2c.
+4. A pergunta também mostra o preço, então o merge espera a mesma decisão sobre a marca que o PR 2c.
 
 **Pronto quando.** Teste `node:test` sobre `sobre.html` sem comentários: a frase velha sumiu; o cartão cita espelho
 oficial e espelho sugerido por IA; e, no PR 2c, há exatamente uma linha de preço, que no Chromium pinta com
@@ -518,8 +530,8 @@ Nenhum teste fixa 36 nem 586. Devolva a lista do que entrou e do que foi procura
 
 Nunca insira nem reordene quesito de prova antiga. As instruções vão pela chave `trib ano`, e duas
 provas do mesmo tribunal e ano as compartilham. Rode o gerador num caminho sem espaço nem acento: ele usa
-`new URL(import.meta.url).pathname`. O `espelhos.js` maior pode estourar o teto de 14 MiB do acervo offline (U10,
-`tests/run.mjs:571`) se nem o PR #253 nem o #260, que traz a mesma subida, tiver entrado. A fusão para a Redação e o Simulado nativo é outro banco
+`new URL(import.meta.url).pathname`. O teto do acervo offline já é 15 MiB (PRs #253 e #260, na `main`); confira
+mesmo assim que o `espelhos.js` maior cabe nele (U10, `tests/run.mjs:580` na `main` de 25/11). A fusão para a Redação e o Simulado nativo é outro banco
 (decisão 6a).
 
 ### Item 7 — Versão visível
@@ -597,8 +609,8 @@ conteúdo, outra coisa. A base do menu usa `opacity:.85`: meça o contraste.
 - Os campos novos medem 44 px ou mais e contraste ≥ 4,5:1, em claro e escuro.
 
 **Cuidado.** O motor é ES5: nada de sintaxe nova. O render roda a cada segundo por causa do cronômetro: memorize a
-validação. A linha de export de `redacao-motor.js` está sendo mudada por outra sessão (PR #265, ramo
-`redacao-segunda-leitura`).
+validação. O PR #265 (já na `main`, `00619e7`) pôs `compararLeituras` no export de `redacao-motor.js` e criou
+`tests/redacao-segunda.mjs`: acrescente a função nova ao export sem tirar nada dele, e esse teste continua verde.
 
 ### Item 8 — Proteção contra senha vazada: já resolvido à parte; não faça nada
 
@@ -711,11 +723,12 @@ widget, "fotografia" de perícia, "scan" dentro de "buscando"). Mudança só de 
 2. **Item 1.**
 3. **Itens 2 e 10 num PR só:** a contagem no build e o texto da Segunda fase. A linha de preço (**PR 2c**, já
    decidida: a landing mostra o preço) e a pergunta com a migration e a Política (**PR 2b**, que espera a decisão
-   2b) ficam à parte, por causa do PR #259. O merge dos dois espera a busca de marca no INPI.
+   2b) ficam à parte, por causa do PR #259. O merge dos dois espera a decisão da dona sobre a marca (a busca no
+   INPI já foi feita).
 4. **Item 3:** depois do 2+10, porque mexe em `sobre.html`.
 5. **Item 4.**
 6. **O resto do item 5.**
-7. **Item 6:** depois do PR #253 ou do #260 (os dois sobem o teto), ou conferindo o U10. Se o PR 2+10 já tiver entrado, o build regrava o
+7. **Item 6:** o teto do acervo offline já subiu (PRs #253 e #260, na `main`); confira o U10 mesmo assim. Se o PR 2+10 já tiver entrado, o build regrava o
    `sobre.html` da raiz com os números novos de `espelhos.js`, e o PR do item 6 leva esse arquivo junto. O #259 mexe
    no título de `banco-espelhos.html`.
 8. **Item 7:** depois do 1 (mesma chamada em `Catedra.dc.html:14584`) e do 2+10 (mesmos laços de cópia dos builds).
@@ -723,16 +736,17 @@ widget, "fotografia" de perícia, "scan" dentro de "buscando"). Mudança só de 
 10. **Item 11:** por último. Ele varre o `sobre.html` final e estende o mesmo teste da linha 3705.
 
 Arquivos que vários itens mudam:
-- `sobre.html`: itens 2, 3, 10 e 11, o PR #266 e o worktree `juridico-lgpd-retencao`.
-- `tests/run.mjs:3705` (bloco P15): itens 2 e 11 e o PR #266.
+- `sobre.html`: itens 2, 3, 10 e 11, os PRs #266 e #269 (já na `main`) e os PRs abertos #271 e #278.
+- `tests/run.mjs:3705` (bloco P15): itens 2 e 11 e os PRs #266 e #269.
 - Laços de cópia de `scripts/build.mjs` e `scripts/build-macos.mjs`: itens 10 e 7.
 - `PRODUCT.md` (linha 72) e `.impeccable/surfaces/sobre-html.md`: itens 2 e 10 e o PR #259, que já reescreve a
   regra do preço.
-- `entrar_lista_espera`, a migration dela, a Política, `juridico.js` e `privacidade.html`: PR 2b, item 3, PR #259 e o worktree `juridico-lgpd-retencao`.
+- `entrar_lista_espera`, a migration dela, a Política, `juridico.js` e `privacidade.html`: PR 2b, item 3 e os PRs #259 e #278.
 - `banco-espelhos.html` (título e subtítulo, linhas 4 e 72): item 6 e PR #259.
 - `tests/redacao-mesa.mjs`: itens 9 e 11 e o worktree `retomar-mesa-discursiva`.
-- `scripts/build.mjs` e `scripts/build-macos.mjs`: também o PR #259 e o worktree `quesitos-perdidos`.
-- `redacao-motor.js`: item 9 e o PR #265 (`redacao-segunda-leitura`).
+- `scripts/build.mjs` e `scripts/build-macos.mjs`: também os PRs #259, #272, #273, #275, #276 e #277 e o worktree
+  `quesitos-perdidos`.
+- `redacao-motor.js`: item 9 e o PR #265 (já na `main`).
 
 Cada PR parte da `origin/main` mais nova. Quando um entrar, atualize os seguintes.
 
@@ -747,8 +761,8 @@ Para o que exige o sim (banco vivo, telemetria, instalação, merge), prepare e 
 | 1b | Quando o servidor devolve `false`, o item sai da fila? | Não: fica na fila e o envio para. |
 | 1c | Contador exato (RPC nova, migration) ou derivado da lista? | Derivado da lista, com "200+" no teto. Sem migration. |
 | 1d | Capturar erro dos satélites e os que o `support.js` engole? | Fora deste PR (amplia a coleta). Registrar como pendente. |
-| 2a | A landing ganha a linha "R$ 197 por ano" do brief, se o PR #259 declara em `PRODUCT.md` um preço único ("R$ 197 por um mês de acesso, pagamento único") para o banco de espelhos? São duas ofertas com termos diferentes. | **Decidida pela dona em 25/11: sim, a landing mostra o preço, e o merge espera a busca de marca no INPI.** PR 2c separado, com "Quando abrir, R$ 197 por ano (valor previsto, pode mudar)." na caixa `.honesto` (`sobre.html:135`) e a exceção escrita só para essa linha e o seu aviso de hipótese (item 2). Não bloqueia o PR 2+10. |
-| 2b | Pergunta e opções de disposição a pagar; subir a versão da Política (pede novo aceite a todas as contas)? O PR #259 já a leva a 1.3. | "Você pagaria R$ 197 por ano?" com Sim, Talvez e Não, opcional e sem pré-seleção. PR separado, que espera o sim e, para o merge, a busca de marca no INPI. A versão da Política é a seguinte à que estiver na `main`. |
+| 2a | A landing ganha a linha "R$ 197 por ano" do brief, se o PR #259 declara em `PRODUCT.md` um preço único ("R$ 197 por um mês de acesso, pagamento único") para o banco de espelhos? São duas ofertas com termos diferentes. | **Decidida pela dona em 25/11: sim, a landing mostra o preço, e o merge espera a decisão dela sobre a marca (a busca no INPI já foi feita).** PR 2c separado, com "Quando abrir, R$ 197 por ano (valor previsto, pode mudar)." na caixa `.honesto` (`sobre.html:135`) e a exceção escrita só para essa linha e o seu aviso de hipótese (item 2). Não bloqueia o PR 2+10. |
+| 2b | Pergunta e opções de disposição a pagar; subir a versão da Política (pede novo aceite a todas as contas)? O PR #259 já a leva a 1.3. | "Você pagaria R$ 197 por ano?" com Sim, Talvez e Não, opcional e sem pré-seleção. PR separado, que espera o sim e, para o merge, a decisão da dona sobre a marca. A versão da Política é a seguinte à que estiver na `main`. |
 | 2c | E-mail que já está na lista: grava a resposta nova? | Não (como hoje, para não permitir troca por quem souber o e-mail). |
 | 3a | Honeypot só no cliente ou também no servidor (migration)? | Só no cliente. Isca preenchida mostra o sucesso de sempre e não chama a rede. |
 | 3b | Onde o console mostra a lista? | Aba Controle, junto de "Quem pode entrar". |
