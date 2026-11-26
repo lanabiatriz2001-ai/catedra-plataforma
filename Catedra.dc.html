@@ -18720,7 +18720,7 @@ class Component extends DCLogic {
     };
     // abas do hub "Desempenho" (Análise + Domínio); ativa deriva de view+anaTab
     const _desempAtivo = this.state.view==='dominio' ? 'dominio' : this.state.anaTab;
-    const _desempTab = (id)=>{ const on=_desempAtivo===id; return `padding:9px 16px;border:none;cursor:pointer;font-family:inherit;font-size:var(--fs-base);font-weight:600;border-radius:var(--r-md);white-space:nowrap;transition:all .15s;background:${on?'var(--accentSolid)':'transparent'};color:${on?'var(--onAccent)':'var(--text2)'};`; };
+    const _desempTab = (id)=>{ const on=_desempAtivo===id; return `flex:none;min-height:var(--ct-altura-controle);padding:var(--ct-e2) var(--ct-e4);border:none;cursor:pointer;font-family:inherit;font-size:var(--fs-base);font-weight:600;border-radius:var(--r-md);white-space:nowrap;transition:all .15s;background:${on?'var(--accentSolid)':'transparent'};color:${on?'var(--onAccent)':'var(--text2)'};`; };
     const desempTabStyle = { visao:_desempTab('visao'), disciplina:_desempTab('disciplina'), risco:_desempTab('risco'), historico:_desempTab('historico'), relatorio:_desempTab('relatorio'), dominio:_desempTab('dominio') };
 
     // ===== Ciclo =====

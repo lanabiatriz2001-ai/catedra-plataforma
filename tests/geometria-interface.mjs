@@ -28,6 +28,18 @@ async function conferirEntrada(pagina, base, ok) {
       'GEOMETRIA entrada ' + width + ': o título e a área de digitação ficam livres');
     ok((medidas.capa > 0) === (width > 760), 'GEOMETRIA entrada ' + width + ': o painel de apresentação acompanha a janela');
   }
+  // Com pouco espaço a ação por e-mail quebra em duas linhas até nas fontes mais estreitas.
+  // A altura mínima continua alinhada e pode crescer quando o texto precisa de mais linhas.
+  const duasLinhas = await pagina.locator('#ctmagic').evaluate(acao => {
+    acao.style.maxWidth = '15rem';
+    const texto = Array.from(acao.childNodes).find(no => no.nodeType === Node.TEXT_NODE && no.textContent.trim());
+    const faixa = document.createRange();
+    faixa.selectNodeContents(texto);
+    return { linhas: faixa.getClientRects().length, altura: acao.getBoundingClientRect().height,
+      alturaEntrar: document.getElementById('cts').getBoundingClientRect().height };
+  });
+  ok(duasLinhas.linhas === 2 && perto(duasLinhas.altura, duasLinhas.alturaEntrar),
+    'GEOMETRIA entrada: a ação de e-mail em duas linhas mantém a altura de Entrar (' + duasLinhas.altura + ')');
 }
 
 async function conferirPaginas(pagina, base, width, margem, ok) {
@@ -69,6 +81,23 @@ async function conferirPaginas(pagina, base, width, margem, ok) {
     if (resumos.includes(tela)) {
       const numeros = painel.locator('.ct-design-numeros').first();
       largurasResumo.push((await numeros.boundingBox()).width);
+    }
+    if (tela === 'analise') {
+      const abas = painel.locator('button[data-d]');
+      const cabem = await abas.evaluateAll((botoes, toque) => botoes.length === 6 && botoes.every(botao => {
+        const texto = document.createRange();
+        texto.selectNodeContents(botao);
+        const rotulo = texto.getBoundingClientRect(), caixa = botao.getBoundingClientRect();
+        return rotulo.left >= caixa.left && rotulo.right <= caixa.right && (!toque || caixa.height >= 44);
+      }), width <= 1024);
+      ok(cabem, 'GEOMETRIA desempenho a ' + width + ': os seis rótulos cabem nos próprios botões');
+      const ultima = abas.last();
+      await ultima.scrollIntoViewIfNeeded();
+      const alcancavel = await ultima.evaluate(botao => {
+        const faixa = botao.parentElement.getBoundingClientRect(), caixa = botao.getBoundingClientRect();
+        return caixa.left >= faixa.left - 1 && caixa.right <= faixa.right + 1;
+      });
+      ok(alcancavel, 'GEOMETRIA desempenho a ' + width + ': a última aba fica inteiramente visível ao rolar');
     }
     if (tela === 'inicio' || tela === 'calendario') {
       const ritmos = tela === 'inicio';

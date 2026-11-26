@@ -1201,7 +1201,8 @@
   var NAVY = DARK ? '#0b1220' : '#1e2b3a';
   var HERO = 'linear-gradient(160deg,' + NAVY + ' 0%,' + ACC2 + ' 55%,' + ACC + ' 100%)';
   // O portão abre antes do tema do app. A mesma medida atende aos campos e às ações também nesse primeiro quadro.
-  var MEDIDA_CONTROLE = 'width:100%;box-sizing:border-box;min-height:var(--ct-e7,3rem);padding:var(--ct-e2,.5rem) var(--ct-e4,1rem);line-height:1.35;';
+  // Duas linhas também cabem na altura comum quando a fonte do sistema é mais larga.
+  var MEDIDA_CONTROLE = 'width:100%;box-sizing:border-box;min-height:var(--ct-e7,3rem);padding:var(--ct-e1,.25rem) var(--ct-e4,1rem);line-height:1.35;';
   var INPUT = MEDIDA_CONTROLE + 'border:1.5px solid ' + BRD + ';background:' + CARD + ';border-radius:12px;font-size:15px;color:' + INK + ';font-family:' + SANS + ';outline:none;transition:border-color .15s,box-shadow .15s;';
   var BTN = MEDIDA_CONTROLE + 'background:' + GRAD + ';color:#fff;border:none;border-radius:12px;font-weight:700;font-size:15px;cursor:pointer;font-family:' + SANS + ';letter-spacing:.01em;box-shadow:0 8px 22px -10px ' + ACC + ';transition:transform .12s,opacity .12s;';
   var GHOST = MEDIDA_CONTROLE + 'background:' + CARD + ';color:' + INK + ';border:1.5px solid ' + BRD + ';border-radius:12px;font-weight:600;font-size:14px;cursor:pointer;font-family:' + SANS + ';display:flex;align-items:center;justify-content:center;gap:10px;';
