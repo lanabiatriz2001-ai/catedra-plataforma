@@ -4,6 +4,20 @@ import SwiftUI
 /// existia ("corrido"/"estudo"): nada novo é persistido.
 enum ModoLeitor: String { case ler = "corrido", estudar = "estudo" }
 
+/// Rótulo das ações de ícone no leitor: o alvo faz parte do botão ou do menu.
+struct IconeDoLeitor: View {
+    let titulo: String
+    let simbolo: String
+
+    var body: some View {
+        Label(titulo, systemImage: simbolo)
+            .labelStyle(.iconOnly)
+            .font(DS.interface(17))
+            .frame(minWidth: DSEspaco.alvoDeToque, minHeight: DSEspaco.alvoDeToque)
+            .contentShape(Rectangle())
+    }
+}
+
 /// Barra do leitor (spec §5): no MÁXIMO 5 controles, por construção — voltar · onde estou ·
 /// Ler/Estudar · Aa · ⋯. Tudo o que é raro vai para `mais`.
 struct BarraLeitor<Aa: View, Mais: View>: View {
@@ -27,7 +41,7 @@ struct BarraLeitor<Aa: View, Mais: View>: View {
                 HStack(spacing: DSEspaco.e2) { ferramentas }
             }
         }
-        .padding(.horizontal, DSEspaco.e4)
+        .margemPaginaAcervo()
         .padding(.vertical, DSEspaco.e2)
         .frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
         .background(ThemeState.t.surface)
@@ -37,9 +51,7 @@ struct BarraLeitor<Aa: View, Mais: View>: View {
     @ViewBuilder private var voltar: some View {
         if let aoVoltar {
             Button(action: aoVoltar) {
-                Image(systemName: "chevron.left").font(DS.tipo(.corpo, .semibold))
-                    .frame(minWidth: 44, minHeight: 44)
-                    .contentShape(Rectangle())
+                IconeDoLeitor(titulo: "Voltar", simbolo: "chevron.left")
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Voltar")
@@ -101,7 +113,7 @@ struct GavetaContexto<Conteudo: View>: View {
             VStack(spacing: 0) {
                 Capsule().fill(ThemeState.t.border).frame(width: 44, height: 5)
                     .padding(.top, DSEspaco.e2).padding(.bottom, DSEspaco.e3)
-                    .frame(maxWidth: .infinity).frame(minHeight: 44).contentShape(Rectangle())
+                    .frame(maxWidth: .infinity).frame(minHeight: DSEspaco.alvoDeToque).contentShape(Rectangle())
                     .gesture(DragGesture()
                         .updating($arrasto) { v, s, _ in s = v.translation.height }
                         .onEnded { v in altura = altura.apos(arrasto: v.translation.height) })
@@ -115,32 +127,29 @@ struct GavetaContexto<Conteudo: View>: View {
                         @unknown default: break
                         }
                     }
-                HStack(alignment: .firstTextBaseline) {
-                    VStack(alignment: .leading, spacing: 2) {
+                HStack(alignment: .center, spacing: DSEspaco.e3) {
+                    VStack(alignment: .leading, spacing: DSEspaco.e1) {
                         Text(subtitulo.uppercased()).font(DS.interface(11, .semibold)).tracking(0.8)
                             .foregroundStyle(ThemeState.t.text3)
                         Text(titulo).font(DS.display(19, .bold)).foregroundStyle(ThemeState.t.ink)
                     }
                     Spacer()
                     Button { altura = .fechada } label: {
-                        Image(systemName: "xmark").font(DS.tipo(.corpo, .semibold))
-                            .frame(minWidth: 44, minHeight: 44)
+                        IconeDoLeitor(titulo: "Fechar", simbolo: "xmark")
                             .background(Circle().fill(ThemeState.t.surface2))
-                            .contentShape(Rectangle())
                     }
-                        .buttonStyle(.plain)
-                        .keyboardShortcut(.escape, modifiers: [])
-                        .accessibilityLabel("Fechar")
+                    .buttonStyle(.plain)
+                    .keyboardShortcut(.escape, modifiers: [])
                 }
-                .padding(.horizontal, DSEspaco.e5)
+                .padding(.horizontal, DSEspaco.margemPagina(compacto: compacto))
                 if abas.count > 1 {
                     Picker("Aba", selection: $aba) {
                         ForEach(abas.indices, id: \.self) { i in Text(abas[i]).tag(i) }
                     }
                     .pickerStyle(.segmented).labelsHidden()
-                    .padding(.horizontal, DSEspaco.e5).padding(.vertical, DSEspaco.e3)
+                    .padding(.horizontal, DSEspaco.margemPagina(compacto: compacto)).padding(.vertical, DSEspaco.e3)
                 }
-                ScrollView { conteudo().padding(.horizontal, DSEspaco.e5).padding(.bottom, DSEspaco.e5) }
+                ScrollView { conteudo().padding(.horizontal, DSEspaco.margemPagina(compacto: compacto)).padding(.bottom, DSEspaco.e5) }
             }
             .frame(maxWidth: compacto ? .infinity : 760)
             .frame(height: max(0, alvo - arrasto))
