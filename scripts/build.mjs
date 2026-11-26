@@ -55,7 +55,7 @@ const pub = join(ROOT, 'public');
    a conferência acontece ANTES de qualquer escrita e de qualquer rede. Antes o laço de
    cópia pulava em silêncio o que faltava: um arquivo renomeado ou apagado saía do deploy
    sem ninguém ver, e o satélite que dependia dele abria quebrado só em produção. */
-const COPIAR = ['support.js', 'icon.svg', 'auth.js', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'discursivas-textos.js', 'espelhos.js', 'segunda-fase-web.html', 'prioridade-dados.js', 'prioridade-web.html', 'oral.js', 'oral-conteudo.js', 'treino.js', 'sessao-leitor.js', 'tema-satelite.js', 'satellite-base.css', 'leis-catalogo.js', 'busca-unica.js', 'prioridade-calc.js', 'fsrs.js', 'ciclo-magistratura.js', 'ct-dados.js', 'leis-seca.js', 'leis-seca-areas.js', 'questoes-prova.js', 'area-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'mapa-grafo.js', 'mapa-processual.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'area-modulos.js', 'semana-juris.js', 'novidades.js', 'revisao-oficial.js', 'plataformas-questoes.js', 'espelho-sugerido.js', 'redacao-motor.js', 'area-registry.js', 'casos.js', 'leitura-ativa.js', 'enam.js', 'questoes-enam.js', 'catedra-ui.css', 'juridico.js', 'termos.html', 'privacidade.html', 'sobre.html', 'incidencia-verbetes.js'];
+const COPIAR = ['support.js', 'icon.svg', 'auth.js', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'discursivas-textos.js', 'espelhos.js', 'segunda-fase-web.html', 'prioridade-dados.js', 'prioridade-web.html', 'oral.js', 'oral-conteudo.js', 'treino.js', 'sessao-leitor.js', 'tema-satelite.js', 'satellite-base.css', 'leis-catalogo.js', 'busca-unica.js', 'prioridade-calc.js', 'fsrs.js', 'ciclo-magistratura.js', 'ct-dados.js', 'leis-seca.js', 'leis-seca-areas.js', 'questoes-prova.js', 'area-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'mapa-grafo.js', 'mapa-processual.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'area-modulos.js', 'semana-juris.js', 'novidades.js', 'revisao-oficial.js', 'plataformas-questoes.js', 'espelho-sugerido.js', 'redacao-motor.js', 'area-registry.js', 'casos.js', 'leitura-ativa.js', 'enam.js', 'questoes-enam.js', 'catedra-ui.css', 'juridico.js', 'termos.html', 'privacidade.html', 'sobre.html', 'incidencia-verbetes.js', 'offline-estado.js'];
 {
   const faltam = COPIAR.filter((f) => !existsSync(join(ROOT, f)));
   if (!existsSync(join(ROOT, 'dados'))) faltam.push('dados/');
@@ -281,12 +281,13 @@ window.__catedraInstall = (function () {
    O worker traz sozinho os ~11 MB do estudo do dia; baixar() acrescenta os ~18 MB
    pesados (texto do JURIS para o simulado de súmulas, perguntas da arguição oral,
    leis das outras áreas), que só descem quando ela manda. estado() devolve
-   { prontos, total, bytes, totalBytes, auto:{...} } — o campo "auto" é a parte
+   { prontos, total, bytes, totalBytes, versao, auto:{...} } — o campo "auto" é a parte
    automática, para o Ajuste poder dizer "o dia a dia está pronto" sem uma barra
    eternamente pela metade. baixar() também é o único caminho para quem está com
    "economizar dados" ligado, porque aí o aquecimento automático não roda. */
 window.__catedraOffline = (function () {
-  function fala(msg) {
+  // espera: quanto aguardar a resposta do worker depois que ele está pronto
+  function fala(msg, espera) {
     return new Promise(function (ok, falha) {
       var sw = navigator.serviceWorker;
       if (!sw) return falha(new Error('sem service worker'));
@@ -294,15 +295,19 @@ window.__catedraOffline = (function () {
         var alvo = reg.active || sw.controller;
         if (!alvo) return falha(new Error('worker não ativo'));
         var canal = new MessageChannel();
-        var t = setTimeout(function () { falha(new Error('sem resposta do worker')); }, 20000);
+        var t = setTimeout(function () { falha(new Error('sem resposta do worker')); }, espera);
         canal.port1.onmessage = function (e) { clearTimeout(t); ok(e.data); };
         alvo.postMessage(msg, [canal.port2]);
       }).catch(falha);
     });
   }
   return {
-    estado: function () { return fala({ type: 'ctEstadoOffline' }).then(function (r) { return (r && r.estado) || null; }); },
-    baixar: function () { return fala({ type: 'ctAquecerAcervos' }).then(function (r) { return (r && r.resultado) || null; }); }
+    estado: function () { return fala({ type: 'ctEstadoOffline' }, 20000).then(function (r) { return (r && r.estado) || null; }); },
+    /* O download leva minutos num 4G: com os 20 s do estado, baixar() rejeitava com o worker
+       ainda baixando, e o resultado (o que o orçamento de espaço cortou) se perdia. 6 min
+       cobrem o teto de 5 min que Chrome e Firefox dão ao evento do worker; passado isso, ele
+       foi encerrado e o que desceu fica guardado para a próxima vez. */
+    baixar: function () { return fala({ type: 'ctAquecerAcervos' }, 360000).then(function (r) { return (r && r.resultado) || null; }); }
   };
 })();
 </script>
@@ -376,6 +381,9 @@ const casca = [...vendorados, './prioridade-calc.js', './ciclo-magistratura.js',
   './plataformas-questoes.js', './espelho-sugerido.js', './redacao-motor.js', './area-registry.js', './casos.js',
   // leitura ativa (LA1): <script> do <head> do host e do LEGIS — sem ele o app instalado abriria sem CT_LA
   './leitura-ativa.js', './enam.js', './juridico.js', './catedra-ui.css', './icon-180.png',
+  // Uso sem internet (Ajustes › Dados): <script> do <head> do host — fora da casca, o app
+  // instalado abriria offline sem o cartão que diz justamente o que está guardado
+  './offline-estado.js',
   // revisão oficial: <script> do <head> do host, do LEGIS e do JURIS (pacote do sentinela + vocabulário)
   './novidades.js', './revisao-oficial.js'];
 if (fontsHref) {

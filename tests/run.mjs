@@ -71,6 +71,7 @@ import { testarWidgetResumo } from './widget-resumo.mjs';
 import { testarCarregamentoInicial, testarAberturaEmbutida, testarAberturaPendente } from './carregamento-inicial.mjs';
 import { testarSelectHost } from './select-host.mjs';
 import { testarAjustesRitmo } from './ajustes-ritmo.mjs';
+import { testarOfflineEstadoEstatico, testarOfflineEstado } from './offline-estado.mjs';
 import { testarCicloNivelEstrategia } from './ciclo-nivel-estrategia.mjs';
 import { testarEditalSubtopicos } from './edital-subtopicos.mjs';
 import { testarSemAnotacoesEstatico, testarSemAnotacoesNavegador } from './sem-anotacoes.mjs';
@@ -114,6 +115,16 @@ console.log('[' + motor + '] suíte de navegador em ' + URL0);
 const page = await browser.newPage();
 const falhas = [];
 const ok = (cond, label) => { console.log((cond ? '✓ ' : '✗ ') + label); if (!cond) falhas.push(label); };
+// CT_SO=offline-estado: Ajustes › Dados › Uso sem internet (offline-estado.js), Node e navegador.
+// Antes do ouvinte de erro da página da suíte de propósito: o módulo abre contextos próprios,
+// cada um com o seu ouvinte — e este ponto não é o que os outros blocos isolados usam.
+if (process.env.CT_SO === 'offline-estado') {
+  await testarOfflineEstadoEstatico(ok);
+  await testarOfflineEstado(page, URL0, ok, { motor });
+  await browser.close(); srv.close();
+  console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
+  process.exit(falhas.length ? 1 : 0);
+}
 page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
 
 // CT_SO=redacao-mesa roda só o módulo pedido — para o ciclo curto de uma tela.
@@ -887,6 +898,13 @@ function pdfjsNaSaida(dir) {
       'U10/PROD o worker e a página decidem igual em ' + amostras.length + ' endereços (produção só em https fora de localhost)');
   }
 }
+
+/* ============= U10 — USO SEM INTERNET NOS AJUSTES (tests/offline-estado.mjs) =============
+   O cartão de Ajustes › Dados lê o worker pela ponte acima. A lógica roda em Node; o cartão,
+   no navegador, nos três lugares onde o app roda: site, desenvolvimento e app nativo. */
+await testarOfflineEstadoEstatico(ok);
+try { await testarOfflineEstado(page, URL0, ok, { motor }); }
+catch (e) { ok(false, 'OFFLINE [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
 
 /* ================= JURIS — RÓTULO DO VERBETE (auditoria 15/09/2026) =================
 
