@@ -108,15 +108,24 @@
        informada à ponte catedraPerfil antes do {excluir}, que limpa os leitores sem "limpeza pendente";
    (v3) a RPC de exclusão falha: nada é apagado nem enviado, e os botões e o foco voltam;
    (v4) outro aparelho envia estudos depois que o portão abriu: a 1ª confirmação não exclui; a 2ª gera o
-        arquivo com o que chegou e exclui;
+        arquivo com o que chegou e exclui — também com o carimbo atrasado (relógio de quem enviou atrás do
+        de quem gravou a linha vista); (v4w) o mesmo na web: com a nuvem nova, o toque seguinte entrega
+        outro arquivo, com o que chegou, sem perguntar; só o próximo pergunta e exclui;
    (w) a nuvem tem o aceite de uma versão MAIS NOVA que a deste build: nenhuma abertura pede o aceite
        e o aparelho fica com o mais novo.
+   Com a verificação das correções (26/11/2026): (n5) o simulado pausado que o app consome ao retomar
+   ainda faz o "Não aceito" perguntar e vai no arquivo; (t2) depois do prazo, a aba segue hidratada, a
+   recarga tem o mesmo prazo e a trava segue; (t4) o aceite vigente gravado por outra aba solta a trava na
+   nova tentativa; (u2)/(u3) com a ponte do arquivo muda, "Aceitar" e "Não aceito" ainda tiram a pessoa do
+   portão; (v5) sem credencial conferida, o aviso não promete limpeza pendente; o duplo clique na web não
+   vira o 2º toque; o e-mail longo quebra; o painel rola também deitado; e nada depende de janela de tempo.
 
    Todo caso confere que a hidratação TERMINOU (hydrated=1 e portão oculto) antes das guardas:
    sem isso, "nenhum upsert" passaria num fluxo que travou antes de chegar lá. */
 
 const FIX = '/tests/auth-ipad-fixture.html';
-const U1 = { id: 'u1', email: 'lana@exemplo.com' };
+// id em formato UUID, como o do Supabase: o app nativo (PerfilLeitor) recusa conta fora dele
+const U1 = { id: '3f2a9c1e-7b4d-4e8a-9c21-5d6e7f809a1b', email: 'lana@exemplo.com' };
 const AGORA = new Date('2026-09-24T12:00:00.000Z');
 const UPD = '2026-01-01T00:00:00.000Z';
 const S1 = { id: 's1', up: 1000, t: 'local' }, S9 = { id: 's9', up: 2000, t: 'nuvem' };
@@ -401,7 +410,7 @@ export async function testarAuthHidratacao(pageDaSuite, base, ok, opcoes = {}) {
     nome: '(n)',
     formulario: true, aceite: true, semHidratar: true,
     local: { 'catedra:sessions': JSON.stringify([S1]), 'catedra:_dirty': '1', 'catedra:aceite': VELHO },
-    ct: { signIn: U1, select: linhaCom({ 'catedra:sessions': JSON.stringify([S9]) }), signOutAtraso: 1500 },
+    ct: { signIn: U1, select: linhaCom({ 'catedra:sessions': JSON.stringify([S9]) }), signOutPendente: true },
   }, async (page, h) => {
     ok(await h.esperar(() => !!document.querySelector('#ctac'), 8000), R + '(n) a tela de aceite apareceu');
     await esconder(page); await page.waitForTimeout(300); await mostrar(page);
@@ -409,16 +418,23 @@ export async function testarAuthHidratacao(pageDaSuite, base, ok, opcoes = {}) {
     let perguntaN = '', dialogosN = 0;
     page.on('dialog', d => { dialogosN++; if (dialogosN > 1) d.dismiss().catch(() => {}); });
     page.once('dialog', async d => { perguntaN = d.message(); await d.accept(); });
+    // a caixa marcada antes deixa o "Aceitar" com opacity 1 no atributo: depois de decidir, ele tem de apagar como os outros
+    await page.click('#ctac');
     await page.click('#ctacsair');
-    // decidido: até o reload (aqui o signOut demora 1,5 s) tudo trava, e um 2º toque não pergunta de novo — o "Cancelar"
-    // dele não desfaria a saída já em curso
+    // decidido: até o reload (aqui o signOut só responde quando o teste solta) tudo trava, o "Aceitar" fica com cara de
+    // desabilitado, e um 2º toque não pergunta de novo — o "Cancelar" dele não desfaria a saída já em curso
     const travadoN = await page.evaluate(() => {
       const t = ['#ctacsair', '#ctacexcluir', '#ctacbaixar', '#ctac', '#ctacok'].every(s => !!document.querySelector(s) && document.querySelector(s).disabled);
+      const opAceitar = +getComputedStyle(document.querySelector('#ctacok')).opacity;
       const m = (document.querySelector('#ctacmsg') || {}).textContent || '';
       const b = document.querySelector('#ctacsair'); if (b) b.click();
-      return { t, m };
-    }).catch(() => ({ t: false, m: 'a página já tinha recarregado' }));
+      return { t, opAceitar, m };
+    }).catch(() => ({ t: false, opAceitar: 1, m: 'a página já tinha recarregado' }));
     ok(travadoN.t && /Saindo da conta/.test(travadoN.m) && dialogosN === 1, R + '(n) confirmado o "Não aceito", tudo trava até o reload («' + travadoN.m + '») e um 2º toque não pergunta de novo (' + dialogosN + ' pergunta[s])');
+    ok(travadoN.opAceitar < 0.7, R + '(n) depois de decidir, o "Aceitar" desabilitado também apaga (opacidade ' + travadoN.opAceitar + ')');
+    // solta o signOut: o fin() apaga o local e recarrega
+    await h.esperar(() => typeof window.__ctResolverSignOut === 'function', 8000);
+    await page.evaluate(() => { localStorage.removeItem('__ct:signOutPendente'); if (window.__ctResolverSignOut) window.__ctResolverSignOut(); });
     // o fin() apaga o local e recarrega: volta ao formulário, sem sessão
     const noForm = await h.esperar(() => !!document.querySelector('#catedra-auth-gate #cte') && !localStorage.getItem('catedra:sessions'), 8000);
     const r0 = await h.ler(), f0 = await h.fetchs();
@@ -658,16 +674,18 @@ async function casosAceite(caso, ok, R) {
   });
 }
 
-/* O portão de quem não aceita e o aceite mais novo — (n2), (n3), (n4), (t), (t2), (t3), (u), (v), (v2), (v3), (v4), (w).
-   Ver o cabeçalho. Nenhum caso fixa a versão vigente (lê window.CT_JURIDICO.versao quando precisa): valem com a 1.0/1.2 e
-   com a 1.0/1.3. */
+/* O portão de quem não aceita e o aceite mais novo — (n2), (n3), (n4), (n5), (t), (t2), (t3), (t4), (u), (u2), (u3), (v),
+   (v2), (v3), (v4), (v4w), (v5), (w). Ver o cabeçalho. Nenhum caso fixa a versão vigente (lê window.CT_JURIDICO.versao
+   quando precisa): valem com a 1.0/1.2 e com a 1.0/1.3. Nada de janela fixa de tempo: o que precisa esperar fica preso
+   na fixture (selectAtraso com o relógio falso, signOutPendente, rpcPendente) até o caso soltar. */
 async function casosPortao(caso, ok, R) {
   const VELHO = JSON.stringify({ versao: '0.9/0.9', ts: 1 });
   const ANTERIOR = JSON.stringify({ versao: '1.0/1.1', ts: 1 });       // a versão de antes da vigente
   const MAIS_NOVO = JSON.stringify({ versao: '1.0/9.9', ts: 5000 });   // aceita num build mais novo que este
-  const ARQ = /^catedra-dados-\d{4}-\d{2}-\d{2}\.json$/;
+  // na web o nome leva a hora (cada entrega tem nome próprio); no nativo, só a data
+  const ARQ = /^catedra-dados-\d{4}-\d{2}-\d{2}(-\d{6})?\.json$/;
   // a credencial que o leitor confere (getClaims da fixture): com ela, o portão sabe informar a conta ao app nativo
-  const CLAIMS = { sub: 'u1', iss: 'https://exemplo.invalido/auth/v1', aud: 'authenticated', role: 'authenticated', exp: 4102444800 };
+  const CLAIMS = { sub: U1.id, iss: 'https://exemplo.invalido/auth/v1', aud: 'authenticated', role: 'authenticated', exp: 4102444800 };
   const aceiteDe = u => String(u.aceite || '');
   const versaoLocal = page => page.evaluate(() => { try { return JSON.parse(localStorage.getItem('catedra:aceite')).versao; } catch (_) { return null; } });
   const esconder = page => page.evaluate(() => { Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' }); document.dispatchEvent(new Event('visibilitychange')); });
@@ -719,16 +737,17 @@ async function casosPortao(caso, ok, R) {
     const icone = (sel, nome) => { const s = document.querySelector(sel + ' svg[data-ico="' + nome + '"]'); if (!s) return false; const r = s.getBoundingClientRect(); return s.getAttribute('aria-hidden') === 'true' && Math.round(r.width) === 16 && Math.round(r.height) === 16; };
     const titulo = document.querySelector('#catedra-auth-gate h2'), intro = titulo && titulo.nextElementSibling;
     const rotulo = document.querySelector('#ctac') && document.querySelector('#ctac').closest('label');
-    return { sair: alvo('#ctacsair'), baixar: alvo('#ctacbaixar'), excluir: alvo('#ctacexcluir'), frase: alvo('#ctacnc'),
+    return { sair: alvo('#ctacsair'), baixar: alvo('#ctacbaixar'), excluir: alvo('#ctacexcluir'), frase: alvo('#ctacnc'), aceitar: alvo('#ctacok'),
       termos: alvo('#catedra-auth-gate button[data-doc="termos.html"]'), politica: alvo('#catedra-auth-gate button[data-doc="privacidade.html"]'),
       rotulo: rotulo ? { h: Math.round(rotulo.getBoundingClientRect().height * 10) / 10, minAlt: parseFloat(getComputedStyle(rotulo).minHeight) || 0 } : { h: 0, minAlt: 0 },
       titulo: titulo ? contraste(titulo) : 0, intro: intro ? contraste(intro) : 0,
       fraseTexto: (document.querySelector('#ctacnc') || {}).textContent || '', icones: icone('#ctacbaixar', 'download') && icone('#ctacexcluir', 'trash-2') };
   });
   const conferirMedidas = (m, P) => {
-    ok(m.sair.tag === 'BUTTON' && [m.sair, m.baixar, m.excluir, m.termos, m.politica, m.rotulo].every(a => a.h >= 44 && a.minAlt >= 44),
+    ok(m.sair.tag === 'BUTTON' && [m.sair, m.baixar, m.excluir, m.termos, m.politica, m.rotulo, m.aceitar].every(a => a.h >= 44 && a.minAlt >= 44),
       R + P + ' alvos ≥ 44 px, com o min-height valendo: "Não aceito" é botão (' + m.sair.tag + ', ' + m.sair.h + '/' + m.sair.minAlt + ' px), "Baixar" ' + m.baixar.h + '/' + m.baixar.minAlt + ' px, "Excluir" ' + m.excluir.h + '/' + m.excluir.minAlt
-      + ' px, "Termos" ' + m.termos.h + '/' + m.termos.minAlt + ' px, "Política" ' + m.politica.h + '/' + m.politica.minAlt + ' px, rótulo do aceite ' + m.rotulo.h + '/' + m.rotulo.minAlt + ' px');
+      + ' px, "Termos" ' + m.termos.h + '/' + m.termos.minAlt + ' px, "Política" ' + m.politica.h + '/' + m.politica.minAlt + ' px, rótulo do aceite ' + m.rotulo.h + '/' + m.rotulo.minAlt
+      + ' px, "Aceitar" ' + m.aceitar.h + '/' + m.aceitar.minAlt + ' px');
     ok([m.sair.contraste, m.frase.contraste, m.baixar.contraste, m.excluir.contraste, m.titulo, m.intro].every(c => c >= 4.5),
       R + P + ' texto ≥ 4,5:1 sobre o fundo de verdade (título ' + m.titulo + ', texto ' + m.intro + ', frase ' + m.frase.contraste + ', "Não aceito" ' + m.sair.contraste + ', botões ' + m.baixar.contraste + ' e ' + m.excluir.contraste + ')');
     ok(m.sair.sublinhado, R + P + ' o estilo do "Não aceito" chega inteiro (sublinhado, que fica no fim do atributo)');
@@ -740,18 +759,27 @@ async function casosPortao(caso, ok, R) {
     nome: '(n2)',
     aceite: true, semHidratar: true,
     local: { 'catedra:sessions': JSON.stringify([S1]), 'catedra:_dirty': '1', 'catedra:aceite': VELHO },
-    ct: { select: linhaCom({ 'catedra:sessions': JSON.stringify([S9]) }) },
+    // um e-mail longo, sem hífen: não pode passar da largura do painel no celular
+    ct: { select: linhaCom({ 'catedra:sessions': JSON.stringify([S9]) }), sessao: { id: U1.id, email: 'fernanda.albuquerque.cavalcanti.souza@universidade.edu.br' } },
   }, async (page, h) => {
     ok(await naTela(h), R + '(n2) a tela de aceite apareceu');
     conferirMedidas(await medir(page), '(n2) claro:');
-    // celular pequeno: com a seção nova a tela passa da altura; o painel rola e tudo chega à vista
-    await page.setViewportSize({ width: 375, height: 560 });
-    const alcance = await page.evaluate(() => {
-      // 1 px de folga: a rolagem é em pixel inteiro e a posição do alvo, fracionária (o "Não aceito" para em 560,19 de 560)
-      const ver = s => { const n = document.querySelector(s); if (!n) return false; n.scrollIntoView({ block: 'nearest' }); const r = n.getBoundingClientRect(); return r.top >= -1 && r.bottom <= innerHeight + 1; };
-      return { titulo: ver('#catedra-auth-gate h2'), sair: ver('#ctacsair') };
-    });
-    ok(alcance.titulo && alcance.sair, R + '(n2) 375×560: o título e o "Não aceito" chegam à tela por rolagem (' + JSON.stringify(alcance) + ')');
+    // celular pequeno e deitado: a tela passa da altura; o painel ROLA (auto/scroll e com sobra de verdade: o
+    // scrollIntoView também rola um overflow:hidden, que o dedo não rola) e tudo chega à vista; e o e-mail longo quebra
+    for (const [w, hh] of [[375, 560], [844, 390], [667, 375]]) {
+      await page.setViewportSize({ width: w, height: hh });
+      const alcance = await page.evaluate(() => {
+        let sc = document.querySelector('#catedra-auth-gate h2').parentElement;
+        while (sc && sc !== document.body && getComputedStyle(sc).overflowY === 'visible') sc = sc.parentElement;
+        const rolavel = !!sc && sc !== document.body && /^(auto|scroll)$/.test(getComputedStyle(sc).overflowY) && sc.scrollHeight > sc.clientHeight + 1;
+        // 1 px de folga: a rolagem é em pixel inteiro e a posição do alvo, fracionária (o "Não aceito" para em 560,19 de 560)
+        const ver = s => { const n = document.querySelector(s); if (!n) return false; n.scrollIntoView({ block: 'nearest' }); const r = n.getBoundingClientRect(); return r.top >= -1 && r.bottom <= innerHeight + 1; };
+        const p = document.querySelector('#ctacnc');
+        return { rolavel, titulo: ver('#catedra-auth-gate h2'), sair: ver('#ctacsair'), frase: p.scrollWidth <= p.clientWidth + 1, lateral: !!sc && sc.scrollWidth <= sc.clientWidth + 1 };
+      });
+      ok(alcance.rolavel && alcance.titulo && alcance.sair, R + '(n2) ' + w + '×' + hh + ': o painel rola e o título e o "Não aceito" chegam à tela (' + JSON.stringify(alcance) + ')');
+      ok(alcance.frase && alcance.lateral, R + '(n2) ' + w + '×' + hh + ': o e-mail longo quebra e o painel não rola para o lado');
+    }
     await page.setViewportSize({ width: 1280, height: 900 });
     let pergunta = '';
     page.once('dialog', async d => { pergunta = d.message(); await d.dismiss(); });
@@ -785,7 +813,7 @@ async function casosPortao(caso, ok, R) {
     nome: '(n4)',
     aceite: true, semHidratar: true,
     local: { 'catedra:sessions': JSON.stringify([S9]), 'catedra:aceite': VELHO,
-      ct_enam_prova: JSON.stringify({ titular: 'u1', respostas: { q1: 'B' } }), ct_bkpFase2: JSON.stringify({ titular: 'u1', texto: 'rascunho' }) },
+      ct_enam_prova: JSON.stringify({ titular: U1.id, respostas: { q1: 'B' } }), ct_bkpFase2: JSON.stringify({ titular: U1.id, texto: 'rascunho' }) },
     ct: { select: linhaCom({ 'catedra:sessions': JSON.stringify([S9]) }) },
   }, async (page, h) => {
     ok(await naTela(h), R + '(n4) a tela de aceite apareceu');
@@ -803,6 +831,30 @@ async function casosPortao(caso, ok, R) {
     let arq = null; try { arq = baixa && JSON.parse(await lerDownload(baixa)); } catch (_) {}
     const aux = (arq && arq.auxiliares) || {};
     ok(!!baixa && /"q1"/.test(aux.ct_enam_prova || '') && /rascunho/.test(aux.ct_bkpFase2 || ''), R + '(n4) o arquivo leva as auxiliares deste aparelho (prova do ENAM e retrato da 2ª fase) (' + Object.keys(aux).join(', ') + ')');
+  });
+
+  // (n5) simulado pausado (ct_prova) que o app consome ao retomar, antes do portão: o _restoreProva o apaga do aparelho no
+  // catedra:authuser e o guarda só na memória. O "Não aceito" ainda pergunta, e o arquivo o leva, pelo retrato da abertura.
+  await caso({
+    nome: '(n5)',
+    aceite: true, semHidratar: true, consomeProva: true,
+    local: { 'catedra:sessions': JSON.stringify([S9]), 'catedra:aceite': VELHO, ct_prova: JSON.stringify({ titular: U1.id, min: 60, sec: 1800, running: false }) },
+    ct: { select: linhaCom({ 'catedra:sessions': JSON.stringify([S9]) }) },
+  }, async (page, h) => {
+    ok(await naTela(h), R + '(n5) a tela de aceite apareceu');
+    const consumida = await page.evaluate(() => localStorage.getItem('ct_prova') == null);
+    let pergunta = '';
+    page.once('dialog', async d => { pergunta = d.message(); await d.dismiss(); });
+    await page.click('#ctacsair');
+    const ficou = await page.evaluate(() => !!document.querySelector('#ctac')).catch(() => false);
+    ok(consumida && /em andamento/.test(pergunta) && ficou, R + '(n5) o app já tinha tirado o ct_prova do aparelho, e o "Não aceito" ainda pergunta e fica (consumida=' + consumida + ', ficou=' + ficou + ')');
+    if (!ficou) { ok(false, R + '(n5) sem o portão não há como baixar o arquivo'); return; }
+    const espera = page.waitForEvent('download', { timeout: 10000 }).catch(() => null);
+    await page.click('#ctacbaixar');
+    const baixa = await espera;
+    let arq = null; try { arq = baixa && JSON.parse(await lerDownload(baixa)); } catch (_) {}
+    const aux = (arq && arq.auxiliares) || {};
+    ok(!!baixa && /"sec":1800/.test(aux.ct_prova || ''), R + '(n5) o arquivo leva o simulado pausado que o app tinha tirado do aparelho (' + Object.keys(aux).join(', ') + ')');
   });
 
   // (t) aba da web já hidratada (sessionStorage) com o aceite da versão ANTERIOR e estudo pendente: é o reload depois de
@@ -832,21 +884,33 @@ async function casosPortao(caso, ok, R) {
   });
 
   // (t2) a mesma aba, mas a leitura refeita não responde (portal cativo que segura a conexão): passado o prazo, o app abre
-  // como antes, sem subir nada; e com a rede de volta a tela de aceite aparece antes de qualquer envio
+  // como antes, sem subir nada, e segue marcada como hidratada — a recarga seguinte relê com o mesmo prazo. Depois do prazo
+  // a trava continua (nem 'hidden' nem pagehide sobem o sujo sem o aceite), e na volta a tela de aceite vem antes de tudo.
   await caso({
     nome: '(t2)',
-    hidratado: true, aceite: true, semHidratar: true,
-    local: { 'catedra:sessions': JSON.stringify([S1]), 'catedra:aceite': ANTERIOR },
+    hidratado: true, aceite: true, semHidratar: true, espiarFetch: true,
+    local: { 'catedra:sessions': JSON.stringify([S1]), 'catedra:_dirty': '1', 'catedra:aceite': ANTERIOR },
     ct: { select: linhaCom({ 'catedra:sessions': JSON.stringify([S9]) }), selectAtraso: 60000 },
   }, async (page, h) => {
-    const lendo = await h.esperar(() => window.__ctChamadas().some(c => c.nome === 'select') && !document.querySelector('#ctac')
-      && getComputedStyle(document.getElementById('catedra-auth-gate')).display !== 'none', 6000);
-    ok(lendo, R + '(t2) a aba hidratada refaz a leitura ("Carregando seus dados…" sobre o app)');
+    const lendo = n => h.esperar(new Function('return window.__ctChamadas().filter(c => c.nome === "select").length >= ' + n
+      + ' && !document.querySelector("#ctac") && getComputedStyle(document.getElementById("catedra-auth-gate")).display !== "none"'), 6000);
+    ok(await lendo(1), R + '(t2) a aba hidratada refaz a leitura ("Carregando seus dados…" sobre o app)');
     await page.clock.runFor(16000);
     ok(await abertoSemHidratar(h) && (await h.ler()).ups.length === 0, R + '(t2) a leitura não respondeu no prazo: o app abre, sem subir nada');
-    await page.evaluate(() => { localStorage.removeItem('__ct:selectAtraso'); window.dispatchEvent(new Event('online')); });
-    const naTelaAgora = await naTela(h);
-    ok(naTelaAgora && (await h.ler()).ups.length === 0, R + '(t2) com a rede de volta, a tela de aceite aparece antes de qualquer envio');
+    ok(await page.evaluate(() => sessionStorage.getItem('catedra:hydrated')) === '1', R + '(t2) passado o prazo, a aba segue marcada como hidratada');
+    await page.reload();
+    ok(await lendo(2), R + '(t2) a recarga refaz a leitura (Carregando seus dados…)');
+    await page.clock.runFor(16000);
+    ok(await abertoSemHidratar(h) && (await h.ler()).ups.length === 0, R + '(t2) a recarga também tem o prazo: o app abre, sem subir nada');
+    // a trava segue depois do prazo: com a leitura que agora responderia na hora, nem o 'hidden' (pushNow) nem o pagehide
+    // (envio com keepalive) sobem o sujo sem o aceite
+    await page.evaluate(() => localStorage.removeItem('__ct:selectAtraso'));
+    await esconder(page);
+    await page.evaluate(() => window.dispatchEvent(new Event('pagehide')));
+    const r1 = await h.ler(), f1 = await h.fetchs();
+    ok(r1.ups.length === 0 && cegos(f1) === 0 && r1.dirty === '1', R + '(t2) depois do prazo, sem o aceite, nada sobe com hidden e pagehide, e o sujo fica (' + r1.ups.length + ', ' + cegos(f1) + ', ' + r1.dirty + ')');
+    await mostrar(page);   // 'visible' refaz a leitura
+    ok(await naTela(h) && (await h.ler()).ups.length === 0, R + '(t2) na volta, a tela de aceite aparece antes de qualquer envio');
   });
 
   // (t3) aba hidratada sem aceite no aparelho, com o vigente na nuvem, e a cópia local do aceite que não grava (cota cheia):
@@ -862,6 +926,25 @@ async function casosPortao(caso, ok, R) {
     const c = await page.evaluate(() => ({ cargas: +(localStorage.getItem('__rep:cargas') || 0), aceiteLocal: localStorage.getItem('catedra:aceite'),
       hyd: sessionStorage.getItem('catedra:hydrated') })).catch(() => ({ cargas: -1 }));
     ok(hidratou && c.cargas === 2 && c.hyd === '1', R + '(t3) a cópia local do aceite não grava: a aba hidrata com uma recarga só e não recarrega mais (' + c.cargas + ' carga[s], aceite local ' + c.aceiteLocal + ')');
+  });
+
+  // (t4) a mesma aba, presa no prazo, com a trava; outra aba grava no aparelho o aceite vigente: na nova tentativa
+  // ('online'), o atalho da aba hidratada solta a trava e sobe o que estava pendente
+  await caso({
+    nome: '(t4)',
+    hidratado: true, aceite: true, semHidratar: true,
+    local: { 'catedra:sessions': JSON.stringify([S1]), 'catedra:_dirty': '1', 'catedra:aceite': ANTERIOR },
+    ct: { select: linhaCom({ 'catedra:sessions': JSON.stringify([S9]) }), selectAtraso: 60000 },
+  }, async (page, h) => {
+    ok(await h.esperar(() => window.__ctChamadas().some(c => c.nome === 'select') && getComputedStyle(document.getElementById('catedra-auth-gate')).display !== 'none', 6000),
+      R + '(t4) a aba hidratada refaz a leitura');
+    await page.clock.runFor(16000);
+    ok(await abertoSemHidratar(h) && (await h.ler()).ups.length === 0, R + '(t4) passado o prazo, o app abre com a trava, sem subir nada');
+    await page.evaluate(m => { localStorage.removeItem('__ct:selectAtraso'); localStorage.setItem('catedra:aceite', m); window.dispatchEvent(new Event('online')); }, MAIS_NOVO);
+    const subiu = await h.esperar(() => window.__ctChamadas().some(c => c.nome === 'upsert'), 8000);
+    const r = await h.ler(), ult = r.ups[r.ups.length - 1] || {};
+    ok(subiu && /"s1"/.test(ult.sessions || '') && r.dirty == null && r.status === 'salvo',
+      R + '(t4) com o aceite vigente gravado por outra aba, a nova tentativa solta a trava e sobe o pendente (' + r.ups.length + ' upsert[s], ' + r.dirty + ', ' + r.status + ')');
   });
 
   // (u) "Baixar meus dados" na web, no escuro: o arquivo traz a nuvem e o aparelho mesclados; nada sobe, nada é gravado
@@ -883,6 +966,7 @@ async function casosPortao(caso, ok, R) {
     let arq = null; try { arq = baixa && JSON.parse(await lerDownload(baixa)); } catch (_) {}
     const dados = (arq && arq.dados) || {};
     ok(ARQ.test(nome), R + '(u) o arquivo baixado tem nome com a data (' + nome + ')');
+    ok(/-\d{6}\.json$/.test(nome), R + '(u) na web o nome leva a hora: a 2ª entrega do dia não herda o nome da 1ª (' + nome + ')');
     ok(!!arq && arq.formato === 'catedra-dados-da-conta' && /"s1"/.test(dados['catedra:sessions'] || '') && /"s9"/.test(dados['catedra:sessions'] || ''),
       R + '(u) o arquivo traz o aparelho (s1) e a nuvem (s9) mesclados (' + Object.keys(dados).length + ' chave[s])');
     ok(!['catedra:_dirty', 'catedra:_lastSrv', 'catedra:_owner', 'catedra:auth'].some(k => k in dados), R + '(u) o arquivo não leva o meta-estado do aparelho (_dirty, _lastSrv, _owner, auth)');
@@ -901,6 +985,30 @@ async function casosPortao(caso, ok, R) {
       R + '(u) depois de "Baixar", um toque em "Excluir" já pergunta, sem baixar de novo (' + p.textos.length + ' pergunta[s], ' + p.downloads.length + ' download[s])');
   });
 
+  // (u2) app nativo com a ponte do arquivo muda (o seletor de Arquivos do iPad que não abriu): o "Aceitar" ainda tira a
+  // pessoa do portão; e (u3) o "Não aceito" também
+  for (const sair of [false, true]) {
+    const U = sair ? '(u3)' : '(u2)';
+    await caso({
+      nome: U,
+      aceite: true, semHidratar: true, nativo: true,
+      local: { 'catedra:sessions': JSON.stringify([S9]), 'catedra:aceite': VELHO },
+      ct: { select: linhaCom({ 'catedra:sessions': JSON.stringify([S9]) }), ponteMuda: true },
+    }, async (page, h) => {
+      ok(await naTela(h), R + U + ' a tela de aceite apareceu');
+      await page.click('#ctacbaixar');
+      ok(await msgTem(h, /Preparando o arquivo/), R + U + ' o pedido foi à ponte, que não responde');
+      if (sair) {
+        await page.click('#ctacsair');
+        const noForm = await h.esperar(() => !!document.querySelector('#catedra-auth-gate #cte'), 8000);
+        ok(noForm, R + U + ' com a ponte muda, "Não aceito — sair da conta" ainda sai');
+      } else {
+        await page.click('#ctac'); await page.click('#ctacok');
+        ok(await h.hidratado(), R + U + ' com a ponte muda, "Aceitar e continuar" ainda conclui a hidratação');
+      }
+    });
+  }
+
   // (v) "Excluir minha conta" na web e (v2) no app nativo. Web: o 1º toque só entrega o arquivo (o Safari pode estar
   // perguntando se baixa, e o reload da exclusão encerraria o blob); a pergunta vem no 2º, sem baixar de novo. Nativo: a
   // ponte só responde depois de salvo, e um toque basta. Recusada, nada é excluído; confirmada, a nuvem é relida, a RPC
@@ -916,10 +1024,21 @@ async function casosPortao(caso, ok, R) {
       ok(await naTela(h), R + V + ' a tela de aceite apareceu');
       const p = perguntador(page);
       if (!nativo) {
-        await page.click('#ctacexcluir');
+        // duplo clique: o 2º clique (detail 2) chega depois de o 1º entregar o arquivo e não pode virar o "toque seguinte".
+        // Feito no celular, onde o painel rola e o botão fica sob o dedo enquanto o aviso cresce embaixo dele. Na tela
+        // larga o formulário centrado sobe metade do que o aviso cresce, o 2º clique cai fora do botão e o caso passaria
+        // sem provar nada: por isso ele também confere que os dois cliques caíram no botão.
+        await page.setViewportSize({ width: 375, height: 560 });
+        await page.evaluate(() => {
+          window.__ctCliquesExcluir = [];
+          document.addEventListener('click', e => { if (e.isTrusted && e.target.closest && e.target.closest('#ctacexcluir')) window.__ctCliquesExcluir.push(e.detail); }, true);
+        });
+        await page.dblclick('#ctacexcluir');
         const entregou = await msgTem(h, /toque de novo/);
-        ok(entregou && p.textos.length === 0 && p.downloads.length === 1 && ARQ.test(p.downloads[0].suggestedFilename()),
-          R + V + ' na web o 1º toque só entrega o arquivo e pede outro toque, sem perguntar (' + p.downloads.length + ' download[s], ' + p.textos.length + ' pergunta[s])');
+        const cliques = await page.evaluate(() => window.__ctCliquesExcluir.join(','));
+        ok(cliques === '1,2' && entregou && p.textos.length === 0 && p.downloads.length === 1 && ARQ.test(p.downloads[0].suggestedFilename()),
+          R + V + ' na web o 1º toque, mesmo num duplo clique, só entrega o arquivo e pede outro toque, sem perguntar (cliques no botão: ' + cliques + '; ' + p.downloads.length + ' download[s], ' + p.textos.length + ' pergunta[s])');
+        await page.setViewportSize({ width: 1280, height: 900 });
       }
       // a pergunta recusada
       await page.click('#ctacexcluir');
@@ -931,9 +1050,9 @@ async function casosPortao(caso, ok, R) {
         R + V + ' a pergunta diz o que apaga e, como a Política (9.4 e 9.5), o que fica (cópias no iCloud/Google Drive, lista de espera)');
       ok(nativo ? /acabou de ser salvo em iCloud Drive › Cátedra/.test(pergunta) : /entregue ao navegador nesta tela/.test(pergunta) && !/acabou de ser/.test(pergunta),
         R + V + (nativo ? ' no nativo a pergunta diz onde o arquivo acabou de ser salvo' : ' na web a pergunta não afirma que o arquivo foi baixado: foi entregue ao navegador, e é para conferir'));
-      const notaLeitores = /CátedraLEGIS e do CátedraJURIS deste aparelho/;
-      ok(nativo ? notaLeitores.test(e1.frase) && notaLeitores.test(pergunta) : !notaLeitores.test(e1.frase) && !notaLeitores.test(pergunta),
-        R + V + (nativo ? ' no nativo, a tela e a pergunta dizem que as anotações do LEGIS/JURIS deste aparelho não entram no arquivo' : ' na web não há aviso dos leitores nativos'));
+      const notaLeitores = /CátedraLEGIS e o CátedraJURIS guardam neste aparelho \(como anotações, grifos, revisões, favoritos, coleções e progresso de leitura\)/;
+      ok(nativo ? notaLeitores.test(e1.frase) && notaLeitores.test(pergunta) && /se perde com a exclusão da conta/.test(pergunta) : !notaLeitores.test(e1.frase) && !notaLeitores.test(pergunta),
+        R + V + (nativo ? ' no nativo, a tela e a pergunta dizem que o que o LEGIS/JURIS guardam neste aparelho não entra no arquivo e se perde com a conta' : ' na web não há aviso dos leitores nativos'));
       ok(recusou && e1.tela && e1.s1 && await rpcs(page, 'excluir_minha_conta') === 0 && r1.ups.length === 0 && p.downloads.length === (nativo ? 0 : 1),
         R + V + ' recusada: nenhuma exclusão, nenhum envio, nenhum download novo; o portão e o s1 ficam («' + e1.msg + '»)');
       if (nativo) {
@@ -949,10 +1068,15 @@ async function casosPortao(caso, ok, R) {
       const r2 = await h.ler(), nExcluir = await rpcs(page, 'excluir_minha_conta');
       ok(saiu && nExcluir === 1 && r2.chamadas.includes('signOut'), R + V + ' confirmada: a RPC excluir_minha_conta é chamada uma vez, a sessão sai e o aparelho fica sem o dado (' + nExcluir + '; ' + r2.chamadas.join(',') + ')');
       ok(r2.ups.length === 0 && p.downloads.length === (nativo ? 0 : 1), R + V + ' em nenhum momento algo subiu, nem saiu outro download (' + r2.ups.length + ' upsert[s], ' + p.downloads.length + ' download[s])');
+      // "confirmada, a nuvem é relida": duas leituras ANTES da RPC — a da hidratação e a de antes de excluir
+      const ordem = await page.evaluate(() => window.__ctChamadas().map(c => c.nome === 'rpc' ? 'rpc:' + (c.arg && c.arg.n) : c.nome));
+      const iRpc = ordem.indexOf('rpc:excluir_minha_conta'), leituras = iRpc < 0 ? 0 : ordem.slice(0, iRpc).filter(n => n === 'select').length;
+      ok(leituras >= 2, R + V + ' confirmada, a nuvem é relida antes da RPC (' + leituras + ' leitura[s] antes dela: a da hidratação e a de antes de excluir)');
       if (nativo) {
         const nat = await page.evaluate(() => ({ perfil: JSON.parse(localStorage.getItem('__rep:perfil') || '[]'), alertas: JSON.parse(localStorage.getItem('__rep:alert') || '[]') }));
-        const iConta = nat.perfil.findIndex(m => m.conta === 'u1' && m.expiraEm), iExcluir = nat.perfil.findIndex(m => m.excluir === 'u1');
-        ok(iConta >= 0 && iExcluir > iConta && !nat.alertas.some(t => /pendente/.test(t)),
+        // como o host: expiraEm em texto (o handler só aceita [String: String]) e nenhum aviso
+        const iConta = nat.perfil.findIndex(m => m.conta === U1.id && typeof m.expiraEm === 'string'), iExcluir = nat.perfil.findIndex(m => m.excluir === U1.id);
+        ok(iConta >= 0 && iExcluir > iConta && nat.alertas.length === 0,
           R + V + ' no nativo a conta é informada à ponte antes do {excluir}, que é aceito: sem "limpeza pendente" (' + JSON.stringify(nat.perfil) + '; ' + JSON.stringify(nat.alertas) + ')');
       }
     });
@@ -963,7 +1087,8 @@ async function casosPortao(caso, ok, R) {
     nome: '(v3)',
     aceite: true, semHidratar: true,
     local: { 'catedra:sessions': JSON.stringify([S1]), 'catedra:_dirty': '1', 'catedra:aceite': VELHO },
-    ct: { select: linhaCom({ 'catedra:sessions': JSON.stringify([S9]) }), rpc_excluir_minha_conta: { data: null, error: { message: 'TypeError: Failed to fetch' } }, rpcAtraso: 1500 },
+    // a RPC fica PRESA até o caso soltar: nada de janela de tempo para o "Excluindo a conta…"
+    ct: { select: linhaCom({ 'catedra:sessions': JSON.stringify([S9]) }), rpc_excluir_minha_conta: { data: null, error: { message: 'TypeError: Failed to fetch' } }, rpcPendente: ['excluir_minha_conta'] },
   }, async (page, h) => {
     ok(await naTela(h), R + '(v3) a tela de aceite apareceu');
     const p = perguntador(page);
@@ -973,40 +1098,96 @@ async function casosPortao(caso, ok, R) {
     await page.click('#ctacexcluir');
     // com a RPC em voo, o botão desabilitado perde o foco (é o que a regra de foco manda e o que alguns navegadores
     // fazem; o Chromium deste teste o mantém): sem devolvê-lo, quem usa teclado recomeça o Tab do topo
-    await msgTem(h, /Excluindo a conta/);
-    await page.evaluate(() => { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); });
+    ok(await msgTem(h, /Excluindo a conta/), R + '(v3) a exclusão ficou em voo');
+    await page.evaluate(() => { if (document.activeElement && document.activeElement.blur) { document.activeElement.blur(); window.__ctBlurou = true; } });
+    await page.evaluate(() => { if (window.__ctResolverRpc) window.__ctResolverRpc(); });
     const falhou = await msgTem(h, /Não deu para excluir agora/);
     const e = await estado(page), r = await h.ler();
-    const f = await page.evaluate(() => ({ foco: (document.activeElement || {}).id || '', excluir: !document.querySelector('#ctacexcluir').disabled, sair: !document.querySelector('#ctacsair').disabled }));
+    const f = await page.evaluate(() => ({ blurou: !!window.__ctBlurou, foco: (document.activeElement || {}).id || '', excluir: !document.querySelector('#ctacexcluir').disabled, sair: !document.querySelector('#ctacsair').disabled }));
     ok(falhou && await rpcs(page, 'excluir_minha_conta') === 1 && e.tela && e.s1 && r.dirty === '1' && r.ups.length === 0 && !r.chamadas.includes('signOut'),
       R + '(v3) exclusão recusada pelo servidor: avisa, nada é apagado, nada sobe e a sessão fica («' + e.msg + '»)');
-    ok(f.excluir && f.sair && f.foco === 'ctacexcluir', R + '(v3) depois da falha os botões voltam e o foco volta ao "Excluir minha conta" (' + JSON.stringify(f) + ')');
+    ok(f.blurou && f.excluir && f.sair && f.foco === 'ctacexcluir', R + '(v3) depois da falha os botões voltam e o foco volta ao "Excluir minha conta" (' + JSON.stringify(f) + ')');
   });
 
   // (v4) outro aparelho envia estudos (s10) depois que o portão abriu: a 1ª confirmação relê a nuvem, não exclui e pede
-  // outro toque; o 2º gera o arquivo com o s10 e exclui (no app nativo, onde um toque já salva e pergunta)
+  // outro toque; o 2º gera o arquivo com o s10 e exclui (no app nativo, onde um toque já salva e pergunta). Também com o
+  // relógio ATRASADO de quem enviou: o carimbo novo sai mais velho que o visto e conta como mudança do mesmo jeito.
+  for (const [rot, upd] of [['', '2026-02-01T00:00:00.000Z'], [' relógio atrasado', '2025-12-01T00:00:00.000Z']]) {
+    const V4 = '(v4)' + rot;
+    await caso({
+      nome: V4,
+      aceite: true, semHidratar: true, nativo: true,
+      local: { 'catedra:sessions': JSON.stringify([S1]), 'catedra:_dirty': '1', 'catedra:aceite': VELHO },
+      ct: { select: linhaCom({ 'catedra:sessions': JSON.stringify([S9]) }), leitorClaims: CLAIMS },
+    }, async (page, h) => {
+      ok(await naTela(h), R + V4 + ' a tela de aceite apareceu');
+      await page.evaluate(upd => localStorage.setItem('__ct:select', JSON.stringify({ data: { data: { 'catedra:sessions': JSON.stringify([{ id: 's9', up: 2000 }, { id: 's10', up: 3000 }]) }, updated_at: upd }, error: null })), upd);
+      const p = perguntador(page);
+      p.fila.push('aceitar');
+      await page.click('#ctacexcluir');
+      const avisou = await msgTem(h, /Outro aparelho enviou estudos/);
+      ok(avisou && await rpcs(page, 'excluir_minha_conta') === 0 && (await estado(page)).tela, R + V4 + ' a nuvem mudou depois que a tela abriu: a 1ª confirmação não exclui e pede outro toque');
+      if (!await page.$('#ctacexcluir')) { ok(false, R + V4 + ' o portão sumiu depois da 1ª confirmação: não há o 2º toque'); return; }
+      p.fila.push('aceitar');
+      await page.click('#ctacexcluir');
+      const saiu = await h.esperar(() => !!document.querySelector('#catedra-auth-gate #cte'), 10000);
+      const nat = await page.evaluate(() => JSON.parse(localStorage.getItem('__rep:ponte') || '[]'));
+      ok(saiu && await rpcs(page, 'excluir_minha_conta') === 1 && nat.length === 2 && !nat[0].ids.includes('s10') && nat[1].ids.includes('s10'),
+        R + V4 + ' o 2º toque gera o arquivo com o que chegou (s10) e só então exclui (' + nat.map(x => x.ids.join('+')).join(' → ') + ')');
+    });
+  }
+
+  // (v4w) o mesmo na web: o 1º toque entregou o arquivo da nuvem de quando a tela abriu. Com a nuvem nova, a confirmação não
+  // exclui, e o toque seguinte entrega OUTRO arquivo (com o s10) sem perguntar; sem o `entregue = ''`, ele perguntaria, e a
+  // resposta já na fila excluiria com o arquivo velho.
   await caso({
-    nome: '(v4)',
-    aceite: true, semHidratar: true, nativo: true,
+    nome: '(v4w)',
+    aceite: true, semHidratar: true,
     local: { 'catedra:sessions': JSON.stringify([S1]), 'catedra:_dirty': '1', 'catedra:aceite': VELHO },
-    ct: { select: linhaCom({ 'catedra:sessions': JSON.stringify([S9]) }), leitorClaims: CLAIMS },
+    ct: { select: linhaCom({ 'catedra:sessions': JSON.stringify([S9]) }) },
   }, async (page, h) => {
-    ok(await naTela(h), R + '(v4) a tela de aceite apareceu');
-    await page.evaluate(() => localStorage.setItem('__ct:select', JSON.stringify({ data: { data: { 'catedra:sessions': JSON.stringify([{ id: 's9', up: 2000 }, { id: 's10', up: 3000 }]) }, updated_at: '2026-02-01T00:00:00.000Z' }, error: null })));
+    ok(await naTela(h), R + '(v4w) a tela de aceite apareceu');
     const p = perguntador(page);
+    // o evento de download chega ao Node por fora do page.evaluate: espera por ele, com teto
+    const baixou = async n => { for (let i = 0; i < 50 && p.downloads.length < n; i++) await new Promise(r => setTimeout(r, 100)); return p.downloads.length >= n; };
+    await page.click('#ctacexcluir');
+    await msgTem(h, /toque de novo/);
+    await page.evaluate(() => localStorage.setItem('__ct:select', JSON.stringify({ data: { data: { 'catedra:sessions': JSON.stringify([{ id: 's9', up: 2000 }, { id: 's10', up: 3000 }]) }, updated_at: '2026-02-01T00:00:00.000Z' }, error: null })));
     p.fila.push('aceitar');
     await page.click('#ctacexcluir');
     const avisou = await msgTem(h, /Outro aparelho enviou estudos/);
-    ok(avisou && await rpcs(page, 'excluir_minha_conta') === 0 && (await estado(page)).tela, R + '(v4) a nuvem mudou depois que a tela abriu: a 1ª confirmação não exclui e pede outro toque');
-    if (!await page.$('#ctacexcluir')) { ok(false, R + '(v4) o portão sumiu depois da 1ª confirmação: não há o 2º toque'); return; }
-    p.fila.push('aceitar');
+    p.fila.push('aceitar');   // a resposta "já na fila": só o toque que pergunta a consome
+    await page.click('#ctacexcluir');
+    const entregouDeNovo = await msgTem(h, /entregue ao navegador\. Confira se ele foi salvo/);
+    await baixou(2);
+    const ids = async d => { try { return JSON.parse(JSON.parse(await lerDownload(d)).dados['catedra:sessions']).map(x => x.id); } catch (_) { return []; } };
+    const i0 = p.downloads[0] ? await ids(p.downloads[0]) : [], i1 = p.downloads[1] ? await ids(p.downloads[1]) : [];
+    ok(avisou && entregouDeNovo && await rpcs(page, 'excluir_minha_conta') === 0 && p.textos.length === 1 && p.downloads.length === 2 && !i0.includes('s10') && i1.includes('s10'),
+      R + '(v4w) com a nuvem nova, o toque seguinte entrega outro arquivo (com o s10) sem perguntar (' + p.textos.length + ' pergunta[s]; ' + i0.join('+') + ' → ' + i1.join('+') + ')');
+    if (!await page.$('#ctacexcluir')) { ok(false, R + '(v4w) o portão sumiu: excluiu com o arquivo velho'); return; }
     await page.click('#ctacexcluir');
     const saiu = await h.esperar(() => !!document.querySelector('#catedra-auth-gate #cte'), 10000);
-    const nat = await page.evaluate(() => JSON.parse(localStorage.getItem('__rep:ponte') || '[]'));
-    ok(saiu && await rpcs(page, 'excluir_minha_conta') === 1 && nat.length === 2 && !nat[0].ids.includes('s10') && nat[1].ids.includes('s10'),
-      R + '(v4) o 2º toque gera o arquivo com o que chegou (s10) e só então exclui (' + nat.map(x => x.ids.join('+')).join(' → ') + ')');
+    ok(saiu && await rpcs(page, 'excluir_minha_conta') === 1 && p.textos.length === 2, R + '(v4w) só o toque depois do arquivo novo pergunta e exclui');
   });
 
+  // (v5) app nativo SEM credencial conferida (o getClaims recusou): o {conta} não sai, o app recusa o {excluir} sem agendar e
+  // o aviso não promete limpeza "pendente"
+  await caso({
+    nome: '(v5)',
+    aceite: true, semHidratar: true, nativo: true,
+    local: { 'catedra:sessions': JSON.stringify([S1]), 'catedra:_dirty': '1', 'catedra:aceite': VELHO },
+    ct: { select: linhaCom({ 'catedra:sessions': JSON.stringify([S9]) }) },
+  }, async (page, h) => {
+    ok(await naTela(h), R + '(v5) a tela de aceite apareceu');
+    const p = perguntador(page);
+    p.fila.push('aceitar');
+    await page.click('#ctacexcluir');
+    const saiu = await h.esperar(() => !!document.querySelector('#catedra-auth-gate #cte') && !localStorage.getItem('catedra:sessions'), 10000);
+    const nat = await page.evaluate(() => ({ perfil: JSON.parse(localStorage.getItem('__rep:perfil') || '[]'), alertas: JSON.parse(localStorage.getItem('__rep:alert') || '[]') }));
+    ok(saiu && !nat.perfil.some(m => m.conta) && nat.perfil.some(m => m.excluir === U1.id) && nat.alertas.length === 1
+      && /não confirmou a limpeza/.test(nat.alertas[0]) && !/pendente/.test(nat.alertas[0]),
+      R + '(v5) sem credencial conferida, o aviso não promete limpeza pendente (' + JSON.stringify(nat) + ')');
+  });
   // (w) a nuvem tem o aceite de uma versão MAIS NOVA que a deste build (aceito no site ou num aparelho já atualizado), e
   // este é o app de build anterior: nenhuma abertura pede o aceite e o aparelho fica com o mais novo
   await caso({
@@ -1040,13 +1221,17 @@ async function casosPortao(caso, ok, R) {
    `semHidratar`: o próprio corpo conduz (e confere) a hidratação — tela de aceite, erro.
    `espiarFetch`: o mesmo registro de fetch/pagehide, sem mudar o caminho de entrada.
    `nativo`: a página ganha as pontes do app nativo. A catedraBackup registra o pedido em __rep:ponte (com os ids das
-   sessões do arquivo) e responde "salvo" depois de 600 ms, como o seletor de Arquivos do iPad; o confirm é embrulhado
-   para registrar (__rep:confirm) se a pergunta veio depois dessa resposta. A catedraPerfil faz como o
-   SessaoDosLeitores.receber (ios/vendor/comum/PerfilLeitor.swift): registra cada mensagem em __rep:perfil e só aceita o
-   {excluir} da última conta confirmada NESTE documento por {conta, expiraEm}; e o alert vira registro em __rep:alert.
+   sessões do arquivo) e responde "salvo" depois de 600 ms, como o seletor de Arquivos do iPad — ou nunca, com
+   __ct:ponteMuda (o seletor que não abriu); o confirm é embrulhado para registrar (__rep:confirm) se a pergunta veio
+   depois dessa resposta. A catedraPerfil faz como o handler e o SessaoDosLeitores.receber (mac/Sources/main.swift,
+   ios/Sources/main.swift, ios/vendor/comum/PerfilLeitor.swift): recusa corpo que não seja só texto ("Perfil inválido") e
+   conta que não seja UUID, registra cada mensagem em __rep:perfil e só aceita o {excluir} da última conta confirmada
+   NESTE documento por {conta, expiraEm}; e o alert vira registro em __rep:alert.
    `cota`: o setItem dessa chave no localStorage lança QuotaExceededError (cota cheia), e cada carga da fixture fica
-   contada em __rep:cargas. */
-async function casoBase(browser, base, ok, R, { nome, local, ct, hidratado, formulario, pendente, aceite, semHidratar, espiarFetch, nativo, cota }, corpo) {
+   contada em __rep:cargas.
+   `consomeProva`: como o _restoreProva do app (Catedra.dc.html), que no catedra:authuser lê o ct_prova, o APAGA e guarda o
+   simulado pausado só na memória. */
+async function casoBase(browser, base, ok, R, { nome, local, ct, hidratado, formulario, pendente, aceite, semHidratar, espiarFetch, nativo, cota, consomeProva }, corpo) {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await ctx.newPage();
   page.on('pageerror', e => console.log('ERRO NA PÁGINA (auth-hidratacao):', e.message));
@@ -1062,6 +1247,7 @@ async function casoBase(browser, base, ok, R, { nome, local, ct, hidratado, form
     if (nativo) {
       await ctx.addInitScript(() => {
         window.webkit = { messageHandlers: { catedraBackup: { postMessage: function (m) {
+          if (localStorage.getItem('__ct:ponteMuda') === 'true') return new Promise(() => {});   // o seletor que não abriu
           let ids = [];
           try { ids = JSON.parse((JSON.parse(m.json).dados || {})['catedra:sessions'] || '[]').map(x => x && x.id); } catch (_) {}
           const l = JSON.parse(localStorage.getItem('__rep:ponte') || '[]');
@@ -1071,13 +1257,16 @@ async function casoBase(browser, base, ok, R, { nome, local, ct, hidratado, form
         } } } };
         // {conta: ''} bloqueia os leitores sem esquecer a confirmação (o bloquear() do Swift não a zera)
         let confirmada = null;
+        const uuid = s => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s || '') ? s.toLowerCase() : null;
         window.webkit.messageHandlers.catedraPerfil = { postMessage: function (m) {
           const l = JSON.parse(localStorage.getItem('__rep:perfil') || '[]'); l.push(m); localStorage.setItem('__rep:perfil', JSON.stringify(l));
-          if (m && m.excluir != null) {
-            if (m.excluir !== confirmada) return Promise.reject(new Error('Não foi possível atualizar os dados locais desta conta.'));
+          if (!m || typeof m !== 'object' || Object.keys(m).some(k => typeof m[k] !== 'string')) return Promise.reject(new Error('Perfil inválido'));
+          if (m.excluir != null) {
+            if (!uuid(m.excluir) || uuid(m.excluir) !== confirmada) return Promise.reject(new Error('Não foi possível atualizar os dados locais desta conta.'));
             confirmada = null; return Promise.resolve(true);
           }
-          if (m && m.conta && +m.expiraEm * 1000 > Date.now()) confirmada = m.conta;
+          if (m.conta == null) return Promise.reject(new Error('Não foi possível atualizar os dados locais desta conta.'));
+          if (uuid(m.conta) && /^\d+$/.test(m.expiraEm || '') && +m.expiraEm * 1000 > Date.now()) confirmada = uuid(m.conta);
           return Promise.resolve(true);
         } };
         window.alert = function (t) { const l = JSON.parse(localStorage.getItem('__rep:alert') || '[]'); l.push(String(t)); localStorage.setItem('__rep:alert', JSON.stringify(l)); };
@@ -1088,6 +1277,11 @@ async function casoBase(browser, base, ok, R, { nome, local, ct, hidratado, form
           localStorage.setItem('__rep:confirm', JSON.stringify(l));
           return conf(t);
         };
+      });
+    }
+    if (consomeProva) {
+      await ctx.addInitScript(() => {
+        window.addEventListener('catedra:authuser', () => { try { localStorage.removeItem('ct_prova'); } catch (_) {} });
       });
     }
     if (cota) {

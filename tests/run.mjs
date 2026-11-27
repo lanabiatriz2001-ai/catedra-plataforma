@@ -3600,7 +3600,9 @@ await comCadernoEnam(async (page) => {
       const pol = fs.readFileSync(path.join(RAIZ, 'docs', 'juridico', 'politica-de-privacidade.md'), 'utf8').replace(/\*\*Vers[ãa]o\s+[\d.]+/, '**Versão 1.4.');
       fs.writeFileSync(path.join(tmp, 'docs', 'juridico', 'politica-de-privacidade.md'), pol);
       const b = spawnSync(process.execPath, [path.join(tmp, 'scripts', 'build-juridico.mjs')], { cwd: tmp, encoding: 'utf8', timeout: 30000 });
-      r.versaoForaDoFormatoBarraOBuild = b.status !== 0 && /fora do formato/.test(b.stderr || '') && !fs.existsSync(path.join(tmp, 'juridico.js'));
+      // o motivo dito é o de verdade: o aceite idêntico vale, mas a versão fora do formato não se compara com as outras
+      r.versaoForaDoFormatoBarraOBuild = b.status !== 0 && /fora do formato/.test(b.stderr || '') && /não se compara com as outras versões/.test(b.stderr || '')
+        && !/recusaria até o aceite desta/.test(b.stderr || '') && !fs.existsSync(path.join(tmp, 'juridico.js'));
     } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
   }
   {

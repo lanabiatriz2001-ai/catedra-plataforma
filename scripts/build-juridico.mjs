@@ -161,9 +161,10 @@ export function gerar() {
     const { md, faltam } = preencher(readFileSync(join(ROOT, doc.md), 'utf8'), dados);
     const cab = cabecalho(md);
     if (!cab.versao) throw new Error(doc.md + ': sem linha "**Versão X.Y …**" no cabeçalho — o aceite é versionado e precisa dela');
-    // O cabeçalho é lido com [\d.]+, que aceita "1.4.", "1..4" e ".4"; o aceite compara as versões parte a parte, só com
-    // números, e recusaria até o aceite desta (o portão voltaria a cada abertura). Versão assim não sai do build.
-    if (!/^\d+(\.\d+)*$/.test(cab.versao)) throw new Error(doc.md + ': versão "' + cab.versao + '" fora do formato (números separados por ponto, como 1.3) — o aceite compara as versões parte a parte e recusaria até o aceite desta');
+    // O cabeçalho é lido com [\d.]+, que aceita "1.4.", "1..4" e ".4". O aceite idêntico ao vigente vale (J.aceiteVigente),
+    // mas uma versão assim não se compara com nenhuma outra: o aceite de versão mais nova, dado no site ou em aparelho já
+    // atualizado, não valeria neste build, e a mescla (aceiteVencedor) trocaria na nuvem esse aceite pelo desta versão.
+    if (!/^\d+(\.\d+)*$/.test(cab.versao)) throw new Error(doc.md + ': versão "' + cab.versao + '" fora do formato (números separados por ponto, como 1.3) — com ela o aceite não se compara com as outras versões: o de versão mais nova não valeria neste build, e a mescla o trocaria na nuvem pelo desta');
     writeFileSync(join(ROOT, doc.html), montarPagina(doc, md, faltam));
     info[doc.id] = { versao: cab.versao, data: cab.dataISO, titulo: doc.titulo, arquivo: doc.html };
     faltamTotal = faltamTotal.concat(faltam.filter((f) => !faltamTotal.includes(f)));
@@ -174,8 +175,9 @@ export function gerar() {
   // O aceite de versão MAIS NOVA também vale. A mescla do auth.js (aceiteVencedor) dá a vitória ao aceite
   // mais novo; com igualdade estrita, o app de build mais velho que o aceite da nuvem (aceito no site ou
   // num aparelho já atualizado) pedia o aceite a cada abertura, e a mescla seguinte o desfazia. Cada
-  // documento é comparado em separado, parte a parte e só com números; versão fora do formato, ou com
-  // outro número de documentos, não vale. Sintaxe ES5: o JavaScriptCore do Mac e do iPad lê este arquivo.
+  // documento é comparado em separado, parte a parte e só com números; a versão idêntica à vigente sempre vale;
+  // outra fora do formato, ou com outro número de documentos, não vale. Sintaxe ES5: o JavaScriptCore do Mac e do
+  // iPad lê este arquivo.
   const js = '// juridico.js — GERADO por scripts/build-juridico.mjs a partir de docs/juridico/*.md. Não editar à mão.\n'
     + '// A versão vigente do aceite é "termos/privacidade"; catedra:aceite guarda {versao, ts}.\n'
     + '(function (raiz) {\n  var J = ' + JSON.stringify({ versao, termos: info.termos, privacidade: info.privacidade }) + ';\n'
