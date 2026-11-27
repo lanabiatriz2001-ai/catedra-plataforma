@@ -38,6 +38,8 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;mostr
 <!-- ENAM: as oito áreas do quadro 8.6, a duração e as metas — constante única (enam.js) -->
 <script src="./enam.js"></script>
 <script src="./juridico.js"></script>
+<!-- Console de administração: panorama e resposta de relato por e-mail (miolo puro, testável) -->
+<script src="./admin-console.js"></script>
 <!-- C2: para onde mandar praticar questões (só link de saída — nada é copiado de lá) -->
 <link rel="stylesheet" href="./catedra-ui.css">
 <script src="./area-registry.js"></script>
@@ -645,6 +647,38 @@ html.ct-teclado .ct-scroll{ padding-bottom:12px !important; }
 .adm-log{display:grid;grid-template-columns:104px 128px minmax(120px,1fr) minmax(90px,.8fr);gap:10px;
   padding:8px 14px;border-top:1px solid var(--k-line);font-size:var(--fs-xs);}
 @media (max-width:760px){.adm-log{grid-template-columns:1fr 1fr;}}
+/* Panorama da visão geral: os seis números num cartão só. Rótulo e detalhe em --k-dim
+   (6,4:1 sobre --k-panel2; o --k-dim2 dá 3,2:1). "Indisponível" troca o número pelo motivo.
+   `>` e não descendente: o runtime embrulha cada {{ }} num <span class="sc-interp">.
+   Duas fileiras de três (contas | operação), as seis numa fileira quando cabem, duas colunas no
+   celular. Quem decide é a largura do cartão, não a da janela: o menu lateral come espaço. */
+.adm-panel[data-adm="panorama"]{container-type:inline-size;container-name:admpano;}
+.adm-pano{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--ct-e3);}
+@container admpano (min-width:30rem){.adm-pano{grid-template-columns:repeat(3,minmax(0,1fr));}}
+@container admpano (min-width:62rem){.adm-pano{grid-template-columns:repeat(6,minmax(0,1fr));}}
+.adm-pano > div{background:var(--k-panel2);border-radius:var(--r-sm);padding:var(--ct-e3) var(--ct-e4);min-width:0;}
+.adm-pano > div > b{display:block;font:650 calc(var(--fs-2xl) * 1.5)/1.12 var(--k-mono);font-variant-numeric:tabular-nums;color:var(--k-ink);}
+.adm-pano > div > span{display:block;margin-top:var(--ct-e2);font-size:var(--fs-2xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--k-dim);}
+.adm-pano > div > i{display:block;margin-top:var(--ct-e1);font-style:normal;font-size:var(--fs-xs);line-height:1.4;color:var(--k-dim);overflow-wrap:anywhere;}
+.adm-pano > div[data-indisp="1"] > b{font-size:var(--fs-md);color:var(--k-warn);}
+/* Painel cuja fonte não carregou (recursos, cadastros, "Pede atenção" sem a visão geral): o aviso
+   fica no âmbar do "indisponível" do Panorama; "carregando…" em --k-dim. O --k-dim2 do .adm-empty
+   daria 3,45:1 sobre --k-panel. */
+.adm-empty[data-adm-fonte]{color:var(--k-dim);}
+.adm-empty[data-adm-fonte="falhou"]{color:var(--k-warn);}
+/* O número dos indicadores pintava a 11 px, em caixa alta e sem a cor de alerta: `.adm-kpi span`
+   pegava o <span class="sc-interp"> de dentro do <b>. Ele volta a herdar do <b>. O mesmo span, no
+   rótulo, dobrava a margem; no detalhe (<i>), o deixava em caixa alta e negrito. O detalhe vai para
+   --k-dim: o --k-dim2 do <i> dá 3,45:1 sobre --k-panel. */
+.adm-kpi > b > .sc-interp{display:inline;margin:0;font:inherit;letter-spacing:inherit;text-transform:none;color:inherit;}
+.adm-kpi > span > .sc-interp, .adm-kpi > i > .sc-interp{display:inline;margin:0;font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit;}
+.adm-kpi > i{color:var(--k-dim);}
+/* Resposta por e-mail (Suporte): o link tem a forma do botão e, no toque, os 44 px dele. */
+.adm a.adm-btn{display:inline-flex;align-items:center;text-decoration:none;}
+.adm-resp{margin-top:var(--ct-e3);display:flex;flex-direction:column;gap:var(--ct-e2);}
+.adm-resp label{font-size:var(--fs-xs);color:var(--k-dim);}
+/* relato ainda não lido (lido=false): o que o "Feedbacks não lidos" do Panorama conta */
+.adm-pill[data-adm-naolido]{color:var(--k-ink);background:color-mix(in oklab, var(--k-acc) 30%, transparent);}
 /* ---- calendário grande (grade em largura total) ---- */
 .ct-calwrap{display:flex;flex-direction:column;gap:16px;}
 .ct-calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
@@ -6381,14 +6415,18 @@ window.ctPdfLib = (function(){
 
             <!-- ══════════════ VISÃO GERAL ══════════════ -->
             <sc-if value="{{ admTabVisao }}" hint-placeholder-val="{{ true }}">
-              <div class="adm-grid adm-kpis">
-                <sc-for list="{{ admSaude }}" as="m" hint-placeholder-count="4">
-                  <div class="adm-kpi"><b style="{{ m.cor }}">{{ m.v }}</b><span>{{ m.k }}</span><i>{{ m.sub }}</i></div>
-                </sc-for>
+              <!-- Panorama: os seis números num cartão só; o miolo é admin-console.js -->
+              <div class="adm-panel" data-adm="panorama">
+                <header><h3>Panorama</h3><p>o essencial do beta num cartão</p></header>
+                <div class="in adm-pano">
+                  <sc-for list="{{ admPanorama }}" as="p" hint-placeholder-count="6">
+                    <div data-pano="{{ p.id }}" data-indisp="{{ p.indisp }}"><b>{{ p.valor }}</b><span>{{ p.rotulo }}</span><i>{{ p.detalhe }}</i></div>
+                  </sc-for>
+                </div>
               </div>
               <div class="adm-grid adm-kpis">
-                <sc-for list="{{ admIndicadores }}" as="m" hint-placeholder-count="3">
-                  <div class="adm-kpi"><b>{{ m.v }}</b><span>{{ m.k }}</span><i>{{ m.sub }}</i></div>
+                <sc-for list="{{ admIndicadores }}" as="m" hint-placeholder-count="4">
+                  <div class="adm-kpi"><b style="{{ m.cor }}">{{ m.v }}</b><span>{{ m.k }}</span><i>{{ m.sub }}</i></div>
                 </sc-for>
               </div>
 
@@ -6397,6 +6435,9 @@ window.ctPdfLib = (function(){
                 <header><h3>Pede atenção</h3><p>o que está torto agora</p></header>
                 <sc-if value="{{ admSemAtencao }}" hint-placeholder-val="{{ false }}">
                   <div class="adm-empty">Nada pendente. Beta saudável.</div>
+                </sc-if>
+                <sc-if value="{{ admAtencaoIndisp }}" hint-placeholder-val="{{ false }}">
+                  <div class="adm-empty" data-adm-fonte="{{ admVisaoFonte }}">{{ admVisaoAviso }}</div>
                 </sc-if>
                 <sc-for list="{{ admAtencao }}" as="a" hint-placeholder-count="3">
                   <div class="adm-row" style="grid-template-columns:8px 1fr auto;">
@@ -6411,6 +6452,9 @@ window.ctPdfLib = (function(){
                 <div class="adm-panel">
                   <header><h3>Uso de recursos</h3><p>contas que tocam cada parte</p></header>
                   <div class="in" style="display:flex;flex-direction:column;gap:11px;">
+                    <sc-if value="{{ admVisaoIndisp }}" hint-placeholder-val="{{ false }}">
+                      <div class="adm-empty" data-adm-fonte="{{ admVisaoFonte }}">{{ admVisaoAviso }}</div>
+                    </sc-if>
                     <sc-for list="{{ admRecursos }}" as="r" hint-placeholder-count="9">
                       <div>
                         <div style="display:flex;justify-content:space-between;font-size:var(--fs-xs);margin-bottom:4px;"><span style="color:var(--k-dim);">{{ r.label }}</span><span class="adm-num">{{ r.n }} · {{ r.pctLabel }}</span></div>
@@ -6431,6 +6475,9 @@ window.ctPdfLib = (function(){
                     </sc-if>
                     <sc-if value="{{ admSemCrescimento }}" hint-placeholder-val="{{ false }}">
                       <div class="adm-empty">Nenhum cadastro nas últimas semanas.</div>
+                    </sc-if>
+                    <sc-if value="{{ admVisaoIndisp }}" hint-placeholder-val="{{ false }}">
+                      <div class="adm-empty" data-adm-fonte="{{ admVisaoFonte }}">{{ admVisaoAviso }}</div>
                     </sc-if>
                   </div>
                 </div>
@@ -6648,14 +6695,15 @@ window.ctPdfLib = (function(){
                 <header><h3>Bugs e feedback</h3><p>o que chegou de dentro do app</p></header>
                 <sc-if value="{{ admFeedbackVazio }}" hint-placeholder-val="{{ true }}"><div class="adm-empty">Nenhum relato ainda.</div></sc-if>
                 <sc-for list="{{ admFeedback }}" as="f" hint-placeholder-count="3">
-                  <div style="border-top:1px solid var(--k-line);padding:14px 16px;">
+                  <div data-adm-relato="{{ f.id }}" style="border-top:1px solid var(--k-line);padding:var(--ct-e3) var(--ct-e4);">
                     <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:7px;">
                       <span class="adm-pill" style="{{ f.statusStyle }}">{{ f.status }}</span>
+                      <sc-if value="{{ f.naoLido }}" hint-placeholder-val="{{ false }}"><span class="adm-pill" data-adm-naolido="1">não lido</span></sc-if>
                       <span style="font-size:var(--fs-xs);color:var(--k-dim);">{{ f.email }} · {{ f.quando }}</span>
                     </div>
                     <div style="font-size:var(--fs-sm);line-height:1.6;white-space:pre-wrap;color:var(--k-ink);font-family:var(--body);">{{ f.mensagem }}</div>
                     <sc-if value="{{ f.temNota }}" hint-placeholder-val="{{ false }}">
-                      <div style="margin-top:9px;border:1px solid color-mix(in oklab, var(--k-acc) 38%, var(--border));padding-left:10px;font-size:var(--fs-xs);color:var(--k-dim);background-image:linear-gradient(90deg,color-mix(in oklab, var(--k-acc) 19%, transparent),transparent 46%);">nota: {{ f.nota }}</div>
+                      <div data-adm-nota="1" style="margin-top:var(--ct-e2);border:1px solid color-mix(in oklab, var(--k-acc) 38%, var(--border));padding-left:var(--ct-e3);font-size:var(--fs-xs);color:var(--k-dim);white-space:pre-wrap;background-image:linear-gradient(90deg,color-mix(in oklab, var(--k-acc) 19%, transparent),transparent 46%);">nota: {{ f.nota }}</div>
                     </sc-if>
                     <div style="font-size:var(--fs-2xs);color:var(--k-dim2);margin-top:8px;">{{ f.ctx }}</div>
                     <div class="adm-acts" style="margin-top:10px;">
@@ -6663,8 +6711,30 @@ window.ctPdfLib = (function(){
                       <button class="adm-btn" data-on="{{ f.onAnd }}" data-id="{{ f.id }}" data-status="andamento" onclick="{{ adminFeedbackStatus }}">Em andamento</button>
                       <button class="adm-btn" data-on="{{ f.onRes }}" data-id="{{ f.id }}" data-status="resolvido" onclick="{{ adminFeedbackStatus }}">Resolvido</button>
                       <button class="adm-btn ghost" data-id="{{ f.id }}" onclick="{{ admNotaFeedback }}">Nota interna</button>
+                      <!-- ler sem agir também conta: sem isto o "não lidos" do Panorama só caía com status ou nota -->
+                      <sc-if value="{{ f.naoLido }}" hint-placeholder-val="{{ false }}">
+                        <button class="adm-btn ghost" data-id="{{ f.id }}" data-adm-ler="1" onclick="{{ adminLerFeedback }}">Marcar como lido</button>
+                      </sc-if>
+                      <!-- abre o e-mail com assunto e corpo iniciais e deixa aberto, aqui, o registro da resposta -->
+                      <sc-if value="{{ f.temEmail }}" hint-placeholder-val="{{ false }}">
+                        <a class="adm-btn ghost" href="{{ f.mailto }}" data-id="{{ f.id }}" data-adm-responder="1" onclick="{{ admAbrirResposta }}">Responder por e-mail</a>
+                      </sc-if>
+                      <!-- no app do Mac o mailto: não sai do app (ver _admMailtoMudo): copia o endereço e abre o mesmo registro -->
+                      <sc-if value="{{ f.copiaEmail }}" hint-placeholder-val="{{ false }}">
+                        <button class="adm-btn ghost" data-id="{{ f.id }}" data-adm-copiar="1" onclick="{{ admCopiarEndereco }}">Copiar endereço</button>
+                      </sc-if>
                       <button class="adm-btn bad" data-id="{{ f.id }}" onclick="{{ admApagarFeedback }}">Apagar</button>
                     </div>
+                    <sc-if value="{{ f.respAberta }}" hint-placeholder-val="{{ false }}">
+                      <div class="adm-resp" data-adm-resp="1">
+                        <label for="adm-resp-txt">O que você respondeu a {{ f.email }}. Vai para a nota interna com data e hora, depois da nota que já existe.</label>
+                        <textarea id="adm-resp-txt" class="adm-in" rows="4" value="{{ admRespTxt }}" oninput="{{ onAdmRespTxt }}" style="resize:vertical;line-height:1.5;"></textarea>
+                        <div class="adm-acts">
+                          <button class="adm-btn ok" data-id="{{ f.id }}" onclick="{{ admRegistrarResposta }}">Registrar resposta</button>
+                          <button class="adm-btn ghost" onclick="{{ admFecharResposta }}">Cancelar</button>
+                        </div>
+                      </div>
+                    </sc-if>
                   </div>
                 </sc-for>
               </div>
@@ -7742,6 +7812,9 @@ class Component extends DCLogic {
       avisoGlobal:null, avisoFechado:'',
       admTab:'visao', admBusca:'', admFiltro:'todas', admOrdem:'ultimo',
       admSel:'', admConfirmTxt:'', admAvisoTxt:'', admAvisoTipo:'info', admAvisoDirty:false,
+      // Panorama (só a contagem da lista de espera e quais fontes carregaram) e o registro da
+      // resposta por e-mail (com o rascunho de cada relato): estado de tela, fora do autosave.
+      adminListaEspera:null, adminFonteOk:null, admRespId:'', admRespTxt:'', admRespRasc:{},
       // Recorte da aba Bancas: área do concurso + banca + matéria + assunto.
       // bancaAreaConc vazio = segue a área de estudo escolhida no app.
       bancaAreaSel:this._load('bancaAreaSel',''), bancaDicas:this._load('bancaDicas',{}), bancaBusy:'',
@@ -17174,7 +17247,10 @@ class Component extends DCLogic {
   // Uma rodada só puxa tudo: as sete abas do console leem do mesmo instantâneo, senão
   // trocar de aba viraria um piscar de tela a cada clique.
   _loadAdmin = async ()=>{
-    const sb=this._sb(); if(!sb){ this.setState({adminErro:'Sem conexão com o servidor.'}); return; }
+    const sb=this._sb(); if(!sb){ this.setState({adminErro:'Sem conexão com o servidor.',
+      // sem cliente, o Panorama diz "indisponível" (e por quê) em vez de ficar em "carregando…"
+      adminFonteOk: this.state.adminFonteOk || {visao:false, feedback:false, erros:false, config:false, acessoNegado:false},
+      adminListaEspera: this.state.adminListaEspera || {n:null, motivo:'sem conexão'}}); return; }
     this.setState({adminBusy:true, adminErro:''});
     const arr=(r)=> (r && !r.error && Array.isArray(r.data)) ? r.data : [];
     const obj=(r)=> (r && !r.error && r.data && typeof r.data==='object') ? r.data : null;
@@ -17184,20 +17260,26 @@ class Component extends DCLogic {
         try{ const r=await sb.rpc(nome,args); if(!r || r.error) throw (r && r.error); return r; }
         catch(e){ falhas.push({rotulo,erro:e}); return null; }
       };
-      const [vg,fb,gr,al,ia,sis,cfg,lg,erros,telas,cotas]=await Promise.all([
+      // A lista de espera fica fora de `falhas`: função ausente no banco vira "indisponível" no
+      // Panorama, não a faixa vermelha do console inteiro. Do resultado, só a contagem fica.
+      const esperaP=(async()=>{ try{ return await sb.rpc('admin_lista_espera'); }catch(e){ return {data:null,error:e}; } })();
+      const [vg,fb,gr,al,ia,sis,cfg,lg,erros,telas,cotas,espera]=await Promise.all([
         consultar('admin_visao_geral',undefined,'visão geral'), consultar('admin_feedback',undefined,'feedback'),
         consultar('admin_grupos',undefined,'grupos'), consultar('admin_allow_list',undefined,'convites'),
         consultar('admin_uso_ia',undefined,'uso de IA'), consultar('admin_sistema',undefined,'sistema'),
         consultar('admin_config',undefined,'configuração'), consultar('admin_logs',{p_limit:200},'auditoria'),
         consultar('admin_erros_cliente',{p_horas:24},'erros'), consultar('admin_uso_telas',{p_dias:7},'uso das telas'),
-        consultar('admin_ia_cota',undefined,'cotas')
+        consultar('admin_ia_cota',undefined,'cotas'), esperaP
       ]);
       const acessoNegado=falhas.length===11 && falhas.some(f=>/acesso_negado/.test(String(f.erro&&f.erro.message)));
       const adminErro=acessoNegado?'Esta conta não é administradora.':falhas.length?'Não foi possível carregar: '+falhas.map(f=>f.rotulo).join(', ')+'.':'';
       const teErr=arr(erros), teTelas=obj(telas), teCota=arr(cotas);
       const conf=obj(cfg)||{};
       const av=(conf.aviso&&typeof conf.aviso==='object')?conf.aviso:{};
+      const _A=window.CT_ADMIN;
       this.setState({ adminErro, adminData:obj(vg), adminErros:teErr, adminTelas:teTelas, adminCota:teCota,
+        adminListaEspera: _A ? _A.listaEspera(espera) : {n:null, motivo:'falha ao consultar'},
+        adminFonteOk:{ visao:!!vg, feedback:!!fb, erros:!!erros, config:!!cfg, acessoNegado },
         adminFeedback:arr(fb), adminGrupos:arr(gr), adminAllow:arr(al),
         adminIa:obj(ia), adminSistema:obj(sis), adminConfig:conf, adminLogs:arr(lg),
         // o texto do aviso só é resincronizado quando não está sendo editado, para o
@@ -17207,7 +17289,10 @@ class Component extends DCLogic {
         adminBusy:false });
     }catch(err){
       const msg=String((err&&err.message)||err||'');
-      this.setState({adminBusy:false, adminErro: /acesso_negado/i.test(msg) ? 'Esta conta não é administradora.' : (this._erroComunidade(err)||'Não foi possível carregar o console.') });
+      this.setState({adminBusy:false, adminErro: /acesso_negado/i.test(msg) ? 'Esta conta não é administradora.' : (this._erroComunidade(err)||'Não foi possível carregar o console.'),
+        // sem rodada anterior, o Panorama sai de "carregando…" para "indisponível"
+        adminFonteOk: this.state.adminFonteOk || {visao:false, feedback:false, erros:false, config:false, acessoNegado:/acesso_negado/i.test(msg)},
+        adminListaEspera: this.state.adminListaEspera || {n:null, motivo:'falha ao consultar'} });
     }
   };
   // Traduz o código que o banco levanta. Sem isto, a tela mostra "confirmacao_invalida"
@@ -17313,30 +17398,117 @@ class Component extends DCLogic {
   };
 
   // ── Suporte ──────────────────────────────────────────────────────────────
+  // "Marcar como lido" (admin_marcar_feedback, com is_admin no banco): o "Feedbacks não lidos"
+  // do Panorama cai sem precisar mexer em status nem em nota.
   _adminLerFeedback = async (e)=>{
     const id=e.currentTarget.dataset.id; const sb=this._sb(); if(!sb||!id) return;
-    try{ const r=await sb.rpc('admin_marcar_feedback', {p_id:Number(id), p_lido:true}); if(r.error) throw r.error;
+    try{ const r=await sb.rpc('admin_marcar_feedback', {p_id:Number(id), p_lido:true}); if(!r || r.error) throw (r && r.error);
       this.setState(s=>({adminFeedback:(s.adminFeedback||[]).map(f=>String(f.id)===String(id)?{...f,lido:true}:f)}));
-    }catch(_){}
+    }catch(_){ this._toast('Não deu para marcar como lido'); }
+  };
+  // admin_feedback_set regrava a nota INTEIRA (nota_admin = p_nota). Por isso toda escrita relê a
+  // linha antes e parte da nota de AGORA: um console aberto há dias no outro aparelho apagaria, em
+  // silêncio, a resposta registrada aqui. Leitura que falha lança (e nada se grava); relato que não
+  // está na releitura (apagado, ou fora dos 200 mais recentes) volta null.
+  _admRelerFeedback = async (sb, id)=>{
+    const r=await sb.rpc('admin_feedback'); if(!r || r.error) throw ((r && r.error) || new Error('sem resposta'));
+    if(!Array.isArray(r.data)) throw new Error('resposta inesperada');
+    return r.data.find(x=>x && String(x.id)===String(id)) || null;
+  };
+  _admRelatoSumiu = ()=>{
+    this._toast('Este relato não está mais no servidor (ou saiu dos 200 mais recentes). Nada foi gravado.');
+    this._loadAdmin();
   };
   // Status do feedback (novo → andamento → resolvido): mini-quadro de tarefas.
   _adminFeedbackStatus = async (e)=>{
     const id=e.currentTarget.dataset.id; const st=e.currentTarget.dataset.status; const sb=this._sb(); if(!sb||!id) return;
-    const nota=(this.state.adminFeedback||[]).reduce((a,f)=>String(f.id)===String(id)?(f.nota_admin||null):a,null);
-    try{ const r=await sb.rpc('admin_feedback_set', {p_id:Number(id), p_status:st, p_nota:nota}); if(r.error) throw r.error;
-      this.setState(s=>({adminFeedback:(s.adminFeedback||[]).map(f=>String(f.id)===String(id)?{...f,status:st,lido:true}:f)}));
+    try{ const f=await this._admRelerFeedback(sb, id); if(!f){ this._admRelatoSumiu(); return; }
+      const r=await sb.rpc('admin_feedback_set', {p_id:Number(id), p_status:st, p_nota:f.nota_admin||null}); if(!r || r.error) throw (r && r.error);
+      this.setState(s=>({adminFeedback:(s.adminFeedback||[]).map(x=>String(x.id)===String(id)?{...x,nota_admin:f.nota_admin,status:st,lido:true}:x)}));
     }catch(_){ this._toast('Não deu para atualizar'); }
   };
+  // O window.prompt é de uma linha (no Mac, um NSTextField): reescrever ali uma nota de várias
+  // linhas (a que guarda respostas registradas) colaria as linhas. Nesse caso o texto entra no fim;
+  // o campo vazio, depois de confirmar, apaga a nota inteira (o jeito de tirar uma resposta
+  // registrada no relato errado sem apagar o relato).
   _admNotaFeedback = async (e)=>{
-    const id=e.currentTarget.dataset.id; const sb=this._sb(); if(!sb||!id) return;
-    const atual=(this.state.adminFeedback||[]).reduce((a,f)=>String(f.id)===String(id)?(f.nota_admin||''):a,'');
-    const nota=window.prompt('Nota interna (só você vê):', atual);
-    if(nota===null) return;
-    const st=(this.state.adminFeedback||[]).reduce((a,f)=>String(f.id)===String(id)?(f.status||'novo'):a,'novo');
-    try{ const r=await sb.rpc('admin_feedback_set', {p_id:Number(id), p_status:st, p_nota:nota}); if(r.error) throw r.error;
-      this.setState(s=>({adminFeedback:(s.adminFeedback||[]).map(f=>String(f.id)===String(id)?{...f,nota_admin:nota,lido:true}:f)}));
-      this._toast('Nota salva');
+    const id=e.currentTarget.dataset.id; const sb=this._sb(); const A=window.CT_ADMIN; if(!sb||!id||!A) return;
+    let f0=null;
+    try{ f0=await this._admRelerFeedback(sb, id); }catch(_){ this._toast('Não deu para ler a nota atual'); return; }
+    if(!f0){ this._admRelatoSumiu(); return; }
+    const atual=String(f0.nota_admin||''), varias=/\n/.test(atual);
+    const dig=window.prompt(varias ? 'Nota interna (só você vê). Esta nota tem várias linhas: o que você escrever aqui entra no fim, numa linha nova. Com o campo vazio, dá para apagar a nota inteira.' : 'Nota interna (só você vê):', varias ? '' : atual);
+    if(dig===null) return;
+    const limpar=varias && A.acrescentarNota(atual, dig)===null;
+    if(limpar && !window.confirm('Apagar a nota interna inteira deste relato, com as respostas registradas nela? Não tem desfazer.')) return;
+    try{
+      // relê de novo: o campo pode ter ficado aberto enquanto outro aparelho mudava a nota
+      const f=await this._admRelerFeedback(sb, id); if(!f){ this._admRelatoSumiu(); return; }
+      const agora=String(f.nota_admin||'');
+      // reescrever ou apagar parte da nota que você viu: se ela mudou nesse meio-tempo, nada vai por cima
+      if((!varias || limpar) && agora!==atual){
+        this.setState(s=>({adminFeedback:(s.adminFeedback||[]).map(x=>String(x.id)===String(id)?{...x,nota_admin:f.nota_admin}:x)}));
+        this._toast('A nota mudou em outro aparelho enquanto você editava. Nada foi gravado: abra de novo.'); return;
+      }
+      const nota=limpar ? '' : varias ? A.acrescentarNota(agora, dig) : dig;
+      const r=await sb.rpc('admin_feedback_set', {p_id:Number(id), p_status:f.status||'novo', p_nota:nota}); if(!r || r.error) throw (r && r.error);
+      this.setState(s=>({adminFeedback:(s.adminFeedback||[]).map(x=>String(x.id)===String(id)?{...x,status:f.status||x.status,nota_admin:nota,lido:true}:x)}));
+      this._toast(limpar ? 'Nota apagada' : 'Nota salva');
     }catch(_){ this._toast('Não deu para salvar a nota'); }
+  };
+  // Resposta por e-mail: o link abre o e-mail (mailto: de admin-console.js) e deixa aberto o
+  // registro. O texto entra em nota_admin pelo admin_feedback_set de sempre (p_id, p_status,
+  // p_nota), com prefixo datado e DEPOIS da nota que já havia.
+  admAbrirResposta = (e)=>{   // sem preventDefault: o clique segue para o mailto:
+    const id=String(e.currentTarget.dataset.id||''); if(!id || this.state.admRespId===id) return;
+    // um rascunho por relato: abrir outro guarda o texto deste, e voltar a ele o traz de volta
+    const rasc={...(this.state.admRespRasc||{})}, aberto=String(this.state.admRespId||'');
+    if(aberto) rasc[aberto]=this.state.admRespTxt||'';
+    this.setState({admRespId:id, admRespTxt:rasc[id]||'', admRespRasc:rasc});
+  };
+  // No app do Mac o mailto: não sai do WKWebView: decidePolicyFor (mac/Sources/main.swift) só manda
+  // http(s) para fora, e o clique morria em silêncio. O Mac se reconhece pela ponte catedraBackup sem
+  // a catedraAcervo, que só o iPad tem (ver _backupNativoPedeDialogo). Quando o host do Mac passar a
+  // abrir o Mail, ele declara window.__catedraMailto=true e o link volta.
+  _admMailtoMudo(){ try{ const mh=window.webkit&&window.webkit.messageHandlers; return !!(mh&&mh.catedraBackup&&!mh.catedraAcervo) && window.__catedraMailto!==true; }catch(_){ return false; } }
+  // Área de transferência, com o mesmo recurso de copiarRelatorio; resolve false quando não deu.
+  _admCopiar(txt){ return new Promise((res)=>{
+    const manual=()=>{ try{ const ta=document.createElement('textarea'); ta.value=txt; ta.setAttribute('readonly','');
+      ta.style.cssText='position:fixed;left:-9999px;top:0;'; document.body.appendChild(ta); ta.select();
+      const ok=document.execCommand('copy'); document.body.removeChild(ta); res(!!ok); }catch(_){ res(false); } };
+    try{ if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(()=>res(true), manual); else manual(); }catch(_){ manual(); }
+  }); }
+  // "Copiar endereço" (só no app do Mac): o endereço vai para a área de transferência e o registro
+  // da resposta abre, como depois do mailto: na web e no iPad.
+  admCopiarEndereco = (e)=>{
+    const id=String(e.currentTarget.dataset.id||'');
+    const f=(this.state.adminFeedback||[]).find(x=>x && String(x.id)===id), em=f ? String(f.email||'').trim() : '';
+    this.admAbrirResposta(e);
+    if(!em) return;
+    this._admCopiar(em).then(ok=> this._toast(ok ? 'Endereço copiado: escreva a resposta no Mail e registre aqui o que respondeu.' : 'Não deu para copiar: o endereço está no campo abaixo.'));
+  };
+  onAdmRespTxt = (e)=> this.setState({admRespTxt:e.currentTarget.value});
+  admFecharResposta = ()=>{   // Cancelar descarta o rascunho deste relato
+    const rasc={...(this.state.admRespRasc||{})}; delete rasc[String(this.state.admRespId||'')];
+    this.setState({admRespId:'', admRespTxt:'', admRespRasc:rasc});
+  };
+  admRegistrarResposta = async (e)=>{
+    const id=String(e.currentTarget.dataset.id||''); const A=window.CT_ADMIN; const sb=this._sb();
+    if(!id || !A || this._admRespGravando) return;   // clique duplo não grava a resposta duas vezes
+    if(!sb){ this._toast('Sem conexão com o servidor.'); return; }
+    const txt=this.state.admRespTxt;
+    if(!A.notaComResposta('', txt, new Date())){ this._toast('Escreva ou cole o que você respondeu'); return; }
+    this._admRespGravando=true;
+    try{
+      // relê a linha (ver _admRelerFeedback): sem a leitura, ou sem o relato nela, não grava
+      const f=await this._admRelerFeedback(sb, id); if(!f){ this._admRelatoSumiu(); return; }
+      const nota=A.notaComResposta(f.nota_admin, txt, new Date()), st=A.statusAposResposta(f.status||'novo');
+      const r=await sb.rpc('admin_feedback_set', {p_id:Number(id), p_status:st, p_nota:nota}); if(r.error) throw r.error;
+      this.setState(s=>{ const rasc={...(s.admRespRasc||{})}; delete rasc[id];
+        return {adminFeedback:(s.adminFeedback||[]).map(x=>String(x.id)===id?{...x,status:st,nota_admin:nota,lido:true}:x), admRespId:'', admRespTxt:'', admRespRasc:rasc}; });
+      this._toast('Resposta registrada na nota interna');
+    }catch(_){ this._toast('Não deu para registrar a resposta'); }
+    finally{ this._admRespGravando=false; }
   };
   _admApagarFeedback = async (e)=>{
     const id=e.currentTarget.dataset.id; if(!id) return;
@@ -21055,13 +21227,16 @@ class Component extends DCLogic {
     const admLive=[
       {k:'contas', v:String(_admS.contas!=null?_admS.contas:'—')},
       {k:'ativas 7d', v:String(_admS.ativos7d!=null?_admS.ativos7d:'—')},
-      {k:'IA hoje', v:String(_admIA.chamadasHoje||0)},
+      {k:'IA hoje', v:String(_admIA.chamadasHoje!=null?_admIA.chamadasHoje:'—')},   // sem a visão geral, "—" e não 0
       {k:'sessões', v:String(_sis.sessoesAbertas!=null?_sis.sessoesAbertas:'—')},
     ];
 
     // ── feedback (usado pela aba Suporte e pelo contador da aba) ──
     const _stCor={novo:'#f2a93b', andamento:'#5b8dff', resolvido:'#2ecc8f'};
+    const _mailMudo=this._admMailtoMudo();
     const admFeedback=(this.state.adminFeedback||[]).map((f)=>{ const st=f.status||'novo';
+      // o relato é texto de terceiro: nada nele pode derrubar o render (sem link, se não der)
+      let _mt=''; try{ _mt=window.CT_ADMIN ? window.CT_ADMIN.mailtoResposta(f) : ''; }catch(_){ _mt=''; }
       return {
       id:String(f.id), email:f.email||'anônimo', quando:_fmtDH(f.criado_em),
       mensagem:String(f.mensagem||''),
@@ -21069,6 +21244,12 @@ class Component extends DCLogic {
       lido:!!f.lido, status:st, nota:f.nota_admin||'', temNota:!!(f.nota_admin&&String(f.nota_admin).trim()),
       onNovo:st==='novo'?'1':'0', onAnd:st==='andamento'?'1':'0', onRes:st==='resolvido'?'1':'0',
       statusStyle:'color:'+(_stCor[st]||'#93a1bd')+';background:'+(_stCor[st]||'#93a1bd')+'1f;',
+      // resposta por e-mail: só quando o relato traz o e-mail da conta (admin_feedback devolve a coluna).
+      // No app do Mac o link não abriria nada: no lugar dele, "Copiar endereço".
+      temEmail:!!_mt && !_mailMudo, mailto:_mailMudo?'':_mt,
+      copiaEmail:_mailMudo && !!(window.CT_ADMIN && window.CT_ADMIN.emailValido(f.email)),
+      respAberta:String(this.state.admRespId||'')===String(f.id),
+      naoLido:f.lido===false,   // a mesma conta do "Feedbacks não lidos" do Panorama
     };});
     const admFeedbackAbertos=admFeedback.filter(f=>f.status!=='resolvido').length;
 
@@ -21080,25 +21261,33 @@ class Component extends DCLogic {
         temBadge: k==='suporte' && admFeedbackAbertos>0, badge:String(admFeedbackAbertos) }));
 
     // ── VISÃO GERAL ──
-    const admSaude=[
-      {k:'Contas', v:String(_admS.contas!=null?_admS.contas:'—'), sub:'no total', cor:''},
-      {k:'Ativas (7d)', v:String(_admS.ativos7d!=null?_admS.ativos7d:'—'), sub:'entraram na última semana', cor:'color:#2ecc8f;'},
-      {k:'Ativas (30d)', v:String(_admS.ativos30d!=null?_admS.ativos30d:'—'), sub:'entraram no último mês', cor:''},
-      {k:'Nunca voltaram', v:String(_admS.nuncaVoltaram!=null?_admS.nuncaVoltaram:'—'), sub:'entraram uma vez só', cor:(_admS.nuncaVoltaram>0?'color:#f2a93b;':'')},
-    ];
+    // Panorama: contas, ativas, lista de espera, não lidos e erros num cartão (miolo em
+    // admin-console.js). Fonte que falhou não vira 0: o item diz "indisponível" e o motivo.
+    const _fo=this.state.adminFonteOk;
+    const admPanorama=window.CT_ADMIN ? window.CT_ADMIN.panorama({ carregado:!!_fo, acessoNegado:!!(_fo&&_fo.acessoNegado),
+        visao:_fo&&_fo.visao?this.state.adminData:null, feedback:_fo&&_fo.feedback?(this.state.adminFeedback||[]):null,
+        erros:_fo&&_fo.erros?(this.state.adminErros||[]):null, listaEspera:this.state.adminListaEspera,
+        // sem admin_config, o estado do interruptor é desconhecido: null, e o cartão não afirma "desligada"
+        telemetria:_fo&&_fo.config ? _cfg.telemetria===true : null })
+      .map(p=>({...p, indisp:p.indisponivel?'1':'0'})) : [];
+    // indicadores, recursos, cadastros e "Pede atenção" vêm de admin_visao_geral: sem ela, a tela
+    // diz isso — nada de 0, de "nenhum cadastro" nem de "beta saudável" que pareçam dado
+    const _semVisao=!(_fo&&_fo.visao), _porqueSem=_fo?'visão geral não carregou':'carregando…';
     const _admR=_adm.recursos||{}; const _admTot=(_admS.contas||1)||1;
     const _recDefs=[['Edital','comEdital'],['Sessões','comSessoes'],['Redação','comRedacao'],['Simulados','comSimulados'],['Anki','comAnki'],['Caderno de erros','comErros'],['Revisões','comRevisoes'],['Metas','comMetas'],['Comunidade','comGrupos']];
-    const admRecursos=_recDefs.map(([label,k])=>{ const n=_admR[k]||0; const pct=Math.round(n/_admTot*100);
+    const admRecursos=_semVisao ? [] : _recDefs.map(([label,k])=>{ const n=_admR[k]||0; const pct=Math.round(n/_admTot*100);
       return {label, n:String(n), pctLabel:pct+'%', barStyle:'width:'+pct+'%;'}; });
     const _cr=_adm.crescimento||[]; const _crMax=Math.max(1,..._cr.map(x=>x.cadastros||0));
     const admCrescimento=_cr.map((x)=>{ const h=Math.round((x.cadastros||0)/_crMax*54)+3;
       let sem='—'; try{ sem=new Date(x.semana).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}); }catch(_){}
       return {semana:sem, n:String(x.cadastros||0), barStyle:'height:'+h+'px;'}; });
     const _ret=_adm.retencao||{}; const _retPct=_ret.total?Math.round((_ret.voltaram||0)/_ret.total*100):0;
-    const admIndicadores=[
-      {k:'Retenção', v:_ret.total?(_retPct+'%'):'—', sub:(_ret.voltaram||0)+' de '+(_ret.total||0)+' voltaram depois do 1º dia'},
-      {k:'Chamadas de IA', v:String(_admIA.chamadasTotal||0), sub:(_admIA.chamadas7d||0)+' em 7 dias · '+(_admIA.chamadasHoje||0)+' hoje'},
-      {k:'Contas com IA', v:String(_admIA.contasUsaram||0), sub:'já usaram a IA pelo menos uma vez'},
+    const admIndicadores=_semVisao ? ['Retenção','Nunca voltaram','Chamadas de IA','Contas com IA'].map(k=>({k, v:'—', sub:_porqueSem, cor:''})) : [
+      {k:'Retenção', v:_ret.total?(_retPct+'%'):'—', sub:(_ret.voltaram||0)+' de '+(_ret.total||0)+' voltaram depois do 1º dia', cor:''},
+      // veio da antiga fileira de saúde: contas e ativas agora estão no Panorama
+      {k:'Nunca voltaram', v:String(_admS.nuncaVoltaram!=null?_admS.nuncaVoltaram:'—'), sub:'entraram uma vez só', cor:(_admS.nuncaVoltaram>0?'color:var(--k-warn);':'')},
+      {k:'Chamadas de IA', v:String(_admIA.chamadasTotal||0), sub:(_admIA.chamadas7d||0)+' em 7 dias · '+(_admIA.chamadasHoje||0)+' hoje', cor:''},
+      {k:'Contas com IA', v:String(_admIA.contasUsaram||0), sub:'já usaram a IA pelo menos uma vez', cor:''},
     ];
     const admSistema=[
       {k:'Armazenamento', v:_nKb(_sis.armazenamentoKb)},
@@ -21492,9 +21681,10 @@ class Component extends DCLogic {
       admTabVisao:_tab==='visao', admTabContas:_tab==='contas', admTabIa:_tab==='ia',
       admTabCom:_tab==='comunidade', admTabSup:_tab==='suporte', admTabCtrl:_tab==='controle', admTabLog:_tab==='log',
       // ── visão geral ──
-      admSaude, admRecursos, admCrescimento, admIndicadores,
-      admTemCrescimento:admCrescimento.length>0, admSemCrescimento:admCrescimento.length===0,
-      admSistema, admMaiores, admAtencao, admSemAtencao,
+      admPanorama, admRecursos, admCrescimento, admIndicadores,
+      admTemCrescimento:!_semVisao && admCrescimento.length>0, admSemCrescimento:!_semVisao && admCrescimento.length===0,
+      admVisaoIndisp:_semVisao, admVisaoFonte:_fo?'falhou':'carregando', admVisaoAviso:_fo?'Indisponível: a visão geral não carregou.':'Carregando…',
+      admSistema, admMaiores, admAtencao, admSemAtencao:admSemAtencao && !_semVisao, admAtencaoIndisp:admSemAtencao && _semVisao,
       // ── contas ──
       admTesters, admTemTesters, admSemResultado, admContasResumo,
       admFiltros, admOrdens, admBusca:this.state.admBusca, onAdmBusca:this.onAdmBusca,
@@ -21508,6 +21698,8 @@ class Component extends DCLogic {
       // ── suporte ──
       admFeedback, admFeedbackVazio:admFeedback.length===0, admFeedbackNaoLidos:String(admFeedbackAbertos),
       admNotaFeedback:this._admNotaFeedback, admApagarFeedback:this._admApagarFeedback,
+      admAbrirResposta:this.admAbrirResposta, admCopiarEndereco:this.admCopiarEndereco, admRespTxt:this.state.admRespTxt, onAdmRespTxt:this.onAdmRespTxt,
+      admRegistrarResposta:this.admRegistrarResposta, admFecharResposta:this.admFecharResposta,
       // ── controle ──
       admIaBtnClass, admIaBtnLabel, admManutBtnClass, admManutBtnLabel,
       admToggleIa:this._admToggleIa, admToggleManut:this._admToggleManut,

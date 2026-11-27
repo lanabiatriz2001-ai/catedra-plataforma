@@ -42,6 +42,7 @@ import { testarPerfisLeitores } from './perfis-leitores.mjs';
 import { testarLoginLeitoresWeb } from './login-leitores-web.mjs';
 import { testarLoginLeitoresPublicados } from './login-leitores-publicados.mjs';
 import { testarSegurancaPerfilRelease } from './seguranca-perfil-release.mjs';
+import { testarAdminVisaoFeedbackEstatico, testarAdminVisaoFeedback } from './admin-visao-feedback.mjs';
 import { testarLoginLeitoresAuth } from './login-leitores-auth.mjs';
 import { testarAuthModoLocal } from './auth-modo-local.mjs';
 import { testarSyncMemoriaVelha } from './sync-memoria-velha.mjs';
@@ -118,6 +119,15 @@ const page = await browser.newPage();
 const falhas = [];
 const ok = (cond, label) => { console.log((cond ? '✓ ' : '✗ ') + label); if (!cond) falhas.push(label); };
 page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
+
+// CT_SO=admin-visao-feedback: o Panorama da administração e a resposta de relato por e-mail
+if (process.env.CT_SO === 'admin-visao-feedback') {
+  testarAdminVisaoFeedbackEstatico(ok);
+  await testarAdminVisaoFeedback(page, URL0, ok, { motor });
+  await browser.close(); srv.close();
+  console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
+  process.exit(falhas.length ? 1 : 0);
+}
 
 // CT_SO=redacao-mesa roda só o módulo pedido — para o ciclo curto de uma tela.
 if (process.env.CT_SO === 'redacao-resultado') {
@@ -10056,6 +10066,8 @@ await testarGeometriaInterface(browser, URL0, ok);
 await testarLoginLeitoresWeb(browser, URL0, ok);
 await testarLoginLeitoresPublicados(browser, URL0, ok);
 await testarSegurancaPerfilRelease(page, URL0, ok);
+// console de administração: Panorama num cartão e resposta de relato por e-mail (admin-console.js)
+try { testarAdminVisaoFeedbackEstatico(ok); await testarAdminVisaoFeedback(page, URL0, ok, { motor }); } catch (e) { ok(false, 'ADMIN exceção: ' + e.message); }
 await testarLoginLeitoresAuth(browser, URL0, ok);
 { const ctxML = await browser.newContext(); const pML = await ctxML.newPage(); try { await testarAuthModoLocal(pML, URL0, ok); } catch (e) { ok(false, 'MODO LOCAL exceção: ' + e.message); } finally { await ctxML.close(); } }
 // backup na nuvem pessoal: erro do Drive em português e nenhum clique acende a faixa vermelha global
