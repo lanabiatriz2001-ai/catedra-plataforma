@@ -58,6 +58,7 @@ import { testarRevisaoFonte } from './revisao-fonte.mjs';
 import { testarVoltaOrigem } from './volta-origem.mjs';
 import { testarContrasteDestaque } from './contraste-destaque.mjs';
 import { testarIconesAlvos } from './icones-alvos.mjs';
+import { testarForaDoEscopo } from './fora-do-escopo.mjs';
 import { testarFaixaMapaAlvos } from './faixa-mapa-alvos.mjs';
 import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
 import { testarRedacaoMesa } from './redacao-mesa.mjs';
@@ -276,6 +277,9 @@ await testarCicloMagistratura(page, base, ok, { motor, origem }); } catch (e) { 
     // iPad pinta — e a nota da Prova oral, cujo fundo inválido o WebKit também descartava
     try { await testarIconesAlvos(page, base, ok, { motor }); }
     catch (e) { ok(false, 'ÍCONES/ALVOS [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
+    // ranking de turma atrás da flag (item 14) e o resto da Comunidade medido no motor que o iPad pinta
+    try { await testarForaDoEscopo(page, base, ok, { motor }); }
+    catch (e) { ok(false, 'ESCOPO [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
     // o cartão do JURIS sem faixa lateral (borda tingida + lavagem, color-mix) e os alvos do mapa
     // processual no toque — o motor da Apple é o que o iPad pinta
     try { await testarFaixaMapaAlvos(page, base, ok, { motor }); }

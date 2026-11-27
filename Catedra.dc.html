@@ -6063,11 +6063,11 @@ window.ctPdfLib = (function(){
           <span style="position:absolute;right:-40px;top:-40px;width:200px;height:200px;border-radius:99px;background:rgba(255,255,255,.07);"></span>
           <div style="min-width:220px;position:relative;">
             <div style="display:flex;align-items:center;gap:8px;font-size:var(--fs-base);font-weight:600;"><span style="width:9px;height:9px;border-radius:99px;background:#7CFFB2;box-shadow:0 0 0 4px rgba(124,255,178,.22);"></span>{{ comNowN }} estudando agora</div>
-            <h2 style="margin:10px 0 0;font-family:var(--display);font-size:clamp(22px,3vw,30px);font-weight:700;line-height:1.08;">Estude junto. Suba no ranking.</h2>
-            <p style="margin:8px 0 0;font-size:var(--fs-base);opacity:.85;max-width:430px;line-height:1.5;">Seu tempo de estudo entra automaticamente no ranking semanal da comunidade.</p>
+            <h2 style="margin:10px 0 0;font-family:var(--display);font-size:clamp(22px,3vw,30px);font-weight:700;line-height:1.08;">{{ comHeroTitulo }}</h2>
+            <p style="margin:8px 0 0;font-size:var(--fs-base);opacity:.85;max-width:430px;line-height:1.5;">{{ comHeroSub }}</p>
           </div>
           <div style="display:flex;gap:12px;flex-wrap:wrap;position:relative;">
-            <div style="background:rgba(0,0,0,.16);border-radius:var(--radius);padding:14px 18px;text-align:center;min-width:90px;"><div style="font-family:var(--display);font-size:25px;font-weight:700;line-height:1;">{{ comUserPos }}º</div><div style="font-size:var(--fs-xs);opacity:.8;margin-top:4px;">seu lugar</div></div>
+            <sc-if value="{{ flagRankingTurma }}" hint-placeholder-val="{{ false }}"><div data-com-lugar style="background:rgba(0,0,0,.16);border-radius:var(--radius);padding:14px 18px;text-align:center;min-width:90px;"><div style="font-family:var(--display);font-size:25px;font-weight:700;line-height:1;">{{ comUserPos }}º</div><div style="font-size:var(--fs-xs);opacity:.8;margin-top:4px;">seu lugar</div></div></sc-if>
             <div style="background:rgba(0,0,0,.16);border-radius:var(--radius);padding:14px 18px;text-align:center;min-width:90px;"><div style="font-family:var(--display);font-size:25px;font-weight:700;line-height:1;">{{ comUserH }}</div><div style="font-size:var(--fs-xs);opacity:.8;margin-top:4px;">na semana</div></div>
             <div style="background:rgba(0,0,0,.16);border-radius:var(--radius);padding:14px 18px;text-align:center;min-width:90px;"><div style="font-family:var(--display);font-size:25px;font-weight:700;line-height:1;"><svg class="ct-ico ct-emo" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="flame"><use href="#ct-i-flame"></use></svg> {{ comUserStreak }}</div><div style="font-size:var(--fs-xs);opacity:.8;margin-top:4px;">ofensiva</div></div>
           </div>
@@ -6086,18 +6086,23 @@ window.ctPdfLib = (function(){
           </div>
         </div>
 
-        <!-- RANKING SEMANAL (real, por grupo) — some inteiro na baixa estimulação (ranking e desafio da semana) -->
-        <div class="ct-card ct-gam">
-          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
-            <span class="ct-titulo">Ranking da semana</span><span style="font-size:var(--fs-sm);color:var(--text3);">por tempo de estudo · dados reais dos membros</span>
+        <!-- RANKING SEMANAL (real, por grupo) — some inteiro na baixa estimulação (ranking e desafio da semana).
+             Item 14 (25/11/2026): ranking de turma está fora do escopo do Cátedra e fica atrás da flag rankingTurma,
+             desligada. Sem ela, o cartão vira "Semana do grupo": o seletor do grupo ativo (é ele que escolhe a sala
+             ao vivo e o mural) e o desafio coletivo não são ranking e ficam; o desafio continua saindo na baixa
+             estimulação pela própria classe ct-gam. O espaço entre os blocos é o gap, não margem: sem a lista, nada sobra. -->
+        <sc-if value="{{ comCartaoSemana }}" hint-placeholder-val="{{ true }}">
+        <div class="ct-card {{ comCartaoSemanaCls }}" data-com-semana style="display:flex;flex-direction:column;gap:var(--ct-e3);">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+            <span class="ct-titulo">{{ comSemanaTitulo }}</span><span style="font-size:var(--fs-sm);color:var(--text3);">{{ comSemanaSub }}</span>
           </div>
           <sc-if value="{{ comTemGrupos }}" hint-placeholder-val="{{ false }}">
-            <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;">
+            <div style="display:flex;gap:7px;flex-wrap:wrap;">
               <sc-for list="{{ comGrupoChips }}" as="gc" hint-placeholder-count="2"><button data-id="{{ gc.id }}" onclick="{{ setComGrupoAtivo }}" style="{{ gc.style }}">{{ gc.nome }}</button></sc-for>
             </div>
           </sc-if>
           <sc-if value="{{ hasComDesafio }}" hint-placeholder-val="{{ false }}">
-            <div style="border:1px solid var(--border);border-radius:var(--radius);padding:13px 15px;background:var(--surface2);margin-bottom:14px;">
+            <div class="ct-gam" data-com-desafio style="border:1px solid var(--border);border-radius:var(--radius);padding:13px 15px;background:var(--surface2);">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
                 <span style="font-size:var(--fs-sm);font-weight:600;color:var(--ink);"><svg class="ct-ico ct-emo" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="target" style="color:var(--accentD);margin-right:4px;"><use href="#ct-i-target"></use></svg>Desafio da semana: {{ comDesafio.meta }} revisões em grupo</span>
                 <span style="font-family:var(--mono);font-size:var(--fs-sm);color:var(--text2);font-weight:700;">{{ comDesafio.atual }}/{{ comDesafio.meta }}</span>
@@ -6105,7 +6110,8 @@ window.ctPdfLib = (function(){
               <div style="height:8px;border-radius:99px;background:var(--surface);overflow:hidden;border:1px solid var(--border);"><i style="display:block;height:100%;width:100%;transform:translateX(calc({{ comDesafio.pct }}% - 100%));background:var(--accent);border-radius:99px;transition:transform .4s;will-change:transform;"></i></div>
             </div>
           </sc-if>
-          <div style="display:flex;flex-direction:column;gap:6px;">
+          <sc-if value="{{ flagRankingTurma }}" hint-placeholder-val="{{ false }}">
+          <div data-com-ranking style="display:flex;flex-direction:column;gap:6px;">
             <sc-for list="{{ comRank }}" as="m" hint-placeholder-count="8">
               <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--radius);background:{{ m.rowBg }};border:{{ m.rowBd }};">
                 <span style="width:calc(var(--ct-e6) + var(--ct-e5) + var(--ct-e1));display:inline-flex;align-items:center;justify-content:flex-start;gap:6px;font-weight:700;font-size:var(--fs-base);color:var(--text2);flex:none;"><sc-if value="{{ !m.temMedalha }}" hint-placeholder-val="{{ false }}"><span style="width:var(--ct-e6);flex:none;"></span></sc-if><sc-if value="{{ m.temMedalha }}" hint-placeholder-val="{{ false }}"><span class="ct-ladrilho {{ m.medalCls }}" aria-hidden="true"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="medal"><use href="#ct-i-medal"></use></svg></span></sc-if>{{ m.posStr }}</span>
@@ -6121,7 +6127,9 @@ window.ctPdfLib = (function(){
               <div style="text-align:center;color:var(--text3);font-size:var(--fs-sm);padding:10px 4px 2px;line-height:1.5;">Você ainda é a única pessoa no ranking — seu tempo de estudo aparece aqui conforme você registra sessões.</div>
             </sc-if>
           </div>
+          </sc-if>
         </div>
+        </sc-if>
 
         <!-- GRUPOS DE ESTUDO (Supabase real · entra por código) -->
         <div class="ct-card">
@@ -7075,7 +7083,7 @@ window.ctPdfLib = (function(){
           </div>
           <!-- P16: baixa estimulação — a pressão sai da tela, os dados ficam -->
           <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--border);" data-pref="baixaEstimulacao">
-            <div style="flex:1;"><div style="font-size:var(--fs-base);color:var(--ink);font-weight:600;">Baixa estimulação</div><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;line-height:1.5;">Esconde ofensiva, escudos, ranking, desafio da semana, celebrações e os emojis decorativos, e desliga as animações. Tudo continua funcionando e nada é apagado — só sai da vista.</div></div>
+            <div style="flex:1;"><div style="font-size:var(--fs-base);color:var(--ink);font-weight:600;">Baixa estimulação</div><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;line-height:1.5;">Esconde ofensiva, escudos, {{ baixaRankingTxt }}desafio da semana, celebrações e os emojis decorativos, e desliga as animações. Tudo continua funcionando e nada é apagado — só sai da vista.</div></div>
             <button data-k="baixaEstimulacao" class="ct-alvo" onclick="{{ togglePref }}" aria-label="Baixa estimulação" role="switch" aria-checked="{{ chkBaixa }}" style="{{ togBaixa }}"><span style="{{ togBaixaKnob }}"></span></button>
           </div>
         </div>
@@ -12677,6 +12685,19 @@ class Component extends DCLogic {
   /* P16: modo baixa estimulação — sem ofensiva, escudos, ranking, desafio, celebração e emoji decorativo.
      A funcionalidade e os dados ficam; só a pressão sai da tela. */
   _baixa(){ return !!(this.state.prefs && this.state.prefs.baixaEstimulacao); }
+  /* ===== FORA DO ESCOPO (item 14, 25/11/2026) =====
+     O Cátedra não compete em: sentença inédita apostando no próximo edital, correção por
+     magistrado, videoaula da correção e ranking de turma. Dos quatro, só o ranking existia no
+     código (o ranking semanal por grupo da Comunidade): fica aqui, desligado. Nada é apagado.
+     Só o ranking sai: o seletor do grupo ativo, o desafio coletivo e a publicação da semana para
+     os grupos (_publicarAtividade, que alimenta a sala ao vivo e o mural) continuam.
+     Para testar à mão, e só neste aparelho: localStorage 'ct_flag:rankingTurma' = '1' (chave
+     ct_, fora do sync de propósito — flag de desenvolvimento não viaja para outros aparelhos). */
+  FORA_DO_ESCOPO = { rankingTurma:false };
+  _flagLigada(nome){
+    if(this.FORA_DO_ESCOPO[nome]) return true;
+    try{ return localStorage.getItem('ct_flag:'+nome)==='1'; }catch(_){ return false; }
+  }
   /* Espelha data-baixa no <html>: a div raiz recebe o atributo pelo template, mas toasts, modais e
      sobreposições anexados ao <body> ficariam fora de `[data-baixa="1"] *`. Idempotente — só toca o DOM
      quando o valor muda, então pode rodar a cada componentDidUpdate sem custo (não chama setState).
@@ -17791,7 +17812,7 @@ class Component extends DCLogic {
   // Sem isto, código vazado = pessoa dentro do grupo para sempre: não havia como
   // expulsar nem apagar. Apagar o grupo é o desfazer possível — só para quem criou.
   apagarGrupo = async (e)=>{ const id=e.currentTarget.dataset.id;
-    if(!window.confirm('Apagar este grupo para TODO MUNDO? Quem está nele perde o acesso e o ranking some. Não dá para desfazer.')) return;
+    if(!window.confirm(this._flagLigada('rankingTurma')?'Apagar este grupo para TODO MUNDO? Quem está nele perde o acesso e o ranking some. Não dá para desfazer.':'Apagar este grupo para TODO MUNDO? Quem está nele perde o acesso. Não dá para desfazer.')) return;
     const sb=this._sb();
     if(sb){ try{ const r=await sb.rpc('excluir_grupo', {p_id:id}); if(r.error) throw r.error; }
             catch(err){ this._toast(this._erroComunidade(err)); return; } }
@@ -19521,6 +19542,8 @@ class Component extends DCLogic {
     const comNowN=String(_comNowList.length);
     const comUserPos=String((comRank.findIndex(m=>m.eu))+1);
     const comUserH=fmtHM(_comUserMin); const comUserStreak=String(B.streak);
+    // Item 14: o ranking de turma está atrás da flag (ver _flagLigada); lida uma vez por pintura
+    const _rkTurma=this._flagLigada('rankingTurma');
     // seletor do grupo ativo (ranking é POR grupo)
     const comGrupoChips=(this.state.meusGrupos||[]).map(g=>{ const on=g.id===this.state.comGrupoAtivo; return {id:g.id, nome:g.nome, style:`border:1px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accentSoft)':'var(--surface)'};color:${on?'var(--accentD)':'var(--text2)'};border-radius:99px;padding:6px 13px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;`}; });
     const comTemGrupos=(this.state.meusGrupos||[]).length>0;
@@ -20519,7 +20542,7 @@ class Component extends DCLogic {
       ...(_podeView('novidades') ? [{view:'novidades', label:'Ir para a Central de novidades', hint:'o que mudou no Planalto, no STF e no STJ'}] : []),
       {view:'conquistas', label:'Ir para Metas & Conquistas', hint:'metas e gamificação'},
       {view:'bemestar', label:'Ir para Bem-estar', hint:'respiração, hábitos, mindfulness'},
-      {view:'comunidade', label:'Ir para Comunidade', hint:'ranking, grupos, estudando agora'},
+      {view:'comunidade', label:'Ir para Comunidade', hint:(_rkTurma?'ranking, grupos, estudando agora':'grupos, estudando agora, mural')},
       {view:'ajustes', label:'Ir para Ajustes', hint:'personalização, orientação, tema, conta e dados'},
       {act:'foco', label:'Iniciar Modo foco', hint:'cronômetro tela cheia'},
       {act:'registrar', label:'Registrar sessão', hint:'nova sessão'},
@@ -22309,7 +22332,7 @@ class Component extends DCLogic {
       isBaralho:this.state.view==='flashcards',
       isAnki:this.state.view==='anki', isPersonal:this.state.view==='personalizacao', isAjustes:this.state.view==='ajustes', isConfig:(this.state.view==='ajustes'||this.state.view==='personalizacao'||this.state.view==='orientacao'), isDash:this.state.view==='dashboards',
       viewTitle:({legis:this._nomeLegis(),juris:'Jurisprudência · CátedraJURIS',prioridade:'Prioridade',casos:casosMenu,oab:'Meu percurso OAB',indisponivel:'Não faz parte da sua área',inicio:'Início',areamod:areaModLabel,roteiros:'Roteiros e peças',oral:'Fase Oral',ciclo:'Ciclo de Estudos',edital:'Edital',revisoes:'Revisões',flashcards:'Baralho',calendario:'Calendário',planejamento:'Planejamento',simulados:(this.state.simAba==='treino'?'Fase Objetiva':'Registrar Raio X'),redacao:'Fase Discursiva',segundafase:'Fase Discursiva',anki:'Anki',erros:'Caderno de erros',dominio:'Desempenho · Domínio por tópico',metas:'Metas',dashboards:'Dashboards',analise:'Desempenho',novidades:(this.state.isMobile?'Novidades':'Central de novidades'),conquistas:'Metas & Conquistas',personalizacao:'Personalização',ajustes:'Ajustes',multiformato:'Multiformato',bemestar:'Bem-estar',comunidade:'Comunidade',orientacao:'Personalização Inteligente',historico:'Histórico de sessões','reta-final':'Reta Final',relatorio:'Relatório',admin:'Console de administração',bancas:'Bancas'}[this.state.view]),
-      viewSub:({indisponivel:'Esta tela depende de um acervo que a sua área de estudo não tem',inicio:'Seu painel de hoje',ciclo:(this.state.cycleMode==='magistratura'?'Uma sequência contínua de estudo — tempo e conteúdo em cada atividade':'Uma volta pelas matérias, na ordem certa — o dia consome os próximos blocos'),edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',flashcards:'Os cartões que o seu estudo gerou — revisados pela mesma régua das revisões',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:(this.state.simAba==='treino'?'Treine a primeira fase com questões e tempo de prova':'Registre resultados, identifique erros e acompanhe sua evolução'),redacao:'Escolha uma prova real, responda e corrija pelo espelho',anki:'Baralho da biblioteca + analisador de retenção',erros:'Registre cada erro com o motivo e transforme em revisão',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',novidades:'O que mudou nas fontes oficiais — Planalto, STF e STJ',conquistas:'Objetivos pessoais, marcos e constância',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:'Estude junto · ranking, grupos e quem está estudando agora',orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação',admin:'Contas, IA, moderação e os interruptores do app',bancas:'Perfil de cada banca e dicas por área'}[this.state.view]),
+      viewSub:({indisponivel:'Esta tela depende de um acervo que a sua área de estudo não tem',inicio:'Seu painel de hoje',ciclo:(this.state.cycleMode==='magistratura'?'Uma sequência contínua de estudo — tempo e conteúdo em cada atividade':'Uma volta pelas matérias, na ordem certa — o dia consome os próximos blocos'),edital:'Conteúdo programático verticalizado',revisoes:'Revisão espaçada · o que revisar e quando',flashcards:'Os cartões que o seu estudo gerou — revisados pela mesma régua das revisões',calendario:'Provas, revisões, simulados e metas',planejamento:'Tempo por peso, domínio e disponibilidade',simulados:(this.state.simAba==='treino'?'Treine a primeira fase com questões e tempo de prova':'Registre resultados, identifique erros e acompanhe sua evolução'),redacao:'Escolha uma prova real, responda e corrija pelo espelho',anki:'Baralho da biblioteca + analisador de retenção',erros:'Registre cada erro com o motivo e transforme em revisão',dominio:'Seu domínio estimado tópico a tópico',metas:'Objetivos pessoais e progresso',dashboards:'Tempo de estudo · diário, semanal, mensal e anual',analise:'Forças, fraquezas e evolução',novidades:'O que mudou nas fontes oficiais — Planalto, STF e STJ',conquistas:'Objetivos pessoais, marcos e constância',personalizacao:'Personalização, orientação, conta e dados — tudo aqui',ajustes:'Personalização, orientação, conta e dados — tudo aqui',multiformato:'Um conteúdo nos formatos que se adaptam a você',bemestar:'Foco, equilíbrio e saúde mental nos estudos',comunidade:(_rkTurma?'Estude junto · ranking, grupos e quem está estudando agora':'Estude junto · grupos e quem está estudando agora'),orientacao:'Ajuste como a plataforma deve orientar seu estudo',historico:'Todas as suas sessões · filtre e analise por disciplina','reta-final':'Três comandos para pontuar mais na reta final',relatorio:'Constância, evolução, riscos e exportação',admin:'Contas, IA, moderação e os interruptores do app',bancas:'Perfil de cada banca e dicas por área'}[this.state.view]),
       notLoggedIn:!this.state.loggedIn,
       // ===== U5: selo de sincronização permanente, honesto e sem travar nada ==========
       // O estado vem do auth.js (local|enviando|salvo|offline|erro). O texto diz o que
@@ -22710,6 +22733,13 @@ class Component extends DCLogic {
       habCards, habDoneN, habTotalN, habInc:this.habInc, habDec:this.habDec,
       isComunidade:this.state.view==='comunidade', navComunidade:navStyle('comunidade'),
       comRank, comNowAvatars, comNowN, comUserPos, comUserH, comUserStreak, comGrupos, comFeed,
+      // Item 14: desligada a flag, o topo não convida a subir no ranking, mas segue avisando que a semana
+      // de estudo é publicada para os grupos (_publicarAtividade continua; alimenta a sala ao vivo e o mural)
+      flagRankingTurma:_rkTurma, comCartaoSemana:(_rkTurma||comTemGrupos), comCartaoSemanaCls:(_rkTurma?'ct-gam':''),
+      comSemanaTitulo:(_rkTurma?'Ranking da semana':'Semana do grupo'), comSemanaSub:(_rkTurma?'por tempo de estudo · dados reais dos membros':'o grupo marcado é o da sala ao vivo e do mural'),
+      comHeroTitulo:(_rkTurma?'Estude junto. Suba no ranking.':'Estude junto.'),
+      comHeroSub:(_rkTurma?'Seu tempo de estudo entra automaticamente no ranking semanal da comunidade.':'Seu tempo de estudo, a ofensiva e as revisões da semana aparecem automaticamente para quem está nos seus grupos.'),
+      baixaRankingTxt:(_rkTurma?'ranking, ':''),
       comViaGrupo, comSemGrupo:!comViaGrupo, comGrupoChips, comTemGrupos, setComGrupoAtivo:this.setComGrupoAtivo, comDesafio, hasComDesafio,
       grupoDraft:this.state.grupoDraft, onGrupoDraft:this.onGrupoDraft, addGrupo:this.addGrupo, entrarGrupo:this.entrarGrupo, removeGrupo:this.removeGrupo, apagarGrupo:this.apagarGrupo, copiarCodigo:this.copiarCodigo,
       comErro:this.state.comErro||'', comErroShow:!!this.state.comErro,
