@@ -101,6 +101,7 @@ import { testarReservaIA } from './seguranca-cota.mjs';
 import { testarWidgetCapturas } from './widget-capturas.mjs';
 import { testarWidgetBuild } from './widget-build.mjs';
 import { testarProvaEncerrarUmaVez } from './prova-encerrar-uma-vez.mjs';
+import { testarEnamPosProvaEstatico, testarEnamPosProva } from './enam-pos-prova.mjs';
 import { montar as montarEnam, parseProva as parseProvaEnam, parseGabarito as parseGabaritoEnam, carregarAreas as areasEnam, EDICOES as EDICOES_ENAM } from '../scripts/build-questoes-enam.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -143,6 +144,15 @@ if (process.env.CT_SO === 'redacao-motor') {
 }
 if (process.env.CT_SO === 'redacao-mesa') {
   await testarRedacaoMesa(page, URL0, ok, { motor });
+  await browser.close(); srv.close();
+  console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
+  process.exit(falhas.length ? 1 : 0);
+}
+
+// CT_SO=enam-pos-prova: a Trilha ENAM depois de 29/11 (contagem só com edição futura) e o resultado por disciplina
+if (process.env.CT_SO === 'enam-pos-prova') {
+  testarEnamPosProvaEstatico(ok);
+  await testarEnamPosProva(page, URL0, ok, { motor });
   await browser.close(); srv.close();
   console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
   process.exit(falhas.length ? 1 : 0);
@@ -3516,6 +3526,11 @@ await comCadernoEnam(async (page) => {
   });
   for (const [k, v] of Object.entries(t)) ok(v, 'ENAM/E5 ' + k);
 });
+
+/* ============= ENAM — depois de 29/11: contagem só com edição futura; resultado por disciplina ============= */
+// tests/enam-pos-prova.mjs: relógio fixo em contextos próprios (Brasília e Porto Velho), iPad com toque
+try { testarEnamPosProvaEstatico(ok); await testarEnamPosProva(page, URL0, ok, { motor }); }
+catch (e) { ok(false, 'ENAM PÓS-PROVA [' + motor + '] o roteiro correu sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
 
 /* ============= JURIS — datas oficiais de publicação das Súmulas 722 a 736 do STF ============= */
 {

@@ -101,10 +101,47 @@
     }
     return out;
   }
-  /** A próxima edição a partir de `agora` (a prova ainda por vir), ou a última se todas passaram. */
-  function proxima(agora, fuso) {
-    for (var k = 0; k < EDICOES.length; k++) { var d = diasAte(EDICOES[k].data, agora, fuso); if (d != null && d >= 0) return EDICOES[k]; }
-    return EDICOES[EDICOES.length - 1];
+  /* EDIÇÃO FUTURA (25/11/2026). Uma edição é futura enquanto `agora` for anterior ao FIM da prova:
+     início + DURACAO_MIN (5 h), no fuso da prova (o do edital), nunca no do aparelho. No dia, antes e
+     durante a prova, ela ainda é futura e a contagem diz "é hoje"; às 18h de Brasília de 29/11/2026
+     (17h em Porto Velho) deixa de ser. Sem edição futura cadastrada — em EDICOES ou na data que a
+     pessoa guardou em catedra:enam — não há contagem em lugar nenhum, só a linha neutra SEM_EDICAO.
+     A próxima edição só existe depois que alguém a inclui em EDICOES e o app é atualizado: o texto diz
+     isso, para não prometer que ela aparece sozinha. */
+  var SEM_EDICAO = 'Nenhuma edição futura cadastrada; quando sair o edital da próxima, ela entra aqui numa atualização do app.';
+  /** O instante (ms UTC) em que a prova da edição termina, ou null se a data não é válida. */
+  function fimDaProva(ed) {
+    if (!ed) return null;
+    var t = instante(ed.data, ed.inicio || '13:00', ed.fuso || FUSO_PROVA);
+    return t == null ? null : t + DURACAO_MIN * 60e3;
+  }
+  function futura(ed, agora) {
+    var fim = fimDaProva(ed); if (fim == null) return false;
+    return (agora == null ? Date.now() : +agora) < fim;
+  }
+  /** A próxima edição futura de EDICOES, ou null quando todas já passaram. Antes devolvia a última:
+      depois de 29/11 o app diria "a próxima edição é a 2026.2". */
+  function proxima(agora) {
+    for (var k = 0; k < EDICOES.length; k++) if (futura(EDICOES[k], agora)) return EDICOES[k];
+    return null;
+  }
+  /** O que a contagem conta: a edição que a pessoa guardou (catedra:enam) enquanto ela for futura;
+      senão a próxima futura de EDICOES; senão null. */
+  function alvo(en, agora) {
+    if (en && en.data && futura(en, agora)) {
+      var ed = edicao(en.edicao) || {};
+      return { id: String(en.edicao || ed.id || ''), numero: ed.numero || '', data: en.data, inicio: en.inicio || ed.inicio || '13:00', daPessoa: true };
+    }
+    var px = proxima(agora);
+    return px ? { id: px.id, numero: px.numero || '', data: px.data, inicio: px.inicio || '13:00', daPessoa: false } : null;
+  }
+  /** A contagem pronta para a tela — o alvo com `dias` (data civil do aparelho) e `rotulo` — ou null. */
+  function contagem(en, agora, fusoDoAparelho) {
+    var a = alvo(en, agora); if (!a) return null;
+    var d = diasAte(a.data, agora, fusoDoAparelho); if (d == null) return null;
+    if (d < 0) d = 0;   // aparelho num fuso adiante de Brasília: a data civil já virou, a prova ainda corre
+    a.dias = d; a.rotulo = d === 0 ? 'é hoje' : (d === 1 ? 'falta 1 dia' : 'faltam ' + d + ' dias');
+    return a;
   }
 
   /* ===== E3: a prova montada como ela é =====
@@ -188,32 +225,50 @@
   /* ===== E4: a correção — "habilitaria?" =====
      Pura. O ENAM habilita (item 1.2.1), não aprova: a pergunta é se a nota bateria a meta que a
      pessoa escolheu (56 ou 40). Cada área tem um alvo proporcional (cota × meta/80) e o déficit
-     é o que faltou para ele. Anulada nunca conta; tempo médio só das respondidas. */
+     é o que faltou para ele. Anulada nunca conta; tempo médio só das respondidas.
+     25/11/2026: por área também erros, brancos e líquido, e os DOIS cortes do edital lado a lado
+     (CORTES), no total e na mesma régua proporcional. O erro não desconta no ENAM: habilita quem
+     soma os acertos (item 9.2) e a questão sem marcação vale zero (item 8.9) — é o que dizem a
+     especificação (docs/especificacao-trilha-enam.md, Edital 02/2026) e o texto do Edital 01/2026
+     em scripts/fontes/enam/edital-2026.1.txt, cujo 9.1 dá às 80 questões igual pontuação. Por isso
+     o líquido (acertos − erros) é medida de treino, não a nota da prova. */
+  var CORTES = [META_PADRAO, META_COTA];
+  /** Os dois cortes numa área: o alvo proporcional (cota × corte/80) e quantos acertos faltaram. */
+  function cortesDe(cota, ok) {
+    return CORTES.map(function (m) {
+      var alvo = Math.round(cota * m / TOTAL * 10) / 10, deficit = Math.round((alvo - ok) * 10) / 10;
+      return { meta: m, pct: Math.round(m / TOTAL * 100), alvo: alvo, alvoInt: Math.round(alvo), faltam: deficit > 0 ? Math.ceil(deficit) : 0, atingiu: deficit <= 0 };
+    });
+  }
   function corrigir(itens, resp, meta, opts) {
     opts = opts || {}; resp = resp || {};
     meta = +meta > 0 ? Math.round(+meta) : META_PADRAO;
     var validos = (itens || []).filter(function (it) { return it && !it.anulada; });
     var acertos = 0, respondidas = 0, fora = 0, porArea = {}, k;
-    for (k = 0; k < AREAS.length; k++) porArea[AREAS[k].id] = { area: AREAS[k].id, nome: AREAS[k].nome, cota: AREAS[k].cota, n: 0, ok: 0, foraDoEnam: 0 };
+    for (k = 0; k < AREAS.length; k++) porArea[AREAS[k].id] = { area: AREAS[k].id, nome: AREAS[k].nome, cota: AREAS[k].cota, n: 0, ok: 0, er: 0, br: 0, foraDoEnam: 0 };
     validos.forEach(function (it) {
-      var r = resp[it.id], ok = r !== undefined && r === it.certo;
-      if (r !== undefined) respondidas++;
+      var r = resp[it.id], respondeu = r !== undefined, ok = respondeu && r === it.certo;
+      if (respondeu) respondidas++;
       if (ok) acertos++;
       if (it.foraDoEnam) fora++;
-      var pa = porArea[it.area] || (porArea[it.area] = { area: String(it.area || ''), nome: it.ramo || String(it.area || 'Sem área'), cota: 0, n: 0, ok: 0, foraDoEnam: 0 });
-      pa.n++; if (ok) pa.ok++; if (it.foraDoEnam) pa.foraDoEnam++;
+      var pa = porArea[it.area] || (porArea[it.area] = { area: String(it.area || ''), nome: it.ramo || String(it.area || 'Sem área'), cota: 0, n: 0, ok: 0, er: 0, br: 0, foraDoEnam: 0 });
+      pa.n++; if (ok) pa.ok++; else if (respondeu) pa.er++; else pa.br++;
+      if (it.foraDoEnam) pa.foraDoEnam++;
     });
     var fator = meta / TOTAL;
     var edital = Object.keys(porArea).map(function (id) {
       var p = porArea[id], cota = p.cota || p.n, alvo = Math.round(cota * fator * 10) / 10;
       return { area: p.area, nome: p.nome, cota: cota, n: p.n, ok: p.ok, pct: p.n ? Math.round(p.ok / p.n * 100) : 0,
-        alvo: alvo, alvoInt: Math.round(alvo), deficit: Math.round((alvo - p.ok) * 10) / 10, foraDoEnam: p.foraDoEnam };
+        alvo: alvo, alvoInt: Math.round(alvo), deficit: Math.round((alvo - p.ok) * 10) / 10, foraDoEnam: p.foraDoEnam,
+        erros: p.er, brancos: p.br, liquido: p.ok - p.er, cortes: cortesDe(cota, p.ok) };
     });
     var porDeficit = edital.slice().sort(function (x, y) { return y.deficit - x.deficit || x.area.localeCompare(y.area); });
-    var seg = Math.max(0, Math.round(+opts.segundos || 0));
-    return { total: validos.length, acertos: acertos, respondidas: respondidas, brancos: validos.length - respondidas, erros: respondidas - acertos,
+    var seg = Math.max(0, Math.round(+opts.segundos || 0)), erros = respondidas - acertos;
+    return { total: validos.length, acertos: acertos, respondidas: respondidas, brancos: validos.length - respondidas, erros: erros,
       anuladas: (itens || []).length - validos.length,
       meta: meta, habilitaria: acertos >= meta, margem: acertos - meta,
+      liquido: acertos - erros,
+      cortes: CORTES.map(function (m) { return { meta: m, pct: Math.round(m / TOTAL * 100), habilitaria: acertos >= m, margem: acertos - m, faltam: Math.max(0, m - acertos) }; }),
       porArea: porDeficit, porAreaEdital: edital,
       tempoTotalSeg: seg, segPorQuestao: respondidas ? Math.round(seg / respondidas) : 0, segDisponivel: Math.round(DURACAO_MIN * 60 / TOTAL),
       comPausa: !!opts.comPausa, foraDoEnam: fora };
@@ -227,6 +282,7 @@
     FUSO_PROVA: FUSO_PROVA, EDICOES: EDICOES,
     areaDe: function (id) { for (var k = 0; k < AREAS.length; k++) if (AREAS[k].id === id) return AREAS[k]; return null; },
     edicao: edicao, proxima: proxima, diasAte: diasAte, instante: instante, horaLocal: horaLocal, cadencia: cadencia, fusoAparelho: fusoAparelho,
+    futura: futura, fimDaProva: fimDaProva, alvo: alvo, contagem: contagem, SEM_EDICAO: SEM_EDICAO, CORTES: CORTES,
     RETOMAR_H: 36,                   // E3: a prova guardada em ct_enam_prova vale por 36 h (começar à noite, terminar de manhã)
     montar: montar, rehidratar: rehidratar, areaDaDisciplina: areaDaDisciplina, corrigir: corrigir
   };

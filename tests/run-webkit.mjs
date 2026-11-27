@@ -27,6 +27,7 @@ import { testarSegurancaBackup } from './seguranca-backup.mjs';
 import { testarReservaIA } from './seguranca-cota.mjs';
 import { testarLegisGuiado } from './legis-guiado.mjs';
 import { testarEnamModo } from './enam-modo.mjs';
+import { testarEnamPosProva } from './enam-pos-prova.mjs';
 import { testarProvaEncerrarUmaVez } from './prova-encerrar-uma-vez.mjs';
 import { testarIpadToque } from './ipad-toque.mjs';
 import { testarIpadToqueSatelites } from './ipad-toque-satelites.mjs';
@@ -128,6 +129,14 @@ for (const [base, origem, arquivo] of ORIGENS) {
   catch (e) {
     ok(false, 'ENAM MODO [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
       + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+  }
+  // a Trilha ENAM depois de 29/11 e o resultado por disciplina (só http: semeia por /__semente, com relógio fixo)
+  if (origem === 'http') {
+    try { await testarEnamPosProva(page, base, ok, { motor }); }
+    catch (e) {
+      ok(false, 'ENAM PÓS-PROVA [' + motor + '] o roteiro correu sem exceção ('
+        + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+    }
   }
   // o JURIS sem a aba dos mapas das SVs, nas três origens (o bundle é o que o app empacota)
   try { await testarSemDodNavegador(page, base, ok, { motor, origem }); }
