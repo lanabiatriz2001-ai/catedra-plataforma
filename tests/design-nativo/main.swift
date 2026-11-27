@@ -11,6 +11,17 @@ func confere(_ c: Bool, _ rotulo: String) {
 }
 let pastaFontes = CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : ""
 
+// As ações do leitor e a margem do catálogo passam pelo layout real do SwiftUI.
+let simbolosLeitor = ["chevron.left", "textformat.size", "ellipsis"]
+for simbolo in simbolosLeitor {
+    let icone = NSHostingView(rootView: IconeDoLeitor(titulo: "Ação", simbolo: simbolo)).fittingSize
+    confere(icone.width == 44 && icone.height == 44, "o alvo de \(simbolo) mede 44 × 44 pt")
+}
+let medidaPaginada = NSHostingView(rootView: Color.clear.frame(width: 100, height: 30).margemPaginaAcervo()).fittingSize
+confere(medidaPaginada.width == 148 && medidaPaginada.height == 30 &&
+        DSEspaco.margemPagina(compacto: true) == 16,
+        "um conteúdo de 100 pt tem 24 pt de cada lado no Mac e o modo compacto usa 16 pt")
+
 // ── Tema e cor ──────────────────────────────────────────────────────────────
 confere(Color.hexDe(css: "#fffdf8") == 0xFFFDF8, "hexDe lê #rrggbb")
 confere(Color.hexDe(css: "#abc") == 0xAABBCC, "hexDe expande #rgb")

@@ -99,7 +99,7 @@ struct JurisCentralView: View {
                 }
                 Color.clear.frame(height: 20)
             }
-            .jurisMargemPagina().padding(.top, 22)
+            .margemPaginaAcervo().padding(.top, 22)
         }
         .background(Palette.appBackground)
         .alert("Nova central de tribunal", isPresented: $novoTribunal) {

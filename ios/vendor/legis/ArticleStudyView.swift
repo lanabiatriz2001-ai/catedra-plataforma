@@ -260,8 +260,8 @@ struct ArticleStudyView: View {
             .frame(width: 96)
             .help("Foco: um artigo por vez. Cartões: todos em lista.")
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
+        .margemPaginaAcervo()
+        .padding(.vertical, DSEspaco.e2)
         .background(AppTheme.cardBackground)
         .overlay(Rectangle().fill(AppTheme.hairline).frame(height: 1), alignment: .bottom)
     }
@@ -555,7 +555,7 @@ struct ArticleStudyView: View {
                     }
                 }
             }
-            .padding(.horizontal, 16).padding(.vertical, 8)
+            .margemPaginaAcervo().padding(.vertical, DSEspaco.e2)
             ScrollView {
                 LazyVStack(spacing: 14) {
                     ForEach(Array(visibleUnits.enumerated()), id: \.element.id) { i, unit in
@@ -565,7 +565,7 @@ struct ArticleStudyView: View {
                         UnitCard(lawID: lawID, unit: unit, accent: accent, fullText: text)
                     }
                 }
-                .padding(AppTheme.pageInset)
+                .margemPaginaAcervo(.all)
             }
             .background(readerCanvas)
         }
@@ -695,7 +695,7 @@ private struct UnitFocusView: View {
         // Largura TOTAL da página em todas as leis (pedido da Lana) — a coluna centralizada
         // de ~850pt deixava dois terços da tela vazios no Mac e no iPad deitado.
         .frame(maxWidth: .infinity)
-        .padding(.horizontal, AppTheme.pageInset)
+        .margemPaginaAcervo()
         .background(AppTheme.pageBackdrop(accent))
         .onAppear {
             // Registra o artigo em foco — o "onde parou" do registro de sessão no Cátedra.

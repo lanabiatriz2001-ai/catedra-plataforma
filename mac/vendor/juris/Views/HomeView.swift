@@ -35,7 +35,7 @@ struct HomeView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 26) {
                 JurisCampoBusca(prompt: "Buscar em toda a jurisprudência…", texto: $busca, aoSubmeter: submeterBusca)
-                    .padding(.horizontal, 26)
+                    .margemPaginaAcervo()
 
                 // Início no padrão do Cátedra (host web, .cth-*): próxima ação, hero com saudação,
                 // chips e painel de vidro, números sobrepostos ao pé do hero e o estudo semanal.
@@ -48,7 +48,7 @@ struct HomeView: View {
                                          botao: "Abrir o Acervo", acao: { store.ir(.destino(.acervo)) })
                     }
                 }
-                .padding(.horizontal, 26)
+                .margemPaginaAcervo()
                 VStack(spacing: 0) {
                     let meta = max(store.metaDiaria, 1), feito = store.lidosHoje
                     HeroInicio(saudacao: HeroInicio<EmptyView>.saudacao() + ".",
@@ -67,20 +67,19 @@ struct HomeView: View {
                             }
                         }
                     }
-                    HStack(alignment: .top, spacing: 16) {
+                    IndicadoresInicio {
                         CartaoNumeroInicio(rotulo: "Meta de hoje", valor: "\(min(100, feito * 100 / meta))", unidade: "%",
                                            apoio: "\(feito)/\(meta) verbetes", fracao: Double(feito) / Double(meta))
                         CartaoNumeroInicio(rotulo: "Revisões", valor: "\(store.srsDueCount)", apoio: "cartões vencidos hoje")
                         CartaoNumeroInicio(rotulo: "Favoritos", valor: "\(store.favorites.count)", apoio: "verbetes marcados com estrela")
                     }
-                    .padding(.horizontal, 2).offset(y: -42).padding(.bottom, -42)
                 }
-                .padding(.horizontal, 26)
+                .margemPaginaAcervo()
                 SecaoInicio(titulo: "Estudo semanal",
                             meta: "\(BarrasSemana.dias(store.leiturasPorDia).map(\.valor).reduce(0, +)) verbetes na semana")
-                    .padding(.horizontal, 26)
+                    .margemPaginaAcervo()
                 BarrasSemana(atividade: store.leiturasPorDia)
-                    .padding(.horizontal, 26)
+                    .margemPaginaAcervo()
                 DestaquesEstudoView(parte: .julgado)
 
                 bloco("Treinar", "graduationcap.fill")
@@ -121,7 +120,7 @@ struct HomeView: View {
     /// Divisor de bloco: caixa-alta + filete — a "voz de seção grande" da Home.
     /// Título de bloco no padrão do Início do Cátedra (serifa + fio).
     private func bloco(_ t: String, _ simbolo: String) -> some View {
-        SecaoInicio(titulo: t).padding(.horizontal, 26)
+        SecaoInicio(titulo: t).margemPaginaAcervo()
     }
 
     /// As ações de treino em azulejos grandes — todas alcançáveis também pela sidebar.
@@ -138,14 +137,14 @@ struct HomeView: View {
                 HubCard(icon: it.2, titulo: it.0, subtitulo: it.1) { store.ir(it.3) }
             }
         }
-        .padding(.horizontal, 28)
+        .margemPaginaAcervo()
     }
 
     private var ramosShelf: some View {
         VStack(alignment: .leading, spacing: 10) {
             JurisSecaoTitulo(titulo: "Explore por disciplina", simbolo: "books.vertical.fill",
                              verTodos: { store.ir(.ramosHub) })
-                .padding(.horizontal, 26)
+                .margemPaginaAcervo()
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 10) {
                     ForEach(store.disciplinasOrdenadas, id: \.nome) { ramo in
@@ -154,7 +153,7 @@ struct HomeView: View {
                         }
                     }
                 }
-                .padding(.horizontal, 26)
+                .margemPaginaAcervo()
             }
         }
     }
@@ -252,7 +251,7 @@ struct JurisHojeView: View {
                     }
                     Color.clear.frame(height: 20)
                 }
-                .padding(.horizontal, 26).padding(.top, 20)
+                .margemPaginaAcervo().padding(.top, 20)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }

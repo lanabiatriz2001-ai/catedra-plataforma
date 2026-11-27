@@ -283,7 +283,7 @@ struct LawReaderView: View {
                 .keyboardShortcut("i", modifiers: [.command, .shift])
                 Spacer()
             }
-            .padding(.horizontal, DSEspaco.e4).frame(minHeight: 44)
+            .margemPaginaAcervo().frame(minHeight: DSEspaco.alvoDeToque)
             .background(ThemeState.t.surface)
         } else if let law {
             BarraLeitor(ramo: law.customCategory ?? law.category.rawValue,
@@ -518,7 +518,7 @@ struct LawReaderView: View {
             Divider()
             Text("\(fontFamily), \(Int(fontSize)) pt")
         } label: {
-            Label("Tipografia", systemImage: "textformat.size")
+            IconeDoLeitor(titulo: "Tipografia", simbolo: "textformat.size")
         }
         .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
         .labelStyle(.iconOnly)
@@ -564,9 +564,7 @@ struct LawReaderView: View {
                 Divider()
                 maisMenuItens(law)
             } label: {
-                Image(systemName: "ellipsis.circle").font(DS.interface(17))
-                    .frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
-                    .accessibilityLabel("Mais")
+                IconeDoLeitor(titulo: "Mais", simbolo: "ellipsis.circle")
             }
             .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
             .labelStyle(.iconOnly)
