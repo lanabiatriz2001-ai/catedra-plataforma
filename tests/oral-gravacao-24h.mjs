@@ -295,15 +295,18 @@ export async function testarOralGravacao24hEstatico(ok) {
     const fora = tocador(false, Infinity), mp4 = tocador(true, 7);
     G.consertarDuracao({ target: fora }); G.consertarDuracao({ target: mp4 });
     ok(fora.currentTime === 0 && fora.duration === Infinity && mp4.duration === 7 && !(mp4.ouvintes.durationchange || []).length, R + 'só mexe nos tocadores das gravações e só quando falta a duração');
-    // o molde traz preload="none" (o elemento que o parser cria tem o src literal "{{ … }}");
-    // só o tocador com o blob da gravação passa a carregar a duração
-    const el = (src, dentro) => ({ tagName: 'AUDIO', preload: 'none', cargas: 0, getAttribute: (n) => n === 'src' ? src : null,
-      closest: (s) => (dentro && s === '.ct-oral-audio') ? {} : null, load() { this.cargas++; } });
-    const vivo = el('blob:http://localhost/abc', true), molde = el('{{ argGravUrl }}', true), alheio = el('blob:http://localhost/def', false);
-    [vivo, molde, alheio].forEach(x => G.prepararTocador({ target: x }));
-    G.prepararTocador({ target: vivo });
-    ok(vivo.preload === 'metadata' && vivo.cargas === 1 && molde.preload === 'none' && molde.cargas === 0 && alheio.preload === 'none',
-      R + 'só o tocador vivo (blob da gravação) passa a preload="metadata", uma vez; o elemento do molde nunca busca o src literal');
+    // o molde não traz src no <audio>: a URL vem em data-grav-src e só o blob da gravação vira src,
+    // depois de montar; a mesma URL não recarrega o tocador
+    const doMolde = (url) => { const at = { 'data-grav-src': url }; let trocas = 0;
+      return { at, get trocas() { return trocas; }, getAttribute: (n) => (n in at ? at[n] : null), setAttribute(n, v) { at[n] = String(v); if (n === 'src') trocas++; } }; };
+    const tBlob = doMolde('blob:http://localhost/abc'), tLiteral = doMolde('{{ argGravUrl }}'), tVazio = doMolde(''), tFora = doMolde('https://example.test/a.mp4');
+    const raiz = { querySelectorAll: (s) => s === '.ct-oral-audio audio[data-grav-src]' ? [tBlob, tLiteral, tVazio, tFora] : [] };
+    const n1 = G.ligarTocadores(raiz), n2 = G.ligarTocadores(raiz);
+    tBlob.at['data-grav-src'] = 'blob:http://localhost/nova';
+    const n3 = G.ligarTocadores(raiz);
+    ok(n1 === 1 && n2 === 0 && n3 === 1 && tBlob.at.src === 'blob:http://localhost/nova' && tBlob.trocas === 2 && !('src' in tLiteral.at) && !('src' in tVazio.at) && !('src' in tFora.at),
+      R + 'o tocador só ganha src com o blob da gravação; a mesma URL não recarrega, a nova (gravar de novo) troca; o literal "{{ }}", o vazio e o endereço de fora nunca viram src');
+    ok(G.ligarTocadores() === 0, R + 'sem documento (Node), ligar os tocadores não quebra');
   } catch (e) { ok(false, R + 'tocador de mentira (' + e.message.split('\n')[0] + ')'); }
 
   /* ---------- fios no host, no sync e no build ---------- */
@@ -319,6 +322,14 @@ export async function testarOralGravacao24hEstatico(ok) {
   const arrayId = (auth.match(/var ARRAY_ID = \{[^}]*\}/) || [''])[0];
   ok(arrayId.length > 50 && !arrayId.includes('oralJanela'), R + 'é objeto, não lista: fora do ARRAY_ID (vence o carimbo mais novo da chave)');
   ok(/<script src="\.\/oral-gravacao\.js"><\/script>/.test(host), R + 'o host carrega oral-gravacao.js por <script> (funciona em file://)');
+  // O parser do navegador cria os elementos do molde cru (<x-dc>) antes de o runtime montar o app:
+  // um src="{{ … }}" ali começa a carregar a URL literal (o <audio> da gravação a pediu no WebKit do
+  // Linux, CI do PR #273). Âncora da própria página (href="#ct-i-…" do <use>) não busca nada.
+  const moldeCru = host.slice(host.indexOf('<x-dc>'), host.lastIndexOf('</x-dc>'));
+  const buscam = [...moldeCru.matchAll(/<(audio|video|source|img|iframe|frame|embed|object|track|script|link|input|use|image)\b[^>]*?\s(src|srcset|poster|data|href|xlink:href)\s*=\s*("[^"]*\{\{[^"]*"|'[^']*\{\{[^']*'|[^\s"'>]*\{\{[^\s>]*)/gi)]
+    .filter(m => !/^["']?#/.test(m[3])).map(m => '<' + m[1] + ' ' + m[2] + '=' + m[3] + '>');
+  ok(moldeCru.length > 100000 && buscam.length === 0,
+    R + 'no molde cru, nenhum elemento que busca recurso tem {{ }} no endereço (o parser o criaria com a URL literal): ' + (buscam.join(' · ') || 'nenhum'));
   const copiar = (build.match(/const COPIAR = \[[^\]]*\]/) || [''])[0];
   ok(copiar.includes("'oral-gravacao.js'") && /'\.\/oral-gravacao\.js'/.test(build), R + 'build do site: na lista COPIAR e na pré-carga do app instalado');
   ok(/for \(const f of \[[^\]]*'oral-gravacao\.js'/.test(buildMac), R + 'bundle nativo: na lista de cópia do build-macos (o iPad e o Windows saem dele)');
@@ -371,6 +382,24 @@ function instalarFalsos({ MARCA, safari }) {
   }
   MRFalso.isTypeSupported = (t) => safari ? /^audio\/mp4/.test(t) : /^audio\/webm/.test(t);
   try { Object.defineProperty(window, 'MediaRecorder', { configurable: true, writable: true, value: MRFalso }); } catch (e) { window.MediaRecorder = MRFalso; }
+}
+
+/* Vigia cada <audio> que entra no documento — também os que o PARSER do navegador cria a partir do
+   molde cru (<x-dc>), antes de o runtime montar o app — e relata cada seleção de recurso (loadstart)
+   com o endereço usado. Um src="{{ … }}" no molde aparece aqui em qualquer motor, mesmo onde o
+   preload="none" segura o pedido de rede (Chrome e Safari do Mac seguram; o WebKit do Linux, na CI
+   do PR #273, pediu a URL literal). */
+function vigiarTocadores() {
+  const engancha = (a) => {
+    if (a.__ctVigiado) return;
+    a.__ctVigiado = true;
+    a.addEventListener('loadstart', () => { try { window.__ctMidia({ src: a.getAttribute('src') || '', atual: a.currentSrc || '' }); } catch (e) {} });
+  };
+  new MutationObserver((rs) => rs.forEach((r) => r.addedNodes.forEach((n) => {
+    if (n.nodeType !== 1) return;
+    if (n.tagName === 'AUDIO') engancha(n);
+    if (n.querySelectorAll) n.querySelectorAll('audio').forEach(engancha);
+  }))).observe(document, { childList: true, subtree: true });
 }
 
 async function contexto(pageDaSuite, op = {}) {
@@ -493,6 +522,9 @@ async function gravacao(pageDaSuite, base, ok, R, motor, arquivo) {
   page.on('request', (q) => { let d = null; try { d = q.postDataBuffer(); } catch (e) {} pedidos.push({ url: q.url(), metodo: q.method(), tipo: q.headers()['content-type'] || '', marca: !!(d && d.includes(MARCA)) }); });
   const safari = motor === 'webkit';
   await ctx.addInitScript(instalarFalsos, { MARCA, safari });
+  const midia = [];
+  await ctx.exposeBinding('__ctMidia', (_, d) => { midia.push(d); });
+  await ctx.addInitScript(vigiarTocadores);
   try {
     await semear(page, base);
     await abrirOral(page, base, arquivo);
@@ -630,7 +662,12 @@ async function gravacao(pageDaSuite, base, ok, R, motor, arquivo) {
     const levou = pedidos.filter(p => p.marca || /^audio\//i.test(p.tipo));
     const molde = pedidos.filter(p => /%7B%7B|\{\{/.test(p.url));
     ok(levou.length === 0, R + 'nenhuma requisição levou o áudio (' + pedidos.length + ' requisições vistas' + (levou.length ? ': ' + levou[0].metodo + ' ' + levou[0].url : '') + ')');
-    ok(molde.length === 0, R + 'o <audio src="{{ }}"> do molde não vira pedido de URL literal');
+    ok(molde.length === 0, R + 'nenhum pedido de rede com a URL literal "{{ }}" do molde (' + (molde.length ? molde[0].url : 'nenhum') + ')');
+    // a causa, em qualquer motor: o <audio> do molde cru não pode nem começar a carregar a URL literal
+    const literal = midia.filter(m => /%7B%7B|\{\{/.test(m.atual + ' ' + m.src)), doBlob = midia.filter(m => /^blob:/.test(m.atual));
+    ok(literal.length === 0 && doBlob.length > 0,
+      R + 'nenhum <audio> começa a carregar a URL literal "{{ }}" do molde, nem os que o parser cria do molde cru antes do runtime ('
+      + midia.length + ' cargas de áudio vistas, ' + doBlob.length + ' do blob da gravação' + (literal.length ? '; literal: ' + literal.length + ', ' + literal[0].atual : '') + ')');
     ok(erros.length === 0, R + 'sem erro na página (' + (erros[0] || 'nenhum') + ')');
   } finally { await ctx.close(); }
 }
@@ -803,7 +840,7 @@ async function duracao(pageDaSuite, base, ok, R, motor, arquivo) {
       return { cru, bytes: blob.size };
     });
     // sem áudio de verdade neste ambiente (ou com um Chrome que já grava a duração), não há o que
-    // consertar: a lógica segue provada no Node (consertarDuracao/prepararTocador); aqui só se avisa
+    // consertar: a lógica segue provada no Node (consertarDuracao e ligarTocadores); aqui só se avisa
     if (real.erro || real.cru !== 'Infinity') { console.log('  (pulado) ' + R + 'webm de verdade: ' + (real.erro || 'o arquivo já traz a duração (' + real.cru + ')')); return; }
     await page.evaluate(() => window.__catedraApp.argHistoricoAbrir({ currentTarget: { dataset: { id: 'oral-real' } } }));
     const sel = '[data-grav="ouvir-historico"] audio[src^="blob:"]';

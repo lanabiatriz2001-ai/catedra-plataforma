@@ -395,21 +395,25 @@
     a.addEventListener('durationchange', volta); a.addEventListener('timeupdate', volta);
     try { a.currentTime = 1e101; } catch (e) { limpar(); }
   }
-  /* O molde da tela traz o <audio> com preload="none": o parser cria esse elemento com o src
-     literal "{{ … }}", e com outro preload o buscaria. O tocador de verdade (com o blob da
-     gravação) passa a "metadata" e recarrega, para a duração aparecer antes do play. */
-  function prepararTocador(ev) {
-    var a = ev && ev.target;
-    if (!a || a.tagName !== 'AUDIO' || !a.closest || !a.closest('.ct-oral-audio')) return;
-    if (String(a.getAttribute('src') || '').indexOf('blob:') !== 0 || a.preload !== 'none') return;
-    a.preload = 'metadata';
-    try { a.load(); } catch (e) {}
+  /* O molde da tela não traz src no <audio>. O parser do navegador cria os elementos do molde
+     cru (<x-dc>) antes de o runtime montar o app, e um src="{{ … }}" ali começava a carregar a
+     URL literal: com preload="none" o Chrome e o Safari do Mac paravam antes do pedido, o WebKit
+     do Linux o fez (CI do PR #273). A URL vai em data-grav-src e entra aqui, depois de montar
+     (componentDidUpdate do host, como o src dos satélites), e só o blob da gravação deste
+     aparelho. A mesma URL não recarrega o tocador. Devolve quantos tocadores ganharam src. */
+  function ligarTocadores(raiz) {
+    var lista, n = 0;
+    try { lista = (raiz || w.document).querySelectorAll('.ct-oral-audio audio[data-grav-src]'); } catch (e) { return 0; }
+    for (var i = 0; i < lista.length; i++) {
+      var a = lista[i], url = String(a.getAttribute('data-grav-src') || '');
+      if (url.indexOf('blob:') !== 0 || a.getAttribute('src') === url) continue;
+      a.setAttribute('src', url);
+      n++;
+    }
+    return n;
   }
   try {
-    if (w.document && w.document.addEventListener) {
-      w.document.addEventListener('loadstart', prepararTocador, true);
-      w.document.addEventListener('loadedmetadata', consertarDuracao, true);
-    }
+    if (w.document && w.document.addEventListener) w.document.addEventListener('loadedmetadata', consertarDuracao, true);
   } catch (e) {}
 
   w.CT_ORAL_GRAV = {
@@ -421,6 +425,6 @@
     // gravação
     escolherTipo: escolherTipo, suporte: suporte, falhaDoErro: falhaDoErro, chave: chave,
     idxDoRegistro: idxDoRegistro, cabe: cabe, orfas: orfas, duracao: duracao, tamanho: tamanho,
-    gravar: gravar, paraBuffer: paraBuffer, loja: loja, consertarDuracao: consertarDuracao, prepararTocador: prepararTocador
+    gravar: gravar, paraBuffer: paraBuffer, loja: loja, consertarDuracao: consertarDuracao, ligarTocadores: ligarTocadores
   };
 })(typeof window !== 'undefined' ? window : this);
