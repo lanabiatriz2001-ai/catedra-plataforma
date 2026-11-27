@@ -44,9 +44,8 @@ struct EntryDetailView: View {
     var body: some View {
         ScrollViewReader { proxy in
         ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
-                Color.clear.frame(height: 0).id("topo")
-                header
+            VStack(alignment: .leading, spacing: DSEspaco.e5) {
+                header.id("topo")
                 alertaSituacao
                 enunciadoCard
                 // Ler: só a fonte primária (texto do tribunal, ficha, precedentes, referências
@@ -68,8 +67,8 @@ struct EntryDetailView: View {
                     ProvaOralDoVerbete(entry: entry)
                 }
             }
-            .padding(.horizontal, 34)
-            .padding(.vertical, 30)
+            .margemPaginaAcervo()
+            .padding(.vertical, DSEspaco.e5)
             .frame(maxWidth: .infinity, alignment: .leading)   // largura total — a Lana pediu; era 780pt
             .frame(maxWidth: .infinity, alignment: .center)
         }
@@ -200,7 +199,7 @@ struct EntryDetailView: View {
                     .background(Color.white.opacity(0.16), in: Capsule())
             }
         }
-        .padding(22)
+        .padding(DSEspaco.e4)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             ZStack(alignment: .topTrailing) {
@@ -332,7 +331,7 @@ struct EntryDetailView: View {
             if editandoEnunciado { edicaoBar }
         }
         .padding(.vertical, 18)
-        .padding(.horizontal, 22)
+        .padding(.horizontal, DSEspaco.e4)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Palette.cardBackground, in: RoundedRectangle(cornerRadius: Palette.rHero, style: .continuous))
         .overlay(alignment: .leading) {
@@ -992,9 +991,7 @@ struct EntryDetailView: View {
             Button { readingScale = max(readingScale - 0.1, 0.8) } label: { Label("Diminuir texto", systemImage: "textformat.size.smaller") }
             Button { readingScale = 1.0 } label: { Label("Tamanho padrão", systemImage: "arrow.counterclockwise") }
         } label: {
-            Image(systemName: "textformat.size").font(DS.interface(17))
-                .frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
-                .accessibilityLabel("Tamanho do texto")
+            IconeDoLeitor(titulo: "Tamanho do texto", simbolo: "textformat.size")
         }
         .menuIndicator(.hidden).fixedSize()
     }
@@ -1050,9 +1047,7 @@ struct EntryDetailView: View {
                 Button { mostrarAnki = true } label: { Label("Exportar para o Anki…", systemImage: "rectangle.on.rectangle") }
             }
         } label: {
-            Image(systemName: copiado ? "checkmark.circle" : "ellipsis.circle").font(DS.interface(17))
-                .frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
-                .accessibilityLabel("Mais")
+            IconeDoLeitor(titulo: "Mais", simbolo: copiado ? "checkmark.circle" : "ellipsis.circle")
         }
         .menuIndicator(.hidden).fixedSize()
     }

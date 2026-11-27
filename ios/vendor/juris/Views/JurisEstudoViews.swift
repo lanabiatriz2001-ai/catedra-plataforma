@@ -37,7 +37,7 @@ struct GradeInformativosView: View {
                         if !eds.isEmpty { colecao(f, eds) }
                     }
                 }
-                .jurisMargemPagina(28).padding(.vertical, 24)
+                .margemPaginaAcervo().padding(.vertical, 24)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -128,13 +128,13 @@ struct JulgadoDoDiaView: View {
             SectionShell(icon: Selecao.julgadoDoDia.simbolo, title: Selecao.julgadoDoDia.titulo,
                          subtitle: Date().formatted(.dateTime.weekday(.wide).day().month(.wide).year().locale(Locale(identifier: "pt_BR")))) {
                 ScrollView {
-                    conteudo.jurisMargemPagina(28).padding(.vertical, 24)
+                    conteudo.margemPaginaAcervo().padding(.vertical, 24)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         } else {
-            conteudo.jurisMargemPagina(28)
+            conteudo.margemPaginaAcervo()
         }
     }
 
@@ -277,7 +277,7 @@ struct DestaquesEstudoView: View {
             if parte != .julgado {
             JurisSecaoTitulo(titulo: "Últimos informativos", simbolo: "newspaper",
                              verTodos: { store.ir(.gradeInformativos) })
-            .jurisMargemPagina(28)
+            .margemPaginaAcervo()
             // iPhone: três cartões com "nº 1234" a 24 pt não cabem lado a lado — grade.
             JurisGradeOuFileira(compacto: ehCompacto, minimo: 150, espacamento: 10) {
                 ForEach([Fonte.informativoSTF, .informativoSTJ, .informativoTSE]) { f in
@@ -295,7 +295,7 @@ struct DestaquesEstudoView: View {
                     }
                 }
             }
-            .jurisMargemPagina(28)
+            .margemPaginaAcervo()
             }
         }
     }
@@ -408,7 +408,7 @@ struct ProvaOralJurisView: View {
                     .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.hairline))
                 }
             }
-            .jurisMargemPagina(28).padding(.vertical, 24)
+            .margemPaginaAcervo().padding(.vertical, 24)
             .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

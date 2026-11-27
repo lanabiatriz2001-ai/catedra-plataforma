@@ -42,9 +42,9 @@ button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,[t
 .ml-fraca{font:600 10px var(--body);letter-spacing:0;text-transform:uppercase;color:var(--text2)}
 
 .top{position:sticky;top:0;z-index:30;background:var(--surface);border-bottom:1px solid var(--border)}
-.l1{display:flex;align-items:center;gap:14px;padding:13px 18px;max-width:1320px;margin:0 auto;flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:11px;flex:none}
-.brand .ic{width:36px;height:36px;border-radius:11px;background:var(--accentSolid,var(--accent));color:var(--onAccent);
+.l1{display:flex;align-items:center;flex-wrap:wrap}
+.brand{display:flex;align-items:center;flex:none}
+.brand .ic{background:var(--accentSolid,var(--accent));color:var(--onAccent);
   display:flex;align-items:center;justify-content:center;font-size:var(--t-display);flex:none}
 .brand small{display:block;font-size:var(--t-micro);color:var(--text2);margin-top:4px}
 .busca{position:relative;flex:1;min-width:200px}
@@ -59,7 +59,6 @@ button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,[t
   padding:10px 12px;font-size:var(--t-corpo);cursor:pointer;flex:none;max-width:230px}
 .sel:focus{border-color:var(--accent)}
 
-.wrap{padding:20px 18px 70px;max-width:1320px;margin:0 auto}
 .stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
 .stat{flex:1;min-width:140px;background:var(--surface);border:1px solid var(--border);border-radius:14px;
   padding:12px 15px;box-shadow:var(--sh)}
@@ -79,7 +78,7 @@ button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,[t
 .gh span{font-size:var(--t-micro);color:var(--text2);font-weight:600}
 .gh hr{flex:1;border:0;border-top:1px solid var(--border);margin:0}
 
-.rlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+.rlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr));gap:14px}
 .rcard{position:relative;text-align:left;font-family:inherit;color:var(--ink);cursor:pointer;
   background:var(--surface);border:1px solid color-mix(in srgb,var(--rc,var(--accent)) 38%,var(--border));
   background-image:linear-gradient(90deg,color-mix(in srgb,var(--rc,var(--accent)) 18%,transparent),transparent 46%);
@@ -115,7 +114,7 @@ button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,[t
 /* D8 — no celular o dedo precisa de 44px: busca e filtros vinham com ~40px de altura
    e ficavam espremidos lado a lado numa linha só. */
 @media (max-width:640px){
-  .l1{padding:11px 12px} .wrap{padding:16px 12px 60px} .brand small{display:none}
+  .brand small{display:none}
   .busca{flex:1 0 100%;order:3}
   .busca input,.sel{min-height:44px}
   .busca input{font-size:var(--t-titulo)}          /* abaixo de 16px o iOS dá zoom sozinho ao focar */

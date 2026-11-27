@@ -6,9 +6,8 @@
 
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--body,'Inter',system-ui,sans-serif);font-size:13px;-webkit-font-smoothing:antialiased}
-.wrap{max-width:1200px;margin:0 auto;padding:20px 26px 90px}
-.head{display:flex;align-items:center;gap:14px;margin-bottom:14px}
-.head .ic{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,var(--accentSolid,var(--accent,#0f7a57)),var(--accentSolidD,var(--accentD,#0b5e43)));display:flex;align-items:center;justify-content:center;color:var(--onAccent,#fff);font-size:20px;flex:none;box-shadow:0 6px 16px -4px rgba(20,15,10,.30)}
+.head{display:flex;align-items:center}
+.head .ic{background:linear-gradient(135deg,var(--accentSolid,var(--accent,#0f7a57)),var(--accentSolidD,var(--accentD,#0b5e43)));display:flex;align-items:center;justify-content:center;color:var(--onAccent,#fff);font-size:20px;flex:none;box-shadow:0 6px 16px -4px rgba(20,15,10,.30)}
 .head h1{font-family:var(--display,'Spectral',Georgia,serif);font-size:25px;font-weight:800;letter-spacing:-.02em;line-height:1}
 .head p{font-size:12px;color:var(--text2,#5c564a);margin-top:3px}
 .search{position:relative;margin-bottom:12px}
@@ -287,8 +286,7 @@ body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--bod
    meio da palavra, e as ferramentas do leitor recolhidas num "⋯" — no telefone a barra
    do leitor não cabia com título, tribunal e quatro botões. */
 @media (max-width:640px){
-  .wrap{padding:16px 14px 90px}
-  .tabs,#trib{flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-left:-14px;margin-right:-14px;padding:2px 14px}
+  .tabs,#trib{flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-inline:0;padding:2px 0}
   .tabs::-webkit-scrollbar,#trib::-webkit-scrollbar{display:none}
   .tab,#trib .chip{flex:none;scroll-snap-align:start}
   .tab,.chip,.fbtn,.gmais,.diaAcoes button,.tccard .acv{min-height:44px}

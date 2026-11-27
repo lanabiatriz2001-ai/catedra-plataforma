@@ -122,7 +122,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
    681 e 899 os dois apareciam ao mesmo tempo, cada um com seu badge. */
 @media (max-width:899px){ .ct-sino-barra{display:none!important;} }
 @media (max-width:540px){
-  .ct-topbar{gap:8px!important;padding-left:14px!important;padding-right:14px!important;}
+  .ct-topbar{gap:var(--ct-e2)!important;}
   .ct-sm-hide2{display:none!important;}
 }
 .rd-toolbar{scrollbar-width:none;}
@@ -161,7 +161,7 @@ aside nav button{ transition:background .15s, transform .15s, box-shadow .15s; }
    pode encolher para acomodar os controles em uma única linha. */
 @media (max-width:540px){
   .ct-topbar{flex-wrap:nowrap!important;gap:8px!important;
-    padding:6px 12px!important;padding-top:calc(6px + env(safe-area-inset-top))!important;}
+    padding-block:calc(var(--ct-e3)/2)!important;padding-top:calc(var(--ct-e3)/2 + env(safe-area-inset-top))!important;}
   .ct-tb-titulo{flex:1 1 auto!important;min-width:0!important;}
   .ct-tb-titulo h1{font-size:var(--fs-xl)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .ct-tb-titulo p{display:none!important;}
@@ -873,7 +873,7 @@ window.ctPdfLib = (function(){
   <!-- ============ MAIN ============ -->
   <main id="ct-main" tabindex="-1" style="flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg);">
     <!-- TOPBAR -->
-    <header class="ct-topbar" style="position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:14px;padding:13px clamp(16px,3vw,34px);background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap;">
+    <header class="ct-topbar" style="position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:var(--ct-e3);padding-block:var(--ct-e3);background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap;">
       <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
         <button onclick="{{ toggleMenu }}" aria-label="Abrir menu" title="Menu" style="border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink);flex:none;"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"></path></svg></button>
       </sc-if>
@@ -884,7 +884,7 @@ window.ctPdfLib = (function(){
 
       <div class="ct-tb-acoes" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-left:auto;">
       <!-- busca / paleta de comando -->
-      <button onclick="{{ openPalette }}" title="Buscar (Ctrl+K)" style="display:flex;align-items:center;gap:8px;border:1px solid var(--border);background:var(--surface2);border-radius:99px;padding:0 12px;height:38px;cursor:pointer;color:var(--text3);flex:none;">
+      <button onclick="{{ openPalette }}" title="Buscar (Ctrl+K)" style="display:flex;align-items:center;gap:8px;border:1px solid var(--border);background:var(--surface2);border-radius:99px;padding:0 12px;min-height:var(--ct-altura-controle);cursor:pointer;color:var(--text3);flex:none;">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5" stroke-linecap="round"></path></svg>
         <span class="ct-tb-searchlabel" style="font-size:var(--fs-base);color:var(--text2);">Buscar</span>
         <span class="ct-kbd" style="font-size:var(--fs-sm);font-family:var(--mono);background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:1px 6px;">⌘K</span>
@@ -893,7 +893,7 @@ window.ctPdfLib = (function(){
       <!-- D12: o estado normal do sync não ocupa o topo — vive como pontinho no avatar e
            detalhe no menu da conta. Erro que PERSISTE é a exceção: aí sim vira aviso visível. -->
       <sc-if value="{{ syncAlarme }}" hint-placeholder-val="{{ false }}">
-        <button onclick="{{ syncTentarAgora }}" title="{{ syncTitle }}" aria-live="polite" style="display:flex;align-items:center;gap:7px;border:1px solid var(--danger);background:color-mix(in srgb,var(--danger) 10%,transparent);border-radius:99px;padding:0 13px;height:38px;flex:none;cursor:pointer;font-family:inherit;">
+        <button onclick="{{ syncTentarAgora }}" title="{{ syncTitle }}" aria-live="polite" style="display:flex;align-items:center;gap:7px;border:1px solid var(--danger);background:color-mix(in srgb,var(--danger) 10%,transparent);border-radius:99px;padding:0 13px;min-height:var(--ct-altura-controle);flex:none;cursor:pointer;font-family:inherit;">
           <span style="width:8px;height:8px;border-radius:99px;background:var(--danger);flex:none;"></span>
           <span style="font-size:var(--fs-xs);color:var(--danger);font-weight:700;">{{ syncAlarmeTxt }}</span>
         </button>
@@ -901,7 +901,7 @@ window.ctPdfLib = (function(){
 
       <!-- notificações -->
       <div class="ct-sino-barra" style="position:relative;flex:none;">
-        <button onclick="{{ toggleNotif }}" title="Notificações" style="position:relative;border:1px solid var(--border);background:var(--surface2);border-radius:99px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);">
+        <button onclick="{{ toggleNotif }}" title="Notificações" style="position:relative;border:1px solid var(--border);background:var(--surface2);border-radius:99px;min-width:var(--ct-altura-controle);min-height:var(--ct-altura-controle);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 4a4 4 0 0 1 4 4v2.4c0 .9.3 1.8.9 2.5L18.5 15H5.5l1.6-2.1c.6-.7.9-1.6.9-2.5V8a4 4 0 0 1 4-4Z" stroke-linejoin="round"></path><path d="M10 19a2 2 0 0 0 4 0" stroke-linecap="round"></path></svg>
           <sc-if value="{{ hasUnread }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;top:-2px;right:-2px;min-width:17px;height:17px;border-radius:99px;background:var(--danger);color:var(--onDanger);font-size:var(--fs-2xs);font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--surface);">{{ notifUnreadStr }}</span></sc-if>
         </button>
@@ -926,7 +926,7 @@ window.ctPdfLib = (function(){
 
       <!-- menu suspenso de usuário -->
       <div style="position:relative;flex:none;">
-        <button onclick="{{ toggleUserMenu }}" title="{{ syncDetalhe }}" aria-label="Conta e sincronização" style="display:flex;align-items:center;gap:7px;border:1px solid var(--border);background:var(--surface2);border-radius:99px;padding:3px 9px 3px 3px;height:38px;cursor:pointer;position:relative;">
+        <button onclick="{{ toggleUserMenu }}" title="{{ syncDetalhe }}" aria-label="Conta e sincronização" style="display:flex;align-items:center;gap:7px;border:1px solid var(--border);background:var(--surface2);border-radius:99px;padding:3px 9px 3px 3px;min-height:var(--ct-altura-controle);cursor:pointer;position:relative;">
           <span style="width:30px;height:30px;border-radius:99px;background:var(--heroGrad);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:var(--fs-md);flex:none;position:relative;">{{ userInitial }}
             <!-- D12: o estado do sync virou um pontinho aqui; o texto vai no menu -->
             <span aria-hidden="true" style="position:absolute;right:-1px;bottom:-1px;width:10px;height:10px;border-radius:99px;background:{{ syncDot }};border:2px solid var(--surface2);"></span>
@@ -1661,7 +1661,7 @@ window.ctPdfLib = (function(){
          arrastava as duas, e o conteúdo do acervo escapava por baixo. Agora a moldura do
          iframe estica até o fim do espaço útil (flex) e só o scroll de dentro existe. -->
     <div class="ct-scroll" data-design-view="{{ designView }}" style="{{ contentBoxStyle }}">
-     <div style="{{ contentInnerStyle }}">
+     <div class="ct-pagina" style="{{ contentInnerStyle }}">
 
       <!-- ================= INÍCIO (Vitrine Editorial · Take 1 aprovado) ================= -->
       <sc-if value="{{ oabTela }}"><section class="ct-card ct-oab" aria-label="Percurso OAB" style="padding:var(--ct-e5);display:flex;flex-direction:column;gap:var(--ct-e4);">
@@ -2183,14 +2183,14 @@ window.ctPdfLib = (function(){
       </sc-if>
 
       <sc-if value="{{ isCiclo }}" hint-placeholder-val="{{ true }}">
-       <div style="display:flex;flex-direction:column;gap:16px;">
+       <div class="ct-secoes">
 
         <!-- A tela do ciclo fazia duas coisas empilhadas: mostrar a rotina de hoje e
              oferecer o construtor. Agora são duas abas — quem abre o Ciclo cai em
              "Executar", que é o que se faz todo dia. -->
         <div role="tablist" aria-label="Modo do ciclo" style="display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:4px;">
-          <button id="ct-cycle-tab-executar" role="tab" aria-selected="{{ cycleExecutarSelected }}" aria-controls="ct-cycle-panel-executar" tabindex="{{ cycleExecutarTabIndex }}" data-panel="executar" onclick="{{ setCyclePanel }}" onkeydown="{{ cycleTabKey }}" style="{{ cycleTabExecStyle }}">Executar ciclo</button>
-          <button id="ct-cycle-tab-configurar" role="tab" aria-selected="{{ cycleConfigurarSelected }}" aria-controls="ct-cycle-panel-configurar" tabindex="{{ cycleConfigurarTabIndex }}" data-panel="configurar" onclick="{{ setCyclePanel }}" onkeydown="{{ cycleTabKey }}" style="{{ cycleTabCfgStyle }}">Configurar ciclo</button>
+          <button class="ct-controle-linha" id="ct-cycle-tab-executar" role="tab" aria-selected="{{ cycleExecutarSelected }}" aria-controls="ct-cycle-panel-executar" tabindex="{{ cycleExecutarTabIndex }}" data-panel="executar" onclick="{{ setCyclePanel }}" onkeydown="{{ cycleTabKey }}" style="{{ cycleTabExecStyle }}">Executar ciclo</button>
+          <button class="ct-controle-linha" id="ct-cycle-tab-configurar" role="tab" aria-selected="{{ cycleConfigurarSelected }}" aria-controls="ct-cycle-panel-configurar" tabindex="{{ cycleConfigurarTabIndex }}" data-panel="configurar" onclick="{{ setCyclePanel }}" onkeydown="{{ cycleTabKey }}" style="{{ cycleTabCfgStyle }}">Configurar ciclo</button>
         </div>
 
         <div id="ct-cycle-panel-executar" role="tabpanel" aria-labelledby="ct-cycle-tab-executar" style="{{ cyclePainelExecStyle }}">
@@ -2529,7 +2529,7 @@ window.ctPdfLib = (function(){
         <!-- BANCADA · o foco é o bloco de agora; o apoio é o material que ele exige;
              a lista de blocos logo abaixo é a fila. As três zonas não trocam de lugar. -->
         <sc-if value="{{ cicloBcTem }}" hint-placeholder-val="{{ true }}">
-          <div class="ct-bc" style="margin-bottom:6px;">
+          <div class="ct-bc">
             <div class="ct-bc-foco" style="border-color:color-mix(in oklab, {{ cicloBcCor }} 34%, var(--border));background-image:linear-gradient(90deg,color-mix(in oklab, {{ cicloBcCor }} 15%, transparent),transparent 46%);">
               <div>
                 <h3>{{ cicloBcDisc }}</h3>
@@ -2895,7 +2895,7 @@ window.ctPdfLib = (function(){
            quando alguém chega, por qualquer caminho, a uma view que a área ativa não
            oferece. Ela diz o que a tela faz, por que não abre aqui, e para onde ir. -->
       <sc-if value="{{ isIndisponivel }}" hint-placeholder-val="{{ false }}">
-       <div style="display:flex;flex-direction:column;gap:16px;">
+       <div class="ct-secoes">
         <div class="ct-card ct-card-alto" style="max-width:620px;">
           <div style="font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;color:var(--text3);font-weight:700;">Não faz parte de {{ indispArea }}</div>
           <div style="font-family:var(--display);font-weight:600;font-size:var(--fs-2xl);color:var(--ink);margin-top:8px;">{{ indispTitulo }}</div>
@@ -2916,7 +2916,7 @@ window.ctPdfLib = (function(){
 
       <!-- ================= CASOS DA ÁREA ================= -->
       <sc-if value="{{ isCasos }}" hint-placeholder-val="{{ false }}">
-       <div style="display:flex;flex-direction:column;gap:18px;">
+       <div class="ct-secoes">
 
         <!-- ---------- TREINO: o caso se revela na ordem do raciocínio da área ---------- -->
         <sc-if value="{{ casoTreinoOn }}" hint-placeholder-val="{{ false }}">
@@ -3068,7 +3068,7 @@ window.ctPdfLib = (function(){
             <p>Marque os tópicos estudados para acompanhar quanto do edital já percorreu.</p>
           </div>
           <div class="ct-design-numeros"><div><b>{{ edTotal }}</b><span>tópicos</span></div><div><b>{{ edDone }}</b><span>estudados</span></div></div></section></sc-if>
-       <div style="display:flex;flex-direction:column;gap:16px;">
+       <div class="ct-secoes">
 
         <!-- CONCURSOS — a faixa de chamada do Edital. Uma tela tem UM primeiro lugar, e aqui ele é
              a resposta a "de qual concurso eu estou falando?": tudo abaixo (pesos, questões,
@@ -3106,7 +3106,7 @@ window.ctPdfLib = (function(){
               <div style="font-family:var(--display);font-weight:700;font-size:var(--fs-lg);color:var(--ink);display:flex;align-items:center;gap:10px;"><span class="ct-ladrilho" aria-hidden="true"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="library"><use href="#ct-i-library"></use></svg></span>Começar com um modelo</div>
               <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:3px;line-height:1.45;">{{ modeloResumo }} — conteúdo programático de editais reais. Escolha o concurso e as disciplinas; depois é só ajustar ao edital do seu.</div>
             </div>
-            <button onclick="{{ toggleModelo }}" style="background:{{ modeloBtnBg }};color:{{ modeloBtnFg }};border:1px solid var(--accent);border-radius:var(--r-md);padding:10px 16px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;flex:none;">{{ modeloBtnLabel }}</button>
+            <button class="ct-controle-linha" onclick="{{ toggleModelo }}" style="background:{{ modeloBtnBg }};color:{{ modeloBtnFg }};border:1px solid var(--accent);border-radius:var(--r-md);font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;flex:none;">{{ modeloBtnLabel }}</button>
           </div>
           <sc-if value="{{ modeloOpen }}" hint-placeholder-val="{{ false }}">
             <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px;">
@@ -3122,11 +3122,11 @@ window.ctPdfLib = (function(){
                 </div>
               </sc-if>
               <sc-if value="{{ modeloTemOutras }}" hint-placeholder-val="{{ false }}">
-                <button onclick="{{ toggleModeloOutras }}" style="margin-bottom:14px;background:transparent;border:1px dashed var(--border);border-radius:var(--r-md);padding:6px 12px;font-size:var(--fs-xs);font-weight:600;color:var(--text3);cursor:pointer;font-family:inherit;">{{ modeloOutrasLabel }}</button>
+                <button class="ct-controle-linha" onclick="{{ toggleModeloOutras }}" style="margin-bottom:14px;background:transparent;border:1px dashed var(--border);border-radius:var(--r-md);font-size:var(--fs-xs);font-weight:600;color:var(--text3);cursor:pointer;font-family:inherit;">{{ modeloOutrasLabel }}</button>
               </sc-if>
               <sc-if value="{{ modeloTemModelo }}" hint-placeholder-val="{{ true }}">
               <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:11px;">
-                <button onclick="{{ modeloTodas }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:6px 12px;font-size:var(--fs-xs);font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;">{{ modeloTodasLabel }}</button>
+                <button class="ct-controle-linha" onclick="{{ modeloTodas }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);font-size:var(--fs-xs);font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;">{{ modeloTodasLabel }}</button>
                 <span style="font-size:var(--fs-xs);color:var(--text3);">{{ modeloSelLabel }}</span>
               </div>
               <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px;">
@@ -3151,8 +3151,8 @@ window.ctPdfLib = (function(){
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
           <div style="font-size:var(--fs-sm);color:var(--text3);">Exporte o edital com o seu progresso — para imprimir, revisar offline ou compartilhar.</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button onclick="{{ exportEditalTXT }}" title="Baixa o edital como texto (.txt)" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:8px 13px;font-weight:600;font-size:var(--fs-sm);color:var(--text2);cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10" stroke-linecap="round"></path></svg>Texto (.txt)</button>
-            <button onclick="{{ exportEditalPDF }}" title="Baixa o edital como PDF pronto para imprimir" style="display:inline-flex;align-items:center;gap:6px;background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:8px 13px;font-weight:600;font-size:var(--fs-sm);cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h9l5 5v15H6z" stroke-linejoin="round"></path><path d="M14 2v6h6" stroke-linecap="round" stroke-linejoin="round"></path></svg>PDF</button>
+            <button class="ct-controle-linha" onclick="{{ exportEditalTXT }}" title="Baixa o edital como texto (.txt)" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);font-weight:600;font-size:var(--fs-sm);color:var(--text2);cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10" stroke-linecap="round"></path></svg>Texto (.txt)</button>
+            <button class="ct-controle-linha" onclick="{{ exportEditalPDF }}" title="Baixa o edital como PDF pronto para imprimir" style="display:inline-flex;align-items:center;gap:6px;background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);font-weight:600;font-size:var(--fs-sm);cursor:pointer;font-family:inherit;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h9l5 5v15H6z" stroke-linejoin="round"></path><path d="M14 2v6h6" stroke-linecap="round" stroke-linejoin="round"></path></svg>PDF</button>
           </div>
         </div>
 
@@ -3313,8 +3313,8 @@ window.ctPdfLib = (function(){
           <div class="ct-titulo">Cadastrar manualmente</div>
           <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:2px;margin-bottom:16px;">adicione disciplina (com cor), tópico e subtópico</div>
           <div style="display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:4px;max-width:320px;margin-bottom:14px;">
-            <button data-m="nova" onclick="{{ setCadMode }}" style="{{ cadModeNovaStyle }}">Nova disciplina</button>
-            <button data-m="existente" onclick="{{ setCadMode }}" style="{{ cadModeExistStyle }}">Em existente</button>
+            <button class="ct-controle-linha" data-m="nova" onclick="{{ setCadMode }}" style="{{ cadModeNovaStyle }}">Nova disciplina</button>
+            <button class="ct-controle-linha" data-m="existente" onclick="{{ setCadMode }}" style="{{ cadModeExistStyle }}">Em existente</button>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
             <sc-if value="{{ cadNova }}" hint-placeholder-val="{{ true }}">
@@ -3345,7 +3345,7 @@ window.ctPdfLib = (function(){
           </div>
           <div class="ct-design-numeros"><div><b>{{ fcDueStr }}</b><span>para estudar</span></div><div><b>{{ fcTotalStr }}</b><span>cartões</span></div></div></section>
 </sc-if>
-       <div style="display:flex;flex-direction:column;gap:18px;">
+       <div class="ct-secoes">
         <sc-if value="{{ fcParado }}" hint-placeholder-val="{{ true }}">
           <div class="ct-bc">
             <div class="ct-bc-foco">
@@ -3417,11 +3417,11 @@ window.ctPdfLib = (function(){
           </div>
           <div class="ct-design-numeros"><div><b>{{ revPendStr }}</b><span>pendentes</span></div><div><b>{{ revHoje }}</b><span>para hoje</span></div></div></section>
 
-       <div style="display:flex;flex-direction:column;gap:18px;">
+       <div class="ct-secoes">
         <!-- BANCADA · foco (revisar agora) + apoio (o tamanho da fila). A fila em si são
              os grupos Atrasadas/Hoje/Próximas logo abaixo — as três zonas de sempre. -->
         <div class="ct-bc">
-        <div class="ct-bc-foco" style="background:var(--heroGrad);color:#fff;border-color:transparent;min-height:0;padding:20px 22px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;flex-direction:row;">
+        <div class="ct-bc-foco" style="background:var(--heroGrad);color:#fff;border-color:transparent;min-height:0;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;flex-direction:row;">
           <div style="display:flex;align-items:center;gap:14px;"><span class="ct-ladrilho ct-ladrilho-g ct-ladrilho-claro" aria-hidden="true"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="repeat"><use href="#ct-i-repeat"></use></svg></span><div><div style="font-family:var(--display);font-weight:700;font-size:21px;letter-spacing:-.01em;">Revisar agora</div><div style="font-size:var(--fs-sm);opacity:.9;margin-top:2px;">sessão guiada item a item — você avalia e a Cátedra reagenda por repetição espaçada (FSRS)</div></div></div>
           <button onclick="{{ startRevSession }}" disabled="{{ revStartDisabled }}" style="{{ revStartStyle }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 5l12 7-12 7z"></path></svg>{{ revStartLabel }}</button>
         </div>
@@ -3547,7 +3547,7 @@ window.ctPdfLib = (function(){
            suave, gradiente do acento nos destaques. -->
       <sc-if value="{{ isSegundaHub }}"><nav class="ct-fluxo-abas" aria-label="Fase Discursiva"><button class="ct-btn-2" data-view="redacao" aria-current="{{ navCur.redacao }}" onclick="{{ onNav }}">Treino escrito</button><button class="ct-btn-2" data-view="segundafase" aria-current="{{ navCur.segundafase }}" onclick="{{ onNav }}">Provas oficiais</button></nav></sc-if>
       <sc-if value="{{ isRedacao }}" hint-placeholder-val="{{ false }}">
-       <div style="display:flex;flex-direction:column;gap:20px;">
+       <div class="ct-secoes">
 
         <!-- trilho das etapas -->
         <div data-red-fora-do-foco class="ct-trilho">
@@ -4203,7 +4203,7 @@ window.ctPdfLib = (function(){
 
 <sc-if value="{{ isOral }}" hint-placeholder-val="{{ false }}">
 <sc-if value="{{ argReverTem }}"><div class="ct-modal-fundo" onclick="{{ argHistoricoFechar }}" style="position:fixed;inset:0;background:color-mix(in srgb,var(--ink) 45%,transparent);z-index:110;display:flex;align-items:center;justify-content:center;padding:var(--ct-e4);"><section class="ct-modal-panel ct-card ct-arg-historico" role="dialog" aria-modal="true" aria-label="Histórico de arguição" onclick="{{ stop }}" style="width:100%;max-height:85vh;overflow:auto;box-sizing:border-box;"><div class="ct-arg-acoes"><h2 class="ct-titulo" style="flex:1;">Arguição registrada</h2><button class="ct-btn-2" onclick="{{ argHistoricoFechar }}">Fechar histórico</button></div><sc-for list="{{ argReverRespostas }}" as="r"><article class="ct-arg-mensagem"><b>{{ r.avaliacao }}</b><p>{{ r.pergunta }}</p><div class="ct-eb">Sua resposta registrada</div><p>{{ r.resposta }}</p></article></sc-for></section></div></sc-if>
-       <div style="display:flex;flex-direction:column;gap:16px;">
+       <div class="ct-secoes">
           <!-- MODO ARGUIÇÃO (item 3): a banca pergunta, você responde de viva voz, o padrão
                só aparece depois. É o formato real da prova — ler o padrão antes não treina nada. -->
           <sc-if value="{{ argEmCurso }}" hint-placeholder-val="{{ false }}">
@@ -4229,7 +4229,19 @@ window.ctPdfLib = (function(){
         <!-- BANCADA · o hero é o FOCO (o que você vai treinar); a grade "o que você veio
              fazer aqui", logo abaixo, é a FILA. Sem apoio inventado: a Oral não tem um
              material fixo por sessão — ele nasce da escolha do acervo. -->
-        <section class="ct-oral-preparo" aria-label="Preparar arguição"><div class="ct-oral-preparo-intro"><div class="ct-eb">Fase Oral · presença, fundamento e clareza</div><h2>Entre na sala.<br>Construa sua resposta.</h2><p>Uma pergunta de cada vez, com tempo para organizar o raciocínio. Responda primeiro; confira o critério publicado pela banca depois.</p></div><div class="ct-oral-preparo-painel"><div class="ct-eb">Sua próxima conversa</div><sc-if value="{{ capOralBancas }}"><label class="ct-rotulo">Carreira<select class="ct-campo" aria-label="Carreira da arguição" value="{{ oralQCarrValor }}" onchange="{{ setOralQCarr }}"><sc-for list="{{ oralQCarrOpts }}" as="o"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></label><label class="ct-rotulo">Disciplina<select class="ct-campo" aria-label="Disciplina da arguição" value="{{ oralQDiscValor }}" onchange="{{ setOralQDisc }}"><sc-for list="{{ oralQDiscOpts }}" as="o"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></label><div class="ct-oral-preparo-dupla"><label class="ct-rotulo">Perguntas<select class="ct-campo" aria-label="Quantidade de perguntas" value="{{ argQtdValor }}" onchange="{{ setArgQtd }}"><option value="3">3 perguntas</option><option value="5">5 perguntas</option><option value="10">10 perguntas</option></select></label><label class="ct-rotulo">Tempo por resposta<select class="ct-campo" aria-label="Tempo por resposta" value="{{ argMinValor }}" onchange="{{ setArgMin }}"><option value="3">3 minutos</option><option value="5">5 minutos</option><option value="10">10 minutos</option></select></label></div><button class="ct-btn" data-i="treinar" onclick="{{ oralIntencao }}"><b>Treinar arguição agora</b><span>A banca pergunta, você responde em voz alta e compara com o padrão oficial. Perguntas sorteadas, tempo de resposta e uma conversa guardada.</span></button></sc-if><sc-if value="{{ !capOralBancas }}"><p class="ct-nota">Treine a explicação a partir das fontes normativas da sua área, no material abaixo.</p></sc-if></div></section>
+        <section class="ct-oral-preparo" aria-label="Preparar arguição">
+          <div class="ct-oral-preparo-intro"><div class="ct-eb">Fase Oral · presença, fundamento e clareza</div><h2>Entre na sala.<br>Construa sua resposta.</h2><p>Uma pergunta de cada vez, com tempo para organizar o raciocínio. Responda primeiro; confira o critério publicado pela banca depois.</p></div>
+          <div class="ct-oral-preparo-painel"><div class="ct-eb">Sua próxima conversa</div>
+            <sc-if value="{{ capOralBancas }}">
+              <label class="ct-rotulo">Carreira<select class="ct-campo" aria-label="Carreira da arguição" value="{{ oralQCarrValor }}" onchange="{{ setOralQCarr }}"><sc-for list="{{ oralQCarrOpts }}" as="o"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></label>
+              <label class="ct-rotulo">Disciplina<select class="ct-campo" aria-label="Disciplina da arguição" value="{{ oralQDiscValor }}" onchange="{{ setOralQDisc }}"><sc-for list="{{ oralQDiscOpts }}" as="o"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.label }}</option></sc-for></select></label>
+              <div class="ct-oral-preparo-dupla"><label class="ct-rotulo">Perguntas<select class="ct-campo" aria-label="Quantidade de perguntas" aria-describedby="ct-arg-estoque" value="{{ argQtdValor }}" onchange="{{ setArgQtd }}"><option value="3">3</option><option value="5">5</option><option value="10">10</option></select></label><label class="ct-rotulo">Tempo por resposta<select class="ct-campo" aria-label="Tempo por resposta" value="{{ argMinValor }}" onchange="{{ setArgMin }}"><option value="3">3 minutos</option><option value="5">5 minutos</option><option value="10">10 minutos</option></select></label></div>
+              <p id="ct-arg-estoque" class="ct-nota" role="status" style="margin:0;">{{ argEstoqueLabel }}</p>
+              <button class="ct-btn" data-i="treinar" onclick="{{ oralIntencao }}" disabled="{{ !argPodeIniciar }}" aria-describedby="ct-arg-estoque"><b>Treinar arguição agora</b><span>A banca pergunta, você responde em voz alta e compara com o padrão oficial. Perguntas sorteadas, tempo de resposta e uma conversa guardada.</span></button>
+            </sc-if>
+            <sc-if value="{{ !capOralBancas }}"><p class="ct-nota">Treine a explicação a partir das fontes normativas da sua área, no material abaixo.</p></sc-if>
+          </div>
+        </section>
         <sc-if value="{{ argRetomarTem }}"><section class="ct-oral-retomada" aria-label="Arguição para retomar"><div><div class="ct-eb">Sua conversa ficou aqui</div><b>{{ argRetomarLabel }}</b><p class="ct-nota">Retome com o tempo pausado e a resposta preservada.</p></div><button class="ct-btn-2" data-id="{{ argRetomarId }}" onclick="{{ argRetomar }}">Retomar arguição</button></section></sc-if>
         <sc-if value="{{ oralIntencoesShow }}"><div class="ct-oral-caminhos"><button class="ct-oral-caminho" data-i="responder" onclick="{{ oralIntencao }}"><b>Responder questão de banca</b><span>Escolha uma pergunta real para desenvolver a resposta no seu ritmo, com o padrão de correção disponível depois.</span></button><button class="ct-oral-caminho" data-i="consultar" onclick="{{ oralIntencao }}"><b>Consultar concursos e documentos</b><span>Explore os pontos sorteáveis, editais e critérios publicados. Prepare seus fundamentos antes da próxima conversa.</span></button></div></sc-if>
         <section class="ct-oral-fontes" aria-label="Material para a Fase Oral"><div><div class="ct-eb">Aprofundar o estudo</div><h3 class="ct-titulo">Fontes e perguntas</h3></div><nav class="ct-fluxo-abas" aria-label="Fontes da prova oral"><sc-if value="{{ capJuris }}"><button class="ct-btn-2" data-m="juris" onclick="{{ setOralModo }}">Jurisprudência</button></sc-if><button class="ct-btn-2" data-m="lei" onclick="{{ setOralModo }}">{{ oralAbaLeiRot }}</button><sc-if value="{{ capOralBancas }}"><button class="ct-btn-2" data-m="bancas" onclick="{{ setOralModo }}">Bancas reais</button></sc-if></nav></section>
@@ -4412,14 +4424,14 @@ window.ctPdfLib = (function(){
                 <button onclick="{{ sortearPerguntaBanca }}" class="ct-btn">Sortear pergunta real</button>
               </div>
             </sc-if>
-            <sc-if value="{{ argTemPool }}" hint-placeholder-val="{{ true }}">
+            <sc-if value="{{ oralQPronto }}" hint-placeholder-val="{{ true }}">
               <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:14px 16px;margin-top:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
                 <div style="flex:1;min-width:200px;">
                   <div style="font-weight:600;color:var(--ink);">Modo arguição</div>
-                  <div style="font-size:var(--fs-sm);color:var(--text3);margin-top:2px;line-height:1.5;">5 perguntas sorteadas, cronômetro correndo e o padrão só depois — como na banca.</div>
+                  <p id="ct-arg-estoque-bancas" class="ct-nota" style="margin:0;">{{ argEstoqueLabel }}</p>
                 </div>
                 <div style="display:flex;gap:6px;flex-wrap:wrap;"><sc-for list="{{ argMinOpts }}" as="o" hint-placeholder-count="3"><button data-v="{{ o.v }}" onclick="{{ setArgMin }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></div>
-                <button onclick="{{ iniciarArguicao }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:10px 18px;font-weight:700;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Começar</button>
+                <button class="ct-btn" onclick="{{ iniciarArguicao }}" disabled="{{ !argPodeIniciar }}" aria-describedby="ct-arg-estoque-bancas">Começar com {{ argQtdValor }} perguntas</button>
               </div>
             </sc-if>
             <sc-if value="{{ !oralQPronto }}" hint-placeholder-val="{{ true }}">
@@ -4522,7 +4534,7 @@ window.ctPdfLib = (function(){
       </sc-if>
 
       <sc-if value="{{ isSim }}" hint-placeholder-val="{{ true }}">
-       <div style="display:flex;flex-direction:column;gap:18px;">
+       <div class="ct-secoes">
         <sc-if value="{{ simTreino }}">
         <!-- SIMULADO JOGÁVEL — veio do CátedraJURIS. Ao encerrar, preenche o formulário
              de registro abaixo, e o resultado passa a contar no desempenho.
@@ -4875,7 +4887,7 @@ window.ctPdfLib = (function(){
           </div>
           <div class="ct-design-numeros"><div><b>{{ heroSemTotal }}</b><span>nesta semana</span></div><div><b>{{ edPct }}%</b><span>edital coberto</span></div></div></section>
 
-       <div style="display:flex;flex-direction:column;gap:16px;">
+       <div class="ct-secoes">
         <div class="rel-noprint ct-rolo" style="--ct-rolo-bg:var(--surface2);display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:5px;overflow-x:auto;">
           <button data-d="visao" onclick="{{ navDesemp }}" style="{{ desempTabStyle.visao }}">Visão geral</button>
           <button data-d="disciplina" onclick="{{ navDesemp }}" style="{{ desempTabStyle.disciplina }}">Por disciplina</button>
@@ -5325,7 +5337,7 @@ window.ctPdfLib = (function(){
 
       <!-- ================= CONQUISTAS ================= -->
       <sc-if value="{{ isConqMetas }}" hint-placeholder-val="{{ true }}">
-       <div style="display:flex;flex-direction:column;gap:16px;">
+       <div class="ct-secoes">
         <!-- KPIs -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;">
           <div style="background:var(--heroGrad);border-radius:var(--radius);padding:20px;color:#fff;"><div style="font-size:var(--fs-2xs);letter-spacing:.12em;text-transform:uppercase;opacity:.85;font-weight:600;">Níveis alcançados</div><div style="font-family:var(--display);font-size:34px;font-weight:700;line-height:1;margin-top:6px;">{{ conqEarned }} <span style="font-size:var(--fs-lg);opacity:.8;">/ {{ conqTotalLevels }}</span></div></div>
@@ -5397,26 +5409,26 @@ window.ctPdfLib = (function(){
        <!-- EXCEÇÃO DECLARADA à gramática: o calendário JÁ É um eixo de tempo. Pôr a régua
             do espelho aqui seria dizer a mesma coisa duas vezes, e a grade do mês é a forma
             certa para a tarefa (achar um dia). Nem espelho, nem bancada. -->
-       <div style="display:flex;flex-direction:column;gap:16px;">
+       <div class="ct-secoes">
         <!-- barra: navegação de mês + estatísticas -->
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <button onclick="{{ calPrev }}" aria-label="Anterior" style="width:44px;height:44px;border-radius:var(--r-md);border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+        <div class="ct-cal-barra">
+          <div class="ct-cal-movimento">
+            <button onclick="{{ calPrev }}" aria-label="Anterior" style="width:var(--ct-alvo-toque);border-radius:var(--r-md);border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
             <button onclick="{{ calHoje }}" style="border:1px solid var(--border);background:var(--surface);color:var(--text2);border-radius:var(--r-md);padding:7px 15px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;">Hoje</button>
-            <button onclick="{{ calNext }}" aria-label="Próximo" style="width:44px;height:44px;border-radius:var(--r-md);border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+            <button onclick="{{ calNext }}" aria-label="Próximo" style="width:var(--ct-alvo-toque);border-radius:var(--r-md);border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
             <sc-if value="{{ calViewMes }}" hint-placeholder-val="{{ true }}"><span style="font-family:var(--display);font-weight:600;font-size:var(--fs-2xl);color:var(--ink);margin-left:8px;">{{ calTitle }}</span></sc-if>
             <sc-if value="{{ calViewSemana }}" hint-placeholder-val="{{ false }}"><span style="font-family:var(--display);font-weight:600;font-size:var(--fs-2xl);color:var(--ink);margin-left:8px;">{{ calWeekTitle }}</span></sc-if>
             <sc-if value="{{ calViewAgenda }}" hint-placeholder-val="{{ false }}"><span style="font-family:var(--display);font-weight:600;font-size:var(--fs-2xl);color:var(--ink);margin-left:8px;">Próximos compromissos</span></sc-if>
           </div>
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
             <sc-if value="{{ calHasProva }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:8px;background:var(--dangerSoft);border:1px solid var(--dangerBd);border-radius:99px;padding:5px 12px;"><span style="width:8px;height:8px;border-radius:99px;background:var(--danger);flex:none;"></span><span style="font-size:var(--fs-xs);font-weight:600;color:var(--danger);white-space:nowrap;">{{ calProvaChip.label }}</span></div></sc-if>
-            <div style="display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:3px;">
+            <div class="ct-cal-modos">
               <sc-for list="{{ calViewChips }}" as="v" hint-placeholder-count="3"><button data-v="{{ v.v }}" onclick="{{ setCalView }}" style="{{ v.style }}">{{ v.label }}</button></sc-for>
             </div>
           </div>
         </div>
         <!-- legenda / filtro por tipo -->
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <div class="ct-cal-filtros">
           <sc-for list="{{ calChips }}" as="c" hint-placeholder-count="6"><button data-f="{{ c.f }}" onclick="{{ setCalFilter }}" style="{{ c.style }}"><span style="{{ c.dotStyle }}"></span>{{ c.label }}</button></sc-for>
         </div>
         <sc-if value="{{ calViewMes }}" hint-placeholder-val="{{ true }}">
@@ -5578,7 +5590,7 @@ window.ctPdfLib = (function(){
 
       <!-- ================= DOMÍNIO POR TÓPICO ================= -->
       <sc-if value="{{ isDominio }}" hint-placeholder-val="{{ false }}">
-       <div style="display:flex;flex-direction:column;gap:16px;">
+       <div class="ct-secoes">
         <div style="display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:5px;overflow-x:auto;">
           <button data-d="visao" onclick="{{ navDesemp }}" style="{{ desempTabStyle.visao }}">Visão geral</button>
           <button data-d="disciplina" onclick="{{ navDesemp }}" style="{{ desempTabStyle.disciplina }}">Por disciplina</button>
@@ -5623,7 +5635,7 @@ window.ctPdfLib = (function(){
 
       <!-- ================= METAS (fundido em Metas & Conquistas) ================= -->
       <sc-if value="{{ isConqMetas }}" hint-placeholder-val="{{ false }}">
-       <div style="display:flex;flex-direction:column;gap:16px;">
+       <div class="ct-secoes">
         <div style="display:flex;align-items:center;gap:12px;margin-top:8px;">
           <div style="flex:1;height:1px;background:var(--border);"></div>
           <span style="font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;color:var(--text3);font-weight:700;">Metas pessoais</span>
@@ -5633,8 +5645,8 @@ window.ctPdfLib = (function(){
           <div style="font-weight:600;color:var(--ink);font-size:var(--fs-lg);margin-bottom:14px;">Nova meta pessoal</div>
           <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
             <div style="flex:1;min-width:200px;"><label class="ct-rotulo">Objetivo</label><input data-k="titulo" value="{{ metaDraft.titulo }}" oninput="{{ onMetaDraft }}" placeholder="ex.: Ler 300 páginas no mês" class="ct-campo"></div>
-            <div><label class="ct-rotulo">Alvo</label><input type="number" data-k="alvo" value="{{ metaDraft.alvo }}" oninput="{{ onMetaDraft }}" style="width:100px;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:10px 12px;font-size:var(--fs-md);color:var(--ink);font-family:var(--mono);"></div>
-            <button onclick="{{ addMeta }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 18px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Criar meta</button>
+            <div><label class="ct-rotulo">Alvo</label><input class="ct-controle-linha" type="number" data-k="alvo" value="{{ metaDraft.alvo }}" oninput="{{ onMetaDraft }}" style="width:100px;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);font-size:var(--fs-base);color:var(--ink);font-family:var(--mono);"></div>
+            <button class="ct-controle-linha" onclick="{{ addMeta }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;">Criar meta</button>
           </div>
         </div>
         <sc-for list="{{ metas }}" as="m" hint-placeholder-count="3">
@@ -5655,7 +5667,7 @@ window.ctPdfLib = (function(){
 
 
       <sc-if value="{{ isConfig }}" hint-placeholder-val="{{ false }}">
-       <div style="display:flex;flex-direction:column;gap:16px;">
+       <div class="ct-secoes">
 
         <!-- ÁREA DE ESTUDO — hero: a área escolhida manda no app; o essencial dela em destaque -->
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
@@ -5997,7 +6009,7 @@ window.ctPdfLib = (function(){
 
       <!-- ================= BEM-ESTAR ================= -->
       <sc-if value="{{ isBem }}" hint-placeholder-val="{{ false }}">
-       <div style="display:flex;flex-direction:column;gap:16px;">
+       <div class="ct-secoes">
 
         <!-- RESPIRAÇÃO + CHECK-IN -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;">
@@ -6078,7 +6090,7 @@ window.ctPdfLib = (function(){
 
       <!-- ================= COMUNIDADE (estilo YPT) ================= -->
       <sc-if value="{{ isComunidade }}" hint-placeholder-val="{{ false }}">
-       <div style="display:flex;flex-direction:column;gap:16px;">
+       <div class="ct-secoes">
         <!-- HERO: estudando agora + seu status -->
         <div style="background:var(--heroGrad);border-radius:var(--radius);padding:clamp(20px,3vw,28px);color:#fff;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center;position:relative;overflow:hidden;">
           <span style="position:absolute;right:-40px;top:-40px;width:200px;height:200px;border-radius:99px;background:rgba(255,255,255,.07);"></span>
@@ -6160,11 +6172,11 @@ window.ctPdfLib = (function(){
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;">
             <div style="display:flex;gap:8px;align-items:flex-end;">
               <div style="flex:1;"><label class="ct-rotulo">Criar um grupo</label><input data-k="nome" value="{{ grupoDraft.nome }}" oninput="{{ onGrupoDraft }}" placeholder="ex.: Foco PF 2026" class="ct-campo"></div>
-              <button onclick="{{ addGrupo }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:11px 16px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;white-space:nowrap;">Criar</button>
+              <button class="ct-controle-linha" onclick="{{ addGrupo }}" style="background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;white-space:nowrap;">Criar</button>
             </div>
             <div style="display:flex;gap:8px;align-items:flex-end;">
-              <div style="flex:1;"><label class="ct-rotulo">Entrar com código</label><input data-k="codigo" value="{{ grupoDraft.codigo }}" oninput="{{ onGrupoDraft }}" placeholder="ex.: 7KQ2ZP" maxlength="8" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:10px 12px;font-size:var(--fs-base);color:var(--ink);font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;"></div>
-              <button onclick="{{ entrarGrupo }}" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 16px;font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;white-space:nowrap;">Entrar</button>
+              <div style="flex:1;"><label class="ct-rotulo">Entrar com código</label><input class="ct-controle-linha" data-k="codigo" value="{{ grupoDraft.codigo }}" oninput="{{ onGrupoDraft }}" placeholder="ex.: 7KQ2ZP" maxlength="8" style="width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);font-size:var(--fs-base);color:var(--ink);font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;"></div>
+              <button class="ct-controle-linha" onclick="{{ entrarGrupo }}" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:var(--r-md);font-weight:600;font-size:var(--fs-base);cursor:pointer;font-family:inherit;white-space:nowrap;">Entrar</button>
             </div>
           </div>
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin-top:16px;">
@@ -6803,7 +6815,7 @@ window.ctPdfLib = (function(){
        </div>
       </sc-if>
       <sc-if value="{{ ajSecAparenciaVisivel }}" hint-placeholder-val="{{ false }}">
-       <div style="display:flex;flex-direction:column;gap:16px;">
+       <div class="ct-secoes">
         <!-- PERSONALIZAÇÃO AVANÇADA: os controles finos, todos eles, recolhidos -->
         <div data-aj="personalização avançada cantos densidade contagem layout" class="ct-card">
           <button onclick="{{ toggleApAvancada }}" aria-expanded="{{ apAvancadaAttr }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;background:transparent;border:none;cursor:pointer;font-family:inherit;padding:0;text-align:left;">
@@ -6918,7 +6930,7 @@ window.ctPdfLib = (function(){
 
       <!-- ================= HISTÓRICO ================= -->
       <sc-if value="{{ isHistorico }}" hint-placeholder-val="{{ false }}">
-       <div style="display:flex;flex-direction:column;gap:16px;">
+       <div class="ct-secoes">
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;">
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;"><div class="ct-titulo-display">{{ histTotal }}</div><div class="ct-nota ct-nota-solta">sessões registradas</div></div>
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;"><div class="ct-titulo-display">{{ histHoras }}h</div><div class="ct-nota ct-nota-solta">tempo somado</div></div>
@@ -6929,9 +6941,9 @@ window.ctPdfLib = (function(){
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
             <div class="ct-titulo">Sessões <span style="color:var(--text3);font-weight:500;font-size:var(--fs-base);">· {{ histCount }}</span></div>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-              <select value="{{ histFilterVal }}" aria-label="Filtrar o histórico" onchange="{{ setHistFilter }}" style="border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:8px 12px;font-size:var(--fs-base);color:var(--ink);font-family:inherit;"><option value="">Todas as disciplinas</option><sc-for list="{{ histDiscs }}" as="d" hint-placeholder-count="6"><option value="{{ d }}">{{ d }}</option></sc-for></select>
-              <button onclick="{{ toggleLixeira }}" style="border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:8px 12px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;font-weight:600;">{{ histLixeiraToggleLabel }}</button>
-              <button onclick="{{ limparHistorico }}" style="border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);padding:8px 12px;font-size:var(--fs-base);color:var(--danger);cursor:pointer;font-family:inherit;font-weight:600;">Limpar histórico</button>
+              <select class="ct-controle-linha" value="{{ histFilterVal }}" aria-label="Filtrar o histórico" onchange="{{ setHistFilter }}" style="border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);font-size:var(--fs-base);color:var(--ink);font-family:inherit;"><option value="">Todas as disciplinas</option><sc-for list="{{ histDiscs }}" as="d" hint-placeholder-count="6"><option value="{{ d }}">{{ d }}</option></sc-for></select>
+              <button class="ct-controle-linha" onclick="{{ toggleLixeira }}" style="border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;font-weight:600;">{{ histLixeiraToggleLabel }}</button>
+              <button class="ct-controle-linha" onclick="{{ limparHistorico }}" style="border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);font-size:var(--fs-base);color:var(--danger);cursor:pointer;font-family:inherit;font-weight:600;">Limpar histórico</button>
             </div>
           </div>
           <sc-if value="{{ histEmpty }}" hint-placeholder-val="{{ false }}"><div style="text-align:center;padding:36px 12px;color:var(--text3);font-size:var(--fs-base);">Nenhuma sessão por aqui ainda. Registre uma sessão para começar o histórico.</div></sc-if>
@@ -6994,7 +7006,7 @@ window.ctPdfLib = (function(){
 
       <!-- ================= RETA FINAL ================= -->
       <sc-if value="{{ isRetaFinal }}" hint-placeholder-val="{{ false }}">
-       <div style="display:flex;flex-direction:column;gap:16px;">
+       <div class="ct-secoes">
         <button data-view="ciclo" onclick="{{ onNav }}" style="display:inline-flex;align-items:center;gap:7px;align-self:flex-start;background:transparent;border:none;cursor:pointer;font-family:inherit;font-size:var(--fs-base);font-weight:600;color:var(--text2);padding:2px 0;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round"></path></svg>Voltar ao Ciclo</button>
         <div style="background:var(--heroGrad);border-radius:var(--radius);padding:clamp(22px,3vw,32px);color:#fff;display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap;position:relative;overflow:hidden;">
           <div style="position:absolute;right:-40px;top:-40px;width:200px;height:200px;border-radius:99px;background:rgba(255,255,255,.08);"></div>
@@ -7067,7 +7079,7 @@ window.ctPdfLib = (function(){
 
       <!-- ================= AJUSTES · conta e dados ================= -->
       <sc-if value="{{ isConfig }}" hint-placeholder-val="{{ false }}">
-       <div style="display:flex;flex-direction:column;gap:16px;">
+       <div class="ct-secoes">
 
         <!-- AJUSTES DE FOCO -->
         <sc-if value="{{ ajSecAutomacoes }}" hint-placeholder-val="{{ false }}">
@@ -7666,6 +7678,8 @@ class Component extends DCLogic {
     // Área de estudo escolhida (id de CT_AREAS). É lida ANTES do state porque as
     // disciplinas-padrão dos rascunhos saem dela — sem área salva, cai na jurídica.
     const _areaIni = CT_AREA(this._load('areaEstudo',''));
+    const redProvaId = this._load('redProvaId', '');
+    const redGabarito = this._load('redGabarito', '');
     this.state = {
       areaEstudo:this._load('areaEstudo',''),
       view:'inicio',
@@ -7781,13 +7795,13 @@ class Component extends DCLogic {
       loggedIn: (typeof localStorage!=='undefined' && localStorage.getItem('catedra:auth')==='1'),
       loginEmail:'', loginPass:'',
       errors:this._load('errors', []),
-      redText:this._load('redText', ''), redTextTs:this._load('redTextTs', 0), redTempoMs:this._redTempoBoot(), redBusy:false, redResult:null, redHistory:this._redLoad(), redHist:this._load('redHist',[]), redDisciplina:this._load('redDisciplina',{}), redEvoOpen:false, redGabarito:this._load('redGabarito', ''), redEspelhoOculto:false, redModoProva:false, redGabBusy:false,
+      redText:this._load('redText', ''), redTextTs:this._load('redTextTs', 0), redTempoMs:this._redTempoBoot(), redBusy:false, redResult:null, redHistory:this._redLoad(), redHist:this._load('redHist',[]), redDisciplina:this._load('redDisciplina',{}), redEvoOpen:false, redGabarito, redEspelhoOculto:!!(redProvaId && redGabarito), redModoProva:!!redProvaId, redGabBusy:false,
       // C3: espelhos SUGERIDOS pela IA (nunca oficiais) — cache por prova, sincronizado
       espelhosSugeridos:this._load('espelhosSugeridos',[]), espSugBusy:false, espSugAtual:null,
       // guarda qual prova está aberta: sem isso, recarregar o app deixava o gabarito
       // sugerido na tela mas sem o selo que diz que ele é sugerido
       bancoLimite:180,
-      redProvaId:this._load('redProvaId',''), redMarcas:this._load('redMarcas', {}), redSelTxt:'', redSelOcorr:0, redEspSituacao:'', redEspTemPdf:false, redGabFile:'', redEnunciado:this._load('redEnunciado', ''), bancoOpen:false, bancoQ:'', bancoDisc:'', bancoCarr:'', bancoBanca:'', bancoTipo:'', bancoSoEsp:false,
+      redProvaId, redMarcas:this._load('redMarcas', {}), redSelTxt:'', redSelOcorr:0, redEspSituacao:'', redEspTemPdf:false, redGabFile:'', redEnunciado:this._load('redEnunciado', ''), bancoOpen:false, bancoQ:'', bancoDisc:'', bancoCarr:'', bancoBanca:'', bancoTipo:'', bancoSoEsp:false,
       // Prova oral (veio do CátedraJURIS/LEGIS para cá: é aqui que moram desempenho e histórico)
       // Simulado jogável (veio do CátedraJURIS): monta itens C/E do acervo, corrige e
       // já preenche o formulário de registro — o resultado alimenta o desempenho.
@@ -8655,6 +8669,16 @@ class Component extends DCLogic {
       try{ if(JSON.stringify(patch[k])===JSON.stringify(this.state[k])) delete patch[k]; }catch(_){}
     }); }catch(_){}
     if(!Object.keys(patch).length) return;   // nada veio de novo: não mexe no estado
+    // Quando chega outra prova do banco, ela não herda a edição ou o espelho aberto da anterior.
+    // Se mudou apenas a resposta ou outra parte do estudo, a escolha de revelar continua valendo.
+    if('redProvaId' in patch || 'redEnunciado' in patch || 'redGabarito' in patch){
+      const id = 'redProvaId' in patch ? patch.redProvaId : this.state.redProvaId;
+      if(id || this.state.redProvaId){
+        const gabarito = 'redGabarito' in patch ? patch.redGabarito : this.state.redGabarito;
+        Object.assign(patch, {redModoProva:!!id, redEspelhoOculto:!!(id && gabarito),
+          redEditandoEnun:false, redGabVista:'', redConferindo:false, redConf:{}});
+      }
+    }
     /* Aplica sem deixar o _autosave achar que tudo mudou (senão regrava e sobe tudo).
        O carimbo TEM de ser posto ANTES do render: zerar _lastSaved e só recarimbar no
        callback do setState deixa uma janela em que o componentDidUpdate já disparou o
@@ -13923,7 +13947,8 @@ class Component extends DCLogic {
     });
     try{ localStorage.setItem(this._chave('redEnunciado'),JSON.stringify(cab+'\n\n'+(q.enunciado||'')));
       localStorage.setItem(this._chave('redGabarito'),JSON.stringify(_gab));
-      localStorage.setItem(this._chave('redText'),JSON.stringify('')); }catch(_){}
+      localStorage.setItem(this._chave('redText'),JSON.stringify(''));
+      localStorage.setItem(this._chave('redProvaId'),JSON.stringify(q.id)); }catch(_){}
     // Aqui SIM há onde voltar: a prova aberta é o ponto de retomada da Redação.
     this._marcarPonto('redacao', {termo:String(q.tema||q.disciplina||'').slice(0,60)});
     // O aviso diz a verdade sobre POR QUE não há espelho transcrito: culpa da banca (não
@@ -14125,6 +14150,19 @@ class Component extends DCLogic {
     const _chipz=(arr)=>arr.map(o=>({...o, style:_chipO(!!o.sel)}));
     // ---- modo arguição (item 3): pergunta atual, relógio e resumo da sessão
     const _argQ=(st.argOn && st.argFila[st.argIdx]) ? st.argFila[st.argIdx] : null;
+    const argDisponiveis=this._argPool().length;
+    const argPodeIniciar=st.oralQPronto&&argDisponiveis>=st.argQtd;
+    let argEstoqueLabel='Carregando as perguntas com padrão de resposta…';
+    if(st.oralQPronto){
+      argEstoqueLabel=argDisponiveis===0?'Nenhuma pergunta disponível com esses filtros.'
+        :argDisponiveis===1?'1 pergunta disponível com esses filtros.'
+        :argDisponiveis+' perguntas disponíveis com esses filtros.';
+      if(!argPodeIniciar) argEstoqueLabel+=argDisponiveis>=3
+        ?' Escolha menos perguntas ou altere os filtros.'
+        :' Altere os filtros para encontrar pelo menos 3 perguntas.';
+    }else if(st.oralErro){
+      argEstoqueLabel='Não foi possível carregar as perguntas.';
+    }
     const _argRel=(()=>{ const t=Math.max(0,st.argSeg|0); return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0'); })();
     const _argResumo=(()=>{
       const R=st.argRespostas||[]; if(!R.length) return {n:'0',bem:'0',parcial:'0',nao:'0',media:'—'};
@@ -14223,7 +14261,7 @@ class Component extends DCLogic {
       argRodando:st.argRodando, argMostrar:st.oralQMostrarPadrao,
       argMinOpts:_chipz([3,5,10].map(m=>({v:String(m), label:m+' min', sel:st.argMin===m}))),
       argVozLabel:(st.argVoz?'voz ligada':'ligar voz'), argVozOn:!!st.argVoz, argVozStr:st.argVoz?'true':'false',
-      argResumo:_argResumo, argTemPool:(this._argPool().length>=3),
+      argResumo:_argResumo, argPodeIniciar, argEstoqueLabel,
       iniciarArguicao:this.iniciarArguicao, argResponder:this.argResponder, argAvaliar:this.argAvaliar,
       oralIntencao:this.oralIntencao,
       argEncerrar:this.argEncerrar, argMaisTempo:this.argMaisTempo, setArgMin:this.setArgMin, argVozToggle:this.argVozToggle,
@@ -15251,10 +15289,13 @@ class Component extends DCLogic {
   /** Começa uma sessão: N perguntas sorteadas SEM repetição (a banca não repete ponto). */
   iniciarArguicao = ()=>{
     if(window.CT_AREA_REG&&!window.CT_AREA_REG.tem(this.state.areaEstudo||'juridica','provaOralBancas'))return;
-    const pool=this._argPool();
-    if(pool.length<3){ this._toast('Poucas perguntas com esses filtros — tire um filtro'); return; }
+    const pool=this._argPool(), quantidade=this.state.argQtd;
+    if(pool.length<quantidade){
+      this._toast('Não há '+quantidade+' perguntas disponíveis com esses filtros.');
+      return;
+    }
     const emb=pool.slice(); for(let i=emb.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [emb[i],emb[j]]=[emb[j],emb[i]]; }
-    const fila=emb.slice(0,Math.max(3,Math.min(10,+this.state.argQtd||5)));
+    const fila=emb.slice(0,quantidade);
     this._treino && this._oralCarregarQ && this._oralCarregarQ();
     this.setState({argOrigemArea:this.state.areaEstudo||'juridica',argOrigemConta:this._argConta(),argTempoExtra:0,argSessaoId:'oral-'+Date.now(),argRespostaTexto:'',argFase:'respondendo',argOn:true, argFila:fila, argIdx:0, argRespostas:[], argFim:false,
       argSeg:this.state.argMin*60, argRodando:true, oralQMostrarPadrao:false},()=>{
@@ -16094,7 +16135,11 @@ class Component extends DCLogic {
     this.setState({redDisciplina:{...(this.state.redDisciplina||{}),disc,origem:'manual'}});
   };
   redReset = ()=>{ if(!window.confirm('Começar outra redação? A resposta sai da tela (a correção fica no histórico), e enunciado e gabarito são limpos para a nova questão.'
-      +(this.state.redSegBusy?' A leitura da IA em andamento é interrompida, e a chamada já contou na cota de hoje.':''))) return; this._redBoot=''; this._redCorrAbortar(); this._redCronoZerar(); this.setState({redReescritaDe:'', redReescritaNota:'', redResult:null, redText:'', redTextTs:0, redRascunhoOculto:false, redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false, redModoProva:false, redEditandoEnun:false, redQuestaoAberta:true, redModoResposta:'mao', redGabVista:'', redGabErro:'', redGabOk:'', redConferindo:false, redConf:{}, redLinhasMao:'', redProvaId:'', redDisciplina:{}, espSugAtual:null}); try{ localStorage.setItem(this._chave('redText'),JSON.stringify('')); localStorage.setItem(this._chave('redGabarito'),JSON.stringify('')); localStorage.setItem(this._chave('redEnunciado'),JSON.stringify('')); }catch(_){} };
+      +(this.state.redSegBusy?' A leitura da IA em andamento é interrompida, e a chamada já contou na cota de hoje.':''))) return; this._redBoot=''; this._redCorrAbortar(); this._redCronoZerar(); this.setState({redReescritaDe:'', redReescritaNota:'', redResult:null, redText:'', redTextTs:0, redRascunhoOculto:false, redEnunciado:'', redGabarito:'', redSubText:null, redSubGab:null, redEspelhoOculto:false, redModoProva:false, redEditandoEnun:false, redQuestaoAberta:true, redModoResposta:'mao', redGabVista:'', redGabErro:'', redGabOk:'', redConferindo:false, redConf:{}, redLinhasMao:'', redProvaId:'', redDisciplina:{}, espSugAtual:null});
+    try{ localStorage.setItem(this._chave('redText'),JSON.stringify(''));
+      localStorage.setItem(this._chave('redGabarito'),JSON.stringify(''));
+      localStorage.setItem(this._chave('redEnunciado'),JSON.stringify(''));
+      localStorage.setItem(this._chave('redProvaId'),JSON.stringify('')); }catch(_){} };
   redOpenHist = (e)=>{ const id=e.currentTarget.dataset.id; const h=(this.state.redHistory||[]).find(x=>x.id===id);
     if(!h||!h.res){ this._toast('Correção completa não disponível para este item'); return; }
     this._redCorrAbortar();
@@ -18779,8 +18824,8 @@ class Component extends DCLogic {
     // iPad (a página do host por fora e o painel por dentro). As molduras deles já eram flex:1.
     const _ehFrameView = ['areamod','roteiros','legis','juris','prioridade','segundafase'].indexOf(this.state.view)>=0;
     const contentBoxStyle = _ehFrameView
-      ? 'flex:1;min-height:0;overflow:hidden;padding:clamp(16px,2.6vw,30px);display:flex;flex-direction:column;'
-      : 'flex:1;overflow-y:auto;padding:clamp(16px,2.6vw,30px);';
+      ? 'flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;'
+      : 'flex:1;overflow-y:auto;';
     // `width:100%` é obrigatório aqui: item de flex com margens automáticas não estica
     // sozinho, e sem largura definida o iframe de dentro cairia para os 300px do padrão.
     const contentInnerStyle = _ehFrameView
@@ -18817,7 +18862,7 @@ class Component extends DCLogic {
     };
     // abas do hub "Desempenho" (Análise + Domínio); ativa deriva de view+anaTab
     const _desempAtivo = this.state.view==='dominio' ? 'dominio' : this.state.anaTab;
-    const _desempTab = (id)=>{ const on=_desempAtivo===id; return `padding:9px 16px;border:none;cursor:pointer;font-family:inherit;font-size:var(--fs-base);font-weight:600;border-radius:var(--r-md);white-space:nowrap;transition:all .15s;background:${on?'var(--accentSolid)':'transparent'};color:${on?'var(--onAccent)':'var(--text2)'};`; };
+    const _desempTab = (id)=>{ const on=_desempAtivo===id; return `flex:none;min-height:var(--ct-altura-controle);padding:var(--ct-e2) var(--ct-e4);border:none;cursor:pointer;font-family:inherit;font-size:var(--fs-base);font-weight:600;border-radius:var(--r-md);white-space:nowrap;transition:all .15s;background:${on?'var(--accentSolid)':'transparent'};color:${on?'var(--onAccent)':'var(--text2)'};`; };
     const desempTabStyle = { visao:_desempTab('visao'), disciplina:_desempTab('disciplina'), risco:_desempTab('risco'), historico:_desempTab('historico'), relatorio:_desempTab('relatorio'), dominio:_desempTab('dominio') };
 
     // ===== Ciclo =====
@@ -21083,7 +21128,7 @@ class Component extends DCLogic {
     const _avSev=_avG.manutencao?'critico':(_avG.tipo||'info');
     const _avCor=_avSev==='critico'?'var(--danger)':_avSev==='aviso'?'var(--warn)':'var(--accent)';
     const avisoGlobalIcon=_avSev==='critico'?'⚠':_avSev==='aviso'?'!':'✦';
-    const avisoGlobalStyle='display:flex;align-items:flex-start;gap:11px;padding:11px clamp(16px,3vw,34px);'
+    const avisoGlobalStyle='display:flex;align-items:flex-start;gap:var(--ct-e3);padding:var(--ct-e3) var(--ct-margem-pagina);'
       +'background:var(--surface2);border-bottom:1px solid var(--border);'+'background-image:linear-gradient(90deg,color-mix(in oklab, '+_avCor+' 18%, transparent),transparent 42%);'
       +'color:var(--ink);font-size:var(--fs-base);';
 
@@ -21754,7 +21799,7 @@ class Component extends DCLogic {
       focoChipStyle:'display:flex;align-items:center;gap:9px;border:1px solid '
         +(this.state.timerRunning?'var(--accent)':'var(--border)')+';background:'
         +(this.state.timerRunning?'color-mix(in srgb,var(--accent) 9%,var(--surface2))':'var(--surface2)')
-        +';border-radius:99px;padding:0 14px 0 5px;height:38px;cursor:pointer;font-family:inherit;flex:none;'
+        +';border-radius:99px;padding:0 var(--ct-e3) 0 var(--ct-e1);min-height:var(--ct-altura-controle);cursor:pointer;font-family:inherit;flex:none;'
         +(this.state.timerRunning?'animation:ctPulsoFoco 2.6s ease-in-out infinite;':''),
       focoChipIconStyle:'width:28px;height:28px;border-radius:99px;display:flex;align-items:center;justify-content:center;flex:none;background:var(--accentSolid);color:var(--onAccent);',
       // ===== D13: a sala de foco =====
