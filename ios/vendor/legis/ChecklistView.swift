@@ -325,7 +325,7 @@ struct ChecklistView: View {
                                              icon: "checkmark.circle", items: completed, dimmed: true)
                             }
                         }
-                        .padding(AppTheme.pageInset)
+                        .margemPaginaAcervo(.all)
                     }
                 }
             }
