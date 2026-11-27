@@ -68,6 +68,18 @@ const COPIAR = ['support.js', 'icon.svg', 'auth.js', 'icon-180.png', 'legis-web.
   }
 }
 
+/* DATA FIXADA DO CARIMBO. Sem CATEDRA_BUILD_DATA o carimbo leva o dia do build (UTC), como
+   sempre levou na Vercel. A variável existe para a suíte: ela refaz o deploy que está em
+   public/ e compara versões, e a data é conteúdo (vai para o index.html e, por ele, para o
+   hash do sw.js). Pelo relógio, a CI que atravessava 00:00 UTC via o mesmo conteúdo ganhar
+   versão nova (U10/VIRADA em tests/run.mjs). Conferida antes de qualquer escrita: data fora
+   de AAAA-MM-DD aborta aqui, em vez de ir para o carimbo ou de cair em silêncio no relógio. */
+const DATA_FIXADA = process.env.CATEDRA_BUILD_DATA || '';
+if (DATA_FIXADA && !/^\d{4}-\d{2}-\d{2}$/.test(DATA_FIXADA)) {
+  console.error('\n✗ BUILD ABORTADO: CATEDRA_BUILD_DATA="' + DATA_FIXADA + '" não é uma data AAAA-MM-DD.\n');
+  process.exit(1);
+}
+
 /* AS BIBLIOTECAS SÃO CONFERIDAS ANTES DE QUALQUER ESCRITA, junto com a lista de cópia: vendor/
    ausente ou adulterado aborta aqui nomeando o arquivo, e public/ do build anterior fica
    como estava em vez de virar um deploy pela metade. */
@@ -161,7 +173,8 @@ for (const { arquivo, pacote, versao, conteudo } of PDFJS_VENDOR) {
 }
 
 // Carimbo do build. Sem ele, um relato de bug de testador chega sem dizer QUAL versão
-// quebrou — e aí não dá para saber se já foi corrigido. Na Vercel o sha vem do ambiente.
+// quebrou — e aí não dá para saber se já foi corrigido. Na Vercel o sha vem do ambiente; a
+// data é a do dia, salvo a fixada pela suíte (CATEDRA_BUILD_DATA, conferida lá em cima).
 function carimbo() {
   const sha = (process.env.VERCEL_GIT_COMMIT_SHA || '').slice(0, 7);
   if (sha) return sha;
@@ -171,7 +184,7 @@ function carimbo() {
     return 'local';
   }
 }
-const BUILD = { versao: carimbo(), data: new Date().toISOString().slice(0, 10), alvo: 'web' };
+const BUILD = { versao: carimbo(), data: DATA_FIXADA || new Date().toISOString().slice(0, 10), alvo: 'web' };
 console.log('  · build ' + BUILD.versao + ' (' + BUILD.data + ')');
 
 const INJECT = `
