@@ -103,7 +103,7 @@ struct ContentView: View {
             .background(Capsule().fill(AppTheme.cardBackground))
             .overlay(Capsule().strokeBorder(clock.running ? ThemeState.t.accent.opacity(0.45) : AppTheme.hairline, lineWidth: 1))
         }
-        .padding(.horizontal, 20).padding(.vertical, 11)
+        .margemPaginaAcervo().padding(.vertical, DSEspaco.e3)
         .background(AppTheme.pageBackground)
         .overlay(alignment: .bottom) { Rectangle().fill(AppTheme.hairline).frame(height: 1) }
     }
