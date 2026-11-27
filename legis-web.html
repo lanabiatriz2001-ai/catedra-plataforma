@@ -5,9 +5,8 @@
 
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg,#f4f1ea);color:var(--ink,#1f1c17);font-family:var(--body,'Inter',system-ui,sans-serif);font-size:13px;-webkit-font-smoothing:antialiased}
-.wrap{max-width:1200px;margin:0 auto;padding:20px 26px 70px}
-.head{display:flex;align-items:center;gap:14px;margin-bottom:14px}
-.head .ic{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,var(--accentSolid,var(--accent,#0f7a57)),var(--accentSolidD,var(--accentD,#0b5e43)));display:flex;align-items:center;justify-content:center;color:var(--onAccent,#fff);font-size:20px;flex:none;box-shadow:0 6px 16px -4px rgba(20,15,10,.30)}
+.head{display:flex;align-items:center}
+.head .ic{background:linear-gradient(135deg,var(--accentSolid,var(--accent,#0f7a57)),var(--accentSolidD,var(--accentD,#0b5e43)));display:flex;align-items:center;justify-content:center;color:var(--onAccent,#fff);font-size:20px;flex:none;box-shadow:0 6px 16px -4px rgba(20,15,10,.30)}
 .head h1{font-family:var(--display,'Spectral',Georgia,serif);font-size:25px;font-weight:800;letter-spacing:-.02em;line-height:1}
 .head p{font-size:12px;color:var(--text2,#5c564a);margin-top:3px}
 /* D8 — a fileira de pílulas rola no toque em vez de espremer/cortar rótulo, e a pílula
@@ -411,7 +410,6 @@ mark{background:var(--accentSoft,#ffe9a8);color:var(--accent);border-radius:3px;
 .rdr.leitura .caput,.rdr.leitura .par .bd,.rdr.leitura .inc .bd,.rdr.leitura .ali .bd,.rdr.leitura .txt{font-family:var(--rdisplay);line-height:1.7}
 /* ====== D8 — no toque, alvo menor que 44px é alvo que erra ====== */
 @media (max-width:640px){
-  .wrap{padding:14px 12px 60px}
   .tabs{width:100%}
   .tabs button{min-height:44px;padding:9px 15px}
   .search input{min-height:44px}

@@ -326,10 +326,10 @@ struct Prateleira<Conteudo: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             JurisSecaoTitulo(titulo: titulo, simbolo: simbolo, verTodos: verTodos)
-                .padding(.horizontal, 26)
+                .margemPaginaAcervo()
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 12) { conteudo() }
-                    .padding(.horizontal, 26).padding(.vertical, 2)
+                    .margemPaginaAcervo().padding(.vertical, 2)
             }
         }
     }
