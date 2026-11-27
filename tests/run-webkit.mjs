@@ -23,6 +23,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { iniciarServidor, lancarNavegador } from './_infra.mjs';
 import { testarOralPontos } from './oral-pontos.mjs';
 import { testarOralLeiSeca } from './oral-lei-seca.mjs';
+import { testarOralGravacao24h } from './oral-gravacao-24h.mjs';
 import { testarSegurancaBackup } from './seguranca-backup.mjs';
 import { testarReservaIA } from './seguranca-cota.mjs';
 import { testarLegisGuiado } from './legis-guiado.mjs';
@@ -117,6 +118,15 @@ for (const [base, origem, arquivo] of ORIGENS) {
   catch (e) {
     ok(false, 'ORAL LEI SECA [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
       + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+  }
+  // Fase Oral: gravação no aparelho (WebKit grava em audio/mp4) e janela de 24 h — semeia por
+  // base+'/__semente' e usa a fixture do sync, por isso só na origem http
+  if (origem === 'http') {
+    try { await testarOralGravacao24h(page, base, ok, { motor, origem, arquivo }); }
+    catch (e) {
+      ok(false, 'ORAL GRAVAÇÃO [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
+        + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+    }
   }
   // LA3: o modo guiado do LEGIS marcando por toque de palavra — o caminho do iPad
   try { await testarLegisGuiado(page, base, ok, { motor, origem }); }
