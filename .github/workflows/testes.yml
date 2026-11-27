@@ -26,6 +26,8 @@ jobs:
         run: node scripts/verificar-design-nativo.mjs
       - name: Métricas da abertura (sem navegador)
         run: node --test tests/metricas-abertura.test.mjs
+      - name: Preço previsto do beta na página pública (sem navegador)
+        run: node --test tests/sobre-preco-beta.test.mjs
       - name: Compactação da lógica preserva comportamento
         run: npm run test:compactacao-logica
       - name: Build da plataforma

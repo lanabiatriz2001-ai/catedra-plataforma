@@ -6,9 +6,10 @@
 <title>Cátedra — plataforma de estudo para a magistratura</title>
 <meta name="description" content="A Cátedra reúne lei seca, jurisprudência, espelhos de correção oficiais e treino de prova oral num só lugar, funcionando sem internet.">
 <!-- Página pública (P15). Direção "vitrine": cor por ramo do direito como identidade, serifa grande, composição
-     ousada. Sem promessa de aprovação, sem depoimento, sem número de adoção, sem preço — nada disso existe
-     (PRODUCT.md). Os números abaixo são o tamanho do acervo que está no repositório, conferido; os dos espelhos o
-     P15 (tests/run.mjs) confere contra espelhos.js. Fontes locais, sem CDN: a página abre igual sem rede. -->
+     ousada. Sem promessa de aprovação, sem depoimento, sem número de adoção. O único preço é o valor previsto
+     para a abertura do beta, na caixa .honesto (PRODUCT.md). Os números abaixo são o tamanho do acervo que está no
+     repositório; o P15 (tests/run.mjs) confere os dos espelhos contra espelhos.js. Fontes locais, sem CDN: a página
+     abre igual sem rede. -->
 <style>
 @font-face{font-family:'Spectral';font-style:normal;font-weight:700;font-display:swap;src:url('./fonts/spectral-700-normal.woff2') format('woff2');}
 @font-face{font-family:'Spectral';font-style:normal;font-weight:500;font-display:swap;src:url('./fonts/spectral-500-normal.woff2') format('woff2');}
@@ -63,6 +64,8 @@ main { max-width:1080px; margin:0 auto; padding:0 clamp(16px,4vw,48px) var(--e7)
 .para b { font-family:var(--display); font-size:20px; display:block; margin-bottom:6px; }
 .para p { margin:0; color:var(--text2); font-size:15.5px; }
 .honesto { border:1px dashed var(--border); border-radius:var(--radius); padding:var(--e4) var(--e5); color:var(--text2); font-size:15px; margin-top:var(--e5); }
+.honesto p { margin:0; }
+.honesto p + p { margin-top:var(--e2); }
 .espera { background:var(--surface); border:1px solid color-mix(in srgb,var(--accent) 38%,var(--border)); background-image:linear-gradient(180deg,color-mix(in srgb,var(--accent) 18%,transparent),transparent 46%); border-radius:var(--radius); padding:clamp(20px,4vw,40px); display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,420px); gap:var(--e6); align-items:start; }
 .espera h2 { margin-top:0; }
 form { display:grid; gap:var(--e3); }
@@ -136,7 +139,10 @@ input, select { width:100%; min-height:48px; border:1.5px solid color-mix(in srg
       <div><b>Quem vai fazer o ENAM</b><p>As provas anteriores no formato real, a correção que responde se habilitaria e a cadência de simulados até a data.</p></div>
       <div><b>Quem estuda em vários aparelhos</b><p>Começa no Mac, continua no iPad, revisa no navegador. O que você fez num aparelho não some no outro.</p></div>
     </div>
-    <div class="honesto">A Cátedra está em fase beta, com acesso por convite. Ela organiza e verifica o material e o critério; a aprovação depende do estudo, e nenhuma plataforma pode prometê-la.</div>
+    <div class="honesto">
+      <p>A Cátedra está em fase beta, com acesso por convite. Ela organiza e verifica o material e o critério; a aprovação depende do estudo, e nenhuma plataforma pode prometê-la.</p>
+      <p class="preco-beta">Quando abrir, R$ 197 por ano (valor previsto, pode mudar).</p>
+    </div>
   </section>
 
   <section class="secao espera" id="lista" aria-labelledby="t-lista">

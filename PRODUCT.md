@@ -69,7 +69,9 @@ Conteúdo real, verificado, já no repositório — nada aqui precisa ser invent
 - `questoes-prova.js` — 83 questões de prova real (ampliação em sessões espaçadas por causa do anti-bot da fonte);
 - `oral-conteudo.js`, `pecas.js`, `ritos.js`, `fluxos.js`, `modelos-edital.js`, `incidencia.json`.
 
-**Ausências que trabalho futuro não pode fabricar:** não há depoimentos, clientes, números de adoção, preço, benchmark de aprovação ou imprensa. Nenhum desses pode aparecer numa tela.
+**Ausências que trabalho futuro não pode fabricar:** não há depoimentos, clientes, números de adoção, benchmark de aprovação ou imprensa. Nenhum desses pode aparecer numa tela.
+
+**Preço:** o valor previsto do beta aparece só na caixa `.honesto` de `sobre.html` com a frase "Quando abrir, R$ 197 por ano (valor previsto, pode mudar)." Nenhum outro preço da Cátedra pode aparecer em tela.
 
 ## Product Principles
 
