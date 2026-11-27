@@ -102,9 +102,14 @@ export async function testarOralGravacao24hEstatico(ok) {
   let semente = 7; const aleatorio = () => { semente = (semente * 16807) % 2147483647; return semente / 2147483647; };
   const pool = Array.from({ length: 12 }, (_, i) => pergunta(i));
   const s5 = G.sortearFila(pool, 5, aleatorio);
-  ok(G.sortearFila(pool.slice(0, 2), 5) === null, R + 'acervo com menos de 3 perguntas não sorteia (mesma regra do iniciarArguicao)');
+  ok(G.sortearFila(pool.slice(0, 2), 3) === null, R + 'acervo com menos perguntas que a quantidade escolhida não sorteia (2 para 3)');
+  // a regra da sala desde o PR #282: a quantidade escolhida, nem uma a menos (a regra antiga sortearia 4 e 9)
+  ok(G.sortearFila(pool.slice(0, 4), 5, aleatorio) === null && G.sortearFila(pool.slice(0, 9), 10, aleatorio) === null,
+    R + 'como na sala: 4 perguntas para 5 escolhidas, ou 9 para 10, não viram um sorteio menor — não há sorteio');
   ok(s5.length === 5 && new Set(s5.map(q => q.enunciado)).size === 5, R + 'sorteio sem repetir pergunta');
-  ok(G.sortearFila(pool, 99, aleatorio).length === 10 && G.sortearFila(pool, 1, aleatorio).length === 3, R + 'entre 3 e 10 perguntas, como na sala');
+  const justo = G.sortearFila(pool.slice(0, 5), 5, aleatorio);
+  ok(!!justo && justo.length === 5 && G.sortearFila(pool, 10, aleatorio).length === 10 && G.sortearFila(pool, 3, aleatorio).length === 3,
+    R + 'exatamente a quantidade escolhida (3, 5 ou 10), também quando o acervo tem só essa quantidade');
 
   const pts = G.pontosDaFila([pergunta(0), pergunta(2), pergunta(1)]);
   ok(pts.length === 2 && pts[0].titulo === 'Direito Civil' && /Ponto 1 · TJ-XX · 2025 · Juiz Substituto · 2 perguntas/.test(pts[0].detalhe), R + 'pontos agrupados por disciplina, ponto e concurso, com a contagem de perguntas');
@@ -473,7 +478,8 @@ export async function testarOralGravacao24h(pageDaSuite, base, ok, opcoes = {}) 
     caminhos: () => caminhos(pageDaSuite, base, ok, R, motor, opcoes.arquivo),
     duracao: () => duracao(pageDaSuite, base, ok, R, motor, opcoes.arquivo),
     indisponivel: () => indisponivel(pageDaSuite, base, ok, R, motor, opcoes.arquivo), janela: () => janela(pageDaSuite, base, ok, R, opcoes.arquivo),
-    corrida: () => corrida(pageDaSuite, base, ok, R, motor, opcoes.arquivo) };
+    corrida: () => corrida(pageDaSuite, base, ok, R, motor, opcoes.arquivo),
+    quantidade: () => quantidadeEscolhida(pageDaSuite, base, ok, R, opcoes.arquivo) };
   for (const nome of Object.keys(partes)) {
     if (so && so !== nome) continue;
     try { await partes[nome](); } catch (e) { ok(false, R + nome + ': exceção ' + String(e && e.message || e).split('\n')[0].slice(0, 200)); }
@@ -893,6 +899,56 @@ async function corrida(pageDaSuite, base, ok, R, motor, arquivo) {
     await page.evaluate(() => window.__catedraApp.argGravarToggle());
     await page.waitForFunction(() => /guardada|nao-guardada/.test((window.__catedraApp.state.argGrav || {}).estado || ''), null, { timeout: 8000 }).catch(() => {});
     ok(erros.length === 0, R + 'corrida do microfone sem erro na página (' + (erros[0] || 'nenhum') + ')');
+  } finally { await ctx.close(); }
+}
+
+/* ---------- a quantidade escolhida vale igual na sala e no sorteio de 24 h (PR #282) ---------- */
+async function quantidadeEscolhida(pageDaSuite, base, ok, R, arquivo) {
+  const { ctx, page, erros } = await contexto(pageDaSuite, { toque: true });
+  const lerJanela = () => page.evaluate(() => JSON.parse(localStorage.getItem('catedra:oralJanela') || 'null'));
+  try {
+    await semear(page, base);
+    await abrirOral(page, base, arquivo);
+    const preparo = page.getByRole('region', { name: 'Preparar arguição' });
+    const botao = preparo.locator('[data-i="treinar"]'), estoque = preparo.getByRole('status');
+    const qtd = preparo.getByRole('combobox', { name: 'Quantidade de perguntas' });
+    // o acervo filtrado fica com 4 perguntas, e a pessoa escolhe 5, no modo de 24 h
+    await page.evaluate(() => { window.__Q10 = window.CT_ORAL_Q.slice(); window.CT_ORAL_Q = window.__Q10.slice(0, 4); window.__catedraApp.setState({ oralQDisc: '', oralQCarr: '' }); });
+    await qtd.selectOption('5');
+    await preparo.getByRole('combobox', { name: 'Quando arguir' }).selectOption('24h');
+    await estoque.getByText(/4 perguntas disponíveis.*escolha menos perguntas/i).waitFor({ timeout: 8000 });
+    ok(await botao.isDisabled() && /Sortear as perguntas agora/.test((await botao.textContent()) || ''),
+      R + '4 perguntas para 5 escolhidas: "Sortear as perguntas agora" fica desligado, com o mesmo aviso de estoque da sala');
+    // pelo código, como um toque que passou antes de o estoque mudar: a sala e o sorteio recusam juntos
+    const avisos = await page.evaluate(() => {
+      const a = window.__catedraApp, lista = [];
+      a._toast = (m) => { lista.push(m); };
+      try { a.sortearJanela(); a.iniciarArguicao(); } finally { delete a._toast; }
+      return lista;
+    });
+    const recusa = { janela: await lerJanela(), sala: await page.evaluate(() => window.__catedraApp.state.argOn) };
+    ok(recusa.janela === null && !recusa.sala && avisos.length === 2 && avisos[0] === avisos[1] && avisos[0] === 'Não há 5 perguntas disponíveis com esses filtros.',
+      R + 'sorteio de 24 h e sala recusam juntos, com o mesmo aviso, em vez de sortear menos que o escolhido ("' + avisos.join('" · "') + '"; janela ' + JSON.stringify(recusa.janela && recusa.janela.fila ? recusa.janela.fila.length + ' perguntas' : recusa.janela) + ')');
+    // 3 escolhidas: o sorteio guarda exatamente 3, sem repetir, do acervo filtrado
+    await qtd.selectOption('3');
+    await page.waitForFunction(() => { const b = document.querySelector('[data-i="treinar"]'); return !!b && !b.disabled; }, null, { timeout: 8000 });
+    await botao.click();
+    await page.getByRole('region', { name: 'Perguntas sorteadas' }).waitFor({ timeout: 10000 });
+    const j3 = await lerJanela();
+    const f3 = j3 && Array.isArray(j3.fila) ? j3.fila : [];
+    const doFiltro = await page.evaluate((f) => f.every(q => window.CT_ORAL_Q.some(x => x.enunciado === q.enunciado)), f3);
+    ok(!!j3 && j3.estado === 'aguardando' && f3.length === 3 && new Set(f3.map(q => q.enunciado)).size === 3 && doFiltro,
+      R + '3 escolhidas: o sorteio de 24 h guarda exatamente 3 perguntas, sem repetir, do acervo filtrado (' + f3.length + ')');
+    // 10 escolhidas com 10 no acervo: exatamente 10 (o "trocar?" do sorteio que espera é aceito)
+    await page.evaluate(() => { window.CT_ORAL_Q = window.__Q10.slice(); window.__catedraApp.setState({ oralQDisc: '' }); });
+    await qtd.selectOption('10');
+    await page.waitForFunction(() => { const b = document.querySelector('[data-i="treinar"]'); return !!b && !b.disabled; }, null, { timeout: 8000 });
+    await botao.click();
+    await page.waitForFunction(() => { const j = JSON.parse(localStorage.getItem('catedra:oralJanela') || 'null'); return !!j && Array.isArray(j.fila) && j.fila.length !== 3; }, null, { timeout: 8000 }).catch(() => {});
+    const j10 = await lerJanela();
+    ok(!!j10 && j10.estado === 'aguardando' && Array.isArray(j10.fila) && j10.fila.length === 10 && new Set(j10.fila.map(q => q.enunciado)).size === 10,
+      R + '10 escolhidas com 10 no acervo: o sorteio guarda as 10 (' + (j10 && j10.fila ? j10.fila.length : 0) + ')');
+    ok(erros.length === 0, R + 'quantidade sem erro na página (' + (erros[0] || 'nenhum') + ')');
   } finally { await ctx.close(); }
 }
 

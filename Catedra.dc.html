@@ -15465,14 +15465,16 @@ class Component extends DCLogic {
     G.loja.resumo().then(l=>G.loja.apagar(G.orfas(l,ctx))).catch(()=>{});
   }
   setArgQuando = (e)=>this.setState({argQuando:e.currentTarget.value==='24h'?'24h':'agora'});
-  // Mesmo acervo e mesma regra do iniciarArguicao; só o momento muda: a fila fica guardada.
+  // Mesmo acervo e mesma regra do iniciarArguicao (a quantidade escolhida, nem uma a menos, e o
+  // mesmo aviso quando faltam perguntas); só o momento muda: a fila fica guardada. O estoque vem
+  // antes do "trocar?": sem perguntas bastantes, não há sorteio novo para pôr no lugar.
   sortearJanela = ()=>{
     const G=this._gravMod(), area=this.state.areaEstudo||'juridica'; if(!G) return;
     if(window.CT_AREA_REG&&!window.CT_AREA_REG.tem(area,'provaOralBancas')) return;
+    const quantidade=this.state.argQtd, fila=G.sortearFila(this._argPool(), quantidade);
+    if(!fila){ this._toast('Não há '+quantidade+' perguntas disponíveis com esses filtros.'); return; }
     const atual=this.state.oralJanela;
     if(G.pendente(atual)&&!window.confirm('Você já tem perguntas sorteadas ('+G.rotuloLiberacao(atual,Date.now()).toLowerCase()+'). Trocar por um novo sorteio?')) return;
-    const fila=G.sortearFila(this._argPool(), this.state.argQtd);
-    if(!fila){ this._toast('Poucas perguntas com esses filtros — tire um filtro'); return; }
     this.setState({oralJanela:G.novaJanela(fila,{agora:Date.now(), min:this.state.argMin, area})},()=>{ this._salvarAgora(); this._janelaTopo(); });
   };
   iniciarJanela = ()=>{

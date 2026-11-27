@@ -118,14 +118,16 @@
         detalhe: [g.ponto, g.origem, g.n === 1 ? '1 pergunta' : g.n + ' perguntas'].filter(Boolean).join(' · ') };
     });
   }
-  /* A mesma regra do iniciarArguicao do host (que segue intocado): embaralha o acervo
-     filtrado e tira de 3 a 10 perguntas, sem repetir. Só o momento muda. */
+  /* A mesma regra do iniciarArguicao do host (PR #282, "Respeita a quantidade de perguntas
+     escolhida na arguição"): embaralha o acervo filtrado e tira EXATAMENTE a quantidade
+     escolhida, sem repetir. Com menos perguntas que isso não há sorteio, como a sala não
+     abre: 4 perguntas para 5 escolhidas não viram um sorteio de 4. Só o momento muda. */
   function sortearFila(pool, qtd, aleatorio) {
-    var r = typeof aleatorio === 'function' ? aleatorio : Math.random;
-    if (!Array.isArray(pool) || pool.length < 3) return null;
+    var r = typeof aleatorio === 'function' ? aleatorio : Math.random, n = parseInt(qtd, 10);
+    if (!Array.isArray(pool) || !(n > 0) || pool.length < n) return null;
     var emb = pool.slice();
     for (var i = emb.length - 1; i > 0; i--) { var j = Math.floor(r() * (i + 1)), x = emb[i]; emb[i] = emb[j]; emb[j] = x; }
-    return emb.slice(0, Math.max(3, Math.min(10, +qtd || 5)));
+    return emb.slice(0, n);
   }
 
   /* ------------------------------------------------------------- gravação: regras puras */
