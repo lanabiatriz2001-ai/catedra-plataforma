@@ -118,7 +118,10 @@
    recarga tem o mesmo prazo e a trava segue; (t4) o aceite vigente gravado por outra aba solta a trava na
    nova tentativa; (u2)/(u3) com a ponte do arquivo muda, "Aceitar" e "Não aceito" ainda tiram a pessoa do
    portão; (v5) sem credencial conferida, o aviso não promete limpeza pendente; o duplo clique na web não
-   vira o 2º toque; o e-mail longo quebra; o painel rola também deitado; e nada depende de janela de tempo.
+   vira o 2º toque (feito no celular, onde o botão fica sob o dedo, e conferido que os dois cliques caíram nele);
+   o e-mail longo quebra; o painel rola também deitado; o estilo do "Aceitar" chega inteiro (com a sombra que vem
+   depois da família da fonte; na main, desde o #270, sem aspas que cortem o atributo); e nada depende de janela de
+   tempo.
 
    Todo caso confere que a hidratação TERMINOU (hydrated=1 e portão oculto) antes das guardas:
    sem isso, "nenhum upsert" passaria num fluxo que travou antes de chegar lá. */
@@ -425,7 +428,11 @@ export async function testarAuthHidratacao(pageDaSuite, base, ok, opcoes = {}) {
     // desabilitado, e um 2º toque não pergunta de novo — o "Cancelar" dele não desfaria a saída já em curso
     const travadoN = await page.evaluate(() => {
       const t = ['#ctacsair', '#ctacexcluir', '#ctacbaixar', '#ctac', '#ctacok'].every(s => !!document.querySelector(s) && document.querySelector(s).disabled);
-      const opAceitar = +getComputedStyle(document.querySelector('#ctacok')).opacity;
+      // o BTN tem transição de opacidade (.12 s): leva-a ao fim antes de medir, para ler o valor em que ela para, e não
+      // um quadro do meio dela (que depende de quanto a máquina demorou)
+      const ac = document.querySelector('#ctacok');
+      (ac.getAnimations ? ac.getAnimations() : []).forEach(a => { try { a.finish(); } catch (_) {} });
+      const opAceitar = +getComputedStyle(ac).opacity;
       const m = (document.querySelector('#ctacmsg') || {}).textContent || '';
       const b = document.querySelector('#ctacsair'); if (b) b.click();
       return { t, opAceitar, m };
@@ -731,9 +738,10 @@ async function casosPortao(caso, ok, R) {
     const lum = c => { const p = c.match(/[\d.]+/g).map(Number); return 0.2126 * canal(p[0]) + 0.7152 * canal(p[1]) + 0.0722 * canal(p[2]); };
     const fundo = n => { for (let e = n; e; e = e.parentElement) { const b = getComputedStyle(e).backgroundColor, p = b.match(/[\d.]+/g); if (p && (p.length < 4 || +p[3] > 0)) return b; } return 'rgb(255, 255, 255)'; };
     const contraste = n => { const a = lum(getComputedStyle(n).color), b = lum(fundo(n)); return Math.round((Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05) * 100) / 100; };
-    // minAlt: o min-height que de fato vale (o estilo inline pode ser cortado calado, e aí a altura de hoje é só acaso)
-    const alvo = sel => { const n = document.querySelector(sel); if (!n) return { tag: 'ausente', h: 0, minAlt: 0, contraste: 0, sublinhado: false }; const r = n.getBoundingClientRect(), cs = getComputedStyle(n);
-      return { tag: n.tagName, h: Math.round(r.height * 10) / 10, minAlt: parseFloat(cs.minHeight) || 0, contraste: contraste(n), sublinhado: /underline/.test(cs.textDecorationLine || cs.textDecoration || '') }; };
+    // minAlt: o min-height que de fato vale (o estilo inline pode ser cortado calado, e aí a altura de hoje é só acaso);
+    // sombra: a declaração que vem depois da família da fonte no estilo do "Aceitar" (aspas na família cortavam o resto)
+    const alvo = sel => { const n = document.querySelector(sel); if (!n) return { tag: 'ausente', h: 0, minAlt: 0, contraste: 0, sublinhado: false, sombra: false }; const r = n.getBoundingClientRect(), cs = getComputedStyle(n);
+      return { tag: n.tagName, h: Math.round(r.height * 10) / 10, minAlt: parseFloat(cs.minHeight) || 0, contraste: contraste(n), sublinhado: /underline/.test(cs.textDecorationLine || cs.textDecoration || ''), sombra: !!cs.boxShadow && cs.boxShadow !== 'none' }; };
     const icone = (sel, nome) => { const s = document.querySelector(sel + ' svg[data-ico="' + nome + '"]'); if (!s) return false; const r = s.getBoundingClientRect(); return s.getAttribute('aria-hidden') === 'true' && Math.round(r.width) === 16 && Math.round(r.height) === 16; };
     const titulo = document.querySelector('#catedra-auth-gate h2'), intro = titulo && titulo.nextElementSibling;
     const rotulo = document.querySelector('#ctac') && document.querySelector('#ctac').closest('label');
@@ -751,6 +759,7 @@ async function casosPortao(caso, ok, R) {
     ok([m.sair.contraste, m.frase.contraste, m.baixar.contraste, m.excluir.contraste, m.titulo, m.intro].every(c => c >= 4.5),
       R + P + ' texto ≥ 4,5:1 sobre o fundo de verdade (título ' + m.titulo + ', texto ' + m.intro + ', frase ' + m.frase.contraste + ', "Não aceito" ' + m.sair.contraste + ', botões ' + m.baixar.contraste + ' e ' + m.excluir.contraste + ')');
     ok(m.sair.sublinhado, R + P + ' o estilo do "Não aceito" chega inteiro (sublinhado, que fica no fim do atributo)');
+    ok(m.aceitar.sombra, R + P + ' o estilo do "Aceitar" chega inteiro (a sombra, que vem depois da família da fonte no atributo)');
     ok(/Não concorda\? Você pode baixar os seus dados e excluir a conta sem aceitar\./.test(m.fraseTexto) && m.icones, R + P + ' a frase de quem não concorda está lá, e os botões têm ícone Lucide de 16 px escondido do leitor de tela');
   };
 

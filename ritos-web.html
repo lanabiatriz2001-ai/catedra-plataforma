@@ -46,9 +46,9 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible{
 
 /* ───────────────────────── cabeçalho ───────────────────────── */
 .top{position:sticky;top:0;z-index:30;background:var(--surface);border-bottom:1px solid var(--border)}
-.l1{display:flex;align-items:center;gap:14px;padding:12px 18px;max-width:1240px;margin:0 auto}
-.brand{display:flex;align-items:center;gap:11px;flex:none}
-.brand .ic{width:36px;height:36px;border-radius:11px;background:var(--accentSolid,var(--accent));color:var(--onAccent);
+.l1{display:flex;align-items:center;flex-wrap:nowrap}
+.brand{display:flex;align-items:center;flex:none}
+.brand .ic{background:var(--accentSolid,var(--accent));color:var(--onAccent);
   display:flex;align-items:center;justify-content:center;font-size:var(--t-titulo);flex:none}
 .brand small{display:block;font-size:var(--t-micro);color:var(--text2);margin-top:4px}
 .acs{margin-left:auto;display:flex;gap:6px;align-items:center;flex:none;position:relative}
@@ -59,23 +59,23 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible{
 .acs button.on{background:var(--ink);border-color:var(--ink);color:var(--surface)}
 .acs .mais{display:none;justify-content:center;font-size:var(--t-corpo);line-height:1;padding:0;
   min-width:44px;min-height:44px}
-.l2{display:flex;align-items:center;gap:9px;padding:0 18px 11px;max-width:1240px;margin:0 auto}
+.l2{display:flex;align-items:center}
 /* ───────── seletor de rito: procurar, não rolar ─────────
    Eram 27 pílulas numa fileira que rolava de lado: para achar "Tributário — execução
    fiscal" a pessoa arrastava a fileira inteira lendo etiqueta por etiqueta, e a máscara
    de fade escondia o fim. Agora o rito atual é um BOTÃO que abre um painel com busca e
    a lista agrupada por ramo — digitar "exec" chega lá em dois toques. A fileira some;
    o que ela informava (o ramo por cor e quem tem fluxo comentado) vive no painel. */
-#mats{display:flex;gap:8px;flex:1;align-items:center;position:relative}
+#mats{display:flex;gap:var(--ct-e2);flex:1;min-width:0;align-items:center;position:relative}
 #btRito{display:flex;align-items:center;gap:9px;border:1px solid var(--border);background:var(--surface);
   color:var(--ink);border-radius:99px;padding:8px 15px;font:700 13px inherit;cursor:pointer;min-height:38px;
-  max-width:min(420px,100%)}
+  max-width:min(420px,100%);min-width:0}
 #btRito:hover{border-color:var(--text3)}
 #btRito i{font-style:normal;width:9px;height:9px;border-radius:99px;background:var(--rc,var(--accent));flex:none}
 #btRito b{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #btRito .ml-fraca{flex:none}
 #btRito .seta{color:var(--text2);font-size:var(--t-micro);flex:none}
-#painelRito{position:absolute;left:0;top:calc(100% + 8px);z-index:60;width:min(460px,calc(100vw - 24px));
+#painelRito{position:absolute;left:0;top:calc(100% + 8px);z-index:60;width:min(460px,calc(100vw - 2 * var(--sat-margem)));
   background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--sh);
   padding:10px;display:none;flex-direction:column;gap:8px}
 #painelRito.aberto{display:flex}
@@ -107,9 +107,8 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible{
 .modos button:hover{color:var(--ink)}
 .modos button[aria-pressed="true"]{background:var(--surface);color:var(--ink);
   box-shadow:0 1px 2px rgba(20,15,10,.07)}
-/* no mapa a página inteira vira área de trabalho: o rito tem 4 mil pixels de
-   largura, e a coluna de leitura de 1240px seria uma janela estreita demais */
-body.modo-mapa .wrap{max-width:none;padding-bottom:24px}
+/* O mapa aproveita a largura disponível; sua legenda mantém uma medida de leitura. */
+body.modo-mapa .wrap{padding-bottom:var(--ct-e5)}
 body.modo-mapa .cab p,body.modo-mapa .cab .aviso{max-width:96ch}
 #mapaHold{margin-top:20px}
 @media (max-width:760px){
@@ -119,7 +118,6 @@ body.modo-mapa .cab p,body.modo-mapa .cab .aviso{max-width:96ch}
 }
 
 /* ───────────────────────── moldura do rito ───────────────────────── */
-.wrap{max-width:1240px;margin:0 auto;padding:22px 18px 80px}
 .cab{margin:0 0 6px}
 .cab h2{margin:0;font:800 28px/1.15 var(--display);letter-spacing:-.025em;display:flex;align-items:center;gap:12px}
 .cab h2 i{font-style:normal;width:11px;height:27px;border-radius:4px;background:var(--rc);flex:none}
@@ -230,26 +228,26 @@ body.modo-mapa .cab p,body.modo-mapa .cab .aviso{max-width:96ch}
 body.semnotas .nota{display:none}
 
 @media (max-width:900px){
-  .passo{grid-template-columns:1fr;gap:10px}
+  .passo{grid-template-columns:minmax(0,1fr);gap:10px}
+  .passo .liga{grid-column:1}
   .passo .centro,.passo .esq,.passo .dir{grid-column:1;justify-self:stretch}
   .passo .esq,.passo .dir{flex-direction:column;align-items:stretch}
   .saida,.saida.esq{flex-direction:column;align-items:stretch}
   /* o min-width:104px da versão em linha continuava valendo aqui e transformava o fio
      de 2px numa barra cinza de 104px atravessada no meio do fluxo */
-  .saida .fio{width:2px;min-width:0;height:22px;align-self:center;flex:none}
-  /* a pílula do rótulo mora dentro do fio de 2px: margem automática a centraliza
-     em vez de espremê-la */
+  .saida .fio{min-width:0;align-self:center;flex:none;width:100%;height:auto;background:transparent}
+  .saida .fio::before{content:"";display:block;height:22px;width:2px;margin-inline:auto;background:var(--linha)}
+  /* O rótulo ocupa uma linha própria, centralizado na largura da ramificação. */
   .saida .fio .rot{position:static;transform:none;display:block;text-align:center;
-    width:max-content;max-width:min(70vw,220px);margin:24px auto 0}
-  .saida.dir .fio::after,.saida.esq .fio::after{left:50%;right:auto;top:auto;bottom:-1px;
+    width:fit-content;max-width:100%;margin:var(--ct-e1) auto;overflow-wrap:anywhere}
+  .saida.dir .fio::after,.saida.esq .fio::after{left:50%;right:auto;top:16px;bottom:auto;
     transform:translateX(-50%);border-color:transparent;border-top-color:var(--linha)}
   .saida .cx{width:auto}
   .dec .conteudo{padding:14px 0}
   .dec .interno{max-width:none;padding:0 22px}
   .dec .losango{clip-path:none;border-radius:12px}
   .dec .losango::before{clip-path:none;border-radius:9px}
-  .wrap{padding:16px 12px 60px}
-  .l1{padding:11px 12px} .l2{padding:0 12px 10px} .brand small{display:none}
+  .brand small{display:none}
 }
 
 /* ───────── D8 — celular: dedo, não cursor ─────────

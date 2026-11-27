@@ -1208,24 +1208,22 @@
   // dentro do app nativo (file://) o redirect não teria para onde cair.
   var WEB = /^https?:$/.test(location.protocol);
   var OAUTH = (WEB && Array.isArray(window.CATEDRA_OAUTH)) ? window.CATEDRA_OAUTH.filter(function (p) { return p === 'google' || p === 'apple'; }) : [];
-  var SERIF = '"Spectral",Georgia,"Times New Roman",serif', SANS = '-apple-system,BlinkMacSystemFont,"Inter",system-ui,sans-serif';
+  var SERIF = "Spectral,Georgia,'Times New Roman',serif", SANS = '-apple-system,BlinkMacSystemFont,Inter,system-ui,sans-serif';
   var NAVY = DARK ? '#0b1220' : '#1e2b3a';
   var HERO = 'linear-gradient(160deg,' + NAVY + ' 0%,' + ACC2 + ' 55%,' + ACC + ' 100%)';
-  var INPUT = 'width:100%;box-sizing:border-box;border:1.5px solid ' + BRD + ';background:' + CARD + ';border-radius:12px;padding:13px 14px;font-size:15px;color:' + INK + ';font-family:' + SANS + ';outline:none;transition:border-color .15s,box-shadow .15s;';
-  var BTN = 'width:100%;background:' + GRAD + ';color:#fff;border:none;border-radius:12px;padding:14px;font-weight:700;font-size:15px;cursor:pointer;font-family:' + SANS + ';letter-spacing:.01em;box-shadow:0 8px 22px -10px ' + ACC + ';transition:transform .12s,opacity .12s;';
-  var GHOST = 'width:100%;background:' + CARD + ';color:' + INK + ';border:1.5px solid ' + BRD + ';border-radius:12px;padding:12px;font-weight:600;font-size:14px;cursor:pointer;font-family:' + SANS + ';display:flex;align-items:center;justify-content:center;gap:10px;';
-  // SANS e SERIF têm aspas duplas ("Inter", "Spectral"): dentro de style="…" elas fecham o atributo, e tudo o que vem
-  // depois some calado (medido na tela de aceite: o display:flex do fim do GHOST e o min-height somado a ele nunca valeram, e
-  // o título ficava sem cor — preto no escuro). A família já vem da folha do portão (#catedra-auth-gate button), então
-  // a versão para atributo só tira a declaração. Os outros usos antigos de SANS/SERIF em atributo ficam como estão.
-  var GHOST_ATTR = GHOST.replace(/font-family:[^;]*;/, '');
-  // O BTN para atributo: só o que vem antes da família, que é o que pinta hoje (as aspas de SANS cortavam o resto). Sombra
-  // e transição ficam para o conserto do login, que usa o mesmo BTN.
-  var BTN_ATTR = BTN.replace(/font-family:.*$/, '');
+  // O portão abre antes do tema do app. A mesma medida atende aos campos e às ações também nesse primeiro quadro.
+  // Duas linhas também cabem na altura comum quando a fonte do sistema é mais larga.
+  var MEDIDA_CONTROLE = 'width:100%;box-sizing:border-box;min-height:var(--ct-e7,3rem);padding:var(--ct-e1,.25rem) var(--ct-e4,1rem);line-height:1.35;';
+  var INPUT = MEDIDA_CONTROLE + 'border:1.5px solid ' + BRD + ';background:' + CARD + ';border-radius:12px;font-size:15px;color:' + INK + ';font-family:' + SANS + ';outline:none;transition:border-color .15s,box-shadow .15s;';
+  var BTN = MEDIDA_CONTROLE + 'background:' + GRAD + ';color:#fff;border:none;border-radius:12px;font-weight:700;font-size:15px;cursor:pointer;font-family:' + SANS + ';letter-spacing:.01em;box-shadow:0 8px 22px -10px ' + ACC + ';transition:transform .12s,opacity .12s;';
+  var GHOST = MEDIDA_CONTROLE + 'background:' + CARD + ';color:' + INK + ';border:1.5px solid ' + BRD + ';border-radius:12px;font-weight:600;font-size:14px;cursor:pointer;font-family:' + SANS + ';display:flex;align-items:center;justify-content:center;gap:10px;';
   var CSS = '<style>'
     + '#catedra-auth-gate *{-webkit-tap-highlight-color:transparent}'
     + '#catedra-auth-gate div,#catedra-auth-gate p,#catedra-auth-gate label,#catedra-auth-gate button,#catedra-auth-gate input,#catedra-auth-gate li,#catedra-auth-gate small{font-family:' + SANS + '}'
     + '#catedra-auth-gate h1,#catedra-auth-gate h2{font-family:' + SERIF + '}'
+    + '#catedra-auth-gate .ct-hero{display:flex}'
+    + '#catedra-auth-gate .ct-auth-painel{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;align-items:center;overflow:auto;padding:var(--ct-e5,1.5rem)}'
+    + '#catedra-auth-gate .ct-auth-formulario{width:100%;max-width:23.75rem;margin-block:auto}'
     + '#catedra-auth-gate .ct-hero div,#catedra-auth-gate .ct-hero span{font-family:' + SANS + '}'
     + '#catedra-auth-gate .ct-hero .ct-marca{font-family:' + SERIF + '}'
     + '#catedra-auth-gate input:focus{border-color:' + ACC + '!important;box-shadow:0 0 0 4px ' + ACC + '22}'
@@ -1257,7 +1255,7 @@
   var MAGIC = ico('mail') + ' Receber um link de acesso por e-mail';
 
   function hero() {
-    return '<div class="ct-hero" style="flex:1.1;min-width:0;background:' + HERO + ';color:#fff;flex-direction:column;justify-content:space-between;padding:clamp(28px,4vw,56px);position:relative;overflow:hidden;' + (window.innerWidth > 760 ? 'display:flex;' : 'display:none;') + '">'
+    return '<div class="ct-hero" style="flex:1.1;min-width:0;background:' + HERO + ';color:#fff;flex-direction:column;justify-content:space-between;padding:clamp(28px,4vw,56px);position:relative;overflow:hidden;">'
       + '<span style="position:absolute;right:-120px;top:-120px;width:380px;height:380px;border-radius:50%;background:rgba(255,255,255,.06);"></span>'
       + '<span style="position:absolute;left:-90px;bottom:-140px;width:320px;height:320px;border-radius:50%;background:rgba(0,0,0,.12);"></span>'
       + '<div style="display:flex;align-items:center;gap:12px;position:relative;"><div style="width:44px;height:44px;border-radius:13px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:23px;"><span class="ct-marca">C</span></div><div><div class="ct-marca" style="font-weight:600;font-size:21px;line-height:1;">Cátedra</div><div style="font:12px ' + SANS + ';opacity:.75;margin-top:3px;">plataforma de estudos</div></div></div>'
@@ -1274,18 +1272,14 @@
   }
   function painel(inner) {
     el.innerHTML = CSS + hero()
-      // Sem font-family no atributo: as aspas de SANS cortavam o resto, e o overflow:auto nunca valeu (a família vem da folha
-      // do portão). Centrado por margin:auto, que vira 0 quando falta altura: com a tela de aceite maior que a janela
-      // (celular pequeno, deitado), o painel rola e nem o título nem o "Não aceito" ficam fora de alcance.
-      + '<div style="flex:1;min-width:0;display:flex;padding:24px;overflow:auto;">'
-      + '<div style="width:100%;max-width:380px;margin:auto;">' + inner + '</div></div>';
+      + '<div class="ct-auth-painel"><div class="ct-auth-formulario">' + inner + '</div></div>';
     show();
   }
   // Atributos do teclado do iPad: ao virar type=text, "mostrar" deixava o teclado capitalizar e
   // autocorrigir a senha. Ficam no <input> (o toggle só troca o type, e eles sobrevivem).
   var SENHA_ATTRS = 'autocapitalize="none" autocorrect="off" spellcheck="false"';
   function olho(id) {
-    // alvo de 44×44 (o botão media 25px de altura): cabe dentro do input, que tem 47px
+    // A área do botão cabe no campo mesmo quando a senha fica visível.
     return '<button type="button" data-olho="' + id + '" aria-label="Mostrar senha" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:transparent;color:' + MUT + ';cursor:pointer;min-height:44px;min-width:44px;padding:6px 8px;display:inline-flex;align-items:center;justify-content:center;font:12.5px ' + SANS + ';">mostrar</button>';
   }
   function ligarOlhos() {
@@ -1776,7 +1770,7 @@
       + '<p style="font-size:13.5px;color:' + MUT + ';margin:6px 0 24px;">Escolha a senha que você vai usar daqui em diante.</p>'
       + '<div style="position:relative;"><input id="ctnp" type="password" autocomplete="new-password" ' + SENHA_ATTRS + ' placeholder="Nova senha (mín. 8 caracteres)" style="' + INPUT + 'padding-right:78px;">' + olho('ctnp') + '</div>'
       + '<div id="ctnerr" style="min-height:18px;font-size:12.5px;color:#e0533f;margin:4px 0 10px;line-height:1.4;"></div>'
-      + '<button id="ctnb" type="submit" style="width:100%;background:' + GRAD + ';color:#fff;border:none;border-radius:11px;padding:13px;font-weight:600;font-size:15px;cursor:pointer;font-family:inherit;">Salvar nova senha</button>'
+      + '<button id="ctnb" type="submit" style="' + BTN + '">Salvar nova senha</button>'
       + '</form>');
     ligarOlhos();
     var f = el.querySelector('#ctnf'), erro = el.querySelector('#ctnerr'), b = el.querySelector('#ctnb');
@@ -1915,19 +1909,18 @@
     // duas contas no aparelho. O Ajustes também mostra a conta antes de excluir.
     var email = (user && user.email) || '';
     painel(
-      // título sem font-family no atributo (a folha do portão já dá a SERIF; as aspas dela cortavam o estilo e o título
-      // saía preto, invisível no escuro) e texto em LAB, que passa de 4,5:1 no claro (o MUT dava 3,5:1)
+      // título sem font-family no atributo (a folha do portão já dá a SERIF) e texto em LAB, que passa de 4,5:1 no claro
+      // (o MUT dava 3,5:1)
       '<h2 style="font-size:26px;font-weight:700;color:' + INK + ';margin:0;letter-spacing:-.01em;">Antes de continuar</h2>'
       + '<p style="font-size:14px;color:' + LAB + ';margin:8px 0 16px;line-height:1.55;">Para usar a Cátedra com a sua conta, você precisa aceitar os Termos de uso e a Política de privacidade (versão ' + (J.versao || '') + '). Leia os dois — leva alguns minutos e diz o que fazemos com os seus dados.</p>'
-      // GHOST_ATTR + min-height: com o GHOST, as aspas cortavam o min-height (a altura era o acaso de 43 px do padding);
-      // os dois seguem empilhados, como sempre apareceram
+      // GHOST e BTN trazem a MEDIDA_CONTROLE do portão, a mesma dos campos e das ações do login; Termos e Política seguem
+      // empilhados, como sempre apareceram
       + '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">'
-      +   '<button type="button" data-doc="termos.html" style="' + GHOST_ATTR + 'min-height:44px;">Termos de uso</button>'
-      +   '<button type="button" data-doc="privacidade.html" style="' + GHOST_ATTR + 'min-height:44px;">Política de privacidade</button>'
+      +   '<button type="button" data-doc="termos.html" style="' + GHOST + '">Termos de uso</button>'
+      +   '<button type="button" data-doc="privacidade.html" style="' + GHOST + '">Política de privacidade</button>'
       + '</div>'
       + '<label style="display:flex;align-items:flex-start;gap:10px;min-height:44px;font-size:14px;color:' + INK + ';line-height:1.5;cursor:pointer;margin-bottom:16px;"><input id="ctac" type="checkbox" style="width:18px;height:18px;margin-top:2px;flex:none;"> <span>Li e aceito os Termos de uso e a Política de privacidade.</span></label>'
-      // BTN_ATTR + min-height: com o BTN, as aspas cortavam o resto (o opacity e a altura eram acaso do padding)
-      + '<button id="ctacok" type="button" disabled style="' + BTN_ATTR + 'min-height:44px;opacity:.55;">Aceitar e continuar</button>'
+      + '<button id="ctacok" type="button" disabled style="' + BTN + 'opacity:.55;">Aceitar e continuar</button>'
       // Termos 12.2: quem não concorda exporta os dados e encerra a conta SEM aceitar o texto de que discorda — e o Ajustes,
       // onde ficam a exportação e a exclusão, está atrás deste portão. Os dois caminhos ficam aqui. Texto em LAB, que passa
       // de 4,5:1 no claro e no escuro (o MUT do claro dá 3,5:1); todo alvo com 44 px no toque.
@@ -1937,10 +1930,10 @@
       // largura no celular e o painel rolava de lado
       +     (email ? ' Conta: <b style="overflow-wrap:anywhere;">' + esc(email) + '</b>.' : '')
       +     (leitoresNativos ? ' O que o CátedraLEGIS e o CátedraJURIS guardam neste aparelho (como anotações, grifos, revisões, favoritos, coleções e progresso de leitura) não entra no arquivo.' : '') + '</p>'
-      +   '<button type="button" id="ctacbaixar" style="' + GHOST_ATTR + 'min-height:44px;">' + ico('download') + ' Baixar meus dados</button>'
-      +   '<button type="button" id="ctacexcluir" style="' + GHOST_ATTR + 'min-height:44px;margin-top:8px;">' + ico('trash-2') + ' Excluir minha conta</button>'
+      +   '<button type="button" id="ctacbaixar" style="' + GHOST + '">' + ico('download') + ' Baixar meus dados</button>'
+      +   '<button type="button" id="ctacexcluir" style="' + GHOST + 'margin-top:8px;">' + ico('trash-2') + ' Excluir minha conta</button>'
       +   '<div id="ctacmsg" role="status" aria-live="polite" style="min-height:18px;font-size:13px;color:' + LAB + ';margin:8px 0 0;line-height:1.45;"></div>'
-      +   '<button type="button" id="ctacsair" style="width:100%;min-height:44px;margin-top:2px;padding:10px 12px;background:transparent;border:none;border-radius:12px;color:' + LAB + ';font-size:13.5px;font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer;">Não aceito — sair da conta</button>'
+      +   '<button type="button" id="ctacsair" style="' + MEDIDA_CONTROLE + 'margin-top:2px;background:transparent;border:none;border-radius:12px;color:' + LAB + ';font-size:13.5px;font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer;">Não aceito — sair da conta</button>'
       + '</div>'
     );
     var bts = el.querySelectorAll('button[data-doc]');
