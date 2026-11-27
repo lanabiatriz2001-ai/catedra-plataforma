@@ -38,7 +38,7 @@ const caixa = (page, sel) => page.evaluate(s => { const e = document.querySelect
 
 export async function testarRedacaoMesa(pageDaSuite, base, ok, opcoes = {}) {
   const R = 'MESA [' + (opcoes.motor || 'chromium') + '] ';
-  const blocos = [arranjo, papel, folha, espelho, conferencia, acessivel, revisao, pendencias];
+  const blocos = [arranjo, retomarBanco, papel, folha, espelho, conferencia, acessivel, revisao, pendencias];
   const so = process.env.CT_BLOCO;   // CT_BLOCO=pendencias roda só um bloco, para o ciclo curto
   for (const b of blocos) {
     if (so && b.name !== so) continue;
@@ -75,14 +75,78 @@ async function arranjo(pageDaSuite, base, ok, R) {
     await page.screenshot({ path: 'tests/_capturas/mesa-768.png', fullPage: true }).catch(() => {});
   } finally { await ctx.close(); }
 
-  // questão do banco não é editável
-  const b = await novoContexto(pageDaSuite);
+}
+
+async function retomarBanco(pageDaSuite, base, ok, R) {
+  const { ctx, page } = await novoContexto(pageDaSuite);
+  const resposta = 'Rascunho da resposta à prova do banco.';
+  const espelhoGuardado = p => p.getByRole('button', { name: 'Ver mesmo assim', exact: true });
+  let dados;
   try {
-    await semear(b.page, base, { redProvaId: 'x1' }); await abrirRedacao(b.page, base);
-    await b.page.evaluate(() => { const c = window.__catedraApp; if (c) c.setState({ redModoProva: true }); });
-    await b.page.waitForTimeout(200);
-    ok(await b.page.locator('[data-red="editar-questao"]').count() === 0, R + 'questão do banco não mostra "Editar questão"');
-  } finally { await b.ctx.close(); }
+    await semear(page, base, { redEnunciado: '', redGabarito: '' });
+    await page.goto(base + '/Catedra.dc.html');
+    await page.waitForFunction(() => typeof window.__catedraGoView === 'function');
+    await page.evaluate(() => window.__catedraGoView('redacao'));
+    const prova = page.locator('.ct-card-prova').filter({ hasText: /\d+ quesitos/ }).first();
+    const id = await prova.getAttribute('data-id');
+    // O relógio fica parado enquanto o clique abre a prova, antes do autosave de 500 ms.
+    await page.clock.pauseAt(await page.evaluate(() => Date.now() + 1000));
+    await prova.click({ force: true });
+    await espelhoGuardado(page).waitFor();
+    ok(await lerStore(page, 'redProvaId') === id && !!await lerStore(page, 'redEnunciado'),
+      R + 'abrir a prova grava o identificador junto do enunciado antes do autosave');
+    await page.clock.resume();
+    const enunciado = await page.textContent('#ct-enun');
+    ok(await page.locator('[data-red="editar-questao"]').count() === 0, R + 'questão do banco não mostra "Editar questão"');
+
+    await page.click('[data-red="modo-digitar"]');
+    await page.fill('[data-red="folha"] textarea', resposta);
+    await page.clock.runFor(1500);
+    dados = await page.evaluate(() => Object.fromEntries(
+      ['redProvaId', 'redEnunciado', 'redGabarito', 'redText', 'redTextTs'].map(k => [k, localStorage.getItem('catedra:' + k)])));
+
+    await abrirRedacao(page, base);
+    ok(await page.inputValue('[data-red="folha"] textarea') === resposta
+      && await page.textContent('#ct-enun') === enunciado, R + 'reabrir a prova do banco preserva a resposta e o enunciado');
+    ok(await page.locator('[data-red="editar-questao"]').count() === 0
+      && await espelhoGuardado(page).count() === 1
+      && await page.locator('[data-red="gab-quesito"]').count() === 0, R + 'reabrir mantém o enunciado oficial protegido e guarda os quesitos até uma ação explícita');
+
+    const trocar = page.getByRole('button', { name: 'Trocar de prova', exact: true });
+    await page.clock.pauseAt(await page.evaluate(() => Date.now() + 1000));
+    page.once('dialog', d => d.dismiss());
+    await trocar.click({ force: true });
+    ok(await lerStore(page, 'redProvaId') === id && await lerStore(page, 'redText') === resposta,
+      R + 'cancelar a troca mantém o identificador e a resposta');
+    page.once('dialog', d => d.accept());
+    await trocar.click({ force: true });
+    ok(await lerStore(page, 'redProvaId') === '' && await lerStore(page, 'redEnunciado') === '',
+      R + 'confirmar a troca limpa o identificador junto do enunciado antes do autosave');
+    await page.clock.resume();
+  } finally { await ctx.close(); }
+
+  const outro = await novoContexto(pageDaSuite);
+  try {
+    await semear(outro.page, base);
+    await abrirRedacao(outro.page, base);
+    await outro.page.click('[data-red="editar-questao"]');
+    await outro.page.evaluate(dados => {
+      Object.entries(dados).forEach(([k, v]) => localStorage.setItem('catedra:' + k, v));
+      window.dispatchEvent(new CustomEvent('catedra:synced'));
+    }, dados);
+    await outro.page.locator('[data-red="folha"] textarea').waitFor();
+    ok(await outro.page.inputValue('[data-red="folha"] textarea') === resposta
+      && await outro.page.locator('[data-red="editar-questao"]').count() === 0
+      && await espelhoGuardado(outro.page).count() === 1
+      && await outro.page.locator('[data-red="gab-quesito"]').count() === 0, R + 'a prova do banco que chega pela sincronização entra com o espelho guardado e o enunciado protegido');
+    if (await espelhoGuardado(outro.page).count()) {
+      outro.page.once('dialog', d => d.accept());
+      await espelhoGuardado(outro.page).click();
+    }
+    await outro.page.locator('[data-red="gab-quesito"]').first().waitFor();
+    await outro.page.evaluate(() => window.dispatchEvent(new CustomEvent('catedra:synced')));
+    ok(await outro.page.locator('[data-red="gab-quesito"]').count() > 0, R + 'revelar o espelho funciona e uma sincronização sem mudança na prova respeita a escolha');
+  } finally { await outro.ctx.close(); }
 }
 
 const lerStore = (page, k) => page.evaluate(k => { try { return JSON.parse(localStorage.getItem('catedra:' + k)); } catch (_) { return null; } }, k);

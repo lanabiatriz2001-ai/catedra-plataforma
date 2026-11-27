@@ -81,6 +81,7 @@ import { testarAvisosOficiaisEstatico, testarAvisosOficiaisNavegador } from './a
 import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 import { testarRevisaoOficial } from './revisao-oficial.mjs';
+import { testarGeometriaInterface } from './geometria-interface.mjs';
 import { testarMenuLateral } from './menu-lateral.mjs';
 import { testarNovidadesCentral } from './novidades-central.mjs';
 import { testarSemDodEstatico, testarSemDodNavegador } from './sem-dod.mjs';
@@ -4747,17 +4748,15 @@ for (const [k, v] of Object.entries(arg)) ok(v, 'ARGUICAO ' + k);
 
 // a sessão roda de ponta a ponta na tela: pergunta → padrão só depois → autoavaliação → resumo
 await page.goto(URL0 + '/Catedra.dc.html');
-await page.waitForTimeout(1600);
+await page.waitForFunction(() => typeof window.__catedraGoView === 'function');
+await page.evaluate(() => window.__catedraGoView('oral'));
+await page.getByRole('navigation', { name: 'Fontes da prova oral' })
+  .getByRole('button', { name: 'Bancas reais', exact: true }).click();
+await page.getByRole('button', { name: 'Começar com 5 perguntas', exact: true }).click();
+await page.getByRole('region', { name: 'Conversa de arguição' }).waitFor();
 const fluxo = await page.evaluate(async () => {
   const w = ms => new Promise(r => setTimeout(r, ms));
   const M = () => document.querySelector('main').innerText;
-  document.querySelector('button[data-view="oral"]').click(); await w(400);
-  const bm = [...document.querySelectorAll('button')].find(b => b.dataset.m === 'bancas');
-  if (bm) bm.click(); await w(2500);
-  const cartao = [...document.querySelectorAll('main div')].find(d => /^Modo arguição/.test(d.textContent.trim()));
-  if (!cartao) return { erro: 'sem cartão de arguição' };
-  const comecar = [...cartao.closest('div[style*="surface2"]').querySelectorAll('button')].find(b => b.textContent.trim() === 'Começar');
-  comecar.click(); await w(1000);
   const sala = document.querySelector('section[aria-label="Conversa de arguição"]');
   const abriu = !!sala && /Sala de arguição · 1 de 5/i.test(sala.innerText)
     && !!sala.querySelector('.ct-oral-pergunta p')?.textContent.trim();
@@ -10061,6 +10060,7 @@ try { await testarCotaIA(page, URL0, ok); } catch (e) { ok(false, 'COTA/IA exce�
 { const ctxR = await browser.newContext(); const pageR = await ctxR.newPage(); try { await testarReguaUnica(pageR, URL0, ok); } catch (e) { ok(false, 'RÉGUA/única exceção: ' + e.message); } finally { await ctxR.close(); } }
 try { await testarTemplateFileUrl(browser, URL0, ok, { motor }); } catch (e) { ok(false, 'TEMPLATE/file exceção: ' + e.message); }
 testarPerfisLeitores(ok);
+await testarGeometriaInterface(browser, URL0, ok);
 await testarLoginLeitoresWeb(browser, URL0, ok);
 await testarLoginLeitoresPublicados(browser, URL0, ok);
 await testarSegurancaPerfilRelease(page, URL0, ok);
