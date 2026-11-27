@@ -28,6 +28,9 @@
   --ct-e1: 4px;  --ct-e2: 8px;  --ct-e3: 12px;
   --ct-e4: 16px; --ct-e5: 24px; --ct-e6: 32px; --ct-e7: 48px;
   --ct-alvo-toque: 44px;
+  --ct-margem-pagina: var(--ct-e5);
+  --ct-intervalo-secao: var(--ct-e5);
+  --ct-recuo-painel: var(--ct-e5);
 
   /* raio: herda o tema do host (o app deixa a pessoa escolher cantos) */
   --ct-r-sm: var(--r-sm, 8px);
@@ -45,6 +48,17 @@
   --ct-leitura: 72ch;
 }
 
+@media (max-width: 40rem) {
+  :root {
+    --ct-margem-pagina: var(--ct-e4);
+    --ct-intervalo-secao: var(--ct-e4);
+    --ct-recuo-painel: var(--ct-e4);
+  }
+}
+@media (min-width: 75rem) {
+  :root { --ct-margem-pagina: var(--ct-e6); }
+}
+
 /* ===== 2. SUPERFÍCIE E CARTÃO =====================================================
    Um cartão só. Quem precisar de destaque muda a borda ou o topo, não inventa outro. */
 .ct-card {
@@ -56,6 +70,23 @@
 }
 .ct-card-alto { box-shadow: var(--ct-sombra-2); }
 .ct-card-plano { box-shadow: none; }
+
+#ct-main {
+  --ct-altura-controle: max(var(--control-h, 38px), var(--ct-alvo, 0px));
+}
+#ct-main > .ct-topbar,
+#ct-main > .ct-scroll[data-design-view] {
+  padding-inline-start: max(var(--ct-margem-pagina), env(safe-area-inset-left));
+  padding-inline-end: max(var(--ct-margem-pagina), env(safe-area-inset-right));
+}
+.ct-scroll[data-design-view] { padding-block: var(--ct-intervalo-secao); }
+.ct-pagina, .ct-secoes { min-width: 0; }
+.ct-secoes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ct-intervalo-secao);
+}
+.ct-pagina .ct-card { padding: var(--ct-recuo-painel); }
 
 /* ===== 3. CABEÇALHO DE SEÇÃO ======================================================
    Título, explicação curta e, quando houver, contador ou ação — no mesmo ritmo. */
@@ -356,8 +387,8 @@
 /* ---- 10.7 GRADE DE CARTÕES ---------------------------------------------------
    Uma medida só para "muitos cartões lado a lado". 310px é o ponto em que um título de
    prova cabe em duas linhas sem quebrar palavra. */
-.ct-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: var(--ct-e3); }
-.ct-grade-larga { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--ct-e4); }
+.ct-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 19.375rem), 1fr)); gap: var(--ct-intervalo-secao); }
+.ct-grade-larga { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17.5rem), 1fr)); gap: var(--ct-intervalo-secao); }
 
 /* ---- 10.8 TRILHO DE ETAPAS ---------------------------------------------------
    Fluxo de N passos (escolher › responder › correção). O passo atual é o único com
@@ -424,6 +455,22 @@
 .ct-campo:focus-visible { border-color: var(--accent, #0f7a57); box-shadow: 0 0 0 3px var(--accentRing, #c2e0d1); }
 .ct-campo[readonly], .ct-campo[disabled] { background: var(--surface2, #f0ece1); color: var(--text3, #7a7368); }
 textarea.ct-campo { resize: vertical; line-height: 1.7; }
+
+/* Ações de uma linha obedecem à densidade escolhida. Etiquetas que quebram e
+   campos de texto longo podem crescer sem desalojar o conteúdo. */
+.ct-pagina :where(.ct-btn, .ct-btn-2, .ct-btn-clara, .ct-campo:not(textarea), .ct-controle-linha) {
+  box-sizing: border-box;
+  padding-block: var(--ct-e2);
+  min-height: var(--ct-altura-controle);
+  line-height: 1.35;
+}
+.ct-pagina :where(.ct-btn, .ct-btn-2, .ct-btn-clara) {
+  padding-inline: var(--ct-e4);
+  gap: var(--ct-e2);
+}
+.ct-pagina .ct-controle-linha { padding-inline: var(--ct-e3); }
+.ct-pagina :where(.ct-rolo, .ct-fluxo-abas) > button { min-height: var(--ct-altura-controle); }
+
 
 /* rótulo e campo lado a lado, para o caso "Itens [10]" que não merece duas linhas */
 .ct-campo-linha {
@@ -855,11 +902,11 @@ button.ct-card:hover, a.ct-card:hover {
    escala grande, o material que ela exige à direita (para não tirar a pessoa da
    tela), e a fila embaixo — presente e fora do caminho. Sem eyebrow: o título
    carrega o próprio peso. */
-.ct-bc { display: grid; grid-template-columns: 1fr; gap: var(--ct-e3); }
-@media (min-width: 700px) { .ct-bc { grid-template-columns: 1.6fr 1fr; } }
+.ct-bc { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ct-intervalo-secao); }
+@media (min-width: 700px) { .ct-bc { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); } }
 .ct-bc-foco {
   display: flex; flex-direction: column; justify-content: space-between;
-  min-height: 200px; padding: var(--ct-e4) var(--ct-e5);
+  min-height: 200px; padding: var(--ct-recuo-painel);
   border: 1px solid var(--border, #e6e1d4); border-radius: var(--ct-r-lg);
   background: var(--surface2, #f0ece1);
 }
@@ -876,7 +923,7 @@ button.ct-card:hover, a.ct-card:hover {
 .ct-bc-foco .ct-bc-acao { margin-top: 0; align-self: flex-start; }
 .ct-bc-acoes-min { display: inline-flex; align-items: center; gap: 6px; }
 .ct-bc-apoio {
-  min-height: 200px; padding: var(--ct-e4);
+  min-height: 200px; padding: var(--ct-recuo-painel);
   border: 1px solid var(--border, #e6e1d4); border-radius: var(--ct-r-lg);
 }
 .ct-bc-apoio-t {
@@ -2104,7 +2151,7 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 .cm-bussola{padding:18px;border:1px solid var(--accent);border-radius:16px;background:var(--surface2);margin:16px 0}.cm-bussola h4{font-size:24px;margin:6px 0;color:var(--ink)}.cm-bussola p{color:var(--muted);line-height:1.6;margin:8px 0}.cm-progresso{height:6px;background:var(--border);border-radius:8px;overflow:hidden;margin:16px 0 8px}.cm-progresso span{display:block;height:100%;background:var(--accent);border-radius:8px}.cm-etapa-acoes{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:10px 0}.cm-etapa-acoes>span{font-size:12px;color:var(--muted)}.cm-etapa-acoes button{min-height:44px;padding:8px 12px}
 
 /* Proporções do ciclo: largura de leitura estável e cartões sem esticar pela altura do vizinho. */
-.cm{width:100%;max-width:1240px;margin-inline:auto}.cm-hero{padding:24px;gap:20px;align-items:center}.cm-hero-texto{flex:1 1 360px}.cm-hero-acoes{flex:1 1 320px}.cm-grade{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.cm-percurso{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.cm-percurso li{min-width:0}.cm-bussola h4{font-size:clamp(20px,2vw,24px)}.cm-volta{margin-block:0}.cm-hero label{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px;font-size:var(--fs-sm)}.cm-hero select{max-width:100%;min-height:44px;padding:8px;background:var(--surface2);color:var(--ink);border:1px solid var(--border);border-radius:8px}@media(max-width:850px){.cm-grade{grid-template-columns:1fr}.cm-hero{padding:16px}.cm-hero-texto,.cm-hero-acoes{flex-basis:100%}}
+.cm{width:100%;min-width:0}.cm-hero{padding:24px;gap:20px;align-items:center}.cm-hero-texto{flex:1 1 360px}.cm-hero-acoes{flex:1 1 320px}.cm-grade{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.cm-percurso{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.cm-percurso li{min-width:0}.cm-bussola h4{font-size:clamp(20px,2vw,24px)}.cm-volta{margin-block:0}.cm-hero label{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px;font-size:var(--fs-sm)}.cm-hero select{max-width:100%;min-height:44px;padding:8px;background:var(--surface2);color:var(--ink);border:1px solid var(--border);border-radius:8px}@media(max-width:850px){.cm-grade{grid-template-columns:1fr}.cm-hero{padding:16px}.cm-hero-texto,.cm-hero-acoes{flex-basis:100%}}
 
 .cm-retomada{display:grid;gap:10px;margin:16px 0}.cm-retomada .cm-lab{margin:0}.cm-retomada small{color:var(--text2);line-height:1.5}.cm-bussola .cm-acoes{margin-top:14px}.cm-volta-corpo{grid-template-columns:1fr}.cm-anel{display:none}.cm-volta-corpo .cm-orbita{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}.cm-volta-corpo .cm-orbita li:last-child{grid-column:auto}
 .cm-home{padding:24px;margin:20px 0;display:grid;gap:10px;min-width:0}.cm-home h2,.cm-home h3,.cm-home p{margin:0}.cm-home h2{font-size:var(--fs-xl);color:var(--text)}.cm-home h3{font-size:var(--fs-base);color:var(--accentD)}.cm-session{padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);display:grid;gap:10px}.cm-home .cm-sequencia{overflow-x:auto}.cm-home .cm-seq{flex:1;min-width:140px}
@@ -2375,9 +2422,9 @@ main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([t
 .ct-ed-previa-topicos li { line-height:1.6; }
 .ct-scroll[data-design-view="edital"] .ct-concurso-hero{display:block;margin-bottom:0}
 .ct-scroll:is([data-design-view="revisoes"],[data-design-view="flashcards"],[data-design-view="edital"],[data-design-view="calendario"],[data-design-view="analise"]) :is(h2,h3,.ct-titulo,.ct-hero-tit){font-family:var(--body)}
-.ct-scroll:is([data-design-view="revisoes"],[data-design-view="flashcards"]) .ct-bc{gap:var(--ct-e5);margin-bottom:var(--ct-e4)}
-.ct-scroll[data-design-view="flashcards"] .ct-bc-foco{border-radius:var(--radius);padding:var(--ct-e5);background:var(--surface)}
-.ct-scroll[data-design-view="flashcards"] .ct-bc-apoio{border-radius:var(--radius);padding:var(--ct-e5);border:1px solid var(--border)}
+.ct-scroll:is([data-design-view="revisoes"],[data-design-view="flashcards"]) .ct-bc{gap:var(--ct-intervalo-secao)}
+.ct-scroll[data-design-view="flashcards"] .ct-bc-foco{border-radius:var(--radius);background:var(--surface)}
+.ct-scroll[data-design-view="flashcards"] .ct-bc-apoio{border-radius:var(--radius);border:1px solid var(--border)}
 .ct-scroll[data-design-view="calendario"] .ct-calwrap{gap:var(--ct-e5)}
 .ct-scroll[data-design-view="calendario"] .ct-calcell{border-radius:var(--r-sm);transition:background .15s,border-color .15s}
 .ct-scroll[data-design-view="calendario"] .ct-calcell:hover{border-color:var(--accent)}
@@ -2489,7 +2536,9 @@ aside nav button[data-view]:focus-visible {
 }
 .ct-design-hero .ct-design-numeros {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, auto));
+  width: min(42%, 21rem);
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: start;
   gap: var(--ct-e5);
   padding: var(--ct-e4) var(--ct-e5);
@@ -2508,7 +2557,7 @@ aside nav button[data-view]:focus-visible {
 .ct-design-numeros > div > span { color: var(--text2); line-height: 1.4; }
 @media (max-width: 56.25rem) {
   .ct-scroll .ct-design-hero:not(.ct-concurso-hero) { align-items: stretch; gap: var(--ct-e4); }
-  .ct-design-hero .ct-design-numeros { width: fit-content; max-width: 100%; box-sizing: border-box; }
+  .ct-design-hero .ct-design-numeros { width: 100%; max-width: 100%; box-sizing: border-box; }
 }
 .cth-inicio .cth-estudo-titulo h2, .cm-hero .cm-h {
   font-family: var(--display);
@@ -2644,3 +2693,74 @@ aside nav button[data-view]:focus-visible {
   letter-spacing: .075em;
   text-transform: uppercase;
 }
+
+.cth-inicio { gap: var(--ct-intervalo-secao); }
+.cth-inicio .cth-kpis, .cth-inicio .cth-cols, .cth-inicio .cth-stack, .cth-inicio .cth-detalhes {
+  gap: var(--ct-intervalo-secao);
+}
+.cth-inicio .cth-kpis { padding-inline: 0; }
+.cth-inicio .cth-detalhes { align-items: stretch; }
+.cth-inicio .cth-detalhes > * { align-content: start; }
+.cth-inicio .cth-estudo { container: estudo / inline-size; }
+.cth-inicio .cth-estudo > .cm-acoes {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  align-items: stretch;
+  gap: var(--ct-e2);
+}
+@container estudo (max-width: 28rem) {
+  .cth-inicio .cth-estudo > .cm-acoes {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .cth-inicio .cth-estudo > .cm-acoes > :first-child { grid-column: 1 / -1; }
+}
+.cth-inicio .cth-relogio { container: relogio / inline-size; }
+.cth-inicio .cth-ritmos {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--ct-e2);
+}
+@container relogio (max-width: 16rem) {
+  .cth-inicio .cth-ritmos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.cth-inicio .cth-ritmos button { min-width: 0; }
+.cth-inicio .cth-ritmos button[title] { grid-column: 1 / -1; }
+.cth-inicio .cth-timer-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ct-e2);
+  align-items: stretch;
+}
+.cth-inicio .cth-timer-actions > button {
+  margin: 0;
+  padding: var(--ct-e2);
+  line-height: 1.3;
+}
+.cth-inicio .cth-timer-actions > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+
+.ct-cal-barra, .ct-cal-movimento, .ct-cal-filtros, .ct-cal-modos { display: flex; align-items: center; }
+.ct-cal-barra {
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--ct-e3);
+  padding: var(--ct-recuo-painel);
+  background: var(--surface);
+  border: thin solid var(--border);
+  border-radius: var(--radius);
+}
+.ct-cal-movimento { gap: var(--ct-e2); min-width: 0; }
+.ct-cal-movimento > button { flex: none; min-height: var(--ct-alvo-toque); }
+.ct-cal-modos {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  padding: var(--ct-e1);
+  background: var(--surface2);
+  border: thin solid var(--border);
+  border-radius: var(--r-md);
+}
+.ct-cal-modos > button { min-height: var(--ct-altura-controle); }
+.ct-cal-filtros { flex-wrap: wrap; gap: var(--ct-e2); }
+.ct-cal-filtros > button { min-height: var(--ct-altura-controle); }
