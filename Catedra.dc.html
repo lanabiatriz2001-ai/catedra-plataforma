@@ -3556,6 +3556,8 @@ window.ctPdfLib = (function(){
           <span class="ct-trilho-passo" aria-current="{{ redPasso2 }}" data-feito="{{ redFeito2 }}">2 · Responder</span>
           <span class="ct-trilho-sep" aria-hidden="true">›</span>
           <span class="ct-trilho-passo" aria-current="{{ redPasso3 }}">3 · Correção</span>
+          <!-- C3: enquanto o espelho em uso for o sugerido, o selo acompanha a correção inteira -->
+          <sc-if value="{{ redSeloSug }}" hint-placeholder-val="{{ false }}"><span class="ct-selo ct-selo-forte" data-esp-sug-selo>Sugerido — não oficial</span></sc-if>
           <sc-if value="{{ redEtapa2 }}" hint-placeholder-val="{{ false }}">
             <button onclick="{{ redReset }}" class="ct-btn-2" style="margin-left:auto;">Trocar de prova</button>
           </sc-if>
@@ -3642,6 +3644,7 @@ window.ctPdfLib = (function(){
                     <div style="border:1px solid var(--border);border-radius:var(--r-md);padding:14px 16px;background:var(--surface2);">
                       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
                         <span style="font-weight:600;color:var(--ink);flex:1;min-width:160px;">{{ p.prova }}</span>
+                        <sc-if value="{{ p.aprox }}" hint-placeholder-val="{{ false }}"><span class="ct-selo ct-selo-forte" data-red-evo-aprox title="Ao menos uma tentativa foi corrigida por espelho sugerido pelo Cátedra, não pelo da banca">espelho sugerido · nota aproximada</span></sc-if>
                         <span style="font-size:var(--fs-xs);color:var(--text3);">{{ p.origemLabel }} · {{ p.tentativas }}</span>
                         <span style="font-family:var(--display);font-size:var(--fs-xl);font-weight:700;color:var(--ink);">{{ p.pctStr }}</span>
                         <span style="font-size:var(--fs-xs);font-weight:700;color:{{ p.deltaColor }};">{{ p.deltaStr }}</span>
@@ -3681,7 +3684,7 @@ window.ctPdfLib = (function(){
                     </span>
                     <!-- C3: nota tirada de espelho sugerido não se confunde com a oficial -->
                     <sc-if value="{{ h.aprox }}" hint-placeholder-val="{{ false }}">
-                      <span title="Corrigida contra espelho sugerido pelo Cátedra, não contra o espelho da banca" style="flex:none;font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--warn);border:1px solid var(--warn);border-radius:99px;padding:2px 8px;">{{ h.aproxLabel }}</span>
+                      <span class="ct-selo ct-selo-forte" data-red-hist-aprox title="Corrigida contra espelho sugerido pelo Cátedra, não contra o espelho da banca" style="flex:none;">{{ h.aproxLabel }}</span>
                     </sc-if>
                   </button>
                 </sc-for>
@@ -3868,12 +3871,13 @@ window.ctPdfLib = (function(){
           </sc-if>
           <!-- selo inequívoco: o gabarito em uso NÃO é o da banca -->
           <sc-if value="{{ redEspSugerido }}" hint-placeholder-val="{{ false }}">
-            <div style="background:color-mix(in srgb,var(--warn) 12%,var(--surface));border:1px solid var(--warn);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <div data-esp-sug-faixa style="background:color-mix(in srgb,var(--warn) 12%,var(--surface));border:1px solid var(--warn);border-radius:var(--radius);padding:var(--ct-e3) var(--ct-e4);display:flex;align-items:center;justify-content:space-between;gap:var(--ct-e3);flex-wrap:wrap;">
               <div style="max-width:560px;">
                 <span class="ct-selo ct-selo-forte">Sugerido — não oficial</span>
                 <div style="font-size:var(--fs-sm);color:var(--text2);margin-top:7px;line-height:1.55;">A banca não publicou espelho. Este é um espelho sugerido pelo Cátedra, gerado por IA — confira os fundamentos. A nota sai aproximada.</div>
+                <sc-if value="{{ espSugDescartes }}" hint-placeholder-val="{{ false }}"><div data-esp-sug-descartes style="font-size:var(--fs-xs);color:var(--text2);margin-top:var(--ct-e2);">{{ espSugDescartes }}</div></sc-if>
               </div>
-              <button onclick="{{ gerarEspelhoSugerido }}" class="ct-btn-2">{{ espSugRegerar }}</button>
+              <sc-if value="{{ espSugRegerarShow }}" hint-placeholder-val="{{ false }}"><button onclick="{{ gerarEspelhoSugerido }}" class="ct-btn-2" data-esp-sug-regerar>{{ espSugRegerar }}</button></sc-if>
             </div>
           </sc-if>
           <!-- o espelho fica guardado até a entrega; treino de prova é assim -->
@@ -4012,6 +4016,8 @@ window.ctPdfLib = (function(){
           </sc-if>
           <sc-if value="{{ redQuesitosShow }}" hint-placeholder-val="{{ false }}">
             <div class="ct-card" data-red="quesitos">
+              <!-- C3: a nota de cada quesito também sai do espelho sugerido; o selo vai junto, no meio da correção -->
+              <sc-if value="{{ redResultAprox }}" hint-placeholder-val="{{ false }}"><div style="margin-bottom:var(--ct-e2);"><span class="ct-selo ct-selo-forte" data-esp-sug-selo-quesitos>Sugerido — não oficial</span></div></sc-if>
               <div class="ct-esp-cab">Nota por quesito</div>
               <div class="ct-esp-ex">{{ redTopResumo }}</div>
               <sc-for list="{{ redQuesitos }}" as="q" hint-placeholder-count="3">
@@ -4101,6 +4107,7 @@ window.ctPdfLib = (function(){
 
           <sc-if value="{{ redTopLista }}" hint-placeholder-val="{{ false }}">
             <div class="ct-card">
+              <sc-if value="{{ redResultAprox }}" hint-placeholder-val="{{ false }}"><div style="margin-bottom:var(--ct-e2);"><span class="ct-selo ct-selo-forte" data-esp-sug-selo-quesitos>Sugerido — não oficial</span></div></sc-if>
               <div class="ct-esp-cab">Quesito a quesito</div>
               <div class="ct-esp-ex">{{ redTopResumo }}</div>
               <sc-for list="{{ redTopicos }}" as="t" hint-placeholder-count="4">
@@ -4164,6 +4171,32 @@ window.ctPdfLib = (function(){
               </div>
             </div>
           </sc-if>
+        </sc-if>
+
+        <!-- C3: os fundamentos do espelho sugerido, cada um a um toque do LEGIS ou do JURIS. Um cartão
+             só, para a etapa 2 e a 3: aparece com o espelho à vista (aberto, conferindo, corrigido).
+             Guardado até a entrega, nada dele vaza — saber o quesito já entrega a resposta. -->
+        <sc-if value="{{ espSugCard }}" hint-placeholder-val="{{ false }}">
+          <div class="ct-card" data-esp-sug-card data-red-fora-do-foco>
+            <div class="ct-mesa-linha"><span class="ct-selo ct-selo-forte">Sugerido — não oficial</span><span class="ct-eb">{{ espSugCardTitulo }}</span></div>
+            <p class="ct-nota" data-esp-sug-card-descartes style="margin:var(--ct-e2) 0 0;color:var(--text2);">{{ espSugDescartes }}</p>
+            <sc-if value="{{ espSugTemBotao }}" hint-placeholder-val="{{ false }}"><p class="ct-nota" style="margin:var(--ct-e1) 0 0;color:var(--text2);">Cada botão abre o fundamento no LEGIS ou no JURIS, para conferir.</p></sc-if>
+            <ol class="ct-gab-lista" data-esp-sug-fund>
+              <sc-for list="{{ espSugFund }}" as="f" hint-placeholder-count="3">
+                <li class="ct-conf-item" data-esp-sug-quesito>
+                  <span class="ct-gab-n">{{ f.n }}</span>
+                  <span>{{ f.quesito }}<span class="ct-nota" data-esp-sug-fundamento style="display:block;color:var(--text2);">Fundamento: {{ f.fundamento }}</span></span>
+                  <sc-if value="{{ f.temRefs }}" hint-placeholder-val="{{ false }}"><span class="ct-enam-refs" role="group" aria-label="Fundamentos do quesito {{ f.n }}" style="grid-column:2;margin-top:0;">
+                    <sc-for list="{{ f.refs }}" as="rf" hint-placeholder-count="2">
+                      <sc-if value="{{ rf.legis }}" hint-placeholder-val="{{ false }}"><button type="button" class="ct-enam-ref" data-lei="{{ rf.lei }}" data-rot="{{ rf.rot }}" onclick="{{ laAbrirNoLegis }}">{{ rf.txt }} · Ler no LEGIS</button></sc-if>
+                      <sc-if value="{{ rf.jurisTem }}" hint-placeholder-val="{{ false }}"><button type="button" class="ct-enam-ref" data-busca="{{ rf.juris }}" data-fo="{{ rf.fo }}" data-nu="{{ rf.nu }}" onclick="{{ espSugVerNoJuris }}">{{ rf.txt }} · Ver no JURIS</button></sc-if>
+                      <sc-if value="{{ rf.soTexto }}" hint-placeholder-val="{{ false }}"><span class="ct-enam-ref">{{ rf.txt }}</span></sc-if>
+                    </sc-for>
+                  </span></sc-if>
+                </li>
+              </sc-for>
+            </ol>
+          </div>
         </sc-if>
        </div>
       </sc-if>
@@ -14072,7 +14105,7 @@ class Component extends DCLogic {
     }
     const enun=(this.state.redEnunciado||'').trim();
     const titulo=enun? enun.replace(/\s+/g,' ').slice(0,80) : 'Questão discursiva';
-    const aprox=!!this.state.espSugAtual; const disc={...(this.state.redDisciplina||{})};
+    const aprox=this._redGabSugerido(); const disc={...(this.state.redDisciplina||{})};
     const tempoMs=this._redTempoAgora(); const linhas=this.state.redLinhasMao?+this.state.redLinhasMao:null;
     const res={ nota, notaStr:nota.toFixed(1), notaColor:nota>=8?'var(--ok)':nota>=6?'var(--warn)':'var(--danger)',
       conceito:this._redConceito(nota), cobertura, topicos:this._normTopicos(topicos), criterios:[], fortes:[], melhorar:[],
@@ -15421,7 +15454,7 @@ class Component extends DCLogic {
         const p0=q.max?Math.round(q.nota/q.max*100):null, p1=(u&&u.max)?Math.round(u.nota/u.max*100):null;
         return { titulo:q.titulo, de:p0, para:p1, delta:(p0!=null&&p1!=null)?(p1-p0):null };
       }).filter(q=>q.delta!=null || tent.length===1);
-      return { chave:k, prova:primeira.prova, origem:primeira.origem, tentativas:tent.length,
+      return { chave:k, prova:primeira.prova, origem:primeira.origem, tentativas:tent.length, aproximada:tent.some(h=>!!h.aproximada),
         serie:tent.map(pct).filter(x=>x!=null), primeiroPct:pct(primeira), ultimoPct:pct(ultima),
         quesitos:quesitos.sort((a,b)=>(a.delta==null?999:a.delta)-(b.delta==null?999:b.delta)) };
     }).sort((a,b)=>(b.tentativas-a.tentativas)||0);
@@ -16120,24 +16153,84 @@ class Component extends DCLogic {
   // legal ou jurisprudencial NÃO entra: é o único jeito de a pessoa conferir o que a IA diz.
   _espSugDe(id){ return (this.state.espelhosSugeridos||[]).find(x=>x && x.id===id) || null; }
   _espSugTexto(sug){ try{ return window.CT_ESPELHO_SUGERIDO.texto(sug); }catch(_){ return ''; } }
+  /** O espelho em uso é sugerido? O objeto atual basta; sem ele, vale o próprio texto, que se
+      declara (regra 2). Reabrir do histórico e refazer não pode virar nota oficial. */
+  _redGabSugerido(){ if(this.state.espSugAtual) return true;
+    try{ const M=window.CT_ESPELHO_SUGERIDO; return !!(M && M.ehTextoSugerido(this.state.redGabarito)); }catch(_){ return false; } }
+  /** O espelho sugerido em cache cujo texto é exatamente este — o que a correção usou. */
+  _espSugDoTexto(t){
+    const s=String(t||''), M=window.CT_ESPELHO_SUGERIDO; if(!s || !M || !M.ehTextoSugerido(s)) return null;
+    const at=this.state.espSugAtual; if(at && this._espSugTexto(at)===s) return at;
+    const lista=this.state.espelhosSugeridos||[], mm=this._espSugTxtMemo;
+    if(mm && mm.lista===lista && mm.t===s) return mm.sug;
+    const sug=lista.find(x=>x && this._espSugTexto(x)===s) || null;
+    this._espSugTxtMemo={lista, t:s, sug}; return sug;
+  }
+  /** O espelho sugerido da tela: na correção, o que ela usou; antes dela, o da prova aberta. */
+  _espSugVigente(){
+    const r=this.state.redResult;
+    if(r) return r.aproximada ? this._espSugDoTexto(this.state.redSubGab) : null;
+    return this.state.espSugAtual || null;
+  }
+  /** Cada quesito com seu fundamento e os botões que levam ao dispositivo (LEGIS) ou ao verbete
+      (JURIS). A citação é lida em espelho-sugerido.js; a lei abre pelo mesmo caminho do ENAM (_enamRef).
+      Memorizado por espelho: o render roda a cada tecla na folha. */
+  _espSugFundamentos(sug){
+    const M=window.CT_ESPELHO_SUGERIDO; if(!sug || !Array.isArray(sug.quesitos) || !M) return [];
+    const k=(window.CT_LEIS?1:0)+(window.CT_LEIS_CAT?2:0);   // a URL da lei depende do que já carregou
+    const mm=this._espSugFundMemo; if(mm && mm.sug===sug && mm.k===k) return mm.out;
+    let faltaCat=false;
+    const lei=(r)=>{ const e=this._enamRef(r.ref); if(!e || e.legis || !r.cat) return e;
+      // a lei que o atalho do ENAM não abre (LINDB, CTB, LC, lei por número) sai do catálogo do LEGIS
+      const u=this._espSugLeiCat(r.cat); if(u) return {...e, lei:u, legis:true}; faltaCat=true; return e; };
+    const out=sug.quesitos.map((q,i)=>{
+      let refs=[]; try{ refs=M.referencias(q.fundamento).map(r=>r.tipo==='juris'
+          ? {txt:r.ref, lei:'', rot:'', legis:false, juris:r.busca||'', fo:r.fo||'', nu:r.nu?String(r.nu):'', jurisTem:!!r.busca}
+          : lei(r)).filter(Boolean).map(r=>({...r, soTexto:!r.legis && !r.jurisTem})); }catch(_){}
+      return { n:String(i+1), quesito:q.quesito, fundamento:q.fundamento, refs, temRefs:refs.length>0 };
+    });
+    // o catálogo (47 KB) só carrega quando um fundamento precisa dele; uma vez só, e a tela se refaz ao chegar
+    if(faltaCat && !window.CT_LEIS_CAT && !this._espSugCatPedido){ this._espSugCatPedido=true;
+      setTimeout(()=>this._palScript('leis-catalogo.js').then(()=>this.forceUpdate(), ()=>{}), 0); }
+    this._espSugFundMemo={sug, k, out}; return out;
+  }
+  /** A URL da lei no catálogo do LEGIS pelo nome do arquivo no Planalto ("del4657", "lcp101"). */
+  _espSugLeiCat(cat){
+    const c=String(cat||''); if(!/^[a-z]+\d*$/i.test(c)) return '';
+    try{ const re=new RegExp('/'+c+'(?:compilad[ao])?\\.htm$','i');
+      const l=(window.CT_LEIS_CAT||[]).find(x=>re.test(String(x.u||''))); return l?String(l.u):''; }catch(_){ return ''; }
+  }
+  /** "Ver no JURIS" de um fundamento: abre o VERBETE exato quando o acervo tem a súmula ou o tema
+      (coleção + número); senão, a busca por texto. O índice (2,4 MB) só carrega aqui, no toque. */
+  espSugVerNoJuris = (e)=>{ const d=(e&&e.currentTarget&&e.currentTarget.dataset)||{};
+    const busca=String(d.busca||'').trim(); if(!busca) return;
+    const fo=String(d.fo||''), nu=+d.nu||0, M=window.CT_ESPELHO_SUGERIDO;
+    const ir=(termo)=>{ if(this._irPara('juris', {acervoBusca:termo, acervoDe:this._origemIda(), origemAbrir:''})==='indisponivel') return;
+      this._marcarPonto('juris', {termo:busca}); };
+    if(!fo || !nu || !M){ ir(busca); return; }
+    const achar=()=>{ let id=''; try{ id=M.verbeteNoJuris(window.__JURIS_IDX__, fo, nu); }catch(_){} ir(id||busca); };
+    if(window.__JURIS_IDX__) achar(); else this._palScript('juris-index.js').then(achar, ()=>ir(busca));
+  };
   gerarEspelhoSugerido = async ()=>{
     const id=this.state.redProvaId; if(!id){ this._toast('Abra uma prova do banco primeiro'); return; }
     if(this.state.espSugBusy) return;
     const M=window.CT_ESPELHO_SUGERIDO;
     if(!M){ this._toast('O módulo do espelho sugerido não carregou'); return; }
     this.setState({espSugBusy:true});
-    let sug=null;
+    let sug=null, tri=null;
     try{
       const prompt=M.montarPrompt({enunciado:this.state.redEnunciado});
-      sug=M.interpretar(this._parseJSON(await this._aiText(prompt)), id);
+      const obj=this._parseJSON(await this._aiText(prompt));
+      try{ tri=M.triagem(obj); }catch(_){}
+      sug=M.interpretar(obj, id);
     }catch(_){}
-    if(!sug){ this.setState({espSugBusy:false}); this._toast('A IA não devolveu quesitos com fundamento — tente de novo'); return; }
+    if(!sug){ this.setState({espSugBusy:false}); this._toast(M.avisoFalha(tri)); return; }
     const resto=(this.state.espelhosSugeridos||[]).filter(x=>!x||x.id!==id);
     const texto=M.texto(sug);
     this.setState({ espelhosSugeridos:[...resto, sug], espSugAtual:sug, espSugBusy:false,
       redGabarito:texto, redEspelhoOculto:true, redConf:{}, redConferindo:false });   // espelho novo: notas marcadas no antigo não valem
     try{ localStorage.setItem(this._chave('redGabarito'),JSON.stringify(texto)); }catch(_){}
-    this._toast('Espelho sugerido gerado — confira os fundamentos antes de usar a nota');
+    this._toast(M.avisoGerado(sug));
   };
   // Colou ou importou espelho por fora? Então o que está no campo não é mais o sugerido —
   // o selo tem de sair, e a nota volta a ser oficial. Sem isto, a nota tirada do espelho
@@ -16248,7 +16341,7 @@ class Component extends DCLogic {
     // o que falta para poder corrigir fica escrito junto do botão (redDicaEtapa2), não em toast
     if(words<40 || this.state.redBusy || !(this.state.redGabarito||'').trim()) return;
     this._redCorrAbortar();
-    const _aprox=!!this.state.espSugAtual;     // lido ANTES da espera: a prova pode mudar no meio
+    const _aprox=this._redGabSugerido();     // lido ANTES da espera: a prova pode mudar no meio
     const _anterior=this._redAnteriorId();
     const _disc={...(this.state.redDisciplina||{})};
     this._redCronoPausar(); const _tempoMs=this._redTempoAgora(); if(this.state.redFoco) this._redFocoPor(false);
@@ -16302,10 +16395,14 @@ class Component extends DCLogic {
   reescreverRed = ()=>{
     const r=this.state.redResult; if(!r) return;
     const propria=!!r.propria; const texto=propria?'':String(this.state.redSubText||'');
+    const gab=(this.state.redSubGab||this.state.redGabarito||'');
+    // C3: refazer uma correção feita por espelho sugerido segue com ele (e com o selo); refazer
+    // uma oficial não herda o sugerido de outra prova que ficou aberta
+    const sug=r.aproximada ? this._espSugDoTexto(gab) : null;
     this._redCorrAbortar(); this._redCronoZerar(); this._redBoot='';
     this.setState({ redResult:null, redReescritaDe:this.state.redResultId||'', redReescritaNota:String(r.notaStr||'').replace('.',','),
       redText:texto, redTextTs:texto?Date.now():0, redModoResposta:propria?'mao':'digitar', redRascunhoOculto:true,
-      redEnunciado:(r.enunciado||this.state.redEnunciado||''), redGabarito:(this.state.redSubGab||this.state.redGabarito||''),
+      redEnunciado:(r.enunciado||this.state.redEnunciado||''), redGabarito:gab, espSugAtual:sug, ...(sug&&sug.id?{redProvaId:sug.id}:{}),
       redEspelhoOculto:true, redConferindo:false, redConf:{}, redSubText:null, redSubGab:null });
     try{ window.scrollTo(0,0); }catch(_){}
   };
@@ -20588,7 +20685,7 @@ class Component extends DCLogic {
     // evolução por quesito (item 4): tentativas da mesma prova e o delta do primeiro ao último
     const redEvo=this._redEvolucao().map(p=>({
       chave:p.chave, prova:p.prova||'(sem título)', tentativas:String(p.tentativas)+(p.tentativas>1?' tentativas':' tentativa'),
-      origemLabel:(p.origem==='segunda-fase'?'2ª fase':'Redação'),
+      origemLabel:(p.origem==='segunda-fase'?'2ª fase':'Redação'), aprox:!!p.aproximada,
       pctStr:(p.ultimoPct!=null?p.ultimoPct+'%':'—'),
       deltaStr:((p.primeiroPct!=null&&p.ultimoPct!=null&&p.tentativas>1)?((p.ultimoPct-p.primeiroPct>=0?'+':'')+(p.ultimoPct-p.primeiroPct)+' pts vs. a 1ª'):'primeira tentativa'),
       deltaColor:((p.primeiroPct!=null&&p.ultimoPct!=null&&p.ultimoPct-p.primeiroPct<0)?'var(--danger)':'var(--ok)'),
@@ -20712,7 +20809,7 @@ class Component extends DCLogic {
         ? ['à mão', h.linhas?(h.linhas+' linhas'):'', h.tempoMs?this._redFmtTempo(h.tempoMs):''].filter(Boolean).join(' · ')
         : ((h.words||0)+' palavras')),
       // C3: nota tirada de espelho sugerido não pode passar por nota de espelho oficial
-      aprox:!!h.aproximada, aproxLabel:(h.aproximada?'aprox.':''),
+      aprox:!!h.aproximada, aproxLabel:(h.aproximada?'sugerido · aprox.':''),
       notaColor:h.nota>=8?'var(--ok)':h.nota>=6?'var(--warn)':'var(--danger)'}));
     // comparativo lado a lado (modo livre): destaca os termos-chave do gabarito
     const redResultLivre = !!(this.state.redResult && this.state.redResult.livre);
@@ -22145,11 +22242,26 @@ class Component extends DCLogic {
           return 'O espelho oficial desta prova está em PDF e ainda não foi transcrito — o link fica no enunciado.'+base;
         return 'Esta prova está sem espelho de correção aqui.'+base;
       })(),
-      redEspSugerido:!!this.state.espSugAtual,
-      redEspeloTitulo:(this.state.espSugAtual?'Espelho sugerido · guardado':'Espelho oficial · guardado'),
+      // a faixa e o rótulo seguem o espelho EM USO, como o selo do trilho: refazer à mão uma correção
+      // do histórico com o espelho fora do cache não pode chamá-lo de "Espelho oficial"
+      redEspSugerido:this._redGabSugerido(),
+      redEspeloTitulo:(this._redGabSugerido()?'Espelho sugerido · guardado':'Espelho oficial · guardado'),
+      // "Regenerar" só com o espelho da prova aberta em mãos: sem ele, o id da prova pode ser de outra
+      espSugRegerarShow:!!this.state.espSugAtual,
       espSugBtn:(this.state.espSugBusy?'Gerando…':'Gerar espelho sugerido'),
       espSugRegerar:(this.state.espSugBusy?'Gerando…':'Regenerar'),
-      gerarEspelhoSugerido:this.gerarEspelhoSugerido,
+      ...(()=>{ const M=window.CT_ESPELHO_SUGERIDO, res=this.state.redResult, emRed=this.state.view==='redacao';
+        const enun=!!(this.state.redEnunciado||'').trim(), sug=emRed?this._espSugVigente():null;
+        // a lista só com o espelho à vista: guardado até a entrega, nenhum quesito aparece
+        const aVista=!!sug && (res ? !!res.aproximada : (enun && !this.state.redEspelhoOculto));
+        const fund=aVista?this._espSugFundamentos(sug):[];
+        let resumo=''; try{ resumo=(sug&&M)?M.resumo(sug):''; }catch(_){}
+        return { espSugCard:fund.length>0, espSugFund:fund, espSugDescartes:resumo,
+          espSugCardTitulo:(res?'Fundamentos do espelho usado':'Fundamentos do espelho sugerido'),
+          espSugTemBotao:fund.some(f=>f.refs.some(r=>r.legis||r.jurisTem)),
+          // o selo do trilho: da etapa 2 (espelho em uso) à correção (o que ela usou)
+          redSeloSug:emRed && (res ? !!res.aproximada : (enun && this._redGabSugerido())) }; })(),
+      gerarEspelhoSugerido:this.gerarEspelhoSugerido, espSugVerNoJuris:this.espSugVerNoJuris,
       redHasTopicos, redTopicos, redCobertura:String(redCobertura)+'%', redCobColor, redCobBarW:String(redCobertura)+'%', redConceito, redConceitoStyle, redTopResumo,
       redQuesitosShow, redQuesitos, redTopLista:redHasTopicos && !redQuesitosShow,
       redAnotShow:!!_redAnot, redAnotSegs, redCompareShow:redResultLivre && !_redAnot,

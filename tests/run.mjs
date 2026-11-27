@@ -147,6 +147,15 @@ if (process.env.CT_SO === 'redacao-mesa') {
   console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
   process.exit(falhas.length ? 1 : 0);
 }
+// C3 · espelho sugerido (selo, fundamentos com link, descartes): tests/espelho-sugerido.mjs
+if (process.env.CT_SO === 'espelho-sugerido') {
+  const { testarEspelhoSugeridoEstatico, testarEspelhoSugerido } = await import('./espelho-sugerido.mjs');
+  testarEspelhoSugeridoEstatico(ok);
+  await testarEspelhoSugerido(page, URL0, ok, { motor });
+  await browser.close(); srv.close();
+  console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
+  process.exit(falhas.length ? 1 : 0);
+}
 
 try { await testarPrioridadeErrosResolvidos(ok); }
 catch (e) { ok(false, 'PRIORIDADE erro resolvido exceção: ' + e.message); }
@@ -6904,6 +6913,9 @@ ok(/aproximada/.test(fonteHost) && /espelho-sugerido/.test(fonteHost),
   'C3 a nota tirada de espelho sugerido é marcada como aproximada');
 const authSrc = fs.readFileSync(path.join(RAIZ, 'auth.js'), 'utf8');
 ok(/catedra:espelhosSugeridos/.test(authSrc), 'C3 espelhosSugeridos está no ARRAY_ID (apagar gruda)');
+// C3 na tela: selo em toda a correção, fundamentos com link e descartes contados (tests/espelho-sugerido.mjs)
+try { const E = await import('./espelho-sugerido.mjs'); E.testarEspelhoSugeridoEstatico(ok); await E.testarEspelhoSugerido(page, URL0, ok, { motor }); }
+catch (e) { ok(false, 'ESPSUG exceção: ' + e.message); }
 
 /* ===== D12 · BARRA DO TOPO + D13 · SALA DE FOCO =====
    O topo empilhava 8 controles no mesmo nível (busca, pílula de sync com texto longo, sino,

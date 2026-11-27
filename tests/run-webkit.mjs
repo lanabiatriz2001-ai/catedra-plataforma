@@ -203,6 +203,7 @@ for (const [base, origem, arquivo] of ORIGENS) {
     await testarCarregamentoInicial(page, base, ok);
     await testarAberturaEmbutida(ok);
     try { await testarPrioridadeDiscursiva(page, base, ok); } catch(e) { ok(false, 'DISCURSIVA exceção: '+e.message); }
+    try { const { testarEspelhoSugerido } = await import('./espelho-sugerido.mjs'); await testarEspelhoSugerido(page, base, ok, { motor: 'webkit', arquivo }); } catch(e) { ok(false, 'ESPSUG exceção: '+e.message); }
     try { await testarRedacaoMesa(page, base, ok, { motor: 'webkit' }); } catch(e) { ok(false, 'MESA exceção: '+e.message); }
     try { await testarRedacaoMotor(page, base, ok, { motor: 'webkit' }); } catch(e) { ok(false, 'MOTOR exceção: '+e.message); }
     try { await testarRedacaoResultado(page, base, ok, { motor: 'webkit' }); } catch(e) { ok(false, 'RESULTADO exceção: '+e.message); }
