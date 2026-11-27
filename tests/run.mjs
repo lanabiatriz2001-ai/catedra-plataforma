@@ -52,6 +52,7 @@ import { testarPrioridadeErrosResolvidos } from './prioridade-erros-resolvidos.m
 import { testarRevisaoFonte } from './revisao-fonte.mjs';
 import { testarVoltaOrigem } from './volta-origem.mjs';
 import { testarContrasteDestaque } from './contraste-destaque.mjs';
+import { testarTemaAtelieFuturoEstatico, testarTemaAtelieFuturo } from './tema-atelie-futuro.mjs';
 import { testarIconesAlvos } from './icones-alvos.mjs';
 import { testarFaixaMapaAlvos } from './faixa-mapa-alvos.mjs';
 import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
@@ -118,6 +119,15 @@ const page = await browser.newPage();
 const falhas = [];
 const ok = (cond, label) => { console.log((cond ? '✓ ' : '✗ ') + label); if (!cond) falhas.push(label); };
 page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
+
+// CT_SO=tema-atelie-futuro: o catálogo de temas com o Ateliê como opção futura (só ele).
+if (process.env.CT_SO === 'tema-atelie-futuro') {
+  testarTemaAtelieFuturoEstatico(ok);
+  await testarTemaAtelieFuturo(page, URL0, ok, { motor });
+  await browser.close(); srv.close();
+  console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
+  process.exit(falhas.length ? 1 : 0);
+}
 
 // CT_SO=redacao-mesa roda só o módulo pedido — para o ciclo curto de uma tela.
 if (process.env.CT_SO === 'redacao-resultado') {
@@ -9630,6 +9640,12 @@ ok(depoisDoEnd === antesDeRolar, 'GATE a tecla End não rola o app atrás do log
     }
   }
 }
+
+/* ===== TEMA · O ATELIÊ COMO OPÇÃO FUTURA (tests/tema-atelie-futuro.mjs) =====
+   O nono cartão do catálogo não é direção: fora de CT_DIRS/THEMES/CSS/auth, e clicar,
+   tocar ou teclar nele não muda o tema. Contexto próprio; não mexe na página da suíte. */
+try { testarTemaAtelieFuturoEstatico(ok); await testarTemaAtelieFuturo(page, URL0, ok, { motor }); }
+catch (e) { ok(false, 'ATELIÊ exceção: ' + String(e && e.message || e).split('\n')[0].slice(0, 160)); }
 
 /* ═══════════ MAPA PROCESSUAL — a leitura horizontal de "Processo e peças" ═══════════
    Dois lados são testados de propósito, porque já houve verde falso por testar só um:
