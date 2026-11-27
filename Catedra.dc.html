@@ -38,6 +38,8 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;mostr
 <!-- ENAM: as oito áreas do quadro 8.6, a duração e as metas — constante única (enam.js) -->
 <script src="./enam.js"></script>
 <script src="./juridico.js"></script>
+<!-- Uso sem internet (Ajustes › Dados): o que o cartão diz em cada lugar onde o app roda — puro e testável -->
+<script src="./offline-estado.js"></script>
 <!-- C2: para onde mandar praticar questões (só link de saída — nada é copiado de lá) -->
 <link rel="stylesheet" href="./catedra-ui.css">
 <script src="./area-registry.js"></script>
@@ -7218,6 +7220,49 @@ window.ctPdfLib = (function(){
         </div>
         </sc-if>
 
+        <!-- USO SEM INTERNET (offline-estado.js): a conexão ao vivo, quanto do acervo este aparelho
+             guardou e a versão do cache. O texto muda com o lugar onde o app roda: site publicado
+             (service worker), desenvolvimento (o worker se desliga sozinho) e app nativo (acervo
+             embutido). Os números vêm só do worker; sem resposta, o cartão diz que não houve resposta. -->
+        <sc-if value="{{ ajSecDados }}" hint-placeholder-val="{{ false }}">
+        <div data-aj="uso sem internet offline modo avião acervo cache versão baixar" class="ct-card" data-offline="{{ offCard.contexto }}">
+          <div class="ct-titulo ct-titulo-com-nota">Uso sem internet</div>
+          <div class="ct-nota ct-nota-antes" data-off-nota="1">{{ offCard.nota }}</div>
+          <div data-off="conexao" style="display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--ct-e1) var(--ct-e3);padding:var(--ct-e3) 0;border-top:1px solid var(--border);">
+            <span class="ct-eb" style="flex:0 0 9rem;">Conexão</span>
+            <span style="flex:1 1 14rem;min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--ct-e1) var(--ct-e2);">
+              <span class="{{ offCard.conexaoClasse }}" style="{{ offCard.conexaoSeloEstilo }}" data-off-selo="conexao">{{ offCard.conexaoSelo }}</span>
+              <span data-off-texto="conexao" style="font-size:var(--fs-sm);color:var(--text2);line-height:1.5;">{{ offCard.conexaoTexto }}</span>
+            </span>
+          </div>
+          <div data-off="acervo" style="display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--ct-e1) var(--ct-e3);padding:var(--ct-e3) 0;border-top:1px solid var(--border);">
+            <span class="ct-eb" style="flex:0 0 9rem;">Acervo</span>
+            <span style="flex:1 1 14rem;min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--ct-e1) var(--ct-e2);">
+              <span class="{{ offCard.acervoClasse }}" style="{{ offCard.acervoSeloEstilo }}" data-off-selo="acervo">{{ offCard.acervoSelo }}</span>
+              <span data-off-linha="acervo" style="font-size:var(--fs-base);color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums;">{{ offCard.acervoLinha }}</span>
+              <sc-if value="{{ offCard.temDetalhe }}" hint-placeholder-val="{{ false }}"><span data-off-detalhe="acervo" style="flex:1 1 100%;font-size:var(--fs-sm);color:var(--text2);line-height:1.5;">{{ offCard.acervoDetalhe }}</span></sc-if>
+            </span>
+          </div>
+          <div data-off="versao" style="display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--ct-e1) var(--ct-e3);padding:var(--ct-e3) 0;border-top:1px solid var(--border);">
+            <span class="ct-eb" style="flex:0 0 9rem;">{{ offCard.versaoRotulo }}</span>
+            <span class="ct-dado" data-off-valor="versao" style="flex:1 1 14rem;min-width:0;overflow-wrap:anywhere;font-size:var(--fs-sm);color:var(--text2);">{{ offCard.versaoValor }}</span>
+          </div>
+          <sc-if value="{{ offCard.temLido }}" hint-placeholder-val="{{ false }}">
+          <div data-off="lido" style="display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--ct-e1) var(--ct-e3);padding:var(--ct-e3) 0;border-top:1px solid var(--border);">
+            <span class="ct-eb" style="flex:0 0 9rem;">{{ offCard.lidoRotulo }}</span>
+            <span class="ct-dado" data-off-valor="lido" style="flex:1 1 14rem;min-width:0;font-size:var(--fs-sm);color:var(--text2);">{{ offCard.lido }}</span>
+          </div>
+          </sc-if>
+          <sc-if value="{{ offCard.temAcoes }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-wrap:wrap;gap:var(--ct-e2);padding-top:var(--ct-e3);border-top:1px solid var(--border);">
+            <sc-if value="{{ offCard.mostrarBaixar }}" hint-placeholder-val="{{ false }}"><button type="button" class="ct-btn" data-off-baixar="1" onclick="{{ offBaixar }}" disabled="{{ offCard.bloqueiaBaixar }}" aria-busy="{{ offCard.baixandoAttr }}" style="min-height:var(--ct-alvo-toque);"><sc-if value="{{ offCard.iconeBaixar }}" hint-placeholder-val="{{ true }}"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3"></path><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m7 10 5 5 5-5"></path></svg></sc-if>{{ offCard.botaoBaixar }}</button></sc-if>
+            <sc-if value="{{ offCard.podeReler }}" hint-placeholder-val="{{ false }}"><button type="button" class="ct-btn-2" data-off-reler="1" onclick="{{ offReler }}" aria-busy="{{ offCard.relendoAttr }}" style="min-height:var(--ct-alvo-toque);"><sc-if value="{{ offCard.iconeReler }}" hint-placeholder-val="{{ true }}"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="refresh-cw"><use href="#ct-i-refresh-cw"></use></svg></sc-if>Ler de novo</button></sc-if>
+          </div>
+          </sc-if>
+          <div role="status" aria-live="polite" data-off-aviso="{{ offCard.avisoTipo }}" style="{{ offCard.avisoEstilo }}">{{ offCard.aviso }}</div>
+        </div>
+        </sc-if>
+
         <!-- D11 · ZONA DE PERIGO, isolada no fim e em vermelho. Apagar tudo estava lado a
              lado com "Importar dados", do mesmo tamanho e cor: o gesto irreversível não
              pode morar ao lado do reversível. -->
@@ -7363,7 +7408,7 @@ const AJ_SECOES = [
             'alAnki','alPrecisao','alErros','alSemanal','alProva','alSimulados'], s:[]},
   {id:'aparencia', icone:'◇', titulo:'Aparência',         desc:'tema, cor, cantos e tamanho do texto',
    o:[], p:['fontScale','radius','density'], s:['accent','dir','darkMode','apPreset']},
-  {id:'dados',     icone:'▤', titulo:'Dados e backup',    desc:'exportar, importar, nuvem pessoal e apagar tudo',
+  {id:'dados',     icone:'▤', titulo:'Dados e backup',    desc:'exportar, importar, nuvem pessoal, uso sem internet e apagar tudo',
    o:[], p:['sync'], s:[]},
   {id:'conta',     icone:'◎', titulo:'Conta',             desc:'sessão, versão e suporte', o:[], p:[], s:[]}
 ];
@@ -14710,6 +14755,101 @@ class Component extends DCLogic {
     catch(_){ this._toast('Não consegui desligar agora. Tente de novo com internet.'); }
     this._carregarWidgets();
   };
+  /* ===== AJUSTES › DADOS › USO SEM INTERNET (offline-estado.js) =====
+     O miolo — em que lugar o app roda e o que o cartão diz — é puro e mora em offline-estado.js.
+     Aqui fica só o que depende do navegador: perguntar à ponte do build (window.__catedraOffline),
+     ouvir online/offline e acompanhar o "Baixar o acervo completo". É tudo estado de tela: nada
+     disto vai para o autosave nem para a nuvem (não há chave catedra: nova). */
+  _offOuvir(){
+    if(this._offOuvindo) return; this._offOuvindo=true;
+    const f=()=>{ const on=navigator.onLine!==false; if(this.state.offOnline!==on) this.setState({offOnline:on}); };
+    try{ window.addEventListener('online', f); window.addEventListener('offline', f); }catch(_){}
+    // o worker assume a página (clients.claim no sw.js) ao terminar de instalar — na primeira
+    // visita ou numa versão nova: o cartão já aberto relê, em vez de ficar em "instalando" ou
+    // mostrar a versão do cache que acabou de sair. Durante o download, leitura que falha não
+    // apaga a contagem.
+    try{ const sw=navigator.serviceWorker; if(sw && sw.addEventListener) sw.addEventListener('controllerchange', ()=>{
+      if(this.state.offErro || this.state.offEstado) this._offLer(this.state.offBaixando ? true : undefined); }); }catch(_){}
+    f();
+  }
+  _offContexto(){
+    const M=window.CT_OFFLINE_ESTADO, b=window.CATEDRA_BUILD||null;
+    return M ? M.contexto({protocolo:location.protocol, host:location.hostname, alvo:b&&b.alvo}) : 'dev';
+  }
+  /** Pergunta ao worker o que está guardado. Uma pergunta por vez. manter===true (a releitura
+   *  durante o download): resposta que falha não apaga a contagem que já estava na tela. */
+  _offLer = (manter)=>{
+    this._offOuvir();
+    const M=window.CT_OFFLINE_ESTADO, O=window.__catedraOffline;
+    if(!M || this._offContexto()!=='site' || !O || typeof O.estado!=='function') return Promise.resolve(null);
+    if(this._offPergunta) return this._offPergunta;
+    // a releitura do progresso não mexe no "Ler de novo": um render a menos a cada 3 s
+    if(manter!==true) this.setState({offLendo:true});
+    const fim=(est, erro)=>{
+      if(!est && manter===true && this.state.offEstado){ if(this.state.offLendo) this.setState({offLendo:false}); return null; }
+      this.setState({offEstado:est||null, offErro:est?'':(erro||'sem-estado'), offLendo:false, offLidoEm:Date.now()});
+      return est||null;
+    };
+    // A ponte só pergunta depois do .ready, que espera um worker ATIVO: com ele ainda instalando,
+    // ela ficaria calada até o prazo. O registro responde na hora.
+    let sw=null; try{ sw=navigator.serviceWorker||null; }catch(_){}
+    const registro=()=>{ try{ return (sw && typeof sw.getRegistration==='function') ? sw.getRegistration() : null; }catch(_){ return null; } };
+    const pergunta=Promise.resolve().then(registro).then(null, ()=>null).then(reg=>{
+      const mot=M.motivoDoRegistro(reg);
+      if(mot){ const e=new Error('worker não ativo'); e.ctMotivo=mot; throw e; }
+      return O.estado();
+    });
+    this._offPergunta = M.comPrazo(pergunta, M.ESPERA_ESTADO_MS)
+      .then(est=>fim(est, ''), err=>fim(null, M.motivoDoErro(err)))
+      .then(r=>{ this._offPergunta=null; return r; }, ()=>{ this._offPergunta=null; return null; });
+    return this._offPergunta;
+  };
+  // "Ler de novo" é uma leitura limpa: o aviso do último download sai, a releitura fala por si.
+  // Durante o download, leitura que falha não apaga a contagem que já estava na tela.
+  offReler = ()=>{ if(this.state.offFim) this.setState({offFim:null}); this._offLer(this.state.offBaixando ? true : undefined); };
+  offBaixar = ()=>{
+    const M=window.CT_OFFLINE_ESTADO, O=window.__catedraOffline;
+    if(!M || !O || typeof O.baixar!=='function' || this.state.offBaixando) return;
+    // o aviso do fim vale para a versão do cache em que ela pediu; saiu outra, ele cai sozinho
+    const versao=(this.state.offEstado && this.state.offEstado.versao) || '';
+    this.setState({offBaixando:true, offFim:null});
+    // progresso de verdade: enquanto o worker baixa, o cartão relê o que já está guardado
+    clearInterval(this._offProgT);
+    this._offProgT=setInterval(()=>{ this._offLer(true); }, M.INTERVALO_PROGRESSO_MS);
+    M.comPrazo(Promise.resolve().then(()=>O.baixar()), M.ESPERA_BAIXAR_MS)
+      .then(r=>({resultado:r||null, erro:''}), err=>({resultado:null, erro:M.motivoDoErro(err)}))
+      .then(fim=>{
+        clearInterval(this._offProgT); this._offProgT=null;
+        // o fim pede uma leitura NOVA, não a que estiver no meio do caminho; o aviso sai junto
+        // com ela, para "ficaram de fora" contar só o que a releitura não achou no aparelho
+        const reler=()=>this._offLer();
+        const mostrar=()=>{ this.setState({offBaixando:false, offFim:{resultado:fim.resultado, erro:fim.erro, versao}}); };
+        return (this._offPergunta||Promise.resolve()).then(reler, reler).then(mostrar, mostrar);
+      });
+  };
+  _offVars(){
+    const M=window.CT_OFFLINE_ESTADO, O=window.__catedraOffline;
+    const on=(this.state.offOnline===undefined) ? (navigator.onLine!==false) : !!this.state.offOnline;
+    const card=M ? M.montar({ contexto:this._offContexto(), online:on, ponte:!!(O&&typeof O.estado==='function'),
+        lendo:!!this.state.offLendo, estado:this.state.offEstado||null, erro:this.state.offErro||'',
+        lidoEm:this.state.offLidoEm||0, agora:Date.now(), baixando:!!this.state.offBaixando,
+        fim:this.state.offFim||null, build:window.CATEDRA_BUILD||null, area:this.state.areaEstudo||'',
+        // o que a área de estudo abre decide que telas o "Parcial" cita (area-registry.js)
+        capacidades:M.capacidadesDaArea ? M.capacidadesDaArea(window.CT_AREA_REG, this.state.areaEstudo||'') : null })
+      : { contexto:'', nota:'O estado do uso sem internet não carregou (offline-estado.js).', conexaoSelo:on?'Online':'Offline',
+          conexaoClasse:'ct-selo', conexaoTexto:'', acervoSelo:'—', acervoClasse:'ct-selo', acervoLinha:'', versaoRotulo:'Versão do cache', versaoValor:'—' };
+    // A situação pinta com a tinta de situação da casa (_novidTinta: o token puxado para a cor do
+    // texto, sobre uma lavagem dele), não com a cor de destaque (DESIGN.md: cor-texto ≠ cor-
+    // identidade). O .ct-selo-hoje (--accentD sobre --accentSoft) media 2,2–2,9:1 no escuro com as
+    // cores do seletor; o .ct-selo-aviso puro, ~4,3:1 no claro.
+    const tinta=(tk)=> typeof this._novidTinta==='function' ? this._novidTinta(tk) : '';
+    const tom=(t)=> t==='ok' ? tinta('ok') : (t==='aviso' ? tinta('warn') : '');
+    card.conexaoSeloEstilo=tom(card.conexaoTom); card.acervoSeloEstilo=tom(card.acervoTom);
+    const alerta=card.avisoTipo==='aviso'||card.avisoTipo==='erro';
+    card.avisoEstilo='font-size:var(--fs-sm);line-height:1.5;'+(card.temAviso?'margin-top:var(--ct-e3);':'')
+      +(alerta?(this.NOVID_AVISO||'color:color-mix(in srgb, var(--warn) 64%, var(--ink));')+'font-weight:600;':'color:var(--text2);');
+    return { offCard:card, offBaixar:this.offBaixar, offReler:this.offReler };
+  }
   /* ===== TELEMETRIA DE PRIMEIRA PARTE (P17) ==================================================
      Sem serviço de terceiros. Dois fluxos, os dois DESLIGADOS até a administração ligar app_config.telemetria
      (o app lê em app_avisos; o servidor também recusa, então nada passa por engano):
@@ -17449,6 +17589,7 @@ class Component extends DCLogic {
     this.setState({ajSec:e.currentTarget.dataset.s||'perfil', ajBusca:'', ajBuscaN:0, rmDesfazer:null});
     setTimeout(()=>{ try{ this._filtrarAjustes(''); }catch(_){} }, 0);
     if((e.currentTarget.dataset.s||'perfil')==='conta') this._carregarWidgets();
+    if((e.currentTarget.dataset.s||'perfil')==='dados') this._offLer();
   };
   /** O que, nesta seção, está diferente do valor de fábrica. Base do selo no menu de
    *  seções e do botão "voltar ao padrão" — os dois leem a MESMA conta, então o botão
@@ -17545,6 +17686,7 @@ class Component extends DCLogic {
     {t:'dados',     nome:'Backup automático semanal',   chaves:'backup automático semanal sozinho'},
     {t:'dados',     nome:'Zona de perigo — apagar tudo',chaves:'apagar tudo excluir zerar perigo'},
     {t:'dados',     nome:'Sincronização e privacidade', chaves:'sincronização privacidade nuvem conta dados'},
+    {t:'dados',     nome:'Uso sem internet',            chaves:'offline sem internet modo avião acervo cache versão baixar service worker'},
     {t:'conta',     nome:'Conta e sair',                chaves:'conta email sair logout desconectar aparelho'},
     {t:'aparencia', nome:'Tema e direção visual',       chaves:'tema claro escuro aparência visual tipografia direção'},
     {t:'aparencia', nome:'Cor de destaque',             chaves:'cor destaque accent'},
@@ -17564,7 +17706,8 @@ class Component extends DCLogic {
   irParaAjuste = (e)=>{ const t=e.currentTarget.dataset.t||'perfil';
     this.setState({ajSec:t, ajBusca:'', ajBuscaN:0, rmDesfazer:null});
     setTimeout(()=>{ try{ this._filtrarAjustes(''); window.scrollTo({top:0,behavior:this._rolagem()}); }catch(_){} }, 60);
-    if(t==='conta') this._carregarWidgets(); };
+    if(t==='conta') this._carregarWidgets();
+    if(t==='dados') this._offLer(); };
   _ajResultados(q){
     const t=String(q||'').trim().toLowerCase();
     if(!t) return [];
@@ -18535,6 +18678,8 @@ class Component extends DCLogic {
         style:'display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--surface2);color:var(--ink);border-radius:99px;padding:8px 12px 8px 15px;' })),
       ajSemPerfis:_perfis.length===0,
       salvarPerfil:this.salvarPerfil, aplicarPerfil:this.aplicarPerfil, apagarPerfil:this.apagarPerfil,
+      // Ajustes › Dados › Uso sem internet
+      ...this._offVars(),
     };
     const ajuTabs = { ajTabVoce:_ajTab==='voce', ajTabEstudo:_ajTab==='estudo', ajTabBanca:_ajTab==='banca', ajTabDados:_ajTab==='dados',
       ajTabAparencia:_ajTab==='aparencia', ajTabConta:_ajTab==='conta',
