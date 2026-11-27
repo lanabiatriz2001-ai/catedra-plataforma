@@ -25,6 +25,7 @@ import { testarOralLeiSeca } from './oral-lei-seca.mjs';
 import { testarPastaSincronizada } from './pasta-sincronizada.mjs';
 import { testarPiiVerificador, testarPiiBuildSemTrecho } from './pii-verificador.mjs';
 import { testarLegisGuiado } from './legis-guiado.mjs';
+import { testarLeituraAtivaIpadEstatico, testarLeituraAtivaIpad } from './leitura-ativa-ipad.mjs';
 import { testarLeitorWeb } from './leitor-web.mjs';
 import { testarCicloInteligente } from './ciclo-inteligente.mjs';
 import { testarRevisoesFSRS } from './fsrs-revisoes.mjs';
@@ -118,6 +119,15 @@ const page = await browser.newPage();
 const falhas = [];
 const ok = (cond, label) => { console.log((cond ? '✓ ' : '✗ ') + label); if (!cond) falhas.push(label); };
 page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
+
+// CT_SO=leitura-ativa-ipad: a leitura ativa no iPad (LA7) — chips no toque, painel da lei e o cartão no Baralho
+if (process.env.CT_SO === 'leitura-ativa-ipad') {
+  testarLeituraAtivaIpadEstatico(ok);
+  await testarLeituraAtivaIpad(page, URL0, ok, { motor });
+  await browser.close(); srv.close();
+  console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
+  process.exit(falhas.length ? 1 : 0);
+}
 
 // CT_SO=redacao-mesa roda só o módulo pedido — para o ciclo curto de uma tela.
 if (process.env.CT_SO === 'redacao-resultado') {
@@ -2304,6 +2314,8 @@ for (const [k, v] of Object.entries(la4m)) ok(v, 'LEITURA/CONFERIR ' + k);
     await assenta();
     let fc = ler('fc'), rv = ler('reviews'), er = ler('errors');
     r.doisCartoes = fc.length === 2 && fc.every(c => c.id && c.up && c.hash && /Leitura ativa/.test(c.origem) && c.la && c.la.id === it.id);
+    // LA7: o id do cartão é o da pergunta do dispositivo — o mesmo que a marcação usa, para nunca duplicar
+    r.cartaoComIdDaPergunta = fc.length === 2 && fc.some(c => c.id === 'fc|la|' + it.id + '|prazo') && fc.some(c => c.id === 'fc|la|' + it.id + '|como');
     r.cartaoDoPrazo = fc.some(c => c.la.el === 'prazo' && c.front.includes('Há prazo?') && c.back === 'por cinco anos ininterruptos' && !c.tipo);
     r.duasRevisoesIdDeterministico = rv.length === 2 && rv.some(x => x.id === 'rv|la|' + it.id + '|prazo') && rv.some(x => x.id === 'rv|la|' + it.id + '|como');
     r.revisaoDoErreiIntervalo1 = !!rv.find(x => x.id.endsWith('|como')) && rv.find(x => x.id.endsWith('|como')).intervalo === 0 && rv.find(x => x.id.endsWith('|como')).due === 0;
@@ -2412,7 +2424,9 @@ for (const [k, v] of Object.entries(la4m)) ok(v, 'LEITURA/CONFERIR ' + k);
     r.outrasMarcasFicamLisas = painel.querySelector('.la-foco .la-texto').textContent.includes('por cinco anos ininterruptos');
     r.mostrarAntesDeAvaliar = !!painel.querySelector('button[data-acao=mostrar]') && !painel.querySelector('button[data-q]');
     r.filaMostraARodada = painel.querySelectorAll('.la-fila .la-chip').length === 4 && painel.querySelector('.la-fila .la-chip.atual').dataset.el === 'quem';
-    r.apoioDizARegra = /Só o que você errou ou hesitou vira cartão e revisão/.test(painel.querySelector('.la-apoio').textContent);
+    // LA7: o cartão de cada pergunta nasce na marcação; a conferência cria revisão (e erro) do que ela errou ou hesitou
+    r.apoioDizARegra = /Cada pergunta marcada já vira cartão no Baralho/.test(painel.querySelector('.la-apoio').textContent)
+      && /só o que você errou ou hesitou vira revisão/.test(painel.querySelector('.la-apoio').textContent);
     r.semEmojiNoPainel = !/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(painel.textContent);
     // teclado: Enter mostra
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); await w(60);
@@ -2919,6 +2933,10 @@ for (const [k, v] of Object.entries(la6p)) ok(v, 'LEITURA/ONDE-MAIS prioridade '
   }, PARAS);
   for (const [k, v] of Object.entries(la6l)) ok(v, 'LEITURA/ONDE-MAIS LEGIS ' + k);
 }
+
+/* ============= LEITURA ATIVA — LA7: chips no toque do iPad, painel da lei e o cartão no mesmo gesto ============= */
+try { testarLeituraAtivaIpadEstatico(ok); await testarLeituraAtivaIpad(page, URL0, ok, { motor }); }
+catch (e) { ok(false, 'LA7 exceção: ' + String(e && e.message || e).split('\n')[0].slice(0, 160)); }
 
 /* ============= ENAM — E2: o banco oficial das provas anteriores ============= */
 // (a) o parser, contra o PDF de amostra em tests/ (extraído a .txt; se houver PyMuPDF, também do PDF)

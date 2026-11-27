@@ -3367,7 +3367,7 @@ window.ctPdfLib = (function(){
             </div>
           </div>
           <sc-if value="{{ fcSemCartao }}" hint-placeholder-val="{{ false }}">
-            <div style="background:var(--surface);border:1px dashed var(--border);border-radius:var(--radius);padding:24px 18px;text-align:center;font-size:var(--fs-base);color:var(--text3);">O baralho está vazio. Ele se enche sozinho: responda o quiz do CátedraJURIS, confira uma leitura ativa da lei ou registre um erro no seu caderno.</div>
+            <div style="background:var(--surface);border:1px dashed var(--border);border-radius:var(--radius);padding:24px 18px;text-align:center;font-size:var(--fs-base);color:var(--text3);">O baralho está vazio. Ele se enche sozinho: responda o quiz do CátedraJURIS, marque a leitura ativa de um dispositivo da lei ou registre um erro no seu caderno.</div>
           </sc-if>
           <sc-if value="{{ fcAcabou }}" hint-placeholder-val="{{ false }}">
             <div style="background:var(--accentSoft);border:1px dashed var(--accentRing);border-radius:var(--radius);padding:24px 18px;text-align:center;">
@@ -8159,8 +8159,11 @@ class Component extends DCLogic {
         const LA=window.CT_LA; if(!LA) return;
         const it=LA.sanear(e.data.item); if(!it) return;
         // upsert por id preservando o `up` MAIOR: uma edição velha vinda do iframe não
-        // desfaz o que outro aparelho acabou de sincronizar
-        this.setState(st=>{ const antes=st.leituras||[], depois=LA.upsert(antes, it); return depois===antes?null:{leituras:depois}; });
+        // desfaz o que outro aparelho acabou de sincronizar — e também não mexe nos cartões
+        let mudou=false, antes=null;
+        this.setState(st=>{ const lista=st.leituras||[], depois=LA.upsert(lista, it); if(depois===lista) return null;
+          mudou=true; antes=lista.find(x=>x&&x.id===it.id)||null; return {leituras:depois}; });
+        if(mudou) this._laCartoesGesto(antes, it, e.data.cartoes);   // LA7: os cartões no Baralho, no mesmo gesto
         return;
       }
       // LA6: saiu do modo guiado com ≥ 1 dispositivo lido → oferece registrar a sessão
@@ -14910,6 +14913,52 @@ class Component extends DCLogic {
     if(sigla==='CPP') return 'Direito Processual Penal';
     return NOME[cat]||sigla||'Lei seca';
   }
+  /** LA5/LA7: o alerta de pegadinha só entra se o inverter do treino.js reconhece um termo
+      trocável no trecho escondido — e o LEGIS não carrega o treino.js, então é aqui. */
+  _laAlertaBanca(extra, termos){
+    const x=String(extra||''); if(/A banca costuma trocar/.test(x)) return x;
+    try{ const T=window.CT_TREINO;
+      for(const termo of (termos||[])){ const inv=T&&T.inverter&&T.inverter(String(termo||''));
+        if(inv&&inv.de&&inv.para&&inv.de!==inv.para) return x+(/[.!?]$/.test(x)?'':'.')+' A banca costuma trocar “'+inv.de+'” por “'+inv.para+'”.'; } }catch(_){}
+    return x;
+  }
+  /** LA7: o conteúdo do cartão de UMA pergunta do dispositivo. O cloze vem do LEGIS e passa por
+      CT_LA.sanearCartao; o host põe disciplina, referência e o alerta de banca. Sem agendamento
+      nenhum: quem o guarda é o CT_LA.fundirCartao. */
+  _laConteudoCartao(it, el, bruto){
+    const LA=window.CT_LA, c=(LA&&LA.sanearCartao&&it)?LA.sanearCartao(bruto):null; if(!c) return null;
+    const ref=[it.sigla, it.rot].filter(Boolean).join(' · ')||'lei seca';
+    return { tipo:'cloze', front:c.front, back:c.back, extra:this._laAlertaBanca(c.extra, c.termos).slice(0,900), tags:c.tags,
+      disc:this._laDisciplina(it), origem:'leitura-ativa', ref, el, leituraId:it.id, la:{id:it.id, el}, hash:this._hashErro(c.front), auto:true };
+  }
+  /* ===== LEITURA ATIVA (LA7) — a marcação gera o cartão no MESMO gesto =====
+     Um cartão cloze por dispositivo E por pergunta (o do LA5, uma pergunta por cartão), id
+     fc|la|<leitura>|<el> — ou o que a conferência criou antes do LA7 para aquela pergunta. Só as
+     perguntas que o gesto mudou mexem no Baralho. Marcar de novo troca o texto do MESMO cartão
+     sem tocar no FSRS; sem marca na pergunta, o cartão nunca revisado sai pelo caminho de sempre
+     do baralho (filtra + _saveFC; a lápide do id é do auth.js) e o já revisado FICA, com a agenda.
+     Mensagem sem `cartoes` (LEGIS antigo) não mexe em nada. Aviso: um só por gesto, e só quando
+     entra o primeiro cartão do dispositivo, quando um sai, fica ou não dá para montar — nunca a
+     cada marca —, calado na baixa estimulação. */
+  _laCartoesGesto(antes, it, cartoes){
+    const LA=window.CT_LA; if(!LA||!LA.fundirCartao||!it||!cartoes||typeof cartoes!=='object') return null;
+    const els=LA.mudados(antes, it); if(!els.length) return null;
+    const base=this.state.flashcards||[], feitos={criado:[], atualizado:[], removido:[], mantido:[], falhou:[], igual:[], nada:[]};
+    let lista=base;
+    els.forEach(el=>{
+      let conteudo=null;
+      if(((it.el&&it.el[el])||[]).length){ conteudo=this._laConteudoCartao(it, el, cartoes[el]); if(!conteudo){ feitos.falhou.push(el); return; } }
+      const r=LA.fundirCartao(lista, LA.acharCartao(lista, it.id, el), conteudo, Date.now());
+      lista=r.lista; (feitos[r.acao]||feitos.nada).push(el);
+    });
+    if(lista!==base){ this.setState({flashcards:lista}); this._saveFC(lista); }
+    // "cartão no Baralho" só no primeiro cartão do dispositivo: as perguntas seguintes nascem caladas
+    // (marcar as 7 perguntas não vira 7 avisos); saiu, ficou e não deu para montar avisam sempre
+    const jaTinha=base.some(c=>c&&c.la&&c.la.id===it.id);
+    const aviso=LA.avisoGesto(jaTinha?Object.assign({}, feitos, {criado:[]}):feitos, [it.sigla, it.rot].filter(Boolean).join(' · ')||'dispositivo');
+    if(aviso && !this._baixa()) this._toast(aviso);
+    return feitos;
+  }
   _laConferir(lista){
     const LA=window.CT_LA; if(!LA) return null;
     const validos=(Array.isArray(lista)?lista:[]).filter(c=>c&&c.id&&c.el&&(c.q===1||c.q===3||c.q===5));
@@ -14919,6 +14968,9 @@ class Component extends DCLogic {
     let leituras=this.state.leituras||[], reviews=(this.state.reviews||[]).slice(), errors=(this.state.errors||[]).slice();
     const cards=[], antes={leituras:{}, revs:{}, erros:{}}, novos={cards:[], revs:[], erros:[]};
     const jaFc=new Set((this.state.flashcards||[]).filter(c=>(c.criado||c.up||0)>limite).map(c=>c.hash||this._hashErro(c.front)));
+    // LA7: o cartão é da PERGUNTA do dispositivo (fc|la|<leitura>|<el>). O que a marcação já pôs
+    // no Baralho é reaproveitado; só nasce aqui quando falta (leitura de antes do LA7, LEGIS antigo)
+    const fcs=this.state.flashcards||[], temCartao=new Set(fcs.map(c=>c&&c.id));
     const refs=new Set(); let n=0;
     lote.forEach((c,i)=>{
       const it=leituras.find(x=>x&&x.id===c.id); if(!it) return;
@@ -14927,17 +14979,13 @@ class Component extends DCLogic {
       leituras=LA.upsert(leituras, r.item); n++;
       const disc=this._laDisciplina(it), ref=[it.sigla, it.rot].filter(Boolean).join(' · ')||c.ref||'lei seca';
       const topic=(it.sigla?it.sigla+' ':'')+it.rot+' — '+LA.rotulo(c.el); refs.add(ref);
-      if(r.criar.fc && c.front && c.back){
+      const fid=LA.acharCartao(fcs, it.id, c.el);
+      if(r.criar.fc && c.front && c.back && !temCartao.has(fid)){
         const h=this._hashErro(c.front);
-        if(!jaFc.has(h)){ jaFc.add(h);
+        if(!jaFc.has(h)){ jaFc.add(h); temCartao.add(fid);
           const cloze=c.tipo==='cloze';
-          let extra=String(c.extra||'');
-          // LA5: o alerta de pegadinha só entra se o inverter do treino.js reconhece um termo
-          // trocável no trecho escondido — e o LEGIS não carrega o treino.js, então é aqui
-          if(cloze && !/A banca costuma trocar/.test(extra)){ try{ const T=window.CT_TREINO;
-            for(const termo of (c.termos||[])){ const inv=T&&T.inverter&&T.inverter(String(termo||''));
-              if(inv&&inv.de&&inv.para&&inv.de!==inv.para){ extra+=(/[.!?]$/.test(extra)?'':'.')+' A banca costuma trocar “'+inv.de+'” por “'+inv.para+'”.'; break; } } }catch(_){} }
-          const card={id:'fc'+(agora+i), front:cloze?LA.cortarSeguro(c.front, 900):c.front.slice(0,600), back:c.back.slice(0,1200), extra:extra.slice(0,900),
+          const extra=cloze?this._laAlertaBanca(c.extra, c.termos):String(c.extra||'');
+          const card={id:fid, front:cloze?LA.cortarSeguro(c.front, 900):c.front.slice(0,600), back:c.back.slice(0,1200), extra:extra.slice(0,900),
             disc, origem:cloze?'leitura-ativa':('Leitura ativa — '+ref), ref, el:c.el, leituraId:it.id, criado:agora, up:agora, hash:h, auto:true, la:{id:it.id, el:c.el}};
           if(cloze){ card.tipo='cloze'; card.tags=(c.tags||[]).map(String).slice(0,6); }
           cards.push(card); }
@@ -16819,6 +16867,17 @@ class Component extends DCLogic {
      já está no ARRAY_ID do auth.js e o cartão já tem id, então o agendamento sincroniza entre
      aparelhos por id, sem chave nova. Cartão sem `dueDate` é cartão novo — vence hoje. */
   _fcVence(c, hoje){ if(!c) return false; const d=String(c.dueDate||''); return !d || d<=hoje; }
+  /** A frente no Baralho. O cloze da leitura ativa vira texto com as lacunas escritas —
+      "[▁▁▁▁ Há prazo?]" —, nunca a sintaxe {{c1::…}} do Anki; o verso traz os trechos. */
+  _fcFrente(c){
+    const f=String(c&&c.front||''), LA=window.CT_LA;
+    if(!(c&&c.tipo==='cloze'&&LA&&LA.segmentosCloze)) return f;
+    const el=String((c.la&&c.la.el)||c.el||''), rot=el?LA.rotulo(el):'';
+    return LA.segmentosCloze(f).map(p=>p.lacuna?('['+LA.LACUNA+(rot?' '+rot:'')+']'):p.t).join('');
+  }
+  /** "de: …" no verso do Baralho: o cartão da leitura ativa guarda a origem 'leitura-ativa' (é o
+      que a especificação e a exportação conhecem); na tela vai o texto, com a referência. */
+  _fcOrigemTxt(c){ const o=String(c&&(c.origem||c.fonte)||''); return o==='leitura-ativa' ? 'Leitura ativa — '+(String(c.ref||'')||'lei seca') : o; }
   /** Fila do baralho: vencidos primeiro (mais atrasado na frente), novos depois. */
   _fcFila(disc){
     const hoje=this._hoje(), d=String(disc||'').trim();
@@ -22519,9 +22578,9 @@ class Component extends DCLogic {
           fcPorDisc:porDisc, fcTemPorDisc:porDisc.length>1,
           fcEstudar:this.fcEstudar, fcVirar:this.fcVirar, fcResponder:this.fcResponder, fcEncerrar:this.fcEncerrar,
           fcRodando:!!(S&&atual), fcParado:!(S&&atual),
-          fcFrente: atual?String(atual.front||''):'', fcVerso: atual?String(atual.back||''):'',
+          fcFrente: atual?this._fcFrente(atual):'', fcVerso: atual?String(atual.back||''):'',
           fcExtra: atual?String(atual.extra||''):'', fcTemExtra: !!(atual&&atual.extra),
-          fcOrigem: atual?String(atual.origem||atual.fonte||''):'', fcTemOrigem: !!(atual&&(atual.origem||atual.fonte)),
+          fcOrigem: atual?this._fcOrigemTxt(atual):'', fcTemOrigem: !!(atual&&(atual.origem||atual.fonte)),
           fcDiscAtual: atual?String(atual.disc||''):'', fcCorAtual: atual?this._corDisc(atual.disc):'var(--accent)',
           fcVirado: !!(S&&S.virado), fcNaoVirado: !(S&&S.virado),
           fcRestamStr: String(restam), fcAcertosStr: S?String(S.acertos):'0', fcErrosStr: S?String(S.erros):'0',

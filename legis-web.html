@@ -208,7 +208,10 @@ mark{background:var(--accentSoft,#ffe9a8);color:var(--accent);border-radius:3px;
 .rdr .gr mark{background:color-mix(in srgb,var(--rc) 26%,transparent);color:inherit;border-radius:4px;padding:0 2px;cursor:pointer;box-shadow:0 0 0 1px color-mix(in srgb,var(--rc) 34%,transparent)}
 /* A barra que aparece sobre a seleção: o grifo livre e, com a leitura ativa ligada, os
    7 chips da grade. Vive DENTRO do .rdr para herdar os tokens e o claro/escuro do leitor. */
-.grifbar{position:fixed;z-index:210;transform:translate(-50%,-112%);display:none;align-items:center;gap:5px;padding:5px;border-radius:12px;background:var(--rcanB);border:1px solid var(--rline);box-shadow:0 10px 24px -6px rgba(0,0,0,.45);max-width:min(96vw,760px);flex-wrap:wrap;justify-content:center}
+/* width:max-content (LA7): fixa e sem largura, a barra encolhia para o que sobra entre o left e a
+   borda da tela — com o trecho à direita virava uma coluna de 8 linhas no iPad. Agora a largura é a
+   do conteúdo, até o teto, e o translate centraliza no trecho. */
+.grifbar{position:fixed;z-index:210;transform:translate(-50%,-112%);display:none;align-items:center;gap:5px;padding:5px;border-radius:12px;background:var(--rcanB);border:1px solid var(--rline);box-shadow:0 10px 24px -6px rgba(0,0,0,.45);width:max-content;max-width:min(96vw,760px);flex-wrap:wrap;justify-content:center}
 .grifbar.on{display:flex}
 .grifbar.abaixo{transform:translate(-50%,12px)}
 .grifbtn{background:linear-gradient(140deg,var(--rc,#0f7a57),var(--rc2,#12a06f));color:#fff;border:none;border-radius:9px;padding:0 13px;min-height:var(--control-h,32px);font:800 12px var(--body,sans-serif);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
@@ -273,7 +276,10 @@ mark{background:var(--accentSoft,#ffe9a8);color:var(--accent);border-radius:3px;
 /* ====== LA4 — conferência imediata: a bancada dentro do leitor ======
    foco (o dispositivo com UMA lacuna por vez) · apoio (qual pergunta, o que vira cartão) ·
    fila (os elementos da rodada). Sem cronômetro, sem confete: só a pergunta de volta. */
-.la-trilho .la-conferir{margin-left:auto;background:color-mix(in srgb,var(--rc) 13%,var(--rcard));border-color:color-mix(in srgb,var(--rc) 45%,transparent);color:var(--rc)}
+/* o Conferir do trilho com a mesma base dos outros botões do trilho (antes ficava com a borda
+   e a fonte padrão do navegador, ao lado das pílulas que o LA7 tornou tocáveis). A cor da
+   matéria fica no fundo e na borda; o texto é tinta (na cor da matéria dava 3,2:1 no CC) */
+.la-trilho .la-conferir{margin-left:auto;min-height:var(--control-h,32px);padding:0 10px;border-radius:9px;border:1px solid color-mix(in srgb,var(--rc) 45%,transparent);background:color-mix(in srgb,var(--rc) 13%,var(--rcard));color:var(--rink);font:700 var(--fs-xs,11.5px) var(--rbody);cursor:pointer}
 .la-conf{position:absolute;inset:0;z-index:7;display:none;flex-direction:column;overflow:auto;background:linear-gradient(180deg,var(--rcanA),var(--rcanB));padding:18px clamp(14px,4vw,40px) 48px;font-family:var(--rbody);color:var(--rink)}
 .la-conf.on{display:flex}
 .la-conf .la-bc{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:14px;max-width:980px;width:100%;margin:0 auto}
@@ -340,10 +346,61 @@ mark{background:var(--accentSoft,#ffe9a8);color:var(--accent);border-radius:3px;
 @media (prefers-reduced-motion:no-preference){ .la-gd .ct-bc-foco{transition:opacity .15s} .la-gd .ct-bc-foco.troca{opacity:0} }
 .la-trilho .la-guiar,.la-legenda .la-guiar{min-height:var(--control-h,32px);padding:0 10px;border-radius:9px;border:1px solid var(--rline);background:var(--rcard);color:var(--rink);font:700 var(--fs-xs,11.5px) var(--rbody);cursor:pointer}
 .la-legenda .la-guiar{margin:4px 0 6px}
-@media (pointer:coarse){ .la-gd button.la-gd-bt,.la-gd .la-filtros label,.la-trilho .la-guiar,.la-legenda .la-guiar{min-height:44px} }
-@media (pointer:coarse){ .la-chip,.la-trilho .la-aviso button,.la-trilho .la-conferir,.la-menu button,.grifbtn,.la-legenda summary,.la-conf .la-acoes button,.la-conf .la-fechar{min-height:44px} }
+/* Alvo de toque da leitura ativa. (any-pointer:coarse) pega o iPad com teclado e trackpad,
+   que passa a se declarar ponteiro fino; [data-la-toque] é o sinal de toque do host (tela de
+   toque, maxTouchPoints), aceso pelo script do leitor — o data-toque do host não atravessa o
+   iframe. Com qualquer um dos três, chip, botão e linha do painel medem 44 px. */
+@media (pointer:coarse),(any-pointer:coarse){ .la-gd button.la-gd-bt,.la-gd .la-filtros label,.la-trilho .la-guiar,.la-legenda .la-guiar{min-height:44px} }
+@media (pointer:coarse),(any-pointer:coarse){ .la-chip,.la-trilho .la-aviso button,.la-trilho .la-conferir,.la-menu button,.grifbtn,.la-legenda summary,.la-conf .la-acoes button,.la-conf .la-fechar,.rdr .tool.la,.rdr .tool.la-pn-bt{min-height:44px} .rdr .tool.la,.rdr .tool.la-pn-bt{min-width:44px} }
+[data-la-toque="1"] .la-gd button.la-gd-bt,[data-la-toque="1"] .la-gd .la-filtros label,[data-la-toque="1"] .la-trilho .la-guiar,[data-la-toque="1"] .la-legenda .la-guiar,
+[data-la-toque="1"] .la-chip,[data-la-toque="1"] .la-trilho .la-aviso button,[data-la-toque="1"] .la-trilho .la-conferir,[data-la-toque="1"] .la-menu button,[data-la-toque="1"] .grifbtn,
+[data-la-toque="1"] .la-legenda summary,[data-la-toque="1"] .la-conf .la-acoes button,[data-la-toque="1"] .la-conf .la-fechar,[data-la-toque="1"] .rdr .tool.la,[data-la-toque="1"] .rdr .tool.la-pn-bt{min-height:44px}
+[data-la-toque="1"] .rdr .tool.la,[data-la-toque="1"] .rdr .tool.la-pn-bt{min-width:44px}
+/* o número da tecla em cada chip ("1 Quem?"): a mesma tecla 1–7 que marca a seleção viva e
+   que leva à pergunta no modo guiado. Tinta do próprio chip, sem opacidade: é texto. */
+.la-chip .la-num{flex:none;display:inline-flex;align-items:center;justify-content:center;min-width:1.5em;height:1.5em;padding:0 .25em;border-radius:5px;border:1px solid currentColor;font:800 var(--fs-2xs,11px)/1 var(--mono,ui-monospace,SFMono-Regular,Menlo,monospace);font-variant-numeric:tabular-nums}
 @media (max-width:640px){ .rdr .tool.la span{display:none} .rdr .tool.la{width:34px;padding:0} }
 @media (prefers-reduced-motion:no-preference){ .rdr .gr mark.la{transition:background-color .15s} }
+/* ====== LA7 — o painel da lei: lidos ativamente e pendentes ======
+   Abre pelo botão da barra do leitor (só com a leitura ativa ligada) e cobre o palco como a
+   conferência; cada linha é um alvo de 44 px que leva ao dispositivo. Sem animação. A régua
+   de "lido" é a do catálogo (CT_LA.painel → progresso). */
+.rdr .tool.la-pn-bt{display:none;width:auto;padding:0 10px;gap:6px}
+.rdr.la .tool.la-pn-bt{display:flex}
+.rdr .tool.la-pn-bt span{font:800 11.5px var(--rbody);white-space:nowrap}
+/* logo acima dos 640 px (janela estreita do Mac, Split View do iPad) o rótulo "Lidos" espremia o
+   título da lei a ~50 px: até 760 px o botão fica só com o ícone, do tamanho dos vizinhos, e a
+   barra usa o espaçamento da tela estreita só com a leitura ativa ligada (o botão a mais) */
+@media (max-width:760px){ .rdr .tool.la-pn-bt span{display:none} .rdr .tool.la-pn-bt{width:34px;padding:0} .rdr.la .top{gap:8px} }
+@media (max-width:640px){ .rdr .tool.la-pn-bt{width:44px} }
+.la-painel{position:absolute;inset:0;z-index:9;display:none;overflow:auto;padding:18px clamp(14px,4vw,40px) 48px;font-family:var(--rbody);color:var(--rink);background:linear-gradient(180deg,var(--rcanA),var(--rcanB))}
+.la-painel.on{display:block}
+.la-painel .la-pn{max-width:760px;margin:0 auto}
+.la-painel .la-pn-topo{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.la-painel .la-pn-topo h2{margin:0;flex:1;min-width:0;font:800 var(--fs-lg,15.5px) var(--rdisplay);color:var(--rink)}
+.la-painel .la-pn-fechar{flex:none;min-width:44px;min-height:44px;border-radius:10px;border:1px solid var(--rline);background:var(--rcard);color:var(--rink);font:800 16px var(--rbody);cursor:pointer}
+.la-painel .la-pn-resumo{font-size:var(--fs-sm,12.5px);line-height:1.5;color:var(--rdim);margin:2px 0 8px}
+.la-painel .la-pn-resumo b{color:var(--rink);font-variant-numeric:tabular-nums}
+.la-painel .la-pn-prog{height:6px;border-radius:99px;background:color-mix(in srgb,var(--rink) 10%,transparent);overflow:hidden;margin-bottom:16px}
+.la-painel .la-pn-prog i{display:block;height:100%;width:100%;background:var(--rc);transform:translateX(-100%)}
+.la-painel h3{display:flex;align-items:baseline;gap:8px;margin:16px 0 6px;font:800 var(--fs-xs,11.5px) var(--rbody);letter-spacing:.06em;text-transform:uppercase;color:var(--rdim)}
+.la-painel h3 b{font-variant-numeric:tabular-nums;color:var(--rink)}
+.la-painel .la-pn-lista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.la-painel .la-pn-linha{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:8px 12px;border-radius:10px;border:1px solid var(--rline);background:var(--rcard);color:var(--rink);font:600 var(--fs-sm,12.5px)/1.35 var(--rbody);text-align:left;cursor:pointer}
+.la-painel .la-pn-linha:hover,.la-painel .la-pn-linha:focus-visible{border-color:color-mix(in srgb,var(--rc) 45%,transparent)}
+.la-painel button:focus-visible{outline:2px solid var(--rc);outline-offset:2px}
+.la-painel .la-pn-rot{flex:none;font-weight:800;color:var(--rink);white-space:nowrap}
+.la-painel .la-pn-txt{flex:1;min-width:0;color:var(--rdim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.la-painel .la-pn-resp{flex:none;font:700 var(--fs-2xs,11px) var(--mono,ui-monospace,monospace);color:var(--rdim);font-variant-numeric:tabular-nums}
+.la-painel .la-pn-grade{flex:none;display:inline-flex;gap:3px}
+.la-painel .la-pn-grade i{width:7px;height:7px;border-radius:99px;border:1px solid var(--la-x)}
+.la-painel .la-pn-grade i.on{background:var(--la-x)}
+.la-painel .la-pn-vazio{font-size:var(--fs-sm,12.5px);color:var(--rdim);line-height:1.5;padding:6px 2px}
+.la-painel .la-pn-mais{margin-top:8px;min-height:44px;padding:0 14px;border-radius:99px;border:1px solid var(--rline);background:var(--rcard);color:var(--rink);font:700 var(--fs-sm,12.5px) var(--rbody);cursor:pointer}
+@media (max-width:640px){ .la-painel .la-pn-txt{display:none} }
+/* o destino de uma linha do painel: contorno na cor da matéria, sem movimento (o contorno segue
+   o raio que o bloco já tem — o cartão do artigo não muda de forma) */
+.rdr .la-alvo{outline:2px solid var(--rc);outline-offset:4px}
 /* ====== U7(b) — modo leitura ======
    O leitor nasceu com a régua de tela (768px, sem serifa, entrelinha de interface): dá
    para consultar um artigo, não para LER a lei de ponta a ponta. O modo leitura estreita
@@ -435,7 +492,7 @@ mark{background:var(--accentSoft,#ffe9a8);color:var(--accent);border-radius:3px;
   <div id="incidDet"></div>
 </div>
 </div>
-<div class="rdr" id="rdr"><div class="top"><button class="back" id="rdrClose" aria-label="Voltar ao catálogo de leis" title="Voltar"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7M5 12h14"/></svg></button><div class="idwrap"><div class="kicker ml-forte" id="rdrMat"></div><h1 id="rdrTitle"></h1></div><span class="chip">◆ <b id="rdrCArt">0</b> art.</span><button class="tool la" id="rdrLA" type="button" aria-pressed="false" aria-label="Leitura ativa: responder cada dispositivo pelas sete perguntas" title="Leitura ativa"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg><span>Leitura ativa</span></button><button class="tool mapa" id="rdrMapa" aria-label="Abrir o esquema da lei" aria-expanded="false" title="Esquema da lei"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><path d="M4 12h16"/><path d="M4 6h16"/><path d="M4 18h16"/></svg></button><button class="tool more" id="rdrMore" aria-label="Mais ações do leitor" aria-expanded="false" title="Mais ações"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button><div class="tools" id="rdrTools"><button class="tool" id="rdrLeitura" aria-label="Modo leitura: coluna estreita e corpo serifado" aria-pressed="false" title="Modo leitura"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></button><button class="tool" id="rdrMinus" aria-label="Diminuir o tamanho da letra" title="Diminuir letra">A−</button><button class="tool" id="rdrPlus" aria-label="Aumentar o tamanho da letra" title="Aumentar letra">A+</button><button class="tool" id="rdrDark" aria-label="Modo imersão com fundo escuro" aria-pressed="false" title="Modo imersão (escuro)"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.9 13.3A9 9 0 0 1 10.7 3.1a9 9 0 1 0 10.2 10.2Z"/></svg></button><a class="tool" id="rdrPlanalto" href="#" target="_blank" rel="noopener" aria-label="Abrir o texto oficial no Planalto" title="Abrir no Planalto">↗</a></div></div><div class="prog"><i id="rdrProg"></i></div><div class="stage"><aside class="map"><div class="maptitle ml-forte">Esquema da lei</div><div class="mtree" id="rdrTree"></div></aside><main class="doc" id="rdrScroll"><div class="docwrap" id="rdrDoc"></div></main><section class="la-conf" id="laConf" role="dialog" aria-label="Conferência da leitura"></section><section class="la-gd" id="laGuiado" role="region" aria-label="Leitura guiada, um dispositivo por vez"></section></div>
+<div class="rdr" id="rdr"><div class="top"><button class="back" id="rdrClose" aria-label="Voltar ao catálogo de leis" title="Voltar"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7M5 12h14"/></svg></button><div class="idwrap"><div class="kicker ml-forte" id="rdrMat"></div><h1 id="rdrTitle"></h1></div><span class="chip">◆ <b id="rdrCArt">0</b> art.</span><button class="tool la" id="rdrLA" type="button" aria-pressed="false" aria-label="Leitura ativa: responder cada dispositivo pelas sete perguntas" title="Leitura ativa"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg><span>Leitura ativa</span></button><button class="tool la-pn-bt" id="rdrLAPainel" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="laPainel" aria-label="Lidos e pendentes desta lei" title="Lidos e pendentes desta lei"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/><path d="m9 9.5 2 2 4-4"/></svg><span>Lidos</span></button><button class="tool mapa" id="rdrMapa" aria-label="Abrir o esquema da lei" aria-expanded="false" title="Esquema da lei"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><path d="M4 12h16"/><path d="M4 6h16"/><path d="M4 18h16"/></svg></button><button class="tool more" id="rdrMore" aria-label="Mais ações do leitor" aria-expanded="false" title="Mais ações"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button><div class="tools" id="rdrTools"><button class="tool" id="rdrLeitura" aria-label="Modo leitura: coluna estreita e corpo serifado" aria-pressed="false" title="Modo leitura"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-.15em;flex:none"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></button><button class="tool" id="rdrMinus" aria-label="Diminuir o tamanho da letra" title="Diminuir letra">A−</button><button class="tool" id="rdrPlus" aria-label="Aumentar o tamanho da letra" title="Aumentar letra">A+</button><button class="tool" id="rdrDark" aria-label="Modo imersão com fundo escuro" aria-pressed="false" title="Modo imersão (escuro)"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.9 13.3A9 9 0 0 1 10.7 3.1a9 9 0 1 0 10.2 10.2Z"/></svg></button><a class="tool" id="rdrPlanalto" href="#" target="_blank" rel="noopener" aria-label="Abrir o texto oficial no Planalto" title="Abrir no Planalto">↗</a></div></div><div class="prog"><i id="rdrProg"></i></div><div class="stage"><aside class="map"><div class="maptitle ml-forte">Esquema da lei</div><div class="mtree" id="rdrTree"></div></aside><main class="doc" id="rdrScroll"><div class="docwrap" id="rdrDoc"></div></main><section class="la-conf" id="laConf" role="dialog" aria-label="Conferência da leitura"></section><section class="la-gd" id="laGuiado" role="region" aria-label="Leitura guiada, um dispositivo por vez"></section><section class="la-painel" id="laPainel" role="dialog" aria-label="Lidos e pendentes desta lei"></section></div>
 <div class="jgaveta" id="jGaveta" role="dialog" aria-label="Jurisprudência do artigo" aria-hidden="true"><div class="jg-puxa"></div><div class="jg-cab"><div><div class="jg-sub"></div><div class="jg-tit"></div></div><button type="button" class="jg-fechar" aria-label="Fechar">✕</button></div><div class="jg-lista"></div></div><div class="grifbar" id="grifBar" role="toolbar" aria-label="Marcar o trecho selecionado"><button class="grifbtn" id="grifBtn" type="button"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg> Grifar</button><div class="la-chips" id="grifLA"></div></div></div>
 <script>
 const armazenamentoDoLeitor = window.ctArmazenamentoLeitor;
@@ -692,11 +749,21 @@ window.CT_LA_CANAL=(function(){
   var gravar=function(leiId, itens){ try{ armazenamentoDoLeitor.setItem(chave(leiId), JSON.stringify(Array.isArray(itens)?itens:[])); }catch(e){} };
   var aoHost=function(msg){ try{ window.ctEnviarAoHost(msg); }catch(e){} };
   var pedir=function(leiId){ if(leiId) aoHost({type:'ctLeiturasPedir', leiId:String(leiId)}); };
-  var enviar=function(item){
+  /* LA7: os cartões do dispositivo — o cloze de cada pergunta marcada, que CT_LA.cartoesDispositivo
+     monta aqui, onde está o texto da lei — viajam junto com a leitura, para o host pôr no
+     Baralho no mesmo gesto ({quem: cartão | null, …}; null = sem marca, ou sem cartão possível).
+     O espelho nunca guarda cartão: o texto da lei não entra nele. */
+  var cartoesMsg=function(cs){ var out={}; if(!cs||typeof cs!=='object') return out;
+    Object.keys(cs).forEach(function(el){ var c=cs[el]; out[el]=c ? {front:String(c.front||''), back:String(c.back||''), extra:String(c.extra||''),
+      tags:Array.isArray(c.tags)?c.tags.slice(0,6):[], termos:Array.isArray(c.termos)?c.termos.slice(0,3):[]} : null; });
+    return out; };
+  var enviar=function(item, cartoes){
     if(!item || !item.leiId || !item.id) return;
     var LA=window.CT_LA;
     gravar(item.leiId, LA ? LA.upsert(ler(item.leiId), item) : [item]);
-    aoHost({type:'ctLeituraAtiva', item:item});
+    var msg={type:'ctLeituraAtiva', item:item};
+    if(cartoes) msg.cartoes=cartoesMsg(cartoes);
+    aoHost(msg);
   };
   /* a rodada de conferência de um dispositivo vai inteira numa mensagem:
      {id, ref, itens:[{el, q, front, back}]} — o host faz UM lote com UM desfazer */
@@ -1132,7 +1199,7 @@ function _colher(alvos, jaVistos){
     document.getElementById('rdrMat').textContent=meta[0];
     document.getElementById('rdrTitle').textContent=law.t;
     document.getElementById('rdrPlanalto').href=law.u;
-    applyTheme(); aplicarLeitura(); aplicarLA(); laCarregar(); fecharMapa(); fecharMais();
+    applyTheme(); aplicarLeitura(); aplicarLA(); laCarregar(); fecharMapa(); fecharMais(); laPainelFechar(false);
     _sc.innerHTML='<div class="rdr-spin">Carregando o texto da lei…</div>'; _doc=document.getElementById('rdrDoc');
     _rdr.classList.add('on'); document.body.style.overflow='hidden'; _sc.scrollTop=0;
     fetch(LAW_API_BASE+'/api/law?u='+encodeURIComponent(law.u)).then(function(r){return r.json();}).then(function(d){
@@ -1167,22 +1234,42 @@ function _colher(alvos, jaVistos){
       out+=esc(txt.slice(m.a,m.b))+'</mark>'; pos=m.b; });
     el.innerHTML=out+esc(txt.slice(pos));
     laTrilho(gi); }
-  _sc.addEventListener('mouseup',function(){
-    var sel=window.getSelection(); if(!sel||sel.isCollapsed||!sel.toString().trim()){ _grif.classList.remove('on'); return; }
+  /* A barra sobre a seleção. Com o mouse ela abre no mouseup. No toque não há mouseup ao soltar
+     o dedo (nem ao arrastar as alças da seleção): o iPad abre pela própria seleção —
+     selectionchange com espera curta, nunca com o dedo ainda na tela e nunca duas vezes para a
+     mesma seleção. Pelo caminho da seleção a barra só ABRE: fechar continua com o toque fora
+     (mouseup) e com a marca feita, porque no iPad tocar no chip já pode desfazer a seleção
+     antes do clique, e a marca pendente não pode ir junto. No toque ela desce para baixo do
+     trecho, longe do menu Copiar do sistema, que fica em cima. */
+  var _barraSel='', _selT=null, _dedo=false, _ponteiro='mouse';
+  function laAbrirBarra(viaSelecao){
+    if(!_rdr.classList.contains('on')||_laConf||_gd||_painelAberto) return;
+    var sel=window.getSelection(); if(!sel||sel.isCollapsed||!sel.toString().trim()){ if(!viaSelecao) _grif.classList.remove('on'); return; }
     var a=sel.anchorNode, node=(a&&a.nodeType===3?a.parentElement:a);
-    var gr=node&&node.closest?node.closest('.gr'):null; if(!gr){ _grif.classList.remove('on'); return; }
+    var gr=node&&node.closest?node.closest('.gr'):null; if(!gr||!_doc||!_doc.contains(gr)){ if(!viaSelecao) _grif.classList.remove('on'); return; }
     var gi=+gr.dataset.gi, range=sel.getRangeAt(0);
     var pre=document.createRange(); pre.selectNodeContents(gr); pre.setEnd(range.startContainer,range.startOffset);
     var s=pre.toString().length, t=(disp[gi]||'').slice(s,s+sel.toString().length);
+    var assinatura=gi+'|'+s+'|'+t;
+    if(_grif.classList.contains('on') && assinatura===_barraSel) return;   // a mesma seleção: a barra já está aberta
     var r=range.getBoundingClientRect();
-    _grif.classList.toggle('la', _laOn); _grif.classList.add('on'); _pend={gi:gi,s:s,t:t};
+    _grif.classList.toggle('la', _laOn); _grif.classList.add('on'); _pend={gi:gi,s:s,t:t}; _barraSel=assinatura;
     // a barra cresceu (7 chips): fica dentro da tela e, sem espaço em cima, desce
-    var bw=_grif.offsetWidth||0, bh=_grif.offsetHeight||0;
+    var bw=_grif.offsetWidth||0, bh=_grif.offsetHeight||0, toque=_ponteiro!=='mouse';
     var cx=Math.max(bw/2+8, Math.min(window.innerWidth-bw/2-8, r.left+r.width/2));
-    var abaixo=r.top<bh+12; _grif.classList.toggle('abaixo', abaixo);
-    _grif.style.left=cx+'px'; _grif.style.top=(abaixo?r.bottom:r.top)+'px';
-  });
-  function fecharBarra(){ _grif.classList.remove('on'); try{getSelection().removeAllRanges();}catch(e){} _pend=null; }
+    var abaixo=toque ? (r.bottom+bh+34<=window.innerHeight || r.top<bh+12) : r.top<bh+12;
+    _grif.classList.toggle('abaixo', abaixo);
+    _grif.style.left=cx+'px'; _grif.style.top=(abaixo?r.bottom+(toque?10:0):r.top)+'px';
+  }
+  _sc.addEventListener('mouseup', function(){ laAbrirBarra(false); });
+  function laSelecaoAssentou(){ _selT=null; if(_dedo) return; laAbrirBarra(true); }
+  function laEsperarSelecao(){ clearTimeout(_selT); _selT=setTimeout(laSelecaoAssentou, 450); }
+  document.addEventListener('selectionchange', laEsperarSelecao);
+  document.addEventListener('pointerdown', function(e){ _ponteiro=e.pointerType||'mouse'; _dedo=true; }, true);
+  ['pointerup','pointercancel'].forEach(function(ev){ document.addEventListener(ev, function(e){ _ponteiro=e.pointerType||_ponteiro; _dedo=false; if(_selT||_ponteiro!=='mouse') laEsperarSelecao(); }, true); });
+  document.addEventListener('touchstart', function(){ _ponteiro='touch'; _dedo=true; }, true);
+  ['touchend','touchcancel'].forEach(function(ev){ document.addEventListener(ev, function(){ _ponteiro='touch'; _dedo=false; laEsperarSelecao(); }, true); });
+  function fecharBarra(){ _grif.classList.remove('on'); try{getSelection().removeAllRanges();}catch(e){} _pend=null; _barraSel=''; }
   document.getElementById('grifBtn').onclick=function(){ if(_pend&&_pend.t&&disp[_pend.gi]&&disp[_pend.gi].substr(_pend.s,_pend.t.length)===_pend.t){ grifos.push(_pend); saveGrifos(); renderGr(_pend.gi); } fecharBarra(); };
   _sc.addEventListener('click',function(e){ var mk=e.target.closest&&e.target.closest('mark'); if(!mk)return; var gr=mk.closest('.gr'); if(!gr)return;
     var gi=+gr.dataset.gi, t=mk.getAttribute('data-t'), sv=mk.getAttribute('data-s');
@@ -1197,6 +1284,8 @@ function _colher(alvos, jaVistos){
      teclas 1–7 com seleção viva fazem o mesmo que o chip. Ligado/desligado é preferência
      do aparelho (localStorage desta página), como o modo leitura. */
   var LA=window.CT_LA||null, CANAL=window.CT_LA_CANAL||null, LA_K='catedra:leitorLA';
+  // LA7: o sinal de toque do host (ponteiro grosso ou tela de toque) aceso aqui — o data-toque dele não atravessa o iframe
+  try{ if((window.matchMedia&&(matchMedia('(pointer: coarse)').matches||matchMedia('(any-pointer: coarse)').matches))||(navigator.maxTouchPoints||0)>0) document.documentElement.setAttribute('data-la-toque','1'); }catch(e){}
   var _laOn=false, _laItens={}, _laUltimoChip=null, _laUltimoT=0, _laPressT=null;
   function laRotulo(el){ var d=LA&&LA.ELEMENTOS.filter(function(x){return x.id===el;})[0]; return d?d.rotulo:el; }
   function laPergunta(el){ var d=LA&&LA.ELEMENTOS.filter(function(x){return x.id===el;})[0]; return d?d.pergunta:''; }
@@ -1209,7 +1298,9 @@ function _colher(alvos, jaVistos){
     return ps.map(function(p){ return p.charAt(0).toUpperCase(); }).join('').slice(0,8); }
   /* "Art. 5º, XI, a" lido da própria estrutura que renderDoc montou: o artigo é o .art
      anterior ao bloco; § / inciso / alínea vêm do bloco em que o .gr vive */
-  function laRot(gi){ var gr=_doc&&_doc.querySelector('.gr[data-gi="'+gi+'"]'); if(!gr) return '';
+  function laRot(gi){ return laRotDe(_doc&&_doc.querySelector('.gr[data-gi="'+gi+'"]')); }
+  // o mesmo rótulo a partir do próprio .gr: quem já tem o nó (o painel, LA7) não procura o gi no documento
+  function laRotDe(gr){ if(!gr) return '';
     var bloco=gr.closest('.art,.par,.inc,.ali,.txt'); if(!bloco) return '';
     var p=bloco.classList.contains('inc')||bloco.classList.contains('ali')?bloco.parentElement:bloco;
     while(p && !p.classList.contains('art')) p=p.previousElementSibling;
@@ -1225,15 +1316,22 @@ function _colher(alvos, jaVistos){
     var b=document.getElementById('rdrLA'); if(b){ b.classList.toggle('on',_laOn); b.setAttribute('aria-pressed', _laOn?'true':'false'); } }
   function laCarregar(){ _laItens={}; var id=laLeiId(); if(!id||!CANAL) return;
     CANAL.ler(id).forEach(function(x){ if(x&&x.leiId===id&&x.gi!=null) _laItens[x.gi]=x; }); }
-  function laSalvar(gi, item){ if(!item) return; _laItens[gi]=item; if(CANAL) CANAL.enviar(item); renderGr(gi); }
+  function laSalvar(gi, item){ if(!item) return; _laItens[gi]=item; if(CANAL) CANAL.enviar(item, laCartoesDe(gi, item)); renderGr(gi); }
+  /* LA7: os cartões do dispositivo vão junto com a leitura — só aqui existe o texto da lei. Um
+     por pergunta marcada (o cloze do LA5); sem marca, null, e o host decide o que sai. */
+  function laCartoesDe(gi, item){ try{ if(!LA||!LA.cartoesDispositivo) return null; var b=laBase(gi);
+    return LA.cartoesDispositivo(item, b.txt, {situacao:laSituacao(gi), desloc:b.desloc}); }catch(e){ return null; } }
   function laRepintarTudo(){ if(!_doc) return; var seen={};
     grifos.forEach(function(g){ seen[g.gi]=1; }); Object.keys(_laItens).forEach(function(gi){ seen[gi]=1; });
     var todos=_doc.querySelectorAll('.gr'); for(var i=0;i<todos.length;i++){ var gi=+todos[i].dataset.gi; if(seen[gi]) renderGr(gi); else laTrilho(gi); } }
   function laAposRender(){ laLegenda(); laRepintarTudo(); laBarraChips(); laAbrirPendente(); }
-  function laChipHtml(el, it, compacto){
+  /* cada chip mostra o número da sua tecla ("1 Quem?"): o mesmo 1–7 que marca a seleção viva e
+     que leva à pergunta no modo guiado. Sem número (semNum) na legenda, que já tem a coluna da
+     tecla, e na conferência, onde 1, 3 e 5 são Errei, Hesitei e Acertei. */
+  function laChipHtml(el, it, compacto, semNum){
     var resp=!!(it&&it.el&&it.el[el]&&it.el[el].length), nao=!!(it&&it.nao&&it.nao.indexOf(el)>=0);
-    var estado=nao?'não há':(resp?'respondida':'sem resposta');
-    return '<button type="button" class="la-chip la-'+el+(resp?' resp':'')+(nao?' nao':'')+(compacto?' compacto':'')+'" data-el="'+el+'" aria-label="'+escAttr(laRotulo(el)+' — '+estado)+'" title="'+escAttr(laPergunta(el))+'"><span class="la-rot">'+esc(laRotulo(el))+'</span><small class="la-nao">— não há</small></button>'; }
+    var estado=nao?'não há':(resp?'respondida':'sem resposta'), n=LA?LA.IDS.indexOf(el)+1:0;
+    return '<button type="button" class="la-chip la-'+el+(resp?' resp':'')+(nao?' nao':'')+(compacto?' compacto':'')+'" data-el="'+el+'" aria-label="'+escAttr(laRotulo(el)+' — '+estado)+'" title="'+escAttr(laPergunta(el))+'">'+((n>0&&!semNum)?'<span class="la-num" aria-hidden="true">'+n+'</span>':'')+'<span class="la-rot">'+esc(laRotulo(el))+'</span><small class="la-nao">— não há</small></button>'; }
   /* o trilho de um dispositivo: 7 chips na ordem fixa + aviso quando a redação mudou */
   function laTrilho(gi){ var gr=_doc&&_doc.querySelector('.gr[data-gi="'+gi+'"]'); if(!gr) return;
     var pai=gr.parentNode, tr=pai.querySelector('.la-trilho[data-gi="'+gi+'"]');
@@ -1250,26 +1348,29 @@ function _colher(alvos, jaVistos){
     if(it&&!LA.atualizada(it,txt)) html+='<div class="la-aviso"><span>Redação mudou — reveja as marcas.</span><button type="button" data-acao="confirmar">Confirmar como está</button><button type="button" data-acao="limpar-tudo">Limpar a grade</button></div>';
     tr.innerHTML=html; }
   function laBarraChips(){ var c=document.getElementById('grifLA'); if(!c||!LA) return;
-    c.innerHTML=LA.IDS.map(function(el){ return laChipHtml(el, null, true); }).join(''); }
+    c.innerHTML=LA.IDS.map(function(el, i){ return laChipHtml(el, null, true).replace('<button type="button"', '<button type="button" aria-keyshortcuts="'+(i+1)+'"'); }).join(''); }
   function laLegenda(){ if(!_doc) return; var lg=_doc.querySelector('.la-legenda');
     if(!_laOn||!LA){ if(lg) lg.parentNode.removeChild(lg); return; }
     if(lg) return;
     lg=document.createElement('details'); lg.className='la-legenda'; lg.open=true;
     lg.innerHTML='<summary>Grade de leitura — 7 perguntas</summary><button type="button" class="la-guiar" data-acao="guiar" aria-label="Ler um dispositivo por vez, uma pergunta por vez">Ler um por vez</button>'+LA.ELEMENTOS.map(function(e){
       // na legenda o chip é amostra, não controle: vira <span> com a cara de "respondido"
-      var amostra=laChipHtml(e.id, {el:{}, nao:[]}, true).replace('<button type="button" class="la-chip','<span class="la-chip resp').replace(/ aria-label="[^"]*"/,'').replace('</button>','</span>');
+      var amostra=laChipHtml(e.id, {el:{}, nao:[]}, true, true).replace('<button type="button" class="la-chip','<span class="la-chip resp').replace(/ aria-label="[^"]*"/,'').replace('</button>','</span>');
       return '<div class="la-item la-'+e.id+'">'+amostra+'<span class="la-perg">'+esc(e.pergunta)+'</span><kbd class="la-tecla">'+e.tecla+'</kbd></div>'; }).join('');
     _doc.insertBefore(lg, _doc.firstChild); }
   /* Texto-base do cartão (LA5): a proposição do dispositivo, como proposicoesDoArtigo faz —
-     inciso/alínea ganham o tronco do caput quando ele termina em ":"; o caput fica só. */
-  function laTextoBase(gi){ var txt=disp[gi]||'', gr=_doc&&_doc.querySelector('.gr[data-gi="'+gi+'"]'); if(!gr) return txt;
-    var bloco=gr.closest('.inc,.ali'); if(!bloco) return txt;
+     inciso/alínea ganham o tronco do caput quando ele termina em ":"; o caput fica só.
+     desloc (LA7) diz onde o texto do inciso começa: o offset da marca é contado no inciso, e
+     sem ele a lacuna ia parar no caput (o "a lei" do art. 5º, XXXV). */
+  function laBase(gi){ var txt=disp[gi]||'', gr=_doc&&_doc.querySelector('.gr[data-gi="'+gi+'"]'); if(!gr) return {txt:txt, desloc:0};
+    var bloco=gr.closest('.inc,.ali'); if(!bloco) return {txt:txt, desloc:0};
     var p=bloco.parentElement; while(p && !p.classList.contains('art')) p=p.previousElementSibling;
     var cg=p&&p.querySelector('.caput .gr'); var caput=cg?(disp[+cg.dataset.gi]||''):'';
-    if(!/:\s*$/.test(caput)) return txt;
+    if(!/:\s*$/.test(caput)) return {txt:txt, desloc:0};
     var parte=txt.replace(/[;,.\s]+$/,'');
     if(parte[0] && parte[0]===parte[0].toUpperCase() && parte[0]!==parte[0].toLowerCase()) parte=parte[0].toLowerCase()+parte.slice(1);
-    return caput.replace(/:\s*$/,'').trim()+': '+parte+'.'; }
+    var tronco=caput.replace(/:\s*$/,'').replace(/\s+/g,' ').trim()+': ';
+    return {txt:tronco+parte+'.', desloc:tronco.length}; }
   /* Dispositivo revogado/vetado: a nota que renderDoc separou (splitNota) está no bloco */
   function laSituacao(gi){ var gr=_doc&&_doc.querySelector('.gr[data-gi="'+gi+'"]'); if(!gr) return '';
     var bloco=gr.closest('.art,.par,.inc,.ali,.txt'); if(!bloco) return '';
@@ -1304,7 +1405,8 @@ function _colher(alvos, jaVistos){
     if(ms[0]&&ms[0].scrollIntoView) try{ ms[0].scrollIntoView({block:'nearest'}); }catch(e){}
     setTimeout(function(){ for(var i=0;i<ms.length;i++) ms[i].classList.remove('foco'); }, 1400); }
   _sc.addEventListener('click', function(e){
-    var b=e.target.closest&&e.target.closest('.la-menu button, .la-aviso button, .la-conferir');
+    // .la-trilho .la-guiar ("Ler daqui") entra aqui: fora do seletor o botão não fazia nada
+    var b=e.target.closest&&e.target.closest('.la-menu button, .la-aviso button, .la-conferir, .la-trilho .la-guiar');
     if(b){ var tr=b.closest('.la-trilho'); if(!tr||!LA) return; var gi=+tr.getAttribute('data-gi'), acao=b.getAttribute('data-acao'), el=b.getAttribute('data-el');
       if(acao==='fechar'){ laFecharMenu(); return; }
       if(acao==='conferir'){ laConfAbrir(gi); return; }
@@ -1326,7 +1428,7 @@ function _colher(alvos, jaVistos){
     clearTimeout(_laPressT); _laPressT=setTimeout(function(){ _laUltimoChip=null; laMenu(ch); }, 500); });
   ['pointerup','pointercancel','pointerleave'].forEach(function(ev){ _sc.addEventListener(ev, function(){ clearTimeout(_laPressT); }); });
   document.getElementById('rdrLA').onclick=function(){ var on=!_rdr.classList.contains('la');
-    try{ armazenamentoDoLeitor.setItem(LA_K, on?'1':'0'); }catch(e){} aplicarLA(); laLegenda(); laRepintarTudo(); laFecharMenu(); };
+    try{ armazenamentoDoLeitor.setItem(LA_K, on?'1':'0'); }catch(e){} aplicarLA(); laLegenda(); laRepintarTudo(); laFecharMenu(); if(!on) laPainelFechar(false); };
   // a resposta do host (ctLeituras) chegou: o espelho mudou, a tela acompanha
   window.addEventListener('catedra:leituras', function(e){ if(!curLaw||!e.detail||e.detail.leiId!==laLeiId()) return; laCarregar(); laRepintarTudo(); if(_laAbrirPend) laAbrirPendente(); });
 
@@ -1345,7 +1447,7 @@ function _colher(alvos, jaVistos){
   function laAbrirPendente(){ var p=_laAbrirPend; if(!p) return; _laAbrirPend=null;
     if(!_laOn){ try{ armazenamentoDoLeitor.setItem(LA_K,'1'); }catch(e){} aplicarLA(); laLegenda(); laRepintarTudo(); }
     var gi=laAcharGi(p.rot); if(gi<0) return;
-    var el=_doc.querySelector('.gr[data-gi="'+gi+'"]'); if(el){ try{ el.scrollIntoView({block:'center'}); }catch(e){} }
+    laRolarAte(_doc.querySelector('.gr[data-gi="'+gi+'"]'));
     if(p.conferir && _laItens[gi]) laConfAbrir(gi); }
   (function(){ try{ var q=new URLSearchParams(location.search); if(q.get('la')) window.ctLeituraAbrir({leiId:q.get('la'), rot:q.get('rot')||'', conferir:q.get('conferir')==='1'}); }catch(e){} })();
 
@@ -1378,7 +1480,7 @@ function _colher(alvos, jaVistos){
   function laGdSair(registrar){ if(!_gd) return; var gi=_gd.lista[_gd.i], G=_gd; _gd=null; laFalarParar();
     _rdr.classList.remove('la-guiado'); _gdEl.innerHTML='';
     laRepintarTudo();
-    var alvo=_doc&&_doc.querySelector('.gr[data-gi="'+(gi!=null?gi:'')+'"]'); if(alvo){ try{ alvo.scrollIntoView({block:'center'}); }catch(e){} }
+    laRolarAte(_doc&&_doc.querySelector('.gr[data-gi="'+(gi!=null?gi:'')+'"]'));
     // LA6: leu ao menos um dispositivo → oferece registrar a sessão (quem decide é o host, pelo interruptor de Ajustes)
     var n=Object.keys(G.lidos).length;
     if(registrar!==false && n>0 && CANAL && window.parent && window.parent!==window){
@@ -1413,7 +1515,10 @@ function _colher(alvos, jaVistos){
           +'<button type="button" class="la-gd-bt" data-acao="nao" aria-label="Não há: registrar que este dispositivo não responde a esta pergunta (tecla 0)">Não há (0)</button>'
           +'<button type="button" class="la-gd-bt" data-acao="pular" aria-label="Pular esta pergunta">Pular</button>'
           +(window.speechSynthesis?'<button type="button" class="la-gd-bt" data-acao="ouvir" aria-label="Ouvir o dispositivo em voz alta">Ouvir</button>':'')+'</div></aside>'
-      +'<div class="la-gd-fila"><div class="la-gd-chips">'+LA.IDS.map(function(f,i){ return laChipHtml(f, it, true).replace('class="la-chip','class="la-chip'+(i===G.el?' atual':'')); }).join('')
+      // LA7: o chip leva à pergunta no toque, como a tecla 1–7 (no iPad sem teclado era o único jeito que faltava)
+      +'<div class="la-gd-fila"><div class="la-gd-chips">'+LA.IDS.map(function(f,i){ return laChipHtml(f, it, true)
+          .replace('<button type="button"', '<button type="button" data-acao="pergunta" data-i="'+i+'" aria-keyshortcuts="'+(i+1)+'"'+(i===G.el?' aria-current="true"':''))
+          .replace(' aria-label="', ' aria-label="Ir à pergunta '+(i+1)+': ').replace('class="la-chip','class="la-chip'+(i===G.el?' atual':'')); }).join('')
         +'<span class="la-contador">'+comp.respondidas+' de 7 respondidas</span></div>'
         +'<div class="la-contador">dispositivo '+(G.i+1)+' de '+G.lista.length+'</div>'
         +'<div class="la-prog" role="progressbar" aria-valuemin="0" aria-valuemax="'+G.lista.length+'" aria-valuenow="'+G.i+'" aria-label="Dispositivos lidos nesta sessão"><i style="transform:translateX(calc('+pct+'% - 100%))"></i></div></div>'
@@ -1448,6 +1553,7 @@ function _colher(alvos, jaVistos){
     var pal=e.target.closest&&e.target.closest('.la-pal'); if(pal){ laGdToque(pal); return; }
     var b=e.target.closest&&e.target.closest('button[data-acao]'); if(!b) return; var acao=b.getAttribute('data-acao');
     if(acao==='sair'){ laGdSair(true); return; }
+    if(acao==='pergunta'){ var n=+b.getAttribute('data-i'); if(n>=0&&n<LA.IDS.length){ G.el=n; G.sel=null; laGdRender(false); } return; }
     if(acao==='marcar'){ if(G.sel) laGdMarcar(G.sel.a, G.sel.b); return; }
     if(acao==='limpar-sel'){ G.sel=null; laGdRender(false); return; }
     if(acao==='nao'){ laGdNaoHa(); return; }
@@ -1496,21 +1602,21 @@ function _colher(alvos, jaVistos){
   /* O foco mostra o MESMO cartão que vai para o Anki (LA5): o cloze do elemento, com o
      texto-base do dispositivo; as marcas dos outros elementos ficam lisas. */
   function laConfCartao(gi, el){ var it=_laItens[gi]; if(!it||!LA) return null;
-    return LA.cloze(it, el, laTextoBase(gi), {situacao:laSituacao(gi)}); }
+    var b=laBase(gi); return LA.cloze(it, el, b.txt, {situacao:laSituacao(gi), desloc:b.desloc}); }
   function laConfTexto(it, el, txt, revelado, gi){
     var c=laConfCartao(gi, el); if(!c) return esc(txt);
     return LA.renderCloze(c.front, {revelar:!!revelado, el:el}); }
   function laConfRender(){ var C=_laConf; if(!C) return; var it=_laItens[C.gi]; if(!it){ laConfFechar(); return; }
     var el=C.fila[C.i], txt=disp[C.gi]||'', cab=[it.sigla, it.rot].filter(Boolean).join(' · ');
     var acoes= C.revelado
-      ? '<button type="button" data-q="1" aria-label="Errei — vira cartão, revisão e erro">Errei</button><button type="button" data-q="3" aria-label="Hesitei — vira cartão e revisão">Hesitei</button><button type="button" data-q="5" class="principal" aria-label="Acertei — nada é criado">Acertei</button><span class="la-dica">Errei e Hesitei viram cartão e revisão (Errei também vai ao caderno de erros). Acertei não cria nada.</span>'
+      ? '<button type="button" data-q="1" aria-label="Errei — vira revisão e erro">Errei</button><button type="button" data-q="3" aria-label="Hesitei — vira revisão">Hesitei</button><button type="button" data-q="5" class="principal" aria-label="Acertei — nada é criado">Acertei</button><span class="la-dica">Errei e Hesitei viram revisão (Errei também vai ao caderno de erros); o cartão de cada pergunta nasceu no Baralho quando você marcou. Acertei não cria nada.</span>'
       : '<button type="button" data-acao="mostrar" class="principal">Mostrar</button><span class="la-dica">Responda de cabeça e só então mostre. Tecla Enter mostra; 1, 3 e 5 respondem.</span>';
     _confEl.innerHTML='<div class="la-bc">'
       +'<div class="la-topo"><h2>Conferir a leitura — '+esc(cab||'dispositivo')+'</h2><span class="la-kicker" style="margin:0">'+(C.i+1)+' de '+C.fila.length+'</span><button type="button" class="la-fechar" data-acao="fechar" aria-label="Fechar a conferência sem enviar">×</button></div>'
       +'<div class="la-foco"><div class="la-kicker">'+esc(laRotulo(el))+' · '+esc(laPergunta(el))+'</div><div class="la-texto">'+laConfTexto(it, el, txt, C.revelado, C.gi)+'</div><div class="la-acoes">'+acoes+'</div></div>'
-      +'<aside class="la-apoio"><b>O que está escondido</b><br>'+laChipHtml(el, it, true).replace('<button type="button"','<span').replace('</button>','</span>')+'<br>'+esc(laPergunta(el))+'<br><br><b>Como funciona</b><br>Só o que você errou ou hesitou vira cartão e revisão. Ler não gera cartão.</aside>'
+      +'<aside class="la-apoio"><b>O que está escondido</b><br>'+laChipHtml(el, it, true, true).replace('<button type="button"','<span').replace('</button>','</span>')+'<br>'+esc(laPergunta(el))+'<br><br><b>Como funciona</b><br>Cada pergunta marcada já vira cartão no Baralho. Aqui, só o que você errou ou hesitou vira revisão.</aside>'
       +'<div class="la-fila"><span class="la-fila-t">Rodada</span>'+C.fila.map(function(f,i){ var feita=C.itens.filter(function(x){return x.el===f;})[0];
-          return laChipHtml(f, it, true).replace('class="la-chip', 'class="la-chip'+(i===C.i?' atual':'')+(feita?' feita':'')); }).join('')+'</div>'
+          return laChipHtml(f, it, true, true).replace('class="la-chip', 'class="la-chip'+(i===C.i?' atual':'')+(feita?' feita':'')); }).join('')+'</div>'
       +'</div>'; }
   function laConfResponder(q){ var C=_laConf; if(!C||!C.revelado) return; var it=_laItens[C.gi]; if(!it) return;
     var el=C.fila[C.i], cartao=LA.cartaoConferencia(it, el, disp[C.gi]||'')||{front:'', back:'', ref:''};
@@ -1522,6 +1628,12 @@ function _colher(alvos, jaVistos){
     if(C.i<C.fila.length){ laConfRender(); var b=_confEl.querySelector('.la-acoes button'); if(b) b.focus(); return; }
     if(CANAL) CANAL.conferir({id:it.id, ref:cartao.ref, itens:C.itens});
     laConfFechar(); }
+  /* Sair da conferência por outro caminho (o painel da lei levando a outro dispositivo): o que
+     ela já respondeu vai ao host — com o lote e o "desfazer" de sempre —, nunca some calado. O
+     "×" da conferência continua sendo o "fechar sem enviar". */
+  function laConfEncerrar(){ var C=_laConf; if(!C) return; var it=_laItens[C.gi];
+    if(it && C.itens.length && CANAL){ var cab=[it.sigla, it.rot].filter(Boolean).join(' · '); CANAL.conferir({id:it.id, ref:cab, itens:C.itens}); }
+    _laConf=null; _confEl.classList.remove('on'); _confEl.innerHTML=''; }
   _confEl.addEventListener('click', function(e){ var b=e.target.closest&&e.target.closest('button'); if(!b||!_laConf) return;
     var acao=b.getAttribute('data-acao'), q=b.getAttribute('data-q');
     if(acao==='fechar'){ laConfFechar(); return; }
@@ -1533,6 +1645,88 @@ function _colher(alvos, jaVistos){
     if(e.key==='Enter'&&!_laConf.revelado){ e.preventDefault(); _laConf.revelado=true; laConfRender(); return; }
     if(_laConf.revelado&&(e.key==='1'||e.key==='3'||e.key==='5')){ e.preventDefault(); laConfResponder(+e.key); } });
 
+  // ---- LA7: o painel da lei — lidos ativamente e pendentes ----
+  /* O botão da barra do leitor (só com a leitura ativa ligada) abre a lista de TODOS os
+     dispositivos desta lei em duas partes: os lidos ativamente, com a completude das 7
+     perguntas, e os pendentes. A régua é a do catálogo (CT_LA.painel usa progresso(): ter
+     leitura = lido). Tocar numa linha leva ao dispositivo. Numa lei grande os pendentes vêm
+     em lotes, para a lista não pesar no iPad. Nada aqui é gravado: o painel só lê. */
+  var _painelAberto=false, _painelTodos=false, _painelEl=document.getElementById('laPainel'), _painelBt=document.getElementById('rdrLAPainel'), PAINEL_LOTE=200;
+  /* Os dispositivos da lei, na ordem do texto, com o rótulo lido do próprio bloco: procurar cada
+     gi no documento custava O(n²) — com a leitura ativa ligada o leitor passa de 100 mil
+     elementos, e o painel do CC travava o iPad por segundos. Ficam de fora os blocos de texto
+     antes do 1º artigo (epígrafe, ementa, preâmbulo) e depois do último bloco de dispositivo
+     (local e data, assinaturas): não são dispositivos e deixavam os 100% inalcançáveis. A
+     "Pena" de um artigo, que vem antes do parágrafo dele, continua dentro. */
+  function laPainelDispositivos(){ if(!_doc) return [];
+    var grs=_doc.querySelectorAll('.gr'), blocos=_doc.querySelectorAll('.art,.par,.incs'), out=[];
+    var primeiro=_doc.querySelector('.art'), ultimo=blocos.length?blocos[blocos.length-1]:null;
+    for(var i=0;i<grs.length;i++){ var g=grs[i], bloco=g.closest('.art,.par,.inc,.ali,.txt');
+      if(primeiro && bloco && bloco.classList.contains('txt')
+        && ((primeiro.compareDocumentPosition(bloco) & Node.DOCUMENT_POSITION_PRECEDING) || (ultimo.compareDocumentPosition(bloco) & Node.DOCUMENT_POSITION_FOLLOWING))) continue;
+      out.push({gi:+g.dataset.gi, rot:laRotDe(g)}); }
+    return out; }
+  function laPainelLinha(d, lido){
+    var txt=String(disp[d.gi]||''), curto=txt.length>90?txt.slice(0,90).replace(/\s+\S*$/,'')+'…':txt, rot=d.rot||'Dispositivo', it=_laItens[d.gi];
+    var grade=lido?'<span class="la-pn-grade" aria-hidden="true">'+LA.IDS.map(function(el){ var on=!!(it&&(((it.el&&it.el[el])||[]).length||(it.nao||[]).indexOf(el)>=0)); return '<i class="la-'+el+(on?' on':'')+'"></i>'; }).join('')+'</span>':'';
+    var aria=rot+(lido?(' — '+d.respondidas+' de '+d.total+' perguntas respondidas'):' — pendente')+'. Ir ao dispositivo.';
+    return '<li><button type="button" class="la-pn-linha" data-gi="'+d.gi+'" aria-label="'+escAttr(aria)+'"><span class="la-pn-rot">'+esc(rot)+'</span><span class="la-pn-txt">'+esc(curto)+'</span>'+grade
+      +(lido?'<span class="la-pn-resp">'+d.respondidas+' de '+d.total+'</span>':'')+'</button></li>'; }
+  function laPainelRender(){ if(!_painelEl||!LA||!LA.painel) return;
+    var P=LA.painel(Object.keys(_laItens).map(function(k){ return _laItens[k]; }), laLeiId(), laPainelDispositivos());
+    var mostra=(!_painelTodos && P.pendentes.length>PAINEL_LOTE) ? P.pendentes.slice(0, PAINEL_LOTE) : P.pendentes;
+    _painelEl.innerHTML='<div class="la-pn">'
+      +'<div class="la-pn-topo"><h2>Leitura ativa — '+esc(String(curLaw&&curLaw.t||'esta lei'))+'</h2><button type="button" class="la-pn-fechar" data-acao="fechar" aria-label="Fechar o painel (Esc)">×</button></div>'
+      +'<p class="la-pn-resumo"><b>'+P.nLidos+'</b> de <b>'+P.total+'</b> dispositivos lidos ativamente ('+P.pct+'%) · <b>'+P.completos+'</b> com as 7 perguntas respondidas</p>'
+      +'<div class="la-pn-prog" role="progressbar" aria-label="Dispositivos lidos ativamente" aria-valuemin="0" aria-valuemax="'+P.total+'" aria-valuenow="'+P.nLidos+'"><i style="transform:translateX(calc('+P.pct+'% - 100%))"></i></div>'
+      +'<h3>Lidos ativamente <b>'+P.nLidos+'</b></h3>'
+      +(P.lidos.length ? '<ul class="la-pn-lista" data-lista="lidos">'+P.lidos.map(function(d){ return laPainelLinha(d, true); }).join('')+'</ul>'
+        : '<p class="la-pn-vazio">Nenhum dispositivo desta lei foi lido ativamente ainda. Selecione um trecho e toque na pergunta — ou use as teclas 1 a 7.</p>')
+      +'<h3>Pendentes <b>'+P.pendentes.length+'</b></h3>'
+      +(P.pendentes.length ? '<ul class="la-pn-lista" data-lista="pendentes">'+mostra.map(function(d){ return laPainelLinha(d, false); }).join('')+'</ul>'
+          +(mostra.length<P.pendentes.length ? '<button type="button" class="la-pn-mais" data-acao="mais">Mostrar os outros '+(P.pendentes.length-mostra.length)+'</button>' : '')
+        : '<p class="la-pn-vazio">Nada pendente: todos os dispositivos desta lei têm leitura ativa.</p>')
+      +'</div>'; }
+  function laPainelAbrir(){ if(!LA||!_doc||!_painelEl) return;
+    laFecharMenu(); fecharBarra(); _painelTodos=false; laPainelRender(); _painelAberto=true; _painelEl.classList.add('on'); _painelEl.scrollTop=0;
+    if(_painelBt) _painelBt.setAttribute('aria-expanded','true');
+    var f=_painelEl.querySelector('.la-pn-fechar'); if(f) try{ f.focus(); }catch(e){} }
+  function laPainelFechar(devolverFoco){ if(!_painelAberto||!_painelEl) return; _painelAberto=false; _painelEl.classList.remove('on'); _painelEl.innerHTML='';
+    if(_painelBt){ _painelBt.setAttribute('aria-expanded','false'); if(devolverFoco) try{ _painelBt.focus(); }catch(e){} } }
+  /* Rola SÓ o documento até o bloco, centrando quando dá. O scrollIntoView({block:'center'})
+     também rola os ancestrais overflow:hidden (.rdr) quando o bloco está perto do fim da lei:
+     a barra da lei — com Leitura ativa e Lidos — subia 36 px e saía da tela (medido em
+     largura de iPad). Vale para o painel, para a saída do modo guiado e para ?la=. */
+  function laRolarAte(el){ if(!el) return;
+    try{ var a=_sc.getBoundingClientRect(), b=el.getBoundingClientRect();
+      _sc.scrollTop=Math.max(0, _sc.scrollTop+(b.top-a.top)-Math.max(0, (_sc.clientHeight-b.height)/2)); }catch(e){} }
+  /* a linha leva ao dispositivo: fecha o que estiver por cima (painel, conferência, modo
+     guiado), rola até ele e acende o contorno por um instante — sem animação */
+  function laIrPara(gi){ laPainelFechar(false);
+    // a conferência aberta não some calada: o que já foi respondido vai ao host (com desfazer);
+    // o modo guiado sai como pelo "Sair", oferecendo registrar a sessão
+    if(_laConf) laConfEncerrar();
+    if(_gd) laGdSair(true);
+    var gr=_doc&&_doc.querySelector('.gr[data-gi="'+gi+'"]'); if(!gr) return;
+    var bloco=gr.closest('.art,.par,.inc,.ali,.txt')||gr;
+    laRolarAte(bloco);
+    bloco.classList.add('la-alvo'); if(!bloco.hasAttribute('tabindex')) bloco.setAttribute('tabindex','-1');
+    try{ bloco.focus({preventScroll:true}); }catch(e){}
+    setTimeout(function(){ bloco.classList.remove('la-alvo'); }, 1600); }
+  if(_painelBt) _painelBt.onclick=function(){ if(_painelAberto) laPainelFechar(true); else laPainelAbrir(); };
+  if(_painelEl) _painelEl.addEventListener('click', function(e){ var b=e.target.closest&&e.target.closest('button'); if(!b) return;
+    var acao=b.getAttribute('data-acao');
+    if(acao==='fechar'){ laPainelFechar(true); return; }
+    if(acao==='mais'){ _painelTodos=true; var y=_painelEl.scrollTop; laPainelRender(); _painelEl.scrollTop=y; return; }
+    if(b.classList.contains('la-pn-linha')) laIrPara(+b.getAttribute('data-gi')); });
+  // o painel fica por cima do modo guiado e da conferência: Esc fecha só ele, e as teclas
+  // deles (1–7, 0, Enter) não passam por baixo — o Enter continua acionando o botão em foco
+  // (stopImmediatePropagation: com o próprio document como alvo, stopPropagation ainda deixaria
+  // os outros ouvintes dele rodarem — e o Esc fecharia o leitor junto)
+  document.addEventListener('keydown', function(e){ if(!_painelAberto) return;
+    if(e.key==='Escape'){ e.preventDefault(); e.stopImmediatePropagation(); laPainelFechar(true); return; }
+    if(/^[0-7]$/.test(String(e.key))||e.key==='Enter') e.stopImmediatePropagation(); }, true);
+
   // ---- controles ----
   /* D8 — no celular a barra do leitor não comporta cinco ferramentas: as secundárias
      (letra, imersão, leitura, Planalto) recolhem no ⋯ e o esquema da lei vira gaveta no ☰.
@@ -1541,7 +1735,7 @@ function _colher(alvos, jaVistos){
     if(t)t.classList.remove('aberto'); if(b)b.setAttribute('aria-expanded','false'); }
   function fecharMapa(){ _rdr.classList.remove('mapaAberto');
     var b=document.getElementById('rdrMapa'); if(b)b.setAttribute('aria-expanded','false'); }
-  function closeR(){ fecharGaveta(); if(_gd) laGdSair(false); _rdr.classList.remove('on'); document.body.style.overflow=''; _grif.classList.remove('on'); fecharMapa(); fecharMais(); }
+  function closeR(){ fecharGaveta(); laPainelFechar(false); if(_gd) laGdSair(false); _rdr.classList.remove('on'); document.body.style.overflow=''; _grif.classList.remove('on'); fecharMapa(); fecharMais(); }
   function setFS(v){ _fs=Math.max(13,Math.min(22,v)); var w=_doc&&_doc.classList.contains('docwrap')?_doc:_sc.querySelector('.docwrap'); if(w)w.style.setProperty('--rfs',_fs+'px'); }
   document.getElementById('rdrClose').onclick=closeR;
   document.getElementById('rdrMinus').onclick=function(){ setFS(_fs-1); };

@@ -26,6 +26,7 @@ import { testarOralLeiSeca } from './oral-lei-seca.mjs';
 import { testarSegurancaBackup } from './seguranca-backup.mjs';
 import { testarReservaIA } from './seguranca-cota.mjs';
 import { testarLegisGuiado } from './legis-guiado.mjs';
+import { testarLeituraAtivaIpad } from './leitura-ativa-ipad.mjs';
 import { testarEnamModo } from './enam-modo.mjs';
 import { testarProvaEncerrarUmaVez } from './prova-encerrar-uma-vez.mjs';
 import { testarIpadToque } from './ipad-toque.mjs';
@@ -122,6 +123,12 @@ for (const [base, origem, arquivo] of ORIGENS) {
   catch (e) {
     ok(false, 'LEGIS GUIADO [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
       + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+  }
+  // LA7: chips da leitura ativa no toque do iPad (barra pela seleção, 44 px, números), painel da lei e
+  // o cartão no Baralho no mesmo gesto. Só em http: semeia por base+'/__semente' e monta o host.
+  if (origem === 'http') {
+    try { await testarLeituraAtivaIpad(page, base, ok, { motor }); }
+    catch (e) { ok(false, 'LA7 [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0].slice(0, 160)); }
   }
   // E3: o Modo ENAM — grade de 80 sobre a tela cheia e o banco oficial chegando por <script>
   try { await testarEnamModo(page, base, ok, { motor, origem, arquivo }); }
