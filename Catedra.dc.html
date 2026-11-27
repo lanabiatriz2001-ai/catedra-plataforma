@@ -7143,10 +7143,10 @@ window.ctPdfLib = (function(){
         <div data-aj="termos privacidade lgpd consentimento inteligência artificial excluir conta apagar" class="ct-card" data-card="juridico">
           <div class="ct-titulo ct-titulo-com-nota">Termos, privacidade e inteligência artificial</div>
           <div class="ct-nota ct-nota-antes">o que rege o uso da plataforma e o que você autorizou</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
             <button type="button" data-doc="termos" onclick="{{ abrirDoc }}" class="ct-btn-2" style="min-height:44px;">Termos de uso</button>
             <button type="button" data-doc="privacidade" onclick="{{ abrirDoc }}" class="ct-btn-2" style="min-height:44px;">Política de privacidade</button>
-            <span class="ct-dado">versão {{ juridicoVersao }} · {{ juridicoData }}</span>
+            <span class="ct-dado" data-politica-rodape="1">{{ juridicoRodape }}</span>
           </div>
           <div style="font-size:var(--fs-sm);color:var(--text2);line-height:1.6;margin-top:12px;" data-aceite-txt="1">{{ aceiteTxt }}</div>
           <div style="margin:16px 0 0;padding:14px 16px;border:1px solid var(--border);border-radius:var(--r-md);">
@@ -21557,7 +21557,8 @@ class Component extends DCLogic {
       iaConsentPedir:!!this.state.iaConsentPedir, iaConsentTexto:this.IA_CONSENT_TEXTO, iaConsentir:this.iaConsentir, iaRecusar:this.iaRecusar, iaRevogar:this.iaRevogar, iaAutorizarAjustes:this.iaAutorizarAjustes,
       iaConsentTem:this._iaConsentido(), iaConsentTxt:(()=>{ const c=this.state.iaConsentimento; if(!this._iaConsentido()) return 'Nenhum recurso de IA é chamado enquanto você não autorizar — o pedido aparece na primeira vez que usar um.'; try{ return 'Autorizado em '+new Date(+c.ts).toLocaleDateString('pt-BR')+'. Cada uso envia só o texto daquele pedido a um provedor fora do Brasil, apenas para gerar a resposta.'; }catch(_){ return 'Autorizado.'; } })(),
       docAberto:!!this.state.docAberto, docAbertoSrc:this.state.docAberto?('./'+this.state.docAberto+'.html'):'', docAbertoTitulo:this.state.docAberto==='privacidade'?'Política de privacidade':'Termos de uso', abrirDoc:this.abrirDoc, fecharDoc:this.fecharDoc,
-      juridicoVersao:(window.CT_JURIDICO&&window.CT_JURIDICO.versao)||'', juridicoData:(()=>{ try{ const d=window.CT_JURIDICO.termos.data; return d?new Date(d+'T12:00:00').toLocaleDateString('pt-BR'):''; }catch(_){ return ''; } })(),
+      // versão e data DA POLÍTICA (antes saía a data dos Termos ao lado da versão do aceite): a mesma linha do portão e do sobre.html, pronta em juridico.js
+      juridicoRodape:(()=>{ try{ return window.CT_JURIDICO.privacidade.rodape||''; }catch(_){ return ''; } })(),
       aceiteTxt:(()=>{ const J=window.CT_JURIDICO, a=this.state.aceite; if(!J) return 'Documentos não publicados neste build.'; if(J.aceiteVigente(a)){ try{ return 'Você aceitou a versão '+a.versao+' em '+new Date(+a.ts).toLocaleDateString('pt-BR')+'.'; }catch(_){ return 'Aceitos.'; } } return 'A versão vigente ('+J.versao+') ainda não foi aceita nesta conta — o app pede no próximo login.'; })(),
       temOriginalLocal:!!(window.CatedraAuth && window.CatedraAuth.user && localStorage.getItem('ct_original_'+window.CatedraAuth.user.id)),
       exportarOriginalLegado:this.exportarOriginalLegado,

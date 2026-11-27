@@ -6,10 +6,16 @@
   "emailContato": "",
   "emailEncarregado": "",
   "prazos": {
-    "_leia": "Só números. Vazio mantém entre colchetes a proposta escrita no documento (30 dias de aviso de encerramento, 15 de aviso de mudança, 30 para apagar da nuvem, 12 meses de contagem de IA e auditoria).",
+    "_leia": "Só números. Vazio mantém entre colchetes a proposta escrita no documento (30 dias de aviso de encerramento, 15 de aviso de mudança, 30 para apagar da nuvem, 12 meses de contagem de IA e auditoria, 12 meses dos relatos enviados pelo app). retencaoFeedbackMeses tem de bater com o intervalo da purga em supabase/migrations/2026-11-25-retencao-feedback.sql (tests/juridico-lgpd-retencao.mjs confere).",
     "avisoEncerramentoDias": "30",
     "avisoMudancaDias": "15",
     "exclusaoNuvemDias": "30",
-    "retencaoIaMeses": "12"
+    "retencaoIaMeses": "12",
+    "retencaoFeedbackMeses": "12"
+  },
+  "publicacao": {
+    "_leia": "Trava da publicação. A Política promete apagar os relatos enviados pelo app e a versão nova pede novo aceite a TODAS as contas. Na CI, tests/juridico-lgpd-retencao.mjs reprova DE PROPÓSITO (e a main só aceita PR com as checagens verdes) enquanto: (1) purgaFeedbackAplicadaEm estiver vazio. Só a dona preenche ou manda preencher, com a data AAAA-MM-DD em que aplicou supabase/migrations/2026-11-25-retencao-feedback.sql no projeto vivo e viu a linha 'catedra-purgar-feedback' em cron.job; (2) o dia, no fuso da dona, for anterior a naoAntesDe: o novo aceite não chega às contas antes disso (combinado com a dona). Não preencha para a CI ficar verde.",
+    "purgaFeedbackAplicadaEm": "",
+    "naoAntesDe": "2026-11-30"
   }
 }
