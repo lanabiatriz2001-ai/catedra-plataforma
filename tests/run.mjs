@@ -55,6 +55,7 @@ import { testarContrasteDestaque } from './contraste-destaque.mjs';
 import { testarIconesAlvos } from './icones-alvos.mjs';
 import { testarFaixaMapaAlvos } from './faixa-mapa-alvos.mjs';
 import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
+import { testarQuesitosPerdidosEstatico, testarQuesitosPerdidos } from './quesitos-perdidos.mjs';
 import { testarRedacaoMesa } from './redacao-mesa.mjs';
 import { testarRedacaoMotorEstatico, testarRedacaoMotor } from './redacao-motor.mjs';
 import { testarRedacaoResultadoEstatico, testarRedacaoResultado } from './redacao-resultado.mjs';
@@ -143,6 +144,14 @@ if (process.env.CT_SO === 'redacao-motor') {
 }
 if (process.env.CT_SO === 'redacao-mesa') {
   await testarRedacaoMesa(page, URL0, ok, { motor });
+  await browser.close(); srv.close();
+  console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
+  process.exit(falhas.length ? 1 : 0);
+}
+// CT_SO=quesitos-perdidos: "o que você repete" (quesitos perdidos, card do Anki, caderno de erros)
+if (process.env.CT_SO === 'quesitos-perdidos') {
+  testarQuesitosPerdidosEstatico(ok);
+  await testarQuesitosPerdidos(page, URL0, ok, { motor });
   await browser.close(); srv.close();
   console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
   process.exit(falhas.length ? 1 : 0);
@@ -9975,6 +9984,7 @@ catch (e) {
 
 // Erro de simulado → revisão → material de origem (LEGIS/JURIS)
 try { await testarPrioridadeDiscursiva(page, URL0, ok); } catch(e) { ok(false, 'DISCURSIVA exceção: '+e.message); }
+try { testarQuesitosPerdidosEstatico(ok); await testarQuesitosPerdidos(page, URL0, ok, { motor }); } catch(e) { ok(false, 'REPETE exceção: '+e.message); }
 try { await testarRedacaoMesa(page, URL0, ok, { motor }); } catch(e) { ok(false, 'MESA exceção: '+e.message); }
 try { testarRedacaoMotorEstatico(ok); await testarRedacaoMotor(page, URL0, ok, { motor }); } catch(e) { ok(false, 'MOTOR exceção: '+e.message); }
 try { testarRedacaoResultadoEstatico(ok); await testarRedacaoResultado(page, URL0, ok, { motor }); } catch(e) { ok(false, 'RESULTADO exceção: '+e.message); }
