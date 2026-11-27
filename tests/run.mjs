@@ -29,6 +29,7 @@ import { testarLeitorWeb } from './leitor-web.mjs';
 import { testarCicloInteligente } from './ciclo-inteligente.mjs';
 import { testarRevisoesFSRS } from './fsrs-revisoes.mjs';
 import { testarMotorFSRS } from './fsrs-motor.mjs';
+import { testarBaralhoDonoRevisaoEstatico, testarBaralhoDonoRevisao } from './baralho-dono-revisao.mjs';
 import { testarCicloMagistratura } from './ciclo-magistratura.mjs';
 import { testarRegistroSessao } from './registro-sessao.mjs';
 import { testarCronometroPausa } from './cronometro-pausa.mjs';
@@ -118,6 +119,14 @@ const page = await browser.newPage();
 const falhas = [];
 const ok = (cond, label) => { console.log((cond ? '✓ ' : '✗ ') + label); if (!cond) falhas.push(label); };
 page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
+// CT_SO=baralho-dono-revisao: só o Baralho — vencidas no Início e o dono da revisão.
+if (process.env.CT_SO === 'baralho-dono-revisao') {
+  testarBaralhoDonoRevisaoEstatico(ok);
+  await testarBaralhoDonoRevisao(page, URL0, ok, { motor });
+  await browser.close(); srv.close();
+  console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
+  process.exit(falhas.length ? 1 : 0);
+}
 
 // CT_SO=redacao-mesa roda só o módulo pedido — para o ciclo curto de uma tela.
 if (process.env.CT_SO === 'redacao-resultado') {
@@ -9965,6 +9974,10 @@ catch (e) {
   ok(false, 'CICLO MAGISTRATURA [' + motor + '] [http] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
+
+// Baralho: vencidas no Início e um só dono da revisão, Cátedra ou Anki (tests/baralho-dono-revisao.mjs)
+try { testarBaralhoDonoRevisaoEstatico(ok); await testarBaralhoDonoRevisao(page, URL0, ok, { motor }); }
+catch (e) { ok(false, 'BARALHO [' + motor + '] o roteiro correu sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
 
 // Registro de sessão: o efeito antes do toque (tests/registro-sessao.mjs)
 try { await testarRegistroSessao(page, URL0, ok, { motor, origem: 'http' }); }

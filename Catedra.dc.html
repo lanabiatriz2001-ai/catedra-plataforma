@@ -22,6 +22,8 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;mostr
 <script src="./prioridade-calc.js"></script>
 <!-- método "Ciclo Magistratura": regras puras (rotação, turnos, D+7/30/90); a tela vive aqui no host -->
 <script src="./fsrs.js"></script>
+<!-- Baralho: vencidas de hoje e o dono da revisão (Cátedra ou Anki) — regras puras, testadas em Node -->
+<script src="./baralho.js"></script>
 <script src="./ciclo-magistratura.js"></script>
 <!-- motor da busca do ⌘K (item 6): leve (4 KB) e sem dados; os acervos entram sob demanda -->
 <script src="./busca-unica.js"></script>
@@ -1795,6 +1797,10 @@ window.ctPdfLib = (function(){
           </sc-if>
           <button data-view="{{ paView }}" data-acao="{{ paAcao }}" onclick="{{ paIr }}" style="flex:none;background:var(--accentSolid);color:var(--onAccent);border:none;border-radius:var(--r-md);padding:12px 22px;font-size:var(--fs-base);font-weight:700;cursor:pointer;font-family:inherit;">{{ paCta }}</button>
         </div>
+        <!-- Baralho junto da próxima ação: só os cartões JÁ ESTUDADOS que venceram (cartão novo não
+             conta) — uma linha e um toque que abre essa fila. Some com zero; fica fora do cartão
+             de cima, que continua com um CTA só. Sem cor de alarme (baralho.js). -->
+        <sc-if value="{{ fcVencTem }}" hint-placeholder-val="{{ false }}"><button type="button" class="cth-pa-cartoes" data-fc-vencidas="{{ fcVencStr }}" data-fila="vencidas" onclick="{{ fcEstudar }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h11a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2zM3 16V5a2 2 0 0 1 2-2h11"></path></svg><span class="cth-pa-txt"><b>{{ fcVencStr }}</b> {{ fcVencRot }}</span><span class="cth-pa-ir">Revisar<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></span></button></sc-if>
 
         <!-- Metas e cobertura preservadas -->
         <div class="cth-kpis">
@@ -3352,6 +3358,7 @@ window.ctPdfLib = (function(){
               <div>
                 <h3>{{ fcDueStr }} para revisar</h3>
                 <p>De {{ fcTotalStr }} cartões no baralho. Eles vieram do quiz do CátedraJURIS, da leitura ativa da lei e dos erros que você registrou — e voltam na data que o FSRS marcar.</p>
+                <sc-if value="{{ fcDonoAnki }}" hint-placeholder-val="{{ false }}"><p class="ct-nota" data-fc-no-anki>{{ fcDonoTxt }}</p></sc-if>
               </div>
               <div class="ct-bc-acoes">
                 <sc-if value="{{ fcTemDue }}" hint-placeholder-val="{{ true }}">
@@ -7178,7 +7185,7 @@ window.ctPdfLib = (function(){
         </sc-if>
 
         <sc-if value="{{ ajSecDados }}" hint-placeholder-val="{{ false }}">
-        <div data-aj="backup exportar importar dados json nuvem drive icloud" class="ct-card">
+        <div data-aj="backup exportar importar dados json nuvem drive icloud anki flashcards baralho cartões dono revisão fila" class="ct-card">
           <div class="ct-titulo ct-titulo-com-nota">Seus dados</div>
           <div class="ct-nota ct-nota-antes">backup completo de sessões, ciclos, revisões, simulados, edital e flashcards</div>
           <sc-if value="{{ backupNuvemShow }}" hint-placeholder-val="{{ false }}">
@@ -7215,6 +7222,20 @@ window.ctPdfLib = (function(){
             <button onclick="{{ importData }}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 16px;font-size:var(--fs-base);color:var(--text2);cursor:pointer;font-family:inherit;font-weight:500;">Importar dados</button>
           </div>
           <sc-if value="{{ ankiNotaCloze }}" hint-placeholder-val="{{ false }}"><div style="font-size:var(--fs-sm);color:var(--text3);margin-top:10px;line-height:1.5;">{{ ankiNotaCloze }}</div></sc-if>
+          <!-- Dono da revisão dos cartões (baralho.js): UMA fila só. Com o Cátedra dono, o arquivo do Anki
+               é só de saída; com o Anki dono, cada exportação leva só o que falta e o tira do Baralho. -->
+          <div class="ct-dono">
+            <div id="ct-dono-tit" class="ct-dono-tit">Quem agenda a revisão dos cartões</div>
+            <div class="ct-dono-ops" role="group" aria-labelledby="ct-dono-tit">
+              <sc-for list="{{ donoOpcoes }}" as="o" hint-placeholder-count="2">
+                <button type="button" class="ct-dono-op" data-dono="{{ o.v }}" aria-pressed="{{ o.pressed }}" onclick="{{ setDonoRevisao }}"><b>{{ o.nome }}<sc-if value="{{ o.on }}" hint-placeholder-val="{{ false }}"> <small class="ct-selo ct-selo-hoje">em uso</small></sc-if></b><span>{{ o.efeito }}</span></button>
+              </sc-for>
+            </div>
+            <p class="ct-nota ct-dono-estado" data-dono-estado>{{ donoEstado }}</p>
+            <!-- Anki dono: o lote de HOJE volta ao Baralho se o arquivo não chegou ao Anki (o app só sabe
+                 que o download foi disparado; no iPad, fechar o seletor também perde o arquivo) -->
+            <sc-if value="{{ donoLoteTem }}" hint-placeholder-val="{{ false }}"><div class="ct-dono-lote" data-dono-lote><span>{{ donoLoteTxt }}</span><button type="button" class="ct-btn-2" data-em="{{ donoLoteEm }}" onclick="{{ desfazerExportacao }}">Trazer de volta ao Baralho</button></div></sc-if>
+          </div>
         </div>
         </sc-if>
 
@@ -11735,8 +11756,10 @@ class Component extends DCLogic {
       const ult=ss.length?ss.map(x=>x.date||'').sort().pop():''; const dias=ult?Math.floor((Date.now()-new Date(ult+'T12:00:00').getTime())/864e5):null;
       if(dias===null||dias>=7) out.push({id:'x-sim', disc:'Simulado', kind:'Simulado', tag:'Reta · diagnóstico', topico:'', discEdital:'', min:Math.round(base*1.4), done:false, extra:true,
         motivo:(dias===null?'nenhum simulado registrado':dias+' dias sem simulado')+(dp!=null?(' · prova em '+dp+' dias'):'')}); }
-    const fc=(this.state.flashcards||[]).length;
-    if(fc) out.push({id:'x-anki', disc:'Revisão · Anki', kind:'Flashcards', tag:'Fixação', topico:'', discEdital:'', min:25, done:false, extra:true, motivo:fc+' cartões no baralho'});
+    // o bloco segue no dia como sempre (é tempo de revisar cartões, onde for); com o Anki dono,
+    // o motivo diz quantos estão no Baralho e quantos já foram para o Anki (baralho.js)
+    const _fcL=this.state.flashcards||[], fc=_fcL.length, _B=window.CT_BARALHO;
+    if(fc) out.push({id:'x-anki', disc:'Revisão · Anki', kind:'Flashcards', tag:'Fixação', topico:'', discEdital:'', min:25, done:false, extra:true, motivo:_B?_B.motivoBloco(_fcL, this._fcDono()):(fc+' cartões no baralho')});
     return out.filter(b=>!foraIds.has(b.id));
   }
   /* O DIA = extras + blocos da volta feitos hoje + próximos pendentes até a meta (folga de
@@ -13291,30 +13314,71 @@ class Component extends DCLogic {
   // ===== exports reais (Fase 4): Anki (CSV/TSV) e calendário (.ics) =====
   _downloadText(text, name, mime){ try{ const blob=new Blob([text],{type:(mime||'text/plain')+';charset=utf-8'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1500); return true; }catch(e){ this._toast('Não foi possível exportar'); return false; } }
   // Flashcards → arquivo que o Anki importa NATIVAMENTE (diretivas #separator/#html/#tags).
+  // Dono da revisão (baralho.js): com o Cátedra dono vão os dois arquivos de sempre e o aviso
+  // diz que são só de saída. Com o Anki dono vai UM arquivo por toque, só com o que ainda não
+  // foi, e o lote ganha exportadoEm (sai do Baralho) quando o download é disparado — o app não
+  // sabe se o arquivo chegou: por isso o "desfazer" do aviso e o "Trazer de volta" em Ajustes.
   exportFlashcardsCSV = ()=>{
-    const todos=this.state.flashcards||[];
-    if(!todos.length){ this._toast('Nenhum flashcard para exportar'); return; }
-    const esc=(s)=>String(s||'').replace(/\t/g,' ').replace(/\r?\n/g,'<br>').trim();
+    // um toque por vez: o 2º toque de um clique duplo não vira outra exportação (com o Anki dono
+    // seria o arquivo de lei seca, já marcado, e no iPad o seletor de um 2º arquivo seguido é
+    // recusado — o cartão sairia do Baralho sem chegar ao Anki)
+    if(this._fcExpEm && Math.abs(Date.now()-this._fcExpEm)<1500) return;
+    const B=window.CT_BARALHO, dono=this._fcDono(), lista=this.state.flashcards||[];
     // LA5: os cartões de lei seca são notas CLOZE (Text + Back Extra) — modelo diferente do
     // Básico, então saem em arquivo próprio; misturá-los quebraria a importação dos dois
-    const cloze=todos.filter(c=>c&&c.tipo==='cloze'), fc=todos.filter(c=>!(c&&c.tipo==='cloze'));
-    const partes=[];
+    const L=B?B.loteDoToque(lista, dono):{basicos:lista.filter(c=>c&&c.front&&c.tipo!=='cloze'), cloze:lista.filter(c=>c&&c.front&&c.tipo==='cloze'), restamCloze:0};
+    const fc=L.basicos, cloze=L.cloze;
+    if(!fc.length && !cloze.length){ this._toast(B?B.avisoExportacao(dono, 0, 0, B.noAnki(lista)):'Nenhum flashcard para exportar'); return; }
+    // primeira exportação desde a escolha do Anki: o Cátedra não sabe o que já foi importado lá
+    if(B && B.primeiraDesdeEscolha(lista, this.state.prefs) && !window.confirm(B.confirmacao(B.paraExportar(lista, dono).length))) return;
+    const esc=(s)=>String(s||'').replace(/\t/g,' ').replace(/\r?\n/g,'<br>').trim();
+    const agora=Date.now(); this._fcExpEm=agora;
+    const marcar=(lote)=>{ if(dono!=='anki' || !B || !lote.length) return;
+      const ids=lote.map(c=>c.id);
+      this.setState(st=>{ const f=B.marcarExportados(st.flashcards, ids, agora); this._saveFC(f); return {flashcards:f}; }, ()=>this.flashSync()); };
     if(fc.length){
       const lines=fc.map(c=> esc(c.front)+'\t'+esc(c.back)+'\t'+esc(String(c.disc||'').replace(/\s+/g,'_')));
       const out='#separator:tab\n#html:true\n#tags column:3\n'+lines.join('\n')+'\n';
       if(!this._downloadText(out,'catedra-flashcards.txt','text/plain')) return;
-      partes.push(fc.length+' flashcards');
+      marcar(fc);
     }
     if(cloze.length){
       const lines=cloze.map(c=> esc(c.front)+'\t'+esc(c.extra)+'\t'+esc((c.tags||[]).concat([String(c.disc||'').replace(/\s+/g,'_')]).filter(Boolean).join(' ')));
       const out='#separator:tab\n#html:true\n#notetype:Cloze\n#tags column:3\n'+lines.join('\n')+'\n';
-      // o segundo download sai um instante depois: dois no mesmo clique, o navegador engole um
-      const baixar=()=>{ if(this._downloadText(out,'catedra-cloze-lei-seca.txt','text/plain')) this._toast(cloze.length+' cartões cloze de lei seca exportados — no Anki, importe com o tipo de nota Cloze e permita HTML ✦'); };
-      if(fc.length) setTimeout(baixar, 500); else baixar();
-      partes.push(cloze.length+' cloze');
+      // (dois arquivos no mesmo toque, só com o Cátedra dono) o segundo sai um instante depois:
+      // dois no mesmo clique, o navegador engole um
+      const baixar=()=>{ const foi=this._downloadText(out,'catedra-cloze-lei-seca.txt','text/plain'); if(foi) marcar(cloze); return foi; };
+      // só cloze e o arquivo não saiu: o _downloadText já avisou, e não há exportação a anunciar
+      if(fc.length) setTimeout(baixar, 500); else if(!baixar()) return;
     }
-    if(fc.length) this._toast(partes.join(' + ')+' exportados — importe o .txt no Anki ✦');
+    // um aviso só e curto (o detalhe fica no cartão de Ajustes); com o Anki dono, com "desfazer"
+    const aviso=B?B.avisoExportacao(dono, fc.length, cloze.length, 0, L.restamCloze):((fc.length+cloze.length)+' exportados');
+    if(dono==='anki') this._toastAcoes(aviso, [{rotulo:'desfazer', on:()=>this._desfazerLote(agora)}], 10);
+    else this._toastAcoes(aviso, [], 8);
   };
+  /** Dono da revisão: só troca a preferência (e anota desde quando o Anki é o dono, para a
+      primeira exportação depois da escolha perguntar antes). Nenhum cartão é apagado nem
+      desmarcado — com o Cátedra dono, os marcados apenas voltam a aparecer no Baralho. Fica FORA
+      de AJ_PREFS_PADRAO de propósito: "voltar ao padrão" e os perfis de ajustes não trocam o
+      dono às escondidas. */
+  setDonoRevisao = (e)=>{
+    const v=(e&&e.currentTarget&&e.currentTarget.dataset.dono)==='anki'?'anki':'app';
+    if(v===this._fcDono()) return;
+    const B=window.CT_BARALHO, n=B?B.noAnki(this.state.flashcards):0;
+    this.setState(s=>({prefs:{...s.prefs, donoRevisao:v, ...(v==='anki'?{donoRevisaoEm:Date.now()}:{})}}));
+    this._toast(v==='anki'
+      ? 'O Anki agora agenda os cartões que você exportar — eles saem do Baralho'
+      : (n ? ('O Cátedra volta a agendar tudo: '+(n===1?'o cartão exportado voltou':'os '+n+' cartões exportados voltaram')+' ao Baralho') : 'O Cátedra agenda a revisão dos cartões'));
+  };
+  /** O arquivo não chegou ao Anki (download cancelado, seletor do iPad fechado): o lote daquela
+      exportação volta ao Baralho, e a próxima exportação o leva de novo. */
+  _desfazerLote(em){
+    const B=window.CT_BARALHO; if(!B) return;
+    const ids=B.lote(this.state.flashcards, em).map(c=>c.id);
+    if(ids.length) this.setState(st=>{ const f=B.desmarcar(st.flashcards, ids, Date.now()); this._saveFC(f); return {flashcards:f}; }, ()=>this.flashSync());
+    this._toast(B.avisoDesfeito(ids.length));
+  }
+  desfazerExportacao = (e)=>{ this._desfazerLote(+((e&&e.currentTarget&&e.currentTarget.dataset.em)||0)); };
   // Revisões (com data real) + data da prova → .ics para o Calendário/Google Calendar.
   exportICS = ()=>{
     const revs=(this.state.reviews||[]).filter(r=>r.dueDate);
@@ -15048,7 +15112,9 @@ class Component extends DCLogic {
         const sp=document.createElement('span'); sp.textContent=msg; t.appendChild(sp);
         (botoes||[]).forEach(bt=>{
           const b=document.createElement('button'); b.type='button'; b.textContent=bt.rotulo;
-          b.style.cssText='background:'+(bt.destaque?'#fff':'transparent')+';border:1px solid rgba(255,255,255,.35);color:'+(bt.destaque?'#1f2a26':'#fff')+';border-radius:99px;padding:5px 12px;font:inherit;font-size:12.5px;cursor:pointer;white-space:nowrap;';
+          b.style.cssText='background:'+(bt.destaque?'#fff':'transparent')+';border:1px solid rgba(255,255,255,.35);color:'+(bt.destaque?'#1f2a26':'#fff')+';border-radius:99px;padding:5px 12px;font:inherit;font-size:12.5px;cursor:pointer;white-space:nowrap;'
+            // o aviso mora no <body>, fora do [data-toque] da raiz: no toque, o alvo de 44 px vem daqui
+            +(this._toque?'min-height:var(--ct-alvo-toque,44px);min-width:var(--ct-alvo-toque,44px);':'');
           b.onclick=()=>{ esconder(); try{ bt.on&&bt.on(); }catch(_){} };
           t.appendChild(b);
         });
@@ -16819,10 +16885,15 @@ class Component extends DCLogic {
      já está no ARRAY_ID do auth.js e o cartão já tem id, então o agendamento sincroniza entre
      aparelhos por id, sem chave nova. Cartão sem `dueDate` é cartão novo — vence hoje. */
   _fcVence(c, hoje){ if(!c) return false; const d=String(c.dueDate||''); return !d || d<=hoje; }
-  /** Fila do baralho: vencidos primeiro (mais atrasado na frente), novos depois. */
-  _fcFila(disc){
-    const hoje=this._hoje(), d=String(disc||'').trim();
-    const todos=(this.state.flashcards||[]).filter(c=>c&&c.front&&this._fcVence(c,hoje));
+  /* Dono da revisão (baralho.js): com o Anki dono, o cartão exportado deixa de ser do Baralho —
+     sai da lista, da fila, das contagens e do aviso do Início. Sem o módulo, vale o de sempre. */
+  _fcDono(){ const B=window.CT_BARALHO; return B?B.dono(this.state.prefs):'app'; }
+  _fcDoBaralho(){ const B=window.CT_BARALHO, l=this.state.flashcards||[]; return B?B.doBaralho(l, this._fcDono()):l.filter(c=>c&&c.front); }
+  /** Fila do baralho: vencidos primeiro (mais atrasado na frente), novos depois. so='vencidas'
+      é a fila do aviso do Início: só o que já foi estudado e venceu, sem os novos. */
+  _fcFila(disc, so){
+    const hoje=this._hoje(), d=String(disc||'').trim(), B=window.CT_BARALHO;
+    const todos=this._fcDoBaralho().filter(c=>(so==='vencidas'&&B)?B.vencido(c,hoje):this._fcVence(c,hoje));
     const alvo = d ? todos.filter(c=>String(c.disc||'').trim()===d) : todos;
     return alvo.slice().sort((a,b)=>{
       const an=a.dueDate?0:1, bn=b.dueDate?0:1;          // vencido antes de novo
@@ -16838,7 +16909,10 @@ class Component extends DCLogic {
   }
   fcEstudar = (e)=>{
     const ds=(e&&e.currentTarget&&e.currentTarget.dataset)||{};
-    const fila=this._fcFila(ds.disc||'');
+    // a linha do Início não recomeça uma rodada aberta: retoma onde parou (acertos, erros e o
+    // tempo da rodada ficam, e o registro continua oferecido no fim)
+    if(ds.fila==='vencidas' && this.state.fcSess){ this.setState({view:'flashcards', menuOpen:false}); return; }
+    const fila=this._fcFila(ds.disc||'', ds.fila||'');
     if(!fila.length){ this._toast('Nada vencido no baralho — os cartões voltam na data que o FSRS marcou'); return; }
     // vindo de um bloco do ciclo, a sessão nasce amarrada àquela atividade (mesmo fio do parcial)
     let atvKey=''; const _di=ds.i;
@@ -17545,6 +17619,7 @@ class Component extends DCLogic {
     {t:'dados',     nome:'Backup automático semanal',   chaves:'backup automático semanal sozinho'},
     {t:'dados',     nome:'Zona de perigo — apagar tudo',chaves:'apagar tudo excluir zerar perigo'},
     {t:'dados',     nome:'Sincronização e privacidade', chaves:'sincronização privacidade nuvem conta dados'},
+    {t:'dados',     nome:'Quem agenda a revisão dos cartões (Cátedra ou Anki)', chaves:'anki dono revisão flashcards baralho cartões exportar fila'},
     {t:'conta',     nome:'Conta e sair',                chaves:'conta email sair logout desconectar aparelho'},
     {t:'aparencia', nome:'Tema e direção visual',       chaves:'tema claro escuro aparência visual tipografia direção'},
     {t:'aparencia', nome:'Cor de destaque',             chaves:'cor destaque accent'},
@@ -21741,7 +21816,8 @@ class Component extends DCLogic {
       revRefTem:!!revRun.refTem, revRefLabel:revRun.refLabel||'',
       revCardInterval:revRun.intervalo, revCardEf:revRun.ef, revCardReps:revRun.reps, revOpts:revRun.opts,
       revLaTem:!!revRun.laTem, revLaSegs:revRun.laSegs||[], revLaExtra:revRun.laExtra||'',
-      ankiNotaCloze:(()=>{ const n=(this.state.flashcards||[]).filter(c=>c&&c.tipo==='cloze').length;
+      // os cloze que a PRÓXIMA exportação leva: com o Anki dono, os já exportados não vão de novo (baralho.js)
+      ankiNotaCloze:(()=>{ const B=window.CT_BARALHO, l=this.state.flashcards||[], n=(B?B.paraExportar(l, this._fcDono()):l).filter(c=>c&&c.tipo==='cloze').length;
         return n?((n===1?'O 1 cartão de lei seca (leitura ativa) sai':'Os '+n+' cartões de lei seca (leitura ativa) saem')+' em arquivo próprio, catedra-cloze-lei-seca.txt: no Anki, importe com o tipo de nota Cloze e permita HTML.'):''; })(),
       revTallyAgain:revRun.again, revTallyHard:revRun.hard, revTallyGood:revRun.good, revTallyEasy:revRun.easy, revReviewedN:revRun.reviewedN, revAcertos:revRun.acertos,
       revStartDisabled: revPend===0,
@@ -22504,7 +22580,7 @@ class Component extends DCLogic {
       ankiHist, ankiLast, ankiAvg, ankiTotalRev, ankiStatus, ankiStatusColor, ankiStatusMsg,
       ankiPoly, ankiW, ankiH, ankiInsights, ankiIdealRange, ankiInput:this.state.ankiInput, onAnkiInput:this.onAnkiInput, ankiRevInput:this.state.ankiRevInput, onAnkiRevInput:this.onAnkiRevInput, saveAnki:this.saveAnki,
       // ===== Baralho (tela nova) =====
-      ...(()=>{ const hoje=this._hoje(), todos=(this.state.flashcards||[]).filter(c=>c&&c.front);
+      ...(()=>{ const hoje=this._hoje(), todos=this._fcDoBaralho();
         const dueAll=todos.filter(c=>this._fcVence(c,hoje));
         const S=this.state.fcSess;
         const porDisc=(()=>{ const m={}; dueAll.forEach(c=>{ const d=String(c.disc||'').trim()||'Sem disciplina'; m[d]=(m[d]||0)+1; });
@@ -22515,7 +22591,9 @@ class Component extends DCLogic {
         const restam = S ? Math.max(0, S.ids.length-S.i) : 0;
         return {
           fcDueN:dueAll.length, fcTemDue:dueAll.length>0, fcDueStr:String(dueAll.length),
-          fcTotalStr:String(todos.length), fcSemCartao:todos.length===0,
+          // com o Anki dono e tudo já no Anki, a nota do dono explica; o "baralho vazio, ele se enche
+          // sozinho" falaria como se não houvesse cartão nenhum
+          fcTotalStr:String(todos.length), fcSemCartao:todos.length===0 && !(this._fcDono()==='anki' && window.CT_BARALHO && window.CT_BARALHO.noAnki(this.state.flashcards)>0),
           fcPorDisc:porDisc, fcTemPorDisc:porDisc.length>1,
           fcEstudar:this.fcEstudar, fcVirar:this.fcVirar, fcResponder:this.fcResponder, fcEncerrar:this.fcEncerrar,
           fcRodando:!!(S&&atual), fcParado:!(S&&atual),
@@ -22527,7 +22605,13 @@ class Component extends DCLogic {
           fcRestamStr: String(restam), fcAcertosStr: S?String(S.acertos):'0', fcErrosStr: S?String(S.erros):'0',
           fcProgresso: (S&&S.ids.length) ? (Math.round(S.i/S.ids.length*100)+'%') : '0%',
           // o baralho acabou dentro da rodada (fila esvaziou) — a tela diz e oferece registrar
-          fcAcabou: !!(S && !atual) }; })(),
+          fcAcabou: !!(S && !atual),
+          // aviso do Início (cartão novo não conta como vencido) e dono da revisão — baralho.js
+          ...(()=>{ const B=window.CT_BARALHO, dono=this._fcDono(), T=B?B.textos(this.state.flashcards||[], dono, hoje, this.state.prefs):null;
+            return { fcVencTem:!!(T&&T.vencidasN>0), fcVencStr:String(T?T.vencidasN:0), fcVencRot:T?T.vencidasRotulo:'',
+              fcDonoAnki:dono==='anki', fcDonoTxt:T?T.baralho:'', donoEstado:T?T.estado:'',
+              donoLoteTem:!!(T&&T.lote), donoLoteTxt:(T&&T.lote)?T.lote.txt:'', donoLoteEm:(T&&T.lote)?String(T.lote.em):'', desfazerExportacao:this.desfazerExportacao,
+              donoOpcoes:B?B.opcoes(dono):[], setDonoRevisao:this.setDonoRevisao }; })() }; })(),
       // cronômetro
       timerMode:this.state.timerMode, pomoMenuOpen:this.state.pomoMenuOpen, togglePomoMenu:this.togglePomoMenu, setTimerMode:this.setTimerMode,
       timerStateLabel, pomoLivre:pomoChip('livre'), pomoPomo:pomoChip('pomo'),

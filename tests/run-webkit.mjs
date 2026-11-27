@@ -49,6 +49,7 @@ import { testarSelectHost } from './select-host.mjs';
 import { testarAjustesRitmo } from './ajustes-ritmo.mjs';
 import { testarRevisoesFSRS } from './fsrs-revisoes.mjs';
 import { testarMotorFSRS } from './fsrs-motor.mjs';
+import { testarBaralhoDonoRevisao } from './baralho-dono-revisao.mjs';
 import { testarCicloMagistratura } from './ciclo-magistratura.mjs';
 import { testarCicloNivelEstrategia } from './ciclo-nivel-estrategia.mjs';
 import { testarSemAnotacoesNavegador } from './sem-anotacoes.mjs';
@@ -239,6 +240,8 @@ for (const [base, origem, arquivo] of ORIGENS) {
     if (origem === 'http') { try { await testarMotorFSRS(ok);
 await testarRevisoesFSRS(page, base, ok);
 await testarCicloMagistratura(page, base, ok, { motor, origem }); } catch (e) { ok(false, 'CICLO MAGISTRATURA [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); } }
+    // Baralho: vencidas no Início e um só dono da revisão, no motor do iPad (só http: semeia por /__semente)
+    if (origem === 'http') { try { await testarBaralhoDonoRevisao(page, base, ok, { motor }); } catch (e) { ok(false, 'BARALHO [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); } }
     try { await testarSelectHost(page, base, ok, { motor, origem }); }
     catch (e) {
       ok(false, 'SELECT/host [' + motor + '] [' + origem + '] o roteiro correu sem exceção ('
