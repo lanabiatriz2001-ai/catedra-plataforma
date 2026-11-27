@@ -35,12 +35,27 @@ Regras (decisões da dona, 25/09/2026):
   A trava leva o registro oficial
   inteiro: o build_corpus.py o põe por cima dos patches da auditoria (cuja correção o L2 conferiu
   campo a campo contra o oficial) e dos 4 ids que a auditoria criou por patch "add".
+
+Atualização assistida (docs/teses-oficiais/atualizacao-AAAA-MM-DD.json, a primeira de 25/11/2026): a
+leitura nova da fonte oficial, em ordem de data, por cima dos lotes.
+- "registros": cada um SUBSTITUI o registro do mesmo id no lote que ele nomeia em "substitui" — "L1" a "L4"
+  ou o nome da atualização sem a extensão ("atualizacao-AAAA-MM-DD") — (a leitura mais nova vence) e traz
+  o que mudou ("mudou"), por quê ("motivo") e onde foi conferido ("conferencia");
+- "correcoes_compilacao": verbete de outra compilação que passa a mostrar a tese oficial (texto, link e
+  situação; o texto anterior fica guardado no próprio lote), por decisão da dona;
+- "novos": tema que a dona aprovou e que entra no acervo (id novo, no fim do índice e do
+  repercussao_geral.json); precisa de "ramo" no vocabulário do acervo;
+- "situacao_outros": verbete de outra compilação (COORD-*) cujo texto é a tese oficial ganha só a
+  situação oficial (web: coluna da situação; nativo: build/data/patches_temas_oficiais.json);
+- "sugeridos" e "para_conferir" não entram: são a lista para a dona decidir.
 """
-import json, os, re, sys
+import glob, json, os, re, sys
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REFS = [os.path.join(RAIZ, 'docs', 'teses-oficiais', f'l{n}-referencia.json') for n in (1, 2, 3)]
 REF_L4 = os.path.join(RAIZ, 'docs', 'teses-oficiais', 'l4-referencia.json')
+ATUALIZACOES = sorted(glob.glob(os.path.join(RAIZ, 'docs', 'teses-oficiais', 'atualizacao-*.json')))
+PATCH_NATIVO = 'patches_temas_oficiais.json'   # em build/data do VadeMecumJuris: a situação dos COORD-*
 CAMPOS = ('tribunal', 'fonte', 'numero', 'titulo', 'enunciado', 'tema', 'orgaoJulgador', 'data', 'situacao',
           'precedentes', 'observacao', 'url')
 CORTE_LISTA = 140          # caracteres do tema na coluna da lista web
@@ -107,7 +122,7 @@ def confere(ref):
         assert not DOD.search(json.dumps(r, ensure_ascii=False)), i
 
 
-def aplica_web(ref, sai=frozenset()):
+def aplica_web(ref, sai=frozenset(), novos=None, situacoes=None, correcoes=()):
     p_idx, p_txt = os.path.join(RAIZ, 'juris-index.js'), os.path.join(RAIZ, 'juris-text.js')
     idx, pre_i = le_js(p_idx, '__JURIS_IDX__')
     txt, pre_t = le_js(p_txt, '__JURIS_TXT__')
@@ -115,6 +130,19 @@ def aplica_web(ref, sai=frozenset()):
     idx = [r for r in idx if r[0] not in sai]           # L4: fundidos e retirados saem (a ordem do resto fica)
     for i in sai:
         txt.pop(i, None)
+    # tema novo aprovado pela dona: entra no fim do índice (a ordem do resto fica); o laço abaixo o preenche
+    ja = {r[0] for r in idx}
+    for i, o in (novos or {}).items():
+        if i not in ja:
+            idx.append([i, o['tribunal'], o['fonte'], o['numero'], o['titulo'], o['ramo'], None, None, None, 0])
+    # situação oficial em verbete de outra compilação (COORD-*): só a coluna da situação
+    for k, r in enumerate(idx):
+        s = (situacoes or {}).get(r[0])
+        if s:
+            assert (r[1], r[2], r[3]) == (s['tribunal'], s['fonte'], s['numero']), f'situação para {r[0]} com tribunal/fonte/número que não batem'
+            idx[k] = r[:8] + [s['situacao']] + r[9:]
+    faltam_s = set(situacoes or {}) - {r[0] for r in idx}
+    assert not faltam_s, f'situação para ids fora do acervo web: {sorted(faltam_s)[:5]}'
     vistos = set()
     for k, r in enumerate(idx):
         o = ref.get(r[0])
@@ -130,9 +158,23 @@ def aplica_web(ref, sai=frozenset()):
         txt[r[0]] = {c: v for c, v in novo.items() if v}   # juris-text é um objeto: a ordem das chaves se mantém
     faltam = set(ref) - vistos
     assert not faltam, f'ids da referência ausentes da web: {sorted(faltam)[:5]}'
+    for c in correcoes:
+        i = c['id']
+        assert i in txt and txt[i]['en'] in (c['texto_acervo'], c['tese_oficial']), i
+        txt[i].update(en=c['tese_oficial'], ur=c['url'])
+        if 'observacao' in c:
+            txt[i].update(ob=c['observacao'], og='Corte Especial')
+    por_id = {c['id']: c for c in correcoes}
+    for r in idx:
+        if r[0] in por_id:
+            c = por_id[r[0]]
+            assert (r[1], r[3]) == (c['tribunal'], c['numero'])
+            r[8] = c['situacao_oficial']
+            r[7] = c.get('data', r[7])
     grava_js(p_idx, pre_i, idx)
     grava_js(p_txt, pre_t, txt)
-    print(f'web: {len(vistos)} verbetes trocados em juris-index.js e juris-text.js; {antes - len(idx)} retirados do acervo ({antes} → {len(idx)})')
+    print(f'web: {len(vistos)} verbetes trocados em juris-index.js e juris-text.js ({len(novos or {})} novos); '
+          f'{len(situacoes or {})} com a situação oficial (outras compilações); {antes} → {len(idx)} verbetes')
 
 
 def reposiciona_dedup(dir_nat, rg_antes, sai, fundir, novo_569):
@@ -168,7 +210,7 @@ def reposiciona_dedup(dir_nat, rg_antes, sai, fundir, novo_569):
     print(f'dedup congelada: {mov} posições deslocadas, {alvo} absorvedores trocados pelo canônico, {orfao} sem absorvedor')
 
 
-def aplica_nativo(ref, dir_nat, l4=None):
+def aplica_nativo(ref, dir_nat, l4=None, novos=None, situacoes=None, correcoes=()):
     p_rg = os.path.join(dir_nat, 'build', 'data', 'repercussao_geral.json')
     rg = json.load(open(p_rg, encoding='utf-8'))
     fundir = {i: v['canonico'] for i, v in (l4 or {}).get('fundir', {}).items()}
@@ -179,6 +221,11 @@ def aplica_nativo(ref, dir_nat, l4=None):
         n0 = len(rg)
         rg = [r for r in rg if r['id'] not in sai]
         print(f'nativo: {n0 - len(rg)} registros fundidos/retirados saem do repercussao_geral.json ({n0} → {len(rg)})')
+    # tema novo aprovado pela dona: no FIM do arquivo, para não deslocar as posições da dedup congelada
+    ja = {r['id'] for r in rg}
+    for i, o in (novos or {}).items():
+        if i not in ja:
+            rg.append({'id': i, 'ramoDireito': o['ramo'], 'comentario': None})
     vistos = set()
     for k, r in enumerate(rg):
         o = ref.get(r['id'])
@@ -220,8 +267,18 @@ def aplica_nativo(ref, dir_nat, l4=None):
                   f, ensure_ascii=False, indent=1)
     # As notas de estudo do nativo (notas.json) foram apagadas em 03/10/2026 (decisão da dona): não há
     # mais o que retirar desses verbetes.
-    print(f'nativo: {len(vistos)} registros trocados em repercussao_geral.json, {len(set(ref) - vistos)} pela trava '
-          f'(criados por patch da auditoria); trava com {len(trava)}')
+    # situação oficial dos verbetes de outras compilações: patch por id, que o build_corpus.py aplica
+    patches = [{'match': {'id': i}, 'set': {'situacao': s['situacao']}} for i, s in sorted((situacoes or {}).items())]
+    for c in correcoes:
+        campos = {'enunciado': c['tese_oficial'], 'situacao': c['situacao_oficial'], 'url': c['url']}
+        if 'observacao' in c:
+            campos.update(observacao=c['observacao'], data=c['data'], orgaoJulgador='Corte Especial')
+        patches.append({'match': {'id': c['id']}, 'set': campos})
+    with open(os.path.join(dir_nat, 'build', 'data', PATCH_NATIVO), 'w', encoding='utf-8') as f:
+        f.write(json.dumps(patches, ensure_ascii=False, indent=1) + '\n')
+    print(f'nativo: {len(vistos)} registros trocados em repercussao_geral.json ({len(novos or {})} novos), '
+          f'{len(set(ref) - vistos)} pela trava (criados por patch da auditoria); trava com {len(trava)}; '
+          f'{len(patches)} situações em build/data/{PATCH_NATIVO}')
 
 
 if __name__ == '__main__':
@@ -244,12 +301,47 @@ if __name__ == '__main__':
         assert not (sai & set(ref)), 'id fundido/retirado com registro oficial'
         assert all(v['canonico'] in ref for v in l4['fundir'].values()), 'canônico sem registro oficial'
         print(f"l4-referencia.json: {len(l4['aplicar'])} aplicado(s), {len(l4['fundir'])} fundidos, {len(l4['retirar'])} retirados")
+    lote_de = {}
+    for n, caminho in zip((1, 2, 3), REFS):
+        if os.path.exists(caminho):
+            lote_de.update({i: f'L{n}' for i in json.load(open(caminho, encoding='utf-8'))['registros']})
+    lote_de.update({i: 'L4' for i in (l4 or {}).get('aplicar', {})})
+    novos, situacoes, correcoes = {}, {}, {}
+    for caminho in ATUALIZACOES:      # em ordem de data: a leitura mais nova vence
+        at, nome = json.load(open(caminho, encoding='utf-8')), os.path.basename(caminho)
+        # o identificador do lote é o nome SEM a extensão ('atualizacao-AAAA-MM-DD'), o mesmo que
+        # tests/teses-oficiais.mjs usa: é ele que uma atualização futura põe em "substitui"
+        lote = os.path.splitext(nome)[0]
+        for i, r in at.get('registros', {}).items():
+            assert i in ref, f'{nome}: {i} não tem registro em lote anterior (tema novo vai em "novos")'
+            assert r.get('substitui') == lote_de[i], f"{nome}: {i} diz substituir {r.get('substitui')}, mas está em {lote_de[i]}"
+            assert r.get('mudou') and r.get('conferencia'), f'{nome}: {i} sem "mudou" ou sem "conferencia"'
+            ref[i] = r; lote_de[i] = lote
+        for i, r in at.get('novos', {}).items():
+            assert i not in ref and i not in sai, f'{nome}: {i} já existe, foi fundido ou retirado'
+            assert r.get('ramo') and r.get('conferencia'), f'{nome}: tema novo {i} sem "ramo" ou sem "conferencia"'
+            ref[i] = r; lote_de[i] = lote; novos[i] = r
+        # verbete de outra compilação: a situação mais nova vence. Na mesma atualização, a correção do texto
+        # (que traz a situação junto) vem depois da situação avulsa; entre atualizações, a mais nova vence
+        # qualquer uma das duas — por isso a situação avulsa posterior desce para a correção anterior.
+        for i, s in at.get('situacao_outros', {}).items():
+            assert not i.startswith('repgeral-'), f'{nome}: {i} é repgeral-* — a situação dele muda em "registros"'
+            assert s.get('situacao') and s.get('conferencia'), f'{nome}: {i} sem situação ou sem conferência'
+            situacoes[i] = s
+            if i in correcoes:
+                correcoes[i] = dict(correcoes[i], situacao_oficial=s['situacao'])
+        for c in at.get('correcoes_compilacao', []):
+            correcoes[c['id']] = c
+            situacoes.pop(c['id'], None)
+        print(f"{nome}: {len(at.get('registros', {}))} registros atualizados, {len(at.get('novos', {}))} novos, "
+              f"{len(at.get('situacao_outros', {}))} situações de outras compilações; "
+              f"{len(at.get('sugeridos', {}))} sugeridos e {len(at.get('para_conferir', []))} para conferir ficam de fora")
     confere(ref)
-    aplica_web(ref, sai)
+    aplica_web(ref, sai, novos, situacoes, correcoes.values())
     swift = [os.path.join(RAIZ, d, 'vendor', 'juris', 'Store', 'JurisEstadoPersistido.swift') for d in ('mac', 'ios')]
     if '--nativo' in sys.argv:
         dir_nat = sys.argv[sys.argv.index('--nativo') + 1]
         swift.append(os.path.join(dir_nat, 'Sources', 'VadeMecum', 'Store', 'LibraryStore.swift'))
-        aplica_nativo(ref, dir_nat, l4)
+        aplica_nativo(ref, dir_nat, l4, novos, situacoes, correcoes.values())
     if l4:
         gera_migracoes(l4, swift)

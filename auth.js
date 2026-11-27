@@ -755,6 +755,20 @@
   // erro é de sessão, derruba para o login antes — sem apagar nada deste aparelho.
   function erroDe(res) { var e = res && res.error; if (!e) return null; if (sessaoCaiu(res)) sessaoExpirou(); return e; }
 
+  /* A EDIÇÃO QUE O AUTOSAVE AINDA NÃO GRAVOU ENTRA NA MESCLA (25/11/2026).
+     O app adia a gravação 500 ms, e cada render com estado sujo rearma o prazo — digitando sem
+     parar, nada grava. O que a pessoa acabou de fazer vive só na memória dele. Uma mescla que lesse
+     o disco nesse intervalo não via a edição, e o aviso 'catedra:synced' fazia o app reler o disco
+     por cima dela: a escolha voltava ao valor antigo, na tela e no aparelho, e nunca subia — mesmo
+     numa chave que a nuvem nem tinha mudado. Por isso, antes de ler o local para mesclar (pushNow,
+     pullAndMerge, hidratação), o auth.js pede ao app que grave JÁ só o que está pendente. O evento é
+     síncrono — os ouvintes rodam antes de o dispatch voltar —, e a gravação passa pelo setImpl como
+     qualquer outra (carimbo, lápide, sujo): a mescla a vê como o que ela é, a escrita mais nova deste
+     aparelho. NÃO é gravar a memória inteira: o app grava só a chave que mudou desde o último
+     salvamento — o resto da memória pode estar velho, e o disco é que tem a verdade. Sem o app na
+     página, o evento não tem ouvinte e nada muda. */
+  function gravarPendenteDoApp() { try { window.dispatchEvent(new CustomEvent('catedra:antesdamescla')); } catch (_) {} }
+
   /* Devolve a promise da cadeia (leitura → mescla → upsert), que sempre RESOLVE — é por ela que o
      Sair espera o envio. Com um envio em voo, devolve o que está em voo (pushP); sem como enviar,
      uma promise já resolvida. `saindo`: depois que o Sair decidiu apagar o aparelho, nada deste
@@ -784,6 +798,9 @@
         // nada. O sujo fica; quem sobe é o pushNow depois do reload daquela hidratação.
         if (!paginaAtual() || hidratacaoEmCurso || user !== dono) return;
         var row = res && res.data;
+        // a edição ainda no debounce do app vai ao disco ANTES do retrato (e da geração, para a
+        // marcação de sujo dela já estar contada nele) — ver gravarPendenteDoApp
+        gravarPendenteDoApp();
         ger = geracao;   // antes do retrato: escrita depois daqui pode não estar nele
         var antes = collect();
         var merged = mergeAll(row && row.data, antes, false); // subida: local prevalece nos escalares
@@ -855,6 +872,11 @@
      Use SÓ para valor que o aparelho recalcula sozinho — nunca para escolha da pessoa,
      que precisa do carimbo para vencer no merge. */
   gravarDerivado: function (k, v) { try { _si(k, v); } catch (_) {} },
+  /* A chave (do localStorage, com ou sem o sufixo @area) é uma lista que a mescla une por id
+     (ARRAY_ID)? O app pergunta antes de levar uma edição pendente para cima do que a mescla
+     gravou — gravar a lista crua da memória criaria lápide nos ids que chegaram do outro aparelho.
+     Pergunta aqui, e não numa cópia da lista no app: cópia diverge na primeira chave nova. */
+  ehListaPorId: function (k) { return ehArrayId(String(k || '')); },
   get status() { return syncStatus; },
   // e-mail da sessão (só para o seed do Ciclo Magistratura reconhecer a conta; nunca sai daqui)
   get email() { return (user && user.email) || ''; },
@@ -889,6 +911,9 @@
         if (!row || !row.data) { pulling = false; if (isDirty()) pushNow(); else { setStatus('salvo'); marcarSincronizado(); } return; }
         var serverNewer = srvMaisNovo(row.updated_at, lastSrv());
         if (!serverNewer && !isDirty()) { pulling = false; gravarCheio(row.data); setStatus('salvo'); marcarSincronizado(); publicarWidget(tsMs(row.updated_at)); return; }
+        // a edição ainda no debounce do app vai ao disco antes do retrato (ver gravarPendenteDoApp);
+        // gravada, ela marca sujo, e a direção da mescla é a de um aparelho com escrita por subir
+        gravarPendenteDoApp();
         // servidor mais novo e este aparelho limpo → escalares vêm do servidor; arrays sempre por id
         var merged = mergeAll(row.data, collect(), serverNewer && !isDirty());
         applyData(merged);
@@ -939,7 +964,9 @@
     return true;
   }
   function flushSync() {
-    if (!paginaAtual() || !user || hydrating || hidratacaoEmCurso) return;
+    if (!paginaAtual() || hydrating || hidratacaoEmCurso) return;
+    gravarPendenteDoApp();
+    if (!user) return;
     clearTimeout(pushT);
     enviarCondicional();
   }
@@ -947,7 +974,12 @@
     // Minimizar/trocar de aba NÃO é fechar: a página segue viva, então dá tempo do
     // caminho seguro (pushNow faz read-before-write). O envio com keepalive (condicional,
     // ver enviarCondicional) fica só para o pagehide, onde não há tempo de reler o servidor.
-    if (document.visibilityState === 'hidden') { if (hidratacaoEmCurso) return; clearTimeout(pushT); if (isDirty()) pushNow(); }
+    if (document.visibilityState === 'hidden') {
+      if (!paginaAtual() || hydrating || hidratacaoEmCurso) return;
+      gravarPendenteDoApp();
+      clearTimeout(pushT);
+      if (isDirty()) pushNow();
+    }
     else if (document.visibilityState === 'visible') { if (pendente) reconfirmarSessao(); else if (!refazerHidratacao()) pullAndMerge(); }
   });
   window.addEventListener('pagehide', flushSync);
@@ -1595,7 +1627,11 @@
          defeito antigo, sem _dirty); _lastSrv recebe o updated_at do SERVIDOR (a nuvem foi
          vista até ali; nada foi gravado). Depois do reload o onLogin (hydrated=1) chama o
          pushNow quando sujo: relê a nuvem, confere res.error e só limpa o dirty quando o
-         upsert confirma — na falha, dirty fica, selo em erro/offline e nova tentativa em 30 s. */
+         upsert confirma — na falha, dirty fica, selo em erro/offline e nova tentativa em 30 s.
+         Antes do retrato, o que o app ainda não gravou vai ao disco (gravarPendenteDoApp): na
+         sessão pendente retomada o app está vivo, e a edição de segundos atrás não pode ficar
+         fora da mescla nem ser desfeita pelo aviso de reler que sai daqui. */
+      gravarPendenteDoApp();
       var jaSujo = isDirty();
       if (row && row.data && Object.keys(row.data).length) {
         // mescla nuvem + local (por id nos arrays) — edições offline deste aparelho não se perdem

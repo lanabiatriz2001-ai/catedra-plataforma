@@ -69,6 +69,7 @@ import { testarAuthAbertura } from './auth-abertura.mjs';
 import { testarAuthHidratacao } from './auth-hidratacao.mjs';
 import { testarAuthFechamento } from './auth-fechamento.mjs';
 import { testarLoginSemDados } from './login-sem-dados.mjs';
+import { testarSyncEdicaoPendente } from './sync-edicao-pendente.mjs';
 import { testarWidgetResumo } from './widget-resumo.mjs';
 import { testarCarregamentoInicial, testarAberturaEmbutida, testarAberturaPendente } from './carregamento-inicial.mjs';
 import { testarSelectHost } from './select-host.mjs';
@@ -123,6 +124,14 @@ page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
 if (process.env.CT_SO === 'redacao-resultado') {
   testarRedacaoResultadoEstatico(ok);
   await testarRedacaoResultado(page, URL0, ok, { motor });
+  await browser.close(); srv.close();
+  console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
+  process.exit(falhas.length ? 1 : 0);
+}
+// CT_SO=sync-edicao: a edição no debounce × sincronização e o login sem dados (os dois com o auth.js de verdade)
+if (process.env.CT_SO === 'sync-edicao') {
+  await testarSyncEdicaoPendente(page, URL0, ok, { motor });
+  await testarLoginSemDados(page, URL0, ok, { motor });
   await browser.close(); srv.close();
   console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
   process.exit(falhas.length ? 1 : 0);
@@ -10161,6 +10170,12 @@ catch (e) {
 try { await testarLoginSemDados(page, URL0, ok, { motor }); }
 catch (e) {
   ok(false, 'LOGIN SEM DADOS [' + motor + '] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+// Edição ainda no debounce × sincronização (tests/sync-edicao-pendente.mjs): a mescla não desfaz o que o autosave não gravou
+try { await testarSyncEdicaoPendente(page, URL0, ok, { motor }); }
+catch (e) {
+  ok(false, 'SYNC EDIÇÃO PENDENTE [' + motor + '] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 // Fechamento e Sair sem sobrescrever a nuvem (tests/auth-fechamento.mjs): PATCH condicional no pagehide, Sair espera o pushNow
