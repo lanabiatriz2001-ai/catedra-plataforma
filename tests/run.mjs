@@ -673,7 +673,21 @@ function pdfjsNaSaida(dir) {
     const { execFileSync } = await import('child_process');
     const pubDir = path.join(RAIZ, 'public');
     const versaoDe = (txt) => { const m = txt.match(/^\s*VERSION = '(catedra-[^']+)';/m) || txt.match(/var VERSION = '(catedra-[^']+)';/); return m && m[1]; };
-    const buildSite = () => execFileSync(process.execPath, [path.join(RAIZ, 'scripts', 'build.mjs')], { cwd: RAIZ, stdio: 'pipe' });
+    const lerPub = (f) => fs.readFileSync(path.join(pubDir, f), 'utf8');
+    /* A DATA DO CARIMBO É CONTEÚDO. O build grava window.CATEDRA_BUILD = {versao, data, alvo} no
+       index.html, e o index.html entra no hash da versão. Refazer o deploy pelo relógio comparava
+       DIAS, não conteúdos: na CI do PR #259 (25/11/2026) o build do D9 terminou às 23:59:57Z, o
+       refeito daqui às 00:00:06Z, e "mesmo conteúdo, mesma versão" reprovou (catedra-5eaf1342050a
+       × catedra-81bbc35398b5). Nove segundos bastaram, então encurtar a janela não resolve; no
+       fuso da dona, UTC−4, a virada cai por volta das 20h. Por isso todo build daqui leva a data
+       FIXADA em CATEDRA_BUILD_DATA, variável que só a suíte usa: sem ela, o build carimba o dia
+       do relógio, como sempre fez na Vercel. */
+    const buildSite = (data) => execFileSync(process.execPath, [path.join(RAIZ, 'scripts', 'build.mjs')],
+      { cwd: RAIZ, stdio: 'pipe', env: data ? { ...process.env, CATEDRA_BUILD_DATA: data } : process.env });
+    const dataDoCarimbo = (html) => {
+      const m = (html || '').match(/window\.CATEDRA_BUILD = (\{.*?\});/);
+      try { return m ? JSON.parse(m[1]).data : null; } catch (_) { return null; }
+    };
 
     // 8a. a versão é injetada pelo build e sai do CONTEÚDO: mesmo conteúdo, mesma versão
     const vA = versaoDe(swSrc);
@@ -686,21 +700,53 @@ function pdfjsNaSaida(dir) {
     } catch (_) {}
     ok(!!calc && vA === 'catedra-' + calc,
       'U10/VERSÃO a versão publicada é o hash do deploy (public/ + texto do sw.js), recalculado aqui igual');
-    buildSite();
-    const vDeNovo = versaoDe(fs.readFileSync(path.join(pubDir, 'sw.js'), 'utf8'));
+
+    // 8a'. A VIRADA DO DIA NÃO REPROVA MAIS. O "publicado" sai com a data de ONTEM (o build feito
+    //      antes da meia-noite) e é refeito agora, com o relógio já no dia seguinte, do jeito que o
+    //      resto do 8a refaz: com a data que está no carimbo. Sem fixar, o refeito carimbaria hoje.
+    const ontem = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
+    const anteontem = new Date(Date.now() - 2 * 864e5).toISOString().slice(0, 10);
+    buildSite(ontem);
+    const vOntem = versaoDe(lerPub('sw.js')), carimboOntem = dataDoCarimbo(lerPub('index.html'));
+    ok(carimboOntem === ontem,
+      'U10/VIRADA CATEDRA_BUILD_DATA fixa a data do carimbo no lugar do relógio (' + carimboOntem + ', pedida ' + ontem + ')');
+    buildSite(dataDoCarimbo(lerPub('index.html')));
+    const vRefeito = versaoDe(lerPub('sw.js'));
+    ok(!!vOntem && vRefeito === vOntem,
+      'U10/VIRADA o deploy de ontem refeito hoje com a data do carimbo dá a mesma versão (' + vOntem + ', ' + vRefeito + ')');
+    buildSite(anteontem);
+    const vAnteontem = versaoDe(lerPub('sw.js'));
+    ok(!!vAnteontem && vAnteontem !== vOntem,
+      'U10/VIRADA a data é conteúdo: o mesmo deploy carimbado noutro dia é versão nova (' + vAnteontem + '), por isso o refeito fixa a data');
+    // data malformada não pode virar carimbo nem cair em silêncio no relógio (que era o defeito)
+    const idxAntesInvalida = lerPub('index.html');
+    let rInvalida;
+    try { buildSite('25/11/2026'); rInvalida = { code: 0, saida: '' }; }
+    catch (e) { rInvalida = { code: e.status ?? 1, saida: String(e.stdout || '') + String(e.stderr || '') }; }
+    let idxDepoisInvalida = null;
+    try { idxDepoisInvalida = lerPub('index.html'); } catch (_) {}
+    ok(rInvalida.code !== 0 && /BUILD ABORTADO: CATEDRA_BUILD_DATA/.test(rInvalida.saida) && idxDepoisInvalida === idxAntesInvalida,
+      'U10/VIRADA data fora de AAAA-MM-DD derruba o build antes de apagar public/, em vez de carimbar lixo (' + rInvalida.code + ')');
+
+    // de volta ao 8a, agora sem relógio: todo refeito leva a data do carimbo publicado
+    const dataPub = dataDoCarimbo(idxHtml);
+    ok(/^\d{4}-\d{2}-\d{2}$/.test(dataPub || ''),
+      'U10/VERSÃO o index.html publicado carimba a data do build (' + dataPub + ')');
+    buildSite(dataPub);
+    const vDeNovo = versaoDe(lerPub('sw.js'));
     // um deploy com UM byte diferente num acervo: a sonda é posta e tirada no finally
     const sonda = path.join(RAIZ, 'modelos-edital.js'), sondaOrig = fs.readFileSync(sonda);
     let swB = null;
     try {
       fs.writeFileSync(sonda, Buffer.concat([sondaOrig, Buffer.from('\n/* sonda U10 */\n')]));
-      buildSite();
-      swB = fs.readFileSync(path.join(pubDir, 'sw.js'), 'utf8');
+      buildSite(dataPub);
+      swB = lerPub('sw.js');
     } finally {
       fs.writeFileSync(sonda, sondaOrig);
-      buildSite();
+      buildSite(dataPub);
     }
     const vB = swB && versaoDe(swB);
-    const vVolta = versaoDe(fs.readFileSync(path.join(pubDir, 'sw.js'), 'utf8'));
+    const vVolta = versaoDe(lerPub('sw.js'));
     ok(vDeNovo === vA && vVolta === vA,
       'U10/VERSÃO dois builds do mesmo conteúdo dão a mesma versão (' + vDeNovo + ', ' + vVolta + ')');
     ok(!!vB && vB !== vA && /^catedra-[0-9a-f]{12}$/.test(vB),
