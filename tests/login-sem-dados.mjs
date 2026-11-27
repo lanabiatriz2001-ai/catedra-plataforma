@@ -154,6 +154,22 @@ async function esperarHidratadoEEnvio(page, minimo) {
   await page.waitForTimeout(1500);   // o autosave (500 ms) e o envio (700 ms) assentam
 }
 
+// A cadeia de envios que a hidratação deixou agendada assenta: nada sujo, selo "salvo" e nenhuma
+// chamada nova ao Supabase falso por 1,5 s. O (b) precisa disto antes de trocar a nuvem: na CI do
+// PR #265 (job 139612297600) ele terminou ~1 s depois do (a) e leu um envio DESSA cadeia, que saiu
+// depois da troca e antes do autosave da escolha. Devolve se assentou no prazo.
+async function assentar(page, prazo = 30000) {
+  const t0 = Date.now(); let n = -1, desde = Date.now();
+  while (Date.now() - t0 < prazo) {
+    const s = await page.evaluate(() => ({ sujo: localStorage.getItem('catedra:_dirty'), st: window.CatedraSync && window.CatedraSync.status,
+      n: JSON.parse(localStorage.getItem('__ct:chamadas') || '[]').length }));
+    if (s.n !== n) { n = s.n; desde = Date.now(); }
+    else if (!s.sujo && s.st === 'salvo' && Date.now() - desde >= 1500) return true;
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  return false;
+}
+
 // O valor é o da nuvem? Objeto: cada campo da pessoa ficou (o app pode juntar padrões que a nuvem
 // não tinha). Texto e número: exatamente igual.
 function preservou(daNuvem, valor) {
@@ -240,13 +256,18 @@ export async function testarLoginSemDados(pageDaSuite, base, ok, opcoes = {}) {
 
     // (b) já no app: outro aparelho mudou a banca hoje de manhã (nuvem MANHA, mais nova que o
     // ONTEM daqui) e a pessoa escolhe outra agora. Sem o carimbo dela, a nuvem venceria o envio.
+    // Antes da troca da nuvem, a cadeia pós-hidratação assenta (ver assentar); depois da escolha,
+    // espera o envio que a LEVA — não qualquer envio novo: um envio que saísse entre a troca e o
+    // autosave (ainda que só desta cadeia) traria a 'fcc' da nuvem, e ler esse seria ler o errado.
+    if (!await assentar(page)) console.log(R + '(b) a cadeia pós-hidratação não assentou em 30 s; o caso segue e as asserções dizem o que veio');
     const antesB = await carimboDe(page, 'catedra:bancaSel');
     const enviosAntes = await envios(page);
     await page.evaluate((linha) => { localStorage.setItem('__ct:select', JSON.stringify(linha)); },
       nuvem(Object.assign({}, NUVEM_A, { 'catedra:bancaSel': JSON.stringify('fcc') }), Object.assign(ktsDe(NUVEM_A, ONTEM), { 'catedra:bancaSel': MANHA })));
     await page.evaluate(() => window.__catedraApp.setState({ bancaSel: 'vunesp' }));   // o autosave grava em 500 ms
     await page.waitForFunction((n) => JSON.parse(localStorage.getItem('__ct:chamadas') || '[]')
-      .filter((c) => c.nome === 'upsert' && c.arg && c.arg.data).length > n, enviosAntes, { timeout: 20000 }).catch(() => {});
+      .filter((c) => c.nome === 'upsert' && c.arg && c.arg.data).slice(n).some((c) => c.arg.data['catedra:bancaSel'] === '"vunesp"'),
+      enviosAntes, { timeout: 20000 }).catch(() => {});
     await page.waitForTimeout(800);
     const b = await page.evaluate(() => ({
       carimbo: (JSON.parse(localStorage.getItem('catedra:_kts') || '{}'))['catedra:bancaSel'] || 0,
