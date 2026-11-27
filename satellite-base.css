@@ -344,6 +344,60 @@ button.ct-sat-card:hover, #app button.mode:hover, #app button.rcard:hover, #app 
 [data-baixa="1"] button.ct-sat-card, [data-baixa="1"] #app button.mode, [data-baixa="1"] #app button.rcard, [data-baixa="1"] #app button.vcard { transition: none; }
 [data-baixa="1"] button.ct-sat-card:hover, [data-baixa="1"] #app button.mode:hover, [data-baixa="1"] #app button.rcard:hover, [data-baixa="1"] #app button.vcard:hover { transform: none; }
 
+/* A moldura acompanha o painel do Cátedra. O host já reserva a margem quando abre
+   um iframe; o documento avulso usa a margem responsiva definida em catedra-ui.css.
+   O limite de linha dos artigos, ementas e espelhos pertence a cada leitor. */
+:root {
+  --sat-margem: var(--ct-margem-pagina, var(--ct-e4));
+  --sat-controle: var(--control-h, 38px);
+  --sat-icone: 44px;
+  --sat-largura-filtro: max(calc(8 * var(--ct-e6)), 16em);
+}
+:root[data-ct-embed] { --sat-margem: 0px; }
+@media (pointer: coarse), (max-width: 640px) {
+  :root { --sat-controle: max(44px, var(--control-h, 38px)); }
+}
+@media screen {
+  .wrap {
+    margin: 0;
+    padding: var(--ct-intervalo-secao, var(--ct-e4)) var(--sat-margem) calc(var(--ct-e6) + var(--ct-e7));
+  }
+  header.top > .l1, header.top > .l2 {
+    gap: var(--ct-e3);
+    padding-inline: var(--sat-margem);
+  }
+  header.top > .l1 { padding-block: var(--ct-e3); }
+  header.top > .l2 { padding-bottom: var(--ct-e3); }
+}
+.wrap > .head, header.top .brand { gap: var(--ct-e3); }
+.wrap > .head { margin-bottom: var(--ct-e4); }
+.wrap > .head .ic, header.top .brand .ic {
+  width: var(--sat-icone);
+  height: var(--sat-icone);
+}
+
+/* Busca, seletores e abas compartilham a altura mínima. A altura cresce se o
+   tamanho de texto escolhido precisar de mais espaço. */
+.wrap .search input,
+.wrap > .tabs > button,
+header.top .busca input,
+header.top .l1 > :is(.inp, .sel),
+header.top .acs button,
+header.top .modos button,
+header.top #btRito {
+  box-sizing: border-box;
+  min-height: var(--sat-controle);
+  padding-block: var(--ct-e1);
+}
+header.top .l1 > .sel {
+  flex: 0 1 var(--sat-largura-filtro);
+  min-width: 0;
+  max-width: 100%;
+}
+@media (max-width: 640px) {
+  header.top .l1 > :is(.sel, .inp) { flex: 1 1 100%; min-width: 0; }
+}
+
 /* A mesma hierarquia de entrada nos sete módulos. Os quatro painéis de trabalho
    mantêm a barra de filtros compacta; os catálogos têm espaço para o título. */
 .wrap > .head {
