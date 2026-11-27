@@ -244,12 +244,11 @@ struct DashboardView: View {
                             }
                         }
                     }
-                    HStack(alignment: .top, spacing: 16) {
+                    IndicadoresInicio {
                         CartaoNumeroInicio(rotulo: "Artigos lidos", valor: "\(store.totalReadUnits)", apoio: "\(store.study.count) normas com leitura")
                         CartaoNumeroInicio(rotulo: "Para revisão", valor: "\(store.totalReviewUnits)", apoio: "artigos marcados para rever")
                         CartaoNumeroInicio(rotulo: "Marcações", valor: "\(store.annotations.count)", apoio: "grifos e notas nas normas")
                     }
-                    .padding(.horizontal, 2).offset(y: -42).padding(.bottom, -42)
                 }
                 SecaoInicio(titulo: "Estudo semanal",
                             meta: "\(BarrasSemana.dias(store.activity).map(\.valor).reduce(0, +)) na semana")
@@ -422,7 +421,7 @@ struct DashboardView: View {
                     .appSurface()
                 }
             }
-            .padding(AppTheme.pageInset)
+            .margemPaginaAcervo(.all)
         }
         .background(AppTheme.pageBackground)
         .navigationTitle("Início")

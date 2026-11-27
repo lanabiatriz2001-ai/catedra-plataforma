@@ -22,7 +22,7 @@ struct RamosHubView: View {
                         }
                     }
                 }
-                .jurisMargemPagina().padding(.vertical, 20)
+                .margemPaginaAcervo().padding(.vertical, 20)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -103,7 +103,7 @@ struct RamoDetalheView: View {
                         }
                         Color.clear.frame(height: 20)
                     }
-                    .jurisMargemPagina().padding(.top, 20)
+                    .margemPaginaAcervo().padding(.top, 20)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
@@ -232,7 +232,7 @@ struct TribunalCentralView: View {
                     }
                     Color.clear.frame(height: 20)
                 }
-                .jurisMargemPagina().padding(.top, 22)
+                .margemPaginaAcervo().padding(.top, 22)
             }
         }
         .background(Palette.appBackground)
