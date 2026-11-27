@@ -156,6 +156,14 @@ if (process.env.CT_SO === 'redacao-mesa') {
   console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
   process.exit(falhas.length ? 1 : 0);
 }
+// CT_SO=auth-hidratacao: só a hidratação e o portão de aceite dos Termos (tests/auth-hidratacao.mjs), no motor de CT_BROWSER
+if (process.env.CT_SO === 'auth-hidratacao') {
+  try { await testarAuthHidratacao(page, URL0, ok, { motor }); }
+  catch (e) { ok(false, 'AUTH HIDRATAÇÃO [' + motor + '] o roteiro correu sem exceção (' + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')'); }
+  await browser.close(); srv.close();
+  console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
+  process.exit(falhas.length ? 1 : 0);
+}
 
 try { await testarPrioridadeErrosResolvidos(ok); }
 catch (e) { ok(false, 'PRIORIDADE erro resolvido exceção: ' + e.message); }
@@ -3577,6 +3585,45 @@ await comCadernoEnam(async (page) => {
   r.versaoVigente = J.versao === '1.0/1.2' && J.termos.arquivo === 'termos.html' && J.privacidade.data === '2026-10-01';
   r.aceiteVigentePuro = J.aceiteVigente({ versao: '1.0/1.2', ts: 1 }) === true && J.aceiteVigente('{"versao":"1.0/1.2","ts":5}') === true && J.aceiteVigente({ versao: '0.9/1.0', ts: 1 }) === false && J.aceiteVigente(null) === false && J.aceiteVigente('lixo') === false && J.aceiteVigente({ versao: '1.0/1.2' }) === false;
   const auth = fs.readFileSync(path.join(RAIZ, 'auth.js'), 'utf8');
+  // O aceite de versão MAIS NOVA também vale: o app de build mais velho que o aceite da nuvem não volta ao portão a cada
+  // abertura. Termos e privacidade comparados em separado; versão malformada, outro número de documentos ou sem carimbo
+  // não vale. 1.10 é maior que 1.3: a comparação é por número, não por texto nem parseFloat (que lê 1.10 como 1,1); e 1.3
+  // vale o mesmo que 1.3.0. Os casos servem para o vigente 1.0/1.2 e para o 1.0/1.3 (o '1.0/1.10' muda quando a
+  // privacidade passar da 1.10, como o '1.0/1.4' depois da 1.4).
+  r.aceiteVersaoMaisNova = J.aceiteVigente({ versao: '1.0/1.4', ts: 1 }) === true && J.aceiteVigente({ versao: '1.1/1.3', ts: 1 }) === true && J.aceiteVigente({ versao: '2.0/1.0', ts: 1 }) === false && J.aceiteVigente({ versao: '1.0/1.3x', ts: 1 }) === false && J.aceiteVigente({ versao: '1.0', ts: 1 }) === false && J.aceiteVigente({ versao: '1.0/1.4' }) === false && J.aceiteVigente({ versao: '1.0/9.x', ts: 1 }) === false
+    && J.aceiteVigente({ versao: '1.0/1.10', ts: 1 }) === true && J.aceiteVigente({ versao: J.versao.split('/').map(p => p + '.0').join('/'), ts: 1 }) === true;
+  {
+    // a versão idêntica à vigente sempre vale, mesmo fora do formato: a regra nova nunca recusa o que a estrita aceitava
+    const src = fs.readFileSync(path.join(RAIZ, 'juridico.js'), 'utf8').replace(/"versao":"[^"]*","termos"/, '"versao":"1.0/1.3.","termos"');
+    const caixa = {}; new Function('window', 'globalThis', src)(caixa, caixa);
+    r.aceiteIgualForaDoFormatoVale = caixa.CT_JURIDICO.versao === '1.0/1.3.' && caixa.CT_JURIDICO.aceiteVigente({ versao: '1.0/1.3.', ts: 1 }) === true;
+  }
+  {
+    // e o build não deixa sair versão fora do formato: copia o gerador e os dois .md para uma pasta temporária, põe
+    // "1.4." no cabeçalho da Política e confere que o build para, diz por quê e não gera o juridico.js
+    const os = await import('os');
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ct-juridico-'));
+    try {
+      fs.mkdirSync(path.join(tmp, 'scripts')); fs.mkdirSync(path.join(tmp, 'docs', 'juridico'), { recursive: true });
+      fs.copyFileSync(path.join(RAIZ, 'scripts', 'build-juridico.mjs'), path.join(tmp, 'scripts', 'build-juridico.mjs'));
+      fs.copyFileSync(path.join(RAIZ, 'docs', 'juridico', 'termos-de-uso.md'), path.join(tmp, 'docs', 'juridico', 'termos-de-uso.md'));
+      const pol = fs.readFileSync(path.join(RAIZ, 'docs', 'juridico', 'politica-de-privacidade.md'), 'utf8').replace(/\*\*Vers[ãa]o\s+[\d.]+/, '**Versão 1.4.');
+      fs.writeFileSync(path.join(tmp, 'docs', 'juridico', 'politica-de-privacidade.md'), pol);
+      const b = spawnSync(process.execPath, [path.join(tmp, 'scripts', 'build-juridico.mjs')], { cwd: tmp, encoding: 'utf8', timeout: 30000 });
+      // o motivo dito é o de verdade: o aceite idêntico vale, mas a versão fora do formato não se compara com as outras
+      r.versaoForaDoFormatoBarraOBuild = b.status !== 0 && /fora do formato/.test(b.stderr || '') && /não se compara com as outras versões/.test(b.stderr || '')
+        && !/recusaria até o aceite desta/.test(b.stderr || '') && !fs.existsSync(path.join(tmp, 'juridico.js'));
+    } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+  }
+  {
+    // A mescla (aceiteVencedor) e o portão (J.aceiteVigente) concordam: com um lado vigente e o outro não, fica o vigente.
+    // Sem isso, um aceite fora do formato venceria na mescla, o portão o recusaria e cada aceite novo seria desfeito.
+    const fonte = n => { const i = auth.indexOf('function ' + n + '('); let d = 0; for (let k = auth.indexOf('{', i); i >= 0 && k < auth.length; k++) { if (auth[k] === '{') d++; else if (auth[k] === '}' && !--d) return auth.slice(i, k + 1); } return ''; };
+    const venc = new Function('window', ['parseJ', 'versaoAceite', 'cmpVersaoAceite', 'aceiteVencedor'].map(fonte).join('\n') + '\nreturn aceiteVencedor;')({ CT_JURIDICO: J });
+    const VS = ['0.9/0.9', '1.0/1.1', J.versao, '1.0/1.4', '1.1/1.2', '1.1/1.3', '1.0/1.10', J.versao + '.0', '1.0/1.3.', '1.0/1.4.', '1.0/1..3', '2.0x/1.2'];
+    const A = (v, ts) => JSON.stringify({ versao: v, ts });
+    r.mesclaConcordaComOPortao = VS.every(s => VS.every(l => { if (s === l) return true; const sv = A(s, 2), lc = A(l, 1), w = venc(sv, lc); return J.aceiteVigente(sv) === J.aceiteVigente(lc) || (w != null && J.aceiteVigente(w)); }));
+  }
   r.portaoDeLoginPedeAceite = /aceiteVigente\(aceiteLocal, row && row\.data && row\.data\['catedra:aceite'\]\)/.test(auth) && /showAceite\(function \(\) \{ try \{ _si\('catedra:aceite'/.test(auth) && /data-doc="termos\.html"/.test(auth) && /data-doc="privacidade\.html"/.test(auth);
   r.exclusaoPelaRpc = /sb\.rpc\('excluir_minha_conta'\)/.test(auth) && /excluirConta: excluirConta/.test(auth) && fs.existsSync(path.join(RAIZ, 'supabase/migrations/2026-09-08-excluir-minha-conta.sql'));
   // A Política acompanha o código (versão 1.2, 01/10/2026): o que o app manda para `feedback` e o que a página pública

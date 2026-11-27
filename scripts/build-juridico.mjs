@@ -161,6 +161,10 @@ export function gerar() {
     const { md, faltam } = preencher(readFileSync(join(ROOT, doc.md), 'utf8'), dados);
     const cab = cabecalho(md);
     if (!cab.versao) throw new Error(doc.md + ': sem linha "**Versão X.Y …**" no cabeçalho — o aceite é versionado e precisa dela');
+    // O cabeçalho é lido com [\d.]+, que aceita "1.4.", "1..4" e ".4". O aceite idêntico ao vigente vale (J.aceiteVigente),
+    // mas uma versão assim não se compara com nenhuma outra: o aceite de versão mais nova, dado no site ou em aparelho já
+    // atualizado, não valeria neste build, e a mescla (aceiteVencedor) trocaria na nuvem esse aceite pelo desta versão.
+    if (!/^\d+(\.\d+)*$/.test(cab.versao)) throw new Error(doc.md + ': versão "' + cab.versao + '" fora do formato (números separados por ponto, como 1.3) — com ela o aceite não se compara com as outras versões: o de versão mais nova não valeria neste build, e a mescla o trocaria na nuvem pelo desta');
     writeFileSync(join(ROOT, doc.html), montarPagina(doc, md, faltam));
     info[doc.id] = { versao: cab.versao, data: cab.dataISO, titulo: doc.titulo, arquivo: doc.html };
     faltamTotal = faltamTotal.concat(faltam.filter((f) => !faltamTotal.includes(f)));
@@ -168,11 +172,19 @@ export function gerar() {
   if (faltamTotal.length) console.warn('  ⚠ Termos/Política saem como RASCUNHO — faltam em docs/juridico/controlador.json: ' + faltamTotal.join(', '));
   // a versão vigente do aceite é o par: mudou qualquer um dos dois, pede-se aceite de novo
   const versao = info.termos.versao + '/' + info.privacidade.versao;
+  // O aceite de versão MAIS NOVA também vale. A mescla do auth.js (aceiteVencedor) dá a vitória ao aceite
+  // mais novo; com igualdade estrita, o app de build mais velho que o aceite da nuvem (aceito no site ou
+  // num aparelho já atualizado) pedia o aceite a cada abertura, e a mescla seguinte o desfazia. Cada
+  // documento é comparado em separado, parte a parte e só com números; a versão idêntica à vigente sempre vale;
+  // outra fora do formato, ou com outro número de documentos, não vale. Sintaxe ES5: o JavaScriptCore do Mac e do
+  // iPad lê este arquivo.
   const js = '// juridico.js — GERADO por scripts/build-juridico.mjs a partir de docs/juridico/*.md. Não editar à mão.\n'
     + '// A versão vigente do aceite é "termos/privacidade"; catedra:aceite guarda {versao, ts}.\n'
     + '(function (raiz) {\n  var J = ' + JSON.stringify({ versao, termos: info.termos, privacidade: info.privacidade }) + ';\n'
-    + '  /** true quando o aceite guardado ({versao, ts}, objeto ou JSON) é da versão vigente. Puro, sem estado. */\n'
-    + '  J.aceiteVigente = function (v) { try { if (typeof v === "string") v = JSON.parse(v); } catch (e) { return false; } return !!(v && v.versao === J.versao && +v.ts > 0); };\n'
+    + '  /** true quando o aceite guardado ({versao, ts}, objeto ou JSON) é da versão vigente ou de uma mais nova: termos e\n'
+    + '      privacidade comparados em separado, cada um maior ou igual ao vigente, parte a parte e só com números. A versão\n'
+    + '      idêntica à vigente sempre vale; outra fora do formato ou com outro número de documentos = false. Puro, sem estado. */\n'
+    + '  J.aceiteVigente = function (v) { try { if (typeof v === "string") v = JSON.parse(v); } catch (e) { return false; } if (!(v && typeof v.versao === "string" && +v.ts > 0)) return false; if (v.versao === J.versao) return true; var a = v.versao.split("/"), b = J.versao.split("/"); if (a.length !== b.length) return false; for (var i = 0; i < b.length; i++) { if (!/^\\d+(\\.\\d+)*$/.test(a[i]) || !/^\\d+(\\.\\d+)*$/.test(b[i])) return false; var x = a[i].split("."), y = b[i].split("."), c = 0; for (var k = 0; k < Math.max(x.length, y.length) && !c; k++) { var p = +(x[k] || 0), q = +(y[k] || 0); c = p > q ? 1 : p < q ? -1 : 0; } if (c < 0) return false; } return true; };\n'
     + '  raiz.CT_JURIDICO = J;\n})(typeof window !== "undefined" ? window : globalThis);\n';
   writeFileSync(join(ROOT, 'juridico.js'), js);
   return { versao, info };

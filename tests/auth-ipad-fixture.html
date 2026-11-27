@@ -64,7 +64,9 @@
           signInWithOAuth: function (a) { chamou('signInWithOAuth', a.options.redirectTo); return Promise.resolve({ data: {}, error: null }); },
           resetPasswordForEmail: function (em, opcoes) { chamou('resetPasswordForEmail', { email: em, retorno: opcoes.redirectTo }); return Promise.resolve({ data: {}, error: null }); },
           updateUser: function () { return Promise.resolve({ data: {}, error: null }); },
-          signOut: function () { chamou('signOut'); try { localStorage.removeItem('__ct:sessao'); } catch (_) {} return Promise.resolve({ error: null }); },
+          // __ct:signOutPendente: a saída fica PRESA até o teste chamar __ctResolverSignOut() — abre a janela entre o "Não
+          // aceito" confirmado e o reload sem depender de quanto a máquina demora
+          signOut: function () { chamou('signOut'); try { localStorage.removeItem('__ct:sessao'); } catch (_) {} if (cfg('signOutPendente', false)) return new Promise(function (res) { window.__ctResolverSignOut = function () { res({ error: null }); }; }); return Promise.resolve({ error: null }); },
           getUser: function () { return Promise.resolve({ data: { user: null }, error: null }); }
         },
         /* PREGUIÇOSO como o postgrest-js de verdade: select/upsert/insert/update/delete só
@@ -107,6 +109,8 @@
         rpc: function (n, a) {
           chamou('rpc', { n: n, a: a == null ? null : a });
           var resp = cfg('rpc_' + n, { data: null, error: null });
+          // __ct:rpcPendente (LISTA de nomes): a resposta fica PRESA até o teste chamar __ctResolverRpc()
+          if (cfg('rpcPendente', []).indexOf(n) >= 0) return new Promise(function (res) { window.__ctResolverRpc = function () { res(resp); }; });
           var atraso = +cfg('rpcAtraso', 0) || 0;
           return atraso ? new Promise(function (res) { setTimeout(function () { res(resp); }, atraso); }) : Promise.resolve(resp);
         },

@@ -150,6 +150,14 @@
   function leanForUpload(obj) { if (!obj) return obj; var o = {}; Object.keys(obj).forEach(function (k) { o[k] = (k === 'catedra:lib') ? stripLib(obj[k]) : obj[k]; }); return o; }
   function applyData(d) { if (!d) return; Object.keys(d).forEach(function (k) { if (isData(k)) { try { _si(k, d[k]); } catch (_) {} } }); }
   var auxiliaresDeEstudo = ['ct_enam_prova', 'ct_bkpFase2', 'ct_prova', 'ct_timer'];
+  // Estudo EM ANDAMENTO que só existe neste aparelho e nunca sobe (não marca _dirty nem entra no collect): cronômetro do
+  // dia, modo prova e prova do ENAM. O clearLocal os apaga junto com a conta; o "Não aceito" pergunta antes. O
+  // ct_bkpFase2 é retrato redundante e fica fora da pergunta (vai no arquivo, com as outras auxiliares).
+  var EM_ANDAMENTO = ['ct_timer', 'ct_prova', 'ct_enam_prova'];
+  // O retrato das auxiliares tirado no onLogin ANTES de avisar o app (catedra:authuser): o app retoma ali o simulado pausado
+  // e apaga o ct_prova (_restoreProva), guardando-o só na memória. Sem o retrato, o portão que vem em seguida não o via.
+  var auxiliaresNaAbertura = {};
+  function emAndamento() { return EM_ANDAMENTO.some(function (k) { try { return localStorage.getItem(k) != null || auxiliaresNaAbertura[k] != null; } catch (_) { return false; } }); }
   function chaveDaConta(k) {
     return k && (k.indexOf('catedra:') === 0 || auxiliaresDeEstudo.indexOf(k) >= 0);
   }
@@ -621,6 +629,9 @@
   function cmpVersaoAceite(a, b) {
     var pa = a.split('/'), pb = b.split('/'), maior = false, menor = false;
     if (pa.length !== pb.length) return 0;
+    // Fora do formato não decide, nem na parte depois da primeira diferença (a mesma regra do J.aceiteVigente): senão
+    // "1.0/1.4." venceria "1.0/1.3" aqui, o portão a recusaria e a mescla seguinte desfaria cada aceite novo.
+    for (var k = 0; k < pa.length; k++) if (!/^\d+(\.\d+)*$/.test(pa[k]) || !/^\d+(\.\d+)*$/.test(pb[k])) return 0;
     for (var i = 0; i < pa.length; i++) {
       var xa = pa[i].split('.'), xb = pb[i].split('.'), c = 0;
       for (var j = 0; j < Math.max(xa.length, xb.length) && !c; j++) {
@@ -1268,7 +1279,10 @@
   var ICO = {'scale':'<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path>',
     'repeat':'<path d="m17 2 4 4-4 4"></path><path d="M3 11v-1a4 4 0 0 1 4-4h14"></path><path d="m7 22-4-4 4-4"></path><path d="M21 13v1a4 4 0 0 1-4 4H3"></path>',
     'clipboard-list':'<rect width="8" height="4" x="8" y="2" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="M12 11h4"></path><path d="M12 16h4"></path><path d="M8 11h.01"></path><path d="M8 16h.01"></path>',
-    'mail':'<path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"></path><rect x="2" y="4" width="20" height="16" rx="2"></rect>'};
+    'mail':'<path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"></path><rect x="2" y="4" width="20" height="16" rx="2"></rect>',
+    // tela de aceite: "Baixar meus dados" e "Excluir minha conta" (o trash-2 é o mesmo traço do sprite do host)
+    'download':'<path d="M12 15V3"></path><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m7 10 5 5 5-5"></path>',
+    'trash-2':'<path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>'};
   function ico(nome) { return '<svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="' + nome + '" style="flex:none">' + (ICO[nome] || '') + '</svg>'; }
   var MAGIC = ico('mail') + ' Receber um link de acesso por e-mail';
 
@@ -1536,16 +1550,49 @@
     // administradora e a pessoal) e o Ajustes só mostrava um apelido salvo no
     // localStorage — não havia como descobrir, de dentro do app, onde se estava. Isso
     // custou uma caçada inteira a um "bug" que era simplesmente a conta errada.
+    // Retrato das auxiliares deste aparelho antes de avisar o app: o app retoma o simulado pausado no catedra:authuser e
+    // apaga o ct_prova da memória do aparelho (_restoreProva), e o portão de aceite, que vem depois, não o via — o "Não
+    // aceito" saía sem perguntar e o arquivo não o levava. (O app perder o simulado no reload da hidratação é do
+    // Catedra.dc.html e fica fora daqui.)
+    auxiliaresNaAbertura = {};
+    auxiliaresDeEstudo.forEach(function (k) { try { var v = localStorage.getItem(k); if (v != null) auxiliaresNaAbertura[k] = v; } catch (_) {} });
     try {
       var ident = { id: u.id, email: u.email || '' };
       if (window.CatedraAuth) window.CatedraAuth.user = ident;
       window.dispatchEvent(new CustomEvent('catedra:authuser', { detail: ident }));
     } catch (_) {}
-    if (sessionStorage.getItem('catedra:hydrated') === '1') { viaPendente = false; _si('catedra:auth', '1'); hydrating = false; hide(); setStatus(isDirty() ? 'enviando' : 'salvo'); if (isDirty()) pushNow(); else pullAndMerge(); return; }
+    // Aba que já hidratou (na web; no Mac e no iPad todo lançamento zera a sessionStorage) segue direto SÓ com o aceite
+    // vigente neste aparelho, ou com a marca de que a hidratação desta aba conferiu o aceite desta versão para esta conta
+    // (no aparelho ou na nuvem): a cópia local pode não ter gravado — o applyData engole o erro de cota cheia — e, sem a
+    // marca, a aba recarregava sem fim. Com documento novo publicado, o reload de uma aba aberta já roda o código novo:
+    // antes ela seguia sincronizando, dias se ficasse fixada, sem o aceite da versão vigente, e o portão só vinha numa aba
+    // nova. Agora refaz a hidratação, que lê a nuvem (lá pode estar o aceite dado em outro aparelho) e pede o aceite antes
+    // de subir qualquer coisa (P14). Aceite de versão mais nova que a deste build também vale (J.aceiteVigente).
+    var refazendoAba = false;
+    if (sessionStorage.getItem('catedra:hydrated') === '1') {
+      var aceiteDaAba = null; try { aceiteDaAba = localStorage.getItem('catedra:aceite'); } catch (_) {}
+      var Jh = window.CT_JURIDICO, conferido = false;
+      try { conferido = !!(Jh && Jh.versao) && sessionStorage.getItem('catedra:hydratedAceite') === u.id + '|' + Jh.versao; } catch (_) {}
+      // com o aceite vigente a trava sai (como no abrirSemHidratar): esta aba pode chegar aqui com ela ligada, quando a
+      // leitura refeita não terminou e a nova tentativa ('online'/'visible') acha o aceite que outra aba gravou
+      if (conferido || aceiteVigente(aceiteDaAba, null)) { soltarTravaHidratacao(); hidratacaoPendente = false; viaPendente = false; _si('catedra:auth', '1'); hydrating = false; hide(); setStatus(isDirty() ? 'enviando' : 'salvo'); if (isDirty()) pushNow(); else pullAndMerge(); return; }
+      sessionStorage.removeItem('catedra:hydrated'); refazendoAba = true;
+    }
     // Daqui até o reload nada sobe nem desce fora desta hidratação (ver hidratacaoEmCurso).
     hidratacaoEmCurso = true;
     showLoading('Carregando seus dados…');
     var leitura = ++leituraHidratacao;   // resposta de leitura abandonada (ver refazerHidratacao) não vale
+    // A aba que refaz a leitura segue marcada como hidratada quando a releitura não termina (prazo vencido ou erro): a
+    // recarga seguinte volta por este ramo, com o mesmo prazo, em vez de ler sem prazo como uma aba nova. Sem o aceite
+    // vigente e sem a marca de aceite conferido, o ramo tira a marca de novo e relê.
+    var abrirAba = function () { if (refazendoAba) { try { sessionStorage.setItem('catedra:hydrated', '1'); } catch (_) {} } abrirSemHidratar(); };
+    // A aba já hidratada abria na hora: a leitura refeita ganha o prazo e a saída do refazerHidratacao (portal cativo que
+    // segura a conexão). Sem o aceite vigente, abrirSemHidratar mantém a trava e arma a nova tentativa ('online'/'visible').
+    if (refazendoAba) setTimeout(function () {
+      if (user !== u || leituraHidratacao !== leitura || leituraRespondida === leitura || !hidratacaoEmCurso) return;
+      leituraHidratacao++;   // abandona a leitura em voo
+      abrirAba();
+    }, PRAZO_RETENTATIVA);
     sb.from('user_data').select('data,updated_at').eq('user_id', u.id).maybeSingle().then(function (res) {
       // FALHA DE LEITURA NÃO É "CONTA VAZIA".
       // O supabase-js NÃO rejeita a promise quando a rede/JWT/RLS falha: ele RESOLVE
@@ -1562,7 +1609,7 @@
       leituraRespondida = leitura;
       if (res && res.error) {
         if (sessaoCaiu(res)) { sessaoExpirou(); return; }   // JWT recusado: é login, não "erro" (showLoginState solta a trava)
-        abrirSemHidratar();
+        abrirAba();
         return;   // NÃO carimba lastSrv, NÃO marca hydrated, NÃO recarrega — a próxima
                   // abertura tenta hidratar de novo e o dado do servidor volta sozinho.
       }
@@ -1616,6 +1663,10 @@
       }
       _si('catedra:auth', '1');
       sessionStorage.setItem('catedra:hydrated', '1');
+      // A hidratação conferiu o aceite desta versão para esta conta (no aparelho ou na nuvem, ou acabou de recebê-lo): o
+      // reload segue sem reconferir só a cópia local, que pode não ter gravado (ver o ramo da aba hidratada no onLogin).
+      // É sessionStorage: não sincroniza e morre com a aba; versão nova publicada não casa com a marca.
+      try { var Jc = window.CT_JURIDICO; if (Jc && Jc.versao) sessionStorage.setItem('catedra:hydratedAceite', u.id + '|' + Jc.versao); } catch (_) {}
       // Vindo da sessão pendente, o app estava VIVO até o showLoading de cima: dá ao autosave
       // dele (500 ms) o tempo de gravar o que a pessoa acabou de fazer antes de recarregar.
       // A trava (ligada no começo do onLogin) segue até o reload: nos 700 ms o autosave ainda
@@ -1630,8 +1681,9 @@
       if (aceiteVigente(aceiteLocal, row && row.data && row.data['catedra:aceite'])) prosseguir();
       // O aceite novo leva carimbo (_kts): escrita da pessoa, como qualquer outra — sem ele o
       // empate na mescla da hidratação devolvia o aceite antigo da nuvem (ver aceiteVencedor).
-      else showAceite(function () { try { _si('catedra:aceite', JSON.stringify({ versao: window.CT_JURIDICO.versao, ts: Date.now() })); ktsStamp('catedra:aceite'); } catch (_) {} prosseguir(); });
-    }).catch(function () { if (!paginaAtual() || user !== u || leitura !== leituraHidratacao) return; leituraRespondida = leitura; abrirSemHidratar(); });
+      // A linha lida da nuvem (`row`) vai junto: quem não aceita baixa a nuvem + este aparelho, sem subir nada.
+      else showAceite(function () { try { _si('catedra:aceite', JSON.stringify({ versao: window.CT_JURIDICO.versao, ts: Date.now() })); ktsStamp('catedra:aceite'); } catch (_) {} prosseguir(); }, row);
+    }).catch(function () { if (!paginaAtual() || user !== u || leitura !== leituraHidratacao) return; leituraRespondida = leitura; abrirAba(); });
   }
   /* A leitura da hidratação falhou (rede, portal cativo, erro do servidor): o app abre com o que
      está no aparelho, sem hydrated e sem carimbar _lastSrv — a próxima hidratação repara.
@@ -1838,27 +1890,209 @@
     var J = window.CT_JURIDICO; if (!J || !J.versao || !J.aceiteVigente) return true;   // sem documentos publicados neste build, nada a pedir
     return J.aceiteVigente(local) || J.aceiteVigente(nuvem);
   }
-  function showAceite(cb) {
+  /* Cópia dos dados da conta para quem não aceita (Termos 12.2: "Se você não concordar, poderá exportar seus dados e
+     encerrar a conta"). A nuvem lida pela hidratação (`row`, ou a relida antes de excluir) e o que está neste aparelho,
+     mesclados como a hidratação mesclaria (mergeAll, preferindo a nuvem nos escalares sem carimbo), SEM gravar nada aqui e
+     sem subir nada: mergeAll e collect só leem. Vão junto as auxiliares de estudo deste aparelho (prova do ENAM, modo
+     prova, cronômetro), que nunca sobem e que o "Não aceito" e a exclusão também apagam. No app nativo o arquivo vai pela
+     ponte catedraBackup — no Mac, a pasta Cátedra do iCloud Drive (ou o painel de salvar); no iPad, o seletor de Arquivos —
+     e a promise só resolve depois de salvo: a pergunta de excluir nunca disputa a tela com o seletor. Na web, <a download>
+     com Blob, sem como saber se o navegador salvou (o Safari pergunta antes de baixar): semConfirmacao. Resolve sempre:
+     {ok, nome, onde, semConfirmacao} ou {ok: false, nome, motivo}. */
+  function baixarDadosDaConta(row) {
+    var d = new Date(), dois = function (n) { return (n < 10 ? '0' : '') + n; };
+    var nome = 'catedra-dados-' + d.getFullYear() + '-' + dois(d.getMonth() + 1) + '-' + dois(d.getDate()) + '.json', json;
+    try {
+      var auxiliares = {};
+      // o que o app tirou do aparelho ao retomar (o ct_prova do simulado pausado) vem do retrato da abertura
+      auxiliaresDeEstudo.forEach(function (k) { try { var v = localStorage.getItem(k); if (v == null) v = auxiliaresNaAbertura[k]; if (v != null) auxiliares[k] = v; } catch (_) {} });
+      json = JSON.stringify({
+        formato: 'catedra-dados-da-conta', geradoEm: d.toISOString(), conta: (user && user.email) || '',
+        observacao: 'Cópia para guardar e consultar: em "dados", cada chave catedra:* é um dado da sua conta, no formato em que a Cátedra o guarda (texto JSON); em "auxiliares", o que estava em andamento só neste aparelho (prova, cronômetro).',
+        dados: mergeAll((row && row.data) || {}, collect(), true),
+        auxiliares: auxiliares
+      }, null, 2);
+    } catch (_) { return Promise.resolve({ ok: false, nome: nome, motivo: 'não deu para montar o arquivo' }); }
+    var ponte = null;
+    try { ponte = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.catedraBackup; } catch (_) {}
+    if (ponte) {
+      return Promise.resolve().then(function () { return ponte.postMessage({ acao: 'salvar', nome: nome, json: json }); }).then(function (r) {
+        if (r && r.ok) return { ok: true, nome: nome, onde: String(r.onde || '') };
+        return { ok: false, nome: nome, motivo: r && r.cancelado ? 'cancelado' : String((r && r.erro) || 'sem resposta do aparelho') };
+      }, function (e) { return { ok: false, nome: nome, motivo: String((e && e.message) || 'falhou') }; });
+    }
+    try {
+      // Na web cada entrega tem nome próprio: com o anterior na pasta, o navegador renomeia a 2ª do dia ("… (1).json" no
+      // Chrome; outro sufixo no Safari e nos Arquivos do iPad), e a tela, que manda conferir o arquivo pelo nome, apontaria
+      // para o anterior — o da nuvem velha, depois do "Outro aparelho enviou estudos". No nativo o nome fica: no Mac a ponte
+      // grava por cima na pasta Cátedra, e no iPad o seletor de Arquivos decide.
+      var nomeWeb = nome.replace(/\.json$/, '-' + dois(d.getHours()) + dois(d.getMinutes()) + dois(d.getSeconds()) + '.json');
+      var url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+      var a = document.createElement('a'); a.href = url; a.download = nomeWeb; a.style.display = 'none';
+      el.appendChild(a); a.click(); el.removeChild(a);
+      setTimeout(function () { try { URL.revokeObjectURL(url); } catch (_) {} }, 60000);
+      return Promise.resolve({ ok: true, nome: nomeWeb, onde: '', semConfirmacao: true });   // entregue ao navegador, sem saber se salvou
+    } catch (_) { return Promise.resolve({ ok: false, nome: nome, motivo: 'o navegador recusou o download' }); }
+  }
+  function showAceite(cb, row) {
     var J = window.CT_JURIDICO || {};
+    // No Mac e no iPad (onde existe a ponte dos leitores) o que o CátedraLEGIS e o CátedraJURIS guardam por conta (anotações,
+    // grifos, revisões, favoritos, coleções, progresso) fica em arquivos do aparelho, fora do localStorage e da nuvem da
+    // conta: o arquivo não leva isso, e a tela diz. Exportar pede uma ação nova na ponte, com build nativo (decisão da dona).
+    var leitoresNativos = false;
+    try { leitoresNativos = !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.catedraPerfil); } catch (_) {}
+    // A conta à vista: no Mac e no iPad esta é a primeira tela da sessão restaurada, sem login digitado, e há quem use
+    // duas contas no aparelho. O Ajustes também mostra a conta antes de excluir.
+    var email = (user && user.email) || '';
     painel(
-      '<h2 style="font-family:' + SERIF + ';font-size:26px;font-weight:700;color:' + INK + ';margin:0;letter-spacing:-.01em;">Antes de continuar</h2>'
-      + '<p style="font-size:14px;color:' + MUT + ';margin:8px 0 16px;line-height:1.55;">Para usar a Cátedra com a sua conta, você precisa aceitar os Termos de uso e a Política de privacidade (versão ' + (J.versao || '') + '). Leia os dois — leva alguns minutos e diz o que fazemos com os seus dados.</p>'
+      // título sem font-family no atributo (a folha do portão já dá a SERIF) e texto em LAB, que passa de 4,5:1 no claro
+      // (o MUT dava 3,5:1)
+      '<h2 style="font-size:26px;font-weight:700;color:' + INK + ';margin:0;letter-spacing:-.01em;">Antes de continuar</h2>'
+      + '<p style="font-size:14px;color:' + LAB + ';margin:8px 0 16px;line-height:1.55;">Para usar a Cátedra com a sua conta, você precisa aceitar os Termos de uso e a Política de privacidade (versão ' + (J.versao || '') + '). Leia os dois — leva alguns minutos e diz o que fazemos com os seus dados.</p>'
+      // GHOST e BTN trazem a MEDIDA_CONTROLE do portão, a mesma dos campos e das ações do login; Termos e Política seguem
+      // empilhados, como sempre apareceram
       + '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">'
-      +   '<button type="button" data-doc="termos.html" style="' + GHOST + 'width:auto;flex:1;min-height:44px;">Termos de uso</button>'
-      +   '<button type="button" data-doc="privacidade.html" style="' + GHOST + 'width:auto;flex:1;min-height:44px;">Política de privacidade</button>'
+      +   '<button type="button" data-doc="termos.html" style="' + GHOST + '">Termos de uso</button>'
+      +   '<button type="button" data-doc="privacidade.html" style="' + GHOST + '">Política de privacidade</button>'
       + '</div>'
-      + '<label style="display:flex;align-items:flex-start;gap:10px;font-size:14px;color:' + INK + ';line-height:1.5;cursor:pointer;margin-bottom:16px;"><input id="ctac" type="checkbox" style="width:18px;height:18px;margin-top:2px;flex:none;"> <span>Li e aceito os Termos de uso e a Política de privacidade.</span></label>'
+      + '<label style="display:flex;align-items:flex-start;gap:10px;min-height:44px;font-size:14px;color:' + INK + ';line-height:1.5;cursor:pointer;margin-bottom:16px;"><input id="ctac" type="checkbox" style="width:18px;height:18px;margin-top:2px;flex:none;"> <span>Li e aceito os Termos de uso e a Política de privacidade.</span></label>'
       + '<button id="ctacok" type="button" disabled style="' + BTN + 'opacity:.55;">Aceitar e continuar</button>'
-      + '<p style="font-size:12.5px;color:' + MUT + ';text-align:center;margin:14px 0 0;"><a href="#" id="ctacsair" style="color:' + MUT + ';">Não aceito — sair da conta</a></p>'
+      // Termos 12.2: quem não concorda exporta os dados e encerra a conta SEM aceitar o texto de que discorda — e o Ajustes,
+      // onde ficam a exportação e a exclusão, está atrás deste portão. Os dois caminhos ficam aqui. Texto em LAB, que passa
+      // de 4,5:1 no claro e no escuro (o MUT do claro dá 3,5:1); todo alvo com 44 px no toque.
+      + '<div style="margin:22px 0 0;padding-top:18px;border-top:1px solid ' + BRD + ';">'
+      +   '<p id="ctacnc" style="font-size:13.5px;color:' + LAB + ';margin:0 0 10px;line-height:1.5;">Não concorda? Você pode baixar os seus dados e excluir a conta sem aceitar.'
+      // o e-mail é um bloco sem ponto de quebra (@ e ponto não quebram linha): sem o overflow-wrap, um longo passava da
+      // largura no celular e o painel rolava de lado
+      +     (email ? ' Conta: <b style="overflow-wrap:anywhere;">' + esc(email) + '</b>.' : '')
+      +     (leitoresNativos ? ' O que o CátedraLEGIS e o CátedraJURIS guardam neste aparelho (como anotações, grifos, revisões, favoritos, coleções e progresso de leitura) não entra no arquivo.' : '') + '</p>'
+      +   '<button type="button" id="ctacbaixar" style="' + GHOST + '">' + ico('download') + ' Baixar meus dados</button>'
+      +   '<button type="button" id="ctacexcluir" style="' + GHOST + 'margin-top:8px;">' + ico('trash-2') + ' Excluir minha conta</button>'
+      +   '<div id="ctacmsg" role="status" aria-live="polite" style="min-height:18px;font-size:13px;color:' + LAB + ';margin:8px 0 0;line-height:1.45;"></div>'
+      +   '<button type="button" id="ctacsair" style="' + MEDIDA_CONTROLE + 'margin-top:2px;background:transparent;border:none;border-radius:12px;color:' + LAB + ';font-size:13.5px;font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer;">Não aceito — sair da conta</button>'
+      + '</div>'
     );
     var bts = el.querySelectorAll('button[data-doc]');
     for (var i = 0; i < bts.length; i++) bts[i].onclick = function () { abrirDoc(this.getAttribute('data-doc')); };
     var chk = el.querySelector('#ctac'), ok = el.querySelector('#ctacok');
+    var bBaixar = el.querySelector('#ctacbaixar'), bExcluir = el.querySelector('#ctacexcluir'), bSair = el.querySelector('#ctacsair'), msg = el.querySelector('#ctacmsg');
+    var ocupado = false;
+    // decidiu: aceitou ou confirmou o "Não aceito". Separado de `ocupado`, que também vale enquanto a ponte do arquivo não
+    // responde: no iPad, o seletor que não abre deixa a ponte muda, e nem o "Aceitar" nem o "Não aceito" podem ficar presos
+    // a ela — eram as duas saídas do portão
+    var decidiu = false;
+    // Na web: o arquivo que esta tela já entregou ao navegador (o Safari pode ainda estar perguntando se baixa). O
+    // "Excluir" seguinte não gera outro e já pergunta.
+    var entregue = '';
+    var avisar = function (t) { msg.textContent = t || ''; };
+    var ondeFoi = function (r) { return r.semConfirmacao ? 'entregue ao navegador' : 'salvo' + (r.onde ? ' em ' + r.onde : ''); };
+    // durante a exclusão nada mais se toca: nem aceitar, nem sair, nem baixar de novo
+    var travar = function (sim) { bBaixar.disabled = bExcluir.disabled = bSair.disabled = chk.disabled = sim; ok.disabled = sim || !chk.checked; ok.style.opacity = ok.disabled ? '.55' : '1'; };
+    // Decidido (aceitar ou sair): até o reload nada mais se toca. Com viaPendente o reload do aceite espera 700 ms, e a
+    // saída espera o signOut: um toque nesse intervalo perguntava de novo, e o "Cancelar" dele não desfazia o que já
+    // corria, ou o "Não aceito" e o "Excluir" disputavam o reload. Sem o opacity do travar(), que deixaria o
+    // "Carregando seus dados…" sem contraste.
+    var decidido = function () { decidiu = ocupado = true; bBaixar.disabled = bExcluir.disabled = bSair.disabled = chk.disabled = ok.disabled = true; };
     chk.onchange = function () { ok.disabled = !chk.checked; ok.style.opacity = chk.checked ? '1' : '.55'; };
-    ok.onclick = function () { if (!chk.checked) return; ok.disabled = true; ok.textContent = 'Carregando seus dados…'; cb(); };
+    ok.onclick = function () { if (!chk.checked || decidiu || ok.disabled) return; decidido(); ok.textContent = 'Carregando seus dados…'; cb(); };
+    bBaixar.onclick = function () {
+      if (ocupado) return;
+      ocupado = true; avisar('Preparando o arquivo…');
+      baixarDadosDaConta(row).then(function (r) {
+        if (decidiu) return;   // aceitou ou saiu com a ponte ainda sem responder: o reload já vem
+        ocupado = false;
+        if (r.ok && r.semConfirmacao) entregue = r.nome;
+        // "à sua conta", não "à nuvem": no Mac o arquivo pode ir para o iCloud Drive, que também é nuvem
+        avisar(!r.ok ? (r.motivo === 'cancelado' ? 'O arquivo não foi salvo.' : 'Não deu para salvar o arquivo (' + r.motivo + ').')
+          : r.semConfirmacao ? 'Arquivo ' + r.nome + ' entregue ao navegador. Confira se ele foi salvo (se o navegador perguntar, permita o download). Nada foi enviado à sua conta.'
+          : 'Arquivo ' + r.nome + ' ' + ondeFoi(r) + '. Nada foi enviado à sua conta.');
+      });
+    };
+    // A pergunta diz qual conta, o que apaga e, como a Política (9.4 e 9.5), o que fica — num texto que vale para a 1.2 e
+    // para a 1.3 — e se a cópia foi salva.
+    var perguntaExcluir = function (copia) {
+      return 'Excluir a sua conta' + (email ? ' (' + email + ')' : '') + ' apaga o cadastro e os dados da conta, na nuvem e neste aparelho: estudos, participação nos grupos, relatos enviados pelo app e a contagem de uso da IA.'
+        + (leitoresNativos ? ' O que o CátedraLEGIS e o CátedraJURIS guardam neste aparelho (como anotações, grifos, revisões, favoritos, coleções e progresso de leitura) não está no arquivo e se perde com a exclusão da conta.' : '')
+        + '\n\nNão apaga o que a Política de privacidade (9.4 e 9.5) manda guardar ou deixa com você: as cópias que você salvou no iCloud Drive ou no Google Drive, os registros exigidos por lei e pela auditoria, as cópias de segurança técnicas do banco até expirarem e os cadastros feitos nas páginas públicas, sem conta, como a lista de espera do beta.'
+        + '\n\n' + copia + '\n\nNão dá para desfazer. Excluir mesmo assim?';
+    };
+    // Excluir: primeiro a cópia, depois a pergunta, depois a releitura da nuvem e a exclusão do Ajustes (excluirConta → RPC
+    // excluir_minha_conta), que só precisa da sessão aberta. Na web não há como saber se o arquivo foi salvo — o Safari
+    // (no iPad sempre; no Mac no 1º download do site) pergunta antes de baixar, e o reload do fim da exclusão encerra a
+    // página e o blob: o 1º toque só entrega o arquivo, e a pergunta vem no toque seguinte, sem gerar outro. No app nativo
+    // a ponte só responde depois de salvo: um toque basta.
+    bExcluir.onclick = function (e) {
+      // O 2º clique de um duplo clique (detail 2) não é o "toque seguinte": na web ele chegava à pergunta no mesmo gesto, logo
+      // depois de o 1º entregar o arquivo e por cima do pedido de permissão de download do Safari. Teclado e leitor de tela
+      // mandam detail 0; o toque seguinte, depois de ler o aviso, chega com detail 1.
+      if (ocupado || (e && e.detail > 1)) return;
+      ocupado = true;
+      var pronto = entregue ? Promise.resolve({ ok: true, nome: entregue, semConfirmacao: true, jaEntregue: true })
+        : (avisar('Preparando o arquivo com os seus dados…'), baixarDadosDaConta(row));
+      pronto.then(function (r) {
+        if (decidiu) return;   // aceitou ou saiu com a ponte ainda sem responder: nada de perguntar depois
+        if (r.ok && r.semConfirmacao && !r.jaEntregue) {
+          entregue = r.nome; ocupado = false;
+          avisar('Arquivo ' + r.nome + ' entregue ao navegador. Confira se ele foi salvo (se o navegador perguntar, permita o download) e toque de novo em “Excluir minha conta”.');
+          return;
+        }
+        var copia = !r.ok ? 'O arquivo com os seus dados NÃO foi salvo' + (r.motivo === 'cancelado' ? '' : ' (' + r.motivo + ')') + '.'
+          : r.semConfirmacao ? 'O arquivo com os seus dados (' + r.nome + ') foi entregue ao navegador nesta tela. Confira se ele está salvo: depois da exclusão, não dá para gerar outro.'
+          : 'O arquivo com os seus dados (' + r.nome + ') acabou de ser ' + ondeFoi(r) + '.';
+        if (!confirm(perguntaExcluir(copia))) {
+          ocupado = false; avisar('Nada foi excluído.' + (r.ok ? ' Arquivo ' + r.nome + ' ' + ondeFoi(r) + '.' : '')); return;
+        }
+        // O arquivo saiu da nuvem lida quando esta tela abriu; outro aparelho pode ter enviado estudos depois, e a exclusão
+        // apaga a nuvem inteira. Relê (só leitura; o supabase-js RESOLVE com {error}) e, se ela mudou, não exclui: guarda a
+        // linha nova e pede outro toque, que gera o arquivo com o que chegou.
+        travar(true); avisar('Conferindo a nuvem…');
+        var dono = user, visto = (row && row.updated_at) || '';
+        // na volta (falha ou nuvem nova), os botões voltam e o foco também: desabilitado, o botão perde o foco (a regra de
+        // foco manda; parte dos navegadores o faz) e quem usa teclado recomeçava o Tab do topo
+        var voltar = function (t) { ocupado = false; travar(false); avisar(t); try { bExcluir.focus(); } catch (_) {} };
+        if (!dono) { voltar('A sessão mudou. Nada foi excluído.'); return; }
+        sb.from('user_data').select('data,updated_at').eq('user_id', dono.id).maybeSingle().then(function (res) {
+          var e1 = erroDe(res); if (e1) throw e1;
+          if (user !== dono || !paginaAtual()) return;
+          var agora = res && res.data;
+          // Qualquer diferença conta, não só "mais novo": o updated_at é o relógio de quem enviou (o pushNow e o
+          // enviarCondicional gravam o new Date() do aparelho, e nada no banco o reescreve). Um aparelho com o relógio
+          // atrasado grava carimbo MAIS VELHO que o visto aqui; o srvMaisNovo deixava esse envio passar, e a exclusão apagava o
+          // que o arquivo não tinha. A igualdade não depende de relógio (como o filtro do enviarCondicional): visto e agora vêm
+          // do mesmo select, no mesmo formato. Sem linha quando a tela abriu, visto é '' e qualquer linha conta como mudança.
+          if (agora && (agora.updated_at || '') !== visto) {
+            row = agora; entregue = '';
+            voltar('Outro aparelho enviou estudos depois que esta tela abriu, e o arquivo não os tinha. Nada foi excluído: toque de novo em “Excluir minha conta” para gerar o arquivo atualizado.');
+            return;
+          }
+          avisar('Excluindo a conta…');
+          return excluirConta();
+        }).catch(function (err) {
+          var m = String((err && err.message) || '');
+          voltar(/admin_nao_pode/.test(m) ? 'Conta de administração não pode ser excluída por aqui.' : 'Não deu para excluir agora. Confira a internet e tente de novo.');
+        });
+      });
+    };
     // "Não aceito": nada sobe (a trava da hidratação segue ligada até aqui). No fim, sem conta
     // (user nulo) e sem o dado local, a trava é solta: um login seguinte nesta aba liga a dele.
-    el.querySelector('#ctacsair').onclick = function (e) { e.preventDefault(); saindo = true; sessionStorage.removeItem('catedra:hydrated'); var fin = function () { clearTimeout(pushT); user = null; if (donoDaPagina === localStorage.getItem('catedra:_owner')) clearLocal(); soltarTravaHidratacao(); location.reload(); }; avisarWidgetSaida(); revogarPasseWidget().then(function () { sb.auth.signOut().then(fin, fin); }); };
+    // Com estudo que ainda não subiu (feito sem rede, envio que falhou) ou em andamento só neste aparelho (cronômetro,
+    // simulado, prova do ENAM), pergunta antes de apagar o aparelho, como o Sair comum (concluirSaida): toda versão nova
+    // dos documentos manda todas as contas para cá. Cancelar deixa tudo como estava.
+    bSair.onclick = function (e) {
+      if (e) e.preventDefault();
+      // não olha `ocupado`: com a ponte do arquivo sem responder (iPad, seletor que não abriu), sair tem de continuar possível.
+      // Na exclusão em curso o travar() já desabilitou este botão; depois de decidir, também.
+      if (decidiu || bSair.disabled) return;
+      var pend = isDirty(), anda = emAndamento();
+      var oQue = pend && anda ? 'Há estudos deste aparelho que ainda não subiram para a sua conta e um cronômetro, um simulado ou uma prova do ENAM em andamento.'
+        : pend ? 'Há estudos deste aparelho que ainda não subiram para a sua conta.'
+        : 'Há um cronômetro, um simulado ou uma prova do ENAM em andamento neste aparelho.';
+      if ((pend || anda) && !confirm(oQue + '\n\nSair sem aceitar vai apagá-los daqui de vez. Para guardá-los sem aceitar, toque em Cancelar e use “Baixar meus dados”.\n\nQuer sair mesmo assim?')) return;
+      // o .55 também no "Aceitar": se a caixa foi marcada antes, o chk.onchange deixou opacity 1 no atributo, que vence a
+      // regra do [disabled] da folha, e o botão ficava aceso durante o "Saindo da conta…"
+      decidido(); ok.style.opacity = '.55'; avisar('Saindo da conta…');
+      saindo = true; sessionStorage.removeItem('catedra:hydrated'); var fin = function () { clearTimeout(pushT); user = null; if (donoDaPagina === localStorage.getItem('catedra:_owner')) clearLocal(); soltarTravaHidratacao(); location.reload(); }; avisarWidgetSaida(); revogarPasseWidget().then(function () { sb.auth.signOut().then(fin, fin); });
+    };
   }
   /** Exclusão da conta pela própria pessoa: a função excluir_minha_conta (security definer) apaga o blob,
       a participação e a atividade em grupos, feedback, uso de IA, acesso beta e a linha em auth.users. */
@@ -1871,12 +2105,34 @@
       if (user !== titular || !paginaAtual()) return;
       sessionStorage.removeItem('catedra:hydrated');
       saindo = true;
+      // No portão (aberto desde a carga desta página: no Mac e no iPad todo lançamento cai nele enquanto falta o aceite) o
+      // app nativo nunca recebeu a conta neste documento: contaLeitor() exige o portão fechado, cada navegação zera a
+      // associação (encerrarDocumento) e o {excluir} sem ela é recusado sem agendar nada — sobrava o aviso de "limpeza
+      // pendente" sem limpeza nenhuma. O servidor já confirmou a exclusão: informa a conta, com a credencial já conferida
+      // nesta página, e só então pede a limpeza do LEGIS/JURIS deste aparelho. Pelo Ajustes a conta já foi informada.
+      // A releitura ou a RPC podem ter renovado um token já vencido (app que voltou do segundo plano com o portão aberto): a
+      // credencial nova pode estar ainda em conferência. No app nativo, espera por ela, com prazo (o receber() a grava mesmo
+      // com `saindo` ligado, e o anunciarLeitor não manda nada: contaLeitor() fica '').
+      var ponteLeitores = false;
+      try { ponteLeitores = !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.catedraPerfil); } catch (_) {}
+      if (ponteLeitores && verificacaoLeitor) await esperarAte(verificacaoLeitor, 3000);
+      var credencialDaConta = !!(credencialLeitor && credencialLeitor.sub === titular.id && credencialLeitor.exp * 1000 > Date.now());
+      var contaInformada = ultimoPerfilLeitor.indexOf(titular.id + ':') === 0;
+      if (credencialDaConta && ultimoPerfilLeitor !== titular.id + ':' + credencialLeitor.exp) {
+        await perfilNativo({ conta: titular.id, expiraEm: String(credencialLeitor.exp) });
+      }
       var limpezaNativa = await perfilNativo({ excluir: titular.id });
       if (donoDaPagina === localStorage.getItem('catedra:_owner')) clearLocal();
       avisarWidgetSaida();
       var limpezaWeb = true;
       try { await removerOriginais(titular.id); } catch (_) { limpezaWeb = false; }
-      if (!limpezaNativa || !limpezaWeb) alert('Sua conta foi excluída do servidor. A limpeza de arquivos deste aparelho está pendente.');
+      // Sem credencial conferida e sem a conta informada neste documento, o app nativo recusa o {excluir} SEM agendar nada
+      // (PerfilLeitor.swift, receber): "pendente" prometeria uma limpeza que nenhuma abertura retoma. Apagar também nesse
+      // caso pede mudar o Swift (decisão da dona, com build).
+      var leitoresSemAgenda = !limpezaNativa && !credencialDaConta && !contaInformada;
+      if (!limpezaNativa || !limpezaWeb) alert('Sua conta foi excluída do servidor. ' + (leitoresSemAgenda
+        ? 'O app não confirmou a limpeza do que o CátedraLEGIS e o CátedraJURIS guardavam desta conta neste aparelho.' + (limpezaWeb ? '' : ' A limpeza dos outros arquivos deste aparelho está pendente.')
+        : 'A limpeza de arquivos deste aparelho está pendente.'));
       var fin = function () { location.reload(); };
       return sb.auth.signOut().then(fin, fin);
     });
