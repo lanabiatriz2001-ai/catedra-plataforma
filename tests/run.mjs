@@ -70,6 +70,7 @@ import { testarAuthHidratacao } from './auth-hidratacao.mjs';
 import { testarAuthFechamento } from './auth-fechamento.mjs';
 import { testarLoginSemDados } from './login-sem-dados.mjs';
 import { testarWidgetResumo } from './widget-resumo.mjs';
+import { testarSyncUltimaConflitoEstatico, testarSyncUltimaConflito } from './sync-ultima-conflito.mjs';
 import { testarCarregamentoInicial, testarAberturaEmbutida, testarAberturaPendente } from './carregamento-inicial.mjs';
 import { testarSelectHost } from './select-host.mjs';
 import { testarAjustesRitmo } from './ajustes-ritmo.mjs';
@@ -143,6 +144,13 @@ if (process.env.CT_SO === 'redacao-motor') {
 }
 if (process.env.CT_SO === 'redacao-mesa') {
   await testarRedacaoMesa(page, URL0, ok, { motor });
+  await browser.close(); srv.close();
+  console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
+  process.exit(falhas.length ? 1 : 0);
+}
+if (process.env.CT_SO === 'sync-ultima-conflito') {
+  testarSyncUltimaConflitoEstatico(ok);
+  await testarSyncUltimaConflito(page, URL0, ok, { motor });
   await browser.close(); srv.close();
   console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
   process.exit(falhas.length ? 1 : 0);
@@ -10120,6 +10128,13 @@ catch (e) {
 try { await testarAuthFechamento(page, URL0, ok, { motor }); }
 catch (e) {
   ok(false, 'AUTH FECHAMENTO [' + motor + '] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+// Última sincronização e conflito (tests/sync-ultima-conflito.mjs): carimbo de quem gravou só no corpo,
+// sem envio extra; o conflito descrito sem mudar o merge; Ajustes › Dados medidos
+try { testarSyncUltimaConflitoEstatico(ok); await testarSyncUltimaConflito(page, URL0, ok, { motor }); }
+catch (e) {
+  ok(false, 'SYNC-CONFLITO [' + motor + '] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 // Widgets: resumo, aviso ao host, Ajustes e publicação (tests/widget-resumo.mjs)

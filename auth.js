@@ -47,7 +47,13 @@
     // _widgetPasse: o passe de leitura do widget DESTE aparelho (lembrado só para o Sair revogar). Subir daria o
     // passe de um aparelho a todos os outros — e ele nem é segredo da conta, é do aparelho.
     'catedra:_widgetPasse': 1,
-    'catedra:_srvCheio': 1 };
+    'catedra:_srvCheio': 1,
+    // _ultimoEnvio: quem gravou por último na nuvem (id e nome do aparelho, ts igual ao updated_at daquela
+    // gravação e as versões de onde ela veio). Vai SÓ no corpo do envio (pushNow e o PATCH do fechamento) e é
+    // lido SÓ da linha que chega — nunca é gravado no localStorage. No EXCLUDE ele fica fora do merge (não
+    // compete com dado da pessoa: o envio seguinte traz o dele), fora do collect (não conta como trabalho nem
+    // como conta não vazia: temDadoLocal, contribuiu, haviaLegado, _srvCheio) e nunca marca sujo nem dispara envio.
+    'catedra:_ultimoEnvio': 1 };
 
   // ---------- LÁPIDES (tombstones): fazem a EXCLUSÃO valer ----------
   // Sem isto, apagar nunca "pega": o merge une arrays por id (o cartão/erro apagado volta
@@ -153,8 +159,12 @@
   function chaveDaConta(k) {
     return k && (k.indexOf('catedra:') === 0 || auxiliaresDeEstudo.indexOf(k) >= 0);
   }
+  // O que a sincronização observou desta conta neste aparelho (Ajustes › Dados e backup): o retrato
+  // deriva do conteúdo dela (um hash por chave), então sai junto com os dados.
+  var OBSERVADO_DA_CONTA = ['ct_syncUltima', 'ct_syncRetrato', 'ct_syncPendente', 'ct_syncConflito', 'ct_syncConflitoVisto'];
   function clearLocal() {
     Object.keys(localStorage).filter(chaveDaConta).forEach(_ri);
+    OBSERVADO_DA_CONTA.forEach(function (k) { try { _ri(k); } catch (_) {} });
   }
   // A página que ainda contém a memória do titular anterior nunca grava no novo perfil.
   var donoDaPagina = localStorage.getItem('catedra:_owner');
@@ -790,11 +800,16 @@
         if (mudou) { try { window.dispatchEvent(new CustomEvent('catedra:synced')); } catch (_) {} }
         var now = new Date().toISOString();
         var subiu = leanForUpload(merged);
+        // Ajustes › Dados e backup: só DESCREVE o que o merge decidiu e põe no corpo quem grava (EXCLUDE:
+        // fora do merge, do collect e do sujo). A gravação fica pendente até a nuvem confirmar.
+        var obs = observarEnvio(row, antes, subiu, now);
+        if (obs && obs.carimbo) subiu[CHAVE_ENVIO] = obs.carimbo;
         return sb.from('user_data').upsert({ user_id: user.id, data: subiu, updated_at: now })
           .then(function (r2) {
             if (!paginaAtual() || user !== dono) return;
             var e2 = erroDe(r2); if (e2) throw e2;
             setLastSrv(now); gravarCheio(subiu); marcarSincronizado(); publicarWidget(tsMs(now));
+            confirmarEnvio(now, obs);
             if (geracao === ger) { setDirty(false); setStatus('salvo'); }
             else denovo = true;   // chegou escrita durante o envio: o sujo fica e sobe já em seguida
           });
@@ -829,6 +844,218 @@
     } catch (_) {}
   });
 
+  /* ---------- ÚLTIMA SINCRONIZAÇÃO E CONFLITOS (Ajustes › Dados e backup) ----------
+     Só OBSERVA o sync: nenhuma regra de merge, trava ou lápide muda por causa daqui, e nada daqui
+     lança (cada entrada embrulha o que faz). O que é deste aparelho mora em chaves ct_ — fora do
+     isData, então nunca sobe, nunca marca sujo e nunca dispara envio:
+       · ct_aparelho     {id}: identidade estável deste aparelho (o nome sai da plataforma, na hora);
+       · ct_syncUltima   {conta, ts, id, aparelho, lin, conferido}: a versão da nuvem que este aparelho
+         viu por último (quando foi gravada, por quem e de quais versões veio) e a hora do último acerto
+         confirmado DESTE aparelho com a nuvem (leitura ou gravação);
+       · ct_syncRetrato  {conta, ts, chaves}: um hash por chave daquela versão — a base do "mudou dos
+         dois lados". Só vale enquanto ts é o _lastSrv: o Sair apaga o _lastSrv junto com os dados, e
+         um aparelho esvaziado não pode dizer que "mudou" o que a limpeza tirou;
+       · ct_syncPendente {conta, lista}: gravações deste aparelho ainda sem confirmação (a resposta que
+         se perdeu, o envio do fechamento), cada uma com o retrato e o conflito que descreveu. Se a
+         linhagem da versão que chega mostra que uma delas chegou, ela é a base, e o conflito dela vale
+         (uma vez); a que chegou fica na lista até a nuvem confirmar outra versão;
+       · ct_syncConflito {conta, lista}: os últimos avisos, do mais novo ao mais velho (o host mostra os
+         que ainda não foram lidos).
+     Todas levam a conta e saem no Sair (clearLocal). A descrição e os textos são do módulo puro
+     sync-conflitos.js (window.CT_SYNC_CONFLITOS); sem ele nada disto roda, e o sync segue igual. */
+  var CHAVE_ENVIO = 'catedra:_ultimoEnvio';
+  function modSync() { var M = window.CT_SYNC_CONFLITOS; return M && typeof M.descrever === 'function' && typeof M.linhagem === 'function' ? M : null; }
+  function lerCt(k) { try { var v = JSON.parse(localStorage.getItem(k) || 'null'); return v && typeof v === 'object' ? v : null; } catch (_) { return null; } }
+  function contaAtual() { return (user && user.id) || pendente || ''; }
+  function daConta(k) { var r = lerCt(k), c = contaAtual(); return r && c && r.conta === c ? r : null; }
+  function meuAparelho() {
+    var a = lerCt('ct_aparelho'), id = a && typeof a.id === 'string' ? a.id : '';
+    if (!id) {
+      try { var b = new Uint8Array(9); crypto.getRandomValues(b); id = Array.prototype.map.call(b, function (x) { return (x + 256).toString(16).slice(1); }).join(''); }
+      catch (_) { id = Date.now().toString(36) + Math.random().toString(36).slice(2, 10); }
+      try { _si('ct_aparelho', JSON.stringify({ id: id })); } catch (_) {}
+    }
+    var M = modSync(), nome = '';
+    try { if (M) nome = M.nomeAparelho({ ua: navigator.userAgent, plataforma: navigator.platform, toques: navigator.maxTouchPoints, protocolo: location.protocol, alvo: (window.CATEDRA_BUILD || {}).alvo }); } catch (_) {}
+    return { id: id, nome: nome };
+  }
+  // Quem gravou a versão `ts` da nuvem, se foi OUTRO aparelho e o carimbo nasceu com ela ('' se não se sabe).
+  function nomeDoOutro(M, carimbo, ts) {
+    var c = M.carimboDa(ts, carimbo);
+    return c && c.id && c.id !== meuAparelho().id ? String(c.aparelho || '').slice(0, 60) : '';
+  }
+  // Vai no corpo do envio com `ts` = o updated_at da gravação (o mesmo instante prova de qual versão ele
+  // fala) e `lin`, a linhagem da versão de onde a gravação parte.
+  function carimboDoEnvio(ts, lin) {
+    var eu = meuAparelho();
+    return JSON.stringify({ id: eu.id, aparelho: eu.nome, ts: ts, prev: (lin || []).slice(0, 7) });
+  }
+  // O carimbo só descreve a versão se nasceu com ela; quem gravou sem carimbo (versão antiga do app) deixa
+  // a versão sem aparelho conhecido. `conferido`: a hora deste acerto, neste aparelho.
+  function registrarUltima(updatedAt, carimbo) {
+    var M = modSync(), conta = contaAtual(), t = tsMs(updatedAt);
+    if (!M || !conta || !isFinite(t) || !paginaAtual()) return;
+    var c = M.carimboDa(t, carimbo);
+    _si('ct_syncUltima', JSON.stringify({ conta: conta, ts: t, id: c ? String(c.id || '') : '', aparelho: c ? String(c.aparelho || '').slice(0, 60) : '',
+      lin: M.linhagem(t, carimbo), conferido: Date.now() }));
+  }
+  // Acerto sem versão para registrar (a conta ainda não tem linha na nuvem): só a hora.
+  function marcarConferido() {
+    var conta = contaAtual();
+    if (!modSync() || !conta || !paginaAtual()) return;
+    var r = daConta('ct_syncUltima') || { conta: conta, ts: 0, id: '', aparelho: '', lin: [] };
+    r.conferido = Date.now();
+    _si('ct_syncUltima', JSON.stringify(r));
+  }
+  // Só dado de estudo, sem o _kts (carimbo novo com o mesmo valor não é mudança), com a biblioteca como
+  // ela SOBE (sem o PDF local) e o que não tem conteúdo como ''. Valor grande não é relido: só um valor
+  // curto pode ser vazio ([] {} null "0").
+  function paraRetrato(blob, enxugar) {
+    var o = {};
+    if (blob) Object.keys(blob).forEach(function (k) {
+      if (!isData(k) || k === 'catedra:_kts') return;
+      var v = blob[k];
+      if (v == null) return;
+      if (typeof v !== 'string') { try { v = JSON.stringify(v); } catch (_) { return; } }
+      if (enxugar && k === 'catedra:lib' && /pdfB64|"pages"|_bytes/.test(v)) v = stripLib(v);
+      o[k] = (v.length > 16 || temConteudo(v)) ? v : '';
+    });
+    return o;
+  }
+  // A base confirmada só vale para a versão que este aparelho viu por último (_lastSrv). Sem _lastSrv (o
+  // Sair o apaga com os dados) ou com outro, não há base: nada é descrito.
+  function lerBase() {
+    var r = daConta('ct_syncRetrato'), visto = tsMs(lastSrv());
+    return r && isFinite(visto) && r.ts === visto && r.chaves && typeof r.chaves === 'object' ? { ts: r.ts, chaves: r.chaves } : null;
+  }
+  function lerPendentes() { var r = daConta('ct_syncPendente'); return r && Array.isArray(r.lista) ? r.lista : []; }
+  // As duas mais novas e, à parte, a que a linhagem já mostrou ter chegado (M.aparar): ela é a base até a
+  // nuvem confirmar outra versão, e descartá-la fazia a gravação daqui voltar a parecer "do outro lado".
+  function gravarPendentes(lista) {
+    var M = modSync();
+    _si('ct_syncPendente', JSON.stringify({ conta: contaAtual(), lista: M && typeof M.aparar === 'function' ? M.aparar(lista) : lista.slice(0, 2) }));
+  }
+  // Guardada ANTES do pedido sair: se a resposta se perder, a linhagem da próxima versão lida conta se ele chegou.
+  function guardarPendente(p) {
+    if (!contaAtual() || !paginaAtual()) return;
+    gravarPendentes([p].concat(lerPendentes().filter(function (q) { return q && q.ts !== p.ts; })));
+  }
+  // A versão confirmada vira a base. As pendentes eram mais velhas que ela: saem (a leitura sem versão nova
+  // as mantém — um envio do fechamento ainda pode chegar depois dela).
+  function firmarBase(ts, chaves, manterPendentes) {
+    var conta = contaAtual();
+    if (!conta || !isFinite(ts) || !chaves || !paginaAtual()) return;
+    _si('ct_syncRetrato', JSON.stringify({ conta: conta, ts: ts, chaves: chaves }));
+    if (!manterPendentes) _ri('ct_syncPendente');
+  }
+  // Avisos guardados do mais novo ao mais velho, cinco no máximo: um conflito novo não apaga o anterior
+  // que a pessoa ainda não leu. `quando`: a hora da mescla que o descreveu. O item que a união devolve a
+  // cada ida e volta (apagado só no outro aparelho) é avisado uma vez (semRepetir).
+  function registrarConflito(itens, quando, outro) {
+    var conta = contaAtual(), M = modSync();
+    if (!M || !itens || !itens.length || !conta || !paginaAtual()) return;
+    var antes = daConta('ct_syncConflito'), lista = antes && Array.isArray(antes.lista) ? antes.lista : [];
+    if (typeof M.semRepetir === 'function') itens = M.semRepetir(itens, lista);
+    if (!itens || !itens.length) return;
+    var rel = { conta: conta, ts: +quando || Date.now(), itens: itens.slice(0, 60), outro: String(outro || '') };
+    lista = [{ ts: rel.ts, itens: rel.itens, outro: rel.outro }].concat(lista)
+      .sort(function (a, b) { return (+b.ts || 0) - (+a.ts || 0); }).slice(0, 5);
+    _si('ct_syncConflito', JSON.stringify({ conta: conta, lista: lista }));
+    try { window.dispatchEvent(new CustomEvent('catedra:syncconflito', { detail: rel })); } catch (_) {}
+  }
+  function conflitosDaConta() {
+    var r = daConta('ct_syncConflito');
+    if (!r || !Array.isArray(r.lista)) return [];
+    return r.lista.filter(function (x) { return x && Array.isArray(x.itens) && x.itens.length && +x.ts > 0; })
+      .map(function (x) { return { conta: r.conta, ts: +x.ts, itens: x.itens, outro: String(x.outro || '') }; });
+  }
+  // A base deste acerto. Gravação pendente que a linhagem mostra ter chegado: o conflito que ela
+  // descreveu aconteceu de fato (vale uma vez só) e ela é o ponto comum mais novo — o que este aparelho
+  // mandou não pode contar como "mudou do outro lado".
+  function baseDoAcerto(M, lin) {
+    var pend = lerPendentes(), esc = M.escolherBase(lerBase(), pend, lin), mudou = false;
+    esc.aplicadas.forEach(function (p) {
+      if (p.itens && p.itens.length) { registrarConflito(p.itens, p.ts, p.outro); p.itens = null; mudou = true; }
+      if (!p.chegou) { p.chegou = 1; mudou = true; }   // chegou: a lista não a descarta (gravarPendentes)
+    });
+    if (mudou) gravarPendentes(pend);
+    return esc.base;
+  }
+  // DESCREVE o que o mergeAll já decidiu. nv, lc, mg: nuvem e local de entrada e o resultado, já em
+  // paraRetrato; lin: a linhagem da versão da nuvem. Não muda o resultado.
+  function descreverConflito(M, nv, lc, mg, lin) {
+    var base = baseDoAcerto(M, lin);
+    if (!base) return null;
+    var listas = {};
+    Object.keys(nv).concat(Object.keys(lc)).forEach(function (k) { if (ehArrayId(k) || k === 'catedra:lib' || k === 'catedra:hl') listas[k] = true; });
+    var itens = M.descrever({ nuvem: nv, local: lc, mesclado: mg, base: base.chaves, baseTs: base.ts, listas: listas });
+    return itens && itens.length ? itens : null;
+  }
+  /* Envio (pushNow), antes do upsert: o conflito, o carimbo do corpo e a gravação pendente. Devolve
+     {ts, carimbo, chaves, conflito, outro} ou null. O aviso só vale quando a nuvem confirmar. */
+  function observarEnvio(row, antes, subiu, quando) {
+    var M = modSync(); if (!M) return null;
+    try {
+      var t = tsMs(quando);
+      if (!contaAtual() || !isFinite(t) || !paginaAtual()) return null;
+      var srvTs = row ? tsMs(row.updated_at) : NaN, carNuvem = row && row.data ? row.data[CHAVE_ENVIO] : null;
+      var lin = isFinite(srvTs) ? M.linhagem(srvTs, carNuvem) : [];
+      var mg = paraRetrato(subiu, false);
+      var o = { ts: t, carimbo: null, chaves: M.retrato(mg), conflito: null, outro: isFinite(srvTs) ? nomeDoOutro(M, carNuvem, srvTs) : '' };
+      if (row && row.data) o.conflito = descreverConflito(M, paraRetrato(row.data, false), paraRetrato(antes, true), mg, lin);
+      // corpo sem nenhum outro dado não leva carimbo: a linha da nuvem nunca passa a "ter conteúdo" por causa dele
+      if (Object.keys(subiu).length) o.carimbo = carimboDoEnvio(t, lin);
+      guardarPendente({ ts: t, chaves: o.chaves, itens: o.conflito, outro: o.outro });
+      return o;
+    } catch (_) { return null; }
+  }
+  function confirmarEnvio(quando, o) {
+    if (!o) return;
+    try { registrarUltima(quando, o.carimbo); } catch (_) {}
+    try { firmarBase(o.ts, o.chaves); } catch (_) {}
+    try { if (o.conflito) registrarConflito(o.conflito, o.ts, o.outro); } catch (_) {}
+  }
+  // Leitura que mescla (pull com novidade, hidratação), antes do applyData. Devolve {chaves, conflito, outro}.
+  function observarLeitura(row, antes, merged) {
+    var M = modSync(); if (!M || !row || !row.data) return null;
+    try {
+      var t = tsMs(row.updated_at);
+      if (!contaAtual() || !isFinite(t) || !paginaAtual()) return null;
+      var car = row.data[CHAVE_ENVIO], nv = paraRetrato(row.data, false);
+      return { chaves: M.retrato(nv), outro: nomeDoOutro(M, car, t),
+        conflito: descreverConflito(M, nv, paraRetrato(antes, true), paraRetrato(merged, true), M.linhagem(t, car)) };
+    } catch (_) { return null; }
+  }
+  function confirmarLeitura(row, o) {
+    if (!o || !row) return;
+    try { registrarUltima(row.updated_at, row.data && row.data[CHAVE_ENVIO]); } catch (_) {}
+    try { firmarBase(tsMs(row.updated_at), o.chaves); } catch (_) {}
+    try { if (o.conflito) registrarConflito(o.conflito, Date.now(), o.outro); } catch (_) {}
+  }
+  // Leitura sem versão nova (a nuvem é a que este aparelho já viu): a hora do acerto, e a base se faltar.
+  function observarMesmaVersao(row) {
+    var M = modSync(); if (!M) return;
+    try {
+      if (row && row.data && tsMs(row.updated_at) === tsMs(lastSrv())) {
+        registrarUltima(row.updated_at, row.data[CHAVE_ENVIO]);
+        if (!lerBase()) firmarBase(tsMs(row.updated_at), M.retrato(paraRetrato(row.data, false)), true);
+      } else marcarConferido();
+    } catch (_) {}
+  }
+  /* Envio do fechamento (PATCH condicional): parte da versão que o filtro exige (updated_at = _lastSrv),
+     então a linhagem é a dela. Fica pendente — não há como confirmar a resposta no fechamento. */
+  function observarFechamento(quando, dados, visto) {
+    var M = modSync(); if (!M) return null;
+    try {
+      var t = tsMs(quando), v = tsMs(visto);
+      if (!contaAtual() || !isFinite(t) || !isFinite(v) || !paginaAtual()) return null;
+      var u = daConta('ct_syncUltima');
+      var lin = u && u.ts === v && Array.isArray(u.lin) && u.lin.length ? u.lin : [v];
+      guardarPendente({ ts: t, chaves: M.retrato(paraRetrato(dados, false)), itens: null, outro: '' });
+      return { carimbo: Object.keys(dados).length ? carimboDoEnvio(t, lin) : null };
+    } catch (_) { return null; }
+  }
+
   window.CatedraSync = { push: function () {
     if (!paginaAtual()) return;
     setDirty(true);   // avança a geração (ver setDirty)
@@ -851,6 +1078,20 @@
   get pronto() { return sincronizado; },
   // carimbo (ms) do último acerto com a nuvem — o resumo do widget nasce com ele (0 = nunca acertou)
   get carimbo() { var t = tsMs(lastSrv()); return isFinite(t) ? t : 0; },
+  // Ajustes › Dados e backup. conferido: o último acerto CONFIRMADO deste aparelho com a nuvem (leu ou
+  // gravou com sucesso); ts: quando a versão que está na nuvem foi gravada (o updated_at do servidor) e
+  // aparelho: quem a gravou ('' = a versão veio sem carimbo, não se sabe quem gravou).
+  ultimaSync: function () {
+    var c = tsMs(lastSrv()); if (!isFinite(c)) c = 0;
+    var eu = meuAparelho(), r = daConta('ct_syncUltima');
+    var dela = !!(r && r.ts === c && c > 0);
+    return { ts: c, aparelho: dela ? String(r.aparelho || '') : '', esteAparelho: !!(dela && r.id && r.id === eu.id), meuNome: eu.nome,
+      conferido: r ? (+r.conferido || 0) : 0 };
+  },
+  // os avisos desta conta, do mais novo ao mais velho ({conta, ts, itens, outro}); o mais novo chega
+  // também pelo evento catedra:syncconflito
+  conflitos: function () { return conflitosDaConta(); },
+  ultimoConflito: function () { var l = conflitosDaConta(); return l.length ? l[0] : null; },
   // gancho interno de diagnóstico/teste (não usado pelo app)
   _test: { mergeAll: mergeAll, tombOnSet: tombOnSet, tombLoad: tombLoad, mergeHl: mergeHl } };
 
@@ -875,14 +1116,19 @@
         // conta ainda sem linha: com dado por subir, sobe (o push relê antes de gravar e dá o sinal
         // quando der certo). Sem nada a subir, a leitura deu certo (o erro já saiu acima, em falhou)
         // e a nuvem não tem nada mais novo: é o primeiro acerto com a nuvem (ver marcarSincronizado).
-        if (!row || !row.data) { pulling = false; if (isDirty()) pushNow(); else { setStatus('salvo'); marcarSincronizado(); } return; }
+        if (!row || !row.data) { pulling = false; if (isDirty()) pushNow(); else { setStatus('salvo'); marcarSincronizado(); try { marcarConferido(); } catch (_) {} } return; }
         var serverNewer = srvMaisNovo(row.updated_at, lastSrv());
-        if (!serverNewer && !isDirty()) { pulling = false; gravarCheio(row.data); setStatus('salvo'); marcarSincronizado(); publicarWidget(tsMs(row.updated_at)); return; }
+        if (!serverNewer && !isDirty()) { pulling = false; gravarCheio(row.data);
+          observarMesmaVersao(row);   // Ajustes › Dados e backup: a hora do acerto (e quem gravou, se faltava)
+          setStatus('salvo'); marcarSincronizado(); publicarWidget(tsMs(row.updated_at)); return; }
         // servidor mais novo e este aparelho limpo → escalares vêm do servidor; arrays sempre por id
-        var merged = mergeAll(row.data, collect(), serverNewer && !isDirty());
+        var antesPull = collect();
+        var merged = mergeAll(row.data, antesPull, serverNewer && !isDirty());
+        var obsPull = observarLeitura(row, antesPull, merged);   // só descreve (Ajustes › Dados e backup)
         applyData(merged);
         setLastSrv(row.updated_at || lastSrv());
         gravarCheio(row.data);   // o que a NUVEM tem (o local pode ter mais, ainda por subir)
+        confirmarLeitura(row, obsPull);
         try { window.dispatchEvent(new CustomEvent('catedra:synced')); } catch (_) {}
         pulling = false;
         if (isDirty()) pushNow(); else setStatus('salvo');
@@ -913,10 +1159,21 @@
     if (!paginaAtual() || !user || hydrating || hidratacaoEmCurso || !authToken || !isDirty()) return false;
     var visto = lastSrv(); if (!visto) return false;
     if (esvaziouCheio()) return false;
-    var corpo, tam;
-    try { corpo = JSON.stringify({ data: leanForUpload(collect()), updated_at: new Date().toISOString() }); } catch (_) { return false; }
+    var corpo, tam, dados, quando = new Date().toISOString();
+    try { dados = leanForUpload(collect()); corpo = JSON.stringify({ data: dados, updated_at: quando }); } catch (_) { return false; }
     try { tam = new Blob([corpo]).size; } catch (_) { tam = corpo.length * 3; }
     if (tam > TETO_KEEPALIVE) return false;
+    // quem gravou vai junto só se ainda couber no teto: o carimbo nunca muda a decisão de enviar.
+    // A gravação fica pendente (Ajustes › Dados e backup): a próxima leitura conta se ela chegou.
+    try {
+      var obs = observarFechamento(quando, dados, visto), envio = obs && obs.carimbo;
+      if (envio) {
+        dados[CHAVE_ENVIO] = envio;
+        var comCarimbo = JSON.stringify({ data: dados, updated_at: quando }), tam2;
+        try { tam2 = new Blob([comCarimbo]).size; } catch (_) { tam2 = comCarimbo.length * 3; }
+        if (tam2 <= TETO_KEEPALIVE) corpo = comCarimbo;
+      }
+    } catch (_) {}
     try {
       var p = fetch(CFG.url + '/rest/v1/user_data?user_id=eq.' + encodeURIComponent(user.id) + '&updated_at=eq.' + encodeURIComponent(visto), {
         method: 'PATCH', keepalive: true,
@@ -1552,7 +1809,9 @@
       var jaSujo = isDirty();
       if (row && row.data && Object.keys(row.data).length) {
         // mescla nuvem + local (por id nos arrays) — edições offline deste aparelho não se perdem
-        var merged = mergeAll(row.data, collect(), true);
+        var antesHid = collect();
+        var merged = mergeAll(row.data, antesHid, true);
+        var obsHid = observarLeitura(row, antesHid, merged);   // só descreve (Ajustes › Dados e backup)
         applyData(merged);
         // "Contribuiu" compara o que SUBIRIA (enxuto: sem o PDF local da biblioteca) com a nuvem,
         // chave de dado a chave de dado. Sem o filtro temConteudo: '0' é escolha nos interruptores
@@ -1567,6 +1826,7 @@
         } catch (_) { contribuiu = true; }
         setLastSrv(row.updated_at || '');
         gravarCheio(row.data);   // o que a nuvem tinha quando este aparelho a viu (ver esvaziouCheio)
+        confirmarLeitura(row, obsHid);
         setDirty(jaSujo || contribuiu);
         // avisa o app: a hidratação trocou os dados locais e ele precisa reler/reaplicar migrações
         try { window.dispatchEvent(new CustomEvent('catedra:synced')); } catch (_) {}

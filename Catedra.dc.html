@@ -7120,6 +7120,30 @@ window.ctPdfLib = (function(){
         <sc-if value="{{ ajSecDados }}" hint-placeholder-val="{{ false }}">
         <div class="ct-card">
           <div class="ct-titulo ct-titulo-com-nota">Sincronização e privacidade</div>
+          <!-- 25/11/2026: a última sincronização DESTE aparelho (o último acerto confirmado com a nuvem) e
+               quando e por qual aparelho a versão que está na nuvem foi gravada (carimbo do servidor); e,
+               quando os dois aparelhos mudaram a mesma coisa entre duas sincronizações, o que prevaleceu —
+               os avisos ainda não lidos, do mais novo ao mais velho. Só existe com a conta (CatedraSync). -->
+          <sc-if value="{{ syncUltimaTem }}" hint-placeholder-val="{{ false }}">
+          <div data-sync-ultima="1" style="display:flex;align-items:flex-start;gap:var(--ct-e2);margin:var(--ct-e1) 0 var(--ct-e3);font-size:var(--fs-sm);color:var(--text2);line-height:1.45;">
+            <svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="refresh-cw" style="flex:none;margin-top:.15em;"><use href="#ct-i-refresh-cw"></use></svg>
+            <div style="min-width:0;">
+              <div data-sync-ultima-txt="1">{{ syncUltimaTxt }}</div>
+              <sc-if value="{{ syncGravacaoTem }}" hint-placeholder-val="{{ false }}"><div data-sync-gravacao-txt="1">{{ syncGravacaoTxt }}</div></sc-if>
+            </div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ syncConflitoTem }}" hint-placeholder-val="{{ false }}">
+          <div data-sync-conflito="1" data-perda="{{ syncConflitoPerdaAttr }}" role="status" style="{{ syncConflitoCaixa }}">
+            <sc-if value="{{ syncConflitoPerda }}" hint-placeholder-val="{{ false }}"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="triangle-alert" style="color:var(--warn);margin-top:.2em;flex:none;"><use href="#ct-i-triangle-alert"></use></svg></sc-if>
+            <sc-if value="{{ syncConflitoNeutro }}" hint-placeholder-val="{{ false }}"><svg class="ct-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-ico="circle-check" style="color:var(--text2);margin-top:.2em;flex:none;"><use href="#ct-i-circle-check"></use></svg></sc-if>
+            <div style="flex:1 1 14rem;min-width:0;">
+              <div data-sync-conflito-titulo="1" style="font-weight:600;color:var(--ink);font-size:var(--fs-base);">{{ syncConflitoTitulo }}</div>
+              <sc-for list="{{ syncConflitoTxts }}" as="c" hint-placeholder-count="1"><div data-sync-conflito-txt="1" style="font-size:var(--fs-sm);color:var(--ink);line-height:1.55;margin-top:var(--ct-e1);">{{ c.t }}</div></sc-for>
+            </div>
+            <button type="button" class="ct-btn-2" data-sync-conflito-ok="1" onclick="{{ dispensarConflitoSync }}" aria-label="Entendi, dispensar o aviso da sincronização" style="{{ syncConflitoBotao }}">Entendi</button>
+          </div>
+          </sc-if>
           <!-- Isto aqui dizia "os dados ficam neste navegador" e trazia um botão "Somente neste
                navegador". Era falso: com a conta logada tudo sobe para o Supabase, e o botão só
                mudava a própria cor (setSync gravava uma preferência que nada lia). Quem lê os
@@ -7820,6 +7844,9 @@ class Component extends DCLogic {
       notifs:[],
       quoteIdx: (typeof Date!=='undefined' ? new Date().getDate() : 0),
       synced:true, syncFlash:false, syncStatus:'local', syncHora:'', syncErroDesde:0, syncTick:0,
+      // estado de tela (não entra no _autosaveKeys): o aviso de conflito que chegou pelo evento (só repinta)
+      // e, por conta, até qual aviso já foi lido NESTE aparelho ({conta, ts} em ct_syncConflitoVisto)
+      syncConflito:null, syncConflitoVisto:(()=>{ try{ const v=JSON.parse(localStorage.getItem('ct_syncConflitoVisto')||'null'); return (v&&typeof v==='object')?v:null; }catch(_){ return null; } })(),
       historicoFilter:'', histEdit:null, relPeriod:this._load('relPeriod', 30),
       provaData:(()=>{ try{ const d=localStorage.getItem('catedra:prova'); if(d) return d; }catch(_){} return null; })(),
       flashcards: this._loadFC()
@@ -8415,6 +8442,11 @@ class Component extends DCLogic {
     // mais nova de outro aparelho. setTimeout: deixa a reidratação do mesmo tique assentar antes.
     this._onSyncPronto = ()=>{ setTimeout(()=>{ try{ this._cmagSeed(); }catch(_){} try{ this._edPersistirReparo(); }catch(_){} try{ this._carregarCotaIA(); }catch(_){} }, 0); };
     window.addEventListener('catedra:syncpronto', this._onSyncPronto);
+    // Conflito descrito pelo auth.js (Ajustes › Dados e backup): o evento só repinta — o render relê
+    // CatedraSync.conflitos() (ct_syncConflito, deste aparelho). O "Entendi" fica em ct_syncConflitoVisto.
+    // Nada disso sincroniza.
+    this._onSyncConflito = (e)=>{ try{ const r=(e&&e.detail)||null; if(r&&Array.isArray(r.itens)) this.setState({syncConflito:r}); }catch(_){} };
+    window.addEventListener('catedra:syncconflito', this._onSyncConflito);
     // Ponte CátedraLEGIS → Cátedra: o app nativo chama isto (evaluateJavaScript) para
     // registrar o estudo de leis feito na aba CátedraLEGIS como uma sessão REAL — assim o
     // Cátedra "coleta" o estudo do CátedraLEGIS (Tempo de estudo, Sessões recentes,
@@ -8988,7 +9020,7 @@ class Component extends DCLogic {
       try{ localStorage.setItem('catedra:schemaVersion', String(V)); }catch(_){}
     }catch(_){ }
   }
-  componentWillUnmount(){ window.removeEventListener('catedra:sessaoleitor',this._retomarLeitor); clearTimeout(this._argRascunhoT);if(this._argSaida)window.removeEventListener("pagehide",this._argSaida); if(this._redFocoEsc){ try{ document.removeEventListener('keydown', this._redFocoEsc); document.documentElement.removeAttribute('data-red-foco'); }catch(_){} this._redFocoEsc=null; } if(this._redCronoT) clearInterval(this._redCronoT); if(this._redCorrT) clearInterval(this._redCorrT); try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onSelChange){ document.removeEventListener('selectionchange', this._onSelChange); clearTimeout(this._selChangeT); } ['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev, this._acDespertar)); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._areaMsg) window.removeEventListener('message', this._areaMsg); if(this._acervoMsg) window.removeEventListener('message', this._acervoMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._pausaT) clearInterval(this._pausaT); if(this._revT) clearInterval(this._revT);
+  componentWillUnmount(){ window.removeEventListener('catedra:sessaoleitor',this._retomarLeitor); clearTimeout(this._argRascunhoT);if(this._argSaida)window.removeEventListener("pagehide",this._argSaida); if(this._redFocoEsc){ try{ document.removeEventListener('keydown', this._redFocoEsc); document.documentElement.removeAttribute('data-red-foco'); }catch(_){} this._redFocoEsc=null; } if(this._redCronoT) clearInterval(this._redCronoT); if(this._redCorrT) clearInterval(this._redCorrT); try{ if(this._onSyncPronto) window.removeEventListener('catedra:syncpronto', this._onSyncPronto); }catch(_){} try{ if(this._onSyncConflito) window.removeEventListener('catedra:syncconflito', this._onSyncConflito); }catch(_){} if(this._breathT) clearInterval(this._breathT); if(this._dayT) clearInterval(this._dayT); if(this._onR) window.removeEventListener('resize', this._onR); if(this._onSelChange){ document.removeEventListener('selectionchange', this._onSelChange); clearTimeout(this._selChangeT); } ['pointerdown','touchend','keydown'].forEach(ev=>document.removeEventListener(ev, this._acDespertar)); if(this._onKey) window.removeEventListener('keydown', this._onKey); if(this._ckMsg) window.removeEventListener('message', this._ckMsg); if(this._areaMsg) window.removeEventListener('message', this._areaMsg); if(this._acervoMsg) window.removeEventListener('message', this._acervoMsg); if(this._onWake){ document.removeEventListener('visibilitychange', this._onWake); window.removeEventListener('focus', this._onWake); } if(this._tick) clearInterval(this._tick); if(this._pausaT) clearInterval(this._pausaT); if(this._revT) clearInterval(this._revT);
     try{ if(this._mqDark && this._onMqDark){ if(this._mqDark.removeEventListener) this._mqDark.removeEventListener('change', this._onMqDark); else if(this._mqDark.removeListener) this._mqDark.removeListener(this._onMqDark); } }catch(_){}
     if(this._pipMsgT) clearTimeout(this._pipMsgT); if(this._bkpAutoT) clearInterval(this._bkpAutoT); if(this._salaT) clearTimeout(this._salaT); this._pipStop(); this._closeDocPiP();  }
   componentDidUpdate(){
@@ -18180,6 +18212,16 @@ class Component extends DCLogic {
     return out;
   }
 
+  /** Ajustes › Dados e backup: "Entendi" no aviso da sincronização. Guarda neste aparelho, por conta,
+   *  até qual aviso já foi lido (o mais novo); um conflito novo (carimbo mais novo) volta a aparecer, e
+   *  dispensar numa conta não esconde o aviso da outra. */
+  dispensarConflitoSync = ()=>{
+    let r=null; try{ const S=window.CatedraSync; r=(S&&typeof S.ultimoConflito==='function')?S.ultimoConflito():null; }catch(_){ r=null; }
+    if(!r) return;
+    const v={conta:String(r.conta||''), ts:+r.ts||0};
+    try{ localStorage.setItem('ct_syncConflitoVisto', JSON.stringify(v)); }catch(_){}
+    this.setState({syncConflitoVisto:v});
+  };
   /** U5: "tentar agora" quando o erro de sincronização persiste. Informa, nunca trava. */
   syncTentarAgora = ()=>{
     try{
@@ -21731,6 +21773,31 @@ class Component extends DCLogic {
       syncAlarme:!!(this.state.syncStatus==='erro' && this.state.syncErroDesde
         && (Date.now()-this.state.syncErroDesde)>5*60000),
       syncAlarmeTxt:'não consegui salvar — tentar agora',
+      // Ajustes › Dados e backup: a última sincronização deste aparelho e quem gravou a versão da nuvem
+      // (CatedraSync.ultimaSync) e os avisos de conflito ainda não lidos aqui (CatedraSync.conflitos). Relidos
+      // a cada pintura desta aba: a conta só é conhecida depois do login, que pode chegar depois da montagem.
+      // Os textos são do módulo puro sync-conflitos.js; sem conta (sem CatedraSync), nada aparece. Lista só
+      // unida, sem nada perdido, vem em tom neutro; com versão descartada, em tom de aviso.
+      ...(()=>{
+        const S=(typeof window!=='undefined'&&window.CatedraSync)||null, M=(typeof window!=='undefined'&&window.CT_SYNC_CONFLITOS)||null;
+        if(!S||!M||typeof M.naoLidos!=='function'||this.state.view!=='ajustes'||(this.state.ajSec||'perfil')!=='dados') return {syncUltimaTem:false, syncUltimaTxt:'', syncGravacaoTem:false, syncGravacaoTxt:'', syncConflitoTem:false, syncConflitoTxts:[],
+          syncConflitoPerda:false, syncConflitoNeutro:false, syncConflitoPerdaAttr:'0', syncConflitoTitulo:'', syncConflitoCaixa:'', syncConflitoBotao:''};
+        const agora=Date.now();
+        let u=null; try{ u=(typeof S.ultimaSync==='function')?S.ultimaSync():{ts:+S.carimbo||0}; }catch(_){ u=null; }
+        let l=[]; try{ l=(typeof S.conflitos==='function')?S.conflitos():[]; }catch(_){ l=[]; }
+        const novos=M.naoLidos(l, this.state.syncConflitoVisto).slice(0,3);
+        const nomeArea=(id)=>{ const a=CT_AREAS.find(x=>x.id===id); return (a&&a.label)||''; };
+        const txts=M.textoConflitos(novos, agora, {meuNome:(u&&u.meuNome)||'', nomeArea}).map(t=>({t}));
+        const perda=novos.some(r=>M.temPerda(r)), grav=M.textoGravacao(u, agora);
+        return {syncUltimaTem:true, syncUltimaTxt:M.textoUltima(u, agora), syncGravacaoTem:!!grav, syncGravacaoTxt:grav,
+          syncConflitoTem:txts.length>0, syncConflitoTxts:txts, syncConflitoPerda:perda, syncConflitoNeutro:!perda, syncConflitoPerdaAttr:perda?'1':'0',
+          syncConflitoTitulo:perda?'Conflito na sincronização':'Listas unidas na sincronização',
+          syncConflitoCaixa:'display:flex;gap:var(--ct-e3);align-items:flex-start;flex-wrap:wrap;margin:0 0 var(--ct-e4);padding:var(--ct-e3) var(--ct-e4);border-radius:var(--r-md);'
+            +(perda?'border:1px solid color-mix(in srgb, var(--warn) 40%, var(--border));background:var(--warnSoft);':'border:1px solid var(--border);background:var(--surface2);'),
+          // texto em --ink e borda que aparece no escuro: .ct-btn-2 puro ficava em 4,7:1 sobre o fundo de aviso
+          syncConflitoBotao:'min-height:var(--ct-alvo-toque);flex:none;color:var(--ink);border-color:'+(perda?'color-mix(in srgb, var(--warn) 55%, var(--border))':'var(--border)')+';'};
+      })(),
+      dispensarConflitoSync:this.dispensarConflitoSync,
       homeTimerLabel, homeTimerEstado:this._cronometroEmUso()?'Cronômetro pausado':'Cronômetro', homeTimerBtn:this.state.timerRunning?'Pausar':(this._cronometroEmUso()?'Retomar':(this.state.cycleMode==='magistratura'?'Iniciar só o cronômetro':'Iniciar')), homePmLivre, homePm25, homePm50, homePm90, pmCustShow, pmCustF, pmCustB, pmCustLabel, homePmCust,
       reviewRate:this.reviewRate, reviewSnooze:this.reviewSnooze, reviewRemove:this.reviewRemove,
       startRevSession:this.startRevSession, revReveal:this.revReveal, revAnswer:this.revAnswer, revSkip:this.revSkip, closeRevSession:this.closeRevSession,
