@@ -49,7 +49,7 @@ struct JurisDashboardView: View {
                 secao("Seu progresso por fonte", "chart.bar.fill") { progressoFontes }
             }
         }
-        .jurisMargemPagina()
+        .margemPaginaAcervo()
         .sheet(isPresented: $mostrarFlash) { ExportAnkiSheet(entries: flashDeck, titulo: flashTitulo) }
         .sheet(isPresented: $mostrarRevisao) { RevisaoView(deck: revisaoDeck) }
         .sheet(isPresented: $mostrarSRS) { RevisaoEspacadaView() }

@@ -41,9 +41,9 @@ button,select{font-family:inherit}
   text-transform:uppercase;color:var(--text2,#4b4a52)}
 
 .top{position:sticky;top:0;z-index:30;background:var(--surface);border-bottom:1px solid var(--border)}
-.l1{display:flex;align-items:center;gap:14px;padding:13px 18px;max-width:1180px;margin:0 auto;flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:11px;flex:none}
-.brand .ic{width:36px;height:36px;border-radius:11px;background:var(--accentSolid,var(--accent));color:var(--onAccent);
+.l1{display:flex;align-items:center;flex-wrap:wrap}
+.brand{display:flex;align-items:center;flex:none}
+.brand .ic{background:var(--accentSolid,var(--accent));color:var(--onAccent);
   display:flex;align-items:center;justify-content:center;font-size:var(--t-titulo);flex:none}
 .brand small{display:block;font-size:var(--t-micro);color:var(--text2);margin-top:4px}
 .sp{flex:1}
@@ -52,7 +52,6 @@ button,select{font-family:inherit}
 .sel:focus{border-color:var(--accent)}
 .lbl{align-self:center}
 
-.wrap{padding:20px 18px 70px;max-width:1180px;margin:0 auto}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
 .stat{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 15px;box-shadow:var(--sh)}
 .stat b{display:block;font:800 23px/1 var(--display);font-variant-numeric:tabular-nums}
@@ -107,7 +106,7 @@ button,select{font-family:inherit}
 .dips span{font-size:var(--t-micro);color:var(--text2);border:1px solid var(--border);border-radius:99px;padding:3px 10px}
 .dips span i{font-style:normal;font:800 10px var(--mono);color:var(--text2);margin-left:5px}
 .rodape{font-size:var(--t-micro);color:var(--text2);line-height:1.65;margin-top:22px;border-top:1px solid var(--border);padding-top:14px}
-@media (max-width:640px){ .l1{padding:11px 12px} .wrap{padding:16px 12px 60px} .brand small{display:none}
+@media (max-width:640px){ .brand small{display:none}
   /* D8 — alvo de toque de 44px: a linha da disciplina e os dispositivos são apertados
      com o polegar, e ambos estavam abaixo do mínimo confortável. */
   .sel{min-height:44px;flex:1 1 100%}

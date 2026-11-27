@@ -18,7 +18,6 @@ enum AppTheme {
     static var rCard: CGFloat  { DSRaio.card }
     static var rInner: CGFloat { DSRaio.interno }
     static var rHero: CGFloat  { DSRaio.hero }
-    static let pageInset: CGFloat = 20
     static var pageBackground: Color   { ThemeState.t.bg }
     static var cardBackground: Color   { ThemeState.t.surface }
     static var hairline: Color         { ThemeState.t.border }

@@ -37,7 +37,7 @@ struct GradeInformativosView: View {
                         if !eds.isEmpty { colecao(f, eds) }
                     }
                 }
-                .padding(.horizontal, 28).padding(.vertical, 24)
+                .margemPaginaAcervo().padding(.vertical, 24)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -128,13 +128,13 @@ struct JulgadoDoDiaView: View {
             SectionShell(icon: Selecao.julgadoDoDia.simbolo, title: Selecao.julgadoDoDia.titulo,
                          subtitle: Date().formatted(.dateTime.weekday(.wide).day().month(.wide).year().locale(Locale(identifier: "pt_BR")))) {
                 ScrollView {
-                    conteudo.padding(.horizontal, 28).padding(.vertical, 24)
+                    conteudo.margemPaginaAcervo().padding(.vertical, 24)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         } else {
-            conteudo.padding(.horizontal, 28)
+            conteudo.margemPaginaAcervo()
         }
     }
 
@@ -279,7 +279,7 @@ struct DestaquesEstudoView: View {
             if parte != .julgado {
             JurisSecaoTitulo(titulo: "Últimos informativos", simbolo: "newspaper",
                              verTodos: { store.ir(.gradeInformativos) })
-            .padding(.horizontal, 28)
+            .margemPaginaAcervo()
             HStack(spacing: 10) {
                 ForEach([Fonte.informativoSTF, .informativoSTJ, .informativoTSE]) { f in
                     if let e = store.edicoesInfo(f).first {
@@ -296,7 +296,7 @@ struct DestaquesEstudoView: View {
                     }
                 }
             }
-            .padding(.horizontal, 28)
+            .margemPaginaAcervo()
             }
         }
     }
@@ -409,7 +409,7 @@ struct ProvaOralJurisView: View {
                     .overlay(RoundedRectangle(cornerRadius: Palette.rCard, style: .continuous).strokeBorder(Palette.hairline))
                 }
             }
-            .padding(.horizontal, 28).padding(.vertical, 24)
+            .margemPaginaAcervo().padding(.vertical, 24)
             .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
