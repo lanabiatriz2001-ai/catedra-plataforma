@@ -73,7 +73,7 @@ struct RootView: View {
             .background(Capsule().fill(Palette.cardBackground))
             .overlay(Capsule().strokeBorder(clock.running ? Palette.accent.opacity(0.45) : Palette.hairline, lineWidth: 1))
         }
-        .padding(.horizontal, 20).padding(.vertical, 11)
+        .margemPaginaAcervo().padding(.vertical, DSEspaco.e3)
         .background(Palette.appBackground)
         .overlay(alignment: .bottom) { Rectangle().fill(Palette.hairline).frame(height: 1) }
     }

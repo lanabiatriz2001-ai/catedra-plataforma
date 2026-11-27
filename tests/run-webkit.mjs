@@ -68,6 +68,7 @@ import { testarRedacaoSegunda } from './redacao-segunda.mjs';
 import { testarPadronizacaoVisual } from './padronizacao-visual.mjs';
 import { testarPostMessageSeguranca } from './postmessage-seguranca.mjs';
 import { testarRevisaoOficial } from './revisao-oficial.mjs';
+import { testarGeometriaInterface } from './geometria-interface.mjs';
 import { testarMenuLateral } from './menu-lateral.mjs';
 import { testarImportadorEdital } from './importador-edital.mjs';
 import { testarEditalPorConcurso } from './edital-por-concurso.mjs';
@@ -156,6 +157,7 @@ for (const [base, origem, arquivo] of ORIGENS) {
   // fixture tests/auth-ipad-fixture.html carrega o auth.js com um Supabase de mentira —
   // existe na raiz do repositório, não no bundle, por isso a origem [bundle] fica de fora.
   if (origem === 'http') {
+    await testarGeometriaInterface(browser, base, ok);
     await testarLoginLeitoresWeb(browser, base, ok);
     await testarSegurancaPerfilRelease(page, base, ok);
     // console de administração no WebKit: Panorama e resposta por e-mail (semeia por /__semente)
