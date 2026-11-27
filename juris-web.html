@@ -1544,9 +1544,12 @@ const armazenamentoDoLeitor = window.ctArmazenamentoLeitor;
             +'<div class="ct-of-linha"><span class="ct-of-st '+i.statusCls+'">'+R.esc(i.statusRotulo)+'</span><span class="ct-of-tipo">'+R.esc(i.tipoRotulo)+'</span>'
             +'<span class="ct-of-meta">detectado em '+R.esc(i.quando)+'</span></div>'
             +'<div class="ct-of-titulo" style="margin-top:6px">'+R.esc(i.titulo)+'</div>'
+            // a última varredura do diário do item (o da coleção, quando o pacote o traz), como no painel do Cátedra
+            +(i.varreduraTxt?'<div class="ct-of-meta" data-of-varredura>'+R.esc(i.varreduraTxt)+'</div>':'')
             +'<div class="ct-of-resumo">'+(i.incorporado?R.esc(i.resumo):('Precisa comparar com o acervo: '+R.esc(i.resumo.charAt(0).toLowerCase()+i.resumo.slice(1))))+'</div>'
             +'<div class="ct-of-acoes"><button type="button" class="ct-of-btn" data-of-acervo="'+R.esc(i.id)+'">Ver no acervo</button>'
-            +(i.urlOficial?'<a class="ct-of-btn" href="'+R.esc(i.urlOficial)+'" target="_blank" rel="noopener">Registro oficial<span class="ct-sr"> (abre fora do app)</span></a>':'')
+            // só https de host oficial vira link (fonteUrl, já conferido pelo módulo): o endereço vem do pacote
+            +(i.fonteUrl?'<a class="ct-of-btn" href="'+R.esc(i.fonteUrl)+'" target="_blank" rel="noopener">Registro oficial<span class="ct-sr"> (abre fora do app)</span></a>':'')
             +(i.podeMarcar?'<button type="button" class="ct-of-btn" data-of-marcar="'+R.esc(i.id)+'" data-st="'+(conf?'conferir':'conferido')+'" aria-pressed="'+(conf?'true':'false')+'">'+(conf?'Manter em revisão':'Marcar como conferido')+'</button>':'')+'</div></article>';
         });
         h+='</div>';

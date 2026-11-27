@@ -146,6 +146,7 @@
     var f = FONTES[it.fonte] || { nome: it.fonte || 'Fonte oficial', produto: 'juris', produtoNome: 'CátedraJURIS' };
     var st = statusItem(it, marcas);
     var ehLegis = f.produto === 'legis';
+    var fonteUrl = urlSegura(it.urlOficial);
     var tipo = TIPOS[it.tipo] || 'Alteração';
     // Frase para quem estuda, na ordem do que muda a vida dela. vigenciaMotivo é diagnóstico do
     // classificador (o sentinela preenche em TODO item) e não vira resumo.
@@ -182,13 +183,21 @@
       podeMarcar: st !== 'incorporado',
       detectadoEm: it.detectadoEm || '', quando: data(it.detectadoEm) || 'data não informada',
       urlOficial: it.urlOficial || '',
+      // o link "Fonte oficial" do painel do host: só https de host oficial (a regra do _novidUrl)
+      fonteUrl: fonteUrl, temFonte: !!fonteUrl,
       busca: ehLegis ? [it.normaNome || it.norma, it.disp].filter(Boolean).join(' ') : (it.norma ? (it.norma + ' Informativo') : (it.titulo || ''))
     };
   }
 
   function itens(n, marcas) {
-    var P = pacote(n), M = marcas || lerMarcas();
-    return P.itens.map(function (it) { return item(it, M); });
+    var P = pacote(n), M = marcas || lerMarcas(), frases = {};
+    return P.itens.map(function (it) {
+      var o = item(it, M), v = varreduraItem(it, P.fontes);
+      // a frase sai uma vez por diário (fonte ou coleção): a data formatada custa e se repete
+      o.varredura = v;
+      o.varreduraTxt = frases[v.chave] || (frases[v.chave] = varreduraTxt(v));
+      return o;
+    });
   }
 
   /** Saúde de cada fonte: ok / parcial / falhou / pendente (nunca consultada). */
@@ -258,10 +267,124 @@
 
   function precisaRevisar(i) { return i.status !== 'conferido' && i.status !== 'incorporado'; }
 
+  /* ── Por item: a última varredura da fonte, o link oficial e "conferida, aguardando o acervo" ── */
+
+  /** Link de saída só para https de host oficial — a mesma lista do _novidUrl da Central
+   *  (planalto.gov.br, stf.jus.br, stj.jus.br e subdomínios). O endereço vem do pacote: http,
+   *  outro host ou texto malformado não vira link. */
+  function urlSegura(u) {
+    try {
+      var x = new URL(String(u || ''));
+      return (x.protocol === 'https:' && /(^|\.)(planalto\.gov\.br|stf\.jus\.br|stj\.jus\.br)$/i.test(x.hostname)) ? x.href : '';
+    } catch (e) { return ''; }
+  }
+
+  function instante(iso) { var t = Date.parse(iso || ''); return isFinite(t) ? t : null; }
+  function dois(n) { return (n < 10 ? '0' : '') + n; }
+  /** Reserva do formatador: dia/mês/ano e hora LOCAIS (o recorte do ISO seria a hora de Greenwich). */
+  function dataLocal(iso) {
+    var d = new Date(iso);
+    return dois(d.getDate()) + '/' + dois(d.getMonth() + 1) + '/' + d.getFullYear() + ' ' + dois(d.getHours()) + ':' + dois(d.getMinutes());
+  }
+
+  /** O diário que responde por UM item: o da coleção dele (Informativo, repercussão geral,
+   *  repetitivos, súmulas), quando o pacote o traz; senão, o da fonte. Havendo o da coleção, o da
+   *  fonte não serve: a fonte sai "falha" se QUALQUER coleção falhar (vale o pior resultado), e
+   *  "parcial" move o último sucesso dela com uma coleção sem leitura. Informativo de antes das
+   *  coleções não traz `colecao`: é a coleção Informativo (a régua do filtro da Central). */
+  // Reserva do nome curto de cada coleção (o pacote traz `rotuloCurto`; é o NOVID_COLECAO do host).
+  var COLECOES = { informativo: 'Informativo', rg: 'Repercussão geral', repetitivos: 'Repetitivos', sumulas: 'Súmulas' };
+
+  function diarioDoItem(it, fontes) {
+    var F = (fontes && typeof fontes === 'object') ? fontes : {};
+    var fonte = (it && it.fonte) ? String(it.fonte) : '';
+    var f = (fonte && F[fonte] && typeof F[fonte] === 'object') ? F[fonte] : null;
+    if (!f) return { nivel: '', chave: fonte + '|', e: {}, quem: 'da fonte' };
+    var col = (it.colecao ? String(it.colecao) : '') || (fonte !== 'planalto' ? 'informativo' : '');
+    var C = (f.colecoes && typeof f.colecoes === 'object') ? f.colecoes : {};
+    var c = (col && C[col] && typeof C[col] === 'object') ? C[col] : null;
+    if (!c) return { nivel: 'fonte', chave: fonte + '|', e: f, quem: 'da fonte' };
+    // A frase nomeia a coleção: a data é a DELA, não a da fonte, que o cartão da fonte mostra ao
+    // lado com outro valor (uma coleção que falha deixa a fonte inteira "Falhou").
+    var nome = String(c.rotuloCurto || COLECOES[col] || col) + ' (' + ((FONTES[fonte] && FONTES[fonte].nome) || fonte.toUpperCase()) + ')';
+    return { nivel: 'colecao', chave: fonte + '|' + col, e: c, fonte: f, quem: 'da coleção ' + nome };
+  }
+
+  /** A falha do pedido INTEIRO à fonte, que nenhuma coleção registrou. O motor carimba toda coleção
+   *  que roda com a data da fonte (no tempo esgotado, todas), então uma falha da fonte mais nova que
+   *  o diário de TODAS as coleções é a deste aparelho (sem rede, servidor fora do ar), que o host
+   *  grava só na fonte. Coleção que ficou fora de uma rodada filtrada não herda falha alheia: lá a
+   *  coleção que rodou tem a data da fonte. Devolve o instante da falha, ou null. */
+  function falhaDaFonteInteira(f) {
+    var t = instante(f && f.ultimaTentativa);
+    if (t === null || f.resultado !== 'falha') return null;
+    var C = (f.colecoes && typeof f.colecoes === 'object') ? f.colecoes : {}, ids = Object.keys(C);
+    for (var k = 0; k < ids.length; k++) {
+      var x = instante(C[ids[k]] && C[ids[k]].ultimaTentativa);
+      if (x !== null && x >= t) return null;
+    }
+    return t;
+  }
+
+  /** A última varredura que vale para UM item, sem tela (testada em Node):
+   *  · sucessoEm — o último sucesso do diário (da coleção ou da fonte);
+   *  · falhouDepois / falhaEm — a última tentativa é MAIS NOVA que esse sucesso e o diário a grava
+   *    como falha (o motor só move o último sucesso quando a consulta dá certo); no item de
+   *    coleção, vale também a falha do pedido inteiro à fonte (falhaDaFonteInteira);
+   *  · semDado — o pacote não diz quando a fonte foi lida. Nunca vira "nunca": se o item existe,
+   *    alguma leitura houve; o que falta é o registro dela;
+   *  · parcial — esse sucesso foi a última tentativa e ela leu só em parte ('parcial' move o
+   *    último sucesso com uma lacuna nomeada: no Planalto, uma norma que não se leu pode ser a do
+   *    item); a frase diz "(leitura parcial)" em vez de passar por leitura inteira;
+   *  · quem — de que diário é a data: "da fonte" ou "da coleção Súmulas (STF)". */
+  function varreduraItem(it, fontes) {
+    var d = diarioDoItem(it, fontes), e = d.e || {};
+    var s = instante(e.ultimoSucesso), t = instante(e.ultimaTentativa);
+    var falha = (t !== null && (s === null || t > s) && e.resultado === 'falha') ? t : null;
+    var falhaIso = falha === null ? null : String(e.ultimaTentativa), tentIso = t === null ? null : String(e.ultimaTentativa);
+    var tf = d.nivel === 'colecao' ? falhaDaFonteInteira(d.fonte) : null;
+    if (tf !== null && (s === null || tf > s) && (falha === null || tf > falha)) {
+      falha = tf; falhaIso = tentIso = String(d.fonte.ultimaTentativa);
+    }
+    return { nivel: d.nivel, chave: d.chave, quem: d.quem || 'da fonte',
+      sucessoEm: s === null ? null : String(e.ultimoSucesso), tentativaEm: tentIso,
+      parcial: s !== null && e.resultado === 'parcial' && (t === null || s >= t),
+      falhouDepois: falha !== null, falhaEm: falhaIso, semDado: s === null && falha === null };
+  }
+
+  /** A frase da varredura. `fmt` é o formatador de quem mostra (a Central usa a data por extenso
+   *  dos cartões de fonte); sem ele, a data curta com hora deste módulo (o painel e os satélites). */
+  function varreduraTxt(v, fmt) {
+    var f = function (iso) {
+      var s = '';
+      try { s = (typeof fmt === 'function') ? fmt(iso) : data(iso, true); } catch (e) { s = ''; }
+      return s || dataLocal(iso);
+    };
+    var r = 'Última varredura ' + ((v && v.quem) || 'da fonte') + ': ';
+    if (!v || (!v.sucessoEm && !v.falhouDepois)) return r + 'não informada';
+    r += v.sucessoEm ? (f(v.sucessoEm) + (v.parcial ? ' (leitura parcial)' : '')) : 'nenhuma concluída';
+    return v.falhouDepois ? (r + ' · última tentativa falhou em ' + f(v.falhaEm)) : r;
+  }
+
+  /** Conferida e ainda fora do acervo: a pessoa marcou "Conferido" e o motor não incorporou. A
+   *  marca não incorpora nada (detecção e incorporação seguem separadas); só diz que alguém
+   *  conferiu na fonte. "No acervo" já sai 'incorporado' do statusItem; incorporado com
+   *  comparação parcial também fica fora, porque o acervo já o tem. Comparação parcial nunca
+   *  conta, nem conferida: o motor não dá baixa em item parcial (mesclarNovidades), então o aviso
+   *  ficaria aceso para sempre — ou até a pessoa desfazer a conferência para apagá-lo. */
+  function aguardaAcervo(it, marcas) { return !!it && !it.parcial && !it.incorporado && statusItem(it, marcas) === 'conferido'; }
+  /** Quantas há: o chip do Início, na MESMA régua do filtro da Central. */
+  function conferidosAguardando(lista, marcas) {
+    var n = 0;
+    (Array.isArray(lista) ? lista : []).forEach(function (it) { if (aguardaAcervo(it, marcas)) n++; });
+    return n;
+  }
+
   root.CT_REVISAO_OFICIAL = {
     precisaRevisar: precisaRevisar,
     CHAVE: CHAVE, STATUS: STATUS, FONTES: FONTES, FRASE: 'Detecção automática, publicação assistida.',
     pacote: pacote, marcasDe: marcasDe, lerMarcas: lerMarcas, marcar: marcar, statusItem: statusItem,
-    itens: itens, fontes: fontes, contagem: contagem, contarDe: contarDe, lacunas: lacunas, lacunasTxt: lacunasTxt, diff: diff, diffHtml: diffHtml, esc: esc, data: data
+    itens: itens, fontes: fontes, contagem: contagem, contarDe: contarDe, lacunas: lacunas, lacunasTxt: lacunasTxt, diff: diff, diffHtml: diffHtml, esc: esc, data: data,
+    urlSegura: urlSegura, varreduraItem: varreduraItem, varreduraTxt: varreduraTxt, aguardaAcervo: aguardaAcervo, conferidosAguardando: conferidosAguardando
   };
 })(typeof window !== 'undefined' ? window : this);

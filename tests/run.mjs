@@ -83,6 +83,7 @@ import { testarRevisaoOficial } from './revisao-oficial.mjs';
 import { testarGeometriaInterface } from './geometria-interface.mjs';
 import { testarMenuLateral } from './menu-lateral.mjs';
 import { testarNovidadesCentral } from './novidades-central.mjs';
+import { testarSentinelaVarreduraAvisoEstatico, testarSentinelaVarreduraAviso } from './sentinela-varredura-aviso.mjs';
 import { testarSemDodEstatico, testarSemDodNavegador } from './sem-dod.mjs';
 import { testarTesesOficiaisEstatico, testarTesesOficiaisNavegador, testarMigracaoL4Navegador, lerReferencia as lerTesesOficiais } from './teses-oficiais.mjs';
 import { testarSemMapasMentaisEstatico, testarSemMapasMentaisNavegador } from './sem-mapas-mentais.mjs';
@@ -118,6 +119,16 @@ const page = await browser.newPage();
 const falhas = [];
 const ok = (cond, label) => { console.log((cond ? '✓ ' : '✗ ') + label); if (!cond) falhas.push(label); };
 page.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message));
+
+// CT_SO=sentinela-varredura-aviso: a varredura por item (Central e painel) e o chip do Início
+if (process.env.CT_SO === 'sentinela-varredura-aviso') {
+  testarSentinelaVarreduraAvisoEstatico(ok);
+  try { await testarSentinelaVarreduraAviso(page, URL0, ok, { motor }); }
+  catch (e) { ok(false, 'VARREDURA/AVISO [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
+  await browser.close(); srv.close();
+  console.log(falhas.length ? ('\nFALHAS: ' + falhas.length) : '\nTODOS OS TESTES PASSARAM');
+  process.exit(falhas.length ? 1 : 0);
+}
 
 // CT_SO=redacao-mesa roda só o módulo pedido — para o ciclo curto de uma tela.
 if (process.env.CT_SO === 'redacao-resultado') {
@@ -10232,6 +10243,14 @@ catch (e) {
 try { await testarNovidadesCentral(page, URL0, ok, { motor, origem: 'http' }); }
 catch (e) {
   ok(false, 'NOVIDADES [' + motor + '] [http] o roteiro correu sem exceção ('
+    + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
+}
+// Varredura por item e aviso no Início (tests/sentinela-varredura-aviso.mjs): a última varredura
+// do diário de cada item e o link oficial na Central e no painel; o chip das conferidas fora do
+// acervo, que some com zero e abre a Central filtrada — medido, no toque, no escuro e em UTC−4.
+try { testarSentinelaVarreduraAvisoEstatico(ok); await testarSentinelaVarreduraAviso(page, URL0, ok, { motor }); }
+catch (e) {
+  ok(false, 'VARREDURA/AVISO [' + motor + '] o roteiro correu sem exceção ('
     + String(e && e.message || e).split('\n')[0].slice(0, 160) + ')');
 }
 // PDF.js local (tests/pdfjs-local.mjs): o app extrai texto de PDF com toda origem externa
