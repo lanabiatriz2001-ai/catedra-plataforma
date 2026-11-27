@@ -13,6 +13,11 @@
                   " [sic]" (dentro de citação entre colchetes, " (sic)").
    Verbetes repgeral-* têm o texto travado nos lotes de docs/teses-oficiais/: ali a mudança entra
    na REFERÊNCIA, e quem leva ao acervo é scripts/aplicar-teses-oficiais.py (web e nativo).
+   Situação que uma atualização assistida dos temas DEPOIS destes avisos decidiu para o mesmo verbete
+   (docs/teses-oficiais/atualizacao-*.json, "situacao_outros" ou "correcoes_compilacao") vence o aviso:
+   a leitura oficial mais nova manda, e o aviso fica no arquivo como registro do que valia em 03/10/2026.
+   Ex.: COORD-REP-50 era "Acórdão tornado sem efeito (13/11/2024)"; a Corte Especial julgou o Tema 50 de
+   novo (15/09/2026) e a deliberação de 26/11/2026 trocou o verbete pela tese oficial nova.
    Idempotente: rodar de novo não muda nada.
 
    Uso:  node scripts/aplicar-avisos-oficiais.mjs            # grava lotes, juris-index.js, juris-text.js
@@ -40,6 +45,20 @@ export function comSic(texto, trecho, campo) {
 export function comOb(atual, novo) {
   if (atual && atual.includes(novo)) return atual;
   return atual ? atual + '\n' + novo : novo;
+}
+
+/** Situação decidida depois destes avisos, na atualização assistida dos temas: id → { situacao, de }.
+ *  Em ordem de data, a mais nova vence; na mesma atualização, a correção do texto (que traz a situação)
+ *  vem depois da situação avulsa — a mesma regra de scripts/aplicar-teses-oficiais.py. */
+export function situacoesPosteriores(raiz = RAIZ) {
+  const dir = path.join(raiz, 'docs', 'teses-oficiais');
+  const m = new Map();
+  for (const f of fs.readdirSync(dir).filter(f => /^atualizacao-\d{4}-\d{2}-\d{2}\.json$/.test(f)).sort()) {
+    const at = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
+    for (const [id, s] of Object.entries(at.situacao_outros || {})) m.set(id, { situacao: s.situacao, de: f });
+    for (const c of at.correcoes_compilacao || []) m.set(c.id, { situacao: c.situacao_oficial, de: f });
+  }
+  return m;
 }
 
 function lerJs(arq, prefixo) {
@@ -76,10 +95,12 @@ function main() {
   const NAT = { en: 'enunciado', ob: 'observacao', fp: 'precedentes' };
   const anota = (id, campo, valor) => { (nativo[id] = nativo[id] || {})[campo] = valor; };
 
+  const posteriores = situacoesPosteriores();
   for (const [id, sit] of Object.entries(D.situacao)) {
     const r = porId[id];
     if (!r) { faltas.push(id + ': fora do índice'); continue; }
     if (regDoLote(id)) { faltas.push(id + ': situação de verbete travado se muda no lote, não aqui'); continue; }
+    if (posteriores.has(id)) continue;   // a atualização dos temas decidiu depois: ela manda (e leva ao nativo)
     if (r[COL_SITUACAO] !== sit) { mudancas.push(id + '.situacao'); r[COL_SITUACAO] = sit; }
     anota(id, 'situacao', sit);
   }

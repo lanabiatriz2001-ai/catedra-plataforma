@@ -302,13 +302,28 @@ export function testarTesesOficiaisEstatico(ok, opcoes = {}) {
   //     Cada registro substitui o do lote que nomeia, diz o que mudou e onde foi conferido; o acervo (web e
   //     nativo, pelos casos a e c acima) mostra a versão nova; verbete de outra compilação ganha só a
   //     situação, e só sobre a tese oficial; nada de "sugeridos" entra sem a dona.
+  //     Ao longo das atualizações vale a mais nova: cada uma prova a própria proveniência, e o acervo é
+  //     comparado com o estado EFETIVO (situação e texto da atualização mais nova que cita o verbete) — a
+  //     mesma regra de scripts/aplicar-teses-oficiais.py e de situacoesPosteriores() dos avisos.
+  const efetiva = new Map(), corrEfetiva = new Map(), aprovados = new Set();
+  for (const f of ATUALIZACOES()) {
+    const at = lerAtualizacao(f);
+    for (const [i, s] of Object.entries(at.situacao_outros || {})) {
+      efetiva.set(i, { situacao: s.situacao, de: f });
+      if (corrEfetiva.has(i)) corrEfetiva.set(i, { ...corrEfetiva.get(i), situacao_oficial: s.situacao });
+    }
+    for (const c of at.correcoes_compilacao || []) { corrEfetiva.set(c.id, { ...c, de: f }); efetiva.set(c.id, { situacao: c.situacao_oficial, de: f }); }
+    for (const i of Object.keys(at.novos || {})) aprovados.add(i);
+  }
   let anterior = lerReferencia({ comAtualizacoes: false });
   for (const f of ATUALIZACOES()) {
-    const at = lerAtualizacao(f), rot = R + '(i) ' + f.replace(/\.json$/, '') + ': ';
+    const at = lerAtualizacao(f), lote = f.replace(/\.json$/, ''), rot = R + '(i) ' + lote + ': ';
     const dataBr = (at.obtido_em || '').split('-').reverse().join('/');
     const regs = Object.entries(at.registros || {});
     const ruinsAt = regs.filter(([i, r]) => {
       const a = anterior[i];
+      // "substitui" nomeia o lote anterior: "L1" a "L4" ou outra atualização, SEM a extensão (como o aplicador)
+      if (!/^(L[1-4]|atualizacao-\d{4}-\d{2}-\d{2})$/.test(r.substitui || '')) return true;
       if (!a || r.substitui !== a.lote || !r.mudou || !Object.keys(r.mudou).length) return true;
       if (!(r.conferencia || '').includes(dataBr) || !/(portal|lista oficial|ficha oficial|andamentos)/i.test(r.conferencia)) return true;
       // o que mudou é exatamente a diferença para o registro anterior; o resto ficou como estava
@@ -318,32 +333,49 @@ export function testarTesesOficiaisEstatico(ok, opcoes = {}) {
         return c in r.mudou ? (JSON.stringify(r.mudou[c]) !== JSON.stringify([antes, depois]) || antes === depois) : antes !== depois;
       });
     }).map(([i]) => i);
-    ok(regs.length > 0 && ruinsAt.length === 0,
+    // uma atualização pode trazer só situações ou só temas novos; vazia é que não pode
+    const algo = regs.length + Object.keys(at.novos || {}).length + Object.keys(at.situacao_outros || {}).length + (at.correcoes_compilacao || []).length;
+    ok(algo > 0 && ruinsAt.length === 0,
       rot + 'cada um dos ' + regs.length + ' registros substitui o do lote que nomeia, muda só o que diz em "mudou" e traz a conferência na fonte oficial (' + dataBr + ')' + mostra(ruinsAt));
-    for (const [i, r] of regs) anterior[i] = { ...r, lote: f.replace(/\.json$/, '') };
-    for (const [i, r] of Object.entries(at.novos || {})) anterior[i] = { ...r, lote: f.replace(/\.json$/, '') };
-    // verbetes de outra compilação: só a situação oficial, e só onde o texto é a tese oficial do tema
+    for (const [i, r] of regs) anterior[i] = { ...r, lote };
+    for (const [i, r] of Object.entries(at.novos || {})) anterior[i] = { ...r, lote };
+    // verbetes de outra compilação: a proveniência de cada situação desta atualização (só onde o texto é a
+    // tese oficial do tema); o valor no acervo é conferido abaixo, contra a situação EFETIVA
     const sit = Object.entries(at.situacao_outros || {});
-    const sitRuim = sit.filter(([i, s]) => i.startsWith('repgeral-') || !IDX[i] || IDX[i][8] !== s.situacao
+    const sitRuim = sit.filter(([i, s]) => i.startsWith('repgeral-') || !IDX[i]
       || IDX[i][1] !== s.tribunal || IDX[i][2] !== s.fonte || IDX[i][3] !== s.numero
       || !['igual', 'contida'].includes(s.texto_x_tese) || !(s.conferencia || '').includes(dataBr)).map(([i]) => i);
-    ok(sitRuim.length === 0, rot + 'os ' + sit.length + ' verbetes de outras compilações cujo texto é a tese oficial mostram a situação oficial do tema' + mostra(sitRuim));
-    // o que fica para a dona: nada entra sozinho
+    ok(sitRuim.length === 0, rot + 'as ' + sit.length + ' situações de outras compilações são de verbetes cujo texto é a tese oficial do tema, com a conferência' + mostra(sitRuim));
+    // correção do texto de outra compilação (decisão da dona): verbete que existe, mesmo tema, tese e link
+    // oficiais, e o texto anterior guardado no lote
+    const corr = at.correcoes_compilacao || [];
+    const corrRuim = corr.filter(c => c.id.startsWith('repgeral-') || !IDX[c.id] || IDX[c.id][1] !== c.tribunal || IDX[c.id][3] !== c.numero
+      || !c.tese_oficial || !c.texto_acervo || !c.situacao_oficial || !OFICIAL.test(c.url || '')).map(c => c.id);
+    ok(corrRuim.length === 0, rot + 'as ' + corr.length + ' correções de outras compilações trazem tema, tese, situação e link oficiais e guardam o texto anterior' + mostra(corrRuim));
+    // o que fica para a dona: nada entra sozinho (o que ela aprovou passa a "novos", nesta ou noutra atualização)
     const sug = Object.entries(at.sugeridos || {});
-    const sugEntrou = sug.filter(([i]) => IDX[i] || TXT[i]).map(([i]) => i);
+    const sugEntrou = sug.filter(([i]) => (IDX[i] || TXT[i]) && !aprovados.has(i)).map(([i]) => i);
     const sugIncompleto = sug.filter(([, o]) => !o.enunciado || !OFICIAL.test(o.url || '') || !o.situacao || !o.tema || !o.conferencia || numDoTitulo(o.titulo) !== o.numero).map(([i]) => i);
     ok(sugEntrou.length === 0 && sugIncompleto.length === 0,
       rot + 'os ' + sug.length + ' temas sugeridos têm o registro oficial completo e NÃO entraram no acervo sem a dona' + mostra(sugEntrou.concat(sugIncompleto)));
-    const conf = at.para_conferir || [];
+    const conf = (at.para_conferir || []).filter(x => !efetiva.has(x.id));   // o que uma atualização decidiu, sai daqui
     const mexeu = conf.filter(x => !IDX[x.id] || IDX[x.id][8] !== x.situacao_acervo).map(x => x.id);
-    ok(mexeu.length === 0, rot + 'os ' + conf.length + ' casos "para conferir" (texto que não é a tese oficial, ou situação que pede decisão) ficaram como estavam' + mostra(mexeu));
-    for (const [rotulo, dir] of corpora) {
-      const fc = path.join(dir, 'corpus.json');
-      if (!fs.existsSync(fc)) continue;
-      const nat = Object.fromEntries(JSON.parse(fs.readFileSync(fc, 'utf8')).map(x => [x.id, x]));
-      const natRuim = sit.filter(([i, s]) => !nat[i] || nat[i].situacao !== s.situacao).map(([i]) => i);
-      ok(natRuim.length === 0, rot + rotulo + ': as ' + sit.length + ' situações de outras compilações chegaram ao corpus nativo' + mostra(natRuim));
-    }
+    ok(mexeu.length === 0, rot + 'os ' + conf.length + ' casos "para conferir" ainda sem decisão (texto que não é a tese oficial, ou situação que pede decisão) ficaram como estavam' + mostra(mexeu));
+  }
+  // estado efetivo no acervo: a situação (e, na correção, o texto) da atualização mais nova que cita o verbete
+  const efRuim = [...efetiva].filter(([i, e]) => !IDX[i] || IDX[i][8] !== e.situacao).map(([i]) => i);
+  ok(efRuim.length === 0, R + '(i) os ' + efetiva.size + ' verbetes de outras compilações mostram a situação da atualização mais nova que os cita' + mostra(efRuim));
+  const textoRuim = [...corrEfetiva].filter(([i, c]) => !TXT[i] || TXT[i].en !== c.tese_oficial || TXT[i].ur !== c.url
+    || ('observacao' in c && TXT[i].ob !== c.observacao) || ('data' in c && IDX[i][7] !== c.data)).map(([i]) => i);
+  ok(textoRuim.length === 0, R + '(i) os ' + corrEfetiva.size + ' verbetes corrigidos mostram a tese oficial e o link da fonte' + mostra(textoRuim));
+  for (const [rotulo, dir] of corpora) {
+    const fc = path.join(dir, 'corpus.json');
+    if (!fs.existsSync(fc)) continue;
+    const nat = Object.fromEntries(JSON.parse(fs.readFileSync(fc, 'utf8')).map(x => [x.id, x]));
+    const natRuim = [...efetiva].filter(([i, e]) => !nat[i] || nat[i].situacao !== e.situacao).map(([i]) => i)
+      .concat([...corrEfetiva].filter(([i, c]) => !nat[i] || nat[i].enunciado !== c.tese_oficial || nat[i].url !== c.url
+        || ('observacao' in c && nat[i].observacao !== c.observacao) || ('data' in c && nat[i].data !== c.data)).map(([i]) => i));
+    ok(natRuim.length === 0, R + '(i) ' + rotulo + ': as situações e os textos corrigidos de outras compilações chegaram ao corpus nativo' + mostra(natRuim));
   }
   // fatos da atualização de 25/11/2026, medidos no acervo web (conferidos nas páginas oficiais dos temas)
   if (ATUALIZACOES().includes('atualizacao-2026-11-25.json')) {

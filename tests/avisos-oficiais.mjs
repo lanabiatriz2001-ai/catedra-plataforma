@@ -3,7 +3,9 @@
    · (a) decisões × acervo: docs/avisos-oficiais/avisos-2026-10.json está aplicado no
          juris-index.js, no juris-text.js, nas fatias que o app lê e nos lotes das teses oficiais —
          a Situação, o trecho literal em "Informações da fonte", a citação de origem e a marca
-         [sic] no erro que é da própria fonte. O aplicador é idempotente (nada a aplicar);
+         [sic] no erro que é da própria fonte. O aplicador é idempotente (nada a aplicar). Situação
+         que a atualização assistida dos temas decidiu depois (docs/teses-oficiais/atualizacao-*.json)
+         vence o aviso: o verbete mostra a mais nova (COORD-REP-50, Tema 50 julgado de novo em 2026);
    · (a') classificação: os quatro verbetes que estavam rotulados como o que não são ("Recursos
          repetitivos" num julgado da Corte Especial fora do rito; tese do STJ posta como do STF)
          trazem tribunal, título, tema, órgão e citação da fonte;
@@ -18,7 +20,7 @@ import fs from 'fs';
 import path from 'path';
 import { execFileSync } from 'child_process';
 import { fileURLToPath } from 'url';
-import { comSic, comOb, marca } from '../scripts/aplicar-avisos-oficiais.mjs';
+import { comSic, comOb, marca, situacoesPosteriores } from '../scripts/aplicar-avisos-oficiais.mjs';
 import { limpaCampo } from '../scripts/limpar-anotacoes-juris.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -34,8 +36,15 @@ export function testarAvisosOficiaisEstatico(ok, opcoes = {}) {
   // (a) decisões × acervo
   const nS = Object.keys(D.situacao).length, nO = Object.keys(D.ob).length;
   ok(nS >= 25 && nO >= 15 && D.sic.length >= 11, R + '(a) o arquivo de decisões foi lido (' + nS + ' situações, ' + nO + ' trechos literais, ' + D.sic.length + ' marcas)');
-  const sitRuim = Object.entries(D.situacao).filter(([id, s]) => !IDX[id] || IDX[id][8] !== s).map(x => x[0]);
+  // situação que a atualização assistida dos temas decidiu DEPOIS vence o aviso (o aviso fica no arquivo como
+  // história): o verbete mostra a da atualização mais nova
+  const POST = situacoesPosteriores(RAIZ);
+  const superados = Object.keys(D.situacao).filter(id => POST.has(id));
+  const sitRuim = Object.entries(D.situacao).filter(([id, s]) => !POST.has(id) && (!IDX[id] || IDX[id][8] !== s)).map(x => x[0]);
   ok(sitRuim.length === 0, R + '(a) toda Situação decidida está na coluna de situação do índice' + mostra(sitRuim));
+  const supRuim = superados.filter(id => !IDX[id] || IDX[id][8] !== POST.get(id).situacao);
+  ok(supRuim.length === 0, R + '(a) aviso superado por atualização posterior dos temas (' + (superados.join(', ') || 'nenhum')
+    + '): o verbete mostra a situação mais nova, e o aviso fica no arquivo' + mostra(supRuim));
   const obRuim = Object.entries(D.ob).filter(([id, t]) => !TXT[id] || !(TXT[id].ob || '').includes(t)).map(x => x[0]);
   ok(obRuim.length === 0, R + '(a) todo trecho literal está nas "Informações da fonte" do verbete' + mostra(obRuim));
   const fpRuim = Object.entries(D.fp).filter(([id, t]) => !TXT[id] || TXT[id].fp !== t).map(x => x[0]);
@@ -83,7 +92,7 @@ export function testarAvisosOficiaisEstatico(ok, opcoes = {}) {
     const f = path.join(dir, 'corpus.json');
     if (!fs.existsSync(f)) { console.log('  · ' + R + rotulo + '/corpus.json não existe nesta máquina — fica de fora'); continue; }
     const nat = Object.fromEntries(JSON.parse(fs.readFileSync(f, 'utf8')).map(r => [r.id, r]));
-    const s = Object.entries(D.situacao).filter(([id, v]) => nat[id] && nat[id].situacao !== v).map(x => x[0]);
+    const s = Object.entries(D.situacao).filter(([id, v]) => nat[id] && nat[id].situacao !== (POST.has(id) ? POST.get(id).situacao : v)).map(x => x[0]);
     const o = Object.entries(D.ob).filter(([id, t]) => nat[id] && !(nat[id].observacao || '').includes(t)).map(x => x[0]);
     const c = D.sic.filter(([id, , trecho]) => nat[id] && JSON.stringify(nat[id]).includes(JSON.stringify(trecho).slice(1, -1)) && !/\[sic\]|\(sic\)/.test(JSON.stringify(nat[id]))).map(x => x[0]);
     const k = Object.entries(D.classificacao || {}).filter(([id, cl]) => nat[id] && ((cl.indice[1] && nat[id].tribunal !== cl.indice[1]) || (cl.indice[4] && nat[id].titulo !== cl.indice[4])

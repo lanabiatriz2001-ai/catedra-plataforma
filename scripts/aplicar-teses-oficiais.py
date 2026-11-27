@@ -38,8 +38,11 @@ Regras (decisões da dona, 25/09/2026):
 
 Atualização assistida (docs/teses-oficiais/atualizacao-AAAA-MM-DD.json, a primeira de 25/11/2026): a
 leitura nova da fonte oficial, em ordem de data, por cima dos lotes.
-- "registros": cada um SUBSTITUI o registro do mesmo id no lote que ele nomeia em "substitui" (a leitura
-  mais nova vence) e traz o que mudou ("mudou"), por quê ("motivo") e onde foi conferido ("conferencia");
+- "registros": cada um SUBSTITUI o registro do mesmo id no lote que ele nomeia em "substitui" — "L1" a "L4"
+  ou o nome da atualização sem a extensão ("atualizacao-AAAA-MM-DD") — (a leitura mais nova vence) e traz
+  o que mudou ("mudou"), por quê ("motivo") e onde foi conferido ("conferencia");
+- "correcoes_compilacao": verbete de outra compilação que passa a mostrar a tese oficial (texto, link e
+  situação; o texto anterior fica guardado no próprio lote), por decisão da dona;
 - "novos": tema que a dona aprovou e que entra no acervo (id novo, no fim do índice e do
   repercussao_geral.json); precisa de "ramo" no vocabulário do acervo;
 - "situacao_outros": verbete de outra compilação (COORD-*) cujo texto é a tese oficial ganha só a
@@ -306,20 +309,30 @@ if __name__ == '__main__':
     novos, situacoes, correcoes = {}, {}, {}
     for caminho in ATUALIZACOES:      # em ordem de data: a leitura mais nova vence
         at, nome = json.load(open(caminho, encoding='utf-8')), os.path.basename(caminho)
+        # o identificador do lote é o nome SEM a extensão ('atualizacao-AAAA-MM-DD'), o mesmo que
+        # tests/teses-oficiais.mjs usa: é ele que uma atualização futura põe em "substitui"
+        lote = os.path.splitext(nome)[0]
         for i, r in at.get('registros', {}).items():
             assert i in ref, f'{nome}: {i} não tem registro em lote anterior (tema novo vai em "novos")'
             assert r.get('substitui') == lote_de[i], f"{nome}: {i} diz substituir {r.get('substitui')}, mas está em {lote_de[i]}"
             assert r.get('mudou') and r.get('conferencia'), f'{nome}: {i} sem "mudou" ou sem "conferencia"'
-            ref[i] = r; lote_de[i] = nome
+            ref[i] = r; lote_de[i] = lote
         for i, r in at.get('novos', {}).items():
             assert i not in ref and i not in sai, f'{nome}: {i} já existe, foi fundido ou retirado'
             assert r.get('ramo') and r.get('conferencia'), f'{nome}: tema novo {i} sem "ramo" ou sem "conferencia"'
-            ref[i] = r; lote_de[i] = nome; novos[i] = r
-        correcoes.update({c['id']: c for c in at.get('correcoes_compilacao', [])})
+            ref[i] = r; lote_de[i] = lote; novos[i] = r
+        # verbete de outra compilação: a situação mais nova vence. Na mesma atualização, a correção do texto
+        # (que traz a situação junto) vem depois da situação avulsa; entre atualizações, a mais nova vence
+        # qualquer uma das duas — por isso a situação avulsa posterior desce para a correção anterior.
         for i, s in at.get('situacao_outros', {}).items():
             assert not i.startswith('repgeral-'), f'{nome}: {i} é repgeral-* — a situação dele muda em "registros"'
             assert s.get('situacao') and s.get('conferencia'), f'{nome}: {i} sem situação ou sem conferência'
             situacoes[i] = s
+            if i in correcoes:
+                correcoes[i] = dict(correcoes[i], situacao_oficial=s['situacao'])
+        for c in at.get('correcoes_compilacao', []):
+            correcoes[c['id']] = c
+            situacoes.pop(c['id'], None)
         print(f"{nome}: {len(at.get('registros', {}))} registros atualizados, {len(at.get('novos', {}))} novos, "
               f"{len(at.get('situacao_outros', {}))} situações de outras compilações; "
               f"{len(at.get('sugeridos', {}))} sugeridos e {len(at.get('para_conferir', []))} para conferir ficam de fora")
