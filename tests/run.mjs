@@ -3724,14 +3724,16 @@ await comCadernoEnam(async (page) => {
 }
 
 /* ============= PÚBLICO — P15: sobre.html e a lista de espera ============= */
-// A página pública: sem promessa de aprovação, sem depoimento, sem número de adoção, sem preço; fontes locais; o
-// formulário rejeita e-mail inválido sem chamar a rede e, válido, faz um INSERT anônimo em lista_espera com a
+// A página pública usa fontes locais e mostra só o preço previsto do beta. O formulário rejeita e-mail inválido
+// sem chamar a rede e, válido, faz um INSERT anônimo em lista_espera com a
 // chave pública, mostrando a confirmação no lugar (sem redirecionar). O RLS (só INSERT para anon) foi conferido
 // direto no projeto vivo em 08/09/2026; aqui a rede é simulada.
 {
   const r = {};
   const html = fs.readFileSync(path.join(RAIZ, 'sobre.html'), 'utf8');
-  r.semPromessaNemInvencao = !/aprovação garantida|depoimento(?! —|,)|alunos aprovados|R\$|por mês|assinatura por|\d+ (mil )?(alunos|usuári)/i.test(html.replace(/<!--[\s\S]*?-->/g, ''));
+  r.semPromessaNemInvencao = !/aprovação garantida|depoimento(?! —|,)|alunos aprovados|\d+ (mil )?(alunos|usuári)/i.test(html.replace(/<!--[\s\S]*?-->/g, ''));
+  const preco = spawnSync(process.execPath, ['--test', path.join(RAIZ, 'tests', 'sobre-preco-beta.test.mjs')], { encoding: 'utf8', timeout: 15000 });
+  ok(preco.status === 0, 'PÚBLICO/P15 a página tem só a frase aprovada do preço do beta' + (preco.status === 0 ? '' : ' — ' + (preco.error?.message || preco.stdout || preco.stderr)));
   r.semRedeExterna = !/https?:\/\/(cdn|fonts\.|unpkg|jsdelivr|googleapis|gstatic)/i.test(html) && /url\('\.\/fonts\/spectral-700-normal\.woff2'\)/.test(html) && /prefers-color-scheme: dark/.test(html) && /prefers-reduced-motion/.test(html);
   r.conteudoDaEspecificacao = /Leitura ativa em sete perguntas/.test(html) && /Espelhos oficiais quesito a quesito/.test(html) && /Arguição, não leitura/.test(html) && /funciona sem internet/.test(html) && /<html lang="pt-BR">/.test(html);
   r.corPorRamoComTextoEscurecido = /--ramo-constitucional:#2563EB/.test(html) && /--ramo-penal:#E11D48/.test(html) && /color-mix\(in srgb,var\(--c\) 72%,var\(--ink\)\)/.test(html) && !/border-left:\s*[3-9]px/.test(html);
@@ -3819,6 +3821,7 @@ await comCadernoEnam(async (page) => {
       for (const esquema of ['light', 'dark']) {
         await p.emulateMedia({ colorScheme: esquema });
         await p.goto(URL0 + '/sobre.html');
+        ok(await p.locator('.honesto .preco-beta').isVisible(), 'PÚBLICO/P15 ' + esquema + ' o preço previsto aparece na caixa do beta');
         const m = await p.evaluate(() => {
           // as cores chegam como rgb(), rgba() ou color(srgb …) (color-mix); formato desconhecido reprova em vez de passar calado
           const desconhecidas = [];
@@ -3847,13 +3850,22 @@ await comCadernoEnam(async (page) => {
           const L = q => 0.2126 * lin(q[0]) + 0.7152 * lin(q[1]) + 0.0722 * lin(q[2]);
           const contra = (a, b) => (Math.max(L(a), L(b)) + 0.05) / (Math.min(L(a), L(b)) + 0.05);
           const borda = (campo) => { const cb = cor(getComputedStyle(campo).borderTopColor); return Math.min(...[...fundos(campo), ...fundos(campo.parentElement)].map(f => contra(sobre(cb, f), f))); };
-          // a nota dos quesitos sem valor é texto novo: 4,5:1 contra o que pinta atrás dela
-          const nota = document.querySelector('.hero .nota');
-          const textoNota = nota && nota.getClientRects().length ? Math.min(...fundos(nota).map(f => contra(sobre(cor(getComputedStyle(nota).color), f), f))) : 0;
-          return { email: borda(document.getElementById('email')), area: borda(document.getElementById('area')), nota: textoNota, desconhecidas };
+          const texto = (el) => {
+            if (!el || !el.getClientRects().length) return 0;
+            const tinta = cor(getComputedStyle(el).color);
+            return Math.min(...fundos(el).map(f => contra(sobre(tinta, f), f)));
+          };
+          return {
+            email: borda(document.getElementById('email')),
+            area: borda(document.getElementById('area')),
+            nota: texto(document.querySelector('.hero .nota')),
+            preco: texto(document.querySelector('.honesto .preco-beta')),
+            desconhecidas
+          };
         });
         ok(m.email >= 3 && m.area >= 3, 'PÚBLICO/P15 ' + esquema + ' a borda dos campos tem 3:1 — e-mail ' + m.email.toFixed(2) + ':1, área ' + m.area.toFixed(2) + ':1');
         ok(m.nota >= 4.5, 'PÚBLICO/P15 ' + esquema + ' a nota do mosaico se lê — ' + m.nota.toFixed(2) + ':1');
+        ok(m.preco >= 4.5, 'PÚBLICO/P15 ' + esquema + ' o preço previsto se lê — ' + m.preco.toFixed(2) + ':1');
         ok(m.desconhecidas.length === 0, 'PÚBLICO/P15 ' + esquema + ' todas as cores da medição foram lidas' + (m.desconhecidas.length ? ' — ' + m.desconhecidas.slice(0, 2).join(' | ') : ''));
       }
     } finally { await ctxCor.close(); }

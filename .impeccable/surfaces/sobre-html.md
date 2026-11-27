@@ -13,7 +13,7 @@ related_targets: ["termos.html","privacidade.html"]
 
 **Conteúdo que prova (real, já no repositório).** Espelhos de correção oficiais extraídos quesito a quesito com a pontuação da banca (566 quesitos de 35 espelhos); lei seca e ~14,6 mil verbetes de jurisprudência embarcados, funcionando offline; acervo de contas públicas (TCU + 33 tribunais); banco de discursivas conferido contra o PDF oficial. É isso que a página mostra: o acervo é o produto.
 
-**Restrições que não se negociam.** Nada de depoimentos, clientes, números de adoção, preço, benchmark de aprovação ou imprensa: não existem e não podem ser inventados (PRODUCT.md, "Ausências"). Sem rede externa em tempo de execução (fontes locais, sem CDN). Português do Brasil. Links para Termos e Política sempre visíveis. Direção "vitrine": cor por ramo do direito, tipografia grande, composição ousada; design tímido foi recusado.
+**Restrições que não se negociam.** Nada de depoimentos, clientes, números de adoção, benchmark de aprovação ou imprensa: não existem e não podem ser inventados (PRODUCT.md, "Ausências"). O único preço permitido nesta página é "Quando abrir, R$ 197 por ano (valor previsto, pode mudar)." na caixa `.honesto` (PRODUCT.md, "Preço"). Sem rede externa em tempo de execução (fontes locais, sem CDN). Português do Brasil. Links para Termos e Política sempre visíveis. Direção "vitrine": cor por ramo do direito, tipografia grande, composição ousada; design tímido foi recusado.
 
 **Direção e momento memorável.** O primeiro viewport apresenta o acervo como objeto, não um hero genérico: o critério da banca ao lado do treino, na cor do ramo. A lista de espera é o convite, não um formulário de marketing.
 
