@@ -17,7 +17,7 @@ function normWord(w){
   return SYN[s] || s;
 }
 function tokenize(text){
-  var re = /§|[\p{L}\p{N}]+/gu, out = [], m, s = String(text == null ? '' : text);
+  var re = /§|[\p{L}\p{N}][\p{L}\p{N}\p{M}]*/gu, out = [], m, s = String(text == null ? '' : text);
   while ((m = re.exec(s))) {
     out.push({raw:m[0], n:(m[0] === '§' ? 'par' : normWord(m[0])), i:m.index});
   }
