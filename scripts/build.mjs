@@ -23,7 +23,7 @@ import { verificarPII } from './verificar-pii.mjs';
 import './verificar-cores-ramo.mjs';   // trava: paleta de ramos igual nas 3 fontes
 import './verificar-cores-leitura.mjs';   // trava: grade de leitura ativa legível (≥ 4,5:1 texto, ≥ 3:1 identidade)
 import './verificar-cores-texto.mjs';   // trava: cor de ramo como texto ≥ 4,5:1 (P16)
-import './build-juridico.mjs';   // Termos e Política: docs/juridico/*.md → termos.html, privacidade.html, juridico.js
+import { preencherPagina, lerControlador } from './build-juridico.mjs';   // Termos e Política: docs/juridico/*.md → termos.html, privacidade.html, juridico.js
 import { prepararAbertura } from './build-abertura.mjs';   // primeira pintura usa as paletas reais do host
 import { compactarLogica } from './compactar-logica.mjs';   // só a lógica inerte perde whitespace na saída
 import { lerVendor, PDFJS } from './vendor-libs.mjs';   // React, ReactDOM, supabase-js e PDF.js congelados em vendor/ (sha256)
@@ -55,7 +55,7 @@ const pub = join(ROOT, 'public');
    a conferência acontece ANTES de qualquer escrita e de qualquer rede. Antes o laço de
    cópia pulava em silêncio o que faltava: um arquivo renomeado ou apagado saía do deploy
    sem ninguém ver, e o satélite que dependia dele abria quebrado só em produção. */
-const COPIAR = ['support.js', 'icon.svg', 'auth.js', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'discursivas-textos.js', 'espelhos.js', 'segunda-fase-web.html', 'prioridade-dados.js', 'prioridade-web.html', 'oral.js', 'oral-conteudo.js', 'treino.js', 'sessao-leitor.js', 'tema-satelite.js', 'satellite-base.css', 'leis-catalogo.js', 'busca-unica.js', 'prioridade-calc.js', 'fsrs.js', 'ciclo-magistratura.js', 'ct-dados.js', 'leis-seca.js', 'leis-seca-areas.js', 'questoes-prova.js', 'area-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'mapa-grafo.js', 'mapa-processual.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'area-modulos.js', 'semana-juris.js', 'novidades.js', 'revisao-oficial.js', 'plataformas-questoes.js', 'espelho-sugerido.js', 'redacao-motor.js', 'area-registry.js', 'casos.js', 'leitura-ativa.js', 'enam.js', 'questoes-enam.js', 'catedra-ui.css', 'juridico.js', 'termos.html', 'privacidade.html', 'sobre.html', 'incidencia-verbetes.js'];
+const COPIAR = ['support.js', 'icon.svg', 'auth.js', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'discursivas-textos.js', 'espelhos.js', 'segunda-fase-web.html', 'prioridade-dados.js', 'prioridade-web.html', 'oral.js', 'oral-conteudo.js', 'treino.js', 'sessao-leitor.js', 'tema-satelite.js', 'satellite-base.css', 'leis-catalogo.js', 'busca-unica.js', 'prioridade-calc.js', 'fsrs.js', 'ciclo-magistratura.js', 'ct-dados.js', 'leis-seca.js', 'leis-seca-areas.js', 'questoes-prova.js', 'area-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'mapa-grafo.js', 'mapa-processual.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'area-modulos.js', 'semana-juris.js', 'novidades.js', 'revisao-oficial.js', 'plataformas-questoes.js', 'espelho-sugerido.js', 'redacao-motor.js', 'area-registry.js', 'casos.js', 'leitura-ativa.js', 'enam.js', 'questoes-enam.js', 'catedra-ui.css', 'juridico.js', 'termos.html', 'privacidade.html', 'sobre.html', 'banco-espelhos-venda.html', 'incidencia-verbetes.js'];
 {
   const faltam = COPIAR.filter((f) => !existsSync(join(ROOT, f)));
   if (!existsSync(join(ROOT, 'dados'))) faltam.push('dados/');
@@ -331,6 +331,10 @@ for (const f of COPIAR) {
     // Comentários ficam no fonte; o CSS publicado mantém as regras sem ocupar o precache.
     const css = readFileSync(join(ROOT, f), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
     writeFileSync(join(pub, f), css);
+  } else if (f === 'banco-espelhos-venda.html') {
+    // canal do encarregado e fornecedor (Decreto 7.962/2013, art. 2º) saem de docs/juridico/controlador.json;
+    // campo vazio mantém o marcador entre colchetes, como nos Termos e na Política
+    writeFileSync(join(pub, f), preencherPagina(read(f), lerControlador()).html);
   } else copyFileSync(join(ROOT, f), join(pub, f));
 }
 /* Arquivos APOSENTADOS: saíram do repositório, mas um public/ de build antigo ainda os

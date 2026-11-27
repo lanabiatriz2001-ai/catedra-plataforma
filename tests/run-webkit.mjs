@@ -58,6 +58,7 @@ import { testarRevisaoFonte } from './revisao-fonte.mjs';
 import { testarVoltaOrigem } from './volta-origem.mjs';
 import { testarContrasteDestaque } from './contraste-destaque.mjs';
 import { testarIconesAlvos } from './icones-alvos.mjs';
+import { testarVendaEspelhos } from './venda-espelhos.mjs';
 import { testarFaixaMapaAlvos } from './faixa-mapa-alvos.mjs';
 import { testarPrioridadeDiscursiva } from './prioridade-discursiva.mjs';
 import { testarRedacaoMesa } from './redacao-mesa.mjs';
@@ -272,6 +273,10 @@ await testarCicloMagistratura(page, base, ok, { motor, origem }); } catch (e) { 
     // cópia no LEGIS são o que o iPad e o Mac pintam
     try { await testarContrasteDestaque(page, base, ok, { motor }); }
     catch (e) { ok(false, 'CONTRASTE/DESTAQUE [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
+    // a página de venda do Banco de Espelhos no motor da Apple: color-mix nos cartões e contraste medido
+    // (o módulo abre contexto próprio e não mexe no tamanho nem no esquema de cor desta página)
+    try { await testarVendaEspelhos(page, base, ok); }
+    catch (e) { ok(false, 'PÚBLICO/venda [' + motor + '] exceção: ' + String(e && e.message || e).split('\n')[0]); }
     // os ícones do app, dos satélites e do portão (SVG Lucide, não emoji) e os alvos do cronômetro no toque, no motor que o
     // iPad pinta — e a nota da Prova oral, cujo fundo inválido o WebKit também descartava
     try { await testarIconesAlvos(page, base, ok, { motor }); }

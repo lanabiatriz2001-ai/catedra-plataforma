@@ -28,7 +28,7 @@ import './verificar-cores-ramo.mjs';   // trava: paleta de ramos igual na web e 
 import './verificar-cores-leitura.mjs';   // trava: grade de leitura ativa legível (≥ 4,5:1 texto, ≥ 3:1 identidade)
 import './verificar-cores-texto.mjs';   // trava: cor de ramo como texto ≥ 4,5:1 (P16)
 import { verificar as verificarDesignNativo } from './verificar-design-nativo.mjs';   // trava: dívida visual do nativo só desce
-import './build-juridico.mjs';   // Termos e Política: docs/juridico/*.md → termos.html, privacidade.html, juridico.js
+import { preencherPagina, lerControlador } from './build-juridico.mjs';   // Termos e Política: docs/juridico/*.md → termos.html, privacidade.html, juridico.js
 import { prepararAbertura } from './build-abertura.mjs';
 import { lerVendor, PDFJS } from './vendor-libs.mjs';   // React, ReactDOM, supabase-js e PDF.js congelados em vendor/ (sha256)
 { const r = verificarDesignNativo(); if (r.falhas.length) throw new Error('\n✗ BUILD ABORTADO — contagem da dívida visual do LEGIS/JURIS nativos não bate com a base:\n  ' + r.falhas.join('\n  ')); }
@@ -126,7 +126,7 @@ writeFileSync(join(OUT, 'index.html'), out);
 // página se declarava offline. Por isso os dois são carimbados na cópia.
 const FRAMES = new Set(['legis-web.html', 'juris-web.html']);
 const CARIMBO = `<script>window.CATEDRA_API_BASE = ${JSON.stringify(API_BASE)};</script>`;
-for (const f of ['support.js', 'auth.js', 'icon.svg', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'discursivas-textos.js', 'espelhos.js', 'segunda-fase-web.html', 'prioridade-dados.js', 'prioridade-web.html', 'oral.js', 'oral-conteudo.js', 'treino.js', 'sessao-leitor.js', 'tema-satelite.js', 'satellite-base.css', 'leis-catalogo.js', 'busca-unica.js', 'prioridade-calc.js', 'fsrs.js', 'ciclo-magistratura.js', 'ct-dados.js', 'leis-seca.js', 'leis-seca-areas.js', 'questoes-prova.js', 'area-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'mapa-grafo.js', 'mapa-processual.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'incidencia-verbetes.js', 'area-modulos.js', 'semana-juris.js', 'novidades.js', 'revisao-oficial.js', 'plataformas-questoes.js', 'espelho-sugerido.js', 'redacao-motor.js', 'area-registry.js', 'casos.js', 'leitura-ativa.js', 'enam.js', 'questoes-enam.js', 'catedra-ui.css', 'juridico.js', 'termos.html', 'privacidade.html', 'sobre.html']) {
+for (const f of ['support.js', 'auth.js', 'icon.svg', 'icon-180.png', 'legis-web.html', 'juris-web.html', 'juris-index.js', 'juris-text.js', 'contas-index.js', 'contas-text.js', 'modelos-edital.js', 'discursivas.js', 'discursivas-textos.js', 'espelhos.js', 'segunda-fase-web.html', 'prioridade-dados.js', 'prioridade-web.html', 'oral.js', 'oral-conteudo.js', 'treino.js', 'sessao-leitor.js', 'tema-satelite.js', 'satellite-base.css', 'leis-catalogo.js', 'busca-unica.js', 'prioridade-calc.js', 'fsrs.js', 'ciclo-magistratura.js', 'ct-dados.js', 'leis-seca.js', 'leis-seca-areas.js', 'questoes-prova.js', 'area-web.html', 'ritos.js', 'pecas.js', 'fluxos.js', 'peca-roteiro.js', 'mapa-grafo.js', 'mapa-processual.js', 'ritos-web.html', 'pecas-web.html', 'incidencia.js', 'incidencia-verbetes.js', 'area-modulos.js', 'semana-juris.js', 'novidades.js', 'revisao-oficial.js', 'plataformas-questoes.js', 'espelho-sugerido.js', 'redacao-motor.js', 'area-registry.js', 'casos.js', 'leitura-ativa.js', 'enam.js', 'questoes-enam.js', 'catedra-ui.css', 'juridico.js', 'termos.html', 'privacidade.html', 'sobre.html', 'banco-espelhos-venda.html']) {
   // arquivo listado que não existe é lista velha ou arquivo perdido: o bundle sairia sem ele
   // e o app nativo quebraria calado numa tela — melhor parar aqui dizendo qual
   if (!existsSync(join(ROOT, f))) { console.error('BUILD ABORTADO: ' + f + ' está na lista de cópia do bundle nativo mas não existe no repositório.'); process.exit(1); }
@@ -134,6 +134,9 @@ for (const f of ['support.js', 'auth.js', 'icon.svg', 'icon-180.png', 'legis-web
     const html = read(f).replace('href="./Catedra.dc.html?leitor=', 'href="./index.html?leitor=');
     if (!html.includes('<head>')) throw new Error(f + ': sem <head> — o carimbo do API_BASE não teria onde entrar');
     writeFileSync(join(OUT, f), html.replace('<head>', '<head>' + CARIMBO));
+  } else if (f === 'banco-espelhos-venda.html') {
+    // canal do encarregado e fornecedor saem de docs/juridico/controlador.json (campo vazio mantém o marcador)
+    writeFileSync(join(OUT, f), preencherPagina(read(f), lerControlador()).html);
   } else copyFileSync(join(ROOT, f), join(OUT, f));
 }
 

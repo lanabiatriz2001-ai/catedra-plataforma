@@ -7158,7 +7158,7 @@ window.ctPdfLib = (function(){
           </div>
           <div style="margin:16px 0 0;padding:14px 16px;border:1px solid var(--border);border-radius:var(--r-md);">
             <div style="font-weight:600;color:var(--ink);">Excluir minha conta</div>
-            <div style="font-size:var(--fs-sm);color:var(--text3);margin:4px 0 10px;line-height:1.5;">Apaga o cadastro e todos os dados de estudo, na nuvem e neste aparelho, e tira você dos grupos. Antes, o app exporta o backup JSON automaticamente. Não dá para desfazer.<sc-if value="{{ contaEmail }}" hint-placeholder-val="{{ false }}"> Conta: <b>{{ contaEmail }}</b>.</sc-if></div>
+            <div style="font-size:var(--fs-sm);color:var(--text3);margin:4px 0 10px;line-height:1.5;">Apaga a conta e todos os dados de estudo, na nuvem e neste aparelho, e tira você dos grupos. Não apaga os pedidos feitos nas páginas públicas (lista de espera do beta e aviso de venda do Banco de Espelhos): para sair deles, veja a Política de privacidade, 9.5. Antes, o app exporta o backup JSON automaticamente. Não dá para desfazer.<sc-if value="{{ contaEmail }}" hint-placeholder-val="{{ false }}"> Conta: <b>{{ contaEmail }}</b>.</sc-if></div>
             <sc-if value="{{ !contaExcluindo }}" hint-placeholder-val="{{ true }}"><button type="button" onclick="{{ excluirConta }}" class="ct-btn-2" style="min-height:44px;border-color:var(--warn);color:var(--warn);">Excluir minha conta…</button></sc-if>
             <sc-if value="{{ contaExcluindo }}" hint-placeholder-val="{{ false }}"><span style="font-size:var(--fs-sm);color:var(--text3);">Excluindo…</span></sc-if>
           </div>
@@ -14689,7 +14689,7 @@ class Component extends DCLogic {
     const A=window.CatedraAuth;
     if(!A || typeof A.excluirConta!=='function'){ this._toast('A exclusão precisa da conta conectada e de internet — abra o app logada para excluir'); return; }
     try{ this.exportJSON(); }catch(_){}
-    const ok=window.confirm('Excluir a sua conta apaga TUDO: sessões, edital, revisões, simulados, flashcards, caderno de erros, grupos e o cadastro — na nuvem e neste aparelho. O backup JSON acabou de ser exportado.\n\nNão dá para desfazer. Excluir mesmo assim?');
+    const ok=window.confirm('Excluir a sua conta apaga sessões, edital, revisões, simulados, flashcards, caderno de erros, grupos e a própria conta — na nuvem e neste aparelho. Não apaga os pedidos feitos nas páginas públicas (lista de espera do beta e aviso de venda do Banco de Espelhos; Política de privacidade, 9.5). O backup JSON acabou de ser exportado.\n\nNão dá para desfazer. Excluir mesmo assim?');
     if(!ok) return;
     this.setState({contaExcluindo:true});
     A.excluirConta().catch((err)=>{ this.setState({contaExcluindo:false}); const m=String(err&&err.message||''); this._toast(/admin_nao_pode/.test(m)?'Conta de administração não pode ser excluída por aqui':'Não consegui excluir agora — tente de novo com internet'); });
@@ -21557,8 +21557,8 @@ class Component extends DCLogic {
       iaConsentPedir:!!this.state.iaConsentPedir, iaConsentTexto:this.IA_CONSENT_TEXTO, iaConsentir:this.iaConsentir, iaRecusar:this.iaRecusar, iaRevogar:this.iaRevogar, iaAutorizarAjustes:this.iaAutorizarAjustes,
       iaConsentTem:this._iaConsentido(), iaConsentTxt:(()=>{ const c=this.state.iaConsentimento; if(!this._iaConsentido()) return 'Nenhum recurso de IA é chamado enquanto você não autorizar — o pedido aparece na primeira vez que usar um.'; try{ return 'Autorizado em '+new Date(+c.ts).toLocaleDateString('pt-BR')+'. Cada uso envia só o texto daquele pedido a um provedor fora do Brasil, apenas para gerar a resposta.'; }catch(_){ return 'Autorizado.'; } })(),
       docAberto:!!this.state.docAberto, docAbertoSrc:this.state.docAberto?('./'+this.state.docAberto+'.html'):'', docAbertoTitulo:this.state.docAberto==='privacidade'?'Política de privacidade':'Termos de uso', abrirDoc:this.abrirDoc, fecharDoc:this.fecharDoc,
-      juridicoVersao:(window.CT_JURIDICO&&window.CT_JURIDICO.versao)||'', juridicoData:(()=>{ try{ const d=window.CT_JURIDICO.termos.data; return d?new Date(d+'T12:00:00').toLocaleDateString('pt-BR'):''; }catch(_){ return ''; } })(),
-      aceiteTxt:(()=>{ const J=window.CT_JURIDICO, a=this.state.aceite; if(!J) return 'Documentos não publicados neste build.'; if(J.aceiteVigente(a)){ try{ return 'Você aceitou a versão '+a.versao+' em '+new Date(+a.ts).toLocaleDateString('pt-BR')+'.'; }catch(_){ return 'Aceitos.'; } } return 'A versão vigente ('+J.versao+') ainda não foi aceita nesta conta — o app pede no próximo login.'; })(),
+      juridicoVersao:(window.CT_JURIDICO&&window.CT_JURIDICO.versao)||'', juridicoData:(()=>{ try{ const J=window.CT_JURIDICO; const d=[J.termos&&J.termos.data, J.privacidade&&J.privacidade.data].filter(Boolean).sort().pop(); return d?new Date(d+'T12:00:00').toLocaleDateString('pt-BR'):''; }catch(_){ return ''; } })(),
+      aceiteTxt:(()=>{ const J=window.CT_JURIDICO, a=this.state.aceite; if(!J) return 'Documentos não publicados neste build.'; if(J.aceiteVigente(a)){ try{ return 'Você aceitou a versão '+a.versao+' em '+new Date(+a.ts).toLocaleDateString('pt-BR')+'.'; }catch(_){ return 'Aceitos.'; } } return 'A versão vigente ('+J.versao+') ainda não foi aceita nesta conta — o app pede ao reabrir.'; })(),
       temOriginalLocal:!!(window.CatedraAuth && window.CatedraAuth.user && localStorage.getItem('ct_original_'+window.CatedraAuth.user.id)),
       exportarOriginalLegado:this.exportarOriginalLegado,
       temReservaLocal:!!(window.CatedraAuth && window.CatedraAuth.user && localStorage.getItem('ct_recuperacao_disponivel')),

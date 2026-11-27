@@ -61,7 +61,7 @@ Uma plataforma vizinha de questões não consegue copiar isso sem coletar e veri
 
 Conteúdo real, verificado, já no repositório — nada aqui precisa ser inventado:
 
-- `espelhos.js` + `banco-espelhos.html` — 566 quesitos de 35 espelhos oficiais de magistratura, com pontuação e dispositivos citados;
+- `espelhos.js` + `banco-espelhos.html` — 586 quesitos de 36 provas com espelho oficial de magistratura (11 tribunais, 2021–2026), com a exigência da banca e os dispositivos citados; em 502 o valor do quesito está no espelho, nos outros 84 ele não vem separado;
 - `discursivas.json` / `discursivas-completo.js` (~8 MB) — banco de discursivas coletado e conferido contra o PDF oficial, sem lacunas;
 - `leis-seca.js` e `leis-seca-areas.js` — lei seca embarcada, 35 leis etiquetadas por área;
 - `juris-text.js` / `juris-index.js` — ~14,6 mil verbetes de jurisprudência;
@@ -69,7 +69,9 @@ Conteúdo real, verificado, já no repositório — nada aqui precisa ser invent
 - `questoes-prova.js` — 83 questões de prova real (ampliação em sessões espaçadas por causa do anti-bot da fonte);
 - `oral-conteudo.js`, `pecas.js`, `ritos.js`, `fluxos.js`, `modelos-edital.js`, `incidencia.json`.
 
-**Ausências que trabalho futuro não pode fabricar:** não há depoimentos, clientes, números de adoção, preço, benchmark de aprovação ou imprensa. Nenhum desses pode aparecer numa tela.
+**Ausências que trabalho futuro não pode fabricar:** não há depoimentos, clientes, números de adoção, benchmark de aprovação ou imprensa. Nenhum desses pode aparecer numa tela.
+
+**Preço:** são dois, decididos pela dona em 25/11/2026. O do Banco de Espelhos da Magistratura, hipótese de teste: R$ 197 por um mês de acesso, pagamento único, sem renovação automática, com bônus de atualização de 12 meses e fila do corretor (entrada antecipada e pelo menos 20% de desconto); ele aparece só em `banco-espelhos-venda.html`. O do beta: R$ 197 por ano, como valor previsto que pode mudar, só na caixa `.honesto` de `sobre.html` ("Quando abrir, R$ 197 por ano (valor previsto, pode mudar)."), feito pelo Codex num PR à parte (item 2 do pedido de 25/11/2026). Não há checkout: a página registra só o pedido de aviso de abertura da venda (RPC `entrar_lista_espera`, área `banco-espelhos`), que fica na tabela da lista de espera do beta mas não faz parte dela: serve para um único e-mail no dia em que a venda abrir e é apagado depois (Política de privacidade 1.3, §3 e §9.5); esses endereços não entram em convite do beta nem em outro e-mail. Nenhum outro preço da Cátedra pode aparecer em tela; a página do Banco de Espelhos só mostra, como comparação, faixas de preço de mercado datadas (setembro de 2026), sem nome de concorrente, e não usa "correção por IA" como argumento. O que falta decidir antes de divulgar o link está em `docs/pedidos-claude-code.md`, "Decisões minhas".
 
 ## Product Principles
 

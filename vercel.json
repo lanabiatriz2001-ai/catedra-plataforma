@@ -21,6 +21,10 @@
     {
       "source": "/sobre",
       "destination": "/sobre.html"
+    },
+    {
+      "source": "/banco-de-espelhos",
+      "destination": "/banco-espelhos-venda.html"
     }
   ],
   "headers": [
