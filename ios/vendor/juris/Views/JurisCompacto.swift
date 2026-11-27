@@ -459,15 +459,6 @@ struct JurisGradeOuFileira<Conteudo: View>: View {
     }
 }
 
-/// Margem horizontal de página: 26 pt (ou o valor de hoje) no iPad, 16 em compacto.
-struct JurisMargemPagina: ViewModifier {
-    @Environment(\.ehCompacto) private var ehCompacto
-    let regular: CGFloat
-    func body(content: Content) -> some View {
-        content.padding(.horizontal, ehCompacto ? 16 : regular)
-    }
-}
-
 /// No iPhone a `List(selection:)` não seleciona ao toque (só em modo de edição): o toque na
 /// linha passa a abrir o verbete. No iPad nada muda — a seleção da lista continua mandando.
 struct JurisAbreNoToque: ViewModifier {
@@ -484,7 +475,6 @@ struct JurisAbreNoToque: ViewModifier {
 }
 
 extension View {
-    func jurisMargemPagina(_ regular: CGFloat = 26) -> some View { modifier(JurisMargemPagina(regular: regular)) }
     func jurisAbreNoToque(_ id: String) -> some View { modifier(JurisAbreNoToque(id: id)) }
 }
 

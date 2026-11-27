@@ -158,6 +158,22 @@ struct BotaoVidro: View {
     }
 }
 
+/// Os indicadores ocupam colunas iguais. Quando a fileira não comporta as legendas,
+/// cada cartão ocupa a largura da página.
+struct IndicadoresInicio<Conteudo: View>: View {
+    @ViewBuilder let conteudo: () -> Conteudo
+
+    var body: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .top, spacing: DSEspaco.e4) { conteudo() }
+                .fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: DSEspaco.e3) { conteudo() }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .offset(y: -42).padding(.bottom, -42)
+    }
+}
+
 /// Cartão de número sobreposto ao pé do hero (`.cth-kpi`): rótulo em versalete, valor em
 /// mono grande, linha de apoio e barra no gradiente do tema.
 struct CartaoNumeroInicio: View {
@@ -174,7 +190,7 @@ struct CartaoNumeroInicio: View {
                 if !unidade.isEmpty { Text(unidade).font(DS.mono(17, .semibold)).foregroundStyle(ThemeState.t.text2) }
             }
             .padding(.top, 7)
-            Text(apoio).font(DS.interface(12.5)).foregroundStyle(ThemeState.t.text2).padding(.top, 8).lineLimit(2)
+            Text(apoio).font(DS.interface(12.5)).foregroundStyle(ThemeState.t.text2).padding(.top, DSEspaco.e2).fixedSize(horizontal: false, vertical: true)
             if let f = fracao {
                 GeometryReader { g in
                     ZStack(alignment: .leading) {
@@ -187,7 +203,7 @@ struct CartaoNumeroInicio: View {
             }
         }
         .padding(.horizontal, 20).padding(.top, 18).padding(.bottom, 16)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(idealWidth: DS.escala(160), maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(RoundedRectangle(cornerRadius: DSRaio.card, style: .continuous).fill(ThemeState.t.surface))
         .overlay(RoundedRectangle(cornerRadius: DSRaio.card, style: .continuous).strokeBorder(ThemeState.t.border, lineWidth: 1))
         .shadow(color: Color.black.opacity(0.08), radius: 14, x: 0, y: 8)

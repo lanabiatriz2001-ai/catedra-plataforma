@@ -281,7 +281,7 @@ struct SimuladoView: View {
                 VStack(alignment: .leading, spacing: 18) {
                     if let p = prova { provaView(p) } else { configuracao; historicoView }
                 }
-                .padding(.horizontal, 28).padding(.vertical, 24)
+                .margemPaginaAcervo().padding(.vertical, 24)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
